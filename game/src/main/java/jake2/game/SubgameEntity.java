@@ -526,7 +526,7 @@ public class SubgameEntity extends edict_t {
     }
 
     /** Reads the entity from the file. */
-    public void read(QuakeFile f, edict_t[] g_edicts) throws IOException {
+    public void read(QuakeFile f, edict_t[] g_edicts, gclient_t[] clients, GameExportsImpl gameExports) throws IOException {
         s.read(f, g_edicts);
         inuse = f.readBoolean();
         linkcount = f.readInt();
@@ -673,7 +673,7 @@ public class SubgameEntity extends edict_t {
         light_level = f.readInt();
         style = f.readInt();
 
-        item = GameItems.readItem(f);
+        item = GameItems.readItem(f, gameExports);
 
         moveinfo.read(f);
         monsterinfo.read(f);
@@ -682,7 +682,7 @@ public class SubgameEntity extends edict_t {
         if (ndx == -1)
             setClient(null);
         else
-            setClient(GameBase.game.clients[ndx]);
+            setClient(clients[ndx]);
 
         setOwner((SubgameEntity) f.readEdictRef(g_edicts));
 

@@ -30,12 +30,14 @@ import jake2.qcommon.util.Math3D;
 
 import java.util.Calendar;
 
+import static jake2.qcommon.Defines.EF_FLIES;
+
 public class GameMisc {
-    static void SP_path_corner(SubgameEntity self) {
+    static void SP_path_corner(SubgameEntity self, GameExportsImpl gameExports) {
         if (self.targetname == null) {
-            GameBase.gi.dprintf("path_corner with no targetname at "
+            gameExports.gameImports.dprintf("path_corner with no targetname at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -44,12 +46,12 @@ public class GameMisc {
         Math3D.VectorSet(self.mins, -8, -8, -8);
         Math3D.VectorSet(self.maxs, 8, 8, 8);
         self.svflags |= Defines.SVF_NOCLIENT;
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_point_combat(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    static void SP_point_combat(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
         self.solid = Defines.SOLID_TRIGGER;
@@ -57,21 +59,21 @@ public class GameMisc {
         Math3D.VectorSet(self.mins, -8, -8, -16);
         Math3D.VectorSet(self.maxs, 8, 8, 16);
         self.svflags = Defines.SVF_NOCLIENT;
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     };
 
-    static void SP_viewthing(SubgameEntity ent) {
-        GameBase.gi.dprintf("viewthing spawned\n");
+    static void SP_viewthing(SubgameEntity ent, GameExportsImpl gameExports) {
+        gameExports.gameImports.dprintf("viewthing spawned\n");
 
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.renderfx = Defines.RF_FRAMELERP;
         Math3D.VectorSet(ent.mins, -16, -16, -24);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/banner/tris.md2");
-        GameBase.gi.linkentity(ent);
-        ent.nextthink = GameBase.level.time + 0.5f;
+        gameExports.gameImports.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 0.5f;
         ent.think = TH_viewthing;
     }
 
@@ -79,8 +81,8 @@ public class GameMisc {
      * QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4) Used as a positional target
      * for spotlights, etc.
      */
-    static void SP_info_null(SubgameEntity self) {
-        GameUtil.G_FreeEdict(self);
+    static void SP_info_null(SubgameEntity self, GameExportsImpl gameExports) {
+        GameUtil.G_FreeEdict(self, gameExports);
     };
 
     /*
@@ -92,25 +94,25 @@ public class GameMisc {
         Math3D.VectorCopy(self.s.origin, self.absmax);
     };
 
-    static void SP_light(SubgameEntity self) {
+    static void SP_light(SubgameEntity self, GameExportsImpl gameExports) {
         // no targeted lights in deathmatch, because they cause global messages
-        if (null == self.targetname || GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+        if (null == self.targetname || gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if (self.style >= 32) {
             self.use = light_use;
             if ((self.spawnflags & START_OFF) != 0)
-                GameBase.gi.configstring(Defines.CS_LIGHTS + self.style, "a");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
             else
-                GameBase.gi.configstring(Defines.CS_LIGHTS + self.style, "m");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "m");
         }
     }
 
-    static void SP_func_wall(SubgameEntity self) {
+    static void SP_func_wall(SubgameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
         if ((self.spawnflags & 8) != 0)
             self.s.effects |= Defines.EF_ANIM_ALL;
@@ -120,20 +122,20 @@ public class GameMisc {
         // just a wall
         if ((self.spawnflags & 7) == 0) {
             self.solid = Defines.SOLID_BSP;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return;
         }
 
         // it must be TRIGGER_SPAWN
         if (0 == (self.spawnflags & 1)) {
-            GameBase.gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
+            gameExports.gameImports.dprintf("func_wall missing TRIGGER_SPAWN\n");
             self.spawnflags |= 1;
         }
 
         // yell if the spawnflags are odd
         if ((self.spawnflags & 4) != 0) {
             if (0 == (self.spawnflags & 2)) {
-                GameBase.gi.dprintf("func_wall START_ON without TOGGLE\n");
+                gameExports.gameImports.dprintf("func_wall START_ON without TOGGLE\n");
                 self.spawnflags |= 2;
             }
         }
@@ -145,11 +147,11 @@ public class GameMisc {
             self.solid = Defines.SOLID_NOT;
             self.svflags |= Defines.SVF_NOCLIENT;
         }
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_func_object(SubgameEntity self) {
-        GameBase.gi.setmodel(self, self.model);
+    static void SP_func_object(SubgameEntity self, GameExportsImpl gameExports) {
+        gameExports.gameImports.setmodel(self, self.model);
 
         self.mins[0] += 1;
         self.mins[1] += 1;
@@ -165,7 +167,7 @@ public class GameMisc {
             self.solid = Defines.SOLID_BSP;
             self.movetype = GameDefines.MOVETYPE_PUSH;
             self.think = func_object_release;
-            self.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         } else {
             self.solid = Defines.SOLID_NOT;
             self.movetype = GameDefines.MOVETYPE_PUSH;
@@ -180,21 +182,21 @@ public class GameMisc {
 
         self.clipmask = Defines.MASK_MONSTERSOLID;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_func_explosive(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(self);
+    static void SP_func_explosive(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         self.movetype = GameDefines.MOVETYPE_PUSH;
 
-        GameBase.gi.modelindex("models/objects/debris1/tris.md2");
-        GameBase.gi.modelindex("models/objects/debris2/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/debris1/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/debris2/tris.md2");
 
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
         if ((self.spawnflags & 1) != 0) {
             self.svflags |= Defines.SVF_NOCLIENT;
@@ -218,24 +220,24 @@ public class GameMisc {
             self.takedamage = Defines.DAMAGE_YES;
         }
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_misc_explobox(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(self);
+    static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
-        GameBase.gi.modelindex("models/objects/debris1/tris.md2");
-        GameBase.gi.modelindex("models/objects/debris2/tris.md2");
-        GameBase.gi.modelindex("models/objects/debris3/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/debris1/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/debris2/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/debris3/tris.md2");
 
         self.solid = Defines.SOLID_BBOX;
         self.movetype = GameDefines.MOVETYPE_STEP;
 
         self.model = "models/objects/barrels/tris.md2";
-        self.s.modelindex = GameBase.gi.modelindex(self.model);
+        self.s.modelindex = gameExports.gameImports.modelindex(self.model);
         Math3D.VectorSet(self.mins, -16, -16, 0);
         Math3D.VectorSet(self.maxs, 16, 16, 40);
 
@@ -253,105 +255,105 @@ public class GameMisc {
         self.touch = barrel_touch;
 
         self.think = M.M_droptofloor;
-        self.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_misc_blackhole(SubgameEntity ent) {
+    static void SP_misc_blackhole(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
         Math3D.VectorSet(ent.maxs, 64, 64, 8);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/black/tris.md2");
         ent.s.renderfx = Defines.RF_TRANSLUCENT;
         ent.use = misc_blackhole_use;
         ent.think = misc_blackhole_think;
-        ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_eastertank(SubgameEntity ent) {
+    static void SP_misc_eastertank(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, -16);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/tank/tris.md2");
         ent.s.frame = 254;
         ent.think = misc_eastertank_think;
-        ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_easterchick(SubgameEntity ent) {
+    static void SP_misc_easterchick(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 208;
         ent.think = misc_easterchick_think;
-        ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_easterchick2(SubgameEntity ent) {
+    static void SP_misc_easterchick2(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 248;
         ent.think = misc_easterchick2_think;
-        ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_monster_commander_body(SubgameEntity self) {
+    static void SP_monster_commander_body(SubgameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_NONE;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/commandr/tris.md2";
-        self.s.modelindex = GameBase.gi.modelindex(self.model);
+        self.s.modelindex = gameExports.gameImports.modelindex(self.model);
         Math3D.VectorSet(self.mins, -32, -32, 0);
         Math3D.VectorSet(self.maxs, 32, 32, 48);
         self.use = commander_body_use;
         self.takedamage = Defines.DAMAGE_YES;
         self.flags = GameDefines.FL_GODMODE;
         self.s.renderfx |= Defines.RF_FRAMELERP;
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
-        GameBase.gi.soundindex("tank/thud.wav");
-        GameBase.gi.soundindex("tank/pain.wav");
+        gameExports.gameImports.soundindex("tank/thud.wav");
+        gameExports.gameImports.soundindex("tank/pain.wav");
 
         self.think = commander_body_drop;
-        self.nextthink = GameBase.level.time + 5 * Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + 5 * Defines.FRAMETIME;
     }
 
-    static void SP_misc_banner(SubgameEntity ent) {
+    static void SP_misc_banner(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/banner/tris.md2");
         ent.s.frame = Lib.rand() % 16;
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
 
         ent.think = misc_banner_think;
-        ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
     }
 
-    static void SP_misc_deadsoldier(SubgameEntity ent) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent);
+    static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/deadbods/dude/tris.md2");
 
         // Defaults to frame 0
@@ -376,14 +378,14 @@ public class GameMisc {
         ent.die = misc_deadsoldier_die;
         ent.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_viper(SubgameEntity ent) {
+    static void SP_misc_viper(SubgameEntity ent, GameExportsImpl gameExports) {
         if (null == ent.target) {
-            GameBase.gi.dprintf("misc_viper without a target at "
+            gameExports.gameImports.dprintf("misc_viper without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
@@ -392,41 +394,41 @@ public class GameMisc {
 
         ent.movetype = GameDefines.MOVETYPE_PUSH;
         ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/ships/viper/tris.md2");
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
         ent.think = GameFunc.func_train_find;
-        ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_viper_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
 
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72) This is a
      * large stationary viper as seen in Paul's intro
      */
-    static void SP_misc_bigviper(SubgameEntity ent) {
+    static void SP_misc_bigviper(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -176, -120, -24);
         Math3D.VectorSet(ent.maxs, 176, 120, 72);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/ships/bigviper/tris.md2");
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_viper_bomb(SubgameEntity self) {
+    static void SP_misc_viper_bomb(SubgameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_NONE;
         self.solid = Defines.SOLID_NOT;
         Math3D.VectorSet(self.mins, -8, -8, -8);
         Math3D.VectorSet(self.maxs, 8, 8, 8);
 
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/bomb/tris.md2");
 
         if (self.dmg == 0)
@@ -435,14 +437,14 @@ public class GameMisc {
         self.use = misc_viper_bomb_use;
         self.svflags |= Defines.SVF_NOCLIENT;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_misc_strogg_ship(SubgameEntity ent) {
+    static void SP_misc_strogg_ship(SubgameEntity ent, GameExportsImpl gameExports) {
         if (null == ent.target) {
-            GameBase.gi.dprintf(ent.classname + " without a target at "
+            gameExports.gameImports.dprintf(ent.classname + " without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
@@ -451,59 +453,59 @@ public class GameMisc {
 
         ent.movetype = GameDefines.MOVETYPE_PUSH;
         ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/ships/strogg1/tris.md2");
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
         ent.think = GameFunc.func_train_find;
-        ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_strogg_ship_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
 
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_satellite_dish(SubgameEntity ent) {
+    static void SP_misc_satellite_dish(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
         Math3D.VectorSet(ent.maxs, 64, 64, 128);
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/satellite/tris.md2");
         ent.use = misc_satellite_dish_use;
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
      */
-    static void SP_light_mine1(SubgameEntity ent) {
+    static void SP_light_mine1(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/minelite/light1/tris.md2");
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
      */
-    static void SP_light_mine2(SubgameEntity ent) {
+    static void SP_light_mine2(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
-        ent.s.modelindex = GameBase.gi
+        ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/minelite/light2/tris.md2");
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_arm(SubgameEntity ent) {
-        GameBase.gi.setmodel(ent, "models/objects/gibs/arm/tris.md2");
+    static void SP_misc_gib_arm(SubgameEntity ent, GameExportsImpl gameExports) {
+        gameExports.gameImports.setmodel(ent, "models/objects/gibs/arm/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
@@ -515,16 +517,16 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think = GameUtil.G_FreeEdictA;
-        ent.nextthink = GameBase.level.time + 30;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 30;
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_leg(SubgameEntity ent) {
-        GameBase.gi.setmodel(ent, "models/objects/gibs/leg/tris.md2");
+    static void SP_misc_gib_leg(SubgameEntity ent, GameExportsImpl gameExports) {
+        gameExports.gameImports.setmodel(ent, "models/objects/gibs/leg/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
@@ -536,16 +538,16 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think = GameUtil.G_FreeEdictA;
-        ent.nextthink = GameBase.level.time + 30;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 30;
+        gameExports.gameImports.linkentity(ent);
     }
 
     /*
      * QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_head(SubgameEntity ent) {
-        GameBase.gi.setmodel(ent, "models/objects/gibs/head/tris.md2");
+    static void SP_misc_gib_head(SubgameEntity ent, GameExportsImpl gameExports) {
+        gameExports.gameImports.setmodel(ent, "models/objects/gibs/head/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
@@ -557,8 +559,8 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think = GameUtil.G_FreeEdictA;
-        ent.nextthink = GameBase.level.time + 30;
-        GameBase.gi.linkentity(ent);
+        ent.nextthink = gameExports.level.time + 30;
+        gameExports.gameImports.linkentity(ent);
     }
 
     //=====================================================
@@ -568,13 +570,12 @@ public class GameMisc {
      * same "team") "count" is position in the string (starts at 1)
      */
 
-    static void SP_target_character(SubgameEntity self) {
+    static void SP_target_character(SubgameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
         self.solid = Defines.SOLID_BSP;
         self.s.frame = 12;
-        GameBase.gi.linkentity(self);
-        return;
+        gameExports.gameImports.linkentity(self);
     }
 
     static void SP_target_string(SubgameEntity self) {
@@ -630,18 +631,18 @@ public class GameMisc {
         }
     }
 
-    static void SP_func_clock(SubgameEntity self) {
+    static void SP_func_clock(SubgameEntity self, GameExportsImpl gameExports) {
         if (self.target == null) {
-            GameBase.gi.dprintf(self.classname + " with no target at "
+            gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if ((self.spawnflags & 2) != 0 && (0 == self.count)) {
-            GameBase.gi.dprintf(self.classname + " with no count at "
+            gameExports.gameImports.dprintf(self.classname + " with no count at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -657,7 +658,7 @@ public class GameMisc {
         if ((self.spawnflags & 4) != 0)
             self.use = func_clock_use;
         else
-            self.nextthink = GameBase.level.time + 1;
+            self.nextthink = gameExports.level.time + 1;
     }
 
     /**
@@ -665,25 +666,25 @@ public class GameMisc {
      * this disc will teleport players to the targeted misc_teleporter_dest
      * object.
      */
-    static void SP_misc_teleporter(SubgameEntity ent) {
+    static void SP_misc_teleporter(SubgameEntity ent, GameExportsImpl gameExports) {
 
         if (ent.target == null) {
-            GameBase.gi.dprintf("teleporter without a target.\n");
-            GameUtil.G_FreeEdict(ent);
+            gameExports.gameImports.dprintf("teleporter without a target.\n");
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
-        GameBase.gi.setmodel(ent, "models/objects/dmspot/tris.md2");
+        gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
         ent.s.skinnum = 1;
         ent.s.effects = Defines.EF_TELEPORTER;
-        ent.s.sound = GameBase.gi.soundindex("world/amb10.wav");
+        ent.s.sound = gameExports.gameImports.soundindex("world/amb10.wav");
         ent.solid = Defines.SOLID_BBOX;
 
         Math3D.VectorSet(ent.mins, -32, -32, -24);
         Math3D.VectorSet(ent.maxs, 32, 32, -16);
-        GameBase.gi.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
 
-        SubgameEntity trig = GameUtil.G_Spawn();
+        SubgameEntity trig = GameUtil.G_Spawn(gameExports);
         trig.touch = teleporter_touch;
         trig.solid = Defines.SOLID_TRIGGER;
         trig.target = ent.target;
@@ -691,7 +692,7 @@ public class GameMisc {
         Math3D.VectorCopy(ent.s.origin, trig.s.origin);
         Math3D.VectorSet(trig.mins, -8, -8, 8);
         Math3D.VectorSet(trig.maxs, 8, 8, 24);
-        GameBase.gi.linkentity(trig);
+        gameExports.gameImports.linkentity(trig);
     }
 
     /**
@@ -710,31 +711,31 @@ public class GameMisc {
             Math3D.VectorScale(v, 1.2f, v);
     }
 
-    public static void BecomeExplosion1(SubgameEntity self) {
-        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-        GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
-        GameBase.gi.WritePosition(self.s.origin);
-        GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+    public static void BecomeExplosion1(SubgameEntity self, GameExportsImpl gameExports) {
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+        gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
+        gameExports.gameImports.WritePosition(self.s.origin);
+        gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
-        GameUtil.G_FreeEdict(self);
+        GameUtil.G_FreeEdict(self, gameExports);
     }
 
-    private static void BecomeExplosion2(SubgameEntity self) {
-        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-        GameBase.gi.WriteByte(Defines.TE_EXPLOSION2);
-        GameBase.gi.WritePosition(self.s.origin);
-        GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+    private static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+        gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION2);
+        gameExports.gameImports.WritePosition(self.s.origin);
+        gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
-        GameUtil.G_FreeEdict(self);
+        GameUtil.G_FreeEdict(self, gameExports);
     }
 
-    public static void ThrowGib(SubgameEntity self, String gibname, int damage, int type) {
+    public static void ThrowGib(SubgameEntity self, String gibname, int damage, int type, GameExportsImpl gameExports) {
 
         float[] vd = { 0, 0, 0 };
         float[] origin = { 0, 0, 0 };
         float[] size = { 0, 0, 0 };
 
-        SubgameEntity gib = GameUtil.G_Spawn();
+        SubgameEntity gib = GameUtil.G_Spawn(gameExports);
     
         Math3D.VectorScale(self.size, 0.5f, size);
         Math3D.VectorAdd(self.absmin, size, origin);
@@ -742,7 +743,7 @@ public class GameMisc {
         gib.s.origin[1] = origin[1] + Lib.crandom() * size[1];
         gib.s.origin[2] = origin[2] + Lib.crandom() * size[2];
     
-        GameBase.gi.setmodel(gib, gibname);
+        gameExports.gameImports.setmodel(gib, gibname);
         gib.solid = Defines.SOLID_NOT;
         gib.s.effects |= Defines.EF_GIB;
         gib.flags |= GameDefines.FL_NO_KNOCKBACK;
@@ -767,13 +768,13 @@ public class GameMisc {
         gib.avelocity[2] = Lib.random() * 600;
     
         gib.think = GameUtil.G_FreeEdictA;
-        gib.nextthink = GameBase.level.time + 10 + Lib.random() * 10;
+        gib.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
     
-        GameBase.gi.linkentity(gib);
+        gameExports.gameImports.linkentity(gib);
     }
 
     public static void ThrowHead(SubgameEntity self, String gibname, int damage,
-            int type) {
+                                 int type, GameExportsImpl gameExports) {
         float vd[] = { 0, 0, 0 };
     
         float vscale;
@@ -784,10 +785,10 @@ public class GameMisc {
         Math3D.VectorClear(self.maxs);
     
         self.s.modelindex2 = 0;
-        GameBase.gi.setmodel(self, gibname);
+        gameExports.gameImports.setmodel(self, gibname);
         self.solid = Defines.SOLID_NOT;
         self.s.effects |= Defines.EF_GIB;
-        self.s.effects &= ~Defines.EF_FLIES;
+        self.s.effects &= ~EF_FLIES;
         self.s.sound = 0;
         self.flags |= GameDefines.FL_NO_KNOCKBACK;
         self.svflags &= ~Defines.SVF_MONSTER;
@@ -810,12 +811,12 @@ public class GameMisc {
         self.avelocity[Defines.YAW] = Lib.crandom() * 600f;
     
         self.think = GameUtil.G_FreeEdictA;
-        self.nextthink = GameBase.level.time + 10 + Lib.random() * 10;
+        self.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
     
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void ThrowClientHead(SubgameEntity self, int damage) {
+    static void ThrowClientHead(SubgameEntity self, int damage, GameExportsImpl gameExports) {
         float vd[] = { 0, 0, 0 };
         String gibname;
     
@@ -829,7 +830,7 @@ public class GameMisc {
     
         self.s.origin[2] += 32;
         self.s.frame = 0;
-        GameBase.gi.setmodel(self, gibname);
+        gameExports.gameImports.setmodel(self, gibname);
         Math3D.VectorSet(self.mins, -16, -16, 0);
         Math3D.VectorSet(self.maxs, 16, 16, 16);
     
@@ -854,16 +855,16 @@ public class GameMisc {
             self.nextthink = 0;
         }
     
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
     static void ThrowDebris(SubgameEntity self, String modelname, float speed,
-                            float[] origin) {
+                            float[] origin, GameExportsImpl gameExports) {
         float[] v = { 0, 0, 0 };
 
-        SubgameEntity chunk = GameUtil.G_Spawn();
+        SubgameEntity chunk = GameUtil.G_Spawn(gameExports);
         Math3D.VectorCopy(origin, chunk.s.origin);
-        GameBase.gi.setmodel(chunk, modelname);
+        gameExports.gameImports.setmodel(chunk, modelname);
         v[0] = 100 * Lib.crandom();
         v[1] = 100 * Lib.crandom();
         v[2] = 100 + 100 * Lib.crandom();
@@ -874,13 +875,13 @@ public class GameMisc {
         chunk.avelocity[1] = Lib.random() * 600;
         chunk.avelocity[2] = Lib.random() * 600;
         chunk.think = GameUtil.G_FreeEdictA;
-        chunk.nextthink = GameBase.level.time + 5 + Lib.random() * 5;
+        chunk.nextthink = gameExports.level.time + 5 + Lib.random() * 5;
         chunk.s.frame = 0;
         chunk.flags = 0;
         chunk.classname = "debris";
         chunk.takedamage = Defines.DAMAGE_YES;
         chunk.die = debris_die;
-        GameBase.gi.linkentity(chunk);
+        gameExports.gameImports.linkentity(chunk);
     }
 
     private static void ClipGibVelocity(SubgameEntity ent) {
@@ -900,10 +901,10 @@ public class GameMisc {
 
     private static EntUseAdapter Use_Areaportal = new EntUseAdapter() {
         public String getID() { return "use_areaportal";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             ent.count ^= 1; // toggle state
             //	gi.dprintf ("portalstate: %i = %i\n", ent.style, ent.count);
-            GameBase.gi.SetAreaPortalState(ent.style, ent.count != 0);
+            gameExports.gameImports.SetAreaPortalState(ent.style, ent.count != 0);
         }
     };
 
@@ -917,7 +918,7 @@ public class GameMisc {
 
     static EntThinkAdapter SP_func_areaportal = new EntThinkAdapter() {
         public String getID() { return "sp_func_areaportal";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.use = Use_Areaportal;
             ent.count = 0; // always start closed;
             return true;
@@ -932,7 +933,7 @@ public class GameMisc {
     private static EntTouchAdapter path_corner_touch = new EntTouchAdapter() {
         public String getID() { return "path_corner_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             if (other.movetarget != self)
@@ -946,13 +947,13 @@ public class GameMisc {
 
                 savetarget = self.target;
                 self.target = self.pathtarget;
-                GameUtil.G_UseTargets(self, other);
+                GameUtil.G_UseTargets(self, other, gameExports);
                 self.target = savetarget;
             }
 
             SubgameEntity next;
             if (self.target != null)
-                next = GameBase.G_PickTarget(self.target);
+                next = GameBase.G_PickTarget(self.target, gameExports);
             else
                 next = null;
 
@@ -961,21 +962,21 @@ public class GameMisc {
                 v[2] += next.mins[2];
                 v[2] -= other.mins[2];
                 Math3D.VectorCopy(v, other.s.origin);
-                next = GameBase.G_PickTarget(next.target);
+                next = GameBase.G_PickTarget(next.target, gameExports);
                 other.s.event = Defines.EV_OTHER_TELEPORT;
             }
 
             other.goalentity = other.movetarget = next;
 
             if (self.wait != 0) {
-                other.monsterinfo.pausetime = GameBase.level.time + self.wait;
-                other.monsterinfo.stand.think(other);
+                other.monsterinfo.pausetime = gameExports.level.time + self.wait;
+                other.monsterinfo.stand.think(other, gameExports);
                 return;
             }
 
             if (other.movetarget == null) {
-                other.monsterinfo.pausetime = GameBase.level.time + 100000000;
-                other.monsterinfo.stand.think(other);
+                other.monsterinfo.pausetime = gameExports.level.time + 100000000;
+                other.monsterinfo.stand.think(other, gameExports);
             } else {
                 Math3D.VectorSubtract(other.goalentity.s.origin,
                         other.s.origin, v);
@@ -992,7 +993,7 @@ public class GameMisc {
     private static EntTouchAdapter point_combat_touch = new EntTouchAdapter() {
         public String getID() { return "point_combat_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             SubgameEntity activator;
 
             if (other.movetarget != self)
@@ -1001,9 +1002,9 @@ public class GameMisc {
             if (self.target != null) {
                 other.target = self.target;
                 other.goalentity = other.movetarget = GameBase
-                        .G_PickTarget(other.target);
+                        .G_PickTarget(other.target, gameExports);
                 if (null == other.goalentity) {
-                    GameBase.gi.dprintf(self.classname + " at "
+                    gameExports.gameImports.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin) + " target "
                             + self.target + " does not exist\n");
                     other.movetarget = self;
@@ -1011,9 +1012,9 @@ public class GameMisc {
                 self.target = null;
             } else if ((self.spawnflags & 1) != 0
                     && 0 == (other.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY))) {
-                other.monsterinfo.pausetime = GameBase.level.time + 100000000;
+                other.monsterinfo.pausetime = gameExports.level.time + 100000000;
                 other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
-                other.monsterinfo.stand.think(other);
+                other.monsterinfo.stand.think(other, gameExports);
             }
 
             if (other.movetarget == self) {
@@ -1038,7 +1039,7 @@ public class GameMisc {
                     activator = other.activator;
                 else
                     activator = other;
-                GameUtil.G_UseTargets(self, activator);
+                GameUtil.G_UseTargets(self, activator, gameExports);
                 self.target = savetarget;
             }
         }
@@ -1050,9 +1051,9 @@ public class GameMisc {
      */
     private static EntThinkAdapter TH_viewthing = new EntThinkAdapter() {
         public String getID() { return "th_viewthing";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 7;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1068,12 +1069,12 @@ public class GameMisc {
 
     private static EntUseAdapter light_use = new EntUseAdapter() {
         public String getID() { return "light_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if ((self.spawnflags & START_OFF) != 0) {
-                GameBase.gi.configstring(Defines.CS_LIGHTS + self.style, "m");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "m");
                 self.spawnflags &= ~START_OFF;
             } else {
-                GameBase.gi.configstring(Defines.CS_LIGHTS + self.style, "a");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
                 self.spawnflags |= START_OFF;
             }
         }
@@ -1095,16 +1096,16 @@ public class GameMisc {
 
     private static EntUseAdapter func_wall_use = new EntUseAdapter() {
         public String getID() { return "func_wall_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.solid == Defines.SOLID_NOT) {
                 self.solid = Defines.SOLID_BSP;
                 self.svflags &= ~Defines.SVF_NOCLIENT;
-                GameUtil.KillBox(self);
+                GameUtil.KillBox(self, gameExports);
             } else {
                 self.solid = Defines.SOLID_NOT;
                 self.svflags |= Defines.SVF_NOCLIENT;
             }
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             if (0 == (self.spawnflags & 2))
                 self.use = null;
@@ -1118,7 +1119,7 @@ public class GameMisc {
     private static EntTouchAdapter func_object_touch = new EntTouchAdapter() {
         public String getID() { return "func_object_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             // only squash thing we fall on top of
             if (plane == null)
                 return;
@@ -1128,13 +1129,13 @@ public class GameMisc {
                 return;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     self.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH, gameExports);
         }
     };
 
     private static EntThinkAdapter func_object_release = new EntThinkAdapter() {
         public String getID() { return "func_object_release";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.touch = func_object_touch;
             return true;
@@ -1143,12 +1144,12 @@ public class GameMisc {
 
     private static EntUseAdapter func_object_use = new EntUseAdapter() {
         public String getID() { return "func_object_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_BSP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = null;
-            GameUtil.KillBox(self);
-            func_object_release.think(self);
+            GameUtil.KillBox(self, gameExports);
+            func_object_release.think(self, gameExports);
         }
     };
 
@@ -1169,7 +1170,7 @@ public class GameMisc {
     private static EntDieAdapter func_explosive_explode = new EntDieAdapter() {
         public String getID() { return "func_explosive_explode";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             float[] chunkorigin = { 0, 0, 0 };
             float[] size = { 0, 0, 0 };
@@ -1185,7 +1186,7 @@ public class GameMisc {
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, attacker, self.dmg, null,
-                        self.dmg + 40, GameDefines.MOD_EXPLOSIVE);
+                        self.dmg + 40, GameDefines.MOD_EXPLOSIVE, gameExports);
 
             Math3D.VectorSubtract(self.s.origin, inflictor.s.origin,
                     self.velocity);
@@ -1209,7 +1210,7 @@ public class GameMisc {
                     chunkorigin[1] = origin[1] + Lib.crandom() * size[1];
                     chunkorigin[2] = origin[2] + Lib.crandom() * size[2];
                     ThrowDebris(self, "models/objects/debris1/tris.md2",
-                            1, chunkorigin);
+                            1, chunkorigin, gameExports);
                 }
             }
 
@@ -1222,34 +1223,34 @@ public class GameMisc {
                 chunkorigin[1] = origin[1] + Lib.crandom() * size[1];
                 chunkorigin[2] = origin[2] + Lib.crandom() * size[2];
                 ThrowDebris(self, "models/objects/debris2/tris.md2", 2,
-                        chunkorigin);
+                        chunkorigin, gameExports);
             }
 
-            GameUtil.G_UseTargets(self, attacker);
+            GameUtil.G_UseTargets(self, attacker, gameExports);
 
             if (self.dmg != 0)
-                BecomeExplosion1(self);
+                BecomeExplosion1(self, gameExports);
             else
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
         }
     };
 
     private static EntUseAdapter func_explosive_use = new EntUseAdapter() {
         public String getID() { return "func_explosive_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             func_explosive_explode.die(self, self, other, self.health,
-                    Globals.vec3_origin);
+                    Globals.vec3_origin, gameExports);
         }
     };
 
     private static EntUseAdapter func_explosive_spawn = new EntUseAdapter() {
         public String getID() { return "func_explosive_spawn";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_BSP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = null;
-            GameUtil.KillBox(self);
-            GameBase.gi.linkentity(self);
+            GameUtil.KillBox(self, gameExports);
+            gameExports.gameImports.linkentity(self);
         }
     };
 
@@ -1261,7 +1262,7 @@ public class GameMisc {
     private static EntTouchAdapter barrel_touch = new EntTouchAdapter() {
         public String getID() { return "barrel_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float ratio;
             float[] v = { 0, 0, 0 };
 
@@ -1271,20 +1272,20 @@ public class GameMisc {
             ratio = (float) other.mass / (float) self.mass;
             Math3D.VectorSubtract(self.s.origin, other.s.origin, v);
             M.M_walkmove(self, Math3D.vectoyaw(v), 20 * ratio
-                    * Defines.FRAMETIME);
+                    * Defines.FRAMETIME, gameExports);
         }
     };
 
     private static EntThinkAdapter barrel_explode = new EntThinkAdapter() {
         public String getID() { return "barrel_explode";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] org = { 0, 0, 0 };
             float spd;
             float[] save = { 0, 0, 0 };
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, GameDefines.MOD_BARREL);
+                    self.dmg + 40, GameDefines.MOD_BARREL, gameExports);
 
             Math3D.VectorCopy(self.s.origin, save);
             Math3D.VectorMA(self.absmin, 0.5f, self.size, self.s.origin);
@@ -1295,31 +1296,31 @@ public class GameMisc {
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris1/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris1/tris.md2", spd,
-                    org);
+                    org, gameExports);
 
             // bottom corners
             spd = 1.75f * (float) self.dmg / 200.0f;
             Math3D.VectorCopy(self.absmin, org);
             ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org);
+                    org, gameExports);
             Math3D.VectorCopy(self.absmin, org);
             org[0] += self.size[0];
             ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org);
+                    org, gameExports);
             Math3D.VectorCopy(self.absmin, org);
             org[1] += self.size[1];
             ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org);
+                    org, gameExports);
             Math3D.VectorCopy(self.absmin, org);
             org[0] += self.size[0];
             org[1] += self.size[1];
             ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org);
+                    org, gameExports);
 
             // a bunch of little chunks
             spd = 2 * self.dmg / 200;
@@ -1327,48 +1328,48 @@ public class GameMisc {
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
             org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
             org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
             org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
             ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org);
+                    org, gameExports);
 
             Math3D.VectorCopy(save, self.s.origin);
             if (self.groundentity != null)
-                BecomeExplosion2(self);
+                BecomeExplosion2(self, gameExports);
             else
-                BecomeExplosion1(self);
+                BecomeExplosion1(self, gameExports);
 
             return true;
         }
@@ -1377,10 +1378,10 @@ public class GameMisc {
     private static EntDieAdapter barrel_delay = new EntDieAdapter() {
         public String getID() { return "barrel_delay";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
 
             self.takedamage = Defines.DAMAGE_NO;
-            self.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
             self.think = barrel_explode;
             self.activator = attacker;
         }
@@ -1396,25 +1397,25 @@ public class GameMisc {
 
     private static EntUseAdapter misc_blackhole_use = new EntUseAdapter() {
         public String getID() { return "misc_blavkhole_use";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             /*
              * gi.WriteByte (svc_temp_entity); gi.WriteByte (TE_BOSSTPORT);
              * gi.WritePosition (ent.s.origin); gi.multicast (ent.s.origin,
              * MULTICAST_PVS);
              */
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
         }
     };
 
     private static EntThinkAdapter misc_blackhole_think = new EntThinkAdapter() {
         public String getID() { return "misc_blackhole_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (++self.s.frame < 19)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 0;
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1426,12 +1427,12 @@ public class GameMisc {
 
     private static EntThinkAdapter misc_eastertank_think = new EntThinkAdapter() {
         public String getID() { return "misc_eastertank_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 293)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 254;
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1443,12 +1444,12 @@ public class GameMisc {
 
     private static EntThinkAdapter misc_easterchick_think = new EntThinkAdapter() {
         public String getID() { return "misc_easterchick_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 247)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 208;
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1459,12 +1460,12 @@ public class GameMisc {
      */
     private static EntThinkAdapter misc_easterchick2_think = new EntThinkAdapter() {
         public String getID() { return "misc_easterchick2_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 287)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 248;
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1478,14 +1479,14 @@ public class GameMisc {
 
     private static EntThinkAdapter commander_body_think = new EntThinkAdapter() {
         public String getID() { return "commander_body_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 24)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else
                 self.nextthink = 0;
 
             if (self.s.frame == 22)
-                GameBase.gi.sound(self, Defines.CHAN_BODY, GameBase.gi
+                gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                         .soundindex("tank/thud.wav"), 1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1493,17 +1494,17 @@ public class GameMisc {
 
     private static EntUseAdapter commander_body_use = new EntUseAdapter() {
         public String getID() { return "commander_body_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.think = commander_body_think;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-            GameBase.gi.sound(self, Defines.CHAN_BODY, GameBase.gi
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("tank/pain.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
 
     private static EntThinkAdapter commander_body_drop = new EntThinkAdapter() {
         public String getID() { return "commander_body_group";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
@@ -1516,9 +1517,9 @@ public class GameMisc {
      */
     private static EntThinkAdapter misc_banner_think = new EntThinkAdapter() {
         public String getID() { return "misc_banner_think";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 16;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1531,19 +1532,19 @@ public class GameMisc {
     private static EntDieAdapter misc_deadsoldier_die = new EntDieAdapter() {
         public String getID() { return "misc_deadsoldier_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             if (self.health > -80)
                 return;
 
-            GameBase.gi.sound(self, Defines.CHAN_BODY, GameBase.gi
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
             for (n = 0; n < 4; n++)
                 ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
             ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                    damage, GameDefines.GIB_ORGANIC);
+                    damage, GameDefines.GIB_ORGANIC, gameExports);
         }
     };
 
@@ -1558,10 +1559,10 @@ public class GameMisc {
 
     private static EntUseAdapter misc_viper_use = new EntUseAdapter() {
         public String getID() { return "misc_viper_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator);
+            GameFunc.train_use.use(self, other, activator, gameExports);
         }
     };
 
@@ -1572,26 +1573,26 @@ public class GameMisc {
     private static EntTouchAdapter misc_viper_bomb_touch = new EntTouchAdapter() {
         public String getID() { return "misc_viper_bomb_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
-            GameUtil.G_UseTargets(self, self.activator);
+                          csurface_t surf, GameExportsImpl gameExports) {
+            GameUtil.G_UseTargets(self, self.activator, gameExports);
 
             self.s.origin[2] = self.absmin[2] + 1;
             GameCombat.T_RadiusDamage(self, self, self.dmg, null, self.dmg + 40,
-                    GameDefines.MOD_BOMB);
-            BecomeExplosion2(self);
+                    GameDefines.MOD_BOMB, gameExports);
+            BecomeExplosion2(self, gameExports);
         }
     };
 
     private static EntThinkAdapter misc_viper_bomb_prethink = new EntThinkAdapter() {
         public String getID() { return "misc_viper_bomb_prethink";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] v = { 0, 0, 0 };
             float diff;
 
             self.groundentity = null;
 
-            diff = self.timestamp - GameBase.level.time;
+            diff = self.timestamp - gameExports.level.time;
             if (diff < -1.0)
                 diff = -1.0f;
 
@@ -1608,7 +1609,7 @@ public class GameMisc {
 
     private static EntUseAdapter misc_viper_bomb_use = new EntUseAdapter() {
         public String getID() { return "misc_viper_bomb_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity viper = null;
 
             self.solid = Defines.SOLID_BBOX;
@@ -1622,14 +1623,14 @@ public class GameMisc {
 
             EdictIterator es = null;
 
-            es = GameBase.G_Find(es, GameBase.findByClass, "misc_viper");
+            es = GameBase.G_Find(es, GameBase.findByClass, "misc_viper", gameExports);
             if (es != null)
                 viper = es.o;
 
             Math3D.VectorScale(viper.moveinfo.dir, viper.moveinfo.speed,
                     self.velocity);
 
-            self.timestamp = GameBase.level.time;
+            self.timestamp = gameExports.level.time;
             Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir);
         }
     };
@@ -1645,10 +1646,10 @@ public class GameMisc {
 
     private static EntUseAdapter misc_strogg_ship_use = new EntUseAdapter() {
         public String getID() { return "misc_strogg_ship_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator);
+            GameFunc.train_use.use(self, other, activator, gameExports);
         }
     };
 
@@ -1657,20 +1658,20 @@ public class GameMisc {
      */
     private static EntThinkAdapter misc_satellite_dish_think = new EntThinkAdapter() {
         public String getID() { return "misc_satellite_dish_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
             if (self.s.frame < 38)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
 
     private static EntUseAdapter misc_satellite_dish_use = new EntUseAdapter() {
         public String getID() { return "misc_satellite_dish_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.s.frame = 0;
             self.think = misc_satellite_dish_think;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     };
 
@@ -1680,7 +1681,7 @@ public class GameMisc {
 
     private static EntUseAdapter target_string_use = new EntUseAdapter() {
         public String getID() { return "target_string_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
             int l = self.message.length();
             for (SubgameEntity e = self.teammaster; e != null; e = e.teamchain) {
@@ -1721,12 +1722,12 @@ public class GameMisc {
 
     private static EntThinkAdapter func_clock_think = new EntThinkAdapter() {
         public String getID() { return "func_clock_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == self.enemy) {
 
                 EdictIterator es = null;
 
-                es = GameBase.G_Find(es, GameBase.findByTarget, self.target);
+                es = GameBase.G_Find(es, GameBase.findByTarget, self.target, gameExports);
                 if (es != null)
                     self.enemy = es.o;
                 if (self.enemy == null)
@@ -1756,7 +1757,7 @@ public class GameMisc {
             }
 
             self.enemy.message = self.message;
-            self.enemy.use.use(self.enemy, self, self);
+            self.enemy.use.use(self.enemy, self, self, gameExports);
 
             if (((self.spawnflags & 1) != 0 && (self.health > self.wait))
                     || ((self.spawnflags & 2) != 0 && (self.health < self.wait))) {
@@ -1768,7 +1769,7 @@ public class GameMisc {
                     savemessage = self.message;
                     self.target = self.pathtarget;
                     self.message = null;
-                    GameUtil.G_UseTargets(self, self.activator);
+                    GameUtil.G_UseTargets(self, self.activator, gameExports);
                     self.target = savetarget;
                     self.message = savemessage;
                 }
@@ -1782,7 +1783,7 @@ public class GameMisc {
                     return true;
             }
 
-            self.nextthink = GameBase.level.time + 1;
+            self.nextthink = gameExports.level.time + 1;
             return true;
 
         }
@@ -1790,13 +1791,13 @@ public class GameMisc {
 
     private static EntUseAdapter func_clock_use = new EntUseAdapter() {
         public String getID() { return "func_clock_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (0 == (self.spawnflags & 8))
                 self.use = null;
             if (self.activator != null)
                 return;
             self.activator = activator;
-            self.think.think(self);
+            self.think.think(self, gameExports);
         }
     };
 
@@ -1805,7 +1806,7 @@ public class GameMisc {
     private static EntTouchAdapter teleporter_touch = new EntTouchAdapter() {
         public String getID() { return "teleporter_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             edict_t dest;
             int i;
 
@@ -1814,15 +1815,15 @@ public class GameMisc {
                 return;
 
             EdictIterator es = null;
-            dest = GameBase.G_Find(null, GameBase.findByTarget, self.target).o;
+            dest = GameBase.G_Find(null, GameBase.findByTarget, self.target, gameExports).o;
 
             if (dest == null) {
-                GameBase.gi.dprintf("Couldn't find destination\n");
+                gameExports.gameImports.dprintf("Couldn't find destination\n");
                 return;
             }
 
             // unlink to make sure it can't possibly interfere with KillBox
-            GameBase.gi.unlinkentity(other);
+            gameExports.gameImports.unlinkentity(other);
 
             Math3D.VectorCopy(dest.s.origin, other.s.origin);
             Math3D.VectorCopy(dest.s.origin, other.s.old_origin);
@@ -1849,9 +1850,9 @@ public class GameMisc {
             Math3D.VectorClear(client.v_angle);
 
             // kill anything at the destination
-            GameUtil.KillBox(other);
+            GameUtil.KillBox(other, gameExports);
 
-            GameBase.gi.linkentity(other);
+            gameExports.gameImports.linkentity(other);
         }
     };
 
@@ -1862,27 +1863,27 @@ public class GameMisc {
 
     static EntThinkAdapter SP_misc_teleporter_dest = new EntThinkAdapter() {
         public String getID() { return "SP_misc_teleporter_dest";}
-        public boolean think(SubgameEntity ent) {
-            GameBase.gi.setmodel(ent, "models/objects/dmspot/tris.md2");
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
             ent.s.skinnum = 0;
             ent.solid = Defines.SOLID_BBOX;
             //	ent.s.effects |= EF_FLIES;
             Math3D.VectorSet(ent.mins, -32, -32, -24);
             Math3D.VectorSet(ent.maxs, 32, 32, -16);
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
 
     private static EntThinkAdapter gib_think = new EntThinkAdapter() {
         public String getID() { return "gib_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     
             if (self.s.frame == 10) {
                 self.think = GameUtil.G_FreeEdictA;
-                self.nextthink = GameBase.level.time + 8
+                self.nextthink = gameExports.level.time + 8
                         + Globals.rnd.nextFloat() * 10;
             }
             return true;
@@ -1892,7 +1893,7 @@ public class GameMisc {
     private static EntTouchAdapter gib_touch = new EntTouchAdapter() {
         public String getID() { return "gib_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float[] normal_angles = { 0, 0, 0 }, right = { 0, 0, 0 };
     
             if (null == self.groundentity)
@@ -1901,17 +1902,17 @@ public class GameMisc {
             self.touch = null;
     
             if (plane != null) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                         .soundindex("misc/fhit3.wav"), 1, Defines.ATTN_NORM, 0);
     
                 Math3D.vectoangles(plane.normal, normal_angles);
                 Math3D.AngleVectors(normal_angles, null, right, null);
                 Math3D.vectoangles(right, self.s.angles);
     
-                if (self.s.modelindex == GameBase.sm_meat_index) {
+                if (self.s.modelindex == gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2")) {
                     self.s.frame++;
                     self.think = gib_think;
-                    self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                    self.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 }
             }
         }
@@ -1920,8 +1921,8 @@ public class GameMisc {
     private static EntDieAdapter gib_die = new EntDieAdapter() {
         public String getID() { return "gib_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameUtil.G_FreeEdict(self);
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            GameUtil.G_FreeEdict(self, gameExports);
         }
     };
 
@@ -1931,8 +1932,8 @@ public class GameMisc {
     private static EntDieAdapter debris_die = new EntDieAdapter() {
         public String getID() { return "debris_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameUtil.G_FreeEdict(self);
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            GameUtil.G_FreeEdict(self, gameExports);
         }
     };
 }

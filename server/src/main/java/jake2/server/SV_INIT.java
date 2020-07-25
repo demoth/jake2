@@ -30,13 +30,18 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetworkCommands;
-import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.File;
+import java.lang.reflect.Constructor;
+
+import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SV_INIT {
+
+    // todo implement singleton
+    public static GameExports gameExports;
+    public static GameImportsImpl gameImports;
 
     /**
      * SV_FindIndex.
@@ -48,8 +53,8 @@ public class SV_INIT {
         if (name == null || name.length() == 0)
             return 0;
 
-        for (i = 1; i < max && sv.configstrings[start + i] != null; i++)
-            if (name.equals(sv.configstrings[start + i]))
+        for (i = 1; i < max && gameImports.sv.configstrings[start + i] != null; i++)
+            if (name.equals(gameImports.sv.configstrings[start + i]))
                 return i;
 
         if (!create)
@@ -58,14 +63,14 @@ public class SV_INIT {
         if (i == max)
             Com.Error(Defines.ERR_DROP, "*Index: overflow");
 
-        sv.configstrings[start + i] = name;
+        gameImports.sv.configstrings[start + i] = name;
 
-        if (sv.state != ServerStates.SS_LOADING) {
+        if (gameImports.sv.state != ServerStates.SS_LOADING) {
             // send the update to everyone
-            sv.multicast.clear();
-            MSG.WriteChar(sv.multicast, NetworkCommands.svc_configstring);
-            MSG.WriteShort(sv.multicast, start + i);
-            MSG.WriteString(sv.multicast, name);
+            gameImports.sv.multicast.clear();
+            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
+            MSG.WriteShort(gameImports.sv.multicast, start + i);
+            MSG.WriteString(gameImports.sv.multicast, name);
             SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
 
@@ -91,8 +96,8 @@ public class SV_INIT {
      * only the fields that differ from the baseline will be transmitted.
      */
     private static void SV_CreateBaseline() {
-        for (int entnum = 1; entnum < SV_GAME.gameExports.getNumEdicts(); entnum++) {
-            edict_t svent = SV_GAME.gameExports.getEdict(entnum);
+        for (int entnum = 1; entnum < gameExports.getNumEdicts(); entnum++) {
+            edict_t svent = gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;
@@ -104,47 +109,34 @@ public class SV_INIT {
 
             // take current state as baseline
             Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
-            sv.baselines[entnum].set(svent.s);
+            gameImports.sv.baselines[entnum].set(svent.s);
         }
     }
 
     /** 
      * SV_CheckForSavegame.
+     * @param sv
      */
-    private static void SV_CheckForSavegame() {
+    private static void SV_CheckForSavegame(server_t sv) {
 
-        String name;
-        RandomAccessFile f;
-
-        int i;
-
-        if (SV_MAIN.sv_noreload.value != 0)
+        if (Cvar.Get("sv_noreload", "0", 0).value != 0)
             return;
 
         if (Cvar.VariableValue("deathmatch") != 0)
             return;
 
-        name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
-        try {
-            f = new RandomAccessFile(name, "r");
-        }
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
 
-        catch (Exception e) {
+        if (!new File(name).exists())
             return;
-        }
-
-        try {
-            f.close();
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
 
         SV_WORLD.SV_ClearWorld();
 
         // get configstrings and areaportals
-        SV_CCMDS.SV_ReadLevelFile();
+        // then read game enitites
+        SV_CCMDS.SV_ReadLevelFile(sv.name);
 
-        if (!sv.loadgame) { 
+        if (!sv.loadgame) {
             // coming back to a level after being in a different
             // level, so run it for ten seconds
 
@@ -155,8 +147,8 @@ public class SV_INIT {
 
             previousState = sv.state; // PGM
             sv.state = ServerStates.SS_LOADING; // PGM
-            for (i = 0; i < 100; i++)
-                SV_GAME.gameExports.G_RunFrame();
+            for (int i = 0; i < 100; i++)
+                gameExports.G_RunFrame();
 
             sv.state = previousState; // PGM
         }
@@ -179,67 +171,66 @@ public class SV_INIT {
         Com.Printf("------- Server Initialization -------\n");
 
         Com.DPrintf("SpawnServer: " + server + "\n");
-        if (sv.demofile != null)
+        if (gameImports != null && gameImports.sv != null && gameImports.sv.demofile != null)
             try {
-                sv.demofile.close();
+                gameImports.sv.demofile.close();
             } 
         	catch (Exception e) {
+                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
             }
 
         // any partially connected client will be restarted
-        svs.spawncount++;        
+        gameImports.svs.spawncount++;
 
-        sv.state = ServerStates.SS_DEAD;
-
-        Globals.server_state = sv.state;
+        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
 
         // wipe the entire per-level structure
-        sv = new server_t();
+        gameImports.sv = new server_t();
 
-        svs.realtime = 0;
-        sv.loadgame = loadgame;
-        sv.attractloop = attractloop;
+        gameImports.svs.realtime = 0;
+        gameImports.sv.loadgame = loadgame;
+        gameImports.sv.attractloop = attractloop;
 
         // save name for levels that don't set message
-        sv.configstrings[Defines.CS_NAME] = server;
+        gameImports.sv.configstrings[Defines.CS_NAME] = server;
 
         if (Cvar.VariableValue("deathmatch") != 0) {
-            sv.configstrings[Defines.CS_AIRACCEL] = ""
+            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = ""
                     + SV_MAIN.sv_airaccelerate.value;
             PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
         } else {
-            sv.configstrings[Defines.CS_AIRACCEL] = "0";
+            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = "0";
             PMove.pm_airaccelerate = 0;
         }
 
-        SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
+        SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
 
-        sv.name = server;
+        gameImports.sv.name = server;
 
         // leave slots at start for clients only
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             // needs to reconnect
-            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
-                svs.clients[i].state = ClientStates.CS_CONNECTED;
-            svs.clients[i].lastframe = -1;
+            if (gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
+                gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
+            gameImports.svs.clients[i].lastframe = -1;
         }
 
-        sv.time = 1000;
+        gameImports.sv.time = 1000;
 
-        sv.name = server;
-        sv.configstrings[Defines.CS_NAME] = server;
+        gameImports.sv.name = server;
+        gameImports.sv.configstrings[Defines.CS_NAME] = server;
 
         int iw[] = { checksum };
 
         if (serverstate != ServerStates.SS_GAME) {
-            sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
+            gameImports.sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
         } else {
-            sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + server + ".bsp";
-            sv.models[1] = CM.CM_LoadMap(
-                    sv.configstrings[Defines.CS_MODELS + 1], false, iw);
+            gameImports.sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + server + ".bsp";
+            gameImports.sv.models[1] = CM.CM_LoadMap(
+                    gameImports.sv.configstrings[Defines.CS_MODELS + 1], false, iw);
         }
         checksum = iw[0];
-        sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
+        gameImports.sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
 
 
         // clear physics interaction links
@@ -247,10 +238,10 @@ public class SV_INIT {
         SV_WORLD.SV_ClearWorld();
 
         for (i = 1; i < CM.CM_NumInlineModels(); i++) {
-            sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
+            gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
             
             // copy references
-            sv.models[i + 1] = CM.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
+            gameImports.sv.models[i + 1] = CM.InlineModel(gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i]);
         }
 
      
@@ -259,28 +250,28 @@ public class SV_INIT {
         // precache and static commands can be issued during
         // map initialization
 
-        sv.state = ServerStates.SS_LOADING;
-        Globals.server_state = sv.state;
+        gameImports.sv.state = ServerStates.SS_LOADING;
+        Globals.server_state = gameImports.sv.state;
 
         // load and spawn all other entities
-        SV_GAME.gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+        gameExports.SpawnEntities(gameImports.sv.name, CM.CM_EntityString(), spawnpoint);
 
         // run two frames to allow everything to settle
-        SV_GAME.gameExports.G_RunFrame();
-        SV_GAME.gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
 
         // all precaches are complete
-        sv.state = serverstate;
-        Globals.server_state = sv.state;
+        gameImports.sv.state = serverstate;
+        Globals.server_state = gameImports.sv.state;
 
         // create a baseline for more efficient communications
         SV_CreateBaseline();
 
         // check for a savegame
-        SV_CheckForSavegame();
+        SV_CheckForSavegame(gameImports.sv);
 
         // set serverinfo variable
-        Cvar.FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO
+        Cvar.FullSet("mapname", gameImports.sv.name, Defines.CVAR_SERVERINFO
                 | Defines.CVAR_NOSET);
     }
 
@@ -290,11 +281,8 @@ public class SV_INIT {
      * A brand new game has been started.
      */
     static void SV_InitGame() {
-        int i;
-        //char idmaster[32];
-        String idmaster;
 
-        if (svs.initialized) {
+        if (gameImports != null) {
             // cause any connected clients to reconnect
             SV_MAIN.SV_Shutdown("Server restarted\n", true);
         } else {
@@ -304,79 +292,69 @@ public class SV_INIT {
         }
 
         // get any latched variable changes (maxclients, etc)
-        Cvar.GetLatchedVars();
+        Cvar.updateLatchedVars();
 
-        svs.initialized = true;
-
-        if (Cvar.VariableValue("coop") != 0
-                && Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
-            Cvar.FullSet("coop", "0", Defines.CVAR_SERVERINFO
-                    | Defines.CVAR_LATCH);
+            Cvar.FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
         if (Globals.dedicated.value != 0) {
             if (0 == Cvar.VariableValue("coop"))
-                Cvar.FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
-        // init clients
+        // set max clients based on game mode
         if (Cvar.VariableValue("deathmatch") != 0) {
             if (SV_MAIN.maxclients.value <= 1)
-                Cvar.FullSet("maxclients", "8", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
             else if (SV_MAIN.maxclients.value > Defines.MAX_CLIENTS)
-                Cvar.FullSet("maxclients", "" + Defines.MAX_CLIENTS,
-                        Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         } else if (Cvar.VariableValue("coop") != 0) {
             if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
-                Cvar.FullSet("maxclients", "4", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
-        } else // non-deathmatch, non-coop is one player
-        {
-            Cvar.FullSet("maxclients", "1", Defines.CVAR_SERVERINFO
-                    | Defines.CVAR_LATCH);
+        } else {
+            // non-deathmatch, non-coop is one player
+            Cvar.FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
-
-        svs.spawncount = Lib.rand();
-
-        // Clear all clients
-        svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
-        for (int n = 0; n < svs.clients.length; n++) {
-            svs.clients[n] = new client_t();
-            svs.clients[n].serverindex = n;
-        }
-        svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
-                * Defines.UPDATE_BACKUP * 64; //ok.
-
-        // Clear all client entity states
-        svs.client_entities = new entity_state_t[svs.num_client_entities];
-        for (int n = 0; n < svs.client_entities.length; n++)
-            svs.client_entities[n] = new entity_state_t(null);
 
         // init network stuff
         NET.Config((SV_MAIN.maxclients.value > 1));
+        NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
-        // heartbeats will always be sent to the id master
-        svs.last_heartbeat = -99999; // send immediately
-        idmaster = "192.246.40.37:" + Defines.PORT_MASTER;
-        NET.StringToAdr(idmaster, SV_MAIN.master_adr[0]);
-
+        // this is one of the most important points of game initialization:
+        // new instance of game mode is created and is ready to update.
+        // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
+        // todo: put server initialization code above into constructor of GameImportsImpl
         // init game
-        SV_GAME.SV_InitGameProgs();
+        gameImports = new GameImportsImpl();
 
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            svs.clients[i].edict = SV_GAME.gameExports.getEdict(i + 1);
-            svs.clients[i].lastcmd = new usercmd_t();
+        gameExports = createGameModInstance(gameImports);
+
+        gameImports.resetClients(gameExports);
+    }
+
+    /**
+     * Find and create an instance of the game subsystem
+     */
+    private static GameExports createGameModInstance(GameImportsImpl gameImports) {
+
+        // todo: introduce proper Dependency Injection
+        try {
+            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
+            Constructor<?> constructor = game.getConstructor(GameImports.class);
+            return (GameExports) constructor.newInstance(gameImports);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
+            return null;
         }
     }
 
-    private static String firstmap = "";
-    
+
     /**
      * SV_Map
      * 
@@ -393,16 +371,15 @@ public class SV_INIT {
      */
     static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
 
-        int l;
-        String level, ch, spawnpoint;
+        if (gameImports != null && gameImports.sv != null) {
+            gameImports.sv.loadgame = loadgame;
+            gameImports.sv.attractloop = attractloop;
+        }
 
-        sv.loadgame = loadgame;
-        sv.attractloop = attractloop;
-
-        if (sv.state == ServerStates.SS_DEAD && !sv.loadgame)
+        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
             SV_InitGame(); // the game is just starting
 
-        level = levelstring; // bis hier her ok.
+        String level = levelstring; // bis hier her ok.
 
         // if there is a + in the map, set nextserver to the remainder
 
@@ -415,21 +392,22 @@ public class SV_INIT {
         }
         
         // rst: base1 works for full, damo1 works for demo, so we need to store first map.
-        if (firstmap.length() == 0)
+        if (gameImports.firstmap.length() == 0)
         {        
         	if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
         	{
         		int pos = levelstring.indexOf('+');
-        		firstmap = levelstring.substring(pos + 1);
+                gameImports.firstmap = levelstring.substring(pos + 1);
         	}
         }
 
         // ZOID: special hack for end game screen in coop mode
         if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.Set("nextserver", "gamemap \"*" + firstmap + "\"");
+            Cvar.Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
+        String spawnpoint;
         if (pos != -1) {
             spawnpoint = level.substring(pos + 1);
             level = level.substring(0, pos);
@@ -441,7 +419,7 @@ public class SV_INIT {
         if (level.charAt(0) == '*')
             level = level.substring(1);
 
-        l = level.length();
+        int l = level.length();
         if (l > 4 && level.endsWith(".cin")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
@@ -468,9 +446,4 @@ public class SV_INIT {
 
         SV_SEND.SV_BroadcastCommand("reconnect\n");
     }
-
-    static server_static_t svs = new server_static_t(); // persistant
-                                                               // server info
-
-    public static server_t sv = new server_t(); // local server
 }

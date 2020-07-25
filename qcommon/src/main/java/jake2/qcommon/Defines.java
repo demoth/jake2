@@ -60,7 +60,6 @@ public class Defines {
 	public final static int MAX_TOKEN_CHARS = 1024; // max length of an individual token 
 
 	public final static int MAX_QPATH = 64; // max length of a quake game pathname
-	public final static int MAX_OSPATH = 128; // max length of a filesystem pathname 
 
 	//	per-level limits
 	public final static int MAX_CLIENTS = 256; // absolute limit 

@@ -27,12 +27,61 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.util.Lib;
 
 //
 //	collection of functions provided by the main engine
 //
 // todo make singleton (same as game exports)
 public class GameImportsImpl implements GameImports {
+
+    // persistent server state
+    public server_static_t svs;
+
+    // local (instance) server state
+    public server_t sv;
+
+    // hack for finishing game in coop mode
+    public String firstmap = "";
+
+
+    public GameImportsImpl() {
+        // Initialize server static state
+        svs = new server_static_t();
+        svs.initialized = true;
+        svs.spawncount = Lib.rand();
+
+        // Clear all clients
+        svs.clients = new client_t[(int) SV_MAIN.maxclients.value]; //todo use cvar
+        for (int n = 0; n < svs.clients.length; n++) {
+            svs.clients[n] = new client_t();
+            svs.clients[n].serverindex = n;
+        }
+
+        svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
+                * Defines.UPDATE_BACKUP * 64; //ok.
+
+        // Clear all client entity states
+        svs.client_entities = new entity_state_t[svs.num_client_entities];
+        for (int n = 0; n < svs.client_entities.length; n++) {
+            svs.client_entities[n] = new entity_state_t(null);
+        }
+
+        // heartbeats will always be sent to the id master
+        svs.last_heartbeat = -99999; // send immediately
+
+        // create local server state
+        sv = new server_t();
+
+    }
+
+    void resetClients(GameExports gameExports) {
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            svs.clients[i].edict = gameExports.getEdict(i + 1);
+            svs.clients[i].lastcmd = new usercmd_t();
+        }
+    }
+
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {

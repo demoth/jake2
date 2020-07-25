@@ -131,8 +131,7 @@ class SV_WORLD {
     static void SV_ClearWorld() {
         initNodes();
         SV_WORLD.sv_numareanodes = 0;
-        SV_CreateAreaNode(0, SV_INIT.sv.models[1].mins,
-                SV_INIT.sv.models[1].maxs);
+        SV_CreateAreaNode(0, SV_INIT.gameImports.sv.models[1].mins, SV_INIT.gameImports.sv.models[1].maxs);
         /*
          * Com.p("areanodes:" + sv_numareanodes + " (sollten 32 sein)."); for
          * (int n = 0; n < sv_numareanodes; n++) { Com.Printf( "|%3i|%2i|%8.2f
@@ -162,7 +161,7 @@ class SV_WORLD {
         int topnode = 0;
         if (ent.area.prev != null)
             SV_UnlinkEdict(ent); // unlink from old position
-        if (ent == SV_GAME.gameExports.getEdict(0))
+        if (ent == SV_INIT.gameExports.getEdict(0))
             return; // don't add the world
         if (!ent.inuse)
             return;
@@ -243,7 +242,7 @@ class SV_WORLD {
                 // but nothing should ever need more than that
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
-                            && SV_INIT.sv.state == ServerStates.SS_LOADING)
+                            && SV_INIT.gameImports.sv.state == ServerStates.SS_LOADING)
                         Com.DPrintf("Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
                                 + ent.absmin[2] + "\n");
@@ -344,6 +343,7 @@ class SV_WORLD {
 
     /*
      * ================ SV_AreaEdicts ================
+     * TODO: return a collection of edicts rather than modifying param
      */
     static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[],
                              int maxcount, int areatype) {
@@ -366,7 +366,7 @@ class SV_WORLD {
         int contents, c2;
         int headnode;
         // get base contents from world
-        contents = CM.PointContents(p, SV_INIT.sv.models[1].headnode);
+        contents = CM.PointContents(p, SV_INIT.gameImports.sv.models[1].headnode);
         // or in contents from all the other entities
         num = SV_AreaEdicts(p, p, SV_WORLD.touch, Defines.MAX_EDICTS,
                 Defines.AREA_SOLID);
@@ -396,7 +396,7 @@ class SV_WORLD {
         // decide which clipping hull to use, based on the size
         if (ent.solid == Defines.SOLID_BSP) {
             // explicit hulls in the BSP model
-            model = SV_INIT.sv.models[ent.s.modelindex];
+            model = SV_INIT.gameImports.sv.models[ent.s.modelindex];
             if (null == model)
                 Com.Error(Defines.ERR_FATAL,
                         "MOVETYPE_PUSH with a non bsp model");
@@ -495,7 +495,7 @@ class SV_WORLD {
 
         // clip to world
         clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
-        clip.trace.ent = SV_GAME.gameExports.getEdict(0);
+        clip.trace.ent = SV_INIT.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world
         clip.contentmask = contentmask;

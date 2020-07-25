@@ -63,7 +63,7 @@ public class GameTurret {
      * yaw angle : default 360
      */
 
-    public static void turret_breach_fire(SubgameEntity self) {
+    public static void turret_breach_fire(SubgameEntity self, GameExportsImpl gameExports) {
         float[] f = { 0, 0, 0 }, r = { 0, 0, 0 }, u = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
         int damage;
@@ -75,35 +75,35 @@ public class GameTurret {
         Math3D.VectorMA(start, self.move_origin[2], u, start);
 
         damage = (int) (100 + Lib.random() * 50);
-        speed = (int) (550 + 50 * GameBase.skill.value);
+        speed = (int) (550 + 50 * gameExports.cvarCache.skill.value);
         GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
-                damage);
-        GameBase.gi.positioned_sound(start, self, Defines.CHAN_WEAPON,
-                GameBase.gi.soundindex("weapons/rocklf1a.wav"), 1,
+                damage, gameExports);
+        gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
+                gameExports.gameImports.soundindex("weapons/rocklf1a.wav"), 1,
                 Defines.ATTN_NORM, 0);
     }
 
-    public static void SP_turret_breach(SubgameEntity self) {
+    public static void SP_turret_breach(SubgameEntity self, GameExportsImpl gameExports) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
         if (self.speed == 0)
             self.speed = 50;
         if (self.dmg == 0)
             self.dmg = 10;
 
-        if (GameBase.st.minpitch == 0)
-            GameBase.st.minpitch = -30;
-        if (GameBase.st.maxpitch == 0)
-            GameBase.st.maxpitch = 30;
-        if (GameBase.st.maxyaw == 0)
-            GameBase.st.maxyaw = 360;
+        if (gameExports.st.minpitch == 0)
+            gameExports.st.minpitch = -30;
+        if (gameExports.st.maxpitch == 0)
+            gameExports.st.maxpitch = 30;
+        if (gameExports.st.maxyaw == 0)
+            gameExports.st.maxyaw = 360;
 
-        self.pos1[Defines.PITCH] = -1 * GameBase.st.minpitch;
-        self.pos1[Defines.YAW] = GameBase.st.minyaw;
-        self.pos2[Defines.PITCH] = -1 * GameBase.st.maxpitch;
-        self.pos2[Defines.YAW] = GameBase.st.maxyaw;
+        self.pos1[Defines.PITCH] = -1 * gameExports.st.minpitch;
+        self.pos1[Defines.YAW] = gameExports.st.minyaw;
+        self.pos2[Defines.PITCH] = -1 * gameExports.st.maxpitch;
+        self.pos2[Defines.YAW] = gameExports.st.maxyaw;
 
         self.ideal_yaw = self.s.angles[Defines.YAW];
         self.move_angles[Defines.YAW] = self.ideal_yaw;
@@ -111,8 +111,8 @@ public class GameTurret {
         self.blocked = turret_blocked;
 
         self.think = turret_breach_finish_init;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-        GameBase.gi.linkentity(self);
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(self);
     }
 
     /**
@@ -120,23 +120,23 @@ public class GameTurret {
      * MUST be teamed with a turret_breach.
      */
 
-    public static void SP_turret_base(SubgameEntity self) {
+    public static void SP_turret_base(SubgameEntity self, GameExportsImpl gameExports) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
         self.blocked = turret_blocked;
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    public static void SP_turret_driver(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/infantry/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -151,7 +151,7 @@ public class GameTurret {
 
         self.flags |= GameDefines.FL_NO_KNOCKBACK;
 
-        GameBase.level.total_monsters++;
+        gameExports.level.total_monsters++;
 
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
@@ -161,40 +161,40 @@ public class GameTurret {
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
         self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND | GameDefines.AI_DUCKED;
 
-        if (GameBase.st.item != null) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item);
+        if (gameExports.st.item != null) {
+            self.item = GameItems.FindItemByClassname(gameExports.st.item, gameExports);
             if (self.item == null)
-                GameBase.gi.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + GameBase.st.item + "\n");
+                        + gameExports.st.item + "\n");
         }
 
         self.think = turret_driver_link;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
     	public String getID() { return "turret_blocked"; }
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
 
-            if (other.takedamage != 0) {
+            if (obstacle.takedamage != 0) {
                 SubgameEntity attacker;
                 if (self.teammaster.getOwner() != null)
                     attacker = self.teammaster.getOwner();
                 else
                     attacker = self.teammaster;
-                GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin,
-                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH);
+                GameCombat.T_Damage(obstacle, self, attacker, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin,
+                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH, gameExports);
             }
         }
     };
 
     static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] current_angles = { 0, 0, 0 };
             float[] delta = { 0, 0, 0 };
@@ -256,7 +256,7 @@ public class GameTurret {
 
             Math3D.VectorScale(delta, 1.0f / Defines.FRAMETIME, self.avelocity);
 
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
             for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
                 ent.avelocity[1] = self.avelocity[1];
@@ -295,7 +295,7 @@ public class GameTurret {
                 self.getOwner().velocity[2] = diff * 1.0f / Defines.FRAMETIME;
 
                 if ((self.spawnflags & 65536) != 0) {
-                    turret_breach_fire(self);
+                    turret_breach_fire(self, gameExports);
                     self.spawnflags &= ~65536;
                 }
             }
@@ -305,22 +305,22 @@ public class GameTurret {
 
     static EntThinkAdapter turret_breach_finish_init = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_finish_init"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             // get and save info for muzzle location
             if (self.target == null) {
-                GameBase.gi.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " needs a target\n");
             } else {
-                self.target_ent = GameBase.G_PickTarget(self.target);
+                self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
                 Math3D.VectorSubtract(self.target_ent.s.origin, self.s.origin,
                         self.move_origin);
-                GameUtil.G_FreeEdict(self.target_ent);
+                GameUtil.G_FreeEdict(self.target_ent, gameExports);
             }
 
             self.teammaster.dmg = self.dmg;
             self.think = turret_breach_think;
-            self.think.think(self);
+            self.think.think(self, gameExports);
             return true;
         }
     };
@@ -333,7 +333,7 @@ public class GameTurret {
     static EntDieAdapter turret_driver_die = new EntDieAdapter() {
     	public String getID() { return "turret_driver_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
 
             // level the gun
             self.target_ent.move_angles[0] = 0;
@@ -349,33 +349,33 @@ public class GameTurret {
             self.target_ent.setOwner(null);
             self.target_ent.teammaster.setOwner(null);
 
-            M_Infantry.infantry_die.die(self, inflictor, attacker, damage, null);
+            M_Infantry.infantry_die.die(self, inflictor, attacker, damage, null, gameExports);
         }
     };
 
     static EntThinkAdapter turret_driver_think = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] target = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float reaction_time;
 
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
             if (self.enemy != null
                     && (!self.enemy.inuse || self.enemy.health <= 0))
                 self.enemy = null;
 
             if (null == self.enemy) {
-                if (!GameUtil.FindTarget(self))
+                if (!GameUtil.FindTarget(self, gameExports))
                     return true;
-                self.monsterinfo.trail_time = GameBase.level.time;
+                self.monsterinfo.trail_time = gameExports.level.time;
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
             } else {
-                if (GameUtil.visible(self, self.enemy)) {
+                if (GameUtil.visible(self, self.enemy, gameExports)) {
                     if ((self.monsterinfo.aiflags & GameDefines.AI_LOST_SIGHT) != 0) {
-                        self.monsterinfo.trail_time = GameBase.level.time;
+                        self.monsterinfo.trail_time = gameExports.level.time;
                         self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                     }
                 } else {
@@ -391,14 +391,14 @@ public class GameTurret {
             Math3D.vectoangles(dir, self.target_ent.move_angles);
 
             // decide if we should shoot
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return true;
 
-            reaction_time = (3 - GameBase.skill.value) * 1.0f;
-            if ((GameBase.level.time - self.monsterinfo.trail_time) < reaction_time)
+            reaction_time = (3 - gameExports.cvarCache.skill.value) * 1.0f;
+            if ((gameExports.level.time - self.monsterinfo.trail_time) < reaction_time)
                 return true;
 
-            self.monsterinfo.attack_finished = GameBase.level.time
+            self.monsterinfo.attack_finished = gameExports.level.time
                     + reaction_time + 1.0f;
             //FIXME how do we really want to pass this along?
             self.target_ent.spawnflags |= 65536;
@@ -408,14 +408,14 @@ public class GameTurret {
 
     public static EntThinkAdapter turret_driver_link = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_link"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] vec = { 0, 0, 0 };
 
             self.think = turret_driver_think;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
-            self.target_ent = GameBase.G_PickTarget(self.target);
+            self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
             self.target_ent.setOwner(self);
             self.target_ent.teammaster.setOwner(self);
             Math3D.VectorCopy(self.target_ent.s.angles, self.s.angles);

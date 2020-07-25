@@ -499,7 +499,7 @@ public class M_Infantry {
 
     public static EntThinkAdapter infantry_stand = new EntThinkAdapter() {
     	public String getID() { return "infantry_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_stand;
             return true;
         }
@@ -561,9 +561,9 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_fidget = new EntThinkAdapter() {
     	public String getID() { return "infantry_fidget"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_fidget;
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -588,7 +588,7 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_walk = new EntThinkAdapter() {
     	public String getID() { return "infantry_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_walk;
             return true;
         }
@@ -609,7 +609,7 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_run = new EntThinkAdapter() {
     	public String getID() { return "infantry_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = infantry_move_stand;
             else
@@ -650,29 +650,29 @@ public class M_Infantry {
 
     static EntPainAdapter infantry_pain = new EntPainAdapter() {
     	public String getID() { return "infantry_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = Lib.rand() % 2;
             if (n == 0) {
                 self.monsterinfo.currentmove = infantry_move_pain1;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = infantry_move_pain2;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -688,7 +688,7 @@ public class M_Infantry {
 
     static EntThinkAdapter InfantryMachineGun = new EntThinkAdapter() {
     	public String getID() { return "InfantryMachineGun"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 }, target = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
@@ -726,15 +726,15 @@ public class M_Infantry {
 
             Monster.monster_fire_bullet(self, start, forward, 3, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
     };
 
     static EntInteractAdapter infantry_sight = new EntInteractAdapter() {
     	public String getID() { return "infantry_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -744,14 +744,14 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_dead = new EntThinkAdapter() {
     	public String getID() { return "infantry_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
-            M.M_FlyCheck.think(self);
+            M.M_FlyCheck.think(self, gameExports);
             return true;
         }
     };
@@ -829,25 +829,25 @@ public class M_Infantry {
     public static EntDieAdapter infantry_die = new EntDieAdapter() {
     	public String getID() { return "infantry_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
 
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -862,15 +862,15 @@ public class M_Infantry {
             n = Lib.rand() % 3;
             if (n == 0) {
                 self.monsterinfo.currentmove = infantry_move_death1;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die2, 1,
                         Defines.ATTN_NORM, 0);
             } else if (n == 1) {
                 self.monsterinfo.currentmove = infantry_move_death2;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = infantry_move_death3;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -878,22 +878,22 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_duck_down = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_down"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
-            GameBase.gi.linkentity(self);
+            self.monsterinfo.pausetime = gameExports.level.time + 1;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntThinkAdapter infantry_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_hold"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -903,11 +903,11 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_duck_up = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_up"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -924,7 +924,7 @@ public class M_Infantry {
 
     static EntDodgeAdapter infantry_dodge = new EntDodgeAdapter() {
     	public String getID() { return "infantry_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -937,13 +937,13 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_cock_gun = new EntThinkAdapter() {
     	public String getID() { return "infantry_cock_gun"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             int n;
 
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_weapon_cock, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_weapon_cock, 1,
                     Defines.ATTN_NORM, 0);
             n = (Lib.rand() & 15) + 3 + 7;
-            self.monsterinfo.pausetime = GameBase.level.time + n
+            self.monsterinfo.pausetime = gameExports.level.time + n
                     * Defines.FRAMETIME;
             return true;
         }
@@ -951,10 +951,10 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_fire = new EntThinkAdapter() {
     	public String getID() { return "infantry_fire"; }
-        public boolean think(SubgameEntity self) {
-            InfantryMachineGun.think(self);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            InfantryMachineGun.think(self, gameExports);
 
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -985,8 +985,8 @@ public class M_Infantry {
     static EntThinkAdapter infantry_swing = new EntThinkAdapter() {
     	public String getID() { return "infantry_swing"; }
 
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_punch_swing, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch_swing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -994,12 +994,12 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_smack = new EntThinkAdapter() {
     	public String getID() { return "infantry_smack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
-            if (GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50))
-                GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_punch_hit,
+            if (GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50, gameExports))
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch_hit,
                         1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1020,7 +1020,7 @@ public class M_Infantry {
 
     static EntThinkAdapter infantry_attack = new EntThinkAdapter() {
     	public String getID() { return "infantry_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 self.monsterinfo.currentmove = infantry_move_attack2;
             else
@@ -1033,29 +1033,29 @@ public class M_Infantry {
      * QUAKED monster_infantry (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_infantry(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static void SP_monster_infantry(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("infantry/infpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("infantry/infpain2.wav");
-        sound_die1 = GameBase.gi.soundindex("infantry/infdeth1.wav");
-        sound_die2 = GameBase.gi.soundindex("infantry/infdeth2.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("infantry/infpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("infantry/infpain2.wav");
+        sound_die1 = gameExports.gameImports.soundindex("infantry/infdeth1.wav");
+        sound_die2 = gameExports.gameImports.soundindex("infantry/infdeth2.wav");
 
-        sound_gunshot = GameBase.gi.soundindex("infantry/infatck1.wav");
-        sound_weapon_cock = GameBase.gi.soundindex("infantry/infatck3.wav");
-        sound_punch_swing = GameBase.gi.soundindex("infantry/infatck2.wav");
-        sound_punch_hit = GameBase.gi.soundindex("infantry/melee2.wav");
+        sound_gunshot = gameExports.gameImports.soundindex("infantry/infatck1.wav");
+        sound_weapon_cock = gameExports.gameImports.soundindex("infantry/infatck3.wav");
+        sound_punch_swing = gameExports.gameImports.soundindex("infantry/infatck2.wav");
+        sound_punch_hit = gameExports.gameImports.soundindex("infantry/melee2.wav");
 
-        sound_sight = GameBase.gi.soundindex("infantry/infsght1.wav");
-        sound_search = GameBase.gi.soundindex("infantry/infsrch1.wav");
-        sound_idle = GameBase.gi.soundindex("infantry/infidle1.wav");
+        sound_sight = gameExports.gameImports.soundindex("infantry/infsght1.wav");
+        sound_search = gameExports.gameImports.soundindex("infantry/infsrch1.wav");
+        sound_idle = gameExports.gameImports.soundindex("infantry/infidle1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/infantry/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -1076,11 +1076,11 @@ public class M_Infantry {
         self.monsterinfo.sight = infantry_sight;
         self.monsterinfo.idle = infantry_fidget;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = infantry_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
     }
 }

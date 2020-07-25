@@ -37,85 +37,85 @@ public class Monster {
     //	the damages too, but I'm not sure that's such a good idea.
     public static void monster_fire_bullet(SubgameEntity self, float[] start,
                                            float[] dir, int damage, int kick, int hspread, int vspread,
-                                           int flashtype) {
+                                           int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
-                GameDefines.MOD_UNKNOWN);
+                GameDefines.MOD_UNKNOWN, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the shotgun. */
     public static void monster_fire_shotgun(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int kick, int hspread, int vspread,
-            int count, int flashtype) {
+                                            float[] aimdir, int damage, int kick, int hspread, int vspread,
+                                            int count, int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
-                count, GameDefines.MOD_UNKNOWN);
+                count, GameDefines.MOD_UNKNOWN, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the blaster. */
     public static void monster_fire_blaster(SubgameEntity self, float[] start,
-            float[] dir, int damage, int speed, int flashtype, int effect) {
-        GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
+                                            float[] dir, int damage, int speed, int flashtype, int effect, GameExportsImpl gameExports) {
+        GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the grenade. */
     public static void monster_fire_grenade(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int speed, int flashtype) {
+                                            float[] aimdir, int damage, int speed, int flashtype, GameExportsImpl gameExports) {
         GameWeapon
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
-                        damage + 40);
+                        damage + 40, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the rocket. */
     public static void monster_fire_rocket(SubgameEntity self, float[] start,
-            float[] dir, int damage, int speed, int flashtype) {
-        GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
+                                           float[] dir, int damage, int speed, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the railgun. */
     public static void monster_fire_railgun(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int kick, int flashtype) {
-        GameWeapon.fire_rail(self, start, aimdir, damage, kick);
+                                            float[] aimdir, int damage, int kick, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_rail(self, start, aimdir, damage, kick, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the bfg. */
     public static void monster_fire_bfg(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int speed, int kick,
-            float damage_radius, int flashtype) {
-        GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
+                                        float[] aimdir, int damage, int speed, int kick,
+                                        float damage_radius, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius, gameExports);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /*
@@ -124,12 +124,12 @@ public class Monster {
      * When a monster dies, it fires all of its targets with the current enemy
      * as activator. ================
      */
-    public static void monster_death_use(SubgameEntity self) {
+    public static void monster_death_use(SubgameEntity self, GameExportsImpl gameExports) {
         self.flags &= ~(GameDefines.FL_FLY | GameDefines.FL_SWIM);
         self.monsterinfo.aiflags &= GameDefines.AI_GOOD_GUY;
 
         if (self.item != null) {
-            GameItems.Drop_Item(self, self.item);
+            GameItems.Drop_Item(self, self.item, gameExports);
             self.item = null;
         }
 
@@ -139,13 +139,13 @@ public class Monster {
         if (self.target == null)
             return;
 
-        GameUtil.G_UseTargets(self, self.enemy);
+        GameUtil.G_UseTargets(self, self.enemy, gameExports);
     }
 
     // ============================================================================
-    public static boolean monster_start(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static boolean monster_start(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return false;
         }
 
@@ -158,13 +158,13 @@ public class Monster {
         }
 
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
-            GameBase.level.total_monsters++;
+            gameExports.level.total_monsters++;
 
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
         self.takedamage = Defines.DAMAGE_AIM;
-        self.air_finished = GameBase.level.time + 12;
+        self.air_finished = gameExports.level.time + 12;
         self.use = GameUtil.monster_use;
         self.max_health = self.health;
         self.clipmask = Defines.MASK_MONSTERSOLID;
@@ -177,12 +177,12 @@ public class Monster {
             self.monsterinfo.checkattack = GameUtil.M_CheckAttack;
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
-        if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item);
+        if (gameExports.st.item != null && gameExports.st.item.length() > 0) {
+            self.item = GameItems.FindItemByClassname(gameExports.st.item, gameExports);
             if (self.item == null)
-                GameBase.gi.dprintf("monster_start:" + self.classname + " at "
+                gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + GameBase.st.item + "\n");
+                        + gameExports.st.item + "\n");
         }
 
         // randomize what frame they start on
@@ -194,7 +194,7 @@ public class Monster {
         return true;
     }
 
-    public static void monster_start_go(SubgameEntity self) {
+    public static void monster_start_go(SubgameEntity self, GameExportsImpl gameExports) {
 
         float[] v = { 0, 0, 0 };
 
@@ -209,7 +209,7 @@ public class Monster {
              * if (true) { Com.Printf("all entities:\n");
              * 
              * for (int n = 0; n < Game.globals.num_edicts; n++) { edict_t ent =
-             * GameBase.g_edicts[n]; Com.Printf( "|%4i | %25s
+             * gameExports.g_edicts[n]; Com.Printf( "|%4i | %25s
              * |%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f|\n", new
              * Vargs().add(n).add(ent.classname).
              * add(ent.s.origin[0]).add(ent.s.origin[1]).add(ent.s.origin[2])
@@ -221,7 +221,7 @@ public class Monster {
             EdictIterator edit = null;
 
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    self.target)) != null) {
+                    self.target, gameExports)) != null) {
                 SubgameEntity target = edit.o;
                 if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
@@ -231,7 +231,7 @@ public class Monster {
                 }
             }
             if (notcombat && self.combattarget != null)
-                GameBase.gi.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin)
                         + " has target with mixed types\n");
             if (fixup)
@@ -243,11 +243,11 @@ public class Monster {
 
             EdictIterator edit = null;
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    self.combattarget)) != null) {
+                    self.combattarget, gameExports)) != null) {
                 SubgameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
-                    GameBase.gi.dprintf(self.classname + " at "
+                    gameExports.gameImports.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
                             + " : " + target.classname + " at "
@@ -258,70 +258,70 @@ public class Monster {
 
         if (self.target != null) {
             self.goalentity = self.movetarget = GameBase
-                    .G_PickTarget(self.target);
+                    .G_PickTarget(self.target, gameExports);
             if (null == self.movetarget) {
-                GameBase.gi
+                gameExports.gameImports
                         .dprintf(self.classname + " can't find target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self);
+                self.monsterinfo.stand.think(self, gameExports);
             } else if ("path_corner".equals(self.movetarget.classname)) {
                 Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin,
                         v);
                 self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D
                         .vectoyaw(v);
-                self.monsterinfo.walk.think(self);
+                self.monsterinfo.walk.think(self, gameExports);
                 self.target = null;
             } else {
                 self.goalentity = self.movetarget = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self);
+                self.monsterinfo.stand.think(self, gameExports);
             }
         } else {
             self.monsterinfo.pausetime = 100000000;
-            self.monsterinfo.stand.think(self);
+            self.monsterinfo.stand.think(self, gameExports);
         }
 
         self.think = Monster.monster_think;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     }
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
         public String getID() { return "monster_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            M.M_MoveFrame(self);
+            M.M_MoveFrame(self, gameExports);
             if (self.linkcount != self.monsterinfo.linkcount) {
                 self.monsterinfo.linkcount = self.linkcount;
-                M.M_CheckGround(self);
+                M.M_CheckGround(self, gameExports);
             }
-            M.M_CatagorizePosition(self);
-            M.M_WorldEffects(self);
-            M.M_SetEffects(self);
+            M.M_CatagorizePosition(self, gameExports);
+            M.M_WorldEffects(self, gameExports);
+            M.M_SetEffects(self, gameExports.level.time);
             return true;
         }
     };
 
     public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
         public String getID() { return "monster_trigger_spawn";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.s.origin[2] += 1;
-            GameUtil.KillBox(self);
+            GameUtil.KillBox(self, gameExports);
 
             self.solid = Defines.SOLID_BBOX;
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.air_finished = GameBase.level.time + 12;
-            GameBase.gi.linkentity(self);
+            self.air_finished = gameExports.level.time + 12;
+            gameExports.gameImports.linkentity(self);
 
-            Monster.monster_start_go(self);
+            Monster.monster_start_go(self, gameExports);
 
             if (self.enemy != null && 0 == (self.spawnflags & 1)
                     && 0 == (self.enemy.flags & GameDefines.FL_NOTARGET)) {
-                GameUtil.FoundTarget(self);
+                GameUtil.FoundTarget(self, gameExports);
             } else {
                 self.enemy = null;
             }
@@ -333,9 +333,9 @@ public class Monster {
     // us
     public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
         public String getID() { return "monster_trigger_spawn_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.think = monster_triggered_spawn;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             if (activator.getClient() != null)
                 self.enemy = activator;
             self.use = GameUtil.monster_use;
@@ -344,7 +344,7 @@ public class Monster {
 
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
         public String getID() { return "monster_triggered_start";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.index == 312)
                 Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;

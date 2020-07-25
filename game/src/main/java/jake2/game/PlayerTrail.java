@@ -24,125 +24,116 @@ package jake2.game;
 
 import jake2.qcommon.util.Math3D;
 
+/*
+ * ==============================================================================
+ *
+ * PLAYER TRAIL
+ *
+ * ==============================================================================
+ *
+ * This is a circular list containing the a list of points of where the
+ * player has been recently. It is used by monsters for pursuit.
+ *
+ * .origin the spot .owner forward link .aiment backward link
+ */
 public class PlayerTrail {
 
-    /*
-     * ==============================================================================
-     * 
-     * PLAYER TRAIL
-     * 
-     * ==============================================================================
-     * 
-     * This is a circular list containing the a list of points of where the
-     * player has been recently. It is used by monsters for pursuit.
-     * 
-     * .origin the spot .owner forward link .aiment backward link
-     */
+    int TRAIL_LENGTH;
+    SubgameEntity[] trail;
+    int trail_head;
+    boolean trail_active;
+    private final GameExportsImpl gameExports;
 
-    static int TRAIL_LENGTH = 8;
-
-    static SubgameEntity trail[] = new SubgameEntity[TRAIL_LENGTH];
-
-    static int trail_head;
-
-    static boolean trail_active = false;
-    static {
-        //TODO: potential error
-        for (int n = 0; n < TRAIL_LENGTH; n++)
-            trail[n] = new SubgameEntity(n);
+    public PlayerTrail(GameExportsImpl gameExports) {
+        this.gameExports = gameExports;
+        TRAIL_LENGTH = 16;
+        trail = new SubgameEntity[TRAIL_LENGTH];
+        trail_active = false;
     }
 
-    static int NEXT(int n) {
-        return (n + 1) % PlayerTrail.TRAIL_LENGTH;
+    int NEXT(int n) {
+        return (n + 1) % TRAIL_LENGTH;
     }
 
-    static int PREV(int n) {
-        return (n + PlayerTrail.TRAIL_LENGTH - 1) % PlayerTrail.TRAIL_LENGTH;
+    int PREV(int n) {
+        return (n + TRAIL_LENGTH - 1) % TRAIL_LENGTH;
     }
 
-    static void Init() {
+    // todo: should just part of the constructor?
+    void Init() {
 
         // FIXME || coop
-        if (GameBase.deathmatch.value != 0)
+        if (this.gameExports.cvarCache.deathmatch.value != 0)
             return;
 
-        for (int n = 0; n < PlayerTrail.TRAIL_LENGTH; n++) {
-            PlayerTrail.trail[n] = GameUtil.G_Spawn();
-            PlayerTrail.trail[n].classname = "player_trail";
+        for (int n = 0; n < TRAIL_LENGTH; n++) {
+            trail[n] = GameUtil.G_Spawn(this.gameExports);
+            trail[n].classname = "player_trail";
         }
 
         trail_head = 0;
         trail_active = true;
     }
 
-    static void Add(float[] spot) {
+    void Add(float[] spot, float time) {
         float[] temp = { 0, 0, 0 };
 
         if (!trail_active)
             return;
 
-        Math3D.VectorCopy(spot, PlayerTrail.trail[trail_head].s.origin);
+        Math3D.VectorCopy(spot, trail[trail_head].s.origin);
 
-        PlayerTrail.trail[trail_head].timestamp = GameBase.level.time;
+        trail[trail_head].timestamp = time;
 
-        Math3D.VectorSubtract(spot,
-                PlayerTrail.trail[PREV(trail_head)].s.origin, temp);
-        PlayerTrail.trail[trail_head].s.angles[1] = Math3D.vectoyaw(temp);
+        Math3D.VectorSubtract(spot, trail[PREV(trail_head)].s.origin, temp);
+        trail[trail_head].s.angles[1] = Math3D.vectoyaw(temp);
 
         trail_head = NEXT(trail_head);
     }
 
-    static void New(float[] spot) {
-        if (!trail_active)
-            return;
-
-        Init();
-        Add(spot);
-    }
-
-    static SubgameEntity PickFirst(SubgameEntity self) {
+    SubgameEntity PickFirst(SubgameEntity self) {
 
         if (!trail_active)
             return null;
 
         int marker = trail_head;
 
-        for (int n = PlayerTrail.TRAIL_LENGTH; n > 0; n--) {
-            if (PlayerTrail.trail[marker].timestamp <= self.monsterinfo.trail_time)
+        for (int n = TRAIL_LENGTH; n > 0; n--) {
+            if (trail[marker].timestamp <= self.monsterinfo.trail_time)
                 marker = NEXT(marker);
             else
                 break;
         }
 
-        if (GameUtil.visible(self, PlayerTrail.trail[marker])) {
-            return PlayerTrail.trail[marker];
+        if (GameUtil.visible(self, trail[marker], this.gameExports)) {
+            return trail[marker];
         }
 
-        if (GameUtil.visible(self, PlayerTrail.trail[PREV(marker)])) {
-            return PlayerTrail.trail[PREV(marker)];
+        if (GameUtil.visible(self, trail[PREV(marker)], this.gameExports)) {
+            return trail[PREV(marker)];
         }
 
-        return PlayerTrail.trail[marker];
+        return trail[marker];
     }
 
-    static SubgameEntity PickNext(SubgameEntity self) {
+    SubgameEntity PickNext(SubgameEntity self) {
 
         if (!trail_active)
             return null;
 
         int marker;
         int n;
-        for (marker = trail_head, n = PlayerTrail.TRAIL_LENGTH; n > 0; n--) {
-            if (PlayerTrail.trail[marker].timestamp <= self.monsterinfo.trail_time)
+        for (marker = trail_head, n = TRAIL_LENGTH; n > 0; n--) {
+            if (trail[marker].timestamp <= self.monsterinfo.trail_time)
                 marker = NEXT(marker);
             else
                 break;
         }
 
-        return PlayerTrail.trail[marker];
+        return trail[marker];
     }
 
-    static SubgameEntity LastSpot() {
-        return PlayerTrail.trail[PREV(trail_head)];
+    SubgameEntity LastSpot() {
+        return trail[PREV(trail_head)];
     }
 }

@@ -467,8 +467,8 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_idlesound = new EntThinkAdapter() {
     	public String getID() { return "gunner_idlesound"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -476,8 +476,8 @@ public class M_Gunner {
 
     static EntInteractAdapter gunner_sight = new EntInteractAdapter() {
     	public String getID() { return "gunner_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -485,8 +485,8 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_search = new EntThinkAdapter() {
     	public String getID() { return "gunner_search"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -545,7 +545,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_stand = new EntThinkAdapter() {
     	public String getID() { return "gunner_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = gunner_move_stand;
             return true;
         }
@@ -556,7 +556,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_fidget = new EntThinkAdapter() {
     	public String getID() { return "gunner_fidget"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
             if (Lib.random() <= 0.05)
@@ -620,7 +620,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_walk = new EntThinkAdapter() {
     	public String getID() { return "gunner_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = gunner_move_walk;
             return true;
         }
@@ -641,7 +641,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_run = new EntThinkAdapter() {
     	public String getID() { return "gunner_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = gunner_move_stand;
             else
@@ -663,7 +663,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_runandshoot = new EntThinkAdapter() {
     	public String getID() { return "gunner_runandshoot"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = gunner_move_runandshoot;
             return true;
         }
@@ -717,23 +717,23 @@ public class M_Gunner {
 
     static EntPainAdapter gunner_pain = new EntPainAdapter() {
     	public String getID() { return "gunner_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
             if ((Lib.rand() & 1) != 0)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -748,13 +748,13 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_dead = new EntThinkAdapter() {
     	public String getID() { return "gunner_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -778,24 +778,24 @@ public class M_Gunner {
     static EntDieAdapter gunner_die = new EntDieAdapter() {
     	public String getID() { return "gunner_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -804,7 +804,7 @@ public class M_Gunner {
                 return;
 
             //	regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -814,27 +814,27 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_duck_down = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_down"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
-            if (GameBase.skill.value >= 2) {
+            if (gameExports.cvarCache.skill.value >= 2) {
                 if (Lib.random() > 0.5)
-                    GunnerGrenade.think(self);
+                    GunnerGrenade.think(self, gameExports);
             }
 
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
-            GameBase.gi.linkentity(self);
+            self.monsterinfo.pausetime = gameExports.level.time + 1;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntThinkAdapter gunner_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_hold"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -844,11 +844,11 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_duck_up = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_up"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -868,7 +868,7 @@ public class M_Gunner {
 
     static EntDodgeAdapter gunner_dodge = new EntDodgeAdapter() {
     	public String getID() { return "gunner_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -881,8 +881,8 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_opengun = new EntThinkAdapter() {
     	public String getID() { return "gunner_opengun"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_open, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_open, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -890,7 +890,7 @@ public class M_Gunner {
 
     static EntThinkAdapter GunnerFire = new EntThinkAdapter() {
     	public String getID() { return "GunnerFire"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] target = { 0, 0, 0 };
@@ -914,7 +914,7 @@ public class M_Gunner {
             Math3D.VectorNormalize(aim);
             Monster.monster_fire_bullet(self, start, aim, 3, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
 
             return true;
         }
@@ -922,7 +922,7 @@ public class M_Gunner {
 
     static EntThinkAdapter GunnerGrenade = new EntThinkAdapter() {
     	public String getID() { return "GunnerGrenade"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] aim = { 0, 0, 0 };
@@ -947,14 +947,14 @@ public class M_Gunner {
             Math3D.VectorCopy(forward, aim);
 
             Monster.monster_fire_grenade(self, start, aim, 50, 600,
-                    flash_number);
+                    flash_number, gameExports);
             return true;
         }
     };
 
     static EntThinkAdapter gunner_attack = new EntThinkAdapter() {
     	public String getID() { return "gunner_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE) {
                 self.monsterinfo.currentmove = gunner_move_attack_chain;
             } else {
@@ -969,7 +969,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_fire_chain = new EntThinkAdapter() {
     	public String getID() { return "gunner_fire_chain"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = gunner_move_fire_chain;
             return true;
         }
@@ -999,9 +999,9 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_refire_chain = new EntThinkAdapter() {
     	public String getID() { return "gunner_refire_chain"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health > 0)
-                if (GameUtil.visible(self, self.enemy))
+                if (GameUtil.visible(self, self.enemy, gameExports))
                     if (Lib.random() <= 0.5) {
                         self.monsterinfo.currentmove = gunner_move_fire_chain;
                         return true;
@@ -1056,26 +1056,26 @@ public class M_Gunner {
      * QUAKED monster_gunner (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_gunner(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static void SP_monster_gunner(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
-        sound_death = GameBase.gi.soundindex("gunner/death1.wav");
-        sound_pain = GameBase.gi.soundindex("gunner/gunpain2.wav");
-        sound_pain2 = GameBase.gi.soundindex("gunner/gunpain1.wav");
-        sound_idle = GameBase.gi.soundindex("gunner/gunidle1.wav");
-        sound_open = GameBase.gi.soundindex("gunner/gunatck1.wav");
-        sound_search = GameBase.gi.soundindex("gunner/gunsrch1.wav");
-        sound_sight = GameBase.gi.soundindex("gunner/sight1.wav");
+        sound_death = gameExports.gameImports.soundindex("gunner/death1.wav");
+        sound_pain = gameExports.gameImports.soundindex("gunner/gunpain2.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("gunner/gunpain1.wav");
+        sound_idle = gameExports.gameImports.soundindex("gunner/gunidle1.wav");
+        sound_open = gameExports.gameImports.soundindex("gunner/gunatck1.wav");
+        sound_search = gameExports.gameImports.soundindex("gunner/gunsrch1.wav");
+        sound_sight = gameExports.gameImports.soundindex("gunner/sight1.wav");
 
-        GameBase.gi.soundindex("gunner/gunatck2.wav");
-        GameBase.gi.soundindex("gunner/gunatck3.wav");
+        gameExports.gameImports.soundindex("gunner/gunatck2.wav");
+        gameExports.gameImports.soundindex("gunner/gunatck3.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/gunner/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -1096,11 +1096,11 @@ public class M_Gunner {
         self.monsterinfo.sight = gunner_sight;
         self.monsterinfo.search = gunner_search;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = gunner_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
     }
 }

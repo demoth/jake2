@@ -89,7 +89,7 @@ public class client_persistant_t {
 	boolean spectator; // client is a spectator
 
 	/** Reads a client_persistant structure from a file. */
-	public void read(QuakeFile f) throws IOException {
+	public void read(QuakeFile f, GameExportsImpl gameExports) throws IOException {
 
 		userinfo= f.readString();
 		netname= f.readString();
@@ -113,8 +113,8 @@ public class client_persistant_t {
 		max_cells= f.readInt();
 		max_slugs= f.readInt();
 
-		weapon= GameItems.readItem(f);
-		lastweapon= GameItems.readItem(f);
+		weapon= GameItems.readItem(f, gameExports);
+		lastweapon= GameItems.readItem(f, gameExports);
 		power_cubes= f.readInt();
 		score= f.readInt();
 

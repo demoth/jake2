@@ -507,8 +507,8 @@ public class M_Brain {
 
     static EntInteractAdapter brain_sight = new EntInteractAdapter() {
     	public String getID() { return "brain_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -516,8 +516,8 @@ public class M_Brain {
 
     static EntThinkAdapter brain_search = new EntThinkAdapter() {
     	public String getID() { return "brain_search"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -564,7 +564,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_stand = new EntThinkAdapter() {
     	public String getID() { return "brain_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = brain_move_stand;
             return true;
         }
@@ -611,8 +611,8 @@ public class M_Brain {
 
     static EntThinkAdapter brain_idle = new EntThinkAdapter() {
     	public String getID() { return "brain_idle"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_idle3, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_idle3, 1,
                     Defines.ATTN_IDLE, 0);
             self.monsterinfo.currentmove = brain_move_idle;
             return true;
@@ -672,7 +672,7 @@ public class M_Brain {
      */
     static EntThinkAdapter brain_walk = new EntThinkAdapter() {
     	public String getID() { return "brain_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             //			if (random() <= 0.5)
             self.monsterinfo.currentmove = brain_move_walk1;
             //		else
@@ -687,22 +687,22 @@ public class M_Brain {
 
     static EntThinkAdapter brain_duck_down = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_down"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntThinkAdapter brain_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_hold"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -712,25 +712,25 @@ public class M_Brain {
 
     static EntThinkAdapter brain_duck_up = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_up"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntDodgeAdapter brain_dodge = new EntDodgeAdapter() {
     	public String getID() { return "brain_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
             if (self.enemy == null)
                 self.enemy = attacker;
 
-            self.monsterinfo.pausetime = GameBase.level.time + eta + 0.5f;
+            self.monsterinfo.pausetime = gameExports.level.time + eta + 0.5f;
             self.monsterinfo.currentmove = brain_move_duck;
             return;
         }
@@ -745,13 +745,13 @@ public class M_Brain {
 
     static EntThinkAdapter brain_dead = new EntThinkAdapter() {
     	public String getID() { return "brain_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -788,8 +788,8 @@ public class M_Brain {
 
     static EntThinkAdapter brain_swing_right = new EntThinkAdapter() {
     	public String getID() { return "brain_swing_right"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_melee1, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_melee1, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -797,12 +797,12 @@ public class M_Brain {
 
     static EntThinkAdapter brain_hit_right = new EntThinkAdapter() {
     	public String getID() { return "brain_hit_right"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
-                GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40, gameExports))
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -810,8 +810,8 @@ public class M_Brain {
 
     static EntThinkAdapter brain_swing_left = new EntThinkAdapter() {
     	public String getID() { return "brain_swing_left"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_melee2, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_melee2, 1,
                     Defines.ATTN_NORM, 0);
 
             return true;
@@ -820,12 +820,12 @@ public class M_Brain {
 
     static EntThinkAdapter brain_hit_left = new EntThinkAdapter() {
     	public String getID() { return "brain_hit_left"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
-                GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40, gameExports))
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
 
             return true;
@@ -834,10 +834,10 @@ public class M_Brain {
 
     static EntThinkAdapter brain_chest_open = new EntThinkAdapter() {
     	public String getID() { return "brain_chest_open"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.spawnflags &= ~65536;
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_NONE;
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_chest_open, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_chest_open, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -845,15 +845,15 @@ public class M_Brain {
 
     static EntThinkAdapter brain_tentacle_attack = new EntThinkAdapter() {
     	public String getID() { return "brain_tentacle_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 8);
-            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600)
-                    && GameBase.skill.value > 0)
+            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600, gameExports)
+                    && gameExports.cvarCache.skill.value > 0)
                 self.spawnflags |= 65536;
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,
                     sound_tentacles_retract, 1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -881,7 +881,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_chest_closed = new EntThinkAdapter() {
     	public String getID() { return "brain_chest_closed"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
             if ((self.spawnflags & 65536) != 0) {
@@ -913,7 +913,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_melee = new EntThinkAdapter() {
     	public String getID() { return "brain_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.5)
                 self.monsterinfo.currentmove = brain_move_attack1;
             else
@@ -945,7 +945,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_run = new EntThinkAdapter() {
     	public String getID() { return "brain_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = brain_move_stand;
@@ -1034,30 +1034,30 @@ public class M_Brain {
 
     static EntPainAdapter brain_pain = new EntPainAdapter() {
     	public String getID() { return "brain_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
-            if (GameBase.skill.value == 3)
+            self.pain_debounce_time = gameExports.level.time + 3;
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             r = Lib.random();
             if (r < 0.33) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = brain_move_pain1;
             } else if (r < 0.66) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = brain_move_pain2;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = brain_move_pain3;
             }
@@ -1068,7 +1068,7 @@ public class M_Brain {
     static EntDieAdapter brain_die = new EntDieAdapter() {
     	public String getID() { return "brain_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             self.s.effects = 0;
@@ -1076,19 +1076,19 @@ public class M_Brain {
 
             //	   check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1097,7 +1097,7 @@ public class M_Brain {
                 return;
 
             //	   regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -1118,30 +1118,30 @@ public class M_Brain {
      * QUAKED monster_brain (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_brain(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static void SP_monster_brain(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
-        sound_chest_open = GameBase.gi.soundindex("brain/brnatck1.wav");
-        sound_tentacles_extend = GameBase.gi.soundindex("brain/brnatck2.wav");
-        sound_tentacles_retract = GameBase.gi.soundindex("brain/brnatck3.wav");
-        sound_death = GameBase.gi.soundindex("brain/brndeth1.wav");
-        sound_idle1 = GameBase.gi.soundindex("brain/brnidle1.wav");
-        sound_idle2 = GameBase.gi.soundindex("brain/brnidle2.wav");
-        sound_idle3 = GameBase.gi.soundindex("brain/brnlens1.wav");
-        sound_pain1 = GameBase.gi.soundindex("brain/brnpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("brain/brnpain2.wav");
-        sound_sight = GameBase.gi.soundindex("brain/brnsght1.wav");
-        sound_search = GameBase.gi.soundindex("brain/brnsrch1.wav");
-        sound_melee1 = GameBase.gi.soundindex("brain/melee1.wav");
-        sound_melee2 = GameBase.gi.soundindex("brain/melee2.wav");
-        sound_melee3 = GameBase.gi.soundindex("brain/melee3.wav");
+        sound_chest_open = gameExports.gameImports.soundindex("brain/brnatck1.wav");
+        sound_tentacles_extend = gameExports.gameImports.soundindex("brain/brnatck2.wav");
+        sound_tentacles_retract = gameExports.gameImports.soundindex("brain/brnatck3.wav");
+        sound_death = gameExports.gameImports.soundindex("brain/brndeth1.wav");
+        sound_idle1 = gameExports.gameImports.soundindex("brain/brnidle1.wav");
+        sound_idle2 = gameExports.gameImports.soundindex("brain/brnidle2.wav");
+        sound_idle3 = gameExports.gameImports.soundindex("brain/brnlens1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("brain/brnpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("brain/brnpain2.wav");
+        sound_sight = gameExports.gameImports.soundindex("brain/brnsght1.wav");
+        sound_search = gameExports.gameImports.soundindex("brain/brnsrch1.wav");
+        sound_melee1 = gameExports.gameImports.soundindex("brain/melee1.wav");
+        sound_melee2 = gameExports.gameImports.soundindex("brain/melee2.wav");
+        sound_melee3 = gameExports.gameImports.soundindex("brain/melee3.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/brain/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -1166,11 +1166,11 @@ public class M_Brain {
         self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
         self.monsterinfo.power_armor_power = 100;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = brain_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
     }
 }

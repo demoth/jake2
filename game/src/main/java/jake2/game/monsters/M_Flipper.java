@@ -377,7 +377,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_stand = new EntThinkAdapter() {
     	public String getID() { return "flipper_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_stand;
             return true;
         }
@@ -421,7 +421,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_run_loop = new EntThinkAdapter() {
     	public String getID() { return "flipper_run_loop"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_loop;
             return true;
         }
@@ -440,7 +440,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_run = new EntThinkAdapter() {
     	public String getID() { return "flipper_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_start;
             return true;
         }
@@ -478,7 +478,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_walk = new EntThinkAdapter() {
     	public String getID() { return "flipper_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_walk;
             return true;
         }
@@ -496,7 +496,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_start_run = new EntThinkAdapter() {
     	public String getID() { return "flipper_start_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_start_run;
             return true;
         }
@@ -524,11 +524,11 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_bite = new EntThinkAdapter() {
     	public String getID() { return "flipper_bite"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
-            GameWeapon.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0, gameExports);
             return true;
         }
     };
@@ -536,8 +536,8 @@ public class M_Flipper {
     static EntThinkAdapter flipper_preattack = new EntThinkAdapter() {
     	public String getID() { return "flipper_preattack"; }
 
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_chomp, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_chomp, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -570,7 +570,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_melee = new EntThinkAdapter() {
     	public String getID() { return "flipper_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_attack;
             return true;
         }
@@ -578,27 +578,27 @@ public class M_Flipper {
 
     static EntPainAdapter flipper_pain = new EntPainAdapter() {
     	public String getID() { return "flipper_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = (Lib.rand() + 1) % 2;
             if (n == 0) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flipper_move_pain1;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flipper_move_pain2;
             }
@@ -608,13 +608,13 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_dead = new EntThinkAdapter() {
     	public String getID() { return "flipper_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -682,8 +682,8 @@ public class M_Flipper {
 
     static EntInteractAdapter flipper_sight = new EntInteractAdapter() {
     	public String getID() { return "flipper_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -693,24 +693,24 @@ public class M_Flipper {
     	public String getID() { return "flipper_die"; }
 
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/sm_meat/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -719,7 +719,7 @@ public class M_Flipper {
                 return;
 
             //	regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -731,24 +731,24 @@ public class M_Flipper {
      * QUAKED monster_flipper (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_flipper(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+    public static void SP_monster_flipper(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("flipper/flppain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("flipper/flppain2.wav");
-        sound_death = GameBase.gi.soundindex("flipper/flpdeth1.wav");
-        sound_chomp = GameBase.gi.soundindex("flipper/flpatck1.wav");
-        sound_attack = GameBase.gi.soundindex("flipper/flpatck2.wav");
-        sound_idle = GameBase.gi.soundindex("flipper/flpidle1.wav");
-        sound_search = GameBase.gi.soundindex("flipper/flpsrch1.wav");
-        sound_sight = GameBase.gi.soundindex("flipper/flpsght1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("flipper/flppain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("flipper/flppain2.wav");
+        sound_death = gameExports.gameImports.soundindex("flipper/flpdeth1.wav");
+        sound_chomp = gameExports.gameImports.soundindex("flipper/flpatck1.wav");
+        sound_attack = gameExports.gameImports.soundindex("flipper/flpatck2.wav");
+        sound_idle = gameExports.gameImports.soundindex("flipper/flpidle1.wav");
+        sound_search = gameExports.gameImports.soundindex("flipper/flpsrch1.wav");
+        sound_sight = gameExports.gameImports.soundindex("flipper/flpsght1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/flipper/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, 0);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -766,11 +766,11 @@ public class M_Flipper {
         self.monsterinfo.melee = flipper_melee;
         self.monsterinfo.sight = flipper_sight;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = flipper_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.swimmonster_start.think(self);
+        GameAI.swimmonster_start.think(self, gameExports);
     }
 }

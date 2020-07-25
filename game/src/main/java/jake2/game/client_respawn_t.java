@@ -67,9 +67,9 @@ public class client_respawn_t
 	}
 
 	/** Reads a client_respawn from a file. */
-	public void read(QuakeFile f) throws IOException
+	public void read(QuakeFile f, GameExportsImpl gameExports) throws IOException
 	{
-		coop_respawn.read(f);
+		coop_respawn.read(f, gameExports);
 		enterframe = f.readInt();
 		score = f.readInt();
 		cmd_angles[0] = f.readFloat();

@@ -560,8 +560,8 @@ public class M_Supertank {
 
     static EntThinkAdapter TreadSound = new EntThinkAdapter() {
     	public String getID(){ return "TreadSound"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, tread_sound, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, tread_sound, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -569,12 +569,12 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_search = new EntThinkAdapter() {
     	public String getID(){ return "supertank_search"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -651,7 +651,7 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_stand = new EntThinkAdapter() {
     	public String getID() { return "supertank_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_stand;
             return true;
         }
@@ -709,7 +709,7 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_forward = new EntThinkAdapter() {
     	public String getID(){ return "supertank_forward"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_forward;
             return true;
         }
@@ -717,7 +717,7 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_walk = new EntThinkAdapter() {
     	public String getID(){ return "supertank_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_forward;
             return true;
         }
@@ -725,7 +725,7 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_run = new EntThinkAdapter() {
     	public String getID(){ return "supertank_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = supertank_move_stand;
             else
@@ -739,20 +739,20 @@ public class M_Supertank {
     //
     static EntThinkAdapter supertank_dead = new EntThinkAdapter() {
     	public String getID(){ return "supertank_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntThinkAdapter supertankRocket = new EntThinkAdapter() {
     	public String getID(){ return "supertankRocket"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -779,14 +779,14 @@ public class M_Supertank {
 
             Monster
                     .monster_fire_rocket(self, start, dir, 50, 500,
-                            flash_number);
+                            flash_number, gameExports);
             return true;
         }
     };
 
     static EntThinkAdapter supertankMachineGun = new EntThinkAdapter() {
     	public String getID(){ return "supertankMachineGun"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] dir = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -816,14 +816,14 @@ public class M_Supertank {
 
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
     };
 
     static EntThinkAdapter supertank_attack = new EntThinkAdapter() {
     	public String getID(){ return "supertank_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range;
             //float r;
@@ -1050,8 +1050,8 @@ public class M_Supertank {
 
     static EntThinkAdapter supertank_reattack1 = new EntThinkAdapter() {
     	public String getID(){ return "supertank_reattack1"; }
-        public boolean think(SubgameEntity self) {
-            if (GameUtil.visible(self, self.enemy))
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
                     self.monsterinfo.currentmove = supertank_move_attack1;
                 else
@@ -1094,11 +1094,11 @@ public class M_Supertank {
 
     static EntPainAdapter supertank_pain = new EntPainAdapter() {
     	public String getID(){ return "supertank_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames
@@ -1107,26 +1107,26 @@ public class M_Supertank {
                     return;
 
             // Don't go into pain if he's firing his rockets
-            if (GameBase.skill.value >= 2)
+            if (gameExports.cvarCache.skill.value >= 2)
                 if ((self.s.frame >= FRAME_attak2_1)
                         && (self.s.frame <= FRAME_attak2_14))
                     return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain1;
             } else if (damage <= 25) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain2;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain3;
             }
@@ -1136,8 +1136,8 @@ public class M_Supertank {
     static EntDieAdapter supertank_die = new EntDieAdapter() {
     	public String getID(){ return "supertank_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
@@ -1156,25 +1156,25 @@ public class M_Supertank {
      */
     public static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_supertank"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 
-            sound_pain1 = GameBase.gi.soundindex("bosstank/btkpain1.wav");
-            sound_pain2 = GameBase.gi.soundindex("bosstank/btkpain2.wav");
-            sound_pain3 = GameBase.gi.soundindex("bosstank/btkpain3.wav");
-            sound_death = GameBase.gi.soundindex("bosstank/btkdeth1.wav");
-            sound_search1 = GameBase.gi.soundindex("bosstank/btkunqv1.wav");
-            sound_search2 = GameBase.gi.soundindex("bosstank/btkunqv2.wav");
+            sound_pain1 = gameExports.gameImports.soundindex("bosstank/btkpain1.wav");
+            sound_pain2 = gameExports.gameImports.soundindex("bosstank/btkpain2.wav");
+            sound_pain3 = gameExports.gameImports.soundindex("bosstank/btkpain3.wav");
+            sound_death = gameExports.gameImports.soundindex("bosstank/btkdeth1.wav");
+            sound_search1 = gameExports.gameImports.soundindex("bosstank/btkunqv1.wav");
+            sound_search2 = gameExports.gameImports.soundindex("bosstank/btkunqv2.wav");
 
             //	self.s.sound = gi.soundindex ("bosstank/btkengn1.wav");
-            tread_sound = GameBase.gi.soundindex("bosstank/btkengn1.wav");
+            tread_sound = gameExports.gameImports.soundindex("bosstank/btkengn1.wav");
 
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
-            self.s.modelindex = GameBase.gi
+            self.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/boss1/tris.md2");
             Math3D.VectorSet(self.mins, -64, -64, 0);
             Math3D.VectorSet(self.maxs, 64, 64, 112);
@@ -1194,12 +1194,12 @@ public class M_Supertank {
             self.monsterinfo.melee = null;
             self.monsterinfo.sight = null;
 
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             self.monsterinfo.currentmove = supertank_move_stand;
             self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start.think(self);
+            GameAI.walkmonster_start.think(self, gameExports);
             return true;
         }
     };
@@ -1208,7 +1208,7 @@ public class M_Supertank {
     
     public static EntThinkAdapter BossExplode = new EntThinkAdapter() {
     	public String getID(){ return "BossExplode"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] org = { 0, 0, 0 };
     
             int n;
@@ -1253,24 +1253,24 @@ public class M_Supertank {
                 self.s.sound = 0;
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 8; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
-                            500, GameDefines.GIB_METALLIC);
+                            500, GameDefines.GIB_METALLIC, gameExports);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
-                        GameDefines.GIB_ORGANIC);
+                        GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
-                        GameDefines.GIB_METALLIC);
+                        GameDefines.GIB_METALLIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return true;
             }
     
-            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
-            GameBase.gi.WritePosition(org);
-            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
+            gameExports.gameImports.WritePosition(org);
+            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
-            self.nextthink = GameBase.level.time + 0.1f;
+            self.nextthink = gameExports.level.time + 0.1f;
             return true;
         }
     };

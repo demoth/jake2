@@ -4,13 +4,18 @@ import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
+import static jake2.game.GameBase.*;
+import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
 
 /**
@@ -86,7 +91,70 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameItemList"
             };
 
-    private final GameImports gameImports;
+    /////////////////////////////////////
+    /////////  STATE    /////////////////
+    /////////////////////////////////////
+    public final GameImports gameImports;
+    public PlayerView playerView;
+    public PlayerTrail playerTrail;
+    public SV sv;
+    public game_locals_t game;
+    public CvarCache cvarCache;
+    public level_locals_t level;
+    public int meansOfDeath;
+
+    // this is used to store parsed entity fields during map loading
+    // todo: pass directly instead of via global static field
+    public spawn_temp_t st = new spawn_temp_t();
+
+    //////////////
+    // Collision
+    //////////////
+    // holds the entity that is blocking something' movement
+    SubgameEntity obstacle;
+    // todo: make consistent with maxentities cvar
+    pushed_t[] pushed = new pushed_t[Defines.MAX_EDICTS];
+    int pushed_p;
+    // holds the result of gi.BoxEdicts
+    // todo: make consistent with maxentities cvar
+    // todo: remove and use result of gi.BoxEdicts
+    SubgameEntity[] touch = new SubgameEntity[Defines.MAX_EDICTS];
+
+    // Monster knowledge about the enemy
+    // todo: move to separate class
+    boolean enemy_vis;
+    boolean enemy_infront;
+    int enemy_range;
+    float enemy_yaw;
+
+    // Game Items related
+    GameItemList items;
+    // todo: move to appropriate places
+    int quad_drop_timeout_hack;
+    boolean is_quad;
+    byte is_silenced;
+    int jacket_armor_index;
+    int combat_armor_index;
+    int body_armor_index;
+    int power_screen_index;
+    int power_shield_index;
+
+    int windsound_index;
+
+    int player_die_i;
+
+    /**
+     * entity with index = 0 is always the worldspawn.
+     * entities with indices 1..maxclients are the players
+     * then go other stuff
+     */
+    // todo: make consistent with maxentities cvar
+    public SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
+    int num_edicts;
+
+    /////////////////////////////////////
+    /////////  INITIALIZATION   /////////
+    /////////////////////////////////////
 
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
@@ -103,14 +171,58 @@ public class GameExportsImpl implements GameExports {
             }
         }
 
-        GameBase.playerView = new PlayerView(gameImports);
+        playerView = new PlayerView(gameImports);
 
-        // todo replace with constructor
-        SV.Init(gameImports);
+        sv = new SV(gameImports);
 
-        // todo replace with constructor
-        GameBase.Init(gameImports);
+        game = new game_locals_t();
+        game.helpmessage1 = "";
+        game.helpmessage2 = "";
+        items = new GameItemList();
+        game.num_items = items.itemlist.length - 1;
+
+        level = new level_locals_t();
+
+        // create necessary cvars
+        cvarCache = new CvarCache(imports);
+
+        CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+        CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
+
+        for (int n = 0; n < Defines.MAX_EDICTS; n++) {
+            pushed[n] = new pushed_t();
+        }
+
+        playerTrail = new PlayerTrail(this);
     }
+
+    // create the entities array and fill it with empty entities
+    private void CreateEdicts(float max) {
+        // initialize all entities for this game
+        game.maxentities = (int) max;
+        g_edicts = new SubgameEntity[game.maxentities];
+        for (int i = 0; i < game.maxentities; i++)
+            g_edicts[i] = new SubgameEntity(i);
+    }
+
+    // create the clients array and fill it with empty clients
+    private void CreateClients(float max) {
+        // initialize all clients for this game
+        game.maxclients = (int) max;
+
+        game.clients = new gclient_t[game.maxclients];
+
+        for (int i = 0; i < game.maxclients; i++)
+            game.clients[i] = new gclient_t(i);
+
+        // so far we have only clients, no other entities
+        num_edicts = game.maxclients + 1;
+
+    }
+
+    /////////////////////////////////////
+    /////////    COMMANDS       /////////
+    /////////////////////////////////////
 
     /**
      * HelpComputer.
@@ -120,11 +232,11 @@ public class GameExportsImpl implements GameExports {
         StringBuilder sb = new StringBuilder(256);
         String sk;
 
-        if (GameBase.skill.value == 0)
+        if (cvarCache.skill.value == 0)
             sk = "easy";
-        else if (GameBase.skill.value == 1)
+        else if (cvarCache.skill.value == 1)
             sk = "medium";
-        else if (GameBase.skill.value == 2)
+        else if (cvarCache.skill.value == 2)
             sk = "hard";
         else
             sk = "hard+";
@@ -132,21 +244,21 @@ public class GameExportsImpl implements GameExports {
         // send the layout
         sb.append("xv 32 yv 8 picn help "); // background
         sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
-        sb.append("xv 0 yv 24 cstring2 \"").append(GameBase.level.level_name)
+        sb.append("xv 0 yv 24 cstring2 \"").append(level.level_name)
                 .append("\" "); // level name
-        sb.append("xv 0 yv 54 cstring2 \"").append(GameBase.game.helpmessage1)
+        sb.append("xv 0 yv 54 cstring2 \"").append(game.helpmessage1)
                 .append("\" "); // help 1
-        sb.append("xv 0 yv 110 cstring2 \"").append(GameBase.game.helpmessage2)
+        sb.append("xv 0 yv 110 cstring2 \"").append(game.helpmessage2)
                 .append("\" "); // help 2
         sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
         sb.append("xv 50 yv 172 string2 \"");
         sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
-                .add(GameBase.level.killed_monsters).add(
-                        GameBase.level.total_monsters).add(
-                        GameBase.level.found_goals).add(
-                        GameBase.level.total_goals).add(
-                        GameBase.level.found_secrets).add(
-                        GameBase.level.total_secrets)));
+                .add(level.killed_monsters).add(
+                        level.total_monsters).add(
+                        level.found_goals).add(
+                        level.total_goals).add(
+                        level.found_secrets).add(
+                        level.total_secrets)));
 
         gameImports.WriteByte(NetworkCommands.svc_layout);
         gameImports.WriteString(sb.toString());
@@ -160,7 +272,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Give_f(SubgameEntity ent, List<String> args) {
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -182,8 +294,8 @@ public class GameExportsImpl implements GameExports {
         int i;
         gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+            for (i = 1; i < game.num_items; i++) {
+                it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -195,8 +307,8 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+            for (i = 1; i < game.num_items; i++) {
+                it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_AMMO))
@@ -210,13 +322,13 @@ public class GameExportsImpl implements GameExports {
         if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
             gitem_armor_t info;
 
-            it = GameItems.FindItem("Jacket Armor");
+            it = GameItems.FindItem("Jacket Armor", this);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Combat Armor");
+            it = GameItems.FindItem("Combat Armor", this);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Body Armor");
+            it = GameItems.FindItem("Body Armor", this);
             info = (gitem_armor_t) it.info;
             client.pers.inventory[it.index] = info.max_count;
 
@@ -226,21 +338,42 @@ public class GameExportsImpl implements GameExports {
 
         SubgameEntity it_ent;
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameItems.FindItem("Power Shield");
-            it_ent = GameUtil.G_Spawn();
+            it = GameItems.FindItem("Power Shield", this);
+            it_ent = GameUtil.G_Spawn(this);
             it_ent.classname = it.classname;
-            GameItems.SpawnItem(it_ent, it);
-            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.SpawnItem(it_ent, it, this);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent);
+                GameUtil.G_FreeEdict(it_ent, this);
 
             if (!give_all)
                 return;
         }
 
+        if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
+
+            for (i = 1; i < game.num_items; i++) {
+                it = items.itemlist[i];
+                if (0 == (it.flags & GameDefines.IT_POWERUP))
+                    continue;
+
+                it_ent = GameUtil.G_Spawn(this);
+                it_ent.classname = it.classname;
+                GameItems.SpawnItem(it_ent, it, this);
+                GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
+                if (it_ent.inuse)
+                    GameUtil.G_FreeEdict(it_ent, this);
+
+            }
+
+            if (!give_all)
+                return;
+        }
+
+
         if (give_all) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+            for (i = 1; i < game.num_items; i++) {
+                it = items.itemlist[i];
                 if (it.pickup != null)
                     continue;
                 if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
@@ -250,10 +383,10 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItems.FindItem(name);
+        it = GameItems.FindItem(name, this);
         if (it == null) {
             name = args.get(1);
-            it = GameItems.FindItem(name);
+            it = GameItems.FindItem(name, this);
             if (it == null) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -267,18 +400,19 @@ public class GameExportsImpl implements GameExports {
 
         int index = it.index;
 
+        // set particular amount of ammo: give cells 53
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
                 client.pers.inventory[index] = Lib.atoi(args.get(2));
             else
                 client.pers.inventory[index] += it.quantity;
         } else {
-            it_ent = GameUtil.G_Spawn();
+            it_ent = GameUtil.G_Spawn(this);
             it_ent.classname = it.classname;
-            GameItems.SpawnItem(it_ent, it);
-            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.SpawnItem(it_ent, it, this);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent);
+                GameUtil.G_FreeEdict(it_ent, this);
         }
     }
 
@@ -292,7 +426,7 @@ public class GameExportsImpl implements GameExports {
     private void God_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -313,7 +447,7 @@ public class GameExportsImpl implements GameExports {
     private void Notarget_f(SubgameEntity ent) {
 
         // why do you need notarget in deathmatch??
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -337,7 +471,7 @@ public class GameExportsImpl implements GameExports {
     private void Noclip_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -363,7 +497,7 @@ public class GameExportsImpl implements GameExports {
 
         String itemName = Cmd.getArguments(args);
 
-        gitem_t it = GameItems.FindItem(itemName);
+        gitem_t it = GameItems.FindItem(itemName, this);
         Com.dprintln("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
@@ -380,7 +514,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
@@ -391,7 +525,7 @@ public class GameExportsImpl implements GameExports {
     private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName);
+        gitem_t it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -408,7 +542,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it.drop.drop(ent, it);
+        it.drop.drop(ent, it, this);
     }
 
     /**
@@ -441,7 +575,7 @@ public class GameExportsImpl implements GameExports {
     private void InvUse_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent);
+        GameItems.ValidateSelectedItem(ent, this);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -449,18 +583,18 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItemList.itemlist[client.pers.selected_item];
+        it = items.itemlist[client.pers.selected_item];
         if (it.use == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
         }
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
      * Cmd_WeapPrev_f.
      */
-    private static void WeapPrev_f(SubgameEntity ent) {
+    private void WeapPrev_f(SubgameEntity ent) {
 
         gclient_t cl = ent.getClient();
 
@@ -475,13 +609,13 @@ public class GameExportsImpl implements GameExports {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            gitem_t it = GameItemList.itemlist[index];
+            gitem_t it = items.itemlist[index];
             if (it.use == null)
                 continue;
 
             if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
-            it.use.use(ent, it);
+            it.use.use(ent, it, this);
             if (cl.pers.weapon == it)
                 return; // successful
         }
@@ -490,7 +624,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapNext_f.
      */
-    private static void WeapNext_f(SubgameEntity ent) {
+    private void WeapNext_f(SubgameEntity ent) {
         gclient_t cl;
         int i, index;
         gitem_t it;
@@ -512,12 +646,12 @@ public class GameExportsImpl implements GameExports {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameItemList.itemlist[index];
+            it = items.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
-            it.use.use(ent, it);
+            it.use.use(ent, it, this);
             if (cl.pers.weapon == it)
                 return; // successful
         }
@@ -526,7 +660,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapLast_f.
      */
-    private static void WeapLast_f(SubgameEntity ent) {
+    private void WeapLast_f(SubgameEntity ent) {
         int index;
 
         gclient_t cl = ent.getClient();
@@ -537,12 +671,12 @@ public class GameExportsImpl implements GameExports {
         index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
-        gitem_t it = GameItemList.itemlist[index];
+        gitem_t it = items.itemlist[index];
         if (null == it.use)
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
             return;
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
@@ -551,7 +685,7 @@ public class GameExportsImpl implements GameExports {
     private void InvDrop_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent);
+        GameItems.ValidateSelectedItem(ent, this);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -559,12 +693,12 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItemList.itemlist[client.pers.selected_item];
+        it = items.itemlist[client.pers.selected_item];
         if (it.drop == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;
         }
-        it.drop.drop(ent, it);
+        it.drop.drop(ent, it, this);
     }
 
     /**
@@ -573,12 +707,12 @@ public class GameExportsImpl implements GameExports {
      * Display the scoreboard.
      *
      */
-    private static void Score_f(SubgameEntity ent) {
+    private void Score_f(SubgameEntity ent) {
         gclient_t client = ent.getClient();
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value)
+        if (0 == cvarCache.deathmatch.value && 0 == cvarCache.coop.value)
             return;
 
         if (client.showscores) {
@@ -587,7 +721,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         client.showscores = true;
-        PlayerHud.DeathmatchScoreboard(ent);
+        PlayerHud.DeathmatchScoreboard(ent, this);
     }
 
     /**
@@ -596,9 +730,9 @@ public class GameExportsImpl implements GameExports {
      * Display the current help message.
      *
      */
-    private void Help_f(SubgameEntity ent) {
+    void Help_f(SubgameEntity ent) {
         // this is for backwards compatability
-        if (GameBase.deathmatch.value != 0) {
+        if (cvarCache.deathmatch.value != 0) {
             Score_f(ent);
             return;
         }
@@ -608,7 +742,7 @@ public class GameExportsImpl implements GameExports {
         client.showscores = false;
 
         if (client.showhelp
-                && (client.pers.game_helpchanged == GameBase.game.helpchanged)) {
+                && (client.pers.game_helpchanged == game.helpchanged)) {
             client.showhelp = false;
             return;
         }
@@ -621,14 +755,14 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Kill_f
      */
-    private static void Kill_f(SubgameEntity ent) {
+    private void Kill_f(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
-        if ((GameBase.level.time - client.respawn_time) < 5)
+        if ((level.time - client.respawn_time) < 5)
             return;
         ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
-        GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
-        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
+        gameExports.meansOfDeath = GameDefines.MOD_SUICIDE;
+        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, this);
     }
 
     /**
@@ -653,23 +787,23 @@ public class GameExportsImpl implements GameExports {
         Integer index[] = new Integer[256];
 
         count = 0;
-        for (i = 0; i < GameBase.game.maxclients; i++) {
-            if (GameBase.game.clients[i].pers.connected) {
+        for (i = 0; i < game.maxclients; i++) {
+            if (game.clients[i].pers.connected) {
                 index[count] = new Integer(i);
                 count++;
             }
         }
 
         // sort by frags
-        Arrays.sort(index, 0, count - 1, comparingInt(p -> GameBase.game.clients[p].getPlayerState().stats[Defines.STAT_FRAGS]));
+        Arrays.sort(index, 0, count - 1, comparingInt(p -> game.clients[p].getPlayerState().stats[Defines.STAT_FRAGS]));
 
         // print information
         large = "";
 
         for (i = 0; i < count; i++) {
-            small = GameBase.game.clients[index[i].intValue()].getPlayerState().stats[Defines.STAT_FRAGS]
+            small = game.clients[index[i].intValue()].getPlayerState().stats[Defines.STAT_FRAGS]
                     + " "
-                    + GameBase.game.clients[index[i].intValue()].pers.netname
+                    + game.clients[index[i].intValue()].pers.netname
                     + "\n";
 
             if (small.length() + large.length() > 1024 - 100) {
@@ -746,7 +880,7 @@ public class GameExportsImpl implements GameExports {
         if (args.size() < 2 && !sayAll)
             return;
 
-        if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+        if (0 == ((int) (cvarCache.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             team = false;
 
         gclient_t client = ent.getClient();
@@ -777,43 +911,43 @@ public class GameExportsImpl implements GameExports {
 
         text += "\n";
 
-        if (GameBase.flood_msgs.value != 0) {
+        if (cvarCache.flood_msgs.value != 0) {
             gclient_t cl = client;
 
-            if (GameBase.level.time < cl.flood_locktill) {
+            if (level.time < cl.flood_locktill) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "You can't talk for "
-                        + (int) (cl.flood_locktill - GameBase.level.time)
+                        + (int) (cl.flood_locktill - level.time)
                         + " more seconds\n");
                 return;
             }
-            int i = (int) (cl.flood_whenhead - GameBase.flood_msgs.value + 1);
+            int i = (int) (cl.flood_whenhead - cvarCache.flood_msgs.value + 1);
             if (i < 0)
                 i = (10) + i;
             if (cl.flood_when[i] != 0
-                    && GameBase.level.time - cl.flood_when[i] < GameBase.flood_persecond.value) {
-                cl.flood_locktill = GameBase.level.time + GameBase.flood_waitdelay.value;
+                    && level.time - cl.flood_when[i] < cvarCache.flood_persecond.value) {
+                cl.flood_locktill = level.time + cvarCache.flood_waitdelay.value;
                 gameImports.cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
-                                + (int) GameBase.flood_waitdelay.value
+                                + (int) cvarCache.flood_waitdelay.value
                                 + " seconds.\n");
                 return;
             }
 
             cl.flood_whenhead = (cl.flood_whenhead + 1) % 10;
-            cl.flood_when[cl.flood_whenhead] = GameBase.level.time;
+            cl.flood_when[cl.flood_whenhead] = level.time;
         }
 
         if (gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET).value != 0)
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
-        for (int j = 1; j <= GameBase.game.maxclients; j++) {
-            SubgameEntity other = GameBase.g_edicts[j];
+        for (int j = 1; j <= game.maxclients; j++) {
+            SubgameEntity other = g_edicts[j];
             if (!other.inuse)
                 continue;
             if (other.getClient() == null)
                 continue;
             if (team) {
-                if (!GameUtil.OnSameTeam(ent, other))
+                if (!GameUtil.OnSameTeam(ent, other, cvarCache.dmflags.value))
                     continue;
             }
             gameImports.cprintf(other, Defines.PRINT_CHAT, "" + text + "");
@@ -829,17 +963,17 @@ public class GameExportsImpl implements GameExports {
         // connect time, ping, score, name
         String text = "";
 
-        for (int i = 0; i < GameBase.game.maxclients; i++) {
-            SubgameEntity e2 = GameBase.g_edicts[1 + i];
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity e2 = g_edicts[1 + i];
             if (!e2.inuse)
                 continue;
 
             gclient_t client = e2.getClient();
             String st = ""
-                    + (GameBase.level.framenum - client.resp.enterframe)
+                    + (level.framenum - client.resp.enterframe)
                     / 600
                     + ":"
-                    + ((GameBase.level.framenum - client.resp.enterframe) % 600)
+                    + ((level.framenum - client.resp.enterframe) % 600)
                     / 10 + " " + client.getPing() + " " + client.resp.score
                     + " " + client.pers.netname + " "
                     + (client.resp.spectator ? " (spectator)" : "") + "\n";
@@ -854,10 +988,349 @@ public class GameExportsImpl implements GameExports {
         gameImports.cprintf(ent, Defines.PRINT_HIGH, text);
     }
 
+    /////////////////////////////////////
+    /////////    UPDATE         /////////
+    /////////////////////////////////////
+    /**
+     * Exits a level.
+     */
+    private void exitLevel() {
+        gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
+        level.changemap = null;
+        level.exitintermission = false;
+        level.intermissiontime = 0;
+
+        ClientEndServerFrames();
+
+        // clear some things before going to next level
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity ent = g_edicts[1 + i];
+            if (!ent.inuse)
+                continue;
+            gclient_t client = ent.getClient();
+            if (ent.health > client.pers.max_health)
+                ent.health = client.pers.max_health;
+        }
+    }
+
+    /**
+     * ClientEndServerFrames.
+     * Call playerView.ClientEndServerFrame for all clients
+     */
+    private void ClientEndServerFrames() {
+
+        // calc the player views now that all pushing
+        // and damage has been added
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity ent = g_edicts[1 + i];
+            if (!ent.inuse || null == ent.getClient()) {
+                continue;
+            }
+            playerView.ClientEndServerFrame(ent, this);
+        }
+
+    }
+
+    /**
+     * This will be called once for each server frame, before running any other
+     * entities in the world.
+     */
+    private void ClientBeginServerFrame(SubgameEntity ent) {
+
+        if (level.intermissiontime != 0)
+            return;
+
+        gclient_t client = ent.getClient();
+
+        if (cvarCache.deathmatch.value != 0
+                && client.pers.spectator != client.resp.spectator
+                && (level.time - client.respawn_time) >= 5) {
+            spectatorRespawn(ent);
+            return;
+        }
+
+        // run weapon animations if it hasn't been done by a ucmd_t
+        if (!client.weapon_thunk && !client.resp.spectator)
+            PlayerWeapon.Think_Weapon(ent, this);
+        else
+            client.weapon_thunk = false;
+
+        if (ent.deadflag != 0) {
+            // wait for any button just going down
+            if (level.time > client.respawn_time) {
+                // in deathmatch, only wait for attack button
+                int buttonMask;
+                if (cvarCache.deathmatch.value != 0)
+                    buttonMask = Defines.BUTTON_ATTACK;
+                else
+                    buttonMask = -1;
+
+                if ((client.latched_buttons & buttonMask) != 0
+                        || (cvarCache.deathmatch.value != 0 && 0 != ((int) cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                    respawn(ent, this);
+                    client.latched_buttons = 0;
+                }
+            }
+            return;
+        }
+
+        // add player trail so monsters can follow
+        if (cvarCache.deathmatch.value != 0)
+            if (!GameUtil.visible(ent, playerTrail.LastSpot(), this))
+                playerTrail.Add(ent.s.old_origin, level.time);
+
+        client.latched_buttons = 0;
+    }
+
+    /**
+     * Only called when pers.spectator changes note that resp.spectator should
+     * be the opposite of pers.spectator here
+     */
+    private void spectatorRespawn(SubgameEntity ent) {
+
+        // if the user wants to become a spectator, make sure he doesn't
+        // exceed max_spectators
+
+        gclient_t client = ent.getClient();
+        if (client.pers.spectator) {
+            String spectator = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
+
+            if (!passwdOK(cvarCache.spectator_password.string, spectator)) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
+                client.pers.spectator = false;
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 0\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+
+            // count spectators
+            int numspec;
+            int i;
+            for (i = 1, numspec = 0; i <= game.maxclients; i++) {
+                gclient_t other = g_edicts[i].getClient();
+                if (g_edicts[i].inuse && other.pers.spectator)
+                    numspec++;
+            }
+
+            if (numspec >= cvarCache.maxspectators.value) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH,
+                        "Server spectator limit is full.");
+                client.pers.spectator = false;
+                // reset his spectator var
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 0\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+        } else {
+            // he was a spectator and wants to join the game
+            // he must have the right password
+            String password = Info.Info_ValueForKey(client.pers.userinfo, "password");
+            if (!passwdOK(cvarCache.password.string, password)) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
+                client.pers.spectator = true;
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 1\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+        }
+
+        // clear client on respawn
+        client.resp.score = client.pers.score = 0;
+
+        ent.svflags &= ~Defines.SVF_NOCLIENT;
+        PutClientInServer(ent, this);
+
+        // add a teleportation effect
+        if (!client.pers.spectator) {
+            // send effect
+            gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+            //gi.WriteShort(ent - g_edicts);
+            gameImports.WriteShort(ent.index);
+
+            gameImports.WriteByte(Defines.MZ_LOGIN);
+            gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+
+            // hold in place briefly
+            client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
+            client.getPlayerState().pmove.pm_time = 14;
+        }
+
+        client.respawn_time = level.time;
+
+        if (client.pers.spectator)
+            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " has moved to the sidelines\n");
+        else
+            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " joined the game\n");
+    }
+
+    /**
+     * G_RunEntity
+     */
+    private void runEntity(SubgameEntity ent) {
+
+        // call prethink handler
+        if (ent.prethink != null)
+            ent.prethink.think(ent, this);
+
+        switch (ent.movetype) {
+            case GameDefines.MOVETYPE_PUSH:
+            case GameDefines.MOVETYPE_STOP:
+                SV.SV_Physics_Pusher(ent, this);
+                break;
+            case GameDefines.MOVETYPE_NONE:
+                SV.SV_Physics_None(ent, this);
+                break;
+            case GameDefines.MOVETYPE_NOCLIP:
+                SV.SV_Physics_Noclip(ent, this);
+                break;
+            case GameDefines.MOVETYPE_STEP:
+                sv.SV_Physics_Step(ent, this);
+                break;
+            case GameDefines.MOVETYPE_TOSS:
+            case GameDefines.MOVETYPE_BOUNCE:
+            case GameDefines.MOVETYPE_FLY:
+            case GameDefines.MOVETYPE_FLYMISSILE:
+                sv.SV_Physics_Toss(ent, this);
+                break;
+            default:
+                gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
+        }
+    }
+
+    /**
+     * CheckDMRules.
+     */
+    private void CheckDMRules() {
+        int i;
+        gclient_t cl;
+
+        if (level.intermissiontime != 0)
+            return;
+
+        if (0 == cvarCache.deathmatch.value)
+            return;
+
+        if (cvarCache.timelimit.value != 0) {
+            if (level.time >= cvarCache.timelimit.value * 60) {
+                gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
+                EndDMLevel();
+                return;
+            }
+        }
+
+        if (cvarCache.fraglimit.value != 0) {
+            for (i = 0; i < game.maxclients; i++) {
+                cl = game.clients[i];
+                if (!g_edicts[i + 1].inuse)
+                    continue;
+
+                if (cl.resp.score >= cvarCache.fraglimit.value) {
+                    gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
+                    EndDMLevel();
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * The timelimit or fraglimit has been exceeded.
+     */
+    private void EndDMLevel() {
+        //char * s, * t, * f;
+        //static const char * seps = " ,\n\r";
+        String seps = " ,\n\r";
+
+        // stay on same level flag
+        if (((int) cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
+            return;
+        }
+
+        // see if it's in the map list
+        if (cvarCache.sv_maplist.string.length() > 0) {
+            String mapList = cvarCache.sv_maplist.string;
+            // todo: cleanup parsing of maplist
+            String f = null;
+            StringTokenizer tk = new StringTokenizer(mapList, seps);
+            while (tk.hasMoreTokens()){
+                String t = tk.nextToken();
+
+                // store first map
+                if (f == null)
+                    f = t;
+
+                if (t.equalsIgnoreCase(level.mapname)) {
+                    // it's in the list, go to the next one
+                    if (!tk.hasMoreTokens()) {
+                        // end of list, go to first one
+                        if (f == null) // there isn't a first one, same gameExports.level
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
+                        else
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(f), this);
+                    } else
+                        PlayerHud.BeginIntermission(CreateTargetChangeLevel(tk.nextToken()), this);
+                    return;
+                }
+            }
+        }
+
+        //not in the map list
+        if (level.nextmap.length() > 0) // go to a specific map
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
+        else { // search for a changelevel
+            EdictIterator edit = null;
+            edit = G_Find(edit, findByClass, "target_changelevel", this);
+            if (edit == null) { // the map designer didn't include a
+                // change level,
+                // so create a fake ent that goes back to the same level
+                PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
+                return;
+            }
+            PlayerHud.BeginIntermission(edit.o, this);
+        }
+    }
+
+    /**
+     * CheckNeedPass.
+     */
+    private void checkNeedPassCvar() {
+        // if password or spectator_password has changed, update needpass
+        // as needed
+        if (cvarCache.password.modified || cvarCache.spectator_password.modified) {
+
+            cvarCache.password.modified = false;
+            cvarCache.spectator_password.modified = false;
+
+            int need = 0;
+
+            if (!cvarCache.password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.password.string))
+                need |= 1;
+
+            if (!cvarCache.spectator_password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.spectator_password.string))
+                need |= 2;
+
+            gameImports.cvar_set("needpass", "" + need);
+        }
+    }
+
+    /**
+     * Returns the created target changelevel.
+     */
+    private SubgameEntity CreateTargetChangeLevel(String map) {
+        SubgameEntity ent = GameUtil.G_Spawn(this);
+        ent.classname = "target_changelevel";
+        level.nextmap = map;
+        ent.map = map;
+        return ent;
+    }
 
     @Override
     public void ClientCommand(edict_t player, List<String> args) {
-        SubgameEntity ent = GameBase.g_edicts[player.index];
+        SubgameEntity ent = g_edicts[player.index];
 
         if (ent.getClient() == null)
             return; // not fully in game yet
@@ -885,7 +1358,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        if (GameBase.level.intermissiontime != 0)
+        if (level.intermissiontime != 0)
             return;
 
         switch (cmd) {
@@ -911,22 +1384,22 @@ public class GameExportsImpl implements GameExports {
                 Inven_f(ent);
                 break;
             case "invnext":
-                GameItems.SelectNextItem(ent, -1);
+                GameItems.SelectNextItem(ent, -1, this);
                 break;
             case "invprev":
-                GameItems.SelectPrevItem(ent, -1);
+                GameItems.SelectPrevItem(ent, -1, this);
                 break;
             case "invnextw":
-                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON);
+                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON, this);
                 break;
             case "invprevw":
-                GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON, this);
                 break;
             case "invnextp":
-                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP);
+                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP, this);
                 break;
             case "invprevp":
-                GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP, this);
                 break;
             case "invuse":
                 InvUse_f(ent);
@@ -944,7 +1417,7 @@ public class GameExportsImpl implements GameExports {
                 WeapLast_f(ent);
                 break;
             case "kill":
-                Kill_f(ent);
+                Kill_f(ent, this);
                 break;
             case "putaway":
                 PutAway_f(ent);
@@ -959,7 +1432,7 @@ public class GameExportsImpl implements GameExports {
                 ShowPosition_f(ent);
                 break;
             case "spawn":
-                GameSpawn.SpawnNewEntity(ent, args);
+                GameSpawn.SpawnNewEntity(ent, args, this);
                 break;
             default:
                 // anything that doesn't match a command will be a chat
@@ -970,7 +1443,54 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void G_RunFrame() {
-        GameBase.G_RunFrame();
+        level.framenum++;
+        level.time = level.framenum * Defines.FRAMETIME;
+
+        // choose a client for monsters to target this frame
+        GameAI.AI_SetSightClient(this);
+
+        // exit intermissions
+        if (level.exitintermission) {
+            exitLevel();
+            return;
+        }
+
+        //
+        // treat each object in turn
+        // even the world gets a chance to think
+        for (int i = 0; i < num_edicts; i++) {
+            SubgameEntity ent = g_edicts[i];
+            if (!ent.inuse)
+                continue;
+
+            level.current_entity = ent;
+
+            Math3D.VectorCopy(ent.s.origin, ent.s.old_origin);
+
+            // if the ground entity moved, make sure we are still on it
+            if (ent.groundentity != null && ent.groundentity.linkcount != ent.groundentity_linkcount) {
+                ent.groundentity = null;
+                if (0 == (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) && (ent.svflags & Defines.SVF_MONSTER) != 0) {
+                    M.M_CheckGround(ent, this);
+                }
+            }
+
+            if (i > 0 && i <= game.maxclients) {
+                ClientBeginServerFrame(ent);
+                continue;
+            }
+
+            runEntity(ent);
+        }
+
+        // see if it is time to end a deathmatch
+        CheckDMRules();
+
+        // see if needpass needs updated
+        checkNeedPassCvar();
+
+        // build the playerstate_t structures for all players
+        ClientEndServerFrames();
     }
 
     @Override
@@ -978,16 +1498,16 @@ public class GameExportsImpl implements GameExports {
         try {
 
             if (!autosave)
-                PlayerClient.SaveClientData();
+                PlayerClient.SaveClientData(this);
 
             QuakeFile f = new QuakeFile(filename, "rw");
 
-            GameBase.game.autosaved = autosave;
-            GameBase.game.write(f);
-            GameBase.game.autosaved = false;
+            game.autosaved = autosave;
+            game.write(f);
+            game.autosaved = false;
 
-            for (int i = 0; i < GameBase.game.maxclients; i++)
-                GameBase.game.clients[i].write(f);
+            for (int i = 0; i < game.maxclients; i++)
+                game.clients[i].write(f);
 
             Lib.fclose(f);
         } catch (Exception e) {
@@ -996,20 +1516,18 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void ReadGame(String filename) {
-
-        QuakeFile f = null;
+    public void readGameLocals(String filename) {
 
         try {
 
-            f = new QuakeFile(filename, "r");
-            GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+            QuakeFile f = new QuakeFile(filename, "r");
+            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
-            GameBase.game.load(f);
+            game.load(f);
 
-            for (int i = 0; i < GameBase.game.maxclients; i++) {
-                GameBase.game.clients[i] = new gclient_t(i);
-                GameBase.game.clients[i].read(f, GameBase.g_edicts);
+            for (int i = 0; i < game.maxclients; i++) {
+                game.clients[i] = new gclient_t(i);
+                game.clients[i].read(f, g_edicts, this);
             }
 
             f.close();
@@ -1027,11 +1545,11 @@ public class GameExportsImpl implements GameExports {
             QuakeFile f = new QuakeFile(filename, "rw");
 
             // write out level_locals_t
-            GameBase.level.write(f);
+            level.write(f);
 
             // write out all the entities
-            for (int i = 0; i < GameBase.num_edicts; i++) {
-                SubgameEntity ent = GameBase.g_edicts[i];
+            for (int i = 0; i < num_edicts; i++) {
+                SubgameEntity ent = g_edicts[i];
                 if (!ent.inuse)
                     continue;
                 f.writeInt(i);
@@ -1055,12 +1573,12 @@ public class GameExportsImpl implements GameExports {
                 gameImports.error("Couldn't read level file " + filename);
 
             // wipe all the entities
-            GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
-            GameBase.num_edicts = (int) GameBase.game.maxclients + 1;
+            num_edicts = game.maxclients + 1;
 
             // load the level locals
-            GameBase.level.read(f, GameBase.g_edicts);
+            level.read(f, g_edicts);
 
             // load all the entities
             SubgameEntity ent;
@@ -1069,11 +1587,11 @@ public class GameExportsImpl implements GameExports {
                 if (entnum == -1)
                     break;
 
-                if (entnum >= GameBase.num_edicts)
-                    GameBase.num_edicts = entnum + 1;
+                if (entnum >= num_edicts)
+                    num_edicts = entnum + 1;
 
-                ent = GameBase.g_edicts[entnum];
-                ent.read(f, GameBase.g_edicts);
+                ent = g_edicts[entnum];
+                ent.read(f, g_edicts, game.clients, this);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
             }
@@ -1081,24 +1599,23 @@ public class GameExportsImpl implements GameExports {
             Lib.fclose(f);
 
             // mark all clients as unconnected
-            for (int i = 0; i < GameBase.game.maxclients; i++) {
-                ent = GameBase.g_edicts[i + 1];
-                ent.setClient(GameBase.game.clients[i]);
+            for (int i = 0; i < game.maxclients; i++) {
+                ent = g_edicts[i + 1];
+                ent.setClient(game.clients[i]);
                 gclient_t client = ent.getClient();
                 client.pers.connected = false;
             }
 
             // do any load time things at this point
-            for (int i = 0; i < GameBase.num_edicts; i++) {
-                ent = GameBase.g_edicts[i];
+            for (int i = 0; i < num_edicts; i++) {
+                ent = g_edicts[i];
 
                 if (!ent.inuse)
                     continue;
 
                 // fire any cross-level triggers
-                if (ent.classname != null)
-                    if ("target_crosslevel_target".equals(ent.classname))
-                        ent.nextthink = GameBase.level.time + ent.delay;
+                if ("target_crosslevel_target".equals(ent.classname))
+                    ent.nextthink = level.time + ent.delay;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1107,49 +1624,49 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void SpawnEntities(String mapname, String entities, String spawnpoint) {
-        GameSpawn.SpawnEntities(mapname, entities, spawnpoint);
+        GameSpawn.SpawnEntities(mapname, entities, spawnpoint, this);
     }
 
     @Override
     public void ServerCommand(List<String> args) {
-        GameSVCmds.ServerCommand(args);
+        GameSVCmds.ServerCommand(args, this);
     }
 
     @Override
     public void ClientBegin(edict_t e) {
-        SubgameEntity ent = GameBase.g_edicts[e.index];
-        PlayerClient.ClientBegin(ent);
+        SubgameEntity ent = g_edicts[e.index];
+        PlayerClient.ClientBegin(ent, this);
     }
 
     @Override
     public String ClientUserinfoChanged(edict_t ent, String userinfo) {
-        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo);
+        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo, this);
     }
 
     @Override
     public boolean ClientConnect(edict_t ent, String userinfo) {
-        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo);
+        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo, this);
     }
 
     @Override
     public void ClientDisconnect(edict_t ent) {
-        PlayerClient.ClientDisconnect((SubgameEntity) ent);
+        PlayerClient.ClientDisconnect((SubgameEntity) ent, gameImports);
     }
 
     @Override
     public void ClientThink(edict_t ent, usercmd_t ucmd) {
-        SubgameEntity e = GameBase.g_edicts[ent.index];
-        PlayerClient.ClientThink(e, ucmd);
+        SubgameEntity e = g_edicts[ent.index];
+        PlayerClient.ClientThink(e, ucmd, this);
     }
 
     @Override
     public edict_t getEdict(int index) {
-        return GameBase.g_edicts[index];
+        return g_edicts[index];
     }
 
     @Override
     public int getNumEdicts() {
-        return GameBase.num_edicts;
+        return num_edicts;
     }
 
 }

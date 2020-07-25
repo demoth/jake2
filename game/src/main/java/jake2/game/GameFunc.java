@@ -28,7 +28,7 @@ import jake2.qcommon.util.Math3D;
 
 class GameFunc {
 
-    private static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func) {
+    private static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.velocity);
         Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
         ent.moveinfo.remaining_distance = Math3D
@@ -38,29 +38,29 @@ class GameFunc {
 
         if (ent.moveinfo.speed == ent.moveinfo.accel
                 && ent.moveinfo.speed == ent.moveinfo.decel) {
-            if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+            if (gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                     : ent)) {
-                Move_Begin.think(ent);
+                Move_Begin.think(ent, gameExports);
             } else {
-                ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 ent.think = Move_Begin;
             }
         } else {
             // accelerative
             ent.moveinfo.current_speed = 0;
             ent.think = Think_AccelMove;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
-    private static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func) {
+    private static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.avelocity);
         ent.moveinfo.endfunc = func;
-        if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+        if (gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                 : ent)) {
-            AngleMove_Begin.think(ent);
+            AngleMove_Begin.think(ent, gameExports);
         } else {
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             ent.think = AngleMove_Begin;
         }
     }
@@ -176,25 +176,25 @@ class GameFunc {
         return;
     };
 
-    private static void plat_go_up(SubgameEntity ent) {
+    private static void plat_go_up(SubgameEntity ent, GameExportsImpl gameExports) {
         if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
             if (ent.moveinfo.sound_start != 0)
-                GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
             ent.s.sound = ent.moveinfo.sound_middle;
         }
         ent.moveinfo.state = STATE_UP;
-        Move_Calc(ent, ent.moveinfo.start_origin, plat_hit_top);
+        Move_Calc(ent, ent.moveinfo.start_origin, plat_hit_top, gameExports);
     }
 
-    private static void plat_spawn_inside_trigger(SubgameEntity ent) {
+    private static void plat_spawn_inside_trigger(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] tmin = { 0, 0, 0 }, tmax = { 0, 0, 0 };
 
         //
         //	   middle trigger
         //	
-        SubgameEntity trigger = GameUtil.G_Spawn();
+        SubgameEntity trigger = GameUtil.G_Spawn(gameExports);
         trigger.touch = Touch_Plat_Center;
         trigger.movetype = GameDefines.MOVETYPE_NONE;
         trigger.solid = Defines.SOLID_TRIGGER;
@@ -208,7 +208,7 @@ class GameFunc {
         tmax[1] = ent.maxs[1] - 25;
         tmax[2] = ent.maxs[2] + 8;
 
-        tmin[2] = tmax[2] - (ent.pos1[2] - ent.pos2[2] + GameBase.st.lip);
+        tmin[2] = tmax[2] - (ent.pos1[2] - ent.pos2[2] + gameExports.st.lip);
 
         if ((ent.spawnflags & PLAT_LOW_TRIGGER) != 0)
             tmax[2] = tmin[2] + 8;
@@ -225,7 +225,7 @@ class GameFunc {
         Math3D.VectorCopy(tmin, trigger.mins);
         Math3D.VectorCopy(tmax, trigger.maxs);
 
-        GameBase.gi.linkentity(trigger);
+        gameExports.gameImports.linkentity(trigger);
     }
 
     /**
@@ -247,12 +247,12 @@ class GameFunc {
      * 
      * Set "sounds" to one of the following: 1) base fast 2) chain slow
      */
-    static void SP_func_plat(SubgameEntity ent) {
+    static void SP_func_plat(SubgameEntity ent, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.s.angles);
         ent.solid = Defines.SOLID_BSP;
         ent.movetype = GameDefines.MOVETYPE_PUSH;
 
-        GameBase.gi.setmodel(ent, ent.model);
+        gameExports.gameImports.setmodel(ent, ent.model);
 
         ent.blocked = plat_blocked;
 
@@ -274,26 +274,26 @@ class GameFunc {
         if (ent.dmg == 0)
             ent.dmg = 2;
 
-        if (GameBase.st.lip == 0)
-            GameBase.st.lip = 8;
+        if (gameExports.st.lip == 0)
+            gameExports.st.lip = 8;
 
         // pos1 is the top position, pos2 is the bottom
         Math3D.VectorCopy(ent.s.origin, ent.pos1);
         Math3D.VectorCopy(ent.s.origin, ent.pos2);
-        if (GameBase.st.height != 0)
-            ent.pos2[2] -= GameBase.st.height;
+        if (gameExports.st.height != 0)
+            ent.pos2[2] -= gameExports.st.height;
         else
-            ent.pos2[2] -= (ent.maxs[2] - ent.mins[2]) - GameBase.st.lip;
+            ent.pos2[2] -= (ent.maxs[2] - ent.mins[2]) - gameExports.st.lip;
 
         ent.use = Use_Plat;
 
-        plat_spawn_inside_trigger(ent); // the "start moving" trigger
+        plat_spawn_inside_trigger(ent, gameExports); // the "start moving" trigger
 
         if (ent.targetname != null) {
             ent.moveinfo.state = STATE_UP;
         } else {
             Math3D.VectorCopy(ent.pos2, ent.s.origin);
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             ent.moveinfo.state = STATE_BOTTOM;
         }
 
@@ -306,9 +306,9 @@ class GameFunc {
         Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
         Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
-        ent.moveinfo.sound_start = GameBase.gi.soundindex("plats/pt1_strt.wav");
-        ent.moveinfo.sound_middle = GameBase.gi.soundindex("plats/pt1_mid.wav");
-        ent.moveinfo.sound_end = GameBase.gi.soundindex("plats/pt1_end.wav");
+        ent.moveinfo.sound_start = gameExports.gameImports.soundindex("plats/pt1_strt.wav");
+        ent.moveinfo.sound_middle = gameExports.gameImports.soundindex("plats/pt1_mid.wav");
+        ent.moveinfo.sound_end = gameExports.gameImports.soundindex("plats/pt1_end.wav");
     }
 
     /**
@@ -319,25 +319,8 @@ class GameFunc {
      * 
      */
 
-    /**
-     * QUAKED func_door (0 .5 .8) ? START_OPEN x CRUSHER NOMONSTER ANIMATED
-     * TOGGLE ANIMATED_FAST TOGGLE wait in both the start and end states for a
-     * trigger event. START_OPEN the door to moves to its destination when
-     * spawned, and operate in reverse. It is used to temporarily or permanently
-     * close off an area when triggered (not useful for touch or takedamage
-     * doors). NOMONSTER monsters will not trigger this door
-     * 
-     * "message" is printed when the door is touched if it is a trigger door and
-     * it hasn't been fired yet "angle" determines the opening direction
-     * "targetname" if set, no touch field will be spawned and a remote button
-     * or trigger field activates the door. "health" if set, door must be shot
-     * open "speed" movement speed (100 default) "wait" wait before returning (3
-     * default, -1 = never return) "lip" lip remaining at end of move (8
-     * default) "dmg" damage to inflict when blocked (2 default) "sounds" 1)
-     * silent 2) light 3) medium 4) heavy
-     */
 
-    private static void door_use_areaportals(SubgameEntity self, boolean open) {
+    private static void door_use_areaportals(SubgameEntity self, boolean open, GameExportsImpl gameExports) {
 
         if (self.target == null)
             return;
@@ -345,40 +328,40 @@ class GameFunc {
         EdictIterator edit = null;
 
         while ((edit = GameBase
-                .G_Find(edit, GameBase.findByTarget, self.target)) != null) {
+                .G_Find(edit, GameBase.findByTarget, self.target, gameExports)) != null) {
             SubgameEntity t = edit.o;
             if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
-                GameBase.gi.SetAreaPortalState(t.style, open);
+                gameExports.gameImports.SetAreaPortalState(t.style, open);
             }
         }
     }
 
-    private static void door_go_up(SubgameEntity self, SubgameEntity activator) {
+    private static void door_go_up(SubgameEntity self, SubgameEntity activator, GameExportsImpl gameExports) {
         if (self.moveinfo.state == STATE_UP)
             return; // already going up
 
         if (self.moveinfo.state == STATE_TOP) {
             // reset top wait time
             if (self.moveinfo.wait >= 0)
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = gameExports.level.time + self.moveinfo.wait;
             return;
         }
 
         if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
             if (self.moveinfo.sound_start != 0)
-                GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
             self.s.sound = self.moveinfo.sound_middle;
         }
         self.moveinfo.state = STATE_UP;
         if ("func_door".equals(self.classname))
-            Move_Calc(self, self.moveinfo.end_origin, door_hit_top);
+            Move_Calc(self, self.moveinfo.end_origin, door_hit_top, gameExports);
         else if ("func_door_rotating".equals(self.classname))
-            AngleMove_Calc(self, door_hit_top);
+            AngleMove_Calc(self, door_hit_top, gameExports);
 
-        GameUtil.G_UseTargets(self, activator);
-        door_use_areaportals(self, true);
+        GameUtil.G_UseTargets(self, activator, gameExports);
+        door_use_areaportals(self, true, gameExports);
     }
 
     /**
@@ -395,29 +378,29 @@ class GameFunc {
      * these need to be changed) 0) no sound 1) water 2) lava
      */
 
-    static void SP_func_water(SubgameEntity self) {
+    static void SP_func_water(SubgameEntity self, GameExportsImpl gameExports) {
         float[] abs_movedir = { 0, 0, 0 };
 
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
         self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BSP;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
         switch (self.sounds) {
         default:
             break;
 
         case 1: // water
-            self.moveinfo.sound_start = GameBase.gi
+            self.moveinfo.sound_start = gameExports.gameImports
                     .soundindex("world/mov_watr.wav");
-            self.moveinfo.sound_end = GameBase.gi
+            self.moveinfo.sound_end = gameExports.gameImports
                     .soundindex("world/stp_watr.wav");
             break;
 
         case 2: // lava
-            self.moveinfo.sound_start = GameBase.gi
+            self.moveinfo.sound_start = gameExports.gameImports
                     .soundindex("world/mov_watr.wav");
-            self.moveinfo.sound_end = GameBase.gi
+            self.moveinfo.sound_end = gameExports.gameImports
                     .soundindex("world/stp_watr.wav");
             break;
         }
@@ -429,7 +412,7 @@ class GameFunc {
         abs_movedir[2] = Math.abs(self.movedir[2]);
         self.moveinfo.distance = abs_movedir[0] * self.size[0] + abs_movedir[1]
                 * self.size[1] + abs_movedir[2] * self.size[2]
-                - GameBase.st.lip;
+                - gameExports.st.lip;
         Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir,
                 self.pos2);
 
@@ -462,10 +445,10 @@ class GameFunc {
 
         self.classname = "func_door";
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    private static void train_resume(SubgameEntity self) {
+    private static void train_resume(SubgameEntity self, GameExportsImpl gameExports) {
         float[] dest = { 0, 0, 0 };
 
         SubgameEntity ent = self.target_ent;
@@ -474,12 +457,12 @@ class GameFunc {
         self.moveinfo.state = STATE_TOP;
         Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
         Math3D.VectorCopy(dest, self.moveinfo.end_origin);
-        Move_Calc(self, dest, train_wait);
+        Move_Calc(self, dest, train_wait, gameExports);
         self.spawnflags |= TRAIN_START_ON;
 
     }
 
-    static void SP_func_train(SubgameEntity self) {
+    static void SP_func_train(SubgameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_PUSH;
 
         Math3D.VectorClear(self.s.angles);
@@ -491,11 +474,11 @@ class GameFunc {
                 self.dmg = 100;
         }
         self.solid = Defines.SOLID_BSP;
-        GameBase.gi.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
-        if (GameBase.st.noise != null)
-            self.moveinfo.sound_middle = GameBase.gi
-                    .soundindex(GameBase.st.noise);
+        if (gameExports.st.noise != null)
+            self.moveinfo.sound_middle = gameExports.gameImports
+                    .soundindex(gameExports.st.noise);
 
         if (0 == self.speed)
             self.speed = 100;
@@ -505,21 +488,21 @@ class GameFunc {
 
         self.use = train_use;
 
-        GameBase.gi.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         if (self.target != null) {
             // start trains on the second frame, to make sure their targets have
             // had
             // a chance to spawn
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.think = func_train_find;
         } else {
-            GameBase.gi.dprintf("func_train without a target at "
+            gameExports.gameImports.dprintf("func_train without a target at "
                     + Lib.vtos(self.absmin) + "\n");
         }
     }
 
-    static void SP_func_timer(SubgameEntity self) {
+    static void SP_func_timer(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.wait)
             self.wait = 1.0f;
 
@@ -528,12 +511,12 @@ class GameFunc {
 
         if (self.random >= self.wait) {
             self.random = self.wait - Defines.FRAMETIME;
-            GameBase.gi.dprintf("func_timer at " + Lib.vtos(self.s.origin)
+            gameExports.gameImports.dprintf("func_timer at " + Lib.vtos(self.s.origin)
                     + " has random >= wait\n");
         }
 
         if ((self.spawnflags & 1) != 0) {
-            self.nextthink = GameBase.level.time + 1.0f + GameBase.st.pausetime
+            self.nextthink = gameExports.level.time + 1.0f + gameExports.st.pausetime
                     + self.delay + self.wait + Lib.crandom() * self.random;
             self.activator = self;
         }
@@ -588,19 +571,19 @@ class GameFunc {
 
     private static EntThinkAdapter Move_Done = new EntThinkAdapter() {
         public String getID() { return "move_done";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             Math3D.VectorClear(ent.velocity);
-            ent.moveinfo.endfunc.think(ent);
+            ent.moveinfo.endfunc.think(ent, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter Move_Final = new EntThinkAdapter() {
         public String getID() { return "move_final";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
 
             if (ent.moveinfo.remaining_distance == 0) {
-                Move_Done.think(ent);
+                Move_Done.think(ent, gameExports);
                 return true;
             }
 
@@ -609,19 +592,19 @@ class GameFunc {
                     ent.velocity);
 
             ent.think = Move_Done;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
 
     private static EntThinkAdapter Move_Begin = new EntThinkAdapter() {
         public String getID() { return "move_begin";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
 
             float frames;
 
             if ((ent.moveinfo.speed * Defines.FRAMETIME) >= ent.moveinfo.remaining_distance) {
-                Move_Final.think(ent);
+                Move_Final.think(ent, gameExports);
                 return true;
             }
             Math3D.VectorScale(ent.moveinfo.dir, ent.moveinfo.speed,
@@ -631,7 +614,7 @@ class GameFunc {
                             / Defines.FRAMETIME);
             ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed
                     * Defines.FRAMETIME;
-            ent.nextthink = GameBase.level.time + (frames * Defines.FRAMETIME);
+            ent.nextthink = gameExports.level.time + (frames * Defines.FRAMETIME);
             ent.think = Move_Final;
             return true;
         }
@@ -643,16 +626,16 @@ class GameFunc {
 
     private static EntThinkAdapter AngleMove_Done = new EntThinkAdapter() {
         public String getID() { return "agnle_move_done";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             Math3D.VectorClear(ent.avelocity);
-            ent.moveinfo.endfunc.think(ent);
+            ent.moveinfo.endfunc.think(ent, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter AngleMove_Final = new EntThinkAdapter() {
         public String getID() { return "angle_move_final";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] move = { 0, 0, 0 };
 
             if (ent.moveinfo.state == STATE_UP)
@@ -663,21 +646,21 @@ class GameFunc {
                         move);
 
             if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
-                AngleMove_Done.think(ent);
+                AngleMove_Done.think(ent, gameExports);
                 return true;
             }
 
             Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, ent.avelocity);
 
             ent.think = AngleMove_Done;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
 
     private static EntThinkAdapter AngleMove_Begin = new EntThinkAdapter() {
         public String getID() { return "angle_move_begin";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] destdelta = { 0, 0, 0 };
             float len;
             float traveltime;
@@ -698,7 +681,7 @@ class GameFunc {
             traveltime = len / ent.moveinfo.speed;
 
             if (traveltime < Defines.FRAMETIME) {
-                AngleMove_Final.think(ent);
+                AngleMove_Final.think(ent, gameExports);
                 return true;
             }
 
@@ -709,7 +692,7 @@ class GameFunc {
             Math3D.VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
 
             // set nextthink to trigger a think when dest is reached
-            ent.nextthink = GameBase.level.time + frames * Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + frames * Defines.FRAMETIME;
             ent.think = AngleMove_Final;
             return true;
         }
@@ -717,7 +700,7 @@ class GameFunc {
 
     private static EntThinkAdapter Think_AccelMove = new EntThinkAdapter() {
         public String getID() { return "thinc_accelmove";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.moveinfo.remaining_distance -= ent.moveinfo.current_speed;
 
             if (ent.moveinfo.current_speed == 0) // starting or blocked
@@ -727,13 +710,13 @@ class GameFunc {
 
             // will the entire move complete on next frame?
             if (ent.moveinfo.remaining_distance <= ent.moveinfo.current_speed) {
-                Move_Final.think(ent);
+                Move_Final.think(ent, gameExports);
                 return true;
             }
 
             Math3D.VectorScale(ent.moveinfo.dir,
                     ent.moveinfo.current_speed * 10, ent.velocity);
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             ent.think = Think_AccelMove;
             return true;
         }
@@ -741,10 +724,10 @@ class GameFunc {
 
     private static EntThinkAdapter plat_hit_top = new EntThinkAdapter() {
         public String getID() { return "plat_hit_top";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = 0;
@@ -752,18 +735,18 @@ class GameFunc {
             ent.moveinfo.state = STATE_TOP;
 
             ent.think = plat_go_down;
-            ent.nextthink = GameBase.level.time + 3;
+            ent.nextthink = gameExports.level.time + 3;
             return true;
         }
     };
 
     private static EntThinkAdapter plat_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "plat_hit_bottom";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
 
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = 0;
@@ -775,60 +758,60 @@ class GameFunc {
 
     private static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
         public String getID() { return "plat_go_down";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = ent.moveinfo.sound_middle;
             }
             ent.moveinfo.state = STATE_DOWN;
-            Move_Calc(ent, ent.moveinfo.end_origin, plat_hit_bottom);
+            Move_Calc(ent, ent.moveinfo.end_origin, plat_hit_bottom, gameExports);
             return true;
         }
     };
 
     private static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
         public String getID() { return "plat_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH);
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                        GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+                    GameDefines.MOD_CRUSH, gameExports);
 
             if (self.moveinfo.state == STATE_UP)
-                plat_go_down.think(self);
+                plat_go_down.think(self, gameExports);
             else if (self.moveinfo.state == STATE_DOWN)
-                plat_go_up(self);
+                plat_go_up(self, gameExports);
 
         }
     };
 
     private static EntUseAdapter Use_Plat = new EntUseAdapter() {
         public String getID() { return "use_plat";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (ent.think != null)
                 return; // already down
-            plat_go_down.think(ent);
+            plat_go_down.think(ent, gameExports);
         }
     };
 
     private static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
         public String getID() { return "touch_plat_center";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other.getClient() == null)
                 return;
 
@@ -837,9 +820,9 @@ class GameFunc {
 
             ent = ent.enemy; // now point at the plat, not the trigger
             if (ent.moveinfo.state == STATE_BOTTOM)
-                plat_go_up(ent);
+                plat_go_up(ent, gameExports);
             else if (ent.moveinfo.state == STATE_TOP) {
-                ent.nextthink = GameBase.level.time + 1; // the player is still
+                ent.nextthink = gameExports.level.time + 1; // the player is still
                                                          // on the plat, so
                                                          // delay going down
             }
@@ -862,28 +845,28 @@ class GameFunc {
 
     private static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
         public String getID() { return "rotating_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+                    GameDefines.MOD_CRUSH, gameExports);
         }
     };
 
     private static EntTouchAdapter rotating_touch = new EntTouchAdapter() {
         public String getID() { return "rotating_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (self.avelocity[0] != 0 || self.avelocity[1] != 0
                     || self.avelocity[2] != 0)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                        GameDefines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH, gameExports);
         }
     };
 
     private static EntUseAdapter rotating_use = new EntUseAdapter() {
         public String getID() { return "rotating_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
                 self.s.sound = 0;
                 Math3D.VectorClear(self.avelocity);
@@ -899,7 +882,7 @@ class GameFunc {
 
     static EntThinkAdapter SP_func_rotating = new EntThinkAdapter() {
         public String getID() { return "sp_func_rotating";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.solid = Defines.SOLID_BSP;
             if ((ent.spawnflags & 32) != 0)
                 ent.movetype = GameDefines.MOVETYPE_STOP;
@@ -932,15 +915,15 @@ class GameFunc {
                 ent.blocked = rotating_blocked;
 
             if ((ent.spawnflags & 1) != 0)
-                ent.use.use(ent, null, null);
+                ent.use.use(ent, null, null, gameExports);
 
             if ((ent.spawnflags & 64) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALL;
             if ((ent.spawnflags & 128) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALLFAST;
 
-            GameBase.gi.setmodel(ent, ent.model);
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.setmodel(ent, ent.model);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -969,7 +952,7 @@ class GameFunc {
 
     private static EntThinkAdapter button_done = new EntThinkAdapter() {
         public String getID() { return "button_done";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.moveinfo.state = STATE_BOTTOM;
             self.s.effects &= ~Defines.EF_ANIM23;
@@ -980,10 +963,10 @@ class GameFunc {
 
     private static EntThinkAdapter button_return = new EntThinkAdapter() {
         public String getID() { return "button_return";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.moveinfo.state = STATE_DOWN;
 
-            Move_Calc(self, self.moveinfo.start_origin, button_done);
+            Move_Calc(self, self.moveinfo.start_origin, button_done, gameExports);
 
             self.s.frame = 0;
 
@@ -995,15 +978,15 @@ class GameFunc {
 
     private static EntThinkAdapter button_wait = new EntThinkAdapter() {
         public String getID() { return "button_wait";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.moveinfo.state = STATE_TOP;
             self.s.effects &= ~Defines.EF_ANIM01;
             self.s.effects |= Defines.EF_ANIM23;
 
-            GameUtil.G_UseTargets(self, self.activator);
+            GameUtil.G_UseTargets(self, self.activator, gameExports);
             self.s.frame = 1;
             if (self.moveinfo.wait >= 0) {
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = gameExports.level.time + self.moveinfo.wait;
                 self.think = button_return;
             }
             return true;
@@ -1012,7 +995,7 @@ class GameFunc {
 
     private static EntThinkAdapter button_fire = new EntThinkAdapter() {
         public String getID() { return "button_fire";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.moveinfo.state == STATE_UP
                     || self.moveinfo.state == STATE_TOP)
                 return true;
@@ -1020,19 +1003,19 @@ class GameFunc {
             self.moveinfo.state = STATE_UP;
             if (self.moveinfo.sound_start != 0
                     && 0 == (self.flags & GameDefines.FL_TEAMSLAVE))
-                GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
-            Move_Calc(self, self.moveinfo.end_origin, button_wait);
+            Move_Calc(self, self.moveinfo.end_origin, button_wait, gameExports);
             return true;
         }
     };
 
     private static EntUseAdapter button_use = new EntUseAdapter() {
         public String getID() { return "button_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
-            button_fire.think(self);
+            button_fire.think(self, gameExports);
             return;
         }
     };
@@ -1040,7 +1023,7 @@ class GameFunc {
     private static EntTouchAdapter button_touch = new EntTouchAdapter() {
         public String getID() { return "button_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (null == other.getClient())
                 return;
 
@@ -1048,7 +1031,7 @@ class GameFunc {
                 return;
 
             self.activator = other;
-            button_fire.think(self);
+            button_fire.think(self, gameExports);
 
         }
     };
@@ -1056,29 +1039,28 @@ class GameFunc {
     private static EntDieAdapter button_killed = new EntDieAdapter() {
         public String getID() { return "button_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             self.activator = attacker;
             self.health = self.max_health;
             self.takedamage = Defines.DAMAGE_NO;
-            button_fire.think(self);
+            button_fire.think(self, gameExports);
 
         }
     };
 
     static EntThinkAdapter SP_func_button = new EntThinkAdapter() {
         public String getID() { return "sp_func_button";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] abs_movedir = { 0, 0, 0 };
             float dist;
 
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
             ent.movetype = GameDefines.MOVETYPE_STOP;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            gameExports.gameImports.setmodel(ent, ent.model);
 
             if (ent.sounds != 1)
-                ent.moveinfo.sound_start = GameBase.gi
-                        .soundindex("switches/butn2.wav");
+                ent.moveinfo.sound_start = gameExports.gameImports.soundindex("switches/butn2.wav");
 
             if (0 == ent.speed)
                 ent.speed = 40;
@@ -1089,15 +1071,15 @@ class GameFunc {
 
             if (0 == ent.wait)
                 ent.wait = 3;
-            if (0 == GameBase.st.lip)
-                GameBase.st.lip = 4;
+            if (0 == gameExports.st.lip)
+                gameExports.st.lip = 4;
 
             Math3D.VectorCopy(ent.s.origin, ent.pos1);
             abs_movedir[0] = (float) Math.abs(ent.movedir[0]);
             abs_movedir[1] = (float) Math.abs(ent.movedir[1]);
             abs_movedir[2] = (float) Math.abs(ent.movedir[2]);
             dist = abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1]
-                    + abs_movedir[2] * ent.size[2] - GameBase.st.lip;
+                    + abs_movedir[2] * ent.size[2] - gameExports.st.lip;
             Math3D.VectorMA(ent.pos1, dist, ent.movedir, ent.pos2);
 
             ent.use = button_use;
@@ -1121,17 +1103,17 @@ class GameFunc {
             Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
             Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
 
     private static EntThinkAdapter door_hit_top = new EntThinkAdapter() {
         public String getID() { return "door_hit_top";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = 0;
@@ -1141,7 +1123,7 @@ class GameFunc {
                 return true;
             if (self.moveinfo.wait >= 0) {
                 self.think = door_go_down;
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = gameExports.level.time + self.moveinfo.wait;
             }
             return true;
         }
@@ -1149,26 +1131,26 @@ class GameFunc {
 
     private static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "door_hit_bottom";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = 0;
             }
             self.moveinfo.state = STATE_BOTTOM;
-            door_use_areaportals(self, false);
+            door_use_areaportals(self, false, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter door_go_down = new EntThinkAdapter() {
         public String getID() { return "door_go_down";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = self.moveinfo.sound_middle;
@@ -1181,16 +1163,16 @@ class GameFunc {
             self.moveinfo.state = STATE_DOWN;
             if ("func_door".equals(self.classname))
                 Move_Calc(self, self.moveinfo.start_origin,
-                        door_hit_bottom);
+                        door_hit_bottom, gameExports);
             else if ("func_door_rotating".equals(self.classname))
-                AngleMove_Calc(self, door_hit_bottom);
+                AngleMove_Calc(self, door_hit_bottom, gameExports);
             return true;
         }
     };
 
     private static EntUseAdapter door_use = new EntUseAdapter() {
         public String getID() { return "door_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
@@ -1203,7 +1185,7 @@ class GameFunc {
                     for (ent = self; ent != null; ent = ent.teamchain) {
                         ent.message = null;
                         ent.touch = null;
-                        door_go_down.think(ent);
+                        door_go_down.think(ent, gameExports);
                     }
                     return;
                 }
@@ -1213,7 +1195,7 @@ class GameFunc {
             for (ent = self; ent != null; ent = ent.teamchain) {
                 ent.message = null;
                 ent.touch = null;
-                door_go_up(ent, activator);
+                door_go_up(ent, activator, gameExports);
             }
         }
     };
@@ -1221,7 +1203,7 @@ class GameFunc {
     private static EntTouchAdapter Touch_DoorTrigger = new EntTouchAdapter() {
         public String getID() { return "touch_door_trigger";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other.health <= 0)
                 return;
 
@@ -1233,17 +1215,17 @@ class GameFunc {
                     && 0 != (other.svflags & Defines.SVF_MONSTER))
                 return;
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 1.0f;
+            self.touch_debounce_time = gameExports.level.time + 1.0f;
 
-            door_use.use(self.getOwner(), other, other);
+            door_use.use(self.getOwner(), other, other, gameExports);
         }
     };
 
     private static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
         public String getID() { return "think_calc_movespeed";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent;
             float min;
             float time;
@@ -1284,7 +1266,7 @@ class GameFunc {
 
     private static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
         public String getID() { return "think_spawn_door_trigger";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
 
             if ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0)
@@ -1295,8 +1277,8 @@ class GameFunc {
 
             SubgameEntity other;
             for (other = ent.teamchain; other != null; other = other.teamchain) {
-                GameBase.AddPointToBounds(other.absmin, mins, maxs);
-                GameBase.AddPointToBounds(other.absmax, mins, maxs);
+                AddPointToBounds(other.absmin, mins, maxs);
+                AddPointToBounds(other.absmax, mins, maxs);
             }
 
             // expand
@@ -1305,42 +1287,42 @@ class GameFunc {
             maxs[0] += 60;
             maxs[1] += 60;
 
-            other = GameUtil.G_Spawn();
+            other = GameUtil.G_Spawn(gameExports);
             Math3D.VectorCopy(mins, other.mins);
             Math3D.VectorCopy(maxs, other.maxs);
             other.setOwner(ent);
             other.solid = Defines.SOLID_TRIGGER;
             other.movetype = GameDefines.MOVETYPE_NONE;
             other.touch = Touch_DoorTrigger;
-            GameBase.gi.linkentity(other);
+            gameExports.gameImports.linkentity(other);
 
             if ((ent.spawnflags & DOOR_START_OPEN) != 0)
-                door_use_areaportals(ent, true);
+                door_use_areaportals(ent, true, gameExports);
 
-            Think_CalcMoveSpeed.think(ent);
+            Think_CalcMoveSpeed.think(ent, gameExports);
             return true;
         }
     };
 
     private static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
 
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH);
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                        GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+                    GameDefines.MOD_CRUSH, gameExports);
 
             if ((self.spawnflags & DOOR_CRUSHER) != 0)
                 return;
@@ -1352,10 +1334,10 @@ class GameFunc {
                 SubgameEntity ent;
                 if (self.moveinfo.state == STATE_DOWN) {
                     for (ent = self.teammaster; ent != null; ent = ent.teamchain)
-                        door_go_up(ent, ent.activator);
+                        door_go_up(ent, ent.activator, gameExports);
                 } else {
                     for (ent = self.teammaster; ent != null; ent = ent.teamchain)
-                        door_go_down.think(ent);
+                        door_go_down.think(ent, gameExports);
                 }
             }
         }
@@ -1364,59 +1346,76 @@ class GameFunc {
     private static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             for (ent = self.teammaster; ent != null; ent = ent.teamchain) {
                 ent.health = ent.max_health;
                 ent.takedamage = Defines.DAMAGE_NO;
             }
-            door_use.use(self.teammaster, attacker, attacker);
+            door_use.use(self.teammaster, attacker, attacker, gameExports);
         }
     };
 
     private static EntTouchAdapter door_touch = new EntTouchAdapter() {
         public String getID() { return "door_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (null == other.getClient())
                 return;
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 5.0f;
+            self.touch_debounce_time = gameExports.level.time + 5.0f;
 
-            GameBase.gi.centerprintf(other, self.message);
-            GameBase.gi.sound(other, Defines.CHAN_AUTO, GameBase.gi
+            gameExports.gameImports.centerprintf(other, self.message);
+            gameExports.gameImports.sound(other, Defines.CHAN_AUTO, gameExports.gameImports
                     .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
 
+    /**
+     * QUAKED func_door (0 .5 .8) ? START_OPEN x CRUSHER NOMONSTER ANIMATED
+     * TOGGLE ANIMATED_FAST TOGGLE wait in both the start and end states for a
+     * trigger event. START_OPEN the door to moves to its destination when
+     * spawned, and operate in reverse. It is used to temporarily or permanently
+     * close off an area when triggered (not useful for touch or takedamage
+     * doors). NOMONSTER monsters will not trigger this door
+     *
+     * "message" is printed when the door is touched if it is a trigger door and
+     * it hasn't been fired yet "angle" determines the opening direction
+     * "targetname" if set, no touch field will be spawned and a remote button
+     * or trigger field activates the door. "health" if set, door must be shot
+     * open "speed" movement speed (100 default) "wait" wait before returning (3
+     * default, -1 = never return) "lip" lip remaining at end of move (8
+     * default) "dmg" damage to inflict when blocked (2 default) "sounds" 1)
+     * silent 2) light 3) medium 4) heavy
+     */
     static EntThinkAdapter SP_func_door = new EntThinkAdapter() {
         public String getID() { return "sp_func_door";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] abs_movedir = { 0, 0, 0 };
 
             if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = GameBase.gi
+                ent.moveinfo.sound_start = gameExports.gameImports
                         .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = GameBase.gi
+                ent.moveinfo.sound_middle = gameExports.gameImports
                         .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = GameBase.gi
+                ent.moveinfo.sound_end = gameExports.gameImports
                         .soundindex("doors/dr1_end.wav");
             }
 
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_blocked;
             ent.use = door_use;
 
             if (0 == ent.speed)
                 ent.speed = 100;
-            if (GameBase.deathmatch.value != 0)
+            if (gameExports.cvarCache.deathmatch.value != 0)
                 ent.speed *= 2;
 
             if (0 == ent.accel)
@@ -1426,8 +1425,8 @@ class GameFunc {
 
             if (0 == ent.wait)
                 ent.wait = 3;
-            if (0 == GameBase.st.lip)
-                GameBase.st.lip = 8;
+            if (0 == gameExports.st.lip)
+                gameExports.st.lip = 8;
             if (0 == ent.dmg)
                 ent.dmg = 2;
 
@@ -1438,7 +1437,7 @@ class GameFunc {
             abs_movedir[2] = Math.abs(ent.movedir[2]);
             ent.moveinfo.distance = abs_movedir[0] * ent.size[0]
                     + abs_movedir[1] * ent.size[1] + abs_movedir[2]
-                    * ent.size[2] - GameBase.st.lip;
+                    * ent.size[2] - gameExports.st.lip;
 
             Math3D.VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir,
                     ent.pos2);
@@ -1457,7 +1456,7 @@ class GameFunc {
                 ent.die = door_killed;
                 ent.max_health = ent.health;
             } else if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
@@ -1480,9 +1479,9 @@ class GameFunc {
             if (null == ent.team)
                 ent.teammaster = ent;
 
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think = Think_CalcMoveSpeed;
             else
@@ -1522,7 +1521,7 @@ class GameFunc {
 
     static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter() {
         public String getID() { return "sp_func_door_rotating";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             Math3D.VectorClear(ent.s.angles);
 
             // set the axis of rotation
@@ -1539,20 +1538,20 @@ class GameFunc {
             if ((ent.spawnflags & DOOR_REVERSE) != 0)
                 Math3D.VectorNegate(ent.movedir, ent.movedir);
 
-            if (0 == GameBase.st.distance) {
-                GameBase.gi.dprintf(ent.classname + " at "
+            if (0 == gameExports.st.distance) {
+                gameExports.gameImports.dprintf(ent.classname + " at "
                         + Lib.vtos(ent.s.origin) + " with no distance set\n");
-                GameBase.st.distance = 90;
+                gameExports.st.distance = 90;
             }
 
             Math3D.VectorCopy(ent.s.angles, ent.pos1);
-            Math3D.VectorMA(ent.s.angles, GameBase.st.distance, ent.movedir,
+            Math3D.VectorMA(ent.s.angles, gameExports.st.distance, ent.movedir,
                     ent.pos2);
-            ent.moveinfo.distance = GameBase.st.distance;
+            ent.moveinfo.distance = gameExports.st.distance;
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_blocked;
             ent.use = door_use;
@@ -1570,11 +1569,11 @@ class GameFunc {
                 ent.dmg = 2;
 
             if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = GameBase.gi
+                ent.moveinfo.sound_start = gameExports.gameImports
                         .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = GameBase.gi
+                ent.moveinfo.sound_middle = gameExports.gameImports
                         .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = GameBase.gi
+                ent.moveinfo.sound_end = gameExports.gameImports
                         .soundindex("doors/dr1_end.wav");
             }
 
@@ -1593,7 +1592,7 @@ class GameFunc {
             }
 
             if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
@@ -1615,9 +1614,9 @@ class GameFunc {
             if (ent.team == null)
                 ent.teammaster = ent;
 
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think = Think_CalcMoveSpeed;
             else
@@ -1644,34 +1643,34 @@ class GameFunc {
 
     private static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
         public String getID() { return "train_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH);
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                        GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
 
             if (self.dmg == 0)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 0.5f;
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+            self.touch_debounce_time = gameExports.level.time + 0.5f;
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+                    GameDefines.MOD_CRUSH, gameExports);
         }
     };
 
     private static EntThinkAdapter train_wait = new EntThinkAdapter() {
         public String getID() { return "train_wait";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.target_ent.pathtarget != null) {
                 String savetarget;
                 SubgameEntity ent;
@@ -1679,7 +1678,7 @@ class GameFunc {
                 ent = self.target_ent;
                 savetarget = ent.target;
                 ent.target = ent.pathtarget;
-                GameUtil.G_UseTargets(ent, self.activator);
+                GameUtil.G_UseTargets(ent, self.activator, gameExports);
                 ent.target = savetarget;
 
                 // make sure we didn't get killed by a killtarget
@@ -1689,11 +1688,11 @@ class GameFunc {
 
             if (self.moveinfo.wait != 0) {
                 if (self.moveinfo.wait > 0) {
-                    self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                    self.nextthink = gameExports.level.time + self.moveinfo.wait;
                     self.think = train_next;
                 } else if (0 != (self.spawnflags & TRAIN_TOGGLE)) // && wait < 0
                 {
-                    train_next.think(self);
+                    train_next.think(self, gameExports);
                     self.spawnflags &= ~TRAIN_START_ON;
                     Math3D.VectorClear(self.velocity);
                     self.nextthink = 0;
@@ -1701,13 +1700,11 @@ class GameFunc {
 
                 if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                     if (self.moveinfo.sound_end != 0)
-                        GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
-                                + Defines.CHAN_VOICE, self.moveinfo.sound_end,
-                                1, Defines.ATTN_STATIC, 0);
+                        gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1, Defines.ATTN_STATIC, 0);
                     self.s.sound = 0;
                 }
             } else {
-                train_next.think(self);
+                train_next.think(self, gameExports);
             }
             return true;
         }
@@ -1715,7 +1712,7 @@ class GameFunc {
 
     private static EntThinkAdapter train_next = new EntThinkAdapter() {
         public String getID() { return "train_next";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent = null;
             float[] dest = { 0, 0, 0 };
             boolean first;
@@ -1729,9 +1726,9 @@ class GameFunc {
                     return true;
                 }
 
-                ent = GameBase.G_PickTarget(self.target);
+                ent = GameBase.G_PickTarget(self.target, gameExports);
                 if (null == ent) {
-                    GameBase.gi.dprintf("train_next: bad target " + self.target
+                    gameExports.gameImports.dprintf("train_next: bad target " + self.target
                             + "\n");
                     return true;
                 }
@@ -1741,7 +1738,7 @@ class GameFunc {
                 // check for a teleport path_corner
                 if ((ent.spawnflags & 1) != 0) {
                     if (!first) {
-                        GameBase.gi
+                        gameExports.gameImports
                                 .dprintf("connected teleport path_corners, see "
                                         + ent.classname
                                         + " at "
@@ -1753,7 +1750,7 @@ class GameFunc {
                             self.s.origin);
                     Math3D.VectorCopy(self.s.origin, self.s.old_origin);
                     self.s.event = Defines.EV_OTHER_TELEPORT;
-                    GameBase.gi.linkentity(self);
+                    gameExports.gameImports.linkentity(self);
                     dogoto = true;
                 }
             }
@@ -1762,7 +1759,7 @@ class GameFunc {
 
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = self.moveinfo.sound_middle;
@@ -1772,7 +1769,7 @@ class GameFunc {
             self.moveinfo.state = STATE_TOP;
             Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
             Math3D.VectorCopy(dest, self.moveinfo.end_origin);
-            Move_Calc(self, dest, train_wait);
+            Move_Calc(self, dest, train_wait, gameExports);
             self.spawnflags |= TRAIN_START_ON;
             return true;
         }
@@ -1780,30 +1777,30 @@ class GameFunc {
 
     static EntThinkAdapter func_train_find = new EntThinkAdapter() {
         public String getID() { return "func_train_find";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             if (null == self.target) {
-                GameBase.gi.dprintf("train_find: no target\n");
+                gameExports.gameImports.dprintf("train_find: no target\n");
                 return true;
             }
-            ent = GameBase.G_PickTarget(self.target);
+            ent = GameBase.G_PickTarget(self.target, gameExports);
             if (null == ent) {
-                GameBase.gi.dprintf("train_find: target " + self.target
+                gameExports.gameImports.dprintf("train_find: target " + self.target
                         + " not found\n");
                 return true;
             }
             self.target = ent.target;
 
             Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin);
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             // if not triggered, start immediately
             if (null == self.targetname)
                 self.spawnflags |= TRAIN_START_ON;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 self.think = train_next;
                 self.activator = self;
             }
@@ -1813,7 +1810,7 @@ class GameFunc {
 
     static EntUseAdapter train_use = new EntUseAdapter() {
         public String getID() { return "train_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
@@ -1824,9 +1821,9 @@ class GameFunc {
                 self.nextthink = 0;
             } else {
                 if (self.target_ent != null)
-                    train_resume(self);
+                    train_resume(self, gameExports);
                 else
-                    train_next.think(self);
+                    train_next.think(self, gameExports);
             }
         }
     };
@@ -1837,7 +1834,7 @@ class GameFunc {
     private static EntUseAdapter trigger_elevator_use = new EntUseAdapter() {
         public String getID() { return "trigger_elevator_use";}
 
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
             if (0 != self.movetarget.nextthink) {
                 //			gi.dprintf("elevator busy\n");
@@ -1845,37 +1842,37 @@ class GameFunc {
             }
 
             if (null == other.pathtarget) {
-                GameBase.gi.dprintf("elevator used with no pathtarget\n");
+                gameExports.gameImports.dprintf("elevator used with no pathtarget\n");
                 return;
             }
 
-            SubgameEntity target = GameBase.G_PickTarget(other.pathtarget);
+            SubgameEntity target = GameBase.G_PickTarget(other.pathtarget, gameExports);
             if (null == target) {
-                GameBase.gi.dprintf("elevator used with bad pathtarget: "
+                gameExports.gameImports.dprintf("elevator used with bad pathtarget: "
                         + other.pathtarget + "\n");
                 return;
             }
 
             self.movetarget.target_ent = target;
-            train_resume(self.movetarget);
+            train_resume(self.movetarget, gameExports);
         }
     };
 
     private static EntThinkAdapter trigger_elevator_init = new EntThinkAdapter() {
         public String getID() { return "trigger_elevator_init";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == self.target) {
-                GameBase.gi.dprintf("trigger_elevator has no target\n");
+                gameExports.gameImports.dprintf("trigger_elevator has no target\n");
                 return true;
             }
-            self.movetarget = GameBase.G_PickTarget(self.target);
+            self.movetarget = GameBase.G_PickTarget(self.target, gameExports);
             if (null == self.movetarget) {
-                GameBase.gi.dprintf("trigger_elevator unable to find target "
+                gameExports.gameImports.dprintf("trigger_elevator unable to find target "
                         + self.target + "\n");
                 return true;
             }
             if (!"func_train".equals(self.movetarget.classname)) {
-                GameBase.gi.dprintf("trigger_elevator target " + self.target
+                gameExports.gameImports.dprintf("trigger_elevator target " + self.target
                         + " is not a train\n");
                 return true;
             }
@@ -1888,9 +1885,9 @@ class GameFunc {
 
     static EntThinkAdapter SP_trigger_elevator = new EntThinkAdapter() {
         public String getID() { return "sp_trigger_elevator";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.think = trigger_elevator_init;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1913,9 +1910,9 @@ class GameFunc {
 
     private static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
         public String getID() { return "func_timer_think";}
-        public boolean think(SubgameEntity self) {
-            GameUtil.G_UseTargets(self, self.activator);
-            self.nextthink = GameBase.level.time + self.wait + Lib.crandom()
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            GameUtil.G_UseTargets(self, self.activator, gameExports);
+            self.nextthink = gameExports.level.time + self.wait + Lib.crandom()
                     * self.random;
             return true;
         }
@@ -1923,7 +1920,7 @@ class GameFunc {
 
     private static EntUseAdapter func_timer_use = new EntUseAdapter() {
         public String getID() { return "func_timer_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
 
             // if on, turn it off
@@ -1934,9 +1931,9 @@ class GameFunc {
 
             // turn it on
             if (self.delay != 0)
-                self.nextthink = GameBase.level.time + self.delay;
+                self.nextthink = gameExports.level.time + self.delay;
             else
-                func_timer_think.think(self);
+                func_timer_think.think(self, gameExports);
         }
     };
 
@@ -1948,7 +1945,7 @@ class GameFunc {
 
     private static EntUseAdapter func_conveyor_use = new EntUseAdapter() {
         public String getID() { return "func_conveyor_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if ((self.spawnflags & 1) != 0) {
                 self.speed = 0;
                 self.spawnflags &= ~1;
@@ -1964,7 +1961,7 @@ class GameFunc {
 
     static EntThinkAdapter SP_func_conveyor = new EntThinkAdapter() {
         public String getID() { return "sp_func_conveyor";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (0 == self.speed)
                 self.speed = 100;
@@ -1976,9 +1973,9 @@ class GameFunc {
 
             self.use = func_conveyor_use;
 
-            GameBase.gi.setmodel(self, self.model);
+            gameExports.gameImports.setmodel(self, self.model);
             self.solid = Defines.SOLID_BSP;
-            GameBase.gi.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -2004,20 +2001,20 @@ class GameFunc {
 
     private static EntUseAdapter door_secret_use = new EntUseAdapter() {
         public String getID() { return "door_secret_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             // make sure we're not already moving
             if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
                 return;
 
-            Move_Calc(self, self.pos1, door_secret_move1);
-            door_use_areaportals(self, true);
+            Move_Calc(self, self.pos1, door_secret_move1, gameExports);
+            door_use_areaportals(self, true, gameExports);
         }
     };
 
     private static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move1";}
-        public boolean think(SubgameEntity self) {
-            self.nextthink = GameBase.level.time + 1.0f;
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            self.nextthink = gameExports.level.time + 1.0f;
             self.think = door_secret_move2;
             return true;
         }
@@ -2025,18 +2022,18 @@ class GameFunc {
 
     private static EntThinkAdapter door_secret_move2 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move2";}
-        public boolean think(SubgameEntity self) {
-            Move_Calc(self, self.pos2, door_secret_move3);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            Move_Calc(self, self.pos2, door_secret_move3, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter door_secret_move3 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move3";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.wait == -1)
                 return true;
-            self.nextthink = GameBase.level.time + self.wait;
+            self.nextthink = gameExports.level.time + self.wait;
             self.think = door_secret_move4;
             return true;
         }
@@ -2044,16 +2041,16 @@ class GameFunc {
 
     private static EntThinkAdapter door_secret_move4 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move4";}
-        public boolean think(SubgameEntity self) {
-            Move_Calc(self, self.pos1, door_secret_move5);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            Move_Calc(self, self.pos1, door_secret_move5, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move5";}
-        public boolean think(SubgameEntity self) {
-            self.nextthink = GameBase.level.time + 1.0f;
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            self.nextthink = gameExports.level.time + 1.0f;
             self.think = door_secret_move6;
             return true;
         }
@@ -2061,77 +2058,77 @@ class GameFunc {
 
     private static EntThinkAdapter door_secret_move6 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move6";}
-        public boolean think(SubgameEntity self) {
-            Move_Calc(self, Globals.vec3_origin, door_secret_done);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            Move_Calc(self, Globals.vec3_origin, door_secret_done, gameExports);
             return true;
         }
     };
 
     private static EntThinkAdapter door_secret_done = new EntThinkAdapter() {
         public String getID() { return "door_secret_move7";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == (self.targetname)
                     || 0 != (self.spawnflags & SECRET_ALWAYS_SHOOT)) {
                 self.health = 0;
                 self.takedamage = Defines.DAMAGE_YES;
             }
-            door_use_areaportals(self, false);
+            door_use_areaportals(self, false, gameExports);
             return true;
         }
     };
 
     private static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH);
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                        GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 0.5f;
+            self.touch_debounce_time = gameExports.level.time + 0.5f;
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH);
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+                    GameDefines.MOD_CRUSH, gameExports);
         }
     };
 
     private static EntDieAdapter door_secret_die = new EntDieAdapter() {
         public String getID() { return "door_secret_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             self.takedamage = Defines.DAMAGE_NO;
-            door_secret_use.use(self, attacker, attacker);
+            door_secret_use.use(self, attacker, attacker, gameExports);
         }
     };
 
     static EntThinkAdapter SP_func_door_secret = new EntThinkAdapter() {
         public String getID() { return "sp_func_door_secret";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
             float side;
             float width;
             float length;
 
-            ent.moveinfo.sound_start = GameBase.gi
+            ent.moveinfo.sound_start = gameExports.gameImports
                     .soundindex("doors/dr1_strt.wav");
-            ent.moveinfo.sound_middle = GameBase.gi
+            ent.moveinfo.sound_middle = gameExports.gameImports
                     .soundindex("doors/dr1_mid.wav");
-            ent.moveinfo.sound_end = GameBase.gi
+            ent.moveinfo.sound_end = gameExports.gameImports
                     .soundindex("doors/dr1_end.wav");
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_secret_blocked;
             ent.use = door_secret_use;
@@ -2171,13 +2168,13 @@ class GameFunc {
                 ent.die = door_killed;
                 ent.max_health = ent.health;
             } else if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
             ent.classname = "func_door";
 
-            GameBase.gi.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -2188,18 +2185,31 @@ class GameFunc {
      */
     private static EntUseAdapter use_killbox = new EntUseAdapter() {
         public String getID() { return "use_killbox";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            GameUtil.KillBox(self);
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            GameUtil.KillBox(self, gameExports);
         }
     };
 
     static EntThinkAdapter SP_func_killbox = new EntThinkAdapter() {
         public String getID() { return "sp_func_killbox";}
-        public boolean think(SubgameEntity ent) {
-            GameBase.gi.setmodel(ent, ent.model);
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            gameExports.gameImports.setmodel(ent, ent.model);
             ent.use = use_killbox;
             ent.svflags = Defines.SVF_NOCLIENT;
             return true;
         }
     };
+
+    private static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
+        int i;
+        float val;
+
+        for (i = 0; i < 3; i++) {
+            val = v[i];
+            if (val < mins[i])
+                mins[i] = val;
+            if (val > maxs[i])
+                maxs[i] = val;
+        }
+    }
 }
