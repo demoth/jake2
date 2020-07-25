@@ -232,22 +232,22 @@ public class GameSpawn {
             // set configstrings for items
             GameItems.SetItemNames(gameExports);
 
-            if (GameBase.st.nextmap != null)
-                gameExports.level.nextmap = GameBase.st.nextmap;
+            if (gameExports.st.nextmap != null)
+                gameExports.level.nextmap = gameExports.st.nextmap;
             // make some data visible to the server
             if (ent.message != null && ent.message.length() > 0) {
                 gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
                 gameExports.level.level_name = ent.message;
             } else
                 gameExports.level.level_name = gameExports.level.mapname;
-            if (GameBase.st.sky != null && GameBase.st.sky.length() > 0)
-                gameExports.gameImports.configstring(Defines.CS_SKY, GameBase.st.sky);
+            if (gameExports.st.sky != null && gameExports.st.sky.length() > 0)
+                gameExports.gameImports.configstring(Defines.CS_SKY, gameExports.st.sky);
             else
                 gameExports.gameImports.configstring(Defines.CS_SKY, "unit1_");
             gameExports.gameImports.configstring(Defines.CS_SKYROTATE, ""
-                    + GameBase.st.skyrotate);
+                    + gameExports.st.skyrotate);
             gameExports.gameImports.configstring(Defines.CS_SKYAXIS, Lib
-                    .vtos(GameBase.st.skyaxis));
+                    .vtos(gameExports.st.skyaxis));
             gameExports.gameImports.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
             gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (gameExports.game.maxclients));
@@ -262,10 +262,10 @@ public class GameSpawn {
             gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
             gameExports.gameImports.imageindex("help");
             gameExports.gameImports.imageindex("field_3");
-            if ("".equals(GameBase.st.gravity))
+            if ("".equals(gameExports.st.gravity))
                 gameExports.gameImports.cvar_set("sv_gravity", "800");
             else
-                gameExports.gameImports.cvar_set("sv_gravity", GameBase.st.gravity);
+                gameExports.gameImports.cvar_set("sv_gravity", gameExports.st.gravity);
 
             // standing in lava / slime
             gameExports.gameImports.soundindex("player/fry.wav");
@@ -1206,7 +1206,7 @@ public class GameSpawn {
 
         if (key.equals("nextmap"))
             gameExports.gameImports.dprintf("nextmap: " + value);
-        if (!GameBase.st.set(key, value))
+        if (!gameExports.st.set(key, value))
             if (!ent.setField(key, value))
                 gameExports.gameImports.dprintf("??? The key [" + key
                         + "] is not a field\n");
@@ -1227,7 +1227,7 @@ public class GameSpawn {
         String com_token;
         init = false;
 
-        GameBase.st = new spawn_temp_t();
+        gameExports.st = new spawn_temp_t();
         while (true) {
 
             // parse key

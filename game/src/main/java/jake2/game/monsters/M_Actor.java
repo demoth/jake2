@@ -1581,12 +1581,12 @@ public class M_Actor {
         if ((self.spawnflags & 1) != 0) {
             if (0 == self.speed)
                 self.speed = 200;
-            if (0 == GameBase.st.height)
-                GameBase.st.height = 200;
+            if (0 == gameExports.st.height)
+                gameExports.st.height = 200;
             if (self.s.angles[Defines.YAW] == 0)
                 self.s.angles[Defines.YAW] = 360;
             GameBase.G_SetMovedir(self.s.angles, self.movedir);
-            self.movedir[2] = GameBase.st.height;
+            self.movedir[2] = gameExports.st.height;
         }
 
         gameExports.gameImports.linkentity(self);
