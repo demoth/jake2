@@ -730,7 +730,6 @@ class GameTarget {
      * many seconds the ramping will take message two letters; starting
      * lightlevel and ending lightlevel
      */
-
     private static EntThinkAdapter target_lightramp_think = new EntThinkAdapter() {
     	public String getID() { return "target_lightramp_think"; }
         public boolean think(SubgameEntity self) {
@@ -804,7 +803,6 @@ class GameTarget {
      * "speed" severity of the quake (default:200) "count" duration of the quake
      * (default:5)
      */
-
     private static EntThinkAdapter target_earthquake_think = new EntThinkAdapter() {
     	public String getID() { return "target_earthquake_think"; }
         public boolean think(SubgameEntity self) {

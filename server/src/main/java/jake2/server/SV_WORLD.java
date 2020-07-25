@@ -344,6 +344,7 @@ class SV_WORLD {
 
     /*
      * ================ SV_AreaEdicts ================
+     * TODO: return a collection of edicts rather than modifying param
      */
     static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[],
                              int maxcount, int areatype) {

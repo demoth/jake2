@@ -1295,8 +1295,8 @@ class GameFunc {
 
             SubgameEntity other;
             for (other = ent.teamchain; other != null; other = other.teamchain) {
-                GameBase.AddPointToBounds(other.absmin, mins, maxs);
-                GameBase.AddPointToBounds(other.absmax, mins, maxs);
+                AddPointToBounds(other.absmin, mins, maxs);
+                AddPointToBounds(other.absmax, mins, maxs);
             }
 
             // expand
@@ -2202,4 +2202,17 @@ class GameFunc {
             return true;
         }
     };
+
+    private static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
+        int i;
+        float val;
+
+        for (i = 0; i < 3; i++) {
+            val = v[i];
+            if (val < mins[i])
+                mins[i] = val;
+            if (val > maxs[i])
+                maxs[i] = val;
+        }
+    }
 }
