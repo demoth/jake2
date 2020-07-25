@@ -782,7 +782,7 @@ class PlayerView {
             return;
 
         if (ent.powerarmor_time > gameExports.level.time) {
-            pa_type = GameItems.PowerArmorType(ent);
+            pa_type = GameItems.PowerArmorType(ent, gameExports);
             if (pa_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
             } else if (pa_type == GameDefines.POWER_ARMOR_SHIELD) {

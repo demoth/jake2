@@ -156,7 +156,7 @@ public class PlayerWeapon {
             float radius;
 
             radius = damage + 40;
-            if (is_quad)
+            if (gameExports.is_quad)
                 damage *= 4;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
@@ -172,7 +172,7 @@ public class PlayerWeapon {
 
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -222,7 +222,7 @@ public class PlayerWeapon {
             damage = 100 + (int) (Lib.random() * 20.0);
             radius_damage = 120;
             damage_radius = 120;
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 radius_damage *= 4;
             }
@@ -243,7 +243,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_ROCKET | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_ROCKET | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -449,7 +449,7 @@ public class PlayerWeapon {
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
 
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 kick *= 4;
             }
@@ -466,7 +466,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_SHOTGUN | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_SHOTGUN | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -513,7 +513,7 @@ public class PlayerWeapon {
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
 
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 kick *= 4;
             }
@@ -537,7 +537,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_SSHOTGUN | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_SSHOTGUN | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -590,7 +590,7 @@ public class PlayerWeapon {
                 kick = 250;
             }
 
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 kick *= 4;
             }
@@ -610,7 +610,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_RAILGUN | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_RAILGUN | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -665,7 +665,7 @@ public class PlayerWeapon {
                 gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
                 gameExports.gameImports.WriteShort(ent.index);
-                gameExports.gameImports.WriteByte(Defines.MZ_BFG | is_silenced);
+                gameExports.gameImports.WriteByte(Defines.MZ_BFG | gameExports.is_silenced);
                 gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 client.getPlayerState().gunframe++;
@@ -681,7 +681,7 @@ public class PlayerWeapon {
                 return true;
             }
 
-            if (is_quad)
+            if (gameExports.is_quad)
                 damage *= 4;
 
             Math3D.AngleVectors(client.v_angle, forward, right, null);
@@ -712,16 +712,14 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_BFG = new EntThinkAdapter() {
     	public String getID() { return "Weapon_BFG"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            int[] pause_frames = { 39, 45, 50, 55, 0 };
+            int[] fire_frames = { 9, 17, 0 };
 
             Weapon_Generic(ent, 8, 32, 55, 58, pause_frames, fire_frames,
                     weapon_bfg_fire, gameExports);
             return true;
         }
     };
-
-    public static boolean is_quad;
-
-    public static byte is_silenced;
 
 
     /*
@@ -843,7 +841,7 @@ public class PlayerWeapon {
                 return true;
             }
 
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 kick *= 4;
             }
@@ -877,7 +875,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
             gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_MACHINEGUN | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -982,7 +980,7 @@ public class PlayerWeapon {
                 return true;
             }
 
-            if (is_quad) {
+            if (gameExports.is_quad) {
                 damage *= 4;
                 kick *= 4;
             }
@@ -1011,7 +1009,7 @@ public class PlayerWeapon {
 
             gameExports.gameImports.WriteShort(ent.index);
             gameExports.gameImports.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1)
-                    | is_silenced);
+                    | gameExports.is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -1022,10 +1020,6 @@ public class PlayerWeapon {
             return true;
         }
     };
-
-    public static int pause_frames[] = { 39, 45, 50, 55, 0 };
-
-    public static int fire_frames[] = { 9, 17, 0 };
 
     public static EntInteractAdapter Pickup_Weapon = new EntInteractAdapter() {
     	public String getID() { return "Pickup_Weapon"; }
@@ -1217,11 +1211,11 @@ public class PlayerWeapon {
         // call active weapon think routine
         if (null != client.pers.weapon
                 && null != client.pers.weapon.weaponthink) {
-            is_quad = (client.quad_framenum > gameExports.level.framenum);
+            gameExports.is_quad = (client.quad_framenum > gameExports.level.framenum);
             if (client.silencer_shots != 0)
-                is_silenced = (byte) Defines.MZ_SILENCED;
+                gameExports.is_silenced = (byte) Defines.MZ_SILENCED;
             else
-                is_silenced = 0;
+                gameExports.is_silenced = 0;
             client.pers.weapon.weaponthink.think(ent, gameExports);
         }
     }
@@ -1385,7 +1379,7 @@ public class PlayerWeapon {
         float radius;
 
         radius = damage + 40;
-        if (is_quad)
+        if (gameExports.is_quad)
             damage *= 4;
 
         Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
@@ -1438,7 +1432,7 @@ public class PlayerWeapon {
         float[] start = { 0, 0, 0 };
         float[] offset = { 0, 0, 0 };
 
-        if (is_quad)
+        if (gameExports.is_quad)
             damage *= 4;
         gclient_t client = ent.getClient();
         Math3D.AngleVectors(client.v_angle, forward, right, null);
@@ -1455,9 +1449,9 @@ public class PlayerWeapon {
         gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
         gameExports.gameImports.WriteShort(ent.index);
         if (hyper)
-            gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | gameExports.is_silenced);
         else
-            gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | gameExports.is_silenced);
         gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);

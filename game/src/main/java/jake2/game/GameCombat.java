@@ -173,7 +173,7 @@ public class GameCombat {
             return 0;
     
         if (client != null) {
-            power_armor_type = GameItems.PowerArmorType(ent);
+            power_armor_type = GameItems.PowerArmorType(ent, gameExports);
             if (power_armor_type != GameDefines.POWER_ARMOR_NONE) {
                 index = GameItems.FindItem("Cells", gameExports).index;
                 power = client.pers.inventory[index];
@@ -248,7 +248,7 @@ public class GameCombat {
         if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
             return 0;
     
-        index = GameItems.ArmorIndex(ent);
+        index = GameItems.ArmorIndex(ent, gameExports);
     
         if (index == 0)
             return 0;

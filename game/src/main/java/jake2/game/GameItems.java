@@ -41,13 +41,7 @@ public class GameItems {
     .60f, .30f, GameDefines.ARMOR_COMBAT);
     static gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200,
     .80f, .60f, GameDefines.ARMOR_BODY);
-    private static int quad_drop_timeout_hack = 0;
-    private static int jacket_armor_index;
-    private static int combat_armor_index;
-    private static int body_armor_index;
-    private static int power_screen_index;
-    private static int power_shield_index;
-    
+
     private static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
         public String getID() { return "do_respawn";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -313,9 +307,9 @@ public class GameItems {
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
     
-            if (quad_drop_timeout_hack != 0) {
-                timeout = quad_drop_timeout_hack;
-                quad_drop_timeout_hack = 0;
+            if (gameExports.quad_drop_timeout_hack != 0) {
+                timeout = gameExports.quad_drop_timeout_hack;
+                gameExports.quad_drop_timeout_hack = 0;
             } else {
                 timeout = 300;
             }
@@ -460,13 +454,13 @@ public class GameItems {
             // get info on new armor
             newinfo = (gitem_armor_t) ent.item.info;
     
-            old_armor_index = ArmorIndex(other);
+            old_armor_index = ArmorIndex(other, gameExports);
     
             // handle armor shards specially
             gclient_t client = other.getClient();
             if (ent.item.tag == GameDefines.ARMOR_SHARD) {
                 if (0 == old_armor_index)
-                    client.pers.inventory[jacket_armor_index] = 2;
+                    client.pers.inventory[gameExports.jacket_armor_index] = 2;
                 else
                     client.pers.inventory[old_armor_index] += 2;
             }
@@ -479,10 +473,10 @@ public class GameItems {
             // use the better armor
             else {
                 // get info on old armor
-                if (old_armor_index == jacket_armor_index)
+                if (old_armor_index == gameExports.jacket_armor_index)
                     oldinfo = jacketarmor_info;
     
-                else if (old_armor_index == combat_armor_index)
+                else if (old_armor_index == gameExports.combat_armor_index)
                     oldinfo = combatarmor_info;
     
                 else
@@ -575,7 +569,7 @@ public class GameItems {
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
-                        quad_drop_timeout_hack = (int) ((ent.nextthink - gameExports.level.time) / Defines.FRAMETIME);
+                        gameExports.quad_drop_timeout_hack = (int) ((ent.nextthink - gameExports.level.time) / Defines.FRAMETIME);
     
                     ent.item.use.use(other, ent.item, gameExports);
                 }
@@ -917,7 +911,7 @@ public class GameItems {
         return dropped;
     }
 
-    static int PowerArmorType(SubgameEntity ent) {
+    static int PowerArmorType(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
@@ -925,28 +919,28 @@ public class GameItems {
         if (0 == (ent.flags & GameDefines.FL_POWER_ARMOR))
             return GameDefines.POWER_ARMOR_NONE;
     
-        if (client.pers.inventory[power_shield_index] > 0)
+        if (client.pers.inventory[gameExports.power_shield_index] > 0)
             return GameDefines.POWER_ARMOR_SHIELD;
     
-        if (client.pers.inventory[power_screen_index] > 0)
+        if (client.pers.inventory[gameExports.power_screen_index] > 0)
             return GameDefines.POWER_ARMOR_SCREEN;
     
         return GameDefines.POWER_ARMOR_NONE;
     }
 
-    static int ArmorIndex(SubgameEntity ent) {
+    static int ArmorIndex(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return 0;
     
-        if (client.pers.inventory[jacket_armor_index] > 0)
-            return jacket_armor_index;
+        if (client.pers.inventory[gameExports.jacket_armor_index] > 0)
+            return gameExports.jacket_armor_index;
     
-        if (client.pers.inventory[combat_armor_index] > 0)
-            return combat_armor_index;
+        if (client.pers.inventory[gameExports.combat_armor_index] > 0)
+            return gameExports.combat_armor_index;
     
-        if (client.pers.inventory[body_armor_index] > 0)
-            return body_armor_index;
+        if (client.pers.inventory[gameExports.body_armor_index] > 0)
+            return gameExports.body_armor_index;
     
         return 0;
     }
@@ -993,19 +987,17 @@ public class GameItems {
      * Called by worldspawn ===============
      */
     static void SetItemNames(GameExportsImpl gameExports) {
-        int i;
-        gitem_t it;
-    
-        for (i = 1; i < gameExports.game.num_items; i++) {
-            it = gameExports.items.itemlist[i];
+
+        for (int i = 1; i < gameExports.game.num_items; i++) {
+            gitem_t it = gameExports.items.itemlist[i];
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
-        jacket_armor_index = FindItem("Jacket Armor", gameExports).index;
-        combat_armor_index = FindItem("Combat Armor", gameExports).index;
-        body_armor_index = FindItem("Body Armor", gameExports).index;
-        power_screen_index = FindItem("Power Screen", gameExports).index;
-        power_shield_index = FindItem("Power Shield", gameExports).index;
+        gameExports.jacket_armor_index = FindItem("Jacket Armor", gameExports).index;
+        gameExports.combat_armor_index = FindItem("Combat Armor", gameExports).index;
+        gameExports.body_armor_index = FindItem("Body Armor", gameExports).index;
+        gameExports.power_screen_index = FindItem("Power Screen", gameExports).index;
+        gameExports.power_shield_index = FindItem("Power Shield", gameExports).index;
     }
 
     static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {

@@ -1406,7 +1406,7 @@ public class GameSpawn {
         Com.DPrintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
         Com.DPrintf(inhibit + " entities inhibited.\n");
         G_FindTeams(gameExports);
-        PlayerTrail.Init(gameExports);
+        gameExports.playerTrail.Init();
     }
 
     /**

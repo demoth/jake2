@@ -597,9 +597,9 @@ public class GameAI {
                     new1 = true;
                 } else if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUIT_LAST_SEEN) != 0) {
                     self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUIT_LAST_SEEN;
-                    marker = PlayerTrail.PickFirst(self, gameExports);
+                    marker = gameExports.playerTrail.PickFirst(self);
                 } else {
-                    marker = PlayerTrail.PickNext(self);
+                    marker = gameExports.playerTrail.PickNext(self);
                 }
 
                 if (marker != null) {
