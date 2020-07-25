@@ -33,12 +33,16 @@ import jake2.qcommon.util.Math3D;
 /**
  * SV
  */
-public final class SV {
+final class SV {
 
-    static cvar_t sv_maxvelocity = new cvar_t();
+    private cvar_t sv_maxvelocity = new cvar_t();
+
+    SV(GameImports gameImports) {
+        sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
+    }
 
     ///////////////////////////////////////
-    public static edict_t[] SV_TestEntityPosition(edict_t ent) {
+    private static edict_t[] SV_TestEntityPosition(edict_t ent) {
         int mask;
 
         if (ent.clipmask != 0)
@@ -56,7 +60,7 @@ public final class SV {
     }
 
     ///////////////////////////////////////
-    public static void SV_CheckVelocity(SubgameEntity ent) {
+    private void SV_CheckVelocity(SubgameEntity ent) {
         int i;
 
         //
@@ -73,7 +77,7 @@ public final class SV {
     /**
      * Runs thinking code for this frame if necessary.
      */
-    public static boolean SV_RunThink(SubgameEntity ent) {
+    private static boolean SV_RunThink(SubgameEntity ent) {
         float thinktime;
 
         thinktime = ent.nextthink;
@@ -95,7 +99,7 @@ public final class SV {
     /**
      * Two entities have touched, so run their touch functions.
      */
-    public static void SV_Impact(SubgameEntity e1, trace_t trace) {
+    private static void SV_Impact(SubgameEntity e1, trace_t trace) {
         // assuming edicts are created only on game side
         SubgameEntity e2 = (SubgameEntity) trace.ent;
 
@@ -106,7 +110,7 @@ public final class SV {
             e2.touch.touch(e2, e1, GameBase.dummyplane, null);
     }
 
-    public static int SV_FlyMove(SubgameEntity ent, float time, int mask) {
+    private static int SV_FlyMove(SubgameEntity ent, float time, int mask) {
         edict_t hit;
         int bumpcount, numbumps;
         float[] dir = { 0.0f, 0.0f, 0.0f };
@@ -232,7 +236,7 @@ public final class SV {
     /**
      * SV_AddGravity.
      */
-    public static void SV_AddGravity(SubgameEntity ent) {
+    private static void SV_AddGravity(SubgameEntity ent) {
         ent.velocity[2] -= ent.gravity * GameBase.sv_gravity.value
                 * Defines.FRAMETIME;
     }
@@ -240,7 +244,7 @@ public final class SV {
     /**
      * Does not change the entities velocity at all
      */
-    public static trace_t SV_PushEntity(SubgameEntity ent, float[] push) {
+    private static trace_t SV_PushEntity(SubgameEntity ent, float[] push) {
         trace_t trace;
         float[] start = { 0, 0, 0 };
         float[] end = { 0, 0, 0 };
@@ -290,7 +294,7 @@ public final class SV {
      * Objects need to be moved back on a failed push, otherwise riders would
      * continue to slide.
      */
-    public static boolean SV_Push(SubgameEntity pusher, float[] move, float[] amove) {
+    private static boolean SV_Push(SubgameEntity pusher, float[] move, float[] amove) {
         int i;
         float[] mins = { 0, 0, 0 };
         float[] maxs = { 0, 0, 0 };
@@ -449,7 +453,7 @@ public final class SV {
      * 
      * Bmodel objects don't interact with each other, but push all box objects.
      */
-    public static void SV_Physics_Pusher(SubgameEntity ent) {
+    static void SV_Physics_Pusher(SubgameEntity ent) {
         float[] move = { 0, 0, 0 };
         float[] amove = { 0, 0, 0 };
 
@@ -501,7 +505,7 @@ public final class SV {
     /**
      * Non moving objects can only think.
      */
-    public static void SV_Physics_None(SubgameEntity ent) {
+    static void SV_Physics_None(SubgameEntity ent) {
         // regular thinking
         SV_RunThink(ent);
     }
@@ -509,7 +513,7 @@ public final class SV {
     /**
      * A moving object that doesn't obey physics.
      */
-    public static void SV_Physics_Noclip(SubgameEntity ent) {
+    static void SV_Physics_Noclip(SubgameEntity ent) {
         //	   regular thinking
         if (!SV_RunThink(ent))
             return;
@@ -525,7 +529,7 @@ public final class SV {
     /**
      * Toss, bounce, and fly movement. When onground, do nothing.
      */
-    static void SV_Physics_Toss(SubgameEntity ent) {
+    void SV_Physics_Toss(SubgameEntity ent) {
 
         float[] move = { 0, 0, 0 };
         float[] old_origin = { 0, 0, 0 };
@@ -619,7 +623,7 @@ public final class SV {
 
 
     // FIXME: hacked in for E3 demo
-    public static void SV_AddRotationalFriction(SubgameEntity ent) {
+    private static void SV_AddRotationalFriction(SubgameEntity ent) {
         int n;
         float adjustment;
 
@@ -649,7 +653,7 @@ public final class SV {
      * true?
      */
 
-    public static void SV_Physics_Step(SubgameEntity ent) {
+    void SV_Physics_Step(SubgameEntity ent) {
         boolean wasonground;
         boolean hitsound = false;
         float vel[];
@@ -772,7 +776,7 @@ public final class SV {
     
     // FIXME: since we need to test end position contents here, can we avoid
     // doing it again later in catagorize position?
-    public static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink) {
+    static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink) {
         float dz;
         float[] oldorg = { 0, 0, 0 };
         float[] neworg = { 0, 0, 0 };
@@ -942,7 +946,7 @@ public final class SV {
      * Turns to the movement direction, and walks the current distance if facing
      * it.
      */
-    public static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist) {
+    static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist) {
         float[] move = { 0, 0, 0 };
         float[] oldorigin = { 0, 0, 0 };
         float delta;
@@ -975,11 +979,11 @@ public final class SV {
      * SV_FixCheckBottom
      * 
      */
-    public static void SV_FixCheckBottom(SubgameEntity ent) {
+    private static void SV_FixCheckBottom(SubgameEntity ent) {
         ent.flags |= GameDefines.FL_PARTIALGROUND;
     }
 
-    public static void SV_NewChaseDir(SubgameEntity actor, SubgameEntity enemy, float dist) {
+    static void SV_NewChaseDir(SubgameEntity actor, SubgameEntity enemy, float dist) {
         float deltax, deltay;
         float d[] = { 0, 0, 0 };
         float tdir, olddir, turnaround;
@@ -994,6 +998,7 @@ public final class SV {
 
         deltax = enemy.s.origin[0] - actor.s.origin[0];
         deltay = enemy.s.origin[1] - actor.s.origin[1];
+        int DI_NODIR = -1;
         if (deltax > 10)
             d[1] = 0;
         else if (deltax < -10)
@@ -1066,7 +1071,7 @@ public final class SV {
      * SV_CloseEnough - returns true if distance between 2 ents is smaller than
      * given dist.  
      */
-    public static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
+    static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
         int i;
 
         for (i = 0; i < 3; i++) {
@@ -1078,9 +1083,4 @@ public final class SV {
         return true;
     }
 
-	public static int DI_NODIR = -1;
-
-    static void Init(GameImports gameImports) {
-        sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
-    }
 }

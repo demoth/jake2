@@ -34,6 +34,7 @@ import jake2.qcommon.util.Math3D;
 import java.util.StringTokenizer;
 
 public class GameBase {
+    private static SV sv;
     static PlayerView playerView;
     static cplane_t dummyplane = new cplane_t();
 
@@ -104,6 +105,11 @@ public class GameBase {
     private final static float STOP_EPSILON = 0.1f;
 
     static void Init(GameImports gameImports) {
+
+        playerView = new PlayerView(gameImports);
+
+        sv = new SV(gameImports);
+
         gi = gameImports;
         ///////////////////////////////////
         // Initialize game related cvars
@@ -144,8 +150,8 @@ public class GameBase {
         // items
         game.num_items = GameItemList.itemlist.length - 1;
 
-        GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
-        GameBase.CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
+        CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+        CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
     }
 
     // create the entities array and fill it with empty entities
@@ -403,13 +409,13 @@ public class GameBase {
             SV.SV_Physics_Noclip(ent);
             break;
         case GameDefines.MOVETYPE_STEP:
-            SV.SV_Physics_Step(ent);
+            sv.SV_Physics_Step(ent);
             break;
         case GameDefines.MOVETYPE_TOSS:
         case GameDefines.MOVETYPE_BOUNCE:
         case GameDefines.MOVETYPE_FLY:
         case GameDefines.MOVETYPE_FLYMISSILE:
-            SV.SV_Physics_Toss(ent);
+            sv.SV_Physics_Toss(ent);
             break;
         default:
             gi.error("SV_Physics: bad movetype " + (int) ent.movetype);
