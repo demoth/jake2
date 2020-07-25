@@ -45,7 +45,7 @@ public class GameAI {
      * Turn and close until within an angle to launch a melee attack.
      */
     public static void ai_run_melee(SubgameEntity self, GameExportsImpl gameExports) {
-        self.ideal_yaw = enemy_yaw;
+        self.ideal_yaw = gameExports.enemy_yaw;
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
@@ -58,7 +58,7 @@ public class GameAI {
      * Turn in place until within an angle to launch a missile attack.
      */
     public static void ai_run_missile(SubgameEntity self, GameExportsImpl gameExports) {
-        self.ideal_yaw = enemy_yaw;
+        self.ideal_yaw = gameExports.enemy_yaw;
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
@@ -73,7 +73,7 @@ public class GameAI {
     public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
         float ofs;
 
-        self.ideal_yaw = enemy_yaw;
+        self.ideal_yaw = gameExports.enemy_yaw;
         M.M_ChangeYaw(self);
 
         if (self.monsterinfo.lefty != 0)
@@ -112,7 +112,6 @@ public class GameAI {
      * walkmove(angle, speed) primitive is all or nothing
      */
     public static boolean ai_checkattack(SubgameEntity self, float dist, GameExportsImpl gameExports) {
-        float temp[] = { 0, 0, 0 };
 
         boolean hesDeadJim;
 
@@ -138,7 +137,7 @@ public class GameAI {
             }
         }
 
-        enemy_vis = false;
+        gameExports.enemy_vis = false;
 
         // see if the enemy is dead
         hesDeadJim = false;
@@ -184,18 +183,20 @@ public class GameAI {
 
         self.show_hostile = (int) gameExports.level.time + 1; // wake up other
         
-        // monsters check knowledge of enemy
-        enemy_vis = GameUtil.visible(self, self.enemy, gameExports);
-        if (enemy_vis) {
+        // gather knowledge of enemy
+        // todo: put (into a structure and keep) in the monsterinfo
+        gameExports.enemy_vis = GameUtil.visible(self, self.enemy, gameExports);
+        if (gameExports.enemy_vis) {
             self.monsterinfo.search_time = gameExports.level.time + 5;
             Math3D.VectorCopy(self.enemy.s.origin,
                     self.monsterinfo.last_sighting);
         }
 
-        enemy_infront = GameUtil.infront(self, self.enemy);
-        enemy_range = GameUtil.range(self, self.enemy);
+        gameExports.enemy_infront = GameUtil.infront(self, self.enemy);
+        gameExports.enemy_range = GameUtil.range(self, self.enemy);
+        float[] temp = {0, 0, 0};
         Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-        enemy_yaw = Math3D.vectoyaw(temp);
+        gameExports.enemy_yaw = Math3D.vectoyaw(temp);
 
         // JDC self.ideal_yaw = enemy_yaw;
 
@@ -209,7 +210,7 @@ public class GameAI {
         }
 
         // if enemy is not currently visible, we will never attack
-        if (!enemy_vis)
+        if (!gameExports.enemy_vis)
             return false;
 
         return self.monsterinfo.checkattack.think(self, gameExports);
@@ -531,7 +532,7 @@ public class GameAI {
                 return;
             }
 
-            if (enemy_vis) {
+            if (gameExports.enemy_vis) {
                 //if (self.aiflags & AI_LOST_SIGHT)
                 //   dprint("regained sight\n");
                 M.M_MoveToGoal(self, dist, gameExports);
@@ -695,11 +696,4 @@ public class GameAI {
         }
     };
 
-    static boolean enemy_vis;
-
-    static boolean enemy_infront;
-
-    static int enemy_range;
-
-    static float enemy_yaw;
 }

@@ -106,18 +106,25 @@ public class GameExportsImpl implements GameExports {
     // todo: pass directly instead of via global static field
     public spawn_temp_t st = new spawn_temp_t();
 
+    //////////////
     // Collision
+    //////////////
     // holds the entity that is blocking something' movement
     SubgameEntity obstacle;
-
     // todo: make consistent with maxentities cvar
     pushed_t[] pushed = new pushed_t[Defines.MAX_EDICTS];
     int pushed_p;
-
     // holds the result of gi.BoxEdicts
     // todo: make consistent with maxentities cvar
     // todo: remove and use result of gi.BoxEdicts
     SubgameEntity[] touch = new SubgameEntity[Defines.MAX_EDICTS];
+
+    // Monster knowledge about the enemy
+    // todo: move to separate class
+    boolean enemy_vis;
+    boolean enemy_infront;
+    int enemy_range;
+    float enemy_yaw;
 
     /**
      * entity with index = 0 is always the worldspawn.
