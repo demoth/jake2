@@ -32,21 +32,25 @@ public class GameItemList {
 	// RST: this was separated in the java conversion from the g_item.c 
 	// because all adapters have to be created in the other 
 	// classes before this class can be loaded.
+	public final gitem_t[] itemlist;
 
-	public static gitem_t itemlist[] = {
+	public GameItemList() {
+		int index = 0;
+		itemlist = new gitem_t[]{
+
 	//leave index 0 alone
 	new gitem_t(null, null, null, null, null, null, null, 0, null,
-	        null, null, 0, 0, null, 0, 0, null, 0, null),
-	
+	        null, null, 0, 0, null, 0, 0, null, 0, null, index++),
+
 	//
 	// ARMOR
 	//
 	new gitem_t(
-			
+
 	/**
 	 * QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
-	
+
 	"item_armor_body", GameItems.Pickup_Armor, null, null, null,
 	        "misc/ar1_pkup.wav", "models/items/armor/body/tris.md2",
 	        Defines.EF_ROTATE, null,
@@ -58,8 +62,8 @@ public class GameItemList {
 	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.bodyarmor_info,
 	        GameDefines.ARMOR_BODY,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_armor_combat (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -74,8 +78,8 @@ public class GameItemList {
 	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.combatarmor_info,
 	        GameDefines.ARMOR_COMBAT,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_armor_jacket (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -90,8 +94,8 @@ public class GameItemList {
 	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.jacketarmor_info,
 	        GameDefines.ARMOR_JACKET,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_armor_shard (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -105,8 +109,8 @@ public class GameItemList {
 	        /* width */
 	        3, 0, null, GameDefines.IT_ARMOR, 0, null, GameDefines.ARMOR_SHARD,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_power_screen (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -121,8 +125,8 @@ public class GameItemList {
 	        /* width */
 	        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_power_shield (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -137,12 +141,12 @@ public class GameItemList {
 	        /* width */
 	        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
 	        /* precache */
-	        "misc/power2.wav misc/power1.wav"),
-	
+	        "misc/power2.wav misc/power1.wav", index++),
+
 	//
 	// WEAPONS
 	//
-	
+
 	/*
 	 * weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16) always owned,
 	 * never in the world
@@ -157,8 +161,8 @@ public class GameItemList {
 	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_BLASTER, null,
 	        0,
 	        /* precache */
-	        "weapons/blastf1a.wav misc/lasfly.wav"),
-	
+	        "weapons/blastf1a.wav misc/lasfly.wav", index++),
+
 	/*
 	 * QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -174,8 +178,8 @@ public class GameItemList {
 	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SHOTGUN, null,
 	        0,
 	        /* precache */
-	        "weapons/shotgf1b.wav weapons/shotgr1b.wav"),
-	
+	        "weapons/shotgf1b.wav weapons/shotgr1b.wav", index++),
+
 	/*
 	 * QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -191,8 +195,8 @@ public class GameItemList {
 	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SUPERSHOTGUN,
 	        null, 0,
 	        /* precache */
-	        "weapons/sshotf1b.wav"),
-	
+	        "weapons/sshotf1b.wav", index++),
+
 	/*
 	 * QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -218,8 +222,8 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "weapons/machgf1b.wav weapons/machgf2b.wav weapons/machgf3b.wav weapons/machgf4b.wav weapons/machgf5b.wav"),
-	
+	        "weapons/machgf1b.wav weapons/machgf2b.wav weapons/machgf3b.wav weapons/machgf4b.wav weapons/machgf5b.wav", index++),
+
 	/*
 	 * QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -245,8 +249,8 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav"),
-	
+	        "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav", index++),
+
 	/*
 	 * QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -273,8 +277,8 @@ public class GameItemList {
 	        null,
 	        GameDefines.AMMO_GRENADES,
 	        /* precache */
-	        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav "),
-	
+	        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav ", index++),
+
 	/*
 	 * QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -300,8 +304,8 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "models/objects/grenade/tris.md2 weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav"),
-	
+	        "models/objects/grenade/tris.md2 weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav", index++),
+
 	/*
 	 * QUAKED weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -327,8 +331,8 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2"),
-	
+	        "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2", index++),
+
 	/*
 	 * QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -354,8 +358,8 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"),
-	
+	        "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav", index++),
+
 	/*
 	 * QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -371,8 +375,8 @@ public class GameItemList {
 	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_RAILGUN, null,
 	        0,
 	        /* precache */
-	        "weapons/rg_hum.wav"),
-	
+	        "weapons/rg_hum.wav", index++),
+
 	/*
 	 * QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -398,12 +402,12 @@ public class GameItemList {
 	        null,
 	        0,
 	        /* precache */
-	        "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"),
-	
+	        "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav", index++),
+
 	//
 	// AMMO ITEMS
 	//
-	
+
 	/*
 	 * QUAKED ammo_shells (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -417,8 +421,8 @@ public class GameItemList {
 	        /* width */
 	        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SHELLS,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED ammo_bullets (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -433,8 +437,8 @@ public class GameItemList {
 	        3, 50, null, GameDefines.IT_AMMO, 0, null,
 	        GameDefines.AMMO_BULLETS,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED ammo_cells (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -448,8 +452,8 @@ public class GameItemList {
 	        /* width */
 	        3, 50, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_CELLS,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED ammo_rockets (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -463,8 +467,8 @@ public class GameItemList {
 	        /* width */
 	        3, 5, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_ROCKETS,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED ammo_slugs (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -478,8 +482,8 @@ public class GameItemList {
 	        /* width */
 	        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SLUGS,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	//
 	// POWERUP ITEMS
 	//
@@ -496,8 +500,8 @@ public class GameItemList {
 	        /* width */
 	        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
-	        "items/damage.wav items/damage2.wav items/damage3.wav"),
-	
+	        "items/damage.wav items/damage2.wav items/damage3.wav", index++),
+
 	/*
 	 * QUAKED item_invulnerability (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -512,8 +516,8 @@ public class GameItemList {
 	        /* width */
 	        2, 300, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
-	        "items/protect.wav items/protect2.wav items/protect4.wav"),
-	
+	        "items/protect.wav items/protect2.wav items/protect4.wav", index++),
+
 	/*
 	 * QUAKED item_silencer (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -527,8 +531,8 @@ public class GameItemList {
 	        /* width */
 	        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_breather (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -543,8 +547,8 @@ public class GameItemList {
 	        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
 	        null, 0,
 	        /* precache */
-	        "items/airout.wav"),
-	
+	        "items/airout.wav", index++),
+
 	/*
 	 * QUAKED item_enviro (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -559,8 +563,8 @@ public class GameItemList {
 	        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
 	        null, 0,
 	        /* precache */
-	        "items/airout.wav"),
-	
+	        "items/airout.wav", index++),
+
 	/*
 	 * QUAKED item_ancient_head (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 * Special item that gives +2 to maximum health
@@ -575,8 +579,8 @@ public class GameItemList {
 	        /* width */
 	        2, 60, null, 0, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) gives
 	 * +1 to maximum health
@@ -591,8 +595,8 @@ public class GameItemList {
 	        /* width */
 	        2, 60, null, 0, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_bandolier (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -606,8 +610,8 @@ public class GameItemList {
 	        /* width */
 	        2, 60, null, 0, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED item_pack (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
@@ -621,8 +625,8 @@ public class GameItemList {
 	        /* width */
 	        2, 180, null, 0, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	//
 	// KEYS
 	//
@@ -636,8 +640,8 @@ public class GameItemList {
 	        null, "k_datacd", "Data CD", 2, 0, null,
 	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_power_cube (0 .5 .8) (-16 -16 -16) (16 16 16)
 	 * TRIGGER_SPAWN NO_TOUCH warehouse circuits
@@ -648,8 +652,8 @@ public class GameItemList {
 	        null, "k_powercube", "Power Cube", 2, 0, null,
 	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_pyramid (0 .5 .8) (-16 -16 -16) (16 16 16) key for the
 	 * entrance of jail3
@@ -660,8 +664,8 @@ public class GameItemList {
 	        null, "k_pyramid", "Pyramid Key", 2, 0, null,
 	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_data_spinner (0 .5 .8) (-16 -16 -16) (16 16 16) key
 	 * for the city computer
@@ -672,8 +676,8 @@ public class GameItemList {
 	        null, "k_dataspin", "Data Spinner", 2, 0, null,
 	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_pass (0 .5 .8) (-16 -16 -16) (16 16 16) security pass
 	 * for the security level
@@ -683,8 +687,8 @@ public class GameItemList {
 	        Defines.EF_ROTATE, null, "k_security", "Security Pass", 2,
 	        0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_blue_key (0 .5 .8) (-16 -16 -16) (16 16 16) normal
 	 * door key - blue
@@ -695,8 +699,8 @@ public class GameItemList {
 	        "k_bluekey", "Blue Key", 2, 0, null, GameDefines.IT_STAY_COOP
 	                | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_red_key (0 .5 .8) (-16 -16 -16) (16 16 16) normal door
 	 * key - red
@@ -707,8 +711,8 @@ public class GameItemList {
 	        null, "k_redkey", "Red Key", 2, 0, null,
 	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_commander_head (0 .5 .8) (-16 -16 -16) (16 16 16) tank
 	 * commander's head
@@ -725,8 +729,8 @@ public class GameItemList {
 	        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
 	        0,
 	        /* precache */
-	        ""),
-	
+	        "", index++),
+
 	/*
 	 * QUAKED key_airstrike_target (0 .5 .8) (-16 -16 -16) (16 16 16)
 	 * tank commander's head
@@ -743,7 +747,7 @@ public class GameItemList {
 	        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
 	        0,
 	        /* precache */
-	        ""),
+	        "", index++),
 	new gitem_t(null, GameItems.Pickup_Health, null, null, null,
 	        "items/pkup.wav", null, 0, null,
 	        /* icon */
@@ -753,8 +757,9 @@ public class GameItemList {
 	        /* width */
 	        3, 0, null, 0, 0, null, 0,
 	        /* precache */
-	        "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"),
-	
+	        "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav", index++),
+
 	// end of list marker
 	null };
+		}
 }

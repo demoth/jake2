@@ -820,7 +820,7 @@ public class GameItems {
         if (index == 0 || index >= gameExports.game.num_items)
             return null;
     
-        return GameItemList.itemlist[index];
+        return gameExports.items.itemlist[index];
     }
 
     /*
@@ -831,7 +831,7 @@ public class GameItems {
     static gitem_t FindItemByClassname(String classname, GameExportsImpl gameExports) {
     
         for (int i = 1; i < gameExports.game.num_items; i++) {
-            gitem_t it = GameItemList.itemlist[i];
+            gitem_t it = gameExports.items.itemlist[i];
     
             if (it.classname == null)
                 continue;
@@ -848,7 +848,7 @@ public class GameItems {
     //geht.
     static gitem_t FindItem(String pickup_name, GameExportsImpl gameExports) {
         for (int i = 1; i < gameExports.game.num_items; i++) {
-            gitem_t it = GameItemList.itemlist[i];
+            gitem_t it = gameExports.items.itemlist[i];
     
             if (it.pickup_name == null)
                 continue;
@@ -997,7 +997,7 @@ public class GameItems {
         gitem_t it;
     
         for (i = 1; i < gameExports.game.num_items; i++) {
-            it = GameItemList.itemlist[i];
+            it = gameExports.items.itemlist[i];
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
@@ -1024,7 +1024,7 @@ public class GameItems {
             index = (cl.pers.selected_item + i) % Defines.MAX_ITEMS;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameItemList.itemlist[index];
+            it = gameExports.items.itemlist[index];
             if (it.use == null)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1054,7 +1054,7 @@ public class GameItems {
                     % Defines.MAX_ITEMS;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameItemList.itemlist[index];
+            it = gameExports.items.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1363,11 +1363,11 @@ public class GameItems {
     }
 
     /** Reads the item index and returns the game item. */
-    static gitem_t readItem(QuakeFile f) throws IOException {
+    static gitem_t readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
         int ndx = f.readInt();
         if (ndx == -1)
             return null;
         else
-            return GameItemList.itemlist[ndx];
+            return gameExports.items.itemlist[ndx];
     }
 }
