@@ -123,15 +123,15 @@ class GameTrigger {
     }
 
     static void SP_trigger_key(SubgameEntity self, GameExportsImpl gameExports) {
-        if (GameBase.st.item == null) {
+        if (gameExports.st.item == null) {
             gameExports.gameImports.dprintf("no key item for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
-        self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
+        self.item = GameItems.FindItemByClassname(gameExports.st.item, gameExports);
 
         if (null == self.item) {
-            gameExports.gameImports.dprintf("item " + GameBase.st.item
+            gameExports.gameImports.dprintf("item " + gameExports.st.item
                     + " not found for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
@@ -210,7 +210,7 @@ class GameTrigger {
     }
 
     static void SP_trigger_gravity(SubgameEntity self, GameExportsImpl gameExports) {
-        if (GameBase.st.gravity == null) {
+        if (gameExports.st.gravity == null) {
             gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self, gameExports);
@@ -218,20 +218,20 @@ class GameTrigger {
         }
 
         InitTrigger(self, gameExports);
-        self.gravity = Lib.atoi(GameBase.st.gravity);
+        self.gravity = Lib.atoi(gameExports.st.gravity);
         self.touch = trigger_gravity_touch;
     }
 
     static void SP_trigger_monsterjump(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.speed)
             self.speed = 200;
-        if (0 == GameBase.st.height)
-            GameBase.st.height = 200;
+        if (0 == gameExports.st.height)
+            gameExports.st.height = 200;
         if (self.s.angles[Defines.YAW] == 0)
             self.s.angles[Defines.YAW] = 360;
         InitTrigger(self, gameExports);
         self.touch = trigger_monsterjump_touch;
-        self.movedir[2] = GameBase.st.height;
+        self.movedir[2] = gameExports.st.height;
     }
 
     // the wait time has passed, so set back up for another activation

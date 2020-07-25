@@ -34,10 +34,6 @@ public class GameBase {
 
     static cplane_t dummyplane = new cplane_t();
 
-    // this is used to store parsed entity fields during map loading
-    // todo: pass directly instead of via global static field
-    public static spawn_temp_t st = new spawn_temp_t();
-
     private final static float STOP_EPSILON = 0.1f;
 
     /**

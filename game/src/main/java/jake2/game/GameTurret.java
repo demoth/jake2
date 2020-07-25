@@ -93,17 +93,17 @@ public class GameTurret {
         if (self.dmg == 0)
             self.dmg = 10;
 
-        if (GameBase.st.minpitch == 0)
-            GameBase.st.minpitch = -30;
-        if (GameBase.st.maxpitch == 0)
-            GameBase.st.maxpitch = 30;
-        if (GameBase.st.maxyaw == 0)
-            GameBase.st.maxyaw = 360;
+        if (gameExports.st.minpitch == 0)
+            gameExports.st.minpitch = -30;
+        if (gameExports.st.maxpitch == 0)
+            gameExports.st.maxpitch = 30;
+        if (gameExports.st.maxyaw == 0)
+            gameExports.st.maxyaw = 360;
 
-        self.pos1[Defines.PITCH] = -1 * GameBase.st.minpitch;
-        self.pos1[Defines.YAW] = GameBase.st.minyaw;
-        self.pos2[Defines.PITCH] = -1 * GameBase.st.maxpitch;
-        self.pos2[Defines.YAW] = GameBase.st.maxyaw;
+        self.pos1[Defines.PITCH] = -1 * gameExports.st.minpitch;
+        self.pos1[Defines.YAW] = gameExports.st.minyaw;
+        self.pos2[Defines.PITCH] = -1 * gameExports.st.maxpitch;
+        self.pos2[Defines.YAW] = gameExports.st.maxyaw;
 
         self.ideal_yaw = self.s.angles[Defines.YAW];
         self.move_angles[Defines.YAW] = self.ideal_yaw;
@@ -161,12 +161,12 @@ public class GameTurret {
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
         self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND | GameDefines.AI_DUCKED;
 
-        if (GameBase.st.item != null) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
+        if (gameExports.st.item != null) {
+            self.item = GameItems.FindItemByClassname(gameExports.st.item, gameExports);
             if (self.item == null)
                 gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + GameBase.st.item + "\n");
+                        + gameExports.st.item + "\n");
         }
 
         self.think = turret_driver_link;

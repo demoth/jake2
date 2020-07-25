@@ -177,12 +177,12 @@ public class Monster {
             self.monsterinfo.checkattack = GameUtil.M_CheckAttack;
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
-        if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
+        if (gameExports.st.item != null && gameExports.st.item.length() > 0) {
+            self.item = GameItems.FindItemByClassname(gameExports.st.item, gameExports);
             if (self.item == null)
                 gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + GameBase.st.item + "\n");
+                        + gameExports.st.item + "\n");
         }
 
         // randomize what frame they start on

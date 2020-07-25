@@ -102,6 +102,10 @@ public class GameExportsImpl implements GameExports {
     public level_locals_t level;
     public int meansOfDeath;
 
+    // this is used to store parsed entity fields during map loading
+    // todo: pass directly instead of via global static field
+    public spawn_temp_t st = new spawn_temp_t();
+
     /**
      * entity with index = 0 is always the worldspawn.
      * entities with indices 1..maxclients are the players
