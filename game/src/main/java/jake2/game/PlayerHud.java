@@ -326,7 +326,7 @@ public class PlayerHud {
         //
         // armor
         //
-        power_armor_type = GameItems.PowerArmorType(ent);
+        power_armor_type = GameItems.PowerArmorType(ent, gameExports);
         if (power_armor_type != 0) {
             cells = client.pers.inventory[GameItems
                     .FindItem("cells", gameExports).index];
@@ -341,7 +341,7 @@ public class PlayerHud {
             }
         }
 
-        index = GameItems.ArmorIndex(ent);
+        index = GameItems.ArmorIndex(ent, gameExports);
         if (power_armor_type != 0
                 && (0 == index || 0 != (gameExports.level.framenum & 8))) { // flash
                                                                          // between

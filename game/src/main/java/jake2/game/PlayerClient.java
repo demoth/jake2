@@ -31,8 +31,6 @@ import jake2.qcommon.util.Math3D;
 
 public class PlayerClient {
 
-    public static int player_die_i = 0;
-    
     /**
      * player_die. 
      */
@@ -103,14 +101,14 @@ public class PlayerClient {
             } else { // normal death
                 if (self.deadflag == 0) {
     
-                    player_die_i = (player_die_i + 1) % 3;
+                    gameExports.player_die_i = (gameExports.player_die_i + 1) % 3;
                     // start a death animation
                     client.anim_priority = Defines.ANIM_DEATH;
                     if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         self.s.frame = M_Player.FRAME_crdeath1 - 1;
                         client.anim_end = M_Player.FRAME_crdeath5;
                     } else
-                        switch (player_die_i) {
+                        switch (gameExports.player_die_i) {
                         case 0:
                             self.s.frame = M_Player.FRAME_death101 - 1;
                             client.anim_end = M_Player.FRAME_death106;

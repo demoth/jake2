@@ -96,6 +96,7 @@ public class GameExportsImpl implements GameExports {
     /////////////////////////////////////
     public final GameImports gameImports;
     public PlayerView playerView;
+    public PlayerTrail playerTrail;
     public SV sv;
     public game_locals_t game;
     public CvarCache cvarCache;
@@ -126,8 +127,21 @@ public class GameExportsImpl implements GameExports {
     int enemy_range;
     float enemy_yaw;
 
-    // Game Items
+    // Game Items related
     GameItemList items;
+    // todo: move to appropriate places
+    int quad_drop_timeout_hack;
+    boolean is_quad;
+    byte is_silenced;
+    int jacket_armor_index;
+    int combat_armor_index;
+    int body_armor_index;
+    int power_screen_index;
+    int power_shield_index;
+
+    int windsound_index;
+
+    int player_die_i;
 
     /**
      * entity with index = 0 is always the worldspawn.
@@ -179,6 +193,7 @@ public class GameExportsImpl implements GameExports {
             pushed[n] = new pushed_t();
         }
 
+        playerTrail = new PlayerTrail(this);
     }
 
     // create the entities array and fill it with empty entities
@@ -1061,8 +1076,8 @@ public class GameExportsImpl implements GameExports {
 
         // add player trail so monsters can follow
         if (cvarCache.deathmatch.value != 0)
-            if (!GameUtil.visible(ent, PlayerTrail.LastSpot(), this))
-                PlayerTrail.Add(ent.s.old_origin, level.time);
+            if (!GameUtil.visible(ent, playerTrail.LastSpot(), this))
+                playerTrail.Add(ent.s.old_origin, level.time);
 
         client.latched_buttons = 0;
     }

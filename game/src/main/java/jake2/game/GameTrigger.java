@@ -182,7 +182,7 @@ class GameTrigger {
      */
     static void SP_trigger_push(SubgameEntity self, GameExportsImpl gameExports) {
         InitTrigger(self, gameExports);
-        windsound = gameExports.gameImports.soundindex("misc/windfly.wav");
+        gameExports.windsound_index = gameExports.gameImports.soundindex("misc/windfly.wav");
         self.touch = trigger_push_touch;
         if (0 == self.speed)
             self.speed = 1000;
@@ -438,8 +438,6 @@ class GameTrigger {
 
     private static final int PUSH_ONCE = 1;
 
-    private static int windsound;
-
     private static EntTouchAdapter trigger_push_touch = new EntTouchAdapter() {
     	public String getID(){ return "trigger_push_touch"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
@@ -457,7 +455,7 @@ class GameTrigger {
                     Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);
                     if (other.fly_sound_debounce_time < gameExports.level.time) {
                         other.fly_sound_debounce_time = gameExports.level.time + 1.5f;
-                        gameExports.gameImports.sound(other, Defines.CHAN_AUTO, windsound,
+                        gameExports.gameImports.sound(other, Defines.CHAN_AUTO, gameExports.windsound_index,
                                 1, Defines.ATTN_NORM, 0);
                     }
                 }
