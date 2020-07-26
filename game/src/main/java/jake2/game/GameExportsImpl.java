@@ -143,6 +143,10 @@ public class GameExportsImpl implements GameExports {
 
     int player_die_i;
 
+    // todo: move to PM related place
+    SubgameEntity pm_passent;
+
+
     /**
      * entity with index = 0 is always the worldspawn.
      * entities with indices 1..maxclients are the players

@@ -227,8 +227,6 @@ public class PlayerClient {
         }
     };
 
-    private static SubgameEntity pm_passent;
-
     /**
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
      * starting point for a level.
@@ -1277,7 +1275,7 @@ public class PlayerClient {
             return;
         }
 
-        PlayerClient.pm_passent = ent;
+        gameExports.pm_passent = ent;
 
         SubgameEntity other;
         int i;
@@ -1323,11 +1321,11 @@ public class PlayerClient {
 
                 public trace_t trace(float[] start, float[] mins, float[] maxs,
                         float[] end) {
-                    if (pm_passent.health > 0)
-                        return gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
+                    if (gameExports.pm_passent.health > 0)
+                        return gameExports.gameImports.trace(start, mins, maxs, end, gameExports.pm_passent,
                                 Defines.MASK_PLAYERSOLID);
                     else
-                        return gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
+                        return gameExports.gameImports.trace(start, mins, maxs, end, gameExports.pm_passent,
                                 Defines.MASK_DEADSOLID);
                 }
 
