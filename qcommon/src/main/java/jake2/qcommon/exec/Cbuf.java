@@ -182,6 +182,10 @@ public final class Cbuf {
             String command = buffer.pop().trim();
             if (!command.isEmpty())
                 Cmd.ExecuteString(command.trim());
+            if (Globals.cmd_wait) {
+                Globals.cmd_wait = false;
+                break;
+            }
         }
     }
 

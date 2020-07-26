@@ -264,32 +264,6 @@ public class PlayerHud {
     }
 
     /*
-     * ================== 
-     * Cmd_Score_f
-     * 
-     * Display the scoreboard 
-     * ==================
-     */
-    public static void Cmd_Score_f(SubgameEntity ent, GameExportsImpl gameExports) {
-        gclient_t client = ent.getClient();
-        client.showinventory = false;
-        client.showhelp = false;
-
-        if (0 == gameExports.cvarCache.deathmatch.value && 0 == gameExports.cvarCache.coop.value)
-            return;
-
-        if (client.showscores) {
-            client.showscores = false;
-            return;
-        }
-
-        client.showscores = true;
-        DeathmatchScoreboard(ent, gameExports);
-    }
-
-    //=======================================================================
-
-    /*
      * =============== 
      * G_SetStats 
      * ===============
