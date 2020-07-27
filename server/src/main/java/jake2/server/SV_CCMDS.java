@@ -505,7 +505,8 @@ public class SV_CCMDS {
 			SV_WipeSavegame("current");
 		}
 		else { // save the map just exited
-			if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
+			// todo: init gameImports in a proper place
+			if (SV_INIT.gameImports != null && SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
@@ -576,7 +577,8 @@ public class SV_CCMDS {
 			}
 		}
 
-		SV_INIT.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+		if (SV_INIT.gameImports != null)
+			SV_INIT.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
 		SV_WipeSavegame("current");
 		SV_GameMap_f(args);

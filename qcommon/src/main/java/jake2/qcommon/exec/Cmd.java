@@ -309,7 +309,7 @@ public final class Cmd {
         // send it as a server command if we are connected
         // fixme: do not send if we are the server
         if (text.startsWith("cmd")) {
-            Com.Printf("did not execute " + text);
+            Com.Printf("did not execute " + text + "\n");
         } else {
             Cmd.ExecuteString("cmd " + text);
         }
