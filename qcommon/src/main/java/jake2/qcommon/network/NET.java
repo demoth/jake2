@@ -278,17 +278,25 @@ public final class NET {
         port = Cvar.Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
         ip = Cvar.Get("ip", "localhost", Defines.CVAR_NOSET);
         clientport = Cvar.Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
-        
-        if (ip_sockets[Defines.NS_SERVER] == null)
-            ip_sockets[Defines.NS_SERVER] = Socket(Defines.NS_SERVER,
-                    ip.string, (int) port.value);
-        
-        if (ip_sockets[Defines.NS_CLIENT] == null)
-            ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT,
-                    ip.string, (int) clientport.value);
-        if (ip_sockets[Defines.NS_CLIENT] == null)
-            ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT,
-                    ip.string, Defines.PORT_ANY);
+
+        cvar_t thinclient = Cvar.Get("thinclient", "0", 0);
+        cvar_t dedicated = Cvar.Get("dedicated", "0", 0);
+
+        // clients do not need server sockets
+        if (thinclient.value == 0.f) {
+            if (ip_sockets[Defines.NS_SERVER] == null)
+                ip_sockets[Defines.NS_SERVER] = Socket(Defines.NS_SERVER, ip.string, (int) port.value);
+        }
+
+        // servers do not need client sockets
+        if (dedicated.value == 0) {
+            // first try with cvar clientport value
+            if (ip_sockets[Defines.NS_CLIENT] == null)
+                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip.string, (int) clientport.value);
+            // try any port
+            if (ip_sockets[Defines.NS_CLIENT] == null)
+                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip.string, Defines.PORT_ANY);
+        }
     }
 
     /**
@@ -320,7 +328,6 @@ public final class NET {
      * Socket
      */
     public static DatagramSocket Socket(int sock, String ip, int port) {
-
         DatagramSocket newsocket = null;
         try {
             if (ip_channels[sock] == null || !ip_channels[sock].isOpen())
@@ -344,8 +351,10 @@ public final class NET {
             ip_channels[sock].configureBlocking(false);
             // the socket have to be broadcastable
             newsocket.setBroadcast(true);
+            Com.Println("Opened port: " + port);
         } catch (Exception e) {
             Com.Println("jake2.qcommon.network.NET.Socket: " + e.toString());
+            e.printStackTrace();
             newsocket = null;
         }
         return newsocket;

@@ -70,7 +70,6 @@ public class Jake2Dedicated {
             Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
             Globals.logfile_active= Cvar.Get("logfile", "0", 0);
             Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-            Globals.dedicated= Cvar.Get("dedicated", "0", Defines.CVAR_NOSET);
             Cvar.Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
             NET.Init();	//ok

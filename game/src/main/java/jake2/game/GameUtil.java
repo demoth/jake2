@@ -316,6 +316,9 @@ public class GameUtil {
      * Returns 1 if the entity is visible to self, even if not infront().
      */
     public static boolean visible(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        if (other == null)
+            return false;
+
         float[] spot1 = { 0, 0, 0 };
         float[] spot2 = { 0, 0, 0 };
         trace_t trace;

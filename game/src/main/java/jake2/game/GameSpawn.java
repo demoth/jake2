@@ -1205,7 +1205,7 @@ public class GameSpawn {
     private static void ED_ParseField(String key, String value, SubgameEntity ent, GameExportsImpl gameExports) {
 
         if (key.equals("nextmap"))
-            gameExports.gameImports.dprintf("nextmap: " + value);
+            gameExports.gameImports.dprintf("nextmap: " + value + "\n");
         if (!gameExports.st.set(key, value))
             if (!ent.setField(key, value))
                 gameExports.gameImports.dprintf("??? The key [" + key

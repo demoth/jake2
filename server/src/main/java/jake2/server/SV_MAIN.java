@@ -599,8 +599,6 @@ public class SV_MAIN {
                 break;
             }
 
-            if (i != SV_MAIN.maxclients.value)
-                continue;
         }
     }
 
@@ -648,14 +646,10 @@ public class SV_MAIN {
      * This has to be done before the world logic, because player processing
      * happens outside RunWorldFrame.
      */
-    private static void SV_PrepWorldFrame() {
-        edict_t ent;
-        int i;
-
-        for (i = 0; i < SV_INIT.gameExports.getNumEdicts(); i++) {
-            ent = SV_INIT.gameExports.getEdict(i);
+    private static void clearEntityStateEvents(GameExports gameExports) {
+        for (int i = 0; i < gameExports.getNumEdicts(); i++) {
             // events only last for a single message
-            ent.s.event = 0;
+            gameExports.getEdict(i).s.event = 0;
         }
 
     }
@@ -748,7 +742,7 @@ public class SV_MAIN {
         Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
-        SV_PrepWorldFrame();
+        clearEntityStateEvents(SV_INIT.gameExports);
 
     }
 
