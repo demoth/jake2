@@ -27,10 +27,6 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
-import java.lang.reflect.Constructor;
-
-import static jake2.qcommon.Defines.ERR_FATAL;
-
 public class SV_GAME {
 
     /**
@@ -120,7 +116,7 @@ public class SV_GAME {
      * 
      * Also sets mins and maxs for inline bmodels.
      */
-    public static void PF_setmodel(edict_t ent, String name) {
+    public static void PF_setmodel(edict_t ent, String name, GameImportsImpl gameImports) {
 
         if (name == null) {
             Com.DPrintf( "Error: SV_GAME.PF_setmodel: name is null");
@@ -134,7 +130,7 @@ public class SV_GAME {
             cmodel_t mod = CM.InlineModel(name);
             Math3D.VectorCopy(mod.mins, ent.mins);
             Math3D.VectorCopy(mod.maxs, ent.maxs);
-            SV_WORLD.SV_LinkEdict(ent);
+            SV_WORLD.SV_LinkEdict(ent, gameImports);
         }
     }
 

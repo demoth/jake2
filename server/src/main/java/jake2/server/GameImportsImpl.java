@@ -34,6 +34,7 @@ import jake2.qcommon.util.Lib;
 //
 // todo make singleton (same as game exports)
 public class GameImportsImpl implements GameImports {
+    public GameExports gameExports;
 
     // persistent server state
     public server_static_t svs;
@@ -44,6 +45,7 @@ public class GameImportsImpl implements GameImports {
     // hack for finishing game in coop mode
     public String firstmap = "";
 
+    SV_WORLD world;
 
     public GameImportsImpl() {
         // Initialize server static state
@@ -73,14 +75,16 @@ public class GameImportsImpl implements GameImports {
         // create local server state
         sv = new server_t();
 
+        world = new SV_WORLD();
     }
 
-    void resetClients(GameExports gameExports) {
+    void resetClients() {
         for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
             svs.clients[i].edict = gameExports.getEdict(i + 1);
             svs.clients[i].lastcmd = new usercmd_t();
         }
     }
+
 
     // special messages
     @Override
@@ -157,14 +161,14 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void setmodel(edict_t ent, String name) {
-        SV_GAME.PF_setmodel(ent, name);
+        SV_GAME.PF_setmodel(ent, name, this);
     }
 
     /* collision detection */
     @Override
     public trace_t trace(float[] start, float[] mins, float[] maxs,
                          float[] end, edict_t passent, int contentmask) {
-        return SV_WORLD.SV_Trace(start, mins, maxs, end, passent, contentmask);
+        return SV_WORLD.SV_Trace(start, mins, maxs, end, passent, contentmask, this);
     }
 
     @Override
@@ -189,7 +193,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void linkentity(edict_t ent) {
-        SV_WORLD.SV_LinkEdict(ent);
+        SV_WORLD.SV_LinkEdict(ent, this);
     }
 
     @Override
@@ -201,7 +205,7 @@ public class GameImportsImpl implements GameImports {
     @Override
     public int BoxEdicts(float[] mins, float[] maxs, edict_t list[],
                          int maxcount, int areatype) {
-        return SV_WORLD.SV_AreaEdicts(mins, maxs, list, maxcount, areatype);
+        return SV_WORLD.SV_AreaEdicts(mins, maxs, list, maxcount, areatype, this);
     }
 
     @Override
@@ -280,7 +284,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public int getPointContents(float[] p) {
-        return SV_WORLD.SV_PointContents(p);
+        return SV_WORLD.SV_PointContents(p, this);
     }
 
 }

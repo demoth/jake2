@@ -130,7 +130,7 @@ public class SV_INIT {
         if (!new File(name).exists())
             return;
 
-        SV_WORLD.SV_ClearWorld();
+        SV_WORLD.SV_ClearWorld(gameImports);
 
         // get configstrings and areaportals
         // then read game enitites
@@ -235,7 +235,7 @@ public class SV_INIT {
 
         // clear physics interaction links
         
-        SV_WORLD.SV_ClearWorld();
+        SV_WORLD.SV_ClearWorld(gameImports);
 
         for (i = 1; i < CM.CM_NumInlineModels(); i++) {
             gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
@@ -333,8 +333,8 @@ public class SV_INIT {
         gameImports = new GameImportsImpl();
 
         gameExports = createGameModInstance(gameImports);
-
-        gameImports.resetClients(gameExports);
+        gameImports.gameExports = gameExports;
+        gameImports.resetClients();
     }
 
     /**
