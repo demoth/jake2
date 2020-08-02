@@ -1,15 +1,19 @@
 package jake2.dedicated;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.longjmpException;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Vargs;
+import jake2.server.SV_INIT;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -75,7 +79,7 @@ public class Jake2Dedicated {
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
-            SV_MAIN.SV_Init();	//ok
+            SV_INIT.SV_Init();	//ok
 
             // add + commands from command line
             if (Cbuf.AddLateCommands(args1)) {

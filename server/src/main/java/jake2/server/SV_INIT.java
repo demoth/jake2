@@ -34,8 +34,9 @@ import jake2.qcommon.util.Math3D;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.List;
 
-import static jake2.qcommon.Defines.ERR_FATAL;
+import static jake2.qcommon.Defines.*;
 
 public class SV_INIT {
 
@@ -332,6 +333,7 @@ public class SV_INIT {
         // init game
         gameImports = new GameImportsImpl();
 
+
         gameExports = createGameModInstance(gameImports);
         gameImports.gameExports = gameExports;
         gameImports.resetClients();
@@ -445,5 +447,63 @@ public class SV_INIT {
         }
 
         SV_SEND.SV_BroadcastCommand("reconnect\n");
+    }
+
+    /**
+     * Only called at quake2.exe startup, not for each game
+     */
+    public static void SV_Init() {
+
+        // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
+        Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
+        Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
+        Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
+        Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
+
+        Cmd.AddCommand("maplist", (List<String> args) -> {
+            byte[] bytes = FS.LoadFile("maps.lst");
+            if (bytes == null) {
+                Com.Error(ERR_DROP, "Could not read maps.lst");
+                return;
+            }
+            for (String line : new String(bytes).split("\n")){
+                Com.Printf(PRINT_ALL, line.trim() + "\n");
+            }
+        });
+        Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
+
+
+
+        Cvar.Get("rcon_password", "", 0);
+        Cvar.Get("skill", "1", 0);
+        Cvar.Get("deathmatch", "0", Defines.CVAR_LATCH);
+        Cvar.Get("coop", "0", Defines.CVAR_LATCH);
+        Cvar.Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
+        Cvar.Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.Get("timelimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        Cvar.Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+
+        SV_MAIN.maxclients = Cvar.Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        SV_MAIN.hostname = Cvar.Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
+        SV_MAIN.timeout = Cvar.Get("timeout", "125", 0);
+        SV_MAIN.zombietime = Cvar.Get("zombietime", "2", 0);
+        SV_MAIN.sv_showclamp = Cvar.Get("showclamp", "0", 0);
+        SV_MAIN.sv_paused = Cvar.Get("paused", "0", 0);
+        SV_MAIN.sv_timedemo = Cvar.Get("timedemo", "0", 0);
+        SV_MAIN.sv_enforcetime = Cvar.Get("sv_enforcetime", "0", 0);
+
+        SV_MAIN.allow_download = Cvar.Get("allow_download", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_players = Cvar.Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_models = Cvar.Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_sounds = Cvar.Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_maps = Cvar.Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+
+        Cvar.Get("sv_noreload", "0", 0);
+        SV_MAIN.sv_airaccelerate = Cvar.Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
+        SV_MAIN.public_server = Cvar.Get("public", "0", 0);
+        SV_MAIN.sv_reconnect_limit = Cvar.Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
+
+        SZ.Init(Globals.net_message, Globals.net_message_buffer, Globals.net_message_buffer.length);
     }
 }

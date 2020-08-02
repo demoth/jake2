@@ -221,6 +221,10 @@ public final class Cmd {
     }
 
     public static void AddCommand(String cmd_name, Command function) {
+        AddCommand(cmd_name, function, false);
+    }
+
+    public static void AddCommand(String cmd_name, Command function, boolean replace) {
         // fail if the command is a variable name
         if ((Cvar.VariableString(cmd_name)).length() > 0) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
@@ -228,7 +232,7 @@ public final class Cmd {
         }
 
         // fail if the command already exists
-        if (cmd_functions.containsKey(cmd_name)) {
+        if (!replace && cmd_functions.containsKey(cmd_name)) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined\n");
             return;
         }

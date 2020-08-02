@@ -14,12 +14,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import static jake2.game.GameBase.*;
+import static jake2.game.GameBase.G_Find;
+import static jake2.game.GameBase.findByClass;
 import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
 
 /**
+ * Collection of functions provided by the game module.
+ * Also serves as the holder of game state from the game side
  * See jake2.server.SV_GAME#SV_InitGameProgs()
+ *
  */
 public class GameExportsImpl implements GameExports {
 
