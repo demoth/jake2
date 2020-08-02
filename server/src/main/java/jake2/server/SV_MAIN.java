@@ -104,7 +104,7 @@ public class SV_MAIN {
         if (drop.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
             // this will remove the body, among other things
-            SV_INIT.gameExports.ClientDisconnect(drop.edict);
+            SV_INIT.gameImports.gameExports.ClientDisconnect(drop.edict);
         }
 
         if (drop.download != null) {
@@ -354,7 +354,7 @@ public class SV_MAIN {
         
         int edictnum = i + 1;
         
-        edict_t ent = SV_INIT.gameExports.getEdict(edictnum);
+        edict_t ent = SV_INIT.gameImports.gameExports.getEdict(edictnum);
         SV_INIT.gameImports.svs.clients[i].edict = ent;
         
         // save challenge for checksumming
@@ -364,7 +364,7 @@ public class SV_MAIN {
 
         // get the game a chance to reject this connection or modify the
         // userinfo
-        if (!(SV_INIT.gameExports.ClientConnect(ent, userinfo))) {
+        if (!(SV_INIT.gameImports.gameExports.ClientConnect(ent, userinfo))) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null)
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\n"
                         + Info.Info_ValueForKey(userinfo, "rejmsg")
@@ -670,7 +670,7 @@ public class SV_MAIN {
 
         // don't run if paused
         if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
-            SV_INIT.gameExports.G_RunFrame();
+            SV_INIT.gameImports.gameExports.G_RunFrame();
 
             // never get more than one tic behind
             if (SV_INIT.gameImports.sv.time < SV_INIT.gameImports.svs.realtime) {
@@ -742,7 +742,7 @@ public class SV_MAIN {
         Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
-        clearEntityStateEvents(SV_INIT.gameExports);
+        clearEntityStateEvents(SV_INIT.gameImports.gameExports);
 
     }
 
@@ -816,7 +816,7 @@ public class SV_MAIN {
         int i;
 
         // call prog code to allow overrides
-        SV_INIT.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
+        SV_INIT.gameImports.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
         // name for C code
         cl.name = Info.Info_ValueForKey(cl.userinfo, "name");

@@ -34,7 +34,6 @@ import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Date;
 import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
@@ -48,7 +47,6 @@ import static jake2.server.SV_INIT.gameImports;
  todo make singleton (same as game exports)
 */
 public class GameImportsImpl implements GameImports {
-    private final String created;
     public GameExports gameExports;
 
     // persistent server state
@@ -63,7 +61,6 @@ public class GameImportsImpl implements GameImports {
     SV_WORLD world;
 
     public GameImportsImpl() {
-        created = new Date().toString();
 
         // Initialize server static state
         svs = new server_static_t();

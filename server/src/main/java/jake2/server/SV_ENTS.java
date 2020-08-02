@@ -445,8 +445,8 @@ public class SV_ENTS {
 
         c_fullsend = 0;
 
-        for (e = 1; e < SV_INIT.gameExports.getNumEdicts(); e++) {
-            ent = SV_INIT.gameExports.getEdict(e);
+        for (e = 1; e < SV_INIT.gameImports.gameExports.getNumEdicts(); e++) {
+            ent = SV_INIT.gameImports.gameExports.getEdict(e);
 
             // ignore ents without visible models
             if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)
@@ -553,9 +553,9 @@ public class SV_ENTS {
         MSG.WriteByte(buf, NetworkCommands.svc_packetentities);
 
         int e = 1;
-        edict_t ent = SV_INIT.gameExports.getEdict(e);
+        edict_t ent = SV_INIT.gameImports.gameExports.getEdict(e);
 
-        while (e < SV_INIT.gameExports.getNumEdicts()) {
+        while (e < SV_INIT.gameImports.gameExports.getNumEdicts()) {
             // ignore ents without visible models unless they have an effect
             if (ent.inuse
                     && ent.s.number != 0
@@ -565,7 +565,7 @@ public class SV_ENTS {
                 MSG.WriteDeltaEntity(nostate, ent.s, buf, false, true);
 
             e++;
-            ent = SV_INIT.gameExports.getEdict(e);
+            ent = SV_INIT.gameImports.gameExports.getEdict(e);
         }
 
         MSG.WriteShort(buf, 0); // end of packetentities

@@ -226,7 +226,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	static void SV_ReadLevelFile(String saveName) {
+	static void SV_ReadLevelFile(String saveName, GameImportsImpl gameImports) {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
 
@@ -235,7 +235,7 @@ public class SV_CCMDS {
 			QuakeFile f = new QuakeFile(name, "r");
 
 			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
-				SV_INIT.gameImports.sv.configstrings[n] = f.readString();
+				gameImports.sv.configstrings[n] = f.readString();
 
 			CM.CM_ReadPortalState(f);
 
@@ -247,7 +247,7 @@ public class SV_CCMDS {
 		}
 
 		name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
-		SV_INIT.gameExports.ReadLevel(name);
+		gameImports.gameExports.ReadLevel(name);
 	}
 
 	/*
@@ -303,7 +303,7 @@ public class SV_CCMDS {
 	/*
 	 * 	SV_ReadServerFile
 	 */
-	private static void SV_ReadServerFile() {
+	private static void SV_ReadServerFile(GameImportsImpl gameImports) {
 		String filename = "";
 		try {
 
@@ -338,11 +338,11 @@ public class SV_CCMDS {
 			SV_INIT.SV_InitGame();
 
 			// fixme: SV_INIT.gameImports is changed after SV_INIT.SV_InitGame();
-			SV_INIT.gameImports.svs.mapcmd = mapcmd;
+			gameImports.svs.mapcmd = mapcmd;
 
 			// read game state
 			filename = FS.getWriteDir() + "/save/current/game.ssv";
-			SV_INIT.gameExports.readGameLocals(filename);
+			gameImports.gameExports.readGameLocals(filename);
 		} catch (Exception e) {
 			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
 		}
@@ -520,7 +520,7 @@ public class SV_CCMDS {
 		}
 
 		SV_CopySaveGame(saveGame, "current");
-		SV_ReadServerFile();
+		SV_ReadServerFile(SV_INIT.gameImports);
 
 		// go to the map
 		SV_INIT.SV_Map(false, SV_INIT.gameImports.svs.mapcmd, true);

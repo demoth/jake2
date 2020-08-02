@@ -476,7 +476,7 @@ class SV_WORLD {
 
         // clip to world
         clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
-        clip.trace.ent = SV_INIT.gameExports.getEdict(0);
+        clip.trace.ent = SV_INIT.gameImports.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world
         clip.contentmask = contentmask;

@@ -140,7 +140,7 @@ class SV_USER {
         // 
         if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
-            edict_t ent = SV_INIT.gameExports.getEdict(playernum + 1);
+            edict_t ent = SV_INIT.gameImports.gameExports.getEdict(playernum + 1);
             ent.s.number = playernum + 1;
             SV_MAIN.sv_client.edict = ent;
             SV_MAIN.sv_client.lastcmd = new usercmd_t();
@@ -278,7 +278,7 @@ class SV_USER {
         SV_MAIN.sv_client.state = ClientStates.CS_SPAWNED;
 
         // call the jake2.game begin function
-        SV_INIT.gameExports.ClientBegin(SV_USER.sv_player);
+        SV_INIT.gameImports.gameExports.ClientBegin(SV_USER.sv_player);
 
         Cbuf.InsertFromDefer();
     }
@@ -477,7 +477,7 @@ class SV_USER {
         }
 
         if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME)
-            SV_INIT.gameExports.ClientCommand(SV_USER.sv_player, args);
+            SV_INIT.gameImports.gameExports.ClientCommand(SV_USER.sv_player, args);
     }
 
     /*
@@ -496,7 +496,7 @@ class SV_USER {
             return;
         }
 
-        SV_INIT.gameExports.ClientThink(cl.edict, cmd);
+        SV_INIT.gameImports.gameExports.ClientThink(cl.edict, cmd);
     }
 
     /*

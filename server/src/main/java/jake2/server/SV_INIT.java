@@ -41,7 +41,6 @@ import static jake2.qcommon.Defines.*;
 public class SV_INIT {
 
     // todo implement singleton
-    public static GameExports gameExports;
     public static GameImportsImpl gameImports;
 
     /**
@@ -97,8 +96,8 @@ public class SV_INIT {
      * only the fields that differ from the baseline will be transmitted.
      */
     private static void SV_CreateBaseline() {
-        for (int entnum = 1; entnum < gameExports.getNumEdicts(); entnum++) {
-            edict_t svent = gameExports.getEdict(entnum);
+        for (int entnum = 1; entnum < gameImports.gameExports.getNumEdicts(); entnum++) {
+            edict_t svent = gameImports.gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;
@@ -135,7 +134,7 @@ public class SV_INIT {
 
         // get configstrings and areaportals
         // then read game enitites
-        SV_CCMDS.SV_ReadLevelFile(sv.name);
+        SV_CCMDS.SV_ReadLevelFile(sv.name, gameImports);
 
         if (!sv.loadgame) {
             // coming back to a level after being in a different
@@ -149,7 +148,7 @@ public class SV_INIT {
             previousState = sv.state; // PGM
             sv.state = ServerStates.SS_LOADING; // PGM
             for (int i = 0; i < 100; i++)
-                gameExports.G_RunFrame();
+                gameImports.gameExports.G_RunFrame();
 
             sv.state = previousState; // PGM
         }
@@ -255,11 +254,11 @@ public class SV_INIT {
         Globals.server_state = gameImports.sv.state;
 
         // load and spawn all other entities
-        gameExports.SpawnEntities(gameImports.sv.name, CM.CM_EntityString(), spawnpoint);
+        gameImports.gameExports.SpawnEntities(gameImports.sv.name, CM.CM_EntityString(), spawnpoint);
 
         // run two frames to allow everything to settle
-        gameExports.G_RunFrame();
-        gameExports.G_RunFrame();
+        gameImports.gameExports.G_RunFrame();
+        gameImports.gameExports.G_RunFrame();
 
         // all precaches are complete
         gameImports.sv.state = serverstate;
@@ -334,8 +333,7 @@ public class SV_INIT {
         gameImports = new GameImportsImpl();
 
 
-        gameExports = createGameModInstance(gameImports);
-        gameImports.gameExports = gameExports;
+        gameImports.gameExports = createGameModInstance(gameImports);
         gameImports.resetClients();
     }
 
