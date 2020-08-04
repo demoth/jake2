@@ -23,7 +23,6 @@
 package jake2.game.monsters;
 
 import jake2.game.*;
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.util.Lib;
@@ -1488,11 +1487,6 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            Com.DPrintf("Spawning a soldier at " + self.s.origin[0] + " " +
-                    self.s.origin[1] + " " +
-                    self.s.origin[2] + " " +
-                    "\n");
-            
             if (gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self, gameExports);
                 return true;

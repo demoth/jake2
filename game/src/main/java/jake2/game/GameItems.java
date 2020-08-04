@@ -24,8 +24,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -265,8 +268,8 @@ public class GameItems {
     
             if (!taken)
                 return;
-            
-            Com.dprintln("Picked up:" + ent.classname);
+
+            gameExports.gameImports.dprintf("Picked up:" + ent.classname);
     
             if (!((gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
@@ -849,7 +852,7 @@ public class GameItems {
             if (it.pickup_name.equalsIgnoreCase(pickup_name))
                 return it;
         }
-        Com.Println("Item not found:" + pickup_name);
+        gameExports.gameImports.dprintf("Item not found:" + pickup_name);
         return null;
     }
 

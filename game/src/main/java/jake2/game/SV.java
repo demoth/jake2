@@ -89,7 +89,7 @@ final class SV {
         ent.nextthink = 0;
 
         if (ent.think == null)
-            Com.Error(Defines.ERR_FATAL, "NULL ent.think");
+            gameExports.gameImports.error(Defines.ERR_FATAL, "ent.think == null");
 
         ent.think.think(ent, gameExports);
 
@@ -480,7 +480,7 @@ final class SV {
             }
         }
         if (gameExports.pushed_p > Defines.MAX_EDICTS)
-            Com.Error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
+            gameExports.gameImports.error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves
@@ -989,7 +989,7 @@ final class SV {
 
         //FIXME: how did we get here with no enemy
         if (enemy == null) {
-            Com.DPrintf("SV_NewChaseDir without enemy!\n");
+            gameExports.gameImports.dprintf("SV_NewChaseDir without enemy!\n");
             return;
         }
         olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);

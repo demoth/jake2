@@ -8,7 +8,6 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.List;
@@ -175,7 +174,7 @@ public class GameExportsImpl implements GameExports {
             try {
                 Class.forName(className);
             } catch (Exception e) {
-                Com.DPrintf("error loading class: " + e.getMessage());
+                gameImports.dprintf("error loading class: " + e.getMessage());
             }
         }
 
@@ -260,13 +259,7 @@ public class GameExportsImpl implements GameExports {
                 .append("\" "); // help 2
         sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
         sb.append("xv 50 yv 172 string2 \"");
-        sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
-                .add(level.killed_monsters).add(
-                        level.total_monsters).add(
-                        level.found_goals).add(
-                        level.total_goals).add(
-                        level.found_secrets).add(
-                        level.total_secrets)));
+        sb.append(String.format("%3d/%3d     %d/%d       %d/%d\" ", level.killed_monsters, level.total_monsters, level.found_goals, level.total_goals, level.found_secrets, level.total_secrets));
 
         gameImports.WriteByte(NetworkCommands.svc_layout);
         gameImports.WriteString(sb.toString());
@@ -506,7 +499,7 @@ public class GameExportsImpl implements GameExports {
         String itemName = Cmd.getArguments(args);
 
         gitem_t it = GameItems.FindItem(itemName, this);
-        Com.dprintln("using:" + itemName);
+        gameImports.dprintf("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;

@@ -382,18 +382,13 @@ public final class Com
 		Printf(_debugContext + fmt + "\n");
 	}
 
-	public static String sprintf(String fmt, Vargs vargs)
-	{
-		String msg= "";
-		if (vargs == null || vargs.size() == 0)
-		{
-			msg= fmt;
+	@Deprecated
+	public static String sprintf(String fmt, Vargs vargs) {
+		if (vargs == null || vargs.size() == 0) {
+			return fmt;
+		} else {
+			return new PrintfFormat(fmt).sprintf(vargs.toArray());
 		}
-		else
-		{
-			msg= new PrintfFormat(fmt).sprintf(vargs.toArray());
-		}
-		return msg;
 	}
 
 	public static String StripExtension(String string) {

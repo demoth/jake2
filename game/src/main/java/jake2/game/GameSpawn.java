@@ -1208,8 +1208,7 @@ public class GameSpawn {
             gameExports.gameImports.dprintf("nextmap: " + value + "\n");
         if (!gameExports.st.set(key, value))
             if (!ent.setField(key, value))
-                gameExports.gameImports.dprintf("??? The key [" + key
-                        + "] is not a field\n");
+                gameExports.gameImports.dprintf("??? The key [" + key + "] is not a field\n");
 
     }
 
@@ -1308,7 +1307,7 @@ public class GameSpawn {
 
     static void SpawnEntities(String mapname, String entities, String spawnpoint, GameExportsImpl gameExports) {
 
-        Com.dprintln("SpawnEntities(), mapname=" + mapname);
+        gameExports.gameImports.dprintf("SpawnEntities(), mapname=" + mapname);
         SubgameEntity ent;
         int inhibit;
         String com_token;
@@ -1358,7 +1357,7 @@ public class GameSpawn {
                 ent = G_Spawn(gameExports);
 
             ED_ParseEdict(ph, ent, gameExports);
-            Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
+            gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
                     ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
 
             // yet another map hack
@@ -1373,7 +1372,7 @@ public class GameSpawn {
                 if (gameExports.cvarCache.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
-                        Com.DPrintf("->inhibited.\n");
+                        gameExports.gameImports.dprintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
                         continue;
@@ -1387,7 +1386,7 @@ public class GameSpawn {
                                     || ((gameExports.cvarCache.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
                                     || (((gameExports.cvarCache.skill.value == 2) || (gameExports.cvarCache.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
-                        Com.DPrintf("->inhibited.\n");
+                        gameExports.gameImports.dprintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
 
@@ -1401,10 +1400,10 @@ public class GameSpawn {
                         | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             ED_CallSpawn(ent, gameExports);
-            Com.DPrintf("\n");
+            gameExports.gameImports.dprintf("\n");
         }
-        Com.DPrintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
-        Com.DPrintf(inhibit + " entities inhibited.\n");
+        gameExports.gameImports.dprintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
+        gameExports.gameImports.dprintf(inhibit + " entities inhibited.\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
     }

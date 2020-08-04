@@ -22,7 +22,6 @@
 
 package jake2.game;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
@@ -345,8 +344,6 @@ public class Monster {
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
         public String getID() { return "monster_triggered_start";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (self.index == 312)
-                Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;
             self.movetype = GameDefines.MOVETYPE_NONE;
             self.svflags |= Defines.SVF_NOCLIENT;

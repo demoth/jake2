@@ -1533,10 +1533,6 @@ public final class CL {
      * Frame
      */
     public static void Frame(int msec) {
-        
-        if (Globals.dedicated.value != 0)
-            return;
-
         extratime += msec;
 
         if (ClientGlobals.cl_timedemo.value == 0.0f) {
