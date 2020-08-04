@@ -25,7 +25,10 @@
  */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Command;
@@ -289,7 +292,7 @@ public final class Console extends Globals {
 	int i = (ClientGlobals.con.current % ClientGlobals.con.totallines)
 		* ClientGlobals.con.linewidth;
 	int e = i + ClientGlobals.con.linewidth;
-	while (i < ClientGlobals.con.text.length && i++ < e)
+	while (i < ClientGlobals.con.text.length - 1 && i++ < e)
 	    ClientGlobals.con.text[i] = (byte) ' ';
     }
 
