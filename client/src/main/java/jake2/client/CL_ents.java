@@ -1060,10 +1060,6 @@ public class CL_ents {
 		if (0 == ClientGlobals.cl_gun.value)
 			return;
 
-		// don't draw gun if in wide angle view
-		if (ps.fov > 90)
-			return;
-
 		//memset( gun, 0, sizeof(gun));
 		gun.clear();
 
