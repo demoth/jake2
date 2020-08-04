@@ -157,16 +157,6 @@ public final class Jake2 {
 
             Cbuf.reconfigure(args, true); // reload default.cfg and config.cfg
 
-            //
-            // init commands and vars
-            //
-            Cmd.AddCommand("error", (List<String> arguments) -> {
-                if (arguments.size() >= 2)
-                    Com.Error(Defines.ERR_FATAL, arguments.get(1));
-                else
-                    Com.Error(Defines.ERR_FATAL, "error occurred");
-            });
-
             Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
             Globals.log_stats= Cvar.Get("log_stats", "0", 0);
             Globals.developer= Cvar.Get("developer", "0", Defines.CVAR_ARCHIVE);
@@ -183,7 +173,6 @@ public final class Jake2 {
             Netchan.Netchan_Init();	//ok
 
             SV_INIT.SV_Init();	//ok
-
 
             CL.Init();
 

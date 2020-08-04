@@ -37,7 +37,7 @@ import java.util.*;
  */
 public final class Cmd {
 
-    private static Command List_f = (List<String> args) -> {
+    private final static Command List_f = (List<String> args) -> {
 
         for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
             Com.Printf(cmd.name + '\n');
@@ -46,7 +46,7 @@ public final class Cmd {
         Com.Printf(Cmd.cmd_functions.size() + " commands\n");
     };
 
-    private static Command Exec_f = (List<String> args) -> {
+    private final static Command Exec_f = (List<String> args) -> {
         if (args.size() != 2) {
             Com.Printf("exec <filename> : execute a script file\n");
             return;
@@ -62,7 +62,7 @@ public final class Cmd {
 
     };
 
-    private static Command Echo_f = (List<String> args) -> {
+    private final static Command Echo_f = (List<String> args) -> {
         if (args.size() < 2) {
             Com.Printf("usage: echo expression");
             return;
@@ -73,7 +73,7 @@ public final class Cmd {
         Com.Printf("'\n");
     };
 
-    private static Command Alias_f = (List<String> args) -> {
+    private final static Command Alias_f = (List<String> args) -> {
         if (args.size() == 1) {
             Com.Printf("Current alias commands:\n");
             for (cmdalias_t alias : Cmd.cmd_alias.values()) {
@@ -105,7 +105,14 @@ public final class Cmd {
         }
     };
 
-    private static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
+    private final static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
+
+    private static void Error_f(List<String> args) {
+        if (args.size() >= 2)
+            Com.Error(Defines.ERR_FATAL, args.get(1));
+        else
+            Com.Error(Defines.ERR_FATAL, "error occurred");
+    }
 
     private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
 
@@ -123,6 +130,7 @@ public final class Cmd {
         Cmd.AddCommand("cmdlist", List_f);
         Cmd.AddCommand("alias", Alias_f);
         Cmd.AddCommand("wait", Wait_f);
+        Cmd.AddCommand("error", Cmd::Error_f);
     }
 
     /**
@@ -345,6 +353,7 @@ public final class Cmd {
         if (cmd_functions.containsKey(name))
             cmd_functions.get(name).function.execute(args);
     }
+
 
     static final class cmdalias_t {
         private String name;

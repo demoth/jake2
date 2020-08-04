@@ -59,13 +59,6 @@ public class Jake2Dedicated {
 
             //
             // init commands and vars
-            //
-            Cmd.AddCommand("error", (List<String> arguments) -> {
-                if (arguments.size() >= 2)
-                    Com.Error(Defines.ERR_FATAL, arguments.get(1));
-                else
-                    Com.Error(Defines.ERR_FATAL, "error occurred");
-            });
 
             Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
             Globals.log_stats= Cvar.Get("log_stats", "0", 0);

@@ -321,7 +321,7 @@ public final class NET {
      * Init
      */
     public static void Init() {
-        // nothing to do
+        SZ.Init(Globals.net_message, Globals.net_message_buffer, Globals.net_message_buffer.length);
     }
 
     /*

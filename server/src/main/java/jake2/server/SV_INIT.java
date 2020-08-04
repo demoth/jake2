@@ -502,6 +502,5 @@ public class SV_INIT {
         SV_MAIN.public_server = Cvar.Get("public", "0", 0);
         SV_MAIN.sv_reconnect_limit = Cvar.Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
 
-        SZ.Init(Globals.net_message, Globals.net_message_buffer, Globals.net_message_buffer.length);
     }
 }

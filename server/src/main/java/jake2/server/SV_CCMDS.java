@@ -525,20 +525,5 @@ public class SV_CCMDS {
 		// go to the map
 		SV_INIT.SV_Map(false, SV_INIT.gameImports.svs.mapcmd, true);
 	}
-	/*
-	==================
-	SV_InitOperatorCommands
-	==================
-	*/
-	static void SV_InitOperatorCommands(final GameImportsImpl gameImports) {
 
-		// remove and add new versions of this commands
-
-
-//		Cmd.AddCommand("spawnbot", new Command() {
-//			public void execute() {
-//				AdvancedBot.SP_Oak();
-//			}
-//		});
-	}
 }
