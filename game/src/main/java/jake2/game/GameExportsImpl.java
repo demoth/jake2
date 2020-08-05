@@ -497,9 +497,7 @@ public class GameExportsImpl implements GameExports {
     private void Use_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-
         gitem_t it = GameItems.FindItem(itemName, this);
-        gameImports.dprintf("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -514,7 +512,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
-
+        gameImports.dprintf("using:" + itemName + "\n");
         it.use.use(ent, it, this);
     }
 

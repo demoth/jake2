@@ -54,7 +54,7 @@ public class TestCMD {
 
     @Test
     public void testTokenizeWithExpansion() {
-        Cvar.Get("test1", "world", 0);
+        Cvar.getInstance().Get("test1", "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", true);
         Assert.assertEquals(Arrays.asList("echo", "world", "again"), result);
     }
@@ -67,28 +67,28 @@ public class TestCMD {
 
     @Test
     public void testTokenizeWithQuotesWithExpansion() {
-        Cvar.Get("test2", "world", 0);
+        Cvar.getInstance().Get("test2", "world", 0);
         List<String> result = Cmd.TokenizeString("echo \"$test2\"", true);
         Assert.assertEquals(Arrays.asList("echo", "$test2"), result);
     }
 
     @Test
     public void testTokenizeWithExpansionFalse() {
-        Cvar.Get("test1", "world", 0);
+        Cvar.getInstance().Get("test1", "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", false);
         Assert.assertEquals(Arrays.asList("echo", "$test1", "again"), result);
     }
 
     @Test
     public void testExpandMacro() {
-        Cvar.Get("name", "world", 0);
+        Cvar.getInstance().Get("name", "world", 0);
         String result = Cmd.MacroExpandString("hello $name");
         Assert.assertEquals("hello world", result);
     }
 
     @Test
     public void testExpandMacroMiddle() {
-        Cvar.Get("name1", "world", 0);
+        Cvar.getInstance().Get("name1", "world", 0);
         String result = Cmd.MacroExpandString("hello $name1 again");
         Assert.assertEquals("hello world again", result);
     }
@@ -96,7 +96,7 @@ public class TestCMD {
     @Test
     public void testCommandWithVariable() {
         StringBuilder result = new StringBuilder();
-        Cvar.Get("test_var", "value", 0);
+        Cvar.getInstance().Get("test_var", "value", 0);
         Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(getArguments(args)));
 
         Cmd.ExecuteString("test_cmd $test_var");

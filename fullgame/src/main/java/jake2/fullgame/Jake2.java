@@ -92,7 +92,7 @@ public final class Jake2 {
     	
     	// TODO: check if dedicated is set in config file
     	
-		Globals.dedicated= Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
+		Globals.dedicated= Cvar.getInstance().Get("dedicated", "0", Defines.CVAR_NOSET );
     
     	if (dedicated)
     		Globals.dedicated.value = 1.0f;
@@ -107,7 +107,7 @@ public final class Jake2 {
         }
         Init(c_args);
 
-        Globals.nostdout = Cvar.Get("nostdout", "0", 0);
+        Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
 
         int oldtime = Timer.Milliseconds();
         int newtime;
@@ -137,7 +137,7 @@ public final class Jake2 {
             List<String> args = Arrays.asList(argsMain);
 
             Cmd.Init();
-            Cvar.Init();
+            Cvar.getInstance().Init();
 
             Key.Init();
 
@@ -157,16 +157,16 @@ public final class Jake2 {
 
             Cbuf.reconfigure(args, true); // reload default.cfg and config.cfg
 
-            Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
-            Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-            Globals.developer= Cvar.Get("developer", "0", Defines.CVAR_ARCHIVE);
-            Globals.timescale= Cvar.Get("timescale", "0", 0);
-            Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
-            Globals.logfile_active= Cvar.Get("logfile", "0", 0);
-            Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-            Globals.dedicated= Cvar.Get("dedicated", "0", Defines.CVAR_NOSET);
+            Globals.host_speeds= Cvar.getInstance().Get("host_speeds", "0", 0);
+            Globals.log_stats= Cvar.getInstance().Get("log_stats", "0", 0);
+            Globals.developer= Cvar.getInstance().Get("developer", "0", Defines.CVAR_ARCHIVE);
+            Globals.timescale= Cvar.getInstance().Get("timescale", "0", 0);
+            Globals.fixedtime= Cvar.getInstance().Get("fixedtime", "0", 0);
+            Globals.logfile_active= Cvar.getInstance().Get("logfile", "0", 0);
+            Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
+            Globals.dedicated= Cvar.getInstance().Get("dedicated", "0", Defines.CVAR_NOSET);
             String version = Globals.VERSION + " " + CPUSTRING + " " + BUILDSTRING;
-            Cvar.Get("version", version, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+            Cvar.getInstance().Get("version", version, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
 
             NET.Init();	//ok

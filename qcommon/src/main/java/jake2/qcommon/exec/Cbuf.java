@@ -27,7 +27,10 @@ package jake2.qcommon.exec;
 
 import jake2.qcommon.Globals;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 import static jake2.qcommon.Defines.CVAR_ARCHIVE;
 
@@ -208,7 +211,7 @@ public final class Cbuf {
     }
 
     public static void reconfigure(List<String> args, boolean clear) {
-        String dir = Cvar.Get("cddir", "", CVAR_ARCHIVE).string;
+        String dir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE).string;
         Cbuf.AddText("exec default.cfg\n");
         Cbuf.AddText("bind MWHEELUP weapnext\n");
         Cbuf.AddText("bind MWHEELDOWN weapprev\n");
@@ -217,12 +220,12 @@ public final class Cbuf {
         Cbuf.AddText("bind a +moveleft\n");
         Cbuf.AddText("bind d +moveright\n");
         Cbuf.Execute();
-        Cvar.Set("vid_fullscreen", "0");
+        Cvar.getInstance().Set("vid_fullscreen", "0");
         Cbuf.AddText("exec config.cfg\n");
 
         Cbuf.AddEarlyCommands(args, clear);
         Cbuf.Execute();
-        if (!("".equals(dir))) Cvar.Set("cddir", dir);
+        if (!("".equals(dir))) Cvar.getInstance().Set("cddir", dir);
     }
 
 }

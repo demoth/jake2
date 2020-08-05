@@ -119,10 +119,10 @@ public class SV_INIT {
      */
     private static void SV_CheckForSavegame(server_t sv) {
 
-        if (Cvar.Get("sv_noreload", "0", 0).value != 0)
+        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
             return;
 
-        if (Cvar.VariableValue("deathmatch") != 0)
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
             return;
 
         String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
@@ -166,7 +166,7 @@ public class SV_INIT {
         int checksum = 0;
 
         if (attractloop)
-            Cvar.Set("paused", "0");
+            Cvar.getInstance().Set("paused", "0");
 
         Com.Printf("------- Server Initialization -------\n");
 
@@ -194,7 +194,7 @@ public class SV_INIT {
         // save name for levels that don't set message
         gameImports.sv.configstrings[Defines.CS_NAME] = server;
 
-        if (Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
             gameImports.sv.configstrings[Defines.CS_AIRACCEL] = ""
                     + SV_MAIN.sv_airaccelerate.value;
             PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
@@ -271,7 +271,7 @@ public class SV_INIT {
         SV_CheckForSavegame(gameImports.sv);
 
         // set serverinfo variable
-        Cvar.FullSet("mapname", gameImports.sv.name, Defines.CVAR_SERVERINFO
+        Cvar.getInstance().FullSet("mapname", gameImports.sv.name, Defines.CVAR_SERVERINFO
                 | Defines.CVAR_NOSET);
     }
 
@@ -292,33 +292,33 @@ public class SV_INIT {
         }
 
         // get any latched variable changes (maxclients, etc)
-        Cvar.updateLatchedVars();
+        Cvar.getInstance().updateLatchedVars();
 
-        if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.getInstance().VariableValue("coop") != 0 && Cvar.getInstance().VariableValue("deathmatch") != 0) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
-            Cvar.FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            Cvar.getInstance().FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
         if (Globals.dedicated.value != 0) {
-            if (0 == Cvar.VariableValue("coop"))
-                Cvar.FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            if (0 == Cvar.getInstance().VariableValue("coop"))
+                Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
         // set max clients based on game mode
-        if (Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
             if (SV_MAIN.maxclients.value <= 1)
-                Cvar.FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+                Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
             else if (SV_MAIN.maxclients.value > Defines.MAX_CLIENTS)
-                Cvar.FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        } else if (Cvar.VariableValue("coop") != 0) {
+                Cvar.getInstance().FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        } else if (Cvar.getInstance().VariableValue("coop") != 0) {
             if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
-                Cvar.FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+                Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         } else {
             // non-deathmatch, non-coop is one player
-            Cvar.FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
         // init network stuff
@@ -385,10 +385,10 @@ public class SV_INIT {
 
         int c = level.indexOf('+');
         if (c != -1) {
-            Cvar.Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
+            Cvar.getInstance().Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
             level = level.substring(0, c);
         } else {
-            Cvar.Set("nextserver", "");
+            Cvar.getInstance().Set("nextserver", "");
         }
         
         // rst: base1 works for full, damo1 works for demo, so we need to store first map.
@@ -402,8 +402,8 @@ public class SV_INIT {
         }
 
         // ZOID: special hack for end game screen in coop mode
-        if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
+        if (Cvar.getInstance().VariableValue("coop") != 0 && level.equals("victory.pcx"))
+            Cvar.getInstance().Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
@@ -472,35 +472,35 @@ public class SV_INIT {
 
 
 
-        Cvar.Get("rcon_password", "", 0);
-        Cvar.Get("skill", "1", 0);
-        Cvar.Get("deathmatch", "0", Defines.CVAR_LATCH);
-        Cvar.Get("coop", "0", Defines.CVAR_LATCH);
-        Cvar.Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
-        Cvar.Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.Get("timelimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        Cvar.Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+        Cvar.getInstance().Get("rcon_password", "", 0);
+        Cvar.getInstance().Get("skill", "1", 0);
+        Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("timelimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
-        SV_MAIN.maxclients = Cvar.Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        SV_MAIN.hostname = Cvar.Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
-        SV_MAIN.timeout = Cvar.Get("timeout", "125", 0);
-        SV_MAIN.zombietime = Cvar.Get("zombietime", "2", 0);
-        SV_MAIN.sv_showclamp = Cvar.Get("showclamp", "0", 0);
-        SV_MAIN.sv_paused = Cvar.Get("paused", "0", 0);
-        SV_MAIN.sv_timedemo = Cvar.Get("timedemo", "0", 0);
-        SV_MAIN.sv_enforcetime = Cvar.Get("sv_enforcetime", "0", 0);
+        SV_MAIN.maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        SV_MAIN.hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
+        SV_MAIN.timeout = Cvar.getInstance().Get("timeout", "125", 0);
+        SV_MAIN.zombietime = Cvar.getInstance().Get("zombietime", "2", 0);
+        SV_MAIN.sv_showclamp = Cvar.getInstance().Get("showclamp", "0", 0);
+        SV_MAIN.sv_paused = Cvar.getInstance().Get("paused", "0", 0);
+        SV_MAIN.sv_timedemo = Cvar.getInstance().Get("timedemo", "0", 0);
+        SV_MAIN.sv_enforcetime = Cvar.getInstance().Get("sv_enforcetime", "0", 0);
 
-        SV_MAIN.allow_download = Cvar.Get("allow_download", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_players = Cvar.Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_models = Cvar.Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_sounds = Cvar.Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_maps = Cvar.Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download = Cvar.getInstance().Get("allow_download", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_players = Cvar.getInstance().Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_models = Cvar.getInstance().Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_sounds = Cvar.getInstance().Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
+        SV_MAIN.allow_download_maps = Cvar.getInstance().Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
 
-        Cvar.Get("sv_noreload", "0", 0);
-        SV_MAIN.sv_airaccelerate = Cvar.Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
-        SV_MAIN.public_server = Cvar.Get("public", "0", 0);
-        SV_MAIN.sv_reconnect_limit = Cvar.Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("sv_noreload", "0", 0);
+        SV_MAIN.sv_airaccelerate = Cvar.getInstance().Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
+        SV_MAIN.public_server = Cvar.getInstance().Get("public", "0", 0);
+        SV_MAIN.sv_reconnect_limit = Cvar.getInstance().Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
 
     }
 }

@@ -133,7 +133,7 @@ public class SV_MAIN {
         int statusLength;
         int playerLength;
 
-        status = Cvar.Serverinfo() + "\n";
+        status = Cvar.getInstance().Serverinfo() + "\n";
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.gameImports.svs.clients[i];
@@ -402,7 +402,7 @@ public class SV_MAIN {
      * Checks if the rcon password is corect.
      */
     private static boolean Rcon_Validate(List<String> args) {
-        String rconPassword = Cvar.Get("rcon_password", "", 0).string;
+        String rconPassword = Cvar.getInstance().Get("rcon_password", "", 0).string;
         if (rconPassword.isEmpty())
             return false;
 

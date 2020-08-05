@@ -1178,7 +1178,7 @@ public abstract class Model extends Surf {
 
 		// explicitly free the old map if different
 		// this guarantees that mod_known[0] is the world map
-		flushmap = Cvar.Get("flushmap", "0", 0);
+		flushmap = Cvar.getInstance().Get("flushmap", "0", 0);
 		if ( !mod_known[0].name.equals(fullname) || flushmap.value != 0.0f)
 			Mod_Free(mod_known[0]);
 		r_worldmodel = Mod_ForName(fullname, true);

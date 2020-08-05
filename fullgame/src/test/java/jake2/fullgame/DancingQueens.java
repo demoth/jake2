@@ -65,7 +65,7 @@ public class DancingQueens {
     KBD kbd;
     
     void init() {
-    	Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
+    	Globals.dedicated = Cvar.getInstance().Get("dedicated", "0", Defines.CVAR_NOSET );
 
 	String DRIVER = "lwjgl";
 	

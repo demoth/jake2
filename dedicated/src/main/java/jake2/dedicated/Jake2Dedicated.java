@@ -24,7 +24,7 @@ public class Jake2Dedicated {
     public static void main(String[] args) {
 
 
-        Globals.dedicated = Cvar.Get("dedicated", "1", Defines.CVAR_NOSET );
+        Globals.dedicated = Cvar.getInstance().Get("dedicated", "1", Defines.CVAR_NOSET );
 
         // in C the first arg is the filename
         int argc = args.length + 1;
@@ -40,7 +40,7 @@ public class Jake2Dedicated {
             List<String> args1 = Arrays.asList(c_args);
 
             Cmd.Init();
-            Cvar.Init();
+            Cvar.getInstance().Init();
 
             // we need to add the early commands twice, because
             // a basedir or cddir needs to be set before execing
@@ -60,14 +60,14 @@ public class Jake2Dedicated {
             //
             // init commands and vars
 
-            Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
-            Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-            Globals.developer= Cvar.Get("developer", "0", Defines.CVAR_ARCHIVE);
-            Globals.timescale= Cvar.Get("timescale", "0", 0);
-            Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
-            Globals.logfile_active= Cvar.Get("logfile", "0", 0);
-            Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-            Cvar.Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+            Globals.host_speeds= Cvar.getInstance().Get("host_speeds", "0", 0);
+            Globals.log_stats= Cvar.getInstance().Get("log_stats", "0", 0);
+            Globals.developer= Cvar.getInstance().Get("developer", "0", Defines.CVAR_ARCHIVE);
+            Globals.timescale= Cvar.getInstance().Get("timescale", "0", 0);
+            Globals.fixedtime= Cvar.getInstance().Get("fixedtime", "0", 0);
+            Globals.logfile_active= Cvar.getInstance().Get("logfile", "0", 0);
+            Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
+            Cvar.getInstance().Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
@@ -93,7 +93,7 @@ public class Jake2Dedicated {
             Sys.Error("Error during initialization");
         }
 
-        Globals.nostdout = Cvar.Get("nostdout", "0", 0);
+        Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
 
         int oldtime = Timer.Milliseconds();
         int newtime;

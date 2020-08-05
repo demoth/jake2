@@ -269,7 +269,7 @@ public class GameItems {
             if (!taken)
                 return;
 
-            gameExports.gameImports.dprintf("Picked up:" + ent.classname);
+            gameExports.gameImports.dprintf("Picked up:" + ent.classname + "\n");
     
             if (!((gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
@@ -852,7 +852,7 @@ public class GameItems {
             if (it.pickup_name.equalsIgnoreCase(pickup_name))
                 return it;
         }
-        gameExports.gameImports.dprintf("Item not found:" + pickup_name);
+        gameExports.gameImports.dprintf("Item not found:" + pickup_name + "\n");
         return null;
     }
 

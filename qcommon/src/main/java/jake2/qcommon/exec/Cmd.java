@@ -166,7 +166,7 @@ public final class Cmd {
             String token = Com.Parse(new Com.ParseHelp(text, i + 1));
 
             i += token.length();
-            token = Cvar.VariableString(token);
+            token = Cvar.getInstance().VariableString(token);
             result.append(token);
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {
@@ -234,7 +234,7 @@ public final class Cmd {
 
     public static void AddCommand(String cmd_name, Command function, boolean replace) {
         // fail if the command is a variable name
-        if ((Cvar.VariableString(cmd_name)).length() > 0) {
+        if ((Cvar.getInstance().VariableString(cmd_name)).length() > 0) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
             return;
         }
@@ -315,7 +315,7 @@ public final class Cmd {
         }
 
         // check cvars
-        if (Cvar.printOrSet(args))
+        if (Cvar.getInstance().printOrSet(args))
             return;
 
         // send it as a server command if we are connected

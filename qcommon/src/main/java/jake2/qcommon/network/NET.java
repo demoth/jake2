@@ -275,12 +275,12 @@ public final class NET {
     public static void OpenIP() {
         cvar_t port, ip, clientport;
 
-        port = Cvar.Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
-        ip = Cvar.Get("ip", "localhost", Defines.CVAR_NOSET);
-        clientport = Cvar.Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
+        port = Cvar.getInstance().Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
+        ip = Cvar.getInstance().Get("ip", "localhost", Defines.CVAR_NOSET);
+        clientport = Cvar.getInstance().Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
 
-        cvar_t thinclient = Cvar.Get("thinclient", "0", 0);
-        cvar_t dedicated = Cvar.Get("dedicated", "0", 0);
+        cvar_t thinclient = Cvar.getInstance().Get("thinclient", "0", 0);
+        cvar_t dedicated = Cvar.getInstance().Get("dedicated", "0", 0);
 
         // clients do not need server sockets
         if (thinclient.value == 0.f) {

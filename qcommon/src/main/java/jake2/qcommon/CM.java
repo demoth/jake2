@@ -213,10 +213,10 @@ public class CM {
         qfiles.dheader_t header;
         int length;
 
-        map_noareas = Cvar.Get("map_noareas", "0", 0);
+        map_noareas = Cvar.getInstance().Get("map_noareas", "0", 0);
 
         if (map_name.equals(name)
-                && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
+                && (clientload || 0 == Cvar.getInstance().VariableValue("flushmap"))) {
 
             checksum[0] = last_checksum;
 

@@ -612,10 +612,10 @@ public final class FS extends Globals {
         fs_gamedir = fs_basedir.string + '/' + gameName;
 
         if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
-            Cvar.FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
-            Cvar.FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+            Cvar.getInstance().FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
+            Cvar.getInstance().FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
         } else {
-            Cvar.FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
+            Cvar.getInstance().FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
             if (fs_cddir.string != null && fs_cddir.string.length() > 0)
                 AddGameDirectory(fs_cddir.string + '/' + gameName, true);
 
@@ -775,7 +775,7 @@ public final class FS extends Globals {
         // basedir <path>
         // allows the game to run from outside the data tree
         //
-        fs_basedir = Cvar.Get("basedir", ".", CVAR_NOSET);
+        fs_basedir = Cvar.getInstance().Get("basedir", ".", CVAR_NOSET);
 
         //
         // cddir <path>
@@ -791,7 +791,7 @@ public final class FS extends Globals {
         AddGameDirectory(fs_basedir.string + '/' + Globals.BASEQ2, false);
 
         // check for game override
-        fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+        fs_gamedirvar = Cvar.getInstance().Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 
         if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
@@ -801,7 +801,7 @@ public final class FS extends Globals {
      * set baseq2 directory
      */
     public static void setCDDir() {
-        fs_cddir = Cvar.Get("cddir", "", CVAR_ARCHIVE);
+        fs_cddir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE);
         if (fs_cddir.string.length() > 0)
             AddGameDirectory(fs_cddir.string, false);
     }

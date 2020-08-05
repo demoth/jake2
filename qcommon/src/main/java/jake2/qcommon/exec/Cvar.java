@@ -32,7 +32,10 @@ import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -40,9 +43,20 @@ import java.util.function.Consumer;
  */
 public class Cvar extends Globals {
 
-    private static Map<String, cvar_t> cvarMap = new HashMap<>();
+    private static final Cvar instance = new Cvar();
 
-    public static cvar_t Get(String var_name, String defaultValue, int flags) {
+    public static Cvar getInstance() {
+        return instance;
+    }
+
+    // should be thread safe implementation if we are talking multithreading
+    private final Map<String, cvar_t> cvarMap;
+
+    public Cvar() {
+        this.cvarMap = new HashMap<>();
+    }
+
+    public cvar_t Get(String var_name, String defaultValue, int flags) {
         cvar_t var;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
@@ -52,7 +66,7 @@ public class Cvar extends Globals {
             }
         }
 
-        var = Cvar.FindVar(var_name);
+        var = Cvar.getInstance().FindVar(var_name);
         if (var != null) {
             var.flags |= flags;
             return var;
@@ -96,13 +110,13 @@ public class Cvar extends Globals {
                     Com.Printf("flags can only be 'u' or 's'\n");
                     return;
                 }
-                Cvar.FullSet(args.get(1), args.get(2), flags);
+                Cvar.getInstance().FullSet(args.get(1), args.get(2), flags);
             } else
-                Cvar.Set(args.get(1), args.get(2));
+                Cvar.getInstance().Set(args.get(1), args.get(2));
 
         });
         Cmd.AddCommand("cvarlist", (List<String> args) -> {
-            for (cvar_t var : cvarMap.values()) {
+            for (cvar_t var : Cvar.getInstance().cvarMap.values()) {
                 if ((var.flags & CVAR_ARCHIVE) != 0)
                     Com.Printf("*");
                 else
@@ -123,29 +137,29 @@ public class Cvar extends Globals {
                     Com.Printf(" ");
                 Com.Printf(" " + var.name + " \"" + var.string + "\"\n");
             }
-            Com.Printf(cvarMap.size() + " cvars\n");
+            Com.Printf(Cvar.getInstance().cvarMap.size() + " cvars\n");
         });
     }
 
-    public static String VariableString(String var_name) {
+    public String VariableString(String var_name) {
         cvar_t var;
         var = FindVar(var_name);
         return (var == null) ? "" : var.string;
     }
 
-    static cvar_t FindVar(String var_name) {
+    cvar_t FindVar(String var_name) {
         return cvarMap.get(var_name);
     }
 
     /**
      * Creates a variable if not found and sets their value, the parsed float value and their flags.
      */
-    public static cvar_t FullSet(String var_name, String value, int flags) {
+    public cvar_t FullSet(String var_name, String value, int flags) {
         cvar_t var;
 
-        var = Cvar.FindVar(var_name);
+        var = FindVar(var_name);
         if (null == var) { // create it
-            return Cvar.Get(var_name, value, flags);
+            return Get(var_name, value, flags);
         }
 
         var.modified = true;
@@ -163,27 +177,27 @@ public class Cvar extends Globals {
     /** 
      * Sets the value of the variable without forcing. 
      */
-    public static cvar_t Set(String var_name, String value) {
+    public cvar_t Set(String var_name, String value) {
         return Set2(var_name, value, false);
     }
 
     /** 
      * Sets the value of the variable with forcing. 
      */
-    public static cvar_t ForceSet(String var_name, String value) {
-        return Cvar.Set2(var_name, value, true);
+    public cvar_t ForceSet(String var_name, String value) {
+        return Set2(var_name, value, true);
     }
     
     /**
      * Gereric set function, sets the value of the variable, with forcing its even possible to 
      * override the variables write protection. 
      */
-    static cvar_t Set2(String var_name, String value, boolean force) {
+    cvar_t Set2(String var_name, String value, boolean force) {
 
-        cvar_t var = Cvar.FindVar(var_name);
+        cvar_t var = FindVar(var_name);
         if (var == null) { 
         	// create it
-            return Cvar.Get(var_name, value, 0);
+            return Get(var_name, value, 0);
         }
 
         if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
@@ -253,23 +267,23 @@ public class Cvar extends Globals {
      * The overloading is very important, there was a problem with 
      * networt "rate" string --> 10000 became "10000.0" and that wasn't right.
      */
-    public static void SetValue(String var_name, int value) {
-        Cvar.Set(var_name, "" + value);
+    public void SetValue(String var_name, int value) {
+        Set(var_name, "" + value);
     }
 
-    public static void SetValue(String var_name, float value) {
+    public void SetValue(String var_name, float value) {
         if (value == (int)value) {
-            Cvar.Set(var_name, "" + (int)value);
+            Set(var_name, "" + (int)value);
         } else {
-            Cvar.Set(var_name, "" + value);
+            Set(var_name, "" + value);
         }
     }
 
     /**
      * Returns the float value of a variable.
      */
-    public static float VariableValue(String var_name) {
-        cvar_t var = Cvar.FindVar(var_name);
+    public float VariableValue(String var_name) {
+        cvar_t var = FindVar(var_name);
         if (var == null)
             return 0;
         
@@ -278,16 +292,13 @@ public class Cvar extends Globals {
 
     /**
      * Handles variable inspection and changing from the console.
-     * @param args
      */
-    public static boolean printOrSet(List<String> args) {
-        cvar_t v;
-
+    boolean printOrSet(List<String> args) {
         if (args.isEmpty())
             return false;
 
         // check variables
-        v = Cvar.FindVar(args.get(0));
+        cvar_t v = FindVar(args.get(0));
         if (v == null)
             return false;
 
@@ -297,11 +308,11 @@ public class Cvar extends Globals {
             return true;
         }
 
-        Cvar.Set(v.name, args.get(1));
+        Set(v.name, args.get(1));
         return true;
     }
 
-    private static String BitInfo(int flags) {
+    private String BitInfo(int flags) {
         String info = "";
 
         for (cvar_t var : cvarMap.values()) {
@@ -314,11 +325,11 @@ public class Cvar extends Globals {
     /**
      * Returns an info string containing all the CVAR_SERVERINFO cvars. 
      */
-    public static String Serverinfo() {
+    public String Serverinfo() {
         return BitInfo(Defines.CVAR_SERVERINFO);
     }
 
-    public static void eachCvarByFlags(int flags, Consumer<cvar_t> consumer) {
+    public void eachCvarByFlags(int flags, Consumer<cvar_t> consumer) {
         for (cvar_t var : cvarMap.values()) {
             if (0 != (var.flags & flags)) {
                 consumer.accept(var);
@@ -330,7 +341,7 @@ public class Cvar extends Globals {
      * Any variables with latched values will be updated.
      * prev: Cvar.GetLatchedVars();
      */
-    public static void updateLatchedVars() {
+    public void updateLatchedVars() {
         for (cvar_t var : cvarMap.values()) {
             if (var.latched_string == null || var.latched_string.length() == 0)
                 continue;
@@ -347,7 +358,7 @@ public class Cvar extends Globals {
     /**
      * Returns an info string containing all the CVAR_USERINFO cvars.
      */
-    public static String Userinfo() {
+    public String Userinfo() {
         return BitInfo(CVAR_USERINFO);
     }
     
@@ -356,7 +367,7 @@ public class Cvar extends Globals {
      * with the archive flag set true. 
      */
 
-    public static void writeArchiveVariables(String path) {
+    public void writeArchiveVariables(String path) {
         RandomAccessFile f;
         String buffer;
 
@@ -386,7 +397,7 @@ public class Cvar extends Globals {
     /**
      * Variable typing auto completition.
      */
-    public static List<String> CompleteVariable(String prefix) {
+    public List<String> CompleteVariable(String prefix) {
 
         List<String> vars = new ArrayList<>();
 

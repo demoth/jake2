@@ -1192,11 +1192,11 @@ public class CL_ents {
 			float angle;
 			
 			if (ClientGlobals.cl_3rd_angle.value < 0)
-				Cvar.SetValue( "cl_3rd_angle", 0);
+				Cvar.getInstance().SetValue( "cl_3rd_angle", 0);
 			if (ClientGlobals.cl_3rd_angle.value > 60)
-				Cvar.SetValue( "cl_3rd_angle", 60);
+				Cvar.getInstance().SetValue( "cl_3rd_angle", 60);
 			if (ClientGlobals.cl_3rd_dist.value < 0)
-				Cvar.SetValue( "cl_3rd_dist", 0);
+				Cvar.getInstance().SetValue( "cl_3rd_dist", 0);
 			
 			//this'll use polar coords for cam offset
 			angle = (float) (Math.PI * ClientGlobals.cl_3rd_angle.value / 180.0f);

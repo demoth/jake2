@@ -390,7 +390,7 @@ public class CL_input {
 		Cmd.AddCommand("+klook", (List<String> args) -> KeyDown(in_klook, args));
 		Cmd.AddCommand("-klook", (List<String> args) -> KeyUp(in_klook, args));
 
-		cl_nodelta = Cvar.Get("cl_nodelta", "0", 0);
+		cl_nodelta = Cvar.getInstance().Get("cl_nodelta", "0", 0);
 	}
 
 	private static final sizebuf_t buf = new sizebuf_t();
@@ -431,7 +431,7 @@ public class CL_input {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
 			MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_USERINFO.value);
-			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.Userinfo());
+			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.getInstance().Userinfo());
 		}
 
 		SZ.Init(buf, data, data.length);

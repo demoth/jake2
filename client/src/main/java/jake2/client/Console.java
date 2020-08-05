@@ -68,14 +68,14 @@ public final class Console extends Globals {
 
 		if (ClientGlobals.cls.key_dest == Defines.key_console) {
 		Menu.ForceMenuOff();
-		Cvar.Set("paused", "0");
+		Cvar.getInstance().Set("paused", "0");
 		} else {
 		Menu.ForceMenuOff();
 		ClientGlobals.cls.key_dest = Defines.key_console;
 
-		if (Cvar.VariableValue("maxclients") == 1
+		if (Cvar.getInstance().VariableValue("maxclients") == 1
 			&& Globals.server_state != ServerStates.SS_DEAD)
-			Cvar.Set("paused", "1");
+			Cvar.getInstance().Set("paused", "1");
 		}
 	};
 
@@ -191,7 +191,7 @@ public final class Console extends Globals {
 	//
 	// register our commands
 	//
-	ClientGlobals.con_notifytime = Cvar.Get("con_notifytime", "3", 0);
+	ClientGlobals.con_notifytime = Cvar.getInstance().Get("con_notifytime", "3", 0);
 
 	Cmd.AddCommand("toggleconsole", ToggleConsole_f);
 	Cmd.AddCommand("togglechat", ToggleChat_f);

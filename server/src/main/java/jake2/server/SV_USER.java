@@ -108,7 +108,7 @@ class SV_USER {
         // serverdata needs to go over for all types of servers
         // to make sure the protocol is right, and to set the gamedir
         //
-        gamedir = Cvar.VariableString("gamedir");
+        gamedir = Cvar.getInstance().VariableString("gamedir");
 
         // send the serverdata
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
@@ -415,7 +415,7 @@ class SV_USER {
      * Dumps the serverinfo info string ==================
      */
     private static void SV_ShowServerinfo_f(List<String> args) {
-        Info.Print(Cvar.Serverinfo());
+        Info.Print(Cvar.getInstance().Serverinfo());
     }
 
     static void SV_Nextserver() {
@@ -424,11 +424,11 @@ class SV_USER {
         //ZOID, ss_pic can be nextserver'd in coop mode
         if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME
                 || (SV_INIT.gameImports.sv.state == ServerStates.SS_PIC &&
-                        0 == Cvar.VariableValue("coop")))
+                        0 == Cvar.getInstance().VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
         SV_INIT.gameImports.svs.spawncount++; // make sure another doesn't sneak in
-        v = Cvar.VariableString("nextserver");
+        v = Cvar.getInstance().VariableString("nextserver");
         //if (!v[0])
         if (v.length() == 0)
             Cbuf.AddText("killserver\n");
@@ -436,7 +436,7 @@ class SV_USER {
             Cbuf.AddText(v);
             Cbuf.AddText("\n");
         }
-        Cvar.Set("nextserver", "");
+        Cvar.getInstance().Set("nextserver", "");
     }
 
     /*

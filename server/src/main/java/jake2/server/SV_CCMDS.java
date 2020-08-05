@@ -280,7 +280,7 @@ public class SV_CCMDS {
 
 			// write all CVAR_LATCH cvars
 			// these will be things like coop, skill, deathmatch, etc
-			Cvar.eachCvarByFlags(Defines.CVAR_LATCH, var -> {
+			Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
 					try {
 						f.writeString(var.name);
 						f.writeString(var.string);
@@ -329,7 +329,7 @@ public class SV_CCMDS {
 				String value = f.readString();
 
 				Com.DPrintf("Set " + name + " = " + value + "\n");
-				Cvar.ForceSet(name, value);
+				Cvar.getInstance().ForceSet(name, value);
 			}
 
 			f.close();

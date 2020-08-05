@@ -312,19 +312,19 @@ public class GameImportsImpl implements GameImports {
     /* console variable interaction */
     @Override
     public cvar_t cvar(String var_name, String value, int flags) {
-        return Cvar.Get(var_name, value, flags);
+        return Cvar.getInstance().Get(var_name, value, flags);
     }
 
     /* console variable interaction */
     @Override
     public cvar_t cvar_set(String var_name, String value) {
-        return Cvar.Set(var_name, value);
+        return Cvar.getInstance().Set(var_name, value);
     }
 
     /* console variable interaction */
     @Override
     public cvar_t cvar_forceset(String var_name, String value) {
-        return Cvar.ForceSet(var_name, value);
+        return Cvar.getInstance().ForceSet(var_name, value);
     }
 
 
@@ -361,7 +361,7 @@ SV_Savegame_f
             return;
         }
 
-        if (Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -530,7 +530,7 @@ SV_Savegame_f
     */
     private void SV_Serverinfo_f(List<String> args) {
         Com.Printf("Server info settings:\n");
-        Info.Print(Cvar.Serverinfo());
+        Info.Print(Cvar.getInstance().Serverinfo());
     }
     /*
     ===========
@@ -615,7 +615,7 @@ SV_Savegame_f
         MSG.WriteLong(buf, svs.spawncount);
         // 2 means server demo
         MSG.WriteByte(buf, 2); // demos are always attract loops
-        MSG.WriteString(buf, Cvar.VariableString("gamedir"));
+        MSG.WriteString(buf, Cvar.getInstance().VariableString("gamedir"));
         MSG.WriteShort(buf, -1);
         // send full levelname
         MSG.WriteString(buf, sv.configstrings[Defines.CS_NAME]);
@@ -698,7 +698,7 @@ SV_Savegame_f
         }
 
         // make sure the server is listed public
-        Cvar.Set("public", "1");
+        Cvar.getInstance().Set("public", "1");
 
         for (i = 1; i < Defines.MAX_MASTERS; i++)
             SV_MAIN.master_adr[i] = new netadr_t();

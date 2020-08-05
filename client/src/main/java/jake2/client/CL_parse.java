@@ -269,7 +269,7 @@ public class CL_parse {
                         .equals(str))
                 || (str.length() == 0 && (FS.fs_gamedirvar.string != null || FS.fs_gamedirvar.string
                         .length() == 0)))
-            Cvar.Set("game", str);
+            Cvar.getInstance().Set("game", str);
 
         // parse player entity number
         ClientGlobals.cl.playernum = MSG.ReadShort(Globals.net_message);
