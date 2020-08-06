@@ -845,6 +845,7 @@ public class PlayerClient {
             return;
         }
 
+        // single player only
         // restart the entire server
         gameExports.gameImports.AddCommandString("menu_loadgame\n");
     }

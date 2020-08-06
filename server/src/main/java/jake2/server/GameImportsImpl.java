@@ -60,6 +60,8 @@ public class GameImportsImpl implements GameImports {
 
     SV_WORLD world;
 
+    private final Cvar localCvars;
+
     public GameImportsImpl() {
 
         // Initialize server static state
@@ -93,6 +95,7 @@ public class GameImportsImpl implements GameImports {
 
         SV_InitOperatorCommands();
 
+        localCvars = new Cvar();
     }
 
     /**
@@ -309,22 +312,28 @@ public class GameImportsImpl implements GameImports {
         SV_GAME.PF_WriteDir(pos);
     }
 
-    /* console variable interaction */
+    /**
+     * Ready only expected
+     * Todo: return value instead
+     */
     @Override
     public cvar_t cvar(String var_name, String value, int flags) {
-        return Cvar.getInstance().Get(var_name, value, flags);
+        final cvar_t parentValue = Cvar.getInstance().FindVar(var_name);
+        if (parentValue != null) {
+            return parentValue;
+        } else {
+            return localCvars.Get(var_name, value, flags);
+        }
     }
 
-    /* console variable interaction */
     @Override
     public cvar_t cvar_set(String var_name, String value) {
-        return Cvar.getInstance().Set(var_name, value);
+        return localCvars.Set(var_name, value);
     }
 
-    /* console variable interaction */
     @Override
     public cvar_t cvar_forceset(String var_name, String value) {
-        return Cvar.getInstance().ForceSet(var_name, value);
+        return localCvars.ForceSet(var_name, value);
     }
 
 
@@ -361,7 +370,7 @@ SV_Savegame_f
             return;
         }
 
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+        if (gameImports.cvar("deathmatch", "", 0).value != 0) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -615,7 +624,7 @@ SV_Savegame_f
         MSG.WriteLong(buf, svs.spawncount);
         // 2 means server demo
         MSG.WriteByte(buf, 2); // demos are always attract loops
-        MSG.WriteString(buf, Cvar.getInstance().VariableString("gamedir"));
+        MSG.WriteString(buf, cvar("gamedir", "", 0).string);
         MSG.WriteShort(buf, -1);
         // send full levelname
         MSG.WriteString(buf, sv.configstrings[Defines.CS_NAME]);

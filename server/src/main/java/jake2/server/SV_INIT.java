@@ -473,7 +473,7 @@ public class SV_INIT {
 
 
         Cvar.getInstance().Get("rcon_password", "", 0);
-        Cvar.getInstance().Get("skill", "1", 0);
+        Cvar.getInstance().Get("skill", "1", 0); // redundant? will be set in the game module anyway
         Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
         Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
         Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);

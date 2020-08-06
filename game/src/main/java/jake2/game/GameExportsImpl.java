@@ -995,6 +995,8 @@ public class GameExportsImpl implements GameExports {
      */
     private void exitLevel() {
         gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
+
+        // todo: remove as not necessary, new game instance will be created anyway
         level.changemap = null;
         level.exitintermission = false;
         level.intermissiontime = 0;
@@ -1450,6 +1452,7 @@ public class GameExportsImpl implements GameExports {
 
         // exit intermissions
         if (level.exitintermission) {
+            // expected level.changemap != null
             exitLevel();
             return;
         }

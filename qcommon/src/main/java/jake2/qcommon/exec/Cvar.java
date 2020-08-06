@@ -147,7 +147,7 @@ public class Cvar extends Globals {
         return (var == null) ? "" : var.string;
     }
 
-    cvar_t FindVar(String var_name) {
+    public cvar_t FindVar(String var_name) {
         return cvarMap.get(var_name);
     }
 
