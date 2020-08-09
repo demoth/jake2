@@ -40,14 +40,13 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
-import jake2.qcommon.util.Vargs;
 import jake2.server.SV_INIT;
 import jake2.server.SV_MAIN;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
+import static jake2.qcommon.MainCommon.*;
 
 /**
  * Jake2 is the main class of Quake2 for Java.
@@ -110,15 +109,31 @@ public final class Jake2 {
         Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
 
         int oldtime = Timer.Milliseconds();
-        int newtime;
-        int time;
         while (true) {
             // find time spending rendering last frame
-            newtime = Timer.Milliseconds();
-            time = newtime - oldtime;
+            int newtime = Timer.Milliseconds();
+            int time = newtime - oldtime;
 
-            if (time > 0)
-                Frame(time);
+            if (time > 0) {
+                try {
+
+                    debugLogStatsFile();
+
+                    int adjustedTime = adjustTime(time);
+
+                    debugLogTraces();
+
+                    Cbuf.Execute();
+
+                    SV_MAIN.SV_Frame(adjustedTime);
+
+                    CL.Frame(adjustedTime);
+
+
+                } catch (longjmpException e) {
+                    Com.DPrintf("longjmp exception:" + e);
+                }
+            }
             oldtime = newtime;
         }
     }
@@ -198,108 +213,6 @@ public final class Jake2 {
 
         } catch (longjmpException e) {
             Sys.Error("Error during initialization");
-        }
-    }
-
-    /**
-     * Trigger generation of a frame for the given time. The setjmp/longjmp
-     * mechanism of the original was replaced with exceptions.
-     * @param msec the current game time
-     */
-    public static void Frame(int msec) {
-        try {
-
-            if (Globals.log_stats.modified) {
-                Globals.log_stats.modified= false;
-
-                if (Globals.log_stats.value != 0.0f) {
-
-                    if (Globals.log_stats_file != null) {
-                        try {
-                            Globals.log_stats_file.close();
-                        } catch (IOException e) {
-                        }
-                        Globals.log_stats_file= null;
-                    }
-
-                    try {
-                        Globals.log_stats_file= new FileWriter("stats.log");
-                    } catch (IOException e) {
-                        Globals.log_stats_file= null;
-                    }
-                    if (Globals.log_stats_file != null) {
-                        try {
-                            Globals.log_stats_file.write("entities,dlights,parts,frame time\n");
-                        } catch (IOException e) {
-                        }
-                    }
-
-                } else {
-
-                    if (Globals.log_stats_file != null) {
-                        try {
-                            Globals.log_stats_file.close();
-                        } catch (IOException e) {
-                        }
-                        Globals.log_stats_file= null;
-                    }
-                }
-            }
-
-            if (Globals.fixedtime.value != 0.0f) {
-                msec= (int) Globals.fixedtime.value;
-            } else if (Globals.timescale.value != 0.0f) {
-                msec *= Globals.timescale.value;
-                if (msec < 1)
-                    msec= 1;
-            }
-
-            if (Globals.showtrace.value != 0.0f) {
-                Com.Printf("%4i traces  %4i points\n",
-                    new Vargs(2).add(Globals.c_traces)
-                                .add(Globals.c_pointcontents));
-
-
-                Globals.c_traces= 0;
-                Globals.c_brush_traces= 0;
-                Globals.c_pointcontents= 0;
-            }
-
-            Cbuf.Execute();
-
-            int time_before= 0;
-            int time_between= 0;
-            int time_after= 0;
-
-            if (Globals.host_speeds.value != 0.0f)
-                time_before= Timer.Milliseconds();
-
-            Com.debugContext = "SV:";
-            SV_MAIN.SV_Frame(msec);
-
-            if (Globals.host_speeds.value != 0.0f)
-                time_between= Timer.Milliseconds();
-
-            Com.debugContext = "CL:";
-            CL.Frame(msec);
-
-            if (Globals.host_speeds.value != 0.0f) {
-                time_after= Timer.Milliseconds();
-
-                int all= time_after - time_before;
-                int sv= time_between - time_before;
-                int cl= time_after - time_between;
-                int gm= Globals.time_after_game - Globals.time_before_game;
-                int rf= Globals.time_after_ref - Globals.time_before_ref;
-                sv -= gm;
-                cl -= rf;
-
-                Com.Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
-                    new Vargs(5).add(all).add(sv).add(gm).add(cl).add(rf));
-            }
-
-        } catch (longjmpException e) {
-            Com.DPrintf("longjmp exception:" + e);
         }
     }
 }

@@ -334,10 +334,6 @@ public class SV_CCMDS {
 
 			f.close();
 
-			// start a new game fresh with new cvars
-			SV_INIT.SV_InitGame();
-
-			// fixme: SV_INIT.gameImports is changed after SV_INIT.SV_InitGame();
 			gameImports.svs.mapcmd = mapcmd;
 
 			// read game state
@@ -400,10 +396,9 @@ public class SV_CCMDS {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
-				client_t cl;
 				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
 				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					cl = SV_INIT.gameImports.svs.clients[i];
+					client_t cl = SV_INIT.gameImports.svs.clients[i];
 					savedInuse[i] = cl.edict.inuse;
 					cl.edict.inuse = false;
 				}
@@ -412,7 +407,7 @@ public class SV_CCMDS {
 
 				// we must restore these for clients to transfer over correctly
 				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					cl = SV_INIT.gameImports.svs.clients[i];
+					client_t cl = SV_INIT.gameImports.svs.clients[i];
 					cl.edict.inuse = savedInuse[i];
 
 				}
@@ -520,6 +515,10 @@ public class SV_CCMDS {
 		}
 
 		SV_CopySaveGame(saveGame, "current");
+
+		// start a new game fresh with new cvars
+		SV_INIT.SV_InitGame();
+
 		SV_ReadServerFile(SV_INIT.gameImports);
 
 		// go to the map

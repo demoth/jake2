@@ -119,7 +119,7 @@ class SV_USER {
         MSG.WriteLong(SV_MAIN.sv_client.netchan.message,
                         SV_INIT.gameImports.svs.spawncount);
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                SV_INIT.gameImports.sv.attractloop ? 1 : 0);
+                SV_INIT.gameImports.sv.isDemo ? 1 : 0);
         MSG.WriteString(SV_MAIN.sv_client.netchan.message, gamedir);
 
         if (SV_INIT.gameImports.sv.state == ServerStates.SS_CINEMATIC

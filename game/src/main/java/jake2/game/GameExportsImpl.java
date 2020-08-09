@@ -1523,7 +1523,6 @@ public class GameExportsImpl implements GameExports {
         try {
 
             QuakeFile f = new QuakeFile(filename, "r");
-            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
             game.load(f);
 
@@ -1571,19 +1570,12 @@ public class GameExportsImpl implements GameExports {
 
             QuakeFile f = new QuakeFile(filename, "r");
 
-            if (f == null)
-                gameImports.error("Couldn't read level file " + filename);
-
-            // wipe all the entities
-            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
-
             num_edicts = game.maxclients + 1;
 
             // load the level locals
             level.read(f, g_edicts);
 
             // load all the entities
-            SubgameEntity ent;
             while (true) {
                 int entnum = f.readInt();
                 if (entnum == -1)
@@ -1592,7 +1584,7 @@ public class GameExportsImpl implements GameExports {
                 if (entnum >= num_edicts)
                     num_edicts = entnum + 1;
 
-                ent = g_edicts[entnum];
+                SubgameEntity ent = g_edicts[entnum];
                 ent.read(f, g_edicts, game.clients, this);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
@@ -1602,7 +1594,7 @@ public class GameExportsImpl implements GameExports {
 
             // mark all clients as unconnected
             for (int i = 0; i < game.maxclients; i++) {
-                ent = g_edicts[i + 1];
+                SubgameEntity ent = g_edicts[i + 1];
                 ent.setClient(game.clients[i]);
                 gclient_t client = ent.getClient();
                 client.pers.connected = false;
@@ -1610,7 +1602,7 @@ public class GameExportsImpl implements GameExports {
 
             // do any load time things at this point
             for (int i = 0; i < num_edicts; i++) {
-                ent = g_edicts[i];
+                SubgameEntity ent = g_edicts[i];
 
                 if (!ent.inuse)
                     continue;

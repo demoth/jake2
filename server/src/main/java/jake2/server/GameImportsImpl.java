@@ -74,6 +74,7 @@ public class GameImportsImpl implements GameImports {
         for (int n = 0; n < svs.clients.length; n++) {
             svs.clients[n] = new client_t();
             svs.clients[n].serverindex = n;
+            svs.clients[n].lastcmd = new usercmd_t();
         }
 
         svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
@@ -140,7 +141,6 @@ public class GameImportsImpl implements GameImports {
     void resetClients() {
         for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
             svs.clients[i].edict = gameExports.getEdict(i + 1);
-            svs.clients[i].lastcmd = new usercmd_t();
         }
     }
 

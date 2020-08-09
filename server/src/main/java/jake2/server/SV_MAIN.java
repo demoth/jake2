@@ -30,10 +30,9 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.network.netadr_t;
-import jake2.qcommon.sys.Timer;
+import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
-import java.io.IOException;
 import java.util.List;
 
 public class SV_MAIN {
@@ -271,7 +270,7 @@ public class SV_MAIN {
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", NET.AdrToString(Globals.net_from));
 
         // attractloop servers are ONLY for local clients
-        if (SV_INIT.gameImports.sv.attractloop) {
+        if (SV_INIT.gameImports.sv.isDemo) {
             if (!NET.IsLocalAddress(adr)) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr,
@@ -658,8 +657,6 @@ public class SV_MAIN {
      * SV_RunGameFrame.
      */
     private static void SV_RunGameFrame() {
-        if (Globals.host_speeds.value != 0)
-            Globals.time_before_game = Timer.Milliseconds();
 
         // we always need to bump framenum, even if we
         // don't run the world, otherwise the delta
@@ -680,9 +677,6 @@ public class SV_MAIN {
             }
         }
 
-        if (Globals.host_speeds.value != 0)
-            Globals.time_after_game = Timer.Milliseconds();
-
     }
 
     /**
@@ -693,10 +687,14 @@ public class SV_MAIN {
 
         // if server is not active, do nothing
         // like when connected to another server
-        if (SV_INIT.gameImports == null || !SV_INIT.gameImports.svs.initialized)
+        final GameImportsImpl serverInstance = SV_INIT.gameImports;
+        if (serverInstance == null)
             return;
+        if (!serverInstance.svs.initialized) {
+            Sys.Error("!serverInstance.svs.initialized");
+        }
 
-        SV_INIT.gameImports.svs.realtime += msec;
+        serverInstance.svs.realtime += msec;
 
         // keep the random time dependent
         Lib.rand();
@@ -711,15 +709,14 @@ public class SV_MAIN {
         //	Com.p("player at:" + Lib.vtofsbeaty(Game.g_edicts[1].s.origin ));
 
         // move autonomous things around if enough time has passed
-        if (0 == SV_MAIN.sv_timedemo.value
-                && SV_INIT.gameImports.svs.realtime < SV_INIT.gameImports.sv.time) {
+        if (0 == SV_MAIN.sv_timedemo.value && serverInstance.svs.realtime < serverInstance.sv.time) {
             // never let the time get too far off
-            if (SV_INIT.gameImports.sv.time - SV_INIT.gameImports.svs.realtime > 100) {
+            if (serverInstance.sv.time - serverInstance.svs.realtime > 100) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv lowclamp\n");
-                SV_INIT.gameImports.svs.realtime = SV_INIT.gameImports.sv.time - 100;
+                serverInstance.svs.realtime = serverInstance.sv.time - 100;
             }
-            NET.Sleep(SV_INIT.gameImports.sv.time - SV_INIT.gameImports.svs.realtime);
+            NET.Sleep(serverInstance.sv.time - serverInstance.svs.realtime);
             return;
         }
 
@@ -742,7 +739,7 @@ public class SV_MAIN {
         Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
-        clearEntityStateEvents(SV_INIT.gameImports.gameExports);
+        clearEntityStateEvents(serverInstance.gameExports);
 
     }
 
@@ -887,6 +884,9 @@ public class SV_MAIN {
      * Called when each game quits, before Sys_Quit or Sys_Error.
      */
     public static void SV_Shutdown(String finalmsg, boolean reconnect) {
+        if (SV_INIT.gameImports == null)
+            return;
+
         if (SV_INIT.gameImports.svs.clients != null)
             SV_FinalMessage(finalmsg, reconnect);
 
@@ -894,6 +894,10 @@ public class SV_MAIN {
 
         Com.Printf("==== ShutdownGame ====\n");
 
+        SV_INIT.gameImports = null;
+        Globals.server_state = ServerStates.SS_DEAD;
+
+/*
         // free current level
         if (SV_INIT.gameImports.sv != null && SV_INIT.gameImports.sv.demofile != null)
             try {
@@ -914,5 +918,6 @@ public class SV_MAIN {
             }
 
         SV_INIT.gameImports.svs = new server_static_t();
+*/
     }
 }

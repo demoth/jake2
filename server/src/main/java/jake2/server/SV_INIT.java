@@ -160,18 +160,15 @@ public class SV_INIT {
      * Change the server to a new map, taking all connected clients along with
      * it.
      */
-    private static void SV_SpawnServer(String server, String spawnpoint,
-                                       ServerStates serverstate, boolean attractloop, boolean loadgame) {
-        int i;
-        int checksum = 0;
+    private static void SV_SpawnServer(String mapName, String spawnpoint, ServerStates serverstate, boolean isDemo, boolean loadgame) {
 
-        if (attractloop)
+        if (isDemo)
             Cvar.getInstance().Set("paused", "0");
 
         Com.Printf("------- Server Initialization -------\n");
 
-        Com.DPrintf("SpawnServer: " + server + "\n");
-        if (gameImports != null && gameImports.sv != null && gameImports.sv.demofile != null)
+        Com.DPrintf("SpawnServer: " + mapName + "\n");
+        if (gameImports.sv != null && gameImports.sv.demofile != null)
             try {
                 gameImports.sv.demofile.close();
             } 
@@ -189,14 +186,13 @@ public class SV_INIT {
 
         gameImports.svs.realtime = 0;
         gameImports.sv.loadgame = loadgame;
-        gameImports.sv.attractloop = attractloop;
+        gameImports.sv.isDemo = isDemo;
 
         // save name for levels that don't set message
-        gameImports.sv.configstrings[Defines.CS_NAME] = server;
+        gameImports.sv.configstrings[Defines.CS_NAME] = mapName;
 
         if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = ""
-                    + SV_MAIN.sv_airaccelerate.value;
+            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = "" + SV_MAIN.sv_airaccelerate.value;
             PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
         } else {
             gameImports.sv.configstrings[Defines.CS_AIRACCEL] = "0";
@@ -205,10 +201,10 @@ public class SV_INIT {
 
         SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
 
-        gameImports.sv.name = server;
+        gameImports.sv.name = mapName;
 
         // leave slots at start for clients only
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
             // needs to reconnect
             if (gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
                 gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
@@ -217,17 +213,17 @@ public class SV_INIT {
 
         gameImports.sv.time = 1000;
 
-        gameImports.sv.name = server;
-        gameImports.sv.configstrings[Defines.CS_NAME] = server;
+        gameImports.sv.name = mapName;
+        gameImports.sv.configstrings[Defines.CS_NAME] = mapName;
 
+        int checksum = 0;
         int iw[] = { checksum };
 
         if (serverstate != ServerStates.SS_GAME) {
             gameImports.sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
         } else {
-            gameImports.sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + server + ".bsp";
-            gameImports.sv.models[1] = CM.CM_LoadMap(
-                    gameImports.sv.configstrings[Defines.CS_MODELS + 1], false, iw);
+            gameImports.sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + mapName + ".bsp";
+            gameImports.sv.models[1] = CM.CM_LoadMap(gameImports.sv.configstrings[Defines.CS_MODELS + 1], false, iw);
         }
         checksum = iw[0];
         gameImports.sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
@@ -237,7 +233,7 @@ public class SV_INIT {
         
         SV_WORLD.SV_ClearWorld(gameImports);
 
-        for (i = 1; i < CM.CM_NumInlineModels(); i++) {
+        for (int i = 1; i < CM.CM_NumInlineModels(); i++) {
             gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
             
             // copy references
@@ -279,8 +275,9 @@ public class SV_INIT {
      * SV_InitGame.
      * 
      * A brand new game has been started.
+     * @return
      */
-    static void SV_InitGame() {
+    static GameImportsImpl SV_InitGame() {
 
         if (gameImports != null) {
             // cause any connected clients to reconnect
@@ -334,7 +331,8 @@ public class SV_INIT {
 
 
         gameImports.gameExports = createGameModInstance(gameImports);
-        gameImports.resetClients();
+        gameImports.resetClients(); // why? should have default values already
+        return gameImports;
     }
 
     /**
@@ -357,10 +355,11 @@ public class SV_INIT {
 
     /**
      * SV_Map
-     * 
+     *
+     * @param levelstring
      * the full syntax is:
      * 
-     * map [*] <map>$ <startspot>+ <nextserver>
+     * map [*]mapname$spawnpoint+nextserver
      * 
      * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
      * 
@@ -369,11 +368,11 @@ public class SV_INIT {
      * 
      * map tram.cin+jail_e3
      */
-    static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
+    static void SV_Map(boolean isDemo, String levelstring, boolean loadgame) {
 
         if (gameImports != null && gameImports.sv != null) {
             gameImports.sv.loadgame = loadgame;
-            gameImports.sv.attractloop = attractloop;
+            gameImports.sv.isDemo = isDemo;
         }
 
         if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
@@ -423,24 +422,20 @@ public class SV_INIT {
         if (l > 4 && level.endsWith(".cin")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC,
-                    attractloop, loadgame);
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, attractloop,
-                    loadgame);
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, attractloop,
-                    loadgame);
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
         } else {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SEND.SV_SendClientMessages();
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, attractloop,
-                    loadgame);
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }
 
