@@ -819,7 +819,7 @@ public class M_Medic {
 
             self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (Lib.random() < 0.5) {
@@ -1253,7 +1253,7 @@ public class M_Medic {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_medic(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

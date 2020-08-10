@@ -561,8 +561,8 @@ class PlayerView {
                 damage = 1;
             Math3D.VectorSet(dir, 0, 0, 1);
 
-            if (gameExports.cvarCache.deathmatch.value == 0
-                    || 0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_FALLING))
+            if (gameExports.gameCvars.deathmatch.value == 0
+                    || 0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_FALLING))
                 GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                         gameExports.g_edicts[0], dir, ent.s.origin,
                         Globals.vec3_origin, damage, 0, 0, GameDefines.MOD_FALLING, gameExports);

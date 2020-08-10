@@ -1107,14 +1107,14 @@ public class M_Supertank {
                     return;
 
             // Don't go into pain if he's firing his rockets
-            if (gameExports.cvarCache.skill.value >= 2)
+            if (gameExports.gameCvars.skill.value >= 2)
                 if ((self.s.frame >= FRAME_attak2_1)
                         && (self.s.frame <= FRAME_attak2_14))
                     return;
 
             self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10) {
@@ -1157,7 +1157,7 @@ public class M_Supertank {
     public static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_supertank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.cvarCache.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }

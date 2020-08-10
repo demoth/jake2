@@ -883,7 +883,7 @@ public class M_Chick {
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -1276,7 +1276,7 @@ public class M_Chick {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_chick(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

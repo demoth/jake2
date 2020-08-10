@@ -78,7 +78,7 @@ class GameTarget {
      * message light will be set on all clients status bars.
      */
     static void SP_target_help(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
@@ -93,7 +93,7 @@ class GameTarget {
     }
 
     static void SP_target_secret(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
@@ -112,7 +112,7 @@ class GameTarget {
     }
 
     static void SP_target_goal(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
@@ -224,7 +224,7 @@ class GameTarget {
             return;
         }
 
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -421,14 +421,14 @@ class GameTarget {
             if (gameExports.level.intermissiontime != 0)
                 return; // already activated
 
-            if (0 == gameExports.cvarCache.deathmatch.value && 0 == gameExports.cvarCache.coop.value) {
+            if (0 == gameExports.gameCvars.deathmatch.value && 0 == gameExports.gameCvars.coop.value) {
                 if (gameExports.g_edicts[1].health <= 0)
                     return;
             }
 
             // if noexit, do a ton of damage to other
-            if (gameExports.cvarCache.deathmatch.value != 0
-                    && 0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_ALLOW_EXIT)
+            if (gameExports.gameCvars.deathmatch.value != 0
+                    && 0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_ALLOW_EXIT)
                     && other != gameExports.g_edicts[0] /* world */
             ) {
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
@@ -438,7 +438,7 @@ class GameTarget {
             }
 
             // if multiplayer, let everyone know who hit the exit
-            if (gameExports.cvarCache.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.value != 0) {
                 if (activator != null) {
                     gclient_t activatorClient = activator.getClient();
                     if (activatorClient != null) gameExports.gameImports.bprintf(Defines.PRINT_HIGH,

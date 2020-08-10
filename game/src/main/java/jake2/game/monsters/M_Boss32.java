@@ -1595,7 +1595,7 @@ public class M_Boss32 {
                     return;
 
             self.pain_debounce_time = gameExports.level.time + 3;
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 40) {
@@ -1957,7 +1957,7 @@ public class M_Boss32 {
      * Trigger_Spawn Sight
      */
     static void SP_monster_makron(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

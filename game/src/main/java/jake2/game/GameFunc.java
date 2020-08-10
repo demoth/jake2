@@ -22,7 +22,10 @@
 // $Id: GameFunc.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1415,7 +1418,7 @@ class GameFunc {
 
             if (0 == ent.speed)
                 ent.speed = 100;
-            if (gameExports.cvarCache.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.value != 0)
                 ent.speed *= 2;
 
             if (0 == ent.accel)

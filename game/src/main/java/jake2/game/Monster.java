@@ -143,7 +143,7 @@ public class Monster {
 
     // ============================================================================
     public static boolean monster_start(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return false;
         }

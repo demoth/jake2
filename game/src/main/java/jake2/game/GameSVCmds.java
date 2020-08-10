@@ -252,7 +252,7 @@ public class GameSVCmds {
         }
 
         try {
-            f.writeChars("set filterban " + (int) gameExports.cvarCache.filterban.value
+            f.writeChars("set filterban " + (int) gameExports.gameCvars.filterban.value
                     + "\n");
 
             for (i = 0; i < numipfilters; i++) {

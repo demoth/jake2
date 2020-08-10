@@ -75,7 +75,7 @@ public class GameTurret {
         Math3D.VectorMA(start, self.move_origin[2], u, start);
 
         damage = (int) (100 + Lib.random() * 50);
-        speed = (int) (550 + 50 * gameExports.cvarCache.skill.value);
+        speed = (int) (550 + 50 * gameExports.gameCvars.skill.value);
         GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
                 damage, gameExports);
         gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
@@ -129,7 +129,7 @@ public class GameTurret {
     }
 
     public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -394,7 +394,7 @@ public class GameTurret {
             if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return true;
 
-            reaction_time = (3 - gameExports.cvarCache.skill.value) * 1.0f;
+            reaction_time = (3 - gameExports.gameCvars.skill.value) * 1.0f;
             if ((gameExports.level.time - self.monsterinfo.trail_time) < reaction_time)
                 return true;
 

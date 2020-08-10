@@ -50,7 +50,7 @@ public class GameMisc {
     }
 
     static void SP_point_combat(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -96,7 +96,7 @@ public class GameMisc {
 
     static void SP_light(SubgameEntity self, GameExportsImpl gameExports) {
         // no targeted lights in deathmatch, because they cause global messages
-        if (null == self.targetname || gameExports.cvarCache.deathmatch.value != 0) {
+        if (null == self.targetname || gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -186,7 +186,7 @@ public class GameMisc {
     }
 
     static void SP_func_explosive(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -224,7 +224,7 @@ public class GameMisc {
     }
 
     static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
@@ -346,7 +346,7 @@ public class GameMisc {
     }
 
     static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }

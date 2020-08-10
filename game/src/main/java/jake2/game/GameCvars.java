@@ -8,7 +8,7 @@ import jake2.qcommon.exec.cvar_t;
 /*
  * "Cache" of cvars so we don't lookup them each frame
  */
-public class CvarCache {
+public class GameCvars {
     public final cvar_t deathmatch;
     public final cvar_t sv_gravity;
     public final cvar_t sv_cheats;
@@ -28,7 +28,7 @@ public class CvarCache {
     public final cvar_t flood_waitdelay;
     public final cvar_t sv_maplist;
 
-    public CvarCache(GameImports gameImports) {
+    public GameCvars(GameImports gameImports) {
         ///////////////////////////////////
         // Initialize game related cvars
         ///////////////////////////////////

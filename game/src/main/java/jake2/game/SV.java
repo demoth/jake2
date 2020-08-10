@@ -559,7 +559,7 @@ final class SV {
         //	   add gravity
         if (ent.movetype != GameDefines.MOVETYPE_FLY
                 && ent.movetype != GameDefines.MOVETYPE_FLYMISSILE)
-            SV_AddGravity(ent, gameExports.cvarCache.sv_gravity.value);
+            SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
 
         //	   move angles
         Math3D.VectorMA(ent.s.angles, Defines.FRAMETIME, ent.avelocity,
@@ -684,10 +684,10 @@ final class SV {
         if (!wasonground)
             if (0 == (ent.flags & GameDefines.FL_FLY))
                 if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
-                    if (ent.velocity[2] < gameExports.cvarCache.sv_gravity.value * -0.1)
+                    if (ent.velocity[2] < gameExports.gameCvars.sv_gravity.value * -0.1)
                         hitsound = true;
                     if (ent.waterlevel == 0)
-                        SV_AddGravity(ent, gameExports.cvarCache.sv_gravity.value);
+                        SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
                 }
 
         // friction for flying monsters that have been given vertical velocity

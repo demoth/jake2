@@ -117,7 +117,7 @@ public class GameCombat {
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 gameExports.level.killed_monsters++;
                 gclient_t attackerClient = attacker.getClient();
-                if (gameExports.cvarCache.coop.value != 0 && attackerClient != null)
+                if (gameExports.gameCvars.coop.value != 0 && attackerClient != null)
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
                 if (attacker.classname.equals("monster_medic"))
@@ -413,10 +413,10 @@ public class GameCombat {
         // friendly fire avoidance
         // if enabled you can't hurt teammates (but you can hurt yourself)
         // knockback still occurs
-        final CvarCache cvars = gameExports.cvarCache;
+        final GameCvars cvars = gameExports.gameCvars;
         if ((targ != attacker)
                 && ((cvars.deathmatch.value != 0 && 0 != ((int) (cvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.value != 0)) {
-            if (GameUtil.OnSameTeam(targ, attacker, gameExports.cvarCache.dmflags.value)) {
+            if (GameUtil.OnSameTeam(targ, attacker, gameExports.gameCvars.dmflags.value)) {
                 if (((int) (cvars.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
                 else

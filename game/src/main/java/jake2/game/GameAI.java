@@ -543,7 +543,7 @@ public class GameAI {
             }
 
             // coop will change to another enemy if visible           
-            if (gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.gameCvars.coop.value != 0) {
                 // FIXME: insane guys get mad with this, which causes crashes!
                 if (GameUtil.FindTarget(self, gameExports))
                     return;

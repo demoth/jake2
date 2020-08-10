@@ -713,7 +713,7 @@ public class M_Insane {
                     .soundindex("player/male/pain" + l + "_" + r + ".wav"), 1,
                     Defines.ATTN_IDLE, 0);
 
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             // Don't go into pain frames if crucified.
@@ -1231,7 +1231,7 @@ public class M_Insane {
     public static void SP_misc_insane(SubgameEntity self, GameExportsImpl gameExports) {
         //	 static int skin = 0; //@@
 
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

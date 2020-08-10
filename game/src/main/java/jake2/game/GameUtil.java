@@ -591,7 +591,7 @@ public class GameUtil {
             // melee attack
             if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
-                if (gameExports.cvarCache.skill.value == 0 && (Lib.rand() & 3) != 0)
+                if (gameExports.gameCvars.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
                 if (self.monsterinfo.melee != null)
                     self.monsterinfo.attack_state = GameDefines.AS_MELEE;
@@ -623,9 +623,9 @@ public class GameUtil {
                 return false;
             }
 
-            if (gameExports.cvarCache.skill.value == 0)
+            if (gameExports.gameCvars.skill.value == 0)
                 chance *= 0.5;
-            else if (gameExports.cvarCache.skill.value >= 2)
+            else if (gameExports.gameCvars.skill.value >= 2)
                 chance *= 2;
 
             if (Lib.random() < chance) {

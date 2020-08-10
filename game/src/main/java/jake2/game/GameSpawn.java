@@ -252,7 +252,7 @@ public class GameSpawn {
             gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (gameExports.game.maxclients));
             // status bar program
-            if (gameExports.cvarCache.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.value != 0)
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
@@ -1314,13 +1314,13 @@ public class GameSpawn {
         int i;
         float skill_level;
         //skill.value =2.0f;
-        skill_level = (float) Math.floor(gameExports.cvarCache.skill.value);
+        skill_level = (float) Math.floor(gameExports.gameCvars.skill.value);
 
         if (skill_level < 0)
             skill_level = 0;
         if (skill_level > 3)
             skill_level = 3;
-        if (gameExports.cvarCache.skill.value != skill_level)
+        if (gameExports.gameCvars.skill.value != skill_level)
             gameExports.gameImports.cvar_forceset("skill", "" + skill_level);
 
         PlayerClient.SaveClientData(gameExports);
@@ -1369,7 +1369,7 @@ public class GameSpawn {
             // remove things (except the world) from different skill levels or
             // deathmatch
             if (ent != gameExports.g_edicts[0]) {
-                if (gameExports.cvarCache.deathmatch.value != 0) {
+                if (gameExports.gameCvars.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
                         gameExports.gameImports.dprintf("->inhibited.\n");
@@ -1382,9 +1382,9 @@ public class GameSpawn {
                      * ((coop.value) && (ent.spawnflags &
                      * SPAWNFLAG_NOT_COOP)) ||
                      */
-                            ((gameExports.cvarCache.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
-                                    || ((gameExports.cvarCache.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                                    || (((gameExports.cvarCache.skill.value == 2) || (gameExports.cvarCache.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
+                            ((gameExports.gameCvars.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
+                                    || ((gameExports.gameCvars.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
+                                    || (((gameExports.gameCvars.skill.value == 2) || (gameExports.gameCvars.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
                         gameExports.gameImports.dprintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent, gameExports);
@@ -1402,7 +1402,7 @@ public class GameSpawn {
             ED_CallSpawn(ent, gameExports);
             gameExports.gameImports.dprintf("\n");
         }
-        gameExports.gameImports.dprintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
+        gameExports.gameImports.dprintf("player skill level:" + gameExports.gameCvars.skill.value + "\n");
         gameExports.gameImports.dprintf(inhibit + " entities inhibited.\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
@@ -1449,7 +1449,7 @@ public class GameSpawn {
             return;
         }
 
-        if (gameExports.cvarCache.deathmatch.value != 0 && gameExports.cvarCache.sv_cheats.value == 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0 && gameExports.gameCvars.sv_cheats.value == 0) {
             gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
