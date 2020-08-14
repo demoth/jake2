@@ -127,7 +127,7 @@ public class SV_GAME {
 
         // if it is an inline model, get the size information for it
         if (name.startsWith("*")) {
-            cmodel_t mod = CM.InlineModel(name);
+            cmodel_t mod = gameImports.cm.InlineModel(name);
             Math3D.VectorCopy(mod.mins, ent.mins);
             Math3D.VectorCopy(mod.maxs, ent.maxs);
             SV_WORLD.SV_LinkEdict(ent, gameImports);
@@ -137,7 +137,7 @@ public class SV_GAME {
     /**
      *  Change i-th configstring to 'val' and multicast it to everyone reliably
      */
-    static void PF_Configstring(int index, String val) {
+    static void PF_Configstring(int index, String val, GameImportsImpl gameImports) {
         if (index < 0 || index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring: bad index " + index
                     + "\n");
@@ -146,16 +146,16 @@ public class SV_GAME {
             val = "";
 
         // change the string in sv
-        SV_INIT.gameImports.sv.configstrings[index] = val;
+        gameImports.sv.configstrings[index] = val;
 
-        if (SV_INIT.gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
+        if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
-            SV_INIT.gameImports.sv.multicast.clear();
-            MSG.WriteChar(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_configstring);
-            MSG.WriteShort(SV_INIT.gameImports.sv.multicast, index);
-            MSG.WriteString(SV_INIT.gameImports.sv.multicast, val);
+            gameImports.sv.multicast.clear();
+            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
+            MSG.WriteShort(gameImports.sv.multicast, index);
+            MSG.WriteString(gameImports.sv.multicast, val);
 
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
         }
     }
 
@@ -200,20 +200,20 @@ public class SV_GAME {
      * 
      * Also checks portalareas so that doors block sight.
      */
-    public static boolean PF_inPVS(float[] p1, float[] p2) {
+    public static boolean PF_inPVS(float[] p1, float[] p2, GameImportsImpl gameImports) {
         int leafnum;
         int cluster;
         int area1, area2;
         byte mask[];
 
-        leafnum = CM.CM_PointLeafnum(p1);
-        cluster = CM.CM_LeafCluster(leafnum);
-        area1 = CM.CM_LeafArea(leafnum);
-        mask = CM.CM_ClusterPVS(cluster);
+        leafnum = gameImports.cm.CM_PointLeafnum(p1);
+        cluster = gameImports.cm.CM_LeafCluster(leafnum);
+        area1 = gameImports.cm.CM_LeafArea(leafnum);
+        mask = gameImports.cm.CM_ClusterPVS(cluster);
 
-        leafnum = CM.CM_PointLeafnum(p2);
-        cluster = CM.CM_LeafCluster(leafnum);
-        area2 = CM.CM_LeafArea(leafnum);
+        leafnum = gameImports.cm.CM_PointLeafnum(p2);
+        cluster = gameImports.cm.CM_LeafCluster(leafnum);
+        area2 = gameImports.cm.CM_LeafArea(leafnum);
 
         // quake2 bugfix
         if (cluster == -1)
@@ -221,7 +221,7 @@ public class SV_GAME {
         if (mask != null && (0 == (mask[cluster >>> 3] & (1 << (cluster & 7)))))
             return false;
 
-        if (!CM.CM_AreasConnected(area1, area2))
+        if (!gameImports.cm.CM_AreasConnected(area1, area2))
             return false; // a door blocks sight
 
         return true;
@@ -232,27 +232,27 @@ public class SV_GAME {
      * 
      * Also checks portalareas so that doors block sound.
      */
-    public static boolean PF_inPHS(float[] p1, float[] p2) {
+    public static boolean PF_inPHS(float[] p1, float[] p2, GameImportsImpl gameImports) {
         int leafnum;
         int cluster;
         int area1, area2;
         byte mask[];
 
-        leafnum = CM.CM_PointLeafnum(p1);
-        cluster = CM.CM_LeafCluster(leafnum);
-        area1 = CM.CM_LeafArea(leafnum);
-        mask = CM.CM_ClusterPHS(cluster);
+        leafnum = gameImports.cm.CM_PointLeafnum(p1);
+        cluster = gameImports.cm.CM_LeafCluster(leafnum);
+        area1 = gameImports.cm.CM_LeafArea(leafnum);
+        mask = gameImports.cm.CM_ClusterPHS(cluster);
 
-        leafnum = CM.CM_PointLeafnum(p2);
-        cluster = CM.CM_LeafCluster(leafnum);
-        area2 = CM.CM_LeafArea(leafnum);
+        leafnum = gameImports.cm.CM_PointLeafnum(p2);
+        cluster = gameImports.cm.CM_LeafCluster(leafnum);
+        area2 = gameImports.cm.CM_LeafArea(leafnum);
 
         // quake2 bugfix
         if (cluster == -1)
             return false;
         if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
             return false; // more than one bounce away
-        if (!CM.CM_AreasConnected(area1, area2))
+        if (!gameImports.cm.CM_AreasConnected(area1, area2))
             return false; // a door blocks hearing
 
         return true;

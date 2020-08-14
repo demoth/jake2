@@ -37,6 +37,27 @@ import java.nio.IntBuffer;
 import java.util.Arrays;
 
 public class CM {
+    public CM() {
+        for (int n = 0; n < Defines.MAX_MAP_BRUSHSIDES; n++)
+            map_brushsides[n] = new cbrushside_t();
+        for (int n = 0; n < Defines.MAX_MAP_TEXINFO; n++)
+            map_surfaces[n] = new mapsurface_t();
+        for (int n = 0; n < Defines.MAX_MAP_PLANES + 6; n++)
+            map_planes[n] = new cplane_t();
+        for (int n = 0; n < Defines.MAX_MAP_NODES + 6; n++)
+            map_nodes[n] = new cnode_t();
+        for (int n = 0; n < Defines.MAX_MAP_LEAFS; n++)
+            map_leafs[n] = new cleaf_t();
+        for (int n = 0; n < Defines.MAX_MAP_MODELS; n++)
+            map_cmodels[n] = new cmodel_t();
+        for (int n = 0; n < Defines.MAX_MAP_BRUSHES; n++)
+            map_brushes[n] = new cbrush_t();
+        for (int n = 0; n < Defines.MAX_MAP_AREAS; n++)
+            map_areas[n] = new carea_t();
+        for (int n = 0; n < Defines.MAX_MAP_AREAPORTALS; n++)
+            map_areaportals[n] = new qfiles.dareaportal_t();
+
+    }
 
     public static class cnode_t {
         cplane_t plane; // ptr
@@ -84,130 +105,86 @@ public class CM {
         int floodvalid;
     }
 
-    static int checkcount;
+    int checkcount;
 
-    static String map_name = "";
+    String map_name = "";
 
-    static int numbrushsides;
+    int numbrushsides;
 
-    static cbrushside_t map_brushsides[] = new cbrushside_t[Defines.MAX_MAP_BRUSHSIDES];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_BRUSHSIDES; n++)
-            map_brushsides[n] = new cbrushside_t();
-    }
+    cbrushside_t[] map_brushsides = new cbrushside_t[Defines.MAX_MAP_BRUSHSIDES];
 
-    public static int numtexinfo;
+    public int numtexinfo;
 
-    public static mapsurface_t map_surfaces[] = new mapsurface_t[Defines.MAX_MAP_TEXINFO];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_TEXINFO; n++)
-            map_surfaces[n] = new mapsurface_t();
-    }
+    public mapsurface_t[] map_surfaces = new mapsurface_t[Defines.MAX_MAP_TEXINFO];
 
-    static int numplanes;
+    int numplanes;
 
     /** Extra for box hull ( +6) */
-    static cplane_t map_planes[] = new cplane_t[Defines.MAX_MAP_PLANES + 6];
+    cplane_t[] map_planes = new cplane_t[Defines.MAX_MAP_PLANES + 6];
 
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_PLANES + 6; n++)
-            map_planes[n] = new cplane_t();
-    }
-
-    static int numnodes;
+    int numnodes;
 
     /** Extra for box hull ( +6) */
-    static cnode_t map_nodes[] = new cnode_t[Defines.MAX_MAP_NODES + 6];
+    cnode_t[] map_nodes = new cnode_t[Defines.MAX_MAP_NODES + 6];
 
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_NODES + 6; n++)
-            map_nodes[n] = new cnode_t();
-    }
+    int numleafs = 1; // allow leaf funcs to be called without a map
 
-    static int numleafs = 1; // allow leaf funcs to be called without a map
+    cleaf_t[] map_leafs = new cleaf_t[Defines.MAX_MAP_LEAFS];
+    int emptyleaf;
+    int solidleaf;
 
-    static cleaf_t map_leafs[] = new cleaf_t[Defines.MAX_MAP_LEAFS];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_LEAFS; n++)
-            map_leafs[n] = new cleaf_t();
-    }
+    int numleafbrushes;
 
-    static int emptyleaf, solidleaf;
+    public int[] map_leafbrushes = new int[Defines.MAX_MAP_LEAFBRUSHES];
 
-    static int numleafbrushes;
+    public int numcmodels;
 
-    public static int map_leafbrushes[] = new int[Defines.MAX_MAP_LEAFBRUSHES];
+    public cmodel_t[] map_cmodels = new cmodel_t[Defines.MAX_MAP_MODELS];
 
-    public static int numcmodels;
+    public int numbrushes;
 
-    public static cmodel_t map_cmodels[] = new cmodel_t[Defines.MAX_MAP_MODELS];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_MODELS; n++)
-            map_cmodels[n] = new cmodel_t();
+    public cbrush_t[] map_brushes = new cbrush_t[Defines.MAX_MAP_BRUSHES];
 
-    }
+    public int numvisibility;
 
-    public static int numbrushes;
-
-    public static cbrush_t map_brushes[] = new cbrush_t[Defines.MAX_MAP_BRUSHES];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_BRUSHES; n++)
-            map_brushes[n] = new cbrush_t();
-
-    }
-
-    public static int numvisibility;
-
-    public static byte map_visibility[] = new byte[Defines.MAX_MAP_VISIBILITY];
+    public byte[] map_visibility = new byte[Defines.MAX_MAP_VISIBILITY];
 
     /** Main visibility data. */
-    public static qfiles.dvis_t map_vis = new qfiles.dvis_t(ByteBuffer
-            .wrap(map_visibility));
+    public qfiles.dvis_t map_vis = new qfiles.dvis_t(ByteBuffer.wrap(map_visibility));
 
-    public static int numentitychars;
+    public int numentitychars;
 
-    public static String map_entitystring;
+    public String map_entitystring;
 
-    public static int numareas = 1;
+    public int numareas = 1;
 
-    public static carea_t map_areas[] = new carea_t[Defines.MAX_MAP_AREAS];
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_AREAS; n++)
-            map_areas[n] = new carea_t();
+    public carea_t[] map_areas = new carea_t[Defines.MAX_MAP_AREAS];
 
-    }
+    public int numareaportals;
 
-    public static int numareaportals;
+    public qfiles.dareaportal_t map_areaportals[] = new qfiles.dareaportal_t[Defines.MAX_MAP_AREAPORTALS];
 
-    public static qfiles.dareaportal_t map_areaportals[] = new qfiles.dareaportal_t[Defines.MAX_MAP_AREAPORTALS];
 
-    static {
-        for (int n = 0; n < Defines.MAX_MAP_AREAPORTALS; n++)
-            map_areaportals[n] = new qfiles.dareaportal_t();
+    public int numclusters = 1;
 
-    }
+    public mapsurface_t nullsurface = new mapsurface_t();
 
-    public static int numclusters = 1;
+    public int floodvalid;
 
-    public static mapsurface_t nullsurface = new mapsurface_t();
+    public boolean[] portalopen = new boolean[Defines.MAX_MAP_AREAPORTALS];
 
-    public static int floodvalid;
+    public cvar_t map_noareas;
 
-    public static boolean portalopen[] = new boolean[Defines.MAX_MAP_AREAPORTALS];
+    public byte[] cmod_base;
 
-    public static cvar_t map_noareas;
+    public int checksum;
 
-    public static byte cmod_base[];
-
-    public static int checksum;
-
-    public static int last_checksum;
+    public int last_checksum;
 
     /** 
      * Loads in the map and all submodels.
      */
-    public static cmodel_t CM_LoadMap(String name, boolean clientload,
-            int checksum[]) {
+    public cmodel_t CM_LoadMap(String name, boolean clientload, int[] checksum) {
         Com.DPrintf("CM_LoadMap(" + name + ")...\n");
         byte buf[];
         qfiles.dheader_t header;
@@ -296,7 +273,7 @@ public class CM {
     }
 
     /** Loads Submodels. */
-    public static void CMod_LoadSubmodels(lump_t l) {
+    public void CMod_LoadSubmodels(lump_t l) {
         Com.DPrintf("CMod_LoadSubmodels()\n");
         qfiles.dmodel_t in;
         cmodel_t out;
@@ -340,10 +317,10 @@ public class CM {
         }
     }
 
-    static boolean debugloadmap = false;
+    boolean debugloadmap = false;
 
     /** Loads surfaces. */
-    public static void CMod_LoadSurfaces(lump_t l) {
+    public void CMod_LoadSurfaces(lump_t l) {
         Com.DPrintf("CMod_LoadSurfaces()\n");
         texinfo_t in;
         mapsurface_t out;
@@ -383,7 +360,7 @@ public class CM {
     }
 
     /** Loads nodes. */
-    public static void CMod_LoadNodes(lump_t l) {
+    public void CMod_LoadNodes(lump_t l) {
         Com.DPrintf("CMod_LoadNodes()\n");
         qfiles.dnode_t in;
         int child;
@@ -425,7 +402,7 @@ public class CM {
     }
 
     /** Loads brushes.*/
-    public static void CMod_LoadBrushes(lump_t l) {
+    public void CMod_LoadBrushes(lump_t l) {
         Com.DPrintf("CMod_LoadBrushes()\n");
         qfiles.dbrush_t in;
         cbrush_t out;
@@ -461,7 +438,7 @@ public class CM {
     }
 
     /** Loads leafs.   */
-    public static void CMod_LoadLeafs(lump_t l) {
+    public void CMod_LoadLeafs(lump_t l) {
         Com.DPrintf("CMod_LoadLeafs()\n");
         int i;
         cleaf_t out;
@@ -529,7 +506,7 @@ public class CM {
     }
 
     /** Loads planes. */
-    public static void CMod_LoadPlanes(lump_t l) {
+    public void CMod_LoadPlanes(lump_t l) {
         Com.DPrintf("CMod_LoadPlanes()\n");
         int i, j;
         cplane_t out;
@@ -585,7 +562,7 @@ public class CM {
     }
 
     /** Loads leaf brushes. */
-    public static void CMod_LoadLeafBrushes(lump_t l) {
+    public void CMod_LoadLeafBrushes(lump_t l) {
         Com.DPrintf("CMod_LoadLeafBrushes()\n");
 
         if ((l.filelen % 2) != 0)
@@ -621,7 +598,7 @@ public class CM {
     }
 
     /** Loads brush sides. */
-    public static void CMod_LoadBrushSides(lump_t l) {
+    public void CMod_LoadBrushSides(lump_t l) {
         Com.DPrintf("CMod_LoadBrushSides()\n");
         int i, j;
         cbrushside_t out;
@@ -674,7 +651,7 @@ public class CM {
     }
 
     /** Loads areas. */
-    public static void CMod_LoadAreas(lump_t l) {
+    public void CMod_LoadAreas(lump_t l) {
         Com.DPrintf("CMod_LoadAreas()\n");
         int i;
         carea_t out;
@@ -714,7 +691,7 @@ public class CM {
     }
 
     /** Loads area portals. */
-    public static void CMod_LoadAreaPortals(lump_t l) {
+    public void CMod_LoadAreaPortals(lump_t l) {
         Com.DPrintf("CMod_LoadAreaPortals()\n");
         int i;
         qfiles.dareaportal_t out;
@@ -751,7 +728,7 @@ public class CM {
     }
 
     /** Loads visibility data. */
-    public static void CMod_LoadVisibility(lump_t l) {
+    public void CMod_LoadVisibility(lump_t l) {
         Com.DPrintf("CMod_LoadVisibility()\n");
 
         numvisibility = l.filelen;
@@ -771,7 +748,7 @@ public class CM {
     }
 
     /** Loads entity strings. */
-    public static void CMod_LoadEntityString(lump_t l) {
+    public void CMod_LoadEntityString(lump_t l) {
         Com.DPrintf("CMod_LoadEntityString()\n");
 
         numentitychars = l.filelen;
@@ -789,7 +766,7 @@ public class CM {
     }
 
     /** Returns the model with a given id "*" + <number> */
-    public static cmodel_t InlineModel(String name) {
+    public cmodel_t InlineModel(String name) {
         if (name == null || name.charAt(0) != '*')
             Com.Error(Defines.ERR_DROP, "CM_InlineModel: bad name");
 
@@ -801,48 +778,48 @@ public class CM {
         return map_cmodels[num];
     }
 
-    public static int CM_NumClusters() {
+    public int CM_NumClusters() {
         return numclusters;
     }
 
-    public static int CM_NumInlineModels() {
+    public int CM_NumInlineModels() {
         return numcmodels;
     }
 
-    public static String CM_EntityString() {
+    public String CM_EntityString() {
         return map_entitystring;
     }
 
-    public static int CM_LeafContents(int leafnum) {
+    public int CM_LeafContents(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
             Com.Error(Defines.ERR_DROP, "CM_LeafContents: bad number");
         return map_leafs[leafnum].contents;
     }
 
-    public static int CM_LeafCluster(int leafnum) {
+    public int CM_LeafCluster(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
             Com.Error(Defines.ERR_DROP, "CM_LeafCluster: bad number");
         return map_leafs[leafnum].cluster;
     }
 
-    public static int CM_LeafArea(int leafnum) {
+    public int CM_LeafArea(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
             Com.Error(Defines.ERR_DROP, "CM_LeafArea: bad number");
         return map_leafs[leafnum].area;
     }
 
-    static cplane_t box_planes[];
+    cplane_t[] box_planes;
 
-    static int box_headnode;
+    int box_headnode;
 
-    static cbrush_t box_brush;
+    cbrush_t box_brush;
 
-    static cleaf_t box_leaf;
+    cleaf_t box_leaf;
 
     /** Set up the planes and nodes so that the six floats of a bounding box can
      * just be stored out and get a proper clipping hull structure.
      */
-    public static void CM_InitBoxHull() {
+    public void CM_InitBoxHull() {
 
         box_headnode = numnodes; //rst: still room for 6 brushes left?
 
@@ -912,7 +889,7 @@ public class CM {
 
     /** To keep everything totally uniform, bounding boxes are turned into small
      * BSP trees instead of being compared directly. */
-    public static int HeadnodeForBox(float[] mins, float[] maxs) {
+    public int HeadnodeForBox(float[] mins, float[] maxs) {
         box_planes[0].dist = maxs[0];
         box_planes[1].dist = -maxs[0];
         box_planes[2].dist = mins[0];
@@ -930,7 +907,7 @@ public class CM {
     }
 
     /** Recursively searches the leaf number that contains the 3d point. */
-    private static int CM_PointLeafnum_r(float[] p, int num) {
+    private int CM_PointLeafnum_r(float[] p, int num) {
         float d;
         cnode_t node;
         cplane_t plane;
@@ -955,7 +932,7 @@ public class CM {
     }
 
     /** Searches the leaf number that contains the 3d point. */
-    public static int CM_PointLeafnum(float[] p) {
+    public int CM_PointLeafnum(float[] p) {
     	// sound may call this without map loaded
         if (numplanes == 0)
             return 0; 
@@ -963,16 +940,17 @@ public class CM {
     }
 
 
-    private static int leaf_count, leaf_maxcount;
+    private int leaf_count;
+    private int leaf_maxcount;
 
-    private static int leaf_list[];
-
-    private static float leaf_mins[], leaf_maxs[];
+    private static int[] leaf_list;
+    private static float[] leaf_mins;
+    private static float[] leaf_maxs;
 
     private static int leaf_topnode;
 
     /** Recursively fills in a list of all the leafs touched. */    
-    private static void CM_BoxLeafnums_r(int nodenum) {
+    private void CM_BoxLeafnums_r(int nodenum) {
         cplane_t plane;
         cnode_t node;
         int s;
@@ -1007,8 +985,7 @@ public class CM {
     }
 
     /** Fills in a list of all the leafs touched and starts with the head node. */
-    private static int CM_BoxLeafnums_headnode(float[] mins, float[] maxs,
-            int list[], int listsize, int headnode, int topnode[]) {
+    private int CM_BoxLeafnums_headnode(float[] mins, float[] maxs, int[] list, int listsize, int headnode, int[] topnode) {
         leaf_list = list;
         leaf_count = 0;
         leaf_maxcount = listsize;
@@ -1026,14 +1003,13 @@ public class CM {
     }
 
     /** Fills in a list of all the leafs touched. */
-    public static int CM_BoxLeafnums(float[] mins, float[] maxs, int list[],
-            int listsize, int topnode[]) {
+    public int CM_BoxLeafnums(float[] mins, float[] maxs, int[] list, int listsize, int[] topnode) {
         return CM_BoxLeafnums_headnode(mins, maxs, list, listsize,
                 map_cmodels[0].headnode, topnode);
     }
 
     /** Returns a tag that describes the content of the point. */
-    public static int PointContents(float[] p, int headnode) {
+    public int PointContents(float[] p, int headnode) {
         int l;
 
         if (numnodes == 0) // map not loaded
@@ -1050,7 +1026,7 @@ public class CM {
      * Handles offseting and rotation of the end points for moving and rotating
      * entities ==================
      */
-    public static int TransformedPointContents(float[] p, int headnode,
+    public int TransformedPointContents(float[] p, int headnode,
             float[] origin, float[] angles) {
         float[] p_l = { 0, 0, 0 };
         float[] temp = { 0, 0, 0 };
@@ -1087,23 +1063,24 @@ public class CM {
     // 1/32 epsilon to keep floating point happy
     private static final float DIST_EPSILON = 0.03125f;
 
-    private static float[] trace_start = { 0, 0, 0 }, trace_end = { 0, 0, 0 };
+    private float[] trace_start = { 0, 0, 0 };
+    private float[] trace_end = { 0, 0, 0 };
 
-    private static float[] trace_mins = { 0, 0, 0 }, trace_maxs = { 0, 0, 0 };
+    private float[] trace_mins = { 0, 0, 0 };
+    private float[] trace_maxs = { 0, 0, 0 };
 
-    private static float[] trace_extents = { 0, 0, 0 };
+    private float[] trace_extents = { 0, 0, 0 };
 
-    private static trace_t trace_trace = new trace_t();
+    private trace_t trace_trace = new trace_t();
 
-    private static int trace_contents;
+    private int trace_contents;
 
-    private static boolean trace_ispoint; // optimized case
+    private boolean trace_ispoint; // optimized case
 
     /*
      * ================ CM_ClipBoxToBrush ================
      */
-    public static void CM_ClipBoxToBrush(float[] mins, float[] maxs,
-            float[] p1, float[] p2, trace_t trace, cbrush_t brush) {
+    public void CM_ClipBoxToBrush(float[] mins, float[] maxs, float[] p1, float[] p2, trace_t trace, cbrush_t brush) {
         int i, j;
         cplane_t plane, clipplane;
         float dist;
@@ -1202,8 +1179,7 @@ public class CM {
     /*
      * ================ CM_TestBoxInBrush ================
      */
-    public static void CM_TestBoxInBrush(float[] mins, float[] maxs,
-            float[] p1, trace_t trace, cbrush_t brush) {
+    public void CM_TestBoxInBrush(float[] mins, float[] maxs, float[] p1, trace_t trace, cbrush_t brush) {
         int i, j;
         cplane_t plane;
         float dist;
@@ -1249,7 +1225,7 @@ public class CM {
     /**
      * CM_TraceToLeaf.
      */
-    public static void CM_TraceToLeaf(int leafnum) {
+    public void CM_TraceToLeaf(int leafnum) {
         int k;
         int brushnum;
         cleaf_t leaf;
@@ -1281,7 +1257,7 @@ public class CM {
     /*
      * ================ CM_TestInLeaf ================
      */
-    public static void CM_TestInLeaf(int leafnum) {
+    public void CM_TestInLeaf(int leafnum) {
         int k;
         int brushnum;
         cleaf_t leaf;
@@ -1311,8 +1287,7 @@ public class CM {
     /*
      * ================== CM_RecursiveHullCheck ==================
      */
-    public static void CM_RecursiveHullCheck(int num, float p1f, float p2f,
-            float[] p1, float[] p2) {
+    public void CM_RecursiveHullCheck(int num, float p1f, float p2f, float[] p1, float[] p2) {
         cnode_t node;
         cplane_t plane;
         float t1, t2, offset;
@@ -1413,8 +1388,7 @@ public class CM {
     /*
      * ================== CM_BoxTrace ==================
      */
-    public static trace_t BoxTrace(float[] start, float[] end, float[] mins,
-            float[] maxs, int headnode, int brushmask) {
+    public trace_t BoxTrace(float[] start, float[] end, float[] mins, float[] maxs, int headnode, int brushmask) {
 
         // for multi-check avoidance
         checkcount++;
@@ -1505,7 +1479,7 @@ public class CM {
      * CM_TransformedBoxTrace handles offseting and rotation of the end points for moving and rotating
      * entities.
      */
-    public static trace_t TransformedBoxTrace(float[] start, float[] end,
+    public trace_t TransformedBoxTrace(float[] start, float[] end,
             float[] mins, float[] maxs, int headnode, int brushmask,
             float[] origin, float[] angles) {
         trace_t trace;
@@ -1570,7 +1544,7 @@ public class CM {
     /*
      * =================== CM_DecompressVis ===================
      */
-    public static void CM_DecompressVis(byte in[], int offset, byte out[]) {
+    public void CM_DecompressVis(byte[] in, int offset, byte[] out) {
         int c;
 
         int row;
@@ -1607,11 +1581,11 @@ public class CM {
         } while (outp < row);
     }
 
-    public static byte pvsrow[] = new byte[Defines.MAX_MAP_LEAFS / 8];
+    public byte[] pvsrow = new byte[Defines.MAX_MAP_LEAFS / 8];
 
-    public static byte phsrow[] = new byte[Defines.MAX_MAP_LEAFS / 8];
+    public byte[] phsrow = new byte[Defines.MAX_MAP_LEAFS / 8];
 
-    public static byte[] CM_ClusterPVS(int cluster) {
+    public byte[] CM_ClusterPVS(int cluster) {
         if (cluster == -1)
             Arrays.fill(pvsrow, 0, (numclusters + 7) >> 3, (byte) 0);
         else
@@ -1620,7 +1594,7 @@ public class CM {
         return pvsrow;
     }
 
-    public static byte[] CM_ClusterPHS(int cluster) {
+    public byte[] CM_ClusterPHS(int cluster) {
         if (cluster == -1)
             Arrays.fill(phsrow, 0, (numclusters + 7) >> 3, (byte) 0);
         else
@@ -1635,7 +1609,7 @@ public class CM {
      * ===============================================================================
      */
 
-    public static void FloodArea_r(carea_t area, int floodnum) {
+    public void FloodArea_r(carea_t area, int floodnum) {
         //Com.Printf("FloodArea_r(" + floodnum + ")...\n");
         int i;
         qfiles.dareaportal_t p;
@@ -1659,7 +1633,7 @@ public class CM {
     /**
      * FloodAreaConnections.
      */
-    public static void FloodAreaConnections() {
+    public void FloodAreaConnections() {
         Com.DPrintf("FloodAreaConnections...\n");
 
         int i;
@@ -1685,7 +1659,7 @@ public class CM {
     /**
      * CM_SetAreaPortalState.
      */
-    public static void CM_SetAreaPortalState(int portalnum, boolean open) {
+    public void CM_SetAreaPortalState(int portalnum, boolean open) {
         if (portalnum > numareaportals)
             Com.Error(Defines.ERR_DROP, "areaportal > numareaportals");
 
@@ -1697,7 +1671,7 @@ public class CM {
      * CM_AreasConnected returns true, if two areas are connected.
      */
 
-    public static boolean CM_AreasConnected(int area1, int area2) {
+    public boolean CM_AreasConnected(int area1, int area2) {
         if (map_noareas.value != 0)
             return true;
 
@@ -1716,7 +1690,7 @@ public class CM {
      * 
      * This is used by the client refreshes to cull visibility.
      */
-    public static int CM_WriteAreaBits(byte buffer[], int area) {
+    public int CM_WriteAreaBits(byte[] buffer, int area) {
         int i;
         int floodnum;
         int bytes;
@@ -1742,7 +1716,7 @@ public class CM {
      * CM_WritePortalState writes the portal state to a savegame file.
      */
 
-    public static void CM_WritePortalState(RandomAccessFile os) {
+    public void CM_WritePortalState(RandomAccessFile os) {
 
         try {
             for (int n = 0; n < portalopen.length; n++)
@@ -1760,7 +1734,7 @@ public class CM {
      * CM_ReadPortalState reads the portal state from a savegame file and recalculates the area
      * connections.
      */
-    public static void CM_ReadPortalState(RandomAccessFile f) {
+    public void CM_ReadPortalState(RandomAccessFile f) {
 
         //was: FS_Read(portalopen, sizeof(portalopen), f);
         int len = portalopen.length * 4;
@@ -1782,7 +1756,7 @@ public class CM {
      * CM_HeadnodeVisible returns true if any leaf under headnode has a cluster that is potentially
      * visible.
      */
-    public static boolean CM_HeadnodeVisible(int nodenum, byte visbits[]) {
+    public boolean CM_HeadnodeVisible(int nodenum, byte visbits[]) {
         if (nodenum < 0) {
             int leafnum = -1 - nodenum;
             int cluster = map_leafs[leafnum].cluster;

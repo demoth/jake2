@@ -31,6 +31,6 @@ public class TestLoadMap {
 
 		FS.InitFilesystem();
 
-		CM.CM_LoadMap("maps/base1.bsp", true, new int[]{0});
+		new CM().CM_LoadMap("maps/base1.bsp", true, new int[]{0});
 	}
 }

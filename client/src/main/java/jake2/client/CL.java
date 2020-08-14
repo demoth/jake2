@@ -548,7 +548,7 @@ public final class CL {
 
             int iw[] = { 0 }; // for detecting cheater maps
 
-            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
+            ClientGlobals.cm.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
 
             CL_parse.RegisterSounds();
@@ -1210,7 +1210,7 @@ public final class CL {
 
             int iw[] = { map_checksum };
 
-            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
+            ClientGlobals.cm.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
             map_checksum = iw[0];
 
@@ -1260,9 +1260,9 @@ public final class CL {
 
             if (allowDownload.value != 0
                     && allowDownloadMaps.value != 0) {
-                while (CL.precache_tex < CM.numtexinfo) {
+                while (CL.precache_tex < ClientGlobals.cm.numtexinfo) {
 
-                    fn = "textures/" + CM.map_surfaces[CL.precache_tex++].rname
+                    fn = "textures/" + ClientGlobals.cm.map_surfaces[CL.precache_tex++].rname
                             + ".wal";
                     if (!CL_parse.CheckOrDownloadFile(fn))
                         return; // started a download

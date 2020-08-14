@@ -216,12 +216,12 @@ class SV_WORLD {
         ent.areanum2 = 0;
         // get all leafs, including solids
         int iw[] = { topnode };
-        num_leafs = CM.CM_BoxLeafnums(ent.absmin, ent.absmax, gameImports.world.leafs, gameImports.world.MAX_TOTAL_ENT_LEAFS, iw);
+        num_leafs = gameImports.cm.CM_BoxLeafnums(ent.absmin, ent.absmax, gameImports.world.leafs, gameImports.world.MAX_TOTAL_ENT_LEAFS, iw);
         topnode = iw[0];
         // set areas
         for (int i = 0; i < num_leafs; i++) {
-            gameImports.world.clusters[i] = CM.CM_LeafCluster(gameImports.world.leafs[i]);
-            area = CM.CM_LeafArea(gameImports.world.leafs[i]);
+            gameImports.world.clusters[i] = gameImports.cm.CM_LeafCluster(gameImports.world.leafs[i]);
+            area = gameImports.cm.CM_LeafArea(gameImports.world.leafs[i]);
             if (area != 0) {
                 // doors may legally straggle two areas,
                 // but nothing should ever need more than that
@@ -350,7 +350,7 @@ class SV_WORLD {
         int contents, c2;
         int headnode;
         // get base contents from world
-        contents = CM.PointContents(p, SV_INIT.gameImports.sv.models[1].headnode);
+        contents = gameImports.cm.PointContents(p, SV_INIT.gameImports.sv.models[1].headnode);
         // or in contents from all the other entities
         num = SV_AreaEdicts(p, p, gameImports.world.touch, Defines.MAX_EDICTS, Defines.AREA_SOLID, gameImports);
         for (i = 0; i < num; i++) {
@@ -359,7 +359,7 @@ class SV_WORLD {
             headnode = SV_HullForEntity(hit, gameImports);
             if (hit.solid != Defines.SOLID_BSP) {
 	    }
-            c2 = CM.TransformedPointContents(p, headnode, hit.s.origin,
+            c2 = gameImports.cm.TransformedPointContents(p, headnode, hit.s.origin,
                     hit.s.angles);
             contents |= c2;
         }
@@ -386,7 +386,7 @@ class SV_WORLD {
             return model.headnode;
         }
         // create a temp hull from bounding box sizes
-        return CM.HeadnodeForBox(ent.mins, ent.maxs);
+        return gameImports.cm.HeadnodeForBox(ent.mins, ent.maxs);
     }
 
     private static void SV_ClipMoveToEntities(moveclip_t clip, GameImportsImpl gameImports) {
@@ -421,11 +421,11 @@ class SV_WORLD {
             if (touch.solid != Defines.SOLID_BSP)
                 angles = Globals.vec3_origin; // boxes don't rotate
             if ((touch.svflags & Defines.SVF_MONSTER) != 0)
-                trace = CM.TransformedBoxTrace(clip.start, clip.end,
+                trace = gameImports.cm.TransformedBoxTrace(clip.start, clip.end,
                         clip.mins2, clip.maxs2, headnode, clip.contentmask,
                         touch.s.origin, angles);
             else
-                trace = CM.TransformedBoxTrace(clip.start, clip.end, clip.mins,
+                trace = gameImports.cm.TransformedBoxTrace(clip.start, clip.end, clip.mins,
                         clip.maxs, headnode, clip.contentmask, touch.s.origin,
                         angles);
             if (trace.allsolid || trace.startsolid
@@ -475,7 +475,7 @@ class SV_WORLD {
             maxs = Globals.vec3_origin;
 
         // clip to world
-        clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
+        clip.trace = gameImports.cm.BoxTrace(start, end, mins, maxs, 0, contentmask);
         clip.trace.ent = SV_INIT.gameImports.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world

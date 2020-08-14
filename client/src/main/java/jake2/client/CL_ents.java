@@ -1297,7 +1297,7 @@ public class CL_ents {
 		float[] mins = { 0, 0, 0 };
 		Math3D.VectorSet(maxs, size, size, size);
 		Math3D.VectorSet(mins, -size, -size, -size);
-		return CM.BoxTrace (start, end, mins, maxs, 0, contentmask);
+		return ClientGlobals.cm.BoxTrace (start, end, mins, maxs, 0, contentmask);
 	}
 	
 	static void ClipCam (float[] start, float[] end, float[] newpos) {

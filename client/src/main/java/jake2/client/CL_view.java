@@ -24,7 +24,8 @@
  */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 
 import java.util.StringTokenizer;
@@ -101,8 +102,7 @@ public class CL_view {
                         .RegisterModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
                                 + i]);
                 if (name.charAt(0) == '*')
-                    ClientGlobals.cl.model_clip[i] = CM
-                            .InlineModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
+                    ClientGlobals.cl.model_clip[i] = ClientGlobals.cm.InlineModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
                                     + i]);
                 else
                     ClientGlobals.cl.model_clip[i] = null;

@@ -71,7 +71,7 @@ public class SV_INIT {
             MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
             MSG.WriteShort(gameImports.sv.multicast, start + i);
             MSG.WriteString(gameImports.sv.multicast, name);
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
         }
 
         return i;

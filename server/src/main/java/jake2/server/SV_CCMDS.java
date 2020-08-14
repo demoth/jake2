@@ -23,7 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
@@ -209,7 +212,7 @@ public class SV_CCMDS {
 			for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
 				f.writeString(gameImports.sv.configstrings[i]);
 
-			CM.CM_WritePortalState(f);
+			gameImports.cm.CM_WritePortalState(f);
 			f.close();
 		}
 		catch (Exception e) {
@@ -237,7 +240,7 @@ public class SV_CCMDS {
 			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
 				gameImports.sv.configstrings[n] = f.readString();
 
-			CM.CM_ReadPortalState(f);
+			gameImports.cm.CM_ReadPortalState(f);
 
 			f.close();
 		}

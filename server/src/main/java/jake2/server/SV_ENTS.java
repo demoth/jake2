@@ -347,7 +347,7 @@ public class SV_ENTS {
      * The client will interpolate the view position, so we can't use a single
      * PVS point. 
      */
-    public static void SV_FatPVS(float[] org) {
+    public static void SV_FatPVS(float[] org, CM cm) {
         int leafs[] = new int[64];
         int i, j, count;
         int longs;
@@ -359,18 +359,18 @@ public class SV_ENTS {
             maxs[i] = org[i] + 8;
         }
 
-        count = CM.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
+        count = cm.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
 
         if (count < 1)
             Com.Error(Defines.ERR_FATAL, "SV_FatPVS: count < 1");
 
-        longs = (CM.CM_NumClusters() + 31) >> 5;
+        longs = (cm.CM_NumClusters() + 31) >> 5;
 
         // convert leafs to clusters
         for (i = 0; i < count; i++)
-            leafs[i] = CM.CM_LeafCluster(leafs[i]);
+            leafs[i] = cm.CM_LeafCluster(leafs[i]);
 
-        System.arraycopy(CM.CM_ClusterPVS(leafs[0]), 0, SV_ENTS.fatpvs, 0,
+        System.arraycopy(cm.CM_ClusterPVS(leafs[0]), 0, SV_ENTS.fatpvs, 0,
                 longs << 2);
         // or in all the other leaf bits
         for (i = 1; i < count; i++) {
@@ -380,7 +380,7 @@ public class SV_ENTS {
             if (j != i)
                 continue; // already have the cluster we want
 
-            src = CM.CM_ClusterPVS(leafs[i]);
+            src = cm.CM_ClusterPVS(leafs[i]);
 
             //for (j=0 ; j<longs ; j++)
             //	((long *)fatpvs)[j] |= ((long *)src)[j];
@@ -426,18 +426,18 @@ public class SV_ENTS {
             org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
                     + clent.getClient().getPlayerState().viewoffset[i];
 
-        leafnum = CM.CM_PointLeafnum(org);
-        clientarea = CM.CM_LeafArea(leafnum);
-        clientcluster = CM.CM_LeafCluster(leafnum);
+        leafnum = SV_INIT.gameImports.cm.CM_PointLeafnum(org);
+        clientarea = SV_INIT.gameImports.cm.CM_LeafArea(leafnum);
+        clientcluster = SV_INIT.gameImports.cm.CM_LeafCluster(leafnum);
 
         // calculate the visible areas
-        frame.areabytes = CM.CM_WriteAreaBits(frame.areabits, clientarea);
+        frame.areabytes = SV_INIT.gameImports.cm.CM_WriteAreaBits(frame.areabits, clientarea);
 
         // grab the current player_state_t
         frame.ps.set(clent.getClient().getPlayerState());
 
-        SV_FatPVS(org);
-        clientphs = CM.CM_ClusterPHS(clientcluster);
+        SV_FatPVS(org, SV_INIT.gameImports.cm);
+        clientphs = SV_INIT.gameImports.cm.CM_ClusterPHS(clientcluster);
 
         // build up the list of visible entities
         frame.num_entities = 0;
@@ -460,9 +460,9 @@ public class SV_ENTS {
             // ignore if not touching a PV leaf
             // check area
             if (ent != clent) {
-                if (!CM.CM_AreasConnected(clientarea, ent.areanum)) {
+                if (!SV_INIT.gameImports.cm.CM_AreasConnected(clientarea, ent.areanum)) {
                 	// doors can legally straddle two areas, so we may need to check another one
-                    if (0 == ent.areanum2 || !CM.CM_AreasConnected(clientarea, ent.areanum2))
+                    if (0 == ent.areanum2 || !SV_INIT.gameImports.cm.CM_AreasConnected(clientarea, ent.areanum2))
                         continue; // blocked by a door
                 }
 
@@ -482,7 +482,7 @@ public class SV_ENTS {
                     if (ent.num_clusters == -1) { // too many leafs for
                                                   // individual check, go by
                                                   // headnode
-                        if (!CM.CM_HeadnodeVisible(ent.headnode, bitvector))
+                        if (!SV_INIT.gameImports.cm.CM_HeadnodeVisible(ent.headnode, bitvector))
                             continue;
                         c_fullsend++;
                     } else { // check individual leafs

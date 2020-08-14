@@ -119,7 +119,7 @@ public class SV_SEND {
 
 		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_stufftext);
 		MSG.WriteString(SV_INIT.gameImports.sv.multicast, s);
-		SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
+		SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, SV_INIT.gameImports.cm);
 	}
 	/*
 	=================
@@ -133,7 +133,7 @@ public class SV_SEND {
 	MULTICAST_PHS	send to clients potentially hearable from org
 	=================
 	*/
-	public static void SV_Multicast(float[] origin, MulticastTypes to) {
+	public static void SV_Multicast(float[] origin, MulticastTypes to, CM cm) {
 		client_t client;
 		byte mask[];
 		int leafnum, cluster;
@@ -144,8 +144,8 @@ public class SV_SEND {
 		reliable = false;
 
 		if (to != MulticastTypes.MULTICAST_ALL_R && to != MulticastTypes.MULTICAST_ALL) {
-			leafnum = CM.CM_PointLeafnum(origin);
-			area1 = CM.CM_LeafArea(leafnum);
+			leafnum = cm.CM_PointLeafnum(origin);
+			area1 = cm.CM_LeafArea(leafnum);
 		}
 		else {
 			leafnum = 0; // just to avoid compiler warnings
@@ -167,17 +167,17 @@ public class SV_SEND {
 			case MULTICAST_PHS_R :
 				reliable = true; // intentional fallthrough
 			case MULTICAST_PHS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPHS(cluster);
+				leafnum = cm.CM_PointLeafnum(origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				mask = cm.CM_ClusterPHS(cluster);
 				break;
 
 			case MULTICAST_PVS_R :
 				reliable = true; // intentional fallthrough
 			case MULTICAST_PVS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPVS(cluster);
+				leafnum = cm.CM_PointLeafnum(origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				mask = cm.CM_ClusterPVS(cluster);
 				break;
 
 			default :
@@ -195,10 +195,10 @@ public class SV_SEND {
 				continue;
 
 			if (mask != null) {
-				leafnum = CM.CM_PointLeafnum(client.edict.s.origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				area2 = CM.CM_LeafArea(leafnum);
-				if (!CM.CM_AreasConnected(area1, area2))
+				leafnum = cm.CM_PointLeafnum(client.edict.s.origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				area2 = cm.CM_LeafArea(leafnum);
+				if (!cm.CM_AreasConnected(area1, area2))
 					continue;
 
 				// quake2 bugfix
@@ -311,22 +311,24 @@ public class SV_SEND {
 			}
 		}
 
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_sound);
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, flags);
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, soundindex);
+		final GameImportsImpl gameImports = SV_INIT.gameImports;
+
+		MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_sound);
+		MSG.WriteByte(gameImports.sv.multicast, flags);
+		MSG.WriteByte(gameImports.sv.multicast, soundindex);
 
 		if ((flags & Defines.SND_VOLUME) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, volume * 255);
+			MSG.WriteByte(gameImports.sv.multicast, volume * 255);
 		if ((flags & Defines.SND_ATTENUATION) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, attenuation * 64);
+			MSG.WriteByte(gameImports.sv.multicast, attenuation * 64);
 		if ((flags & Defines.SND_OFFSET) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, timeofs * 1000);
+			MSG.WriteByte(gameImports.sv.multicast, timeofs * 1000);
 
 		if ((flags & Defines.SND_ENT) != 0)
-			MSG.WriteShort(SV_INIT.gameImports.sv.multicast, sendchan);
+			MSG.WriteShort(gameImports.sv.multicast, sendchan);
 
 		if ((flags & Defines.SND_POS) != 0)
-			MSG.WritePos(SV_INIT.gameImports.sv.multicast, origin);
+			MSG.WritePos(gameImports.sv.multicast, origin);
 
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)
@@ -335,15 +337,15 @@ public class SV_SEND {
 
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R, gameImports.cm);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
 		}
 		else {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS, gameImports.cm);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL, gameImports.cm);
 		}
 	}
 	/*

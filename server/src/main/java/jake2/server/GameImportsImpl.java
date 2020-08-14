@@ -190,7 +190,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void configstring(int num, String string) {
-        SV_GAME.PF_Configstring(num, string);
+        SV_GAME.PF_Configstring(num, string, this);
     }
 
     @Override
@@ -233,17 +233,17 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public boolean inPHS(float[] p1, float[] p2) {
-        return SV_GAME.PF_inPHS(p1, p2);
+        return SV_GAME.PF_inPHS(p1, p2, this);
     }
 
     @Override
     public void SetAreaPortalState(int portalnum, boolean open) {
-        CM.CM_SetAreaPortalState(portalnum, open);
+        cm.CM_SetAreaPortalState(portalnum, open);
     }
 
     @Override
     public boolean AreasConnected(int area1, int area2) {
-        return CM.CM_AreasConnected(area1, area2);
+        return cm.CM_AreasConnected(area1, area2);
     }
 
     /*
@@ -279,7 +279,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void multicast(float[] origin, MulticastTypes to) {
-        SV_SEND.SV_Multicast(origin, to);
+        SV_SEND.SV_Multicast(origin, to, cm);
     }
 
     @Override
@@ -849,10 +849,10 @@ SV_Savegame_f
         int iw[] = { checksum };
 
         if (serverstate != ServerStates.SS_GAME) {
-            sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
+            sv.models[1] = cm.CM_LoadMap("", false, iw); // no real map
         } else {
             sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + mapName + ".bsp";
-            sv.models[1] = CM.CM_LoadMap(sv.configstrings[Defines.CS_MODELS + 1], false, iw);
+            sv.models[1] = cm.CM_LoadMap(sv.configstrings[Defines.CS_MODELS + 1], false, iw);
         }
         checksum = iw[0];
         sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
@@ -862,11 +862,11 @@ SV_Savegame_f
 
         SV_WORLD.SV_ClearWorld(this);
 
-        for (int i = 1; i < CM.CM_NumInlineModels(); i++) {
+        for (int i = 1; i < cm.CM_NumInlineModels(); i++) {
             sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
 
             // copy references
-            sv.models[i + 1] = CM.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
+            sv.models[i + 1] = cm.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
         }
 
 
@@ -879,7 +879,7 @@ SV_Savegame_f
         Globals.server_state = sv.state;
 
         // load and spawn all other entities
-        gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+        gameExports.SpawnEntities(sv.name, cm.CM_EntityString(), spawnpoint);
 
         // run two frames to allow everything to settle
         gameExports.G_RunFrame();

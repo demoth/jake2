@@ -2,15 +2,16 @@ package jake2.client;
 
 import jake2.client.render.DummyRenderer;
 import jake2.client.render.model_t;
+import jake2.qcommon.CM;
 import jake2.qcommon.Defines;
-import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.entity_state_t;
+import jake2.qcommon.exec.cvar_t;
 
 public class ClientGlobals {
     static final console_t con = new console_t();
 
     public static client_state_t cl = new client_state_t();
-
+    public static CM cm = new CM();
     public static centity_t[] cl_entities;
     public static entity_state_t[] cl_parse_entities;
     public static client_static_t cls = new client_static_t();
