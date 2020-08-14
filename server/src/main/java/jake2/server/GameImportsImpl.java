@@ -38,7 +38,7 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_INIT.gameImports;
+import static jake2.server.SV_INIT.*;
 
 /*
  Collection of functions provided by the main engine.
@@ -61,6 +61,8 @@ public class GameImportsImpl implements GameImports {
     SV_WORLD world;
 
     private final Cvar localCvars;
+
+    public CM cm;
 
     public GameImportsImpl() {
 
@@ -93,7 +95,7 @@ public class GameImportsImpl implements GameImports {
         sv = new server_t();
 
         world = new SV_WORLD();
-
+        cm = new CM();
         SV_InitOperatorCommands();
 
         localCvars = new Cvar();
@@ -779,6 +781,122 @@ SV_Savegame_f
 
         Com.Printf("Userid " + idOrName + " is not on the server\n");
         return false;
+    }
+
+    /**
+     * SV_SpawnServer.
+     *
+     * Change the server to a new map, taking all connected clients along with
+     * it.
+     */
+    void SV_SpawnServer(String mapName, String spawnpoint, ServerStates serverstate, boolean isDemo, boolean loadgame) {
+
+        if (isDemo)
+            Cvar.getInstance().Set("paused", "0");
+
+        Com.Printf("------- Server Initialization -------\n");
+
+        Com.DPrintf("SpawnServer: " + mapName + "\n");
+        if (sv != null && sv.demofile != null)
+            try {
+                sv.demofile.close();
+            }
+            catch (Exception e) {
+                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
+            }
+
+        // any partially connected client will be restarted
+        svs.spawncount++;
+
+        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
+
+        // wipe the entire per-level structure
+        sv = new server_t();
+
+        svs.realtime = 0;
+        sv.loadgame = loadgame;
+        sv.isDemo = isDemo;
+
+        // save name for levels that don't set message
+        sv.configstrings[Defines.CS_NAME] = mapName;
+
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            sv.configstrings[Defines.CS_AIRACCEL] = "" + SV_MAIN.sv_airaccelerate.value;
+            PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
+        } else {
+            sv.configstrings[Defines.CS_AIRACCEL] = "0";
+            PMove.pm_airaccelerate = 0;
+        }
+
+        SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
+
+        sv.name = mapName;
+
+        // leave slots at start for clients only
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            // needs to reconnect
+            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
+                svs.clients[i].state = ClientStates.CS_CONNECTED;
+            svs.clients[i].lastframe = -1;
+        }
+
+        sv.time = 1000;
+
+        sv.name = mapName;
+        sv.configstrings[Defines.CS_NAME] = mapName;
+
+        int checksum = 0;
+        int iw[] = { checksum };
+
+        if (serverstate != ServerStates.SS_GAME) {
+            sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
+        } else {
+            sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + mapName + ".bsp";
+            sv.models[1] = CM.CM_LoadMap(sv.configstrings[Defines.CS_MODELS + 1], false, iw);
+        }
+        checksum = iw[0];
+        sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
+
+
+        // clear physics interaction links
+
+        SV_WORLD.SV_ClearWorld(this);
+
+        for (int i = 1; i < CM.CM_NumInlineModels(); i++) {
+            sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
+
+            // copy references
+            sv.models[i + 1] = CM.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
+        }
+
+
+        // spawn the rest of the entities on the map
+
+        // precache and static commands can be issued during
+        // map initialization
+
+        sv.state = ServerStates.SS_LOADING;
+        Globals.server_state = sv.state;
+
+        // load and spawn all other entities
+        gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+
+        // run two frames to allow everything to settle
+        gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
+
+        // all precaches are complete
+        sv.state = serverstate;
+        Globals.server_state = sv.state;
+
+        // create a baseline for more efficient communications
+        SV_CreateBaseline();
+
+        // check for a savegame
+        SV_CheckForSavegame(sv);
+
+        // set serverinfo variable
+        Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
     }
 
 }

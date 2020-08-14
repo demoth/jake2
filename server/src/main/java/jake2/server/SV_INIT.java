@@ -95,7 +95,7 @@ public class SV_INIT {
      * Entity baselines are used to compress the update messages to the clients --
      * only the fields that differ from the baseline will be transmitted.
      */
-    private static void SV_CreateBaseline() {
+    static void SV_CreateBaseline() {
         for (int entnum = 1; entnum < gameImports.gameExports.getNumEdicts(); entnum++) {
             edict_t svent = gameImports.gameExports.getEdict(entnum);
 
@@ -117,7 +117,7 @@ public class SV_INIT {
      * SV_CheckForSavegame.
      * @param sv
      */
-    private static void SV_CheckForSavegame(server_t sv) {
+    static void SV_CheckForSavegame(server_t sv) {
 
         if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
             return;
@@ -152,123 +152,6 @@ public class SV_INIT {
 
             sv.state = previousState; // PGM
         }
-    }
-
-    /**
-     * SV_SpawnServer.
-     * 
-     * Change the server to a new map, taking all connected clients along with
-     * it.
-     */
-    private static void SV_SpawnServer(String mapName, String spawnpoint, ServerStates serverstate, boolean isDemo, boolean loadgame) {
-
-        if (isDemo)
-            Cvar.getInstance().Set("paused", "0");
-
-        Com.Printf("------- Server Initialization -------\n");
-
-        Com.DPrintf("SpawnServer: " + mapName + "\n");
-        if (gameImports.sv != null && gameImports.sv.demofile != null)
-            try {
-                gameImports.sv.demofile.close();
-            } 
-        	catch (Exception e) {
-                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
-            }
-
-        // any partially connected client will be restarted
-        gameImports.svs.spawncount++;
-
-        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
-
-        // wipe the entire per-level structure
-        gameImports.sv = new server_t();
-
-        gameImports.svs.realtime = 0;
-        gameImports.sv.loadgame = loadgame;
-        gameImports.sv.isDemo = isDemo;
-
-        // save name for levels that don't set message
-        gameImports.sv.configstrings[Defines.CS_NAME] = mapName;
-
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = "" + SV_MAIN.sv_airaccelerate.value;
-            PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
-        } else {
-            gameImports.sv.configstrings[Defines.CS_AIRACCEL] = "0";
-            PMove.pm_airaccelerate = 0;
-        }
-
-        SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
-
-        gameImports.sv.name = mapName;
-
-        // leave slots at start for clients only
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            // needs to reconnect
-            if (gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
-                gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
-            gameImports.svs.clients[i].lastframe = -1;
-        }
-
-        gameImports.sv.time = 1000;
-
-        gameImports.sv.name = mapName;
-        gameImports.sv.configstrings[Defines.CS_NAME] = mapName;
-
-        int checksum = 0;
-        int iw[] = { checksum };
-
-        if (serverstate != ServerStates.SS_GAME) {
-            gameImports.sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
-        } else {
-            gameImports.sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + mapName + ".bsp";
-            gameImports.sv.models[1] = CM.CM_LoadMap(gameImports.sv.configstrings[Defines.CS_MODELS + 1], false, iw);
-        }
-        checksum = iw[0];
-        gameImports.sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
-
-
-        // clear physics interaction links
-        
-        SV_WORLD.SV_ClearWorld(gameImports);
-
-        for (int i = 1; i < CM.CM_NumInlineModels(); i++) {
-            gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
-            
-            // copy references
-            gameImports.sv.models[i + 1] = CM.InlineModel(gameImports.sv.configstrings[Defines.CS_MODELS + 1 + i]);
-        }
-
-     
-        // spawn the rest of the entities on the map
-
-        // precache and static commands can be issued during
-        // map initialization
-
-        gameImports.sv.state = ServerStates.SS_LOADING;
-        Globals.server_state = gameImports.sv.state;
-
-        // load and spawn all other entities
-        gameImports.gameExports.SpawnEntities(gameImports.sv.name, CM.CM_EntityString(), spawnpoint);
-
-        // run two frames to allow everything to settle
-        gameImports.gameExports.G_RunFrame();
-        gameImports.gameExports.G_RunFrame();
-
-        // all precaches are complete
-        gameImports.sv.state = serverstate;
-        Globals.server_state = gameImports.sv.state;
-
-        // create a baseline for more efficient communications
-        SV_CreateBaseline();
-
-        // check for a savegame
-        SV_CheckForSavegame(gameImports.sv);
-
-        // set serverinfo variable
-        Cvar.getInstance().FullSet("mapname", gameImports.sv.name, Defines.CVAR_SERVERINFO
-                | Defines.CVAR_NOSET);
     }
 
     /**
@@ -327,6 +210,7 @@ public class SV_INIT {
         // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
         // todo: put server initialization code above into constructor of GameImportsImpl
         // init game
+        // todo: persist server static (svs)
         gameImports = new GameImportsImpl();
 
 
@@ -351,7 +235,6 @@ public class SV_INIT {
             return null;
         }
     }
-
 
     /**
      * SV_Map
@@ -419,23 +302,25 @@ public class SV_INIT {
             level = level.substring(1);
 
         int l = level.length();
+
+
         if (l > 4 && level.endsWith(".cin")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
+            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
+            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
+            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
         } else {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SEND.SV_SendClientMessages();
-            SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
+            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }
 
