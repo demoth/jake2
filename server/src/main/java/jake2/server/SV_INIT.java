@@ -186,14 +186,17 @@ public class SV_INIT {
                 Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
+        // todo: persist server static (svs)
+        gameImports = new GameImportsImpl();
+
         // set max clients based on game mode
         if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            if (SV_MAIN.maxclients.value <= 1)
+            if (SV_INIT.gameImports.maxclients.value <= 1)
                 Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-            else if (SV_MAIN.maxclients.value > Defines.MAX_CLIENTS)
+            else if (SV_INIT.gameImports.maxclients.value > Defines.MAX_CLIENTS)
                 Cvar.getInstance().FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         } else if (Cvar.getInstance().VariableValue("coop") != 0) {
-            if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
+            if (SV_INIT.gameImports.maxclients.value <= 1 || SV_INIT.gameImports.maxclients.value > 4)
                 Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         } else {
@@ -202,17 +205,8 @@ public class SV_INIT {
         }
 
         // init network stuff
-        NET.Config((SV_MAIN.maxclients.value > 1));
+        NET.Config((SV_INIT.gameImports.maxclients.value > 1));
         NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
-
-        // this is one of the most important points of game initialization:
-        // new instance of game mode is created and is ready to update.
-        // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
-        // todo: put server initialization code above into constructor of GameImportsImpl
-        // init game
-        // todo: persist server static (svs)
-        gameImports = new GameImportsImpl();
-
 
         gameImports.gameExports = createGameModInstance(gameImports);
         gameImports.resetClients(); // why? should have default values already
@@ -353,7 +347,6 @@ public class SV_INIT {
 
 
         Cvar.getInstance().Get("rcon_password", "", 0);
-        Cvar.getInstance().Get("skill", "1", 0); // redundant? will be set in the game module anyway
         Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
         Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
         Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
@@ -362,7 +355,6 @@ public class SV_INIT {
         Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
-        SV_MAIN.maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         SV_MAIN.hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
         SV_MAIN.timeout = Cvar.getInstance().Get("timeout", "125", 0);
         SV_MAIN.zombietime = Cvar.getInstance().Get("zombietime", "2", 0);

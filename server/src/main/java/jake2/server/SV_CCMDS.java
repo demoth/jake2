@@ -399,8 +399,8 @@ public class SV_CCMDS {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
-				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+				boolean[] savedInuse = new boolean[(int) SV_INIT.gameImports.maxclients.value];
+				for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
 					client_t cl = SV_INIT.gameImports.svs.clients[i];
 					savedInuse[i] = cl.edict.inuse;
 					cl.edict.inuse = false;
@@ -409,7 +409,7 @@ public class SV_CCMDS {
 				SV_WriteLevelFile(SV_INIT.gameImports);
 
 				// we must restore these for clients to transfer over correctly
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+				for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
 					client_t cl = SV_INIT.gameImports.svs.clients[i];
 					cl.edict.inuse = savedInuse[i];
 

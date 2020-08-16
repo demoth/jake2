@@ -39,16 +39,12 @@ public class SV_MAIN {
 
 	/** Addess of group servers.*/ 
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
-                                                                            
-                                                                            
-                                                                            
+
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
             master_adr[i] = new netadr_t();
         }
     }
-
-    static client_t sv_client; // current client
 
     static cvar_t sv_paused;
 
@@ -73,9 +69,6 @@ public class SV_MAIN {
 
     static cvar_t sv_airaccelerate;
 
-    @Deprecated
-    static cvar_t maxclients; // FIXME: rename sv_maxclients
-
     static cvar_t sv_showclamp;
 
     static cvar_t hostname;
@@ -91,8 +84,6 @@ public class SV_MAIN {
      */
     private static final int HEARTBEAT_SECONDS = 300;
 
-
-    
     /* ==============================================================================
      * 
      * CONNECTIONLESS COMMANDS
@@ -112,7 +103,7 @@ public class SV_MAIN {
 
         status = Cvar.getInstance().Serverinfo() + "\n";
 
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
             cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_CONNECTED
                     || cl.state == ClientStates.CS_SPAWNED) {
@@ -154,7 +145,7 @@ public class SV_MAIN {
      */
     private static void SVC_Info(List<String> args) {
 
-        if (SV_MAIN.maxclients.value == 1)
+        if (SV_INIT.gameImports.maxclients.value == 1)
             return; // ignore in single player
 
         int version = args.size() < 2 ? 0 : Lib.atoi(args.get(1));
@@ -164,13 +155,13 @@ public class SV_MAIN {
             string = SV_MAIN.hostname.string + ": wrong version\n";
         else {
             int count = 0;
-            for (int i = 0; i < SV_MAIN.maxclients.value; i++)
+            for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++)
                 if (SV_INIT.gameImports.svs.clients[i].state == ClientStates.CS_CONNECTED ||
                         SV_INIT.gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
                     count++;
 
             string = SV_MAIN.hostname.string + " " + SV_INIT.gameImports.sv.name + " "
-                    + count + "/" + (int) SV_MAIN.maxclients.value + "\n";
+                    + count + "/" + (int) SV_INIT.gameImports.maxclients.value + "\n";
         }
 
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "info\n"
@@ -279,7 +270,7 @@ public class SV_MAIN {
 
         // if there is already a slot for this ip, reuse it
         client_t cl;
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
             cl = SV_INIT.gameImports.svs.clients[i];
 
             if (cl.state == ClientStates.CS_FREE)
@@ -302,7 +293,7 @@ public class SV_MAIN {
         // find a client slot
         //newcl = null;
         int index = -1;
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
             cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
@@ -327,7 +318,7 @@ public class SV_MAIN {
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        SV_MAIN.sv_client = SV_INIT.gameImports.svs.clients[i];
+        SV_INIT.gameImports.sv_client = SV_INIT.gameImports.svs.clients[i];
         
         int edictnum = i + 1;
         
@@ -374,7 +365,6 @@ public class SV_MAIN {
         Com.DPrintf("new client added.\n");
     }
 
-    
     /** 
      * Checks if the rcon password is corect.
      */
@@ -473,10 +463,6 @@ public class SV_MAIN {
         }
     }
 
-
-
-
-
     /**
      * SV_PrepWorldFrame
      * 
@@ -490,7 +476,6 @@ public class SV_MAIN {
         }
 
     }
-
 
     /**
      * SV_Frame.
@@ -590,7 +575,6 @@ public class SV_MAIN {
             }
     }
     
-
     /**
      * Master_Shutdown, Informs all masters that this server is going down.
      */
@@ -615,7 +599,6 @@ public class SV_MAIN {
                         SV_MAIN.master_adr[i], "shutdown");
             }
     }
-    
 
     /**
      * Pull specific info from a newly changed userinfo string into a more C

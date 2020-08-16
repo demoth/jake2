@@ -42,7 +42,7 @@ public class SV_GAME {
             return;
 
         p = ent.index;
-        if (p < 1 || p > SV_MAIN.maxclients.value)
+        if (p < 1 || p > SV_INIT.gameImports.maxclients.value)
             return;
 
         client = SV_INIT.gameImports.svs.clients[p - 1];
@@ -75,7 +75,7 @@ public class SV_GAME {
 
         if (ent != null) {
             n = ent.index;
-            if (n < 1 || n > SV_MAIN.maxclients.value)
+            if (n < 1 || n > SV_INIT.gameImports.maxclients.value)
                 Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
         }
 
@@ -94,7 +94,7 @@ public class SV_GAME {
         int n;
 
         n = ent.index;
-        if (n < 1 || n > SV_MAIN.maxclients.value)
+        if (n < 1 || n > SV_INIT.gameImports.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
         MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_centerprint);

@@ -47,9 +47,9 @@ public class SV_SEND {
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, NetworkCommands.svc_print);
-			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.PRINT_HIGH);
-			MSG.WriteString(SV_MAIN.sv_client.netchan.message, outputbuf);
+			MSG.WriteByte(SV_INIT.gameImports.sv_client.netchan.message, NetworkCommands.svc_print);
+			MSG.WriteByte(SV_INIT.gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
+			MSG.WriteString(SV_INIT.gameImports.sv_client.netchan.message, outputbuf);
         }
 	}
 	/*
@@ -93,7 +93,7 @@ public class SV_SEND {
 			Com.Printf(s);
 		}
 
-		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+		for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
 			cl = SV_INIT.gameImports.svs.clients[i];
 			if (level < cl.messagelevel)
 				continue;
@@ -186,7 +186,7 @@ public class SV_SEND {
 		}
 
 		// send the data to all relevent clients
-		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
+		for (j = 0; j < SV_INIT.gameImports.maxclients.value; j++) {
 			client = SV_INIT.gameImports.svs.clients[j];
 
 			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
@@ -499,7 +499,7 @@ public class SV_SEND {
 		}
 
 		// send a message to each connected client
-		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+		for (i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
 			c = SV_INIT.gameImports.svs.clients[i];
 
 			if (c.state == ClientStates.CS_FREE)

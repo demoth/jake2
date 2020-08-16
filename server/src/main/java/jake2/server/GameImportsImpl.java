@@ -69,6 +69,10 @@ public class GameImportsImpl implements GameImports {
 
     public CM cm;
 
+    cvar_t maxclients; // FIXME: rename sv_maxclients
+
+    client_t sv_client; // current client
+
     public GameImportsImpl() {
 
         // Initialize server static state
@@ -76,16 +80,19 @@ public class GameImportsImpl implements GameImports {
         svs.initialized = true;
         svs.spawncount = Lib.rand();
 
+        maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        // if was defined before (in command line parameters)
+        maxclients.flags = Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH;
+
         // Clear all clients
-        svs.clients = new client_t[(int) SV_MAIN.maxclients.value]; //todo use cvar
+        svs.clients = new client_t[(int) maxclients.value];
         for (int n = 0; n < svs.clients.length; n++) {
             svs.clients[n] = new client_t();
             svs.clients[n].serverindex = n;
             svs.clients[n].lastcmd = new usercmd_t();
         }
 
-        svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
-                * Defines.UPDATE_BACKUP * 64; //ok.
+        svs.num_client_entities = ((int) maxclients.value) * Defines.UPDATE_BACKUP * 64; //ok.
 
         // Clear all client entity states
         svs.client_entities = new entity_state_t[svs.num_client_entities];
@@ -104,6 +111,8 @@ public class GameImportsImpl implements GameImports {
         SV_InitOperatorCommands();
 
         localCvars = new Cvar();
+
+
     }
 
     /**
@@ -146,7 +155,7 @@ public class GameImportsImpl implements GameImports {
     }
 
     void resetClients() {
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             svs.clients[i].edict = gameExports.getEdict(i + 1);
         }
     }
@@ -368,7 +377,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (SV_INIT.gameImports.cvar("deathmatch", "", 0).value != 0) {
+        if (cvar("deathmatch", "", 0).value != 0) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -379,7 +388,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (SV_MAIN.maxclients.value == 1 && svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+        if (maxclients.value == 1 && svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
             Com.Printf("\nCan't savegame while dead!\n");
             return;
         }
@@ -429,12 +438,12 @@ public class GameImportsImpl implements GameImports {
         if (!SV_SetPlayer(args))
             return;
 
-        SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, SV_MAIN.sv_client.name + " was kicked\n");
+        SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
-        SV_SEND.SV_ClientPrintf(SV_MAIN.sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
-        SV_DropClient(SV_MAIN.sv_client);
-        SV_MAIN.sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
+        SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
+        SV_DropClient(sv_client);
+        sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
     }
     /*
     ================
@@ -454,7 +463,7 @@ public class GameImportsImpl implements GameImports {
 
         Com.Printf("num score ping name            lastmsg address               qport \n");
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < maxclients.value; i++) {
             cl = svs.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
@@ -513,7 +522,7 @@ public class GameImportsImpl implements GameImports {
 
         text += p;
 
-        for (j = 0; j < SV_MAIN.maxclients.value; j++) {
+        for (j = 0; j < maxclients.value; j++) {
             client = svs.clients[j];
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
@@ -557,7 +566,7 @@ public class GameImportsImpl implements GameImports {
 
         Com.Printf("userinfo\n");
         Com.Printf("--------\n");
-        Info.Print(SV_MAIN.sv_client.userinfo);
+        Info.Print(sv_client.userinfo);
 
     }
     /*
@@ -730,7 +739,7 @@ public class GameImportsImpl implements GameImports {
             slot++;
         }
 
-        SV_INIT.gameImports.svs.last_heartbeat = -9999999;
+        svs.last_heartbeat = -9999999;
     }
 
     /*
@@ -750,14 +759,13 @@ public class GameImportsImpl implements GameImports {
         // numeric values are just slot numbers
         if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
             int id = Lib.atoi(idOrName);
-            if (id < 0 || id >= SV_MAIN.maxclients.value) {
+            if (id < 0 || id >= maxclients.value) {
                 Com.Printf("Bad client slot: " + id + "\n");
                 return false;
             }
 
-            SV_MAIN.sv_client = svs.clients[id];
-            SV_USER.sv_player = SV_MAIN.sv_client.edict;
-            if (ClientStates.CS_FREE == SV_MAIN.sv_client.state) {
+            sv_client = svs.clients[id];
+            if (ClientStates.CS_FREE == sv_client.state) {
                 Com.Printf("Client " + id + " is not active\n");
                 return false;
             }
@@ -765,13 +773,12 @@ public class GameImportsImpl implements GameImports {
         }
 
         // check for a name match
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             client_t cl = svs.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
-                SV_MAIN.sv_client = cl;
-                SV_USER.sv_player = SV_MAIN.sv_client.edict;
+                sv_client = cl;
                 return true;
             }
         }
@@ -830,7 +837,7 @@ public class GameImportsImpl implements GameImports {
         sv.name = mapName;
 
         // leave slots at start for clients only
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             // needs to reconnect
             if (svs.clients[i].state == ClientStates.CS_SPAWNED)
                 svs.clients[i].state = ClientStates.CS_CONNECTED;
@@ -909,7 +916,7 @@ public class GameImportsImpl implements GameImports {
         int droppoint = (int) (svs.realtime - 1000 * SV_MAIN.timeout.value);
         int zombiepoint = (int) (svs.realtime - 1000 * SV_MAIN.zombietime.value);
 
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             client_t cl = svs.clients[i];
             // message times may be wrong across a changelevel
             if (cl.lastmessage > svs.realtime)
@@ -957,7 +964,7 @@ public class GameImportsImpl implements GameImports {
      */
     void SV_CalcPings() {
 
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             client_t cl = svs.clients[i];
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
@@ -989,7 +996,7 @@ public class GameImportsImpl implements GameImports {
         if ((sv.framenum & 15) != 0)
             return;
 
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             client_t cl = svs.clients[i];
             if (cl.state == ClientStates.CS_FREE)
                 continue;
@@ -1011,7 +1018,7 @@ public class GameImportsImpl implements GameImports {
         sv.time = sv.framenum * 100;
 
         // don't run if paused
-        if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
+        if (0 == SV_MAIN.sv_paused.value || maxclients.value > 1) {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind
@@ -1049,7 +1056,7 @@ public class GameImportsImpl implements GameImports {
             int qport = MSG.ReadShort(Globals.net_message) & 0xffff;
 
             // check for packets from connected clients
-            for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            for (int i = 0; i < maxclients.value; i++) {
                 client_t cl = svs.clients[i];
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
@@ -1088,8 +1095,7 @@ public class GameImportsImpl implements GameImports {
         usercmd_t oldcmd = new usercmd_t();
         usercmd_t newcmd = new usercmd_t();
 
-        SV_MAIN.sv_client = cl;
-        SV_USER.sv_player = SV_MAIN.sv_client.edict;
+        sv_client = cl;
 
         // only allow one move command
         boolean move_issued = false;
@@ -1139,9 +1145,7 @@ public class GameImportsImpl implements GameImports {
                     if (lastframe != cl.lastframe) {
                         cl.lastframe = lastframe;
                         if (cl.lastframe > 0) {
-                            cl.frame_latency[cl.lastframe
-                                    & (Defines.LATENCY_COUNTS - 1)] = SV_INIT.gameImports.svs.realtime
-                                    - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
+                            cl.frame_latency[cl.lastframe & (Defines.LATENCY_COUNTS - 1)] = svs.realtime - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
                         }
                     }
 
@@ -1229,15 +1233,13 @@ public class GameImportsImpl implements GameImports {
         if (args.isEmpty())
             return;
 
-        SV_USER.sv_player = SV_MAIN.sv_client.edict;
-
         if (userCommands.containsKey(args.get(0))) {
             userCommands.get(args.get(0)).execute(args);
             return;
         }
 
         if (sv.state == ServerStates.SS_GAME)
-            gameExports.ClientCommand(SV_USER.sv_player, args);
+            gameExports.ClientCommand(sv_client.edict, args);
     }
 
 }
