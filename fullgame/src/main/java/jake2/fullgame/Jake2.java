@@ -160,7 +160,7 @@ public final class Jake2 {
             // a basedir or cddir needs to be set before execing
             // config files, but we want other parms to override
             // the settings of the config files
-            Cbuf.AddEarlyCommands(args, false);
+            Cbuf.AddEarlySetCommands(args, false);
             Cbuf.Execute();
 
 

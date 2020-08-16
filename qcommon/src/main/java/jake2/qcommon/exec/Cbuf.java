@@ -95,7 +95,7 @@ public final class Cbuf {
      * Other commands are added late, after all initialization is complete.
      * @param clear - if true - remove such commands from 'args'
      */
-    public static void AddEarlyCommands(List<String> args, boolean clear) {
+    public static void AddEarlySetCommands(List<String> args, boolean clear) {
         for (int i = 0; i < args.size(); i++) {
             if (!args.get(i).equals("+set") || args.size() < i + 2)
                 continue;
@@ -223,7 +223,7 @@ public final class Cbuf {
         Cvar.getInstance().Set("vid_fullscreen", "0");
         Cbuf.AddText("exec config.cfg\n");
 
-        Cbuf.AddEarlyCommands(args, clear);
+        Cbuf.AddEarlySetCommands(args, clear);
         Cbuf.Execute();
         if (!("".equals(dir))) Cvar.getInstance().Set("cddir", dir);
     }

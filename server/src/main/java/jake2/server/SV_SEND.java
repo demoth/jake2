@@ -510,7 +510,7 @@ public class SV_SEND {
                 c.netchan.message.clear();
                 c.datagram.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
-				SV_MAIN.SV_DropClient(c);
+				SV_INIT.gameImports.SV_DropClient(c);
 			}
 
 			if (SV_INIT.gameImports.sv.state == ServerStates.SS_CINEMATIC

@@ -38,7 +38,10 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_INIT.*;
+import static jake2.server.SV_INIT.SV_CheckForSavegame;
+import static jake2.server.SV_INIT.SV_CreateBaseline;
+import static jake2.server.SV_MAIN.SV_ConnectionlessPacket;
+import static jake2.server.SV_USER.userCommands;
 
 /*
  Collection of functions provided by the main engine.
@@ -47,6 +50,8 @@ import static jake2.server.SV_INIT.*;
  todo make singleton (same as game exports)
 */
 public class GameImportsImpl implements GameImports {
+    private static final int MAX_STRINGCMDS = 8;
+
     public GameExports gameExports;
 
     // persistent server state
@@ -287,7 +292,6 @@ public class GameImportsImpl implements GameImports {
         SV_GAME.PF_Unicast(ent, reliable);
     }
 
-
     @Override
     public void WriteByte(int c) {
         SV_GAME.PF_WriteByte(c);
@@ -338,7 +342,6 @@ public class GameImportsImpl implements GameImports {
         return localCvars.ForceSet(var_name, value);
     }
 
-
     /*
      add commands to the server console as if they were typed in
      for map changing, etc
@@ -353,13 +356,6 @@ public class GameImportsImpl implements GameImports {
         return SV_WORLD.SV_PointContents(p, this);
     }
 
-
-    /*
-==============
-SV_Savegame_f
-
-==============
-*/
     private void SV_Savegame_f(List<String> args) {
 
         if (sv.state != ServerStates.SS_GAME) {
@@ -372,7 +368,7 @@ SV_Savegame_f
             return;
         }
 
-        if (gameImports.cvar("deathmatch", "", 0).value != 0) {
+        if (SV_INIT.gameImports.cvar("deathmatch", "", 0).value != 0) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -411,7 +407,7 @@ SV_Savegame_f
         SV_CopySaveGame("current", saveGame);
         Com.Printf("Done.\n");
     }
-    //===============================================================
+
 	/*
 	==================
 	SV_Kick_f
@@ -437,7 +433,7 @@ SV_Savegame_f
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         SV_SEND.SV_ClientPrintf(SV_MAIN.sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
-        SV_MAIN.SV_DropClient(SV_MAIN.sv_client);
+        SV_DropClient(SV_MAIN.sv_client);
         SV_MAIN.sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
     }
     /*
@@ -734,8 +730,9 @@ SV_Savegame_f
             slot++;
         }
 
-        gameImports.svs.last_heartbeat = -9999999;
+        SV_INIT.gameImports.svs.last_heartbeat = -9999999;
     }
+
     /*
     ==================
     SV_SetPlayer
@@ -758,7 +755,7 @@ SV_Savegame_f
                 return false;
             }
 
-            SV_MAIN.sv_client = gameImports.svs.clients[id];
+            SV_MAIN.sv_client = svs.clients[id];
             SV_USER.sv_player = SV_MAIN.sv_client.edict;
             if (ClientStates.CS_FREE == SV_MAIN.sv_client.state) {
                 Com.Printf("Client " + id + " is not active\n");
@@ -769,7 +766,7 @@ SV_Savegame_f
 
         // check for a name match
         for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t cl = gameImports.svs.clients[i];
+            client_t cl = svs.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
@@ -897,6 +894,350 @@ SV_Savegame_f
 
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+    }
+
+    /**
+     * If a packet has not been received from a client for timeout.value
+     * seconds, drop the conneciton. Server frames are used instead of realtime
+     * to avoid dropping the local client while debugging.
+     *
+     * When a client is normally dropped, the client_t goes into a zombie state
+     * for a few seconds to make sure any final reliable message gets resent if
+     * necessary.
+     */
+    void SV_CheckTimeouts() {
+        int droppoint = (int) (svs.realtime - 1000 * SV_MAIN.timeout.value);
+        int zombiepoint = (int) (svs.realtime - 1000 * SV_MAIN.zombietime.value);
+
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = svs.clients[i];
+            // message times may be wrong across a changelevel
+            if (cl.lastmessage > svs.realtime)
+                cl.lastmessage = svs.realtime;
+
+            if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
+                cl.state = ClientStates.CS_FREE; // can now be reused
+                continue;
+            }
+            if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
+                    && cl.lastmessage < droppoint) {
+                SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name
+                        + " timed out\n");
+                SV_DropClient(cl);
+                cl.state = ClientStates.CS_FREE; // don't bother with zombie state
+            }
+        }
+    }
+
+    /**
+     * Called when the player is totally leaving the server, either willingly or
+     * unwillingly. This is NOT called if the entire server is quiting or
+     * crashing.
+     */
+    void SV_DropClient(client_t client) {
+        // add the disconnect
+        MSG.WriteByte(client.netchan.message, NetworkCommands.svc_disconnect);
+
+        if (client.state == ClientStates.CS_SPAWNED) {
+            // call the prog function for removing a client
+            // this will remove the body, among other things
+            gameExports.ClientDisconnect(client.edict);
+        }
+
+        if (client.download != null) {
+            client.download = null;
+        }
+
+        client.state = ClientStates.CS_ZOMBIE; // become free in a few seconds
+        client.name = "";
+    }
+
+    /**
+     * Updates the cl.ping variables.
+     */
+    void SV_CalcPings() {
+
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = svs.clients[i];
+            if (cl.state != ClientStates.CS_SPAWNED)
+                continue;
+
+            int total = 0;
+            int count = 0;
+            for (int j = 0; j < Defines.LATENCY_COUNTS; j++) {
+                if (cl.frame_latency[j] > 0) {
+                    count++;
+                    total += cl.frame_latency[j];
+                }
+            }
+            if (0 == count)
+                cl.ping = 0;
+            else
+                cl.ping = total / count;
+
+            // let the jake2.game dll know about the ping
+            cl.edict.getClient().setPing(cl.ping);
+        }
+    }
+
+    /**
+     * Every few frames, gives all clients an allotment of milliseconds for
+     * their command moves. If they exceed it, assume cheating.
+     */
+    void SV_GiveMsec() {
+
+        if ((sv.framenum & 15) != 0)
+            return;
+
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = svs.clients[i];
+            if (cl.state == ClientStates.CS_FREE)
+                continue;
+
+            cl.commandMsec = 1800; // 1600 + some slop
+        }
+    }
+
+    /**
+     * SV_RunGameFrame.
+     */
+    void SV_RunGameFrame() {
+
+        // we always need to bump framenum, even if we
+        // don't run the world, otherwise the delta
+        // compression can get confused when a client
+        // has the "current" frame
+        sv.framenum++;
+        sv.time = sv.framenum * 100;
+
+        // don't run if paused
+        if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
+            gameExports.G_RunFrame();
+
+            // never get more than one tic behind
+            if (sv.time < svs.realtime) {
+                if (SV_MAIN.sv_showclamp.value != 0)
+                    Com.Printf("sv highclamp\n");
+                svs.realtime = sv.time;
+            }
+        }
+
+    }
+
+    /**
+     * Reads packets from the network or loopback.
+     */
+    void SV_ReadPackets() {
+
+        while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from,
+                Globals.net_message)) {
+
+            // check for connectionless packet (0xffffffff) first
+            if ((Globals.net_message.data[0] == -1)
+                    && (Globals.net_message.data[1] == -1)
+                    && (Globals.net_message.data[2] == -1)
+                    && (Globals.net_message.data[3] == -1)) {
+                SV_ConnectionlessPacket();
+                continue;
+            }
+
+            // read the qport out of the message so we can fix up
+            // stupid address translating routers
+            MSG.BeginReading(Globals.net_message);
+            MSG.ReadLong(Globals.net_message); // sequence number
+            MSG.ReadLong(Globals.net_message); // sequence number
+            int qport = MSG.ReadShort(Globals.net_message) & 0xffff;
+
+            // check for packets from connected clients
+            for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+                client_t cl = svs.clients[i];
+                if (cl.state == ClientStates.CS_FREE)
+                    continue;
+                if (!NET.CompareBaseAdr(Globals.net_from,
+                        cl.netchan.remote_address))
+                    continue;
+                if (cl.netchan.qport != qport)
+                    continue;
+                if (cl.netchan.remote_address.port != Globals.net_from.port) {
+                    Com.Printf("SV_ReadPackets: fixing up a translated port\n");
+                    cl.netchan.remote_address.port = Globals.net_from.port;
+                }
+
+                if (Netchan.Process(cl.netchan, Globals.net_message)) {
+                    // this is a valid, sequenced packet, so process it
+                    if (cl.state != ClientStates.CS_ZOMBIE) {
+                        cl.lastmessage = svs.realtime; // don't timeout
+                        SV_ExecuteClientMessage(cl);
+                    }
+                }
+                break;
+            }
+
+        }
+    }
+
+    /*
+     * =================== SV_ExecuteClientMessage
+     *
+     * The current net_message is parsed for the given client
+     * ===================
+     */
+    void SV_ExecuteClientMessage(client_t cl) {
+
+        usercmd_t oldest = new usercmd_t();
+        usercmd_t oldcmd = new usercmd_t();
+        usercmd_t newcmd = new usercmd_t();
+
+        SV_MAIN.sv_client = cl;
+        SV_USER.sv_player = SV_MAIN.sv_client.edict;
+
+        // only allow one move command
+        boolean move_issued = false;
+        int stringCmdCount = 0;
+
+        while (true) {
+            if (Globals.net_message.readcount > Globals.net_message.cursize) {
+                Com.Printf("SV_ReadClientMessage: bad read:\n");
+                Com.Printf(Lib.hexDump(Globals.net_message.data, 32, false));
+                SV_DropClient(cl);
+                return;
+            }
+
+            ClientCommands c = ClientCommands.fromInt(MSG.ReadByte(Globals.net_message));
+            if (c == ClientCommands.CLC_BAD)
+                break;
+
+            String s;
+            usercmd_t nullcmd;
+            int checksum;
+            int calculatedChecksum;
+            int checksumIndex;
+            int lastframe;
+            switch (c) {
+                default:
+                    Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
+                    SV_DropClient(cl);
+                    return;
+
+                case CLC_NOP:
+                    break;
+
+                case CLC_USERINFO:
+                    cl.userinfo = MSG.ReadString(Globals.net_message);
+                    SV_MAIN.SV_UserinfoChanged(cl);
+                    break;
+
+                case CLC_MOVE:
+                    if (move_issued)
+                        return; // someone is trying to cheat...
+
+                    move_issued = true;
+                    checksumIndex = Globals.net_message.readcount;
+                    checksum = MSG.ReadByte(Globals.net_message);
+                    lastframe = MSG.ReadLong(Globals.net_message);
+
+                    if (lastframe != cl.lastframe) {
+                        cl.lastframe = lastframe;
+                        if (cl.lastframe > 0) {
+                            cl.frame_latency[cl.lastframe
+                                    & (Defines.LATENCY_COUNTS - 1)] = SV_INIT.gameImports.svs.realtime
+                                    - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
+                        }
+                    }
+
+                    //memset (nullcmd, 0, sizeof(nullcmd));
+                    nullcmd = new usercmd_t();
+                    MSG.ReadDeltaUsercmd(Globals.net_message, nullcmd, oldest);
+                    MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
+                    MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
+
+                    if (cl.state != ClientStates.CS_SPAWNED) {
+                        cl.lastframe = -1;
+                        break;
+                    }
+
+                    // if the checksum fails, ignore the rest of the packet
+
+                    calculatedChecksum = CRC.BlockSequenceCRCByte(
+                            Globals.net_message.data, checksumIndex + 1,
+                            Globals.net_message.readcount - checksumIndex - 1,
+                            cl.netchan.incoming_sequence);
+
+                    if ((calculatedChecksum & 0xff) != checksum) {
+                        Com.DPrintf("Failed command checksum for " + cl.name + " ("
+                                + calculatedChecksum + " != " + checksum + ")/"
+                                + cl.netchan.incoming_sequence + "\n");
+                        return;
+                    }
+
+                    if (0 == SV_MAIN.sv_paused.value) {
+                        int net_drop = cl.netchan.dropped;
+                        if (net_drop < 20) {
+
+                            //if (net_drop > 2)
+
+                            //	Com.Printf ("drop %i\n", net_drop);
+                            while (net_drop > 2) {
+                                SV_ClientThink(cl, cl.lastcmd);
+
+                                net_drop--;
+                            }
+                            if (net_drop > 1)
+                                SV_ClientThink(cl, oldest);
+
+                            if (net_drop > 0)
+                                SV_ClientThink(cl, oldcmd);
+
+                        }
+                        SV_ClientThink(cl, newcmd);
+                    }
+
+                    // copy.
+                    cl.lastcmd.set(newcmd);
+                    break;
+
+                case CLC_STRINGCMD:
+                    s = MSG.ReadString(Globals.net_message);
+
+                    // malicious users may try using too many string commands
+                    if (++stringCmdCount < MAX_STRINGCMDS)
+                        SV_ExecuteUserCommand(s);
+
+                    if (cl.state == ClientStates.CS_ZOMBIE)
+                        return; // disconnect command
+                    break;
+            }
+        }
+    }
+
+    private void SV_ClientThink(client_t cl, usercmd_t cmd) {
+        cl.commandMsec -= cmd.msec & 0xFF;
+
+        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
+            Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
+            return;
+        }
+
+        gameExports.ClientThink(cl.edict, cmd);
+    }
+
+    private void SV_ExecuteUserCommand(String s) {
+
+        Com.dprintln("SV_ExecuteUserCommand:" + s );
+
+        List<String> args = Cmd.TokenizeString(s, true);
+        if (args.isEmpty())
+            return;
+
+        SV_USER.sv_player = SV_MAIN.sv_client.edict;
+
+        if (userCommands.containsKey(args.get(0))) {
+            userCommands.get(args.get(0)).execute(args);
+            return;
+        }
+
+        if (sv.state == ServerStates.SS_GAME)
+            gameExports.ClientCommand(SV_USER.sv_player, args);
     }
 
 }

@@ -41,10 +41,24 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
-/**
- * FS
- * 
- * @author cwei
+/*
+ * All of Quake's data access is through a hierarchical file system, but the
+ * contents of the file system can be transparently merged from several
+ * sources.
+ *
+ * The "base directory" is the path to the directory holding the quake.exe
+ * and all game directories. The sys_* files pass this to host_init in
+ * quakeparms_t->basedir. This can be overridden with the "-basedir" command
+ * line parm to allow code debugging in a different directory. The base
+ * directory is only used during filesystem initialization.
+ *
+ * The "game directory" is the first tree on the search path and directory
+ * that all generated files (savegames, screenshots, demos, config files)
+ * will be saved to. This can be overridden with the "-game" command line
+ * parameter. The game directory can never be changed while quake is
+ * executing. This is a precacution against having a malicious server
+ * instruct clients to write files over areas they shouldn't.
+ *
  */
 public final class FS extends Globals {
 
@@ -56,6 +70,9 @@ public final class FS extends Globals {
      * ==================================================
      */
 
+    /**
+     * Represents a file inside a PAK archive
+     */
     static class packfile_t {
         static final int SIZE = 64;
 
@@ -80,14 +97,14 @@ public final class FS extends Globals {
     static class pack_t {
         final String filename;
         final int numfiles;
-        final Hashtable<String, packfile_t> files;
+        final Map<String, packfile_t> files;
 
         RandomAccessFile handle;
         
         ByteBuffer mappedFileChannel;
 
 
-        pack_t(String filename, int numfiles, Hashtable<String, packfile_t> files) {
+        pack_t(String filename, int numfiles, Map<String, packfile_t> files) {
             this.filename = filename;
             this.numfiles = numfiles;
             this.files = files;
@@ -138,8 +155,8 @@ public final class FS extends Globals {
 
     private static List<filelink_t> fs_links = new LinkedList<>();
 
-    // only one of filename or pack will be used
     static class SearchPath {
+        // only one of filename or pack will be used
         final String filename;
         final pack_t pack;
         // all entries with 'true' values will be freed after change of 'game' cvar
@@ -158,26 +175,6 @@ public final class FS extends Globals {
     }
     private static final Deque<SearchPath> searchPaths = new ArrayDeque<>();
 
-
-    /*
-     * All of Quake's data access is through a hierarchical file system, but the
-     * contents of the file system can be transparently merged from several
-     * sources.
-     * 
-     * The "base directory" is the path to the directory holding the quake.exe
-     * and all game directories. The sys_* files pass this to host_init in
-     * quakeparms_t->basedir. This can be overridden with the "-basedir" command
-     * line parm to allow code debugging in a different directory. The base
-     * directory is only used during filesystem initialization.
-     * 
-     * The "game directory" is the first tree on the search path and directory
-     * that all generated files (savegames, screenshots, demos, config files)
-     * will be saved to. This can be overridden with the "-game" command line
-     * parameter. The game directory can never be changed while quake is
-     * executing. This is a precacution against having a malicious server
-     * instruct clients to write files over areas they shouldn't.
-     *  
-     */
 
     /*
      * CreatePath
@@ -446,7 +443,7 @@ public final class FS extends Globals {
     private static pack_t LoadPackFile(String packfile) {
 
         dpackheader_t header;
-        Hashtable<String, packfile_t> newfiles;
+        Map<String, packfile_t> newfiles;
         RandomAccessFile file;
         int numpackfiles;
         //		unsigned checksum;
@@ -472,7 +469,7 @@ public final class FS extends Globals {
             if (numpackfiles > MAX_FILES_IN_PACK)
                 Com.Error(Defines.ERR_FATAL, packfile + " has " + numpackfiles + " files");
 
-            newfiles = new Hashtable<>(numpackfiles);
+            newfiles = new HashMap<>(numpackfiles);
 
             packhandle.position(header.dirofs);
 

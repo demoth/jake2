@@ -24,7 +24,6 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
-import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Command;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
@@ -39,7 +38,7 @@ class SV_USER {
 
     static edict_t sv_player;
 
-    private static final Map<String, Command> userCommands;
+    static final Map<String, Command> userCommands;
 
     static {
         userCommands = new HashMap<>();
@@ -58,7 +57,6 @@ class SV_USER {
 
     }
 
-    private static final int MAX_STRINGCMDS = 8;
 
     /*
      * ============================================================
@@ -406,7 +404,7 @@ class SV_USER {
      */
     private static void SV_Disconnect_f(List<String> args) {
         //	SV_EndRedirect ();
-        SV_MAIN.SV_DropClient(SV_MAIN.sv_client);
+        SV_INIT.gameImports.SV_DropClient(SV_MAIN.sv_client);
     }
 
     /*
@@ -458,178 +456,4 @@ class SV_USER {
         SV_Nextserver();
     }
 
-    /*
-     * ================== SV_ExecuteUserCommand ==================
-     */
-    private static void SV_ExecuteUserCommand(String s) {
-        
-        Com.dprintln("SV_ExecuteUserCommand:" + s );
-
-        List<String> args = Cmd.TokenizeString(s, true);
-        if (args.isEmpty())
-            return;
-
-        SV_USER.sv_player = SV_MAIN.sv_client.edict;
-
-        if (userCommands.containsKey(args.get(0))) {
-            userCommands.get(args.get(0)).execute(args);
-            return;
-        }
-
-        if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME)
-            SV_INIT.gameImports.gameExports.ClientCommand(SV_USER.sv_player, args);
-    }
-
-    /*
-     * ===========================================================================
-     * 
-     * USER CMD EXECUTION
-     * 
-     * ===========================================================================
-     */
-
-    private static void SV_ClientThink(client_t cl, usercmd_t cmd) {
-        cl.commandMsec -= cmd.msec & 0xFF;
-
-        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
-            Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
-            return;
-        }
-
-        SV_INIT.gameImports.gameExports.ClientThink(cl.edict, cmd);
-    }
-
-    /*
-     * =================== SV_ExecuteClientMessage
-     * 
-     * The current net_message is parsed for the given client
-     * ===================
-     */
-    static void SV_ExecuteClientMessage(client_t cl) {
-        String s;
-
-        usercmd_t nullcmd = new usercmd_t();
-        usercmd_t oldest = new usercmd_t(), oldcmd = new usercmd_t(), newcmd = new usercmd_t();
-        int net_drop;
-        int stringCmdCount;
-        int checksum, calculatedChecksum;
-        int checksumIndex;
-        boolean move_issued;
-        int lastframe;
-
-        SV_MAIN.sv_client = cl;
-        SV_USER.sv_player = SV_MAIN.sv_client.edict;
-
-        // only allow one move command
-        move_issued = false;
-        stringCmdCount = 0;
-
-        while (true) {
-            if (Globals.net_message.readcount > Globals.net_message.cursize) {
-                Com.Printf("SV_ReadClientMessage: bad read:\n");
-                Com.Printf(Lib.hexDump(Globals.net_message.data, 32, false));
-                SV_MAIN.SV_DropClient(cl);
-                return;
-            }
-
-            ClientCommands c = ClientCommands.fromInt(MSG.ReadByte(Globals.net_message));
-            if (c == ClientCommands.CLC_BAD)
-                break;
-
-            switch (c) {
-            default:
-                Com.Printf("SV_ReadClientMessage: unknown command char\n");
-                SV_MAIN.SV_DropClient(cl);
-                return;
-
-            case CLC_NOP:
-                break;
-
-            case CLC_USERINFO:
-                cl.userinfo = MSG.ReadString(Globals.net_message);
-                SV_MAIN.SV_UserinfoChanged(cl);
-                break;
-
-            case CLC_MOVE:
-                if (move_issued)
-                    return; // someone is trying to cheat...
-
-                move_issued = true;
-                checksumIndex = Globals.net_message.readcount;
-                checksum = MSG.ReadByte(Globals.net_message);
-                lastframe = MSG.ReadLong(Globals.net_message);
-
-                if (lastframe != cl.lastframe) {
-                    cl.lastframe = lastframe;
-                    if (cl.lastframe > 0) {
-                        cl.frame_latency[cl.lastframe
-                                & (Defines.LATENCY_COUNTS - 1)] = SV_INIT.gameImports.svs.realtime
-                                - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
-                    }
-                }
-
-                //memset (nullcmd, 0, sizeof(nullcmd));
-                nullcmd = new usercmd_t();
-                MSG.ReadDeltaUsercmd(Globals.net_message, nullcmd, oldest);
-                MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
-                MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
-
-                if (cl.state != ClientStates.CS_SPAWNED) {
-                    cl.lastframe = -1;
-                    break;
-                }
-
-                // if the checksum fails, ignore the rest of the packet
-
-                calculatedChecksum = CRC.BlockSequenceCRCByte(
-                        Globals.net_message.data, checksumIndex + 1,
-                        Globals.net_message.readcount - checksumIndex - 1,
-                        cl.netchan.incoming_sequence);
-
-                if ((calculatedChecksum & 0xff) != checksum) {
-                    Com.DPrintf("Failed command checksum for " + cl.name + " ("
-                            + calculatedChecksum + " != " + checksum + ")/"
-                            + cl.netchan.incoming_sequence + "\n");
-                    return;
-                }
-
-                if (0 == SV_MAIN.sv_paused.value) {
-                    net_drop = cl.netchan.dropped;
-                    if (net_drop < 20) {
-
-                        //if (net_drop > 2)
-
-                        //	Com.Printf ("drop %i\n", net_drop);
-                        while (net_drop > 2) {
-                            SV_ClientThink(cl, cl.lastcmd);
-
-                            net_drop--;
-                        }
-                        if (net_drop > 1)
-                            SV_ClientThink(cl, oldest);
-
-                        if (net_drop > 0)
-                            SV_ClientThink(cl, oldcmd);
-
-                    }
-                    SV_ClientThink(cl, newcmd);
-                }
-
-                // copy.
-                cl.lastcmd.set(newcmd);
-                break;
-
-            case CLC_STRINGCMD:
-                s = MSG.ReadString(Globals.net_message);
-
-                // malicious users may try using too many string commands
-                if (++stringCmdCount < SV_USER.MAX_STRINGCMDS)
-                    SV_ExecuteUserCommand(s);
-
-                if (cl.state == ClientStates.CS_ZOMBIE)
-                    return; // disconnect command
-                break;
-            }
-        }
-    }
 }

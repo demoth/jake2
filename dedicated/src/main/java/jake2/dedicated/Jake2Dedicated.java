@@ -41,13 +41,13 @@ public class Jake2Dedicated {
             List<String> args1 = Arrays.asList(c_args);
 
             Cmd.Init();
-            Cvar.getInstance().Init();
+            Cvar.Init();
 
             // we need to add the early commands twice, because
             // a basedir or cddir needs to be set before execing
             // config files, but we want other parms to override
             // the settings of the config files
-            Cbuf.AddEarlyCommands(args1, false);
+            Cbuf.AddEarlySetCommands(args1, false);
             Cbuf.Execute();
 
             FS.InitFilesystem();
@@ -77,12 +77,7 @@ public class Jake2Dedicated {
 
             // add + commands from command line
             if (Cbuf.AddLateCommands(args1)) {
-                // if the user didn't give any commands, run default action
-                  if (Globals.dedicated.value == 0)
-                      Cbuf.AddText("d1\n");
-                  else
-                      Cbuf.AddText("dedicated_start\n");
-
+                Cbuf.AddText("dedicated_start\n");
                 Cbuf.Execute();
             }
 
