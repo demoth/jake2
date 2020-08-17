@@ -371,15 +371,14 @@ class SV_USER {
         Info.Print(Cvar.getInstance().Serverinfo());
     }
 
-    static void SV_Nextserver() {
+    static void SV_Nextserver(GameImportsImpl gameImports) {
 
         //ZOID, ss_pic can be nextserver'd in coop mode
-        if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME
-                || (SV_INIT.gameImports.sv.state == ServerStates.SS_PIC &&
-                        0 == Cvar.getInstance().VariableValue("coop")))
+        if (gameImports.sv.state == ServerStates.SS_GAME
+                || (gameImports.sv.state == ServerStates.SS_PIC && 0 == Cvar.getInstance().VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
-        SV_INIT.gameImports.svs.spawncount++; // make sure another doesn't sneak in
+        gameImports.svs.spawncount++; // make sure another doesn't sneak in
         String v = Cvar.getInstance().VariableString("nextserver");
         //if (!v[0])
         if (v.length() == 0)
@@ -405,7 +404,7 @@ class SV_USER {
         }
 
         Com.DPrintf("Nextserver() from " + gameImports.sv_client.name + "\n");
-        SV_Nextserver();
+        SV_Nextserver(gameImports);
     }
 
 }

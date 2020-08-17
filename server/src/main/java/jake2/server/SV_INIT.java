@@ -313,7 +313,7 @@ public class SV_INIT {
         } else {
             Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SEND.SV_SendClientMessages();
+            SV_INIT.gameImports.SV_SendClientMessages();
             SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }

@@ -398,7 +398,7 @@ public class SV_ENTS {
      * Decides which entities are going to be visible to the client, and copies
      * off the playerstat and areabits.
      */
-    public static void SV_BuildClientFrame(client_t client) {
+    public static void SV_BuildClientFrame(client_t client, GameImportsImpl gameImports) {
         int e, i;
         float[] org = { 0, 0, 0 };
         edict_t ent;
@@ -417,36 +417,36 @@ public class SV_ENTS {
             return; // not in game yet
 
         // this is the frame we are creating
-        frame = client.frames[SV_INIT.gameImports.sv.framenum & Defines.UPDATE_MASK];
+        frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
 
-        frame.senttime = SV_INIT.gameImports.svs.realtime; // save it for ping calc later
+        frame.senttime = gameImports.svs.realtime; // save it for ping calc later
 
         // find the client's PVS
         for (i = 0; i < 3; i++)
             org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
                     + clent.getClient().getPlayerState().viewoffset[i];
 
-        leafnum = SV_INIT.gameImports.cm.CM_PointLeafnum(org);
-        clientarea = SV_INIT.gameImports.cm.CM_LeafArea(leafnum);
-        clientcluster = SV_INIT.gameImports.cm.CM_LeafCluster(leafnum);
+        leafnum = gameImports.cm.CM_PointLeafnum(org);
+        clientarea = gameImports.cm.CM_LeafArea(leafnum);
+        clientcluster = gameImports.cm.CM_LeafCluster(leafnum);
 
         // calculate the visible areas
-        frame.areabytes = SV_INIT.gameImports.cm.CM_WriteAreaBits(frame.areabits, clientarea);
+        frame.areabytes = gameImports.cm.CM_WriteAreaBits(frame.areabits, clientarea);
 
         // grab the current player_state_t
         frame.ps.set(clent.getClient().getPlayerState());
 
-        SV_FatPVS(org, SV_INIT.gameImports.cm);
-        clientphs = SV_INIT.gameImports.cm.CM_ClusterPHS(clientcluster);
+        SV_FatPVS(org, gameImports.cm);
+        clientphs = gameImports.cm.CM_ClusterPHS(clientcluster);
 
         // build up the list of visible entities
         frame.num_entities = 0;
-        frame.first_entity = SV_INIT.gameImports.svs.next_client_entities;
+        frame.first_entity = gameImports.svs.next_client_entities;
 
         c_fullsend = 0;
 
-        for (e = 1; e < SV_INIT.gameImports.gameExports.getNumEdicts(); e++) {
-            ent = SV_INIT.gameImports.gameExports.getEdict(e);
+        for (e = 1; e < gameImports.gameExports.getNumEdicts(); e++) {
+            ent = gameImports.gameExports.getEdict(e);
 
             // ignore ents without visible models
             if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)
@@ -460,9 +460,9 @@ public class SV_ENTS {
             // ignore if not touching a PV leaf
             // check area
             if (ent != clent) {
-                if (!SV_INIT.gameImports.cm.CM_AreasConnected(clientarea, ent.areanum)) {
+                if (!gameImports.cm.CM_AreasConnected(clientarea, ent.areanum)) {
                 	// doors can legally straddle two areas, so we may need to check another one
-                    if (0 == ent.areanum2 || !SV_INIT.gameImports.cm.CM_AreasConnected(clientarea, ent.areanum2))
+                    if (0 == ent.areanum2 || !gameImports.cm.CM_AreasConnected(clientarea, ent.areanum2))
                         continue; // blocked by a door
                 }
 
@@ -482,7 +482,7 @@ public class SV_ENTS {
                     if (ent.num_clusters == -1) { // too many leafs for
                                                   // individual check, go by
                                                   // headnode
-                        if (!SV_INIT.gameImports.cm.CM_HeadnodeVisible(ent.headnode, bitvector))
+                        if (!gameImports.cm.CM_HeadnodeVisible(ent.headnode, bitvector))
                             continue;
                         c_fullsend++;
                     } else { // check individual leafs
@@ -509,22 +509,22 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = SV_INIT.gameImports.svs.next_client_entities
-                    % SV_INIT.gameImports.svs.num_client_entities;
-            state = SV_INIT.gameImports.svs.client_entities[ix];
+            int ix = gameImports.svs.next_client_entities
+                    % gameImports.svs.num_client_entities;
+            state = gameImports.svs.client_entities[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
                 ent.s.number = e;
             }
 
             //*state = ent.s;
-            SV_INIT.gameImports.svs.client_entities[ix].set(ent.s);
+            gameImports.svs.client_entities[ix].set(ent.s);
 
             // don't mark players missiles as solid
             if (ent.getOwner() == client.edict)
                 state.solid = 0;
 
-            SV_INIT.gameImports.svs.next_client_entities++;
+            gameImports.svs.next_client_entities++;
             frame.num_entities++;
         }
     }

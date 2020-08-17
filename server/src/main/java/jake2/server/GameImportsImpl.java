@@ -41,6 +41,7 @@ import static jake2.server.SV_CCMDS.*;
 import static jake2.server.SV_INIT.SV_CheckForSavegame;
 import static jake2.server.SV_INIT.SV_CreateBaseline;
 import static jake2.server.SV_MAIN.SV_ConnectionlessPacket;
+import static jake2.server.SV_SEND.*;
 import static jake2.server.SV_USER.userCommands;
 
 /*
@@ -72,6 +73,10 @@ public class GameImportsImpl implements GameImports {
     cvar_t maxclients; // FIXME: rename sv_maxclients
 
     client_t sv_client; // current client
+
+    final float[] origin_v = { 0, 0, 0 };
+    final sizebuf_t msg = new sizebuf_t();
+    final byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
 
     public GameImportsImpl() {
 
@@ -159,7 +164,7 @@ public class GameImportsImpl implements GameImports {
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {
-        SV_SEND.SV_BroadcastPrintf(printlevel, s);
+        SV_BroadcastPrintf(printlevel, s);
     }
 
     @Override
@@ -434,7 +439,7 @@ public class GameImportsImpl implements GameImports {
         if (!SV_SetPlayer(args))
             return;
 
-        SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
+        SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
@@ -924,7 +929,7 @@ public class GameImportsImpl implements GameImports {
             }
             if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     && cl.lastmessage < droppoint) {
-                SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name
                         + " timed out\n");
                 SV_DropClient(cl);
                 cl.state = ClientStates.CS_FREE; // don't bother with zombie state
@@ -1237,4 +1242,79 @@ public class GameImportsImpl implements GameImports {
             gameExports.ClientCommand(sv_client.edict, args);
     }
 
+    private static final byte[] NULLBYTE = {0};
+
+    void SV_SendClientMessages() {
+
+        int msglen = 0;
+
+        // read the next demo message if needed
+        if (sv.state == ServerStates.SS_DEMO && sv.demofile != null) {
+            if (SV_MAIN.sv_paused.value != 0)
+                msglen = 0;
+            else {
+                // get the next message
+                //r = fread (&msglen, 4, 1, sv.demofile);
+                try {
+                    msglen = EndianHandler.swapInt(sv.demofile.readInt());
+                }
+                catch (Exception e) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+
+                //msglen = LittleLong (msglen);
+                if (msglen == -1) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+                if (msglen > Defines.MAX_MSGLEN)
+                    Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
+
+                //r = fread (msgbuf, msglen, 1, sv.demofile);
+                int r = 0;
+                try {
+                    r = sv.demofile.read(msgbuf, 0, msglen);
+                }
+                catch (IOException e1) {
+                    Com.Printf("IOError: reading demo file, " + e1);
+                }
+                if (r != msglen) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+            }
+        }
+
+        // send a message to each connected client
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t c = svs.clients[i];
+
+            if (c.state == ClientStates.CS_FREE)
+                continue;
+            // if the reliable message overflowed,
+            // drop the client
+            if (c.netchan.message.overflowed) {
+                c.netchan.message.clear();
+                c.datagram.clear();
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
+                SV_DropClient(c);
+            }
+
+            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC)
+                Netchan.Transmit(c.netchan, msglen, msgbuf);
+            else if (c.state == ClientStates.CS_SPAWNED) {
+                // don't overrun bandwidth
+                if (SV_RateDrop(c))
+                    continue;
+
+                SV_SendClientDatagram(c, this);
+            }
+            else {
+                // just update reliable	if needed
+                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    Netchan.Transmit(c.netchan, 0, NULLBYTE);
+            }
+        }
+    }
 }

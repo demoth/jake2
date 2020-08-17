@@ -527,7 +527,7 @@ public class SV_MAIN {
         serverInstance.SV_RunGameFrame();
 
         // send messages back to the clients that had packets read this frame
-        SV_SEND.SV_SendClientMessages();
+        serverInstance.SV_SendClientMessages();
 
         // save the entire world state if recording a serverdemo
         SV_ENTS.SV_RecordDemoMessage();

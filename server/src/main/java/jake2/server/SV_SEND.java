@@ -217,8 +217,7 @@ public class SV_SEND {
         SV_INIT.gameImports.sv.multicast.clear();
     }
 
-	private static final float[] origin_v = { 0, 0, 0 };
-	/*  
+	/*
 	==================
 	SV_StartSound
 	
@@ -301,13 +300,13 @@ public class SV_SEND {
 
 		// use the entity origin unless it is a bmodel or explicitly specified
 		if (origin == null) {
-			origin = origin_v;
+			origin = SV_INIT.gameImports.origin_v;
 			if (entity.solid == Defines.SOLID_BSP) {
 				for (i = 0; i < 3; i++)
-					origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
+					SV_INIT.gameImports.origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
 			}
 			else {
-				Math3D.VectorCopy(entity.s.origin, origin_v);
+				Math3D.VectorCopy(entity.s.origin, SV_INIT.gameImports.origin_v);
 			}
 		}
 
@@ -356,23 +355,22 @@ public class SV_SEND {
 	===============================================================================
 	*/
 
-	private static final sizebuf_t msg = new sizebuf_t();
 	/*
 	=======================
 	SV_SendClientDatagram
 	=======================
 	*/
-	public static boolean SV_SendClientDatagram(client_t client) {
+	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 
-		SV_ENTS.SV_BuildClientFrame(client);
+		SV_ENTS.SV_BuildClientFrame(client, gameImports);
 
-		SZ.Init(msg, msgbuf, msgbuf.length);
-		msg.allowoverflow = true;
+		SZ.Init(gameImports.msg, gameImports.msgbuf, gameImports.msgbuf.length);
+		gameImports.msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		SV_ENTS.SV_WriteFrameToClient(client, msg);
+		SV_ENTS.SV_WriteFrameToClient(client, gameImports.msg);
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
@@ -381,19 +379,19 @@ public class SV_SEND {
 		if (client.datagram.overflowed)
 			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
 		else
-			SZ.Write(msg, client.datagram.data, client.datagram.cursize);
+			SZ.Write(gameImports.msg, client.datagram.data, client.datagram.cursize);
         client.datagram.clear();
 
-        if (msg.overflowed) { // must have room left for the packet header
+        if (gameImports.msg.overflowed) { // must have room left for the packet header
 			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-            msg.clear();
+			gameImports.msg.clear();
         }
 
 		// send the datagram
-		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
+		Netchan.Transmit(client.netchan, gameImports.msg.cursize, gameImports.msg.data);
 
 		// record the size for rate estimation
-		client.message_size[SV_INIT.gameImports.sv.framenum % Defines.RATE_MESSAGES] = msg.cursize;
+		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = gameImports.msg.cursize;
 
 		return true;
 	}
@@ -402,17 +400,17 @@ public class SV_SEND {
 	SV_DemoCompleted
 	==================
 	*/
-	public static void SV_DemoCompleted() {
-		if (SV_INIT.gameImports.sv.demofile != null) {
+	public static void SV_DemoCompleted(GameImportsImpl gameImports) {
+		if (gameImports.sv.demofile != null) {
 			try {
-				SV_INIT.gameImports.sv.demofile.close();
+				gameImports.sv.demofile.close();
 			}
 			catch (IOException e) {
 				Com.Printf("IOError closing d9emo fiele:" + e);
 			}
-			SV_INIT.gameImports.sv.demofile = null;
+			gameImports.sv.demofile = null;
 		}
-		SV_USER.SV_Nextserver();
+		SV_USER.SV_Nextserver(gameImports);
 	}
 	/*
 	=======================
@@ -445,90 +443,10 @@ public class SV_SEND {
 		return false;
 	}
 
-	private static final byte msgbuf[] = new byte[Defines.MAX_MSGLEN];
-	private static final byte[] NULLBYTE = {0};
 	/*
 	=======================
 	SV_SendClientMessages
 	=======================
 	*/
-	public static void SV_SendClientMessages() {
-		int i;
-		client_t c;
-		int msglen;
-		int r;
 
-		msglen = 0;
-
-		// read the next demo message if needed
-		if (SV_INIT.gameImports.sv.state == ServerStates.SS_DEMO && SV_INIT.gameImports.sv.demofile != null) {
-			if (SV_MAIN.sv_paused.value != 0)
-				msglen = 0;
-			else {
-				// get the next message
-				//r = fread (&msglen, 4, 1, sv.demofile);
-				try {
-					msglen = EndianHandler.swapInt(SV_INIT.gameImports.sv.demofile.readInt());
-				}
-				catch (Exception e) {
-					SV_DemoCompleted();
-					return;
-				}
-
-				//msglen = LittleLong (msglen);
-				if (msglen == -1) {
-					SV_DemoCompleted();
-					return;
-				}
-				if (msglen > Defines.MAX_MSGLEN)
-					Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
-
-				//r = fread (msgbuf, msglen, 1, sv.demofile);
-				r = 0;
-				try {
-					r = SV_INIT.gameImports.sv.demofile.read(msgbuf, 0, msglen);
-				}
-				catch (IOException e1) {
-					Com.Printf("IOError: reading demo file, " + e1);
-				}
-				if (r != msglen) {
-					SV_DemoCompleted();
-					return;
-				}
-			}
-		}
-
-		// send a message to each connected client
-		for (i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
-			c = SV_INIT.gameImports.svs.clients[i];
-
-			if (c.state == ClientStates.CS_FREE)
-				continue;
-			// if the reliable message overflowed,
-			// drop the client
-			if (c.netchan.message.overflowed) {
-                c.netchan.message.clear();
-                c.datagram.clear();
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
-				SV_INIT.gameImports.SV_DropClient(c);
-			}
-
-			if (SV_INIT.gameImports.sv.state == ServerStates.SS_CINEMATIC
-				|| SV_INIT.gameImports.sv.state == ServerStates.SS_DEMO
-				|| SV_INIT.gameImports.sv.state == ServerStates.SS_PIC)
-				Netchan.Transmit(c.netchan, msglen, msgbuf);
-			else if (c.state == ClientStates.CS_SPAWNED) {
-				// don't overrun bandwidth
-				if (SV_RateDrop(c))
-					continue;
-
-				SV_SendClientDatagram(c);
-			}
-			else {
-				// just update reliable	if needed
-				if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-					Netchan.Transmit(c.netchan, 0, NULLBYTE);
-			}
-		}
-	}
 }
