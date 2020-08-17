@@ -93,6 +93,19 @@ public class Cvar extends Globals {
         return var;
     }
 
+    /**
+     *
+     * @return
+     */
+    public cvar_t GetForceFlags(String var_name, String defaultValue, int flags) {
+        cvar_t result = Get(var_name, defaultValue, flags);
+        if (result != null) {
+            result.flags = flags;
+        }
+        return result;
+    }
+
+    // todo fix with local cvar caches
     public static void Init() {
         Cmd.AddCommand("set", (List<String> args) -> {
             int flags;

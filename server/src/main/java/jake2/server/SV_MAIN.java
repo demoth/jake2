@@ -455,8 +455,7 @@ public class SV_MAIN {
                 SVC_RemoteCommand(args);
                 break;
             default:
-                Com.Printf("bad connectionless packet from "
-                        + NET.AdrToString(Globals.net_from) + "\n");
+                Com.Printf("bad connectionless packet from " + NET.AdrToString(Globals.net_from) + "\n");
                 Com.Printf("[" + messageLine + "]\n");
                 Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
                 break;

@@ -1628,8 +1628,7 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void ClientBegin(edict_t e) {
-        SubgameEntity ent = g_edicts[e.index];
-        PlayerClient.ClientBegin(ent, this);
+        PlayerClient.ClientBegin(g_edicts[e.index], this);
     }
 
     @Override

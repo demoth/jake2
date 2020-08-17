@@ -80,9 +80,7 @@ public class GameImportsImpl implements GameImports {
         svs.initialized = true;
         svs.spawncount = Lib.rand();
 
-        maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        // if was defined before (in command line parameters)
-        maxclients.flags = Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH;
+        maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         // Clear all clients
         svs.clients = new client_t[(int) maxclients.value];
@@ -111,8 +109,6 @@ public class GameImportsImpl implements GameImports {
         SV_InitOperatorCommands();
 
         localCvars = new Cvar();
-
-
     }
 
     /**
@@ -1036,8 +1032,7 @@ public class GameImportsImpl implements GameImports {
      */
     void SV_ReadPackets() {
 
-        while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from,
-                Globals.net_message)) {
+        while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from, Globals.net_message)) {
 
             // check for connectionless packet (0xffffffff) first
             if ((Globals.net_message.data[0] == -1)
@@ -1234,7 +1229,7 @@ public class GameImportsImpl implements GameImports {
             return;
 
         if (userCommands.containsKey(args.get(0))) {
-            userCommands.get(args.get(0)).execute(args);
+            userCommands.get(args.get(0)).execute(args, this);
             return;
         }
 
