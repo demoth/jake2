@@ -350,7 +350,7 @@ class SV_WORLD {
         int contents, c2;
         int headnode;
         // get base contents from world
-        contents = gameImports.cm.PointContents(p, SV_INIT.gameImports.sv.models[1].headnode);
+        contents = gameImports.cm.PointContents(p, gameImports.sv.models[1].headnode);
         // or in contents from all the other entities
         num = SV_AreaEdicts(p, p, gameImports.world.touch, Defines.MAX_EDICTS, Defines.AREA_SOLID, gameImports);
         for (i = 0; i < num; i++) {
@@ -476,7 +476,7 @@ class SV_WORLD {
 
         // clip to world
         clip.trace = gameImports.cm.BoxTrace(start, end, mins, maxs, 0, contentmask);
-        clip.trace.ent = SV_INIT.gameImports.gameExports.getEdict(0);
+        clip.trace.ent = gameImports.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world
         clip.contentmask = contentmask;

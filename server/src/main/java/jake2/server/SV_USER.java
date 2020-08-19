@@ -66,11 +66,11 @@ class SV_USER {
     /*
      * ================== SV_BeginDemoServer ==================
      */
-    private static void SV_BeginDemoserver() {
+    private static void SV_BeginDemoserver(GameImportsImpl gameImports) {
 
-        String name = "demos/" + SV_INIT.gameImports.sv.name;
-        SV_INIT.gameImports.sv.demofile = FS.FOpenFile(name);
-        if (SV_INIT.gameImports.sv.demofile == null)
+        String name = "demos/" + gameImports.sv.name;
+        gameImports.sv.demofile = FS.FOpenFile(name);
+        if (gameImports.sv.demofile == null)
             Com.Error(Defines.ERR_DROP, "Couldn't open " + name + "\n");
     }
 
@@ -92,7 +92,7 @@ class SV_USER {
 
         // demo servers just dump the file message
         if (gameImports.sv.state == ServerStates.SS_DEMO) {
-            SV_BeginDemoserver();
+            SV_BeginDemoserver(gameImports);
             return;
         }
 

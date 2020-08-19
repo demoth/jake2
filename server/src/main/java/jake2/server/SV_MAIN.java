@@ -530,7 +530,7 @@ public class SV_MAIN {
         serverInstance.SV_SendClientMessages();
 
         // save the entire world state if recording a serverdemo
-        SV_ENTS.SV_RecordDemoMessage();
+        serverInstance.sv_ents.SV_RecordDemoMessage();
 
         // send a heartbeat to the master if needed
         Master_Heartbeat();

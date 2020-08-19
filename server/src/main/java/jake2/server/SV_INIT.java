@@ -27,12 +27,8 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
-import jake2.qcommon.network.NetworkCommands;
-import jake2.qcommon.util.Math3D;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
@@ -41,124 +37,15 @@ import static jake2.qcommon.Defines.*;
 public class SV_INIT {
 
     // todo implement singleton
+    @Deprecated
     public static GameImportsImpl gameImports;
 
-    /**
-     * SV_FindIndex.
-     */
-    private static int SV_FindIndex(String name, int start, int max,
-                                    boolean create) {
-        int i;
-
-        if (name == null || name.length() == 0)
-            return 0;
-
-        for (i = 1; i < max && gameImports.sv.configstrings[start + i] != null; i++)
-            if (name.equals(gameImports.sv.configstrings[start + i]))
-                return i;
-
-        if (!create)
-            return 0;
-
-        if (i == max)
-            Com.Error(Defines.ERR_DROP, "*Index: overflow");
-
-        gameImports.sv.configstrings[start + i] = name;
-
-        if (gameImports.sv.state != ServerStates.SS_LOADING) {
-            // send the update to everyone
-            gameImports.sv.multicast.clear();
-            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
-            MSG.WriteShort(gameImports.sv.multicast, start + i);
-            MSG.WriteString(gameImports.sv.multicast, name);
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
-        }
-
-        return i;
-    }
-
-    static int SV_ModelIndex(String name) {
-        return SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
-    }
-
-    static int SV_SoundIndex(String name) {
-        return SV_FindIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS, true);
-    }
-
-    static int SV_ImageIndex(String name) {
-        return SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
-    }
-
-    /**
-     * SV_CreateBaseline
-     * 
-     * Entity baselines are used to compress the update messages to the clients --
-     * only the fields that differ from the baseline will be transmitted.
-     */
-    static void SV_CreateBaseline() {
-        for (int entnum = 1; entnum < gameImports.gameExports.getNumEdicts(); entnum++) {
-            edict_t svent = gameImports.gameExports.getEdict(entnum);
-
-            if (!svent.inuse)
-                continue;
-            if (0 == svent.s.modelindex && 0 == svent.s.sound
-                    && 0 == svent.s.effects)
-                continue;
-            
-            svent.s.number = entnum;
-
-            // take current state as baseline
-            Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
-            gameImports.sv.baselines[entnum].set(svent.s);
-        }
-    }
-
-    /** 
-     * SV_CheckForSavegame.
-     * @param sv
-     */
-    static void SV_CheckForSavegame(server_t sv) {
-
-        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
-            return;
-
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
-            return;
-
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
-
-        if (!new File(name).exists())
-            return;
-
-        SV_WORLD.SV_ClearWorld(gameImports);
-
-        // get configstrings and areaportals
-        // then read game enitites
-        SV_CCMDS.SV_ReadLevelFile(sv.name, gameImports);
-
-        if (!sv.loadgame) {
-            // coming back to a level after being in a different
-            // level, so run it for ten seconds
-
-            // rlava2 was sending too many lightstyles, and overflowing the
-            // reliable data. temporarily changing the server state to loading
-            // prevents these from being passed down.
-            ServerStates previousState; // PGM
-
-            previousState = sv.state; // PGM
-            sv.state = ServerStates.SS_LOADING; // PGM
-            for (int i = 0; i < 100; i++)
-                gameImports.gameExports.G_RunFrame();
-
-            sv.state = previousState; // PGM
-        }
-    }
 
     /**
      * SV_InitGame.
      * 
      * A brand new game has been started.
-     * @return
+     * todo: move to main?
      */
     static GameImportsImpl SV_InitGame() {
 
@@ -298,27 +185,22 @@ public class SV_INIT {
         int l = level.length();
 
 
+        Cmd.ExecuteFunction("loading"); // for local system
+        gameImports.SV_BroadcastCommand("changing\n");
+
         if (l > 4 && level.endsWith(".cin")) {
-            Cmd.ExecuteFunction("loading"); // for local system
-            SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
-            Cmd.ExecuteFunction("loading"); // for local system
-            SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
-            Cmd.ExecuteFunction("loading"); // for local system
-            SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
         } else {
-            Cmd.ExecuteFunction("loading"); // for local system
-            SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_INIT.gameImports.SV_SendClientMessages();
-            SV_INIT.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
+            gameImports.SV_SendClientMessages();
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }
 
-        SV_SEND.SV_BroadcastCommand("reconnect\n");
+        gameImports.SV_BroadcastCommand("reconnect\n");
     }
 
     /**

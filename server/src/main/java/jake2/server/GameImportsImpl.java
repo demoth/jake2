@@ -38,8 +38,6 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_INIT.SV_CheckForSavegame;
-import static jake2.server.SV_INIT.SV_CreateBaseline;
 import static jake2.server.SV_MAIN.SV_ConnectionlessPacket;
 import static jake2.server.SV_SEND.*;
 import static jake2.server.SV_USER.userCommands;
@@ -68,7 +66,11 @@ public class GameImportsImpl implements GameImports {
 
     private final Cvar localCvars;
 
-    public CM cm;
+    CM cm;
+
+    SV_ENTS sv_ents;
+
+    SV_GAME sv_game;
 
     cvar_t maxclients; // FIXME: rename sv_maxclients
 
@@ -111,6 +113,9 @@ public class GameImportsImpl implements GameImports {
 
         world = new SV_WORLD();
         cm = new CM();
+        sv_ents = new SV_ENTS(this);
+        sv_game = new SV_GAME(this);
+
         SV_InitOperatorCommands();
 
         localCvars = new Cvar();
@@ -174,18 +179,18 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void cprintf(edict_t ent, int printlevel, String s) {
-        SV_GAME.PF_cprintf(ent, printlevel, s);
+        sv_game.PF_cprintf(ent, printlevel, s);
     }
 
     @Override
     public void centerprintf(edict_t ent, String s) {
-        SV_GAME.PF_centerprintf(ent, s);
+        sv_game.PF_centerprintf(ent, s);
     }
 
     @Override
     public void sound(edict_t ent, int channel, int soundindex, float volume,
                       float attenuation, float timeofs) {
-        SV_GAME.PF_StartSound(ent, channel, soundindex, volume, attenuation,
+        sv_game.PF_StartSound(ent, channel, soundindex, volume, attenuation,
                 timeofs);
     }
 
@@ -194,7 +199,7 @@ public class GameImportsImpl implements GameImports {
                                  int soundinedex, float volume, float attenuation, float timeofs) {
 
         SV_SEND.SV_StartSound(origin, ent, channel, soundinedex, volume,
-                attenuation, timeofs);
+                attenuation, timeofs, this);
     }
 
     /*
@@ -205,7 +210,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void configstring(int num, String string) {
-        SV_GAME.PF_Configstring(num, string, this);
+        sv_game.PF_Configstring(num, string, this);
     }
 
     @Override
@@ -221,22 +226,22 @@ public class GameImportsImpl implements GameImports {
     /* the *index functions create configstrings and some internal server state */
     @Override
     public int modelindex(String name) {
-        return SV_INIT.SV_ModelIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
     }
 
     @Override
     public int soundindex(String name) {
-        return SV_INIT.SV_SoundIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS, true);
     }
 
     @Override
     public int imageindex(String name) {
-        return SV_INIT.SV_ImageIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
     }
 
     @Override
     public void setmodel(edict_t ent, String name) {
-        SV_GAME.PF_setmodel(ent, name, this);
+        sv_game.PF_setmodel(ent, name, this);
     }
 
     /* collision detection */
@@ -248,7 +253,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public boolean inPHS(float[] p1, float[] p2) {
-        return SV_GAME.PF_inPHS(p1, p2, this);
+        return sv_game.PF_inPHS(p1, p2);
     }
 
     @Override
@@ -299,33 +304,33 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void unicast(edict_t ent, boolean reliable) {
-        SV_GAME.PF_Unicast(ent, reliable);
+        sv_game.PF_Unicast(ent, reliable);
     }
 
     @Override
     public void WriteByte(int c) {
-        SV_GAME.PF_WriteByte(c);
+        sv_game.PF_WriteByte(c);
     }
 
     @Override
     public void WriteShort(int c) {
-        SV_GAME.PF_WriteShort(c);
+        sv_game.PF_WriteShort(c);
     }
 
     @Override
     public void WriteString(String s) {
-        SV_GAME.PF_WriteString(s);
+        sv_game.PF_WriteString(s);
     }
 
     @Override
     public void WritePosition(float[] pos) {
-        SV_GAME.PF_WritePos(pos);
+        sv_game.PF_WritePos(pos);
     }
 
     /* some fractional bits */
     @Override
     public void WriteDir(float[] pos) {
-        SV_GAME.PF_WriteDir(pos);
+        sv_game.PF_WriteDir(pos);
     }
 
     /**
@@ -895,10 +900,10 @@ public class GameImportsImpl implements GameImports {
         Globals.server_state = sv.state;
 
         // create a baseline for more efficient communications
-        SV_CreateBaseline();
+        sv_game.SV_CreateBaseline();
 
         // check for a savegame
-        SV_CheckForSavegame(sv);
+        sv_game.SV_CheckForSavegame(sv);
 
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
@@ -929,8 +934,7 @@ public class GameImportsImpl implements GameImports {
             }
             if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     && cl.lastmessage < droppoint) {
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name
-                        + " timed out\n");
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name + " timed out\n");
                 SV_DropClient(cl);
                 cl.state = ClientStates.CS_FREE; // don't bother with zombie state
             }
@@ -1317,4 +1321,43 @@ public class GameImportsImpl implements GameImports {
             }
         }
     }
+
+    /**
+     * Sends text to all active clients
+     */
+    void SV_BroadcastPrintf(int level, String s) {
+
+        client_t cl;
+
+        // echo to console
+        if (Globals.dedicated.value != 0) {
+            Com.Printf(s);
+        }
+
+        for (int i = 0; i < maxclients.value; i++) {
+            cl = svs.clients[i];
+            if (level < cl.messagelevel)
+                continue;
+            if (cl.state != ClientStates.CS_SPAWNED)
+                continue;
+            MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
+            MSG.WriteByte(cl.netchan.message, level);
+            MSG.WriteString(cl.netchan.message, s);
+        }
+    }
+
+    /**
+     * Sends text to all active clients
+     */
+    void SV_BroadcastCommand(String s) {
+
+        //fixme: check if server is running
+        if (sv.state == ServerStates.SS_DEAD)
+            return;
+
+        MSG.WriteByte(sv.multicast, NetworkCommands.svc_stufftext);
+        MSG.WriteString(sv.multicast, s);
+        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, cm);
+    }
+
 }

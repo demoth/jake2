@@ -78,51 +78,6 @@ public class SV_SEND {
 	}
 	/*
 	=================
-	SV_BroadcastPrintf
-	
-	Sends text to all active clients
-	=================
-	*/
-	public static void SV_BroadcastPrintf(int level, String s) {
-
-		client_t cl;
-
-		// echo to console
-		if (Globals.dedicated.value != 0) {
-
-			Com.Printf(s);
-		}
-
-		for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
-			cl = SV_INIT.gameImports.svs.clients[i];
-			if (level < cl.messagelevel)
-				continue;
-			if (cl.state != ClientStates.CS_SPAWNED)
-				continue;
-			MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
-			MSG.WriteByte(cl.netchan.message, level);
-			MSG.WriteString(cl.netchan.message, s);
-		}
-	}
-	/*
-	=================
-	SV_BroadcastCommand
-	
-	Sends text to all active clients
-	=================
-	*/
-	public static void SV_BroadcastCommand(String s) {
-
-		//fixme: check if server is running
-		if (SV_INIT.gameImports == null || SV_INIT.gameImports.sv == null || SV_INIT.gameImports.sv.state == ServerStates.SS_DEAD)
-			return;
-
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_stufftext);
-		MSG.WriteString(SV_INIT.gameImports.sv.multicast, s);
-		SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, SV_INIT.gameImports.cm);
-	}
-	/*
-	=================
 	SV_Multicast
 	
 	Sends the contents of sv.multicast to a subset of the clients,
@@ -250,12 +205,8 @@ public class SV_SEND {
 		int soundindex,
 		float volume,
 		float attenuation,
-		float timeofs) {
-		int sendchan;
-		int flags;
-		int i;
-		int ent;
-		boolean use_phs;
+		float timeofs,
+		GameImportsImpl gameImports) {
 
 		if (volume < 0 || volume > 1.0)
 			Com.Error(Defines.ERR_FATAL, "SV_StartSound: volume = " + volume);
@@ -269,9 +220,10 @@ public class SV_SEND {
 		if (timeofs < 0 || timeofs > 0.255)
 			Com.Error(Defines.ERR_FATAL, "SV_StartSound: timeofs = " + timeofs);
 
-		ent = entity.index;
+		int ent = entity.index;
 
 		// no PHS flag
+		boolean use_phs;
 		if ((channel & 8) != 0) {
 			use_phs = false;
 			channel &= 7;
@@ -279,9 +231,9 @@ public class SV_SEND {
 		else
 			use_phs = true;
 
-		sendchan = (ent << 3) | (channel & 7);
+		int sendchan = (ent << 3) | (channel & 7);
 
-		flags = 0;
+		int flags = 0;
 		if (volume != Defines.DEFAULT_SOUND_PACKET_VOLUME)
 			flags |= Defines.SND_VOLUME;
 		if (attenuation != Defines.DEFAULT_SOUND_PACKET_ATTENUATION)
@@ -300,17 +252,16 @@ public class SV_SEND {
 
 		// use the entity origin unless it is a bmodel or explicitly specified
 		if (origin == null) {
-			origin = SV_INIT.gameImports.origin_v;
+			origin = gameImports.origin_v;
 			if (entity.solid == Defines.SOLID_BSP) {
-				for (i = 0; i < 3; i++)
-					SV_INIT.gameImports.origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
+				for (int i = 0; i < 3; i++)
+					gameImports.origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
 			}
 			else {
-				Math3D.VectorCopy(entity.s.origin, SV_INIT.gameImports.origin_v);
+				Math3D.VectorCopy(entity.s.origin, gameImports.origin_v);
 			}
 		}
 
-		final GameImportsImpl gameImports = SV_INIT.gameImports;
 
 		MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_sound);
 		MSG.WriteByte(gameImports.sv.multicast, flags);
@@ -363,14 +314,14 @@ public class SV_SEND {
 	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 
-		SV_ENTS.SV_BuildClientFrame(client, gameImports);
+		gameImports.sv_ents.SV_BuildClientFrame(client);
 
 		SZ.Init(gameImports.msg, gameImports.msgbuf, gameImports.msgbuf.length);
 		gameImports.msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		SV_ENTS.SV_WriteFrameToClient(client, gameImports.msg);
+		gameImports.sv_ents.SV_WriteFrameToClient(client);
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message

@@ -23,18 +23,27 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
+import java.io.File;
+
 public class SV_GAME {
+    final GameImportsImpl gameImports;
+
+    public SV_GAME(GameImportsImpl gameImports) {
+        this.gameImports = gameImports;
+    }
 
     /**
      * PF_Unicast
      * 
      * Sends the contents of the mutlicast buffer to a single client.
      */
-    public static void PF_Unicast(edict_t ent, boolean reliable) {
+    public void PF_Unicast(edict_t ent, boolean reliable) {
         int p;
         client_t client;
 
@@ -42,25 +51,25 @@ public class SV_GAME {
             return;
 
         p = ent.index;
-        if (p < 1 || p > SV_INIT.gameImports.maxclients.value)
+        if (p < 1 || p > gameImports.maxclients.value)
             return;
 
-        client = SV_INIT.gameImports.svs.clients[p - 1];
+        client = gameImports.svs.clients[p - 1];
 
         if (reliable)
-            SZ.Write(client.netchan.message, SV_INIT.gameImports.sv.multicast.data,
-                    SV_INIT.gameImports.sv.multicast.cursize);
+            SZ.Write(client.netchan.message, gameImports.sv.multicast.data,
+                    gameImports.sv.multicast.cursize);
         else
-            SZ.Write(client.datagram, SV_INIT.gameImports.sv.multicast.data,
-                    SV_INIT.gameImports.sv.multicast.cursize);
+            SZ.Write(client.datagram, gameImports.sv.multicast.data,
+                    gameImports.sv.multicast.cursize);
 
-        SV_INIT.gameImports.sv.multicast.clear();
+        gameImports.sv.multicast.clear();
     }
 
     /**
      * Centerprintf for critical messages.
      */
-    public static void PF_cprintfhigh(edict_t ent, String fmt) {
+    public void PF_cprintfhigh(edict_t ent, String fmt) {
     	PF_cprintf(ent, Defines.PRINT_HIGH, fmt);
     }
     
@@ -69,18 +78,18 @@ public class SV_GAME {
      * 
      * Print to a single client.
      */
-    public static void PF_cprintf(edict_t ent, int level, String fmt) {
+    public void PF_cprintf(edict_t ent, int level, String fmt) {
 
         int n = 0;
 
         if (ent != null) {
             n = ent.index;
-            if (n < 1 || n > SV_INIT.gameImports.maxclients.value)
+            if (n < 1 || n > gameImports.maxclients.value)
                 Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
         }
 
         if (ent != null)
-            SV_SEND.SV_ClientPrintf(SV_INIT.gameImports.svs.clients[n - 1], level, fmt);
+            SV_SEND.SV_ClientPrintf(gameImports.svs.clients[n - 1], level, fmt);
         else
             Com.Printf(fmt);
     }
@@ -90,15 +99,15 @@ public class SV_GAME {
      * 
      * centerprint to a single client.
      */
-    public static void PF_centerprintf(edict_t ent, String fmt) {
+    public void PF_centerprintf(edict_t ent, String fmt) {
         int n;
 
         n = ent.index;
-        if (n < 1 || n > SV_INIT.gameImports.maxclients.value)
+        if (n < 1 || n > gameImports.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
-        MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_centerprint);
-        MSG.WriteString(SV_INIT.gameImports.sv.multicast, fmt);
+        MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_centerprint);
+        MSG.WriteString(gameImports.sv.multicast, fmt);
         PF_Unicast(ent, true);
     }
 
@@ -107,7 +116,7 @@ public class SV_GAME {
      * 
      *  Abort the server with a game error.
      */
-    public static void PF_error(String fmt) {
+    public void PF_error(String fmt) {
         Com.Error(Defines.ERR_DROP, "Game Error: " + fmt);
     }
 
@@ -116,14 +125,14 @@ public class SV_GAME {
      * 
      * Also sets mins and maxs for inline bmodels.
      */
-    public static void PF_setmodel(edict_t ent, String name, GameImportsImpl gameImports) {
+    public void PF_setmodel(edict_t ent, String name, GameImportsImpl gameImports) {
 
         if (name == null) {
             Com.DPrintf( "Error: SV_GAME.PF_setmodel: name is null");
             return;
         }
 
-        ent.s.modelindex = SV_INIT.SV_ModelIndex(name);
+        ent.s.modelindex = SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
 
         // if it is an inline model, get the size information for it
         if (name.startsWith("*")) {
@@ -137,7 +146,7 @@ public class SV_GAME {
     /**
      *  Change i-th configstring to 'val' and multicast it to everyone reliably
      */
-    static void PF_Configstring(int index, String val, GameImportsImpl gameImports) {
+    void PF_Configstring(int index, String val, GameImportsImpl gameImports) {
         if (index < 0 || index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring: bad index " + index
                     + "\n");
@@ -159,40 +168,40 @@ public class SV_GAME {
         }
     }
 
-    public static void PF_WriteChar(int c) {
-        MSG.WriteChar(SV_INIT.gameImports.sv.multicast, c);
+    public void PF_WriteChar(int c) {
+        MSG.WriteChar(gameImports.sv.multicast, c);
     }
 
-    public static void PF_WriteByte(int c) {
-        MSG.WriteByte(SV_INIT.gameImports.sv.multicast, c);
+    public void PF_WriteByte(int c) {
+        MSG.WriteByte(gameImports.sv.multicast, c);
     }
 
-    public static void PF_WriteShort(int c) {
-        MSG.WriteShort(SV_INIT.gameImports.sv.multicast, c);
+    public void PF_WriteShort(int c) {
+        MSG.WriteShort(gameImports.sv.multicast, c);
     }
 
-    public static void PF_WriteLong(int c) {
-        MSG.WriteLong(SV_INIT.gameImports.sv.multicast, c);
+    public void PF_WriteLong(int c) {
+        MSG.WriteLong(gameImports.sv.multicast, c);
     }
 
-    public static void PF_WriteFloat(float f) {
-        MSG.WriteFloat(SV_INIT.gameImports.sv.multicast, f);
+    public void PF_WriteFloat(float f) {
+        MSG.WriteFloat(gameImports.sv.multicast, f);
     }
 
-    public static void PF_WriteString(String s) {
-        MSG.WriteString(SV_INIT.gameImports.sv.multicast, s);
+    public void PF_WriteString(String s) {
+        MSG.WriteString(gameImports.sv.multicast, s);
     }
 
-    public static void PF_WritePos(float[] pos) {
-        MSG.WritePos(SV_INIT.gameImports.sv.multicast, pos);
+    public void PF_WritePos(float[] pos) {
+        MSG.WritePos(gameImports.sv.multicast, pos);
     }
 
-    public static void PF_WriteDir(float[] dir) {
-        MSG.WriteDir(SV_INIT.gameImports.sv.multicast, dir);
+    public void PF_WriteDir(float[] dir) {
+        MSG.WriteDir(gameImports.sv.multicast, dir);
     }
 
-    public static void PF_WriteAngle(float f) {
-        MSG.WriteAngle(SV_INIT.gameImports.sv.multicast, f);
+    public void PF_WriteAngle(float f) {
+        MSG.WriteAngle(gameImports.sv.multicast, f);
     }
 
     /**
@@ -200,7 +209,7 @@ public class SV_GAME {
      * 
      * Also checks portalareas so that doors block sight.
      */
-    public static boolean PF_inPVS(float[] p1, float[] p2, GameImportsImpl gameImports) {
+    public boolean PF_inPVS(float[] p1, float[] p2) {
         int leafnum;
         int cluster;
         int area1, area2;
@@ -232,7 +241,7 @@ public class SV_GAME {
      * 
      * Also checks portalareas so that doors block sound.
      */
-    public static boolean PF_inPHS(float[] p1, float[] p2, GameImportsImpl gameImports) {
+    public boolean PF_inPHS(float[] p1, float[] p2) {
         int leafnum;
         int cluster;
         int area1, area2;
@@ -258,14 +267,113 @@ public class SV_GAME {
         return true;
     }
 
-    public static void PF_StartSound(edict_t entity, int channel,
+    public void PF_StartSound(edict_t entity, int channel,
             int sound_num, float volume, float attenuation, float timeofs) {
 
         if (null == entity)
             return;
         SV_SEND.SV_StartSound(null, entity, channel, sound_num, volume,
-                attenuation, timeofs);
+                attenuation, timeofs, gameImports);
 
     }
+
+    /**
+     * SV_FindIndex.
+     */
+    int SV_FindIndex(String name, int start, int max, boolean create) {
+        int i;
+
+        if (name == null || name.length() == 0)
+            return 0;
+
+        for (i = 1; i < max && gameImports.sv.configstrings[start + i] != null; i++)
+            if (name.equals(gameImports.sv.configstrings[start + i]))
+                return i;
+
+        if (!create)
+            return 0;
+
+        if (i == max)
+            Com.Error(Defines.ERR_DROP, "*Index: overflow");
+
+        gameImports.sv.configstrings[start + i] = name;
+
+        if (gameImports.sv.state != ServerStates.SS_LOADING) {
+            // send the update to everyone
+            gameImports.sv.multicast.clear();
+            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
+            MSG.WriteShort(gameImports.sv.multicast, start + i);
+            MSG.WriteString(gameImports.sv.multicast, name);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
+        }
+
+        return i;
+    }
+
+    /**
+     * SV_CreateBaseline
+     *
+     * Entity baselines are used to compress the update messages to the clients --
+     * only the fields that differ from the baseline will be transmitted.
+     */
+    void SV_CreateBaseline() {
+        for (int entnum = 1; entnum < gameImports.gameExports.getNumEdicts(); entnum++) {
+            edict_t svent = gameImports.gameExports.getEdict(entnum);
+
+            if (!svent.inuse)
+                continue;
+            if (0 == svent.s.modelindex && 0 == svent.s.sound
+                    && 0 == svent.s.effects)
+                continue;
+
+            svent.s.number = entnum;
+
+            // take current state as baseline
+            Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
+            gameImports.sv.baselines[entnum].set(svent.s);
+        }
+    }
+
+    /**
+     * SV_CheckForSavegame.
+     * @param sv
+     */
+    void SV_CheckForSavegame(server_t sv) {
+
+        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
+            return;
+
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
+            return;
+
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
+
+        if (!new File(name).exists())
+            return;
+
+        SV_WORLD.SV_ClearWorld(gameImports);
+
+        // get configstrings and areaportals
+        // then read game enitites
+        SV_CCMDS.SV_ReadLevelFile(sv.name, gameImports);
+
+        if (!sv.loadgame) {
+            // coming back to a level after being in a different
+            // level, so run it for ten seconds
+
+            // rlava2 was sending too many lightstyles, and overflowing the
+            // reliable data. temporarily changing the server state to loading
+            // prevents these from being passed down.
+            ServerStates previousState; // PGM
+
+            previousState = sv.state; // PGM
+            sv.state = ServerStates.SS_LOADING; // PGM
+            for (int i = 0; i < 100; i++)
+                gameImports.gameExports.G_RunFrame();
+
+            sv.state = previousState; // PGM
+        }
+    }
+
 
 }
