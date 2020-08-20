@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 
@@ -73,17 +74,17 @@ public class SV_INIT {
                 Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
-        // todo: persist server static (svs)
-        gameImports = new GameImportsImpl();
 
         // set max clients based on game mode
+        final cvar_t maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
         if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            if (SV_INIT.gameImports.maxclients.value <= 1)
+            if (maxclients.value <= 1)
                 Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-            else if (SV_INIT.gameImports.maxclients.value > Defines.MAX_CLIENTS)
+            else if (maxclients.value > Defines.MAX_CLIENTS)
                 Cvar.getInstance().FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         } else if (Cvar.getInstance().VariableValue("coop") != 0) {
-            if (SV_INIT.gameImports.maxclients.value <= 1 || SV_INIT.gameImports.maxclients.value > 4)
+            if (maxclients.value <= 1 || maxclients.value > 4)
                 Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         } else {
@@ -91,8 +92,11 @@ public class SV_INIT {
             Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
+        // todo: persist server static (svs)
+        gameImports = new GameImportsImpl();
+
         // init network stuff
-        NET.Config((SV_INIT.gameImports.maxclients.value > 1));
+        NET.Config((maxclients.value > 1));
         NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
         gameImports.gameExports = createGameModInstance(gameImports);
