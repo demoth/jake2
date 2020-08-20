@@ -125,7 +125,7 @@ public class SV_GAME {
      * 
      * Also sets mins and maxs for inline bmodels.
      */
-    public void PF_setmodel(edict_t ent, String name, GameImportsImpl gameImports) {
+    public void PF_setmodel(edict_t ent, String name) {
 
         if (name == null) {
             Com.DPrintf( "Error: SV_GAME.PF_setmodel: name is null");
@@ -146,7 +146,7 @@ public class SV_GAME {
     /**
      *  Change i-th configstring to 'val' and multicast it to everyone reliably
      */
-    void PF_Configstring(int index, String val, GameImportsImpl gameImports) {
+    void PF_Configstring(int index, String val) {
         if (index < 0 || index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring: bad index " + index
                     + "\n");
@@ -164,7 +164,7 @@ public class SV_GAME {
             MSG.WriteShort(gameImports.sv.multicast, index);
             MSG.WriteString(gameImports.sv.multicast, val);
 
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
         }
     }
 
@@ -304,7 +304,7 @@ public class SV_GAME {
             MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
             MSG.WriteShort(gameImports.sv.multicast, start + i);
             MSG.WriteString(gameImports.sv.multicast, name);
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
         }
 
         return i;

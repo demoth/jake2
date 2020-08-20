@@ -24,7 +24,6 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
@@ -41,15 +40,15 @@ public class SV_SEND {
 	=============================================================================
 	*/
 
-	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
+	public static void SV_FlushRedirect(int sv_redirected, byte[] outputbuf, GameImportsImpl gameImports) {
 		if (sv_redirected == Defines.RD_PACKET) {
 			String s = ("print\n" + Lib.CtoJava(outputbuf));
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(SV_INIT.gameImports.sv_client.netchan.message, NetworkCommands.svc_print);
-			MSG.WriteByte(SV_INIT.gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
-			MSG.WriteString(SV_INIT.gameImports.sv_client.netchan.message, outputbuf);
+			MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_print);
+			MSG.WriteByte(gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
+			MSG.WriteString(gameImports.sv_client.netchan.message, outputbuf);
         }
 	}
 	/*
@@ -88,13 +87,14 @@ public class SV_SEND {
 	MULTICAST_PHS	send to clients potentially hearable from org
 	=================
 	*/
-	public static void SV_Multicast(float[] origin, MulticastTypes to, CM cm) {
+	public static void SV_Multicast(float[] origin, MulticastTypes to, GameImportsImpl gameImports) {
 		client_t client;
 		byte mask[];
 		int leafnum, cluster;
 		int j;
 		boolean reliable;
 		int area1, area2;
+		final CM cm = gameImports.cm;
 
 		reliable = false;
 
@@ -108,8 +108,8 @@ public class SV_SEND {
 		}
 
 		// if doing a serverrecord, store everything
-		if (SV_INIT.gameImports.svs.demofile != null)
-			SZ.Write(SV_INIT.gameImports.svs.demo_multicast, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+		if (gameImports.svs.demofile != null)
+			SZ.Write(gameImports.svs.demo_multicast, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 
 		switch (to) {
 			case MULTICAST_ALL_R :
@@ -141,8 +141,8 @@ public class SV_SEND {
 		}
 
 		// send the data to all relevent clients
-		for (j = 0; j < SV_INIT.gameImports.maxclients.value; j++) {
-			client = SV_INIT.gameImports.svs.clients[j];
+		for (j = 0; j < gameImports.maxclients.value; j++) {
+			client = gameImports.svs.clients[j];
 
 			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
 				continue;
@@ -164,12 +164,12 @@ public class SV_SEND {
 			}
 
 			if (reliable)
-				SZ.Write(client.netchan.message, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+				SZ.Write(client.netchan.message, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 			else
-				SZ.Write(client.datagram, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+				SZ.Write(client.datagram, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 		}
 
-        SV_INIT.gameImports.sv.multicast.clear();
+        gameImports.sv.multicast.clear();
     }
 
 	/*
@@ -287,15 +287,15 @@ public class SV_SEND {
 
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R, gameImports.cm);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R, gameImports);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R, gameImports.cm);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
 		}
 		else {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS, gameImports.cm);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS, gameImports);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL, gameImports.cm);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL, gameImports);
 		}
 	}
 	/*
@@ -363,41 +363,6 @@ public class SV_SEND {
 		}
 		SV_USER.SV_Nextserver(gameImports);
 	}
-	/*
-	=======================
-	SV_RateDrop
-	
-	Returns true if the client is over its current
-	bandwidth estimation and should not be sent another packet
-	=======================
-	*/
-	public static boolean SV_RateDrop(client_t c) {
-		int total;
-		int i;
-
-		// never drop over the loopback
-		if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
-			return false;
-
-		total = 0;
-
-		for (i = 0; i < Defines.RATE_MESSAGES; i++) {
-			total += c.message_size[i];
-		}
-
-		if (total > c.rate) {
-			c.surpressCount++;
-			c.message_size[SV_INIT.gameImports.sv.framenum % Defines.RATE_MESSAGES] = 0;
-			return true;
-		}
-
-		return false;
-	}
-
-	/*
-	=======================
-	SV_SendClientMessages
-	=======================
-	*/
 
 }
+

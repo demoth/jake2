@@ -210,7 +210,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void configstring(int num, String string) {
-        sv_game.PF_Configstring(num, string, this);
+        sv_game.PF_Configstring(num, string);
     }
 
     @Override
@@ -241,7 +241,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void setmodel(edict_t ent, String name) {
-        sv_game.PF_setmodel(ent, name, this);
+        sv_game.PF_setmodel(ent, name);
     }
 
     /* collision detection */
@@ -299,7 +299,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void multicast(float[] origin, MulticastTypes to) {
-        SV_SEND.SV_Multicast(origin, to, cm);
+        SV_SEND.SV_Multicast(origin, to, this);
     }
 
     @Override
@@ -1048,7 +1048,7 @@ public class GameImportsImpl implements GameImports {
                     && (Globals.net_message.data[1] == -1)
                     && (Globals.net_message.data[2] == -1)
                     && (Globals.net_message.data[3] == -1)) {
-                SV_ConnectionlessPacket();
+                SV_ConnectionlessPacket(this);
                 continue;
             }
 
@@ -1134,7 +1134,7 @@ public class GameImportsImpl implements GameImports {
 
                 case CLC_USERINFO:
                     cl.userinfo = MSG.ReadString(Globals.net_message);
-                    SV_MAIN.SV_UserinfoChanged(cl);
+                    SV_MAIN.SV_UserinfoChanged(cl, this);
                     break;
 
                 case CLC_MOVE:
@@ -1323,6 +1323,35 @@ public class GameImportsImpl implements GameImports {
     }
 
     /**
+     * SV_RateDrop
+     * <p>
+     * Returns true if the client is over its current
+     * bandwidth estimation and should not be sent another packet
+     */
+    boolean SV_RateDrop(client_t c) {
+        int total;
+        int i;
+
+        // never drop over the loopback
+        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
+            return false;
+
+        total = 0;
+
+        for (i = 0; i < Defines.RATE_MESSAGES; i++) {
+            total += c.message_size[i];
+        }
+
+        if (total > c.rate) {
+            c.surpressCount++;
+            c.message_size[sv.framenum % Defines.RATE_MESSAGES] = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Sends text to all active clients
      */
     void SV_BroadcastPrintf(int level, String s) {
@@ -1357,7 +1386,7 @@ public class GameImportsImpl implements GameImports {
 
         MSG.WriteByte(sv.multicast, NetworkCommands.svc_stufftext);
         MSG.WriteString(sv.multicast, s);
-        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, cm);
+        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, this);
     }
 
 }
