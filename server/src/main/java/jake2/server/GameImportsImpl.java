@@ -38,7 +38,6 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_MAIN.SV_ConnectionlessPacket;
 import static jake2.server.SV_SEND.*;
 import static jake2.server.SV_USER.userCommands;
 
@@ -54,6 +53,7 @@ public class GameImportsImpl implements GameImports {
     public GameExports gameExports;
 
     // persistent server state
+    @Deprecated
     public server_static_t svs;
 
     // local (instance) server state
@@ -72,6 +72,8 @@ public class GameImportsImpl implements GameImports {
 
     SV_GAME sv_game;
 
+    // todo move to SV_MAIN
+    @Deprecated
     cvar_t maxclients; // FIXME: rename sv_maxclients
 
     client_t sv_client; // current client
@@ -909,37 +911,6 @@ public class GameImportsImpl implements GameImports {
         Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
     }
 
-    /**
-     * If a packet has not been received from a client for timeout.value
-     * seconds, drop the conneciton. Server frames are used instead of realtime
-     * to avoid dropping the local client while debugging.
-     *
-     * When a client is normally dropped, the client_t goes into a zombie state
-     * for a few seconds to make sure any final reliable message gets resent if
-     * necessary.
-     */
-    void SV_CheckTimeouts() {
-        int droppoint = (int) (svs.realtime - 1000 * SV_MAIN.timeout.value);
-        int zombiepoint = (int) (svs.realtime - 1000 * SV_MAIN.zombietime.value);
-
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = svs.clients[i];
-            // message times may be wrong across a changelevel
-            if (cl.lastmessage > svs.realtime)
-                cl.lastmessage = svs.realtime;
-
-            if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
-                cl.state = ClientStates.CS_FREE; // can now be reused
-                continue;
-            }
-            if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                    && cl.lastmessage < droppoint) {
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name + " timed out\n");
-                SV_DropClient(cl);
-                cl.state = ClientStates.CS_FREE; // don't bother with zombie state
-            }
-        }
-    }
 
     /**
      * Called when the player is totally leaving the server, either willingly or
@@ -964,51 +935,7 @@ public class GameImportsImpl implements GameImports {
         client.name = "";
     }
 
-    /**
-     * Updates the cl.ping variables.
-     */
-    void SV_CalcPings() {
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = svs.clients[i];
-            if (cl.state != ClientStates.CS_SPAWNED)
-                continue;
-
-            int total = 0;
-            int count = 0;
-            for (int j = 0; j < Defines.LATENCY_COUNTS; j++) {
-                if (cl.frame_latency[j] > 0) {
-                    count++;
-                    total += cl.frame_latency[j];
-                }
-            }
-            if (0 == count)
-                cl.ping = 0;
-            else
-                cl.ping = total / count;
-
-            // let the jake2.game dll know about the ping
-            cl.edict.getClient().setPing(cl.ping);
-        }
-    }
-
-    /**
-     * Every few frames, gives all clients an allotment of milliseconds for
-     * their command moves. If they exceed it, assume cheating.
-     */
-    void SV_GiveMsec() {
-
-        if ((sv.framenum & 15) != 0)
-            return;
-
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = svs.clients[i];
-            if (cl.state == ClientStates.CS_FREE)
-                continue;
-
-            cl.commandMsec = 1800; // 1600 + some slop
-        }
-    }
 
     /**
      * SV_RunGameFrame.
@@ -1036,56 +963,6 @@ public class GameImportsImpl implements GameImports {
 
     }
 
-    /**
-     * Reads packets from the network or loopback.
-     */
-    void SV_ReadPackets() {
-
-        while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from, Globals.net_message)) {
-
-            // check for connectionless packet (0xffffffff) first
-            if ((Globals.net_message.data[0] == -1)
-                    && (Globals.net_message.data[1] == -1)
-                    && (Globals.net_message.data[2] == -1)
-                    && (Globals.net_message.data[3] == -1)) {
-                SV_ConnectionlessPacket(this);
-                continue;
-            }
-
-            // read the qport out of the message so we can fix up
-            // stupid address translating routers
-            MSG.BeginReading(Globals.net_message);
-            MSG.ReadLong(Globals.net_message); // sequence number
-            MSG.ReadLong(Globals.net_message); // sequence number
-            int qport = MSG.ReadShort(Globals.net_message) & 0xffff;
-
-            // check for packets from connected clients
-            for (int i = 0; i < maxclients.value; i++) {
-                client_t cl = svs.clients[i];
-                if (cl.state == ClientStates.CS_FREE)
-                    continue;
-                if (!NET.CompareBaseAdr(Globals.net_from,
-                        cl.netchan.remote_address))
-                    continue;
-                if (cl.netchan.qport != qport)
-                    continue;
-                if (cl.netchan.remote_address.port != Globals.net_from.port) {
-                    Com.Printf("SV_ReadPackets: fixing up a translated port\n");
-                    cl.netchan.remote_address.port = Globals.net_from.port;
-                }
-
-                if (Netchan.Process(cl.netchan, Globals.net_message)) {
-                    // this is a valid, sequenced packet, so process it
-                    if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = svs.realtime; // don't timeout
-                        SV_ExecuteClientMessage(cl);
-                    }
-                }
-                break;
-            }
-
-        }
-    }
 
     /*
      * =================== SV_ExecuteClientMessage
@@ -1356,15 +1233,13 @@ public class GameImportsImpl implements GameImports {
      */
     void SV_BroadcastPrintf(int level, String s) {
 
-        client_t cl;
-
         // echo to console
         if (Globals.dedicated.value != 0) {
             Com.Printf(s);
         }
 
         for (int i = 0; i < maxclients.value; i++) {
-            cl = svs.clients[i];
+            client_t cl = svs.clients[i];
             if (level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)

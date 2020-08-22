@@ -1435,6 +1435,9 @@ public class GameExportsImpl implements GameExports {
             case "spawn":
                 GameSpawn.SpawnNewEntity(ent, args, this);
                 break;
+            case "spawnrandommonster":
+                GameSpawn.SpawnRandomMonster(ent, this);
+                break;
             default:
                 // anything that doesn't match a command will be a chat
                 Say_f(ent, false, true, args);

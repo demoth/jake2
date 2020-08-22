@@ -204,7 +204,7 @@ public class SV_CCMDS {
 
 		Com.DPrintf("SV_WriteLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sv2";
+		String name = FS.getWriteDir() + "/save/current/" + SV_MAIN.gameImports.sv.name + ".sv2";
 
 		try {
 			QuakeFile f = new QuakeFile(name, "rw");
@@ -395,22 +395,22 @@ public class SV_CCMDS {
 		}
 		else { // save the map just exited
 			// todo: init gameImports in a proper place
-			if (SV_INIT.gameImports != null && SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
+			if (SV_MAIN.gameImports != null && SV_MAIN.gameImports.sv.state == ServerStates.SS_GAME) {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
-				boolean[] savedInuse = new boolean[(int) SV_INIT.gameImports.maxclients.value];
-				for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
-					client_t cl = SV_INIT.gameImports.svs.clients[i];
+				boolean[] savedInuse = new boolean[(int) SV_MAIN.gameImports.maxclients.value];
+				for (int i = 0; i < SV_MAIN.gameImports.maxclients.value; i++) {
+					client_t cl = SV_MAIN.gameImports.svs.clients[i];
 					savedInuse[i] = cl.edict.inuse;
 					cl.edict.inuse = false;
 				}
 
-				SV_WriteLevelFile(SV_INIT.gameImports);
+				SV_WriteLevelFile(SV_MAIN.gameImports);
 
 				// we must restore these for clients to transfer over correctly
-				for (int i = 0; i < SV_INIT.gameImports.maxclients.value; i++) {
-					client_t cl = SV_INIT.gameImports.svs.clients[i];
+				for (int i = 0; i < SV_MAIN.gameImports.maxclients.value; i++) {
+					client_t cl = SV_MAIN.gameImports.svs.clients[i];
 					cl.edict.inuse = savedInuse[i];
 
 				}
@@ -421,11 +421,11 @@ public class SV_CCMDS {
 		SV_INIT.SV_Map(false, mapName, false);
 
 		// archive server state
-		SV_INIT.gameImports.svs.mapcmd = mapName;
+		SV_MAIN.gameImports.svs.mapcmd = mapName;
 
 		// copy off the level to the autosave slot
 		if (0 == Globals.dedicated.value) {
-			SV_WriteServerFile(true, SV_INIT.gameImports);
+			SV_WriteServerFile(true, SV_MAIN.gameImports);
 			SV_CopySaveGame("current", "save0");
 		}
 	}
@@ -464,8 +464,8 @@ public class SV_CCMDS {
 			}
 		}
 
-		if (SV_INIT.gameImports != null)
-			SV_INIT.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+		if (SV_MAIN.gameImports != null)
+			SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
 		SV_WipeSavegame("current");
 		SV_GameMap_f(args);
@@ -522,10 +522,10 @@ public class SV_CCMDS {
 		// start a new game fresh with new cvars
 		SV_INIT.SV_InitGame();
 
-		SV_ReadServerFile(SV_INIT.gameImports);
+		SV_ReadServerFile(SV_MAIN.gameImports);
 
 		// go to the map
-		SV_INIT.SV_Map(false, SV_INIT.gameImports.svs.mapcmd, true);
+		SV_INIT.SV_Map(false, SV_MAIN.gameImports.svs.mapcmd, true);
 	}
 
 }

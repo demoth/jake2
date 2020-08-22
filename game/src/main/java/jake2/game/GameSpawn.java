@@ -28,6 +28,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1438,6 +1439,15 @@ public class GameSpawn {
         } else {
             gameExports.gameImports.dprintf(ent.classname + " doesn't have a spawn function\n");
         }
+    }
+
+
+    static String[] mobs = { "monster_berserk", "monster_gladiator", "monster_gunner", "monster_infantry", "monster_soldier_light", "monster_soldier", "monster_soldier_ss", "monster_tank", "monster_tank_commander", "monster_medic", "monster_chick", "monster_parasite", "monster_flyer", "monster_brain", "monster_floater", "monster_mutant"};
+    // for debugging and testing
+    static void SpawnRandomMonster(SubgameEntity ent, GameExportsImpl gameExports){
+        final int index = Lib.rand() % mobs.length;
+        SpawnNewEntity(ent, Arrays.asList("spawn", mobs[index]), gameExports);
+
     }
 
     static void SpawnNewEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {

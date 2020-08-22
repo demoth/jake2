@@ -37,10 +37,6 @@ import static jake2.qcommon.Defines.*;
 
 public class SV_INIT {
 
-    // todo implement singleton
-    @Deprecated
-    public static GameImportsImpl gameImports;
-
 
     /**
      * SV_InitGame.
@@ -50,7 +46,7 @@ public class SV_INIT {
      */
     static GameImportsImpl SV_InitGame() {
 
-        if (gameImports != null) {
+        if (SV_MAIN.gameImports != null) {
             // cause any connected clients to reconnect
             SV_MAIN.SV_Shutdown("Server restarted\n", true);
         } else {
@@ -93,15 +89,15 @@ public class SV_INIT {
         }
 
         // todo: persist server static (svs)
-        gameImports = new GameImportsImpl();
+        SV_MAIN.gameImports = new GameImportsImpl();
 
         // init network stuff
         NET.Config((maxclients.value > 1));
         NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
-        gameImports.gameExports = createGameModInstance(gameImports);
-        gameImports.resetClients(); // why? should have default values already
-        return gameImports;
+        SV_MAIN.gameImports.gameExports = createGameModInstance(SV_MAIN.gameImports);
+        SV_MAIN.gameImports.resetClients(); // why? should have default values already
+        return SV_MAIN.gameImports;
     }
 
     /**
@@ -138,12 +134,12 @@ public class SV_INIT {
      */
     static void SV_Map(boolean isDemo, String levelstring, boolean loadgame) {
 
-        if (gameImports != null && gameImports.sv != null) {
-            gameImports.sv.loadgame = loadgame;
-            gameImports.sv.isDemo = isDemo;
+        if (SV_MAIN.gameImports != null && SV_MAIN.gameImports.sv != null) {
+            SV_MAIN.gameImports.sv.loadgame = loadgame;
+            SV_MAIN.gameImports.sv.isDemo = isDemo;
         }
 
-        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
+        if (SV_MAIN.gameImports == null || SV_MAIN.gameImports.sv == null || SV_MAIN.gameImports.sv.state == ServerStates.SS_DEAD && !SV_MAIN.gameImports.sv.loadgame)
             SV_InitGame(); // the game is just starting
 
         String level = levelstring; // bis hier her ok.
@@ -159,18 +155,18 @@ public class SV_INIT {
         }
         
         // rst: base1 works for full, damo1 works for demo, so we need to store first map.
-        if (gameImports.firstmap.length() == 0)
+        if (SV_MAIN.gameImports.firstmap.length() == 0)
         {        
         	if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
         	{
         		int pos = levelstring.indexOf('+');
-                gameImports.firstmap = levelstring.substring(pos + 1);
+                SV_MAIN.gameImports.firstmap = levelstring.substring(pos + 1);
         	}
         }
 
         // ZOID: special hack for end game screen in coop mode
         if (Cvar.getInstance().VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.getInstance().Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
+            Cvar.getInstance().Set("nextserver", "gamemap \"*" + SV_MAIN.gameImports.firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
@@ -190,21 +186,21 @@ public class SV_INIT {
 
 
         Cmd.ExecuteFunction("loading"); // for local system
-        gameImports.SV_BroadcastCommand("changing\n");
+        SV_MAIN.gameImports.SV_BroadcastCommand("changing\n");
 
         if (l > 4 && level.endsWith(".cin")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
+            SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
+            SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
+            SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
         } else {
-            gameImports.SV_SendClientMessages();
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
+            SV_MAIN.gameImports.SV_SendClientMessages();
+            SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }
 
-        gameImports.SV_BroadcastCommand("reconnect\n");
+        SV_MAIN.gameImports.SV_BroadcastCommand("reconnect\n");
     }
 
     /**
