@@ -39,7 +39,7 @@ class server_t {
 
     ServerStates state = ServerStates.SS_DEAD; // precache commands are only valid during load
 
-    boolean attractloop; // running cinematics and demos for the local system
+    boolean isDemo; // running cinematics and demos for the local system
                          // only
 
     boolean loadgame; // client begins should reuse existing entity

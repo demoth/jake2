@@ -269,7 +269,7 @@ public class CL_parse {
                         .equals(str))
                 || (str.length() == 0 && (FS.fs_gamedirvar.string != null || FS.fs_gamedirvar.string
                         .length() == 0)))
-            Cvar.Set("game", str);
+            Cvar.getInstance().Set("game", str);
 
         // parse player entity number
         ClientGlobals.cl.playernum = MSG.ReadShort(Globals.net_message);
@@ -479,8 +479,7 @@ public class CL_parse {
                 ClientGlobals.cl.model_draw[i - Defines.CS_MODELS] = ClientGlobals.re
                         .RegisterModel(ClientGlobals.cl.configstrings[i]);
                 if (ClientGlobals.cl.configstrings[i].startsWith("*"))
-                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = CM
-                            .InlineModel(ClientGlobals.cl.configstrings[i]);
+                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = ClientGlobals.cm.InlineModel(ClientGlobals.cl.configstrings[i]);
                 else
                     ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = null;
             }

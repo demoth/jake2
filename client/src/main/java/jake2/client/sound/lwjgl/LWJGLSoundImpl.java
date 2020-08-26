@@ -8,7 +8,10 @@ package jake2.client.sound.lwjgl;
 
 import jake2.client.ClientGlobals;
 import jake2.client.sound.*;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
@@ -62,7 +65,7 @@ public final class LWJGLSoundImpl implements Sound {
 	}
 
 	// set the listerner (master) volume
-	s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
+	s_volume = Cvar.getInstance().Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 	AL10.alGenBuffers(buffers);
 	int count = Channel.init(buffers);
 	Com.Printf("... using " + count + " channels\n");

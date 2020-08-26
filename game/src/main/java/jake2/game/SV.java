@@ -89,7 +89,7 @@ final class SV {
         ent.nextthink = 0;
 
         if (ent.think == null)
-            Com.Error(Defines.ERR_FATAL, "NULL ent.think");
+            gameExports.gameImports.error(Defines.ERR_FATAL, "ent.think == null");
 
         ent.think.think(ent, gameExports);
 
@@ -480,7 +480,7 @@ final class SV {
             }
         }
         if (gameExports.pushed_p > Defines.MAX_EDICTS)
-            Com.Error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
+            gameExports.gameImports.error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves
@@ -559,7 +559,7 @@ final class SV {
         //	   add gravity
         if (ent.movetype != GameDefines.MOVETYPE_FLY
                 && ent.movetype != GameDefines.MOVETYPE_FLYMISSILE)
-            SV_AddGravity(ent, gameExports.cvarCache.sv_gravity.value);
+            SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
 
         //	   move angles
         Math3D.VectorMA(ent.s.angles, Defines.FRAMETIME, ent.avelocity,
@@ -684,10 +684,10 @@ final class SV {
         if (!wasonground)
             if (0 == (ent.flags & GameDefines.FL_FLY))
                 if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
-                    if (ent.velocity[2] < gameExports.cvarCache.sv_gravity.value * -0.1)
+                    if (ent.velocity[2] < gameExports.gameCvars.sv_gravity.value * -0.1)
                         hitsound = true;
                     if (ent.waterlevel == 0)
-                        SV_AddGravity(ent, gameExports.cvarCache.sv_gravity.value);
+                        SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
                 }
 
         // friction for flying monsters that have been given vertical velocity
@@ -989,7 +989,7 @@ final class SV {
 
         //FIXME: how did we get here with no enemy
         if (enemy == null) {
-            Com.DPrintf("SV_NewChaseDir without enemy!\n");
+            gameExports.gameImports.dprintf("SV_NewChaseDir without enemy!\n");
             return;
         }
         olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);

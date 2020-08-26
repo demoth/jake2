@@ -8,7 +8,6 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.List;
@@ -103,7 +102,7 @@ public class GameExportsImpl implements GameExports {
     public PlayerTrail playerTrail;
     public SV sv;
     public game_locals_t game;
-    public CvarCache cvarCache;
+    public GameCvars gameCvars;
     public level_locals_t level;
     public int meansOfDeath;
 
@@ -175,7 +174,7 @@ public class GameExportsImpl implements GameExports {
             try {
                 Class.forName(className);
             } catch (Exception e) {
-                Com.DPrintf("error loading class: " + e.getMessage());
+                gameImports.dprintf("error loading class: " + e.getMessage());
             }
         }
 
@@ -192,7 +191,7 @@ public class GameExportsImpl implements GameExports {
         level = new level_locals_t();
 
         // create necessary cvars
-        cvarCache = new CvarCache(imports);
+        gameCvars = new GameCvars(imports);
 
         CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
         CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
@@ -240,11 +239,11 @@ public class GameExportsImpl implements GameExports {
         StringBuilder sb = new StringBuilder(256);
         String sk;
 
-        if (cvarCache.skill.value == 0)
+        if (gameCvars.skill.value == 0)
             sk = "easy";
-        else if (cvarCache.skill.value == 1)
+        else if (gameCvars.skill.value == 1)
             sk = "medium";
-        else if (cvarCache.skill.value == 2)
+        else if (gameCvars.skill.value == 2)
             sk = "hard";
         else
             sk = "hard+";
@@ -260,13 +259,7 @@ public class GameExportsImpl implements GameExports {
                 .append("\" "); // help 2
         sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
         sb.append("xv 50 yv 172 string2 \"");
-        sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
-                .add(level.killed_monsters).add(
-                        level.total_monsters).add(
-                        level.found_goals).add(
-                        level.total_goals).add(
-                        level.found_secrets).add(
-                        level.total_secrets)));
+        sb.append(String.format("%3d/%3d     %d/%d       %d/%d\" ", level.killed_monsters, level.total_monsters, level.found_goals, level.total_goals, level.found_secrets, level.total_secrets));
 
         gameImports.WriteByte(NetworkCommands.svc_layout);
         gameImports.WriteString(sb.toString());
@@ -280,7 +273,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Give_f(SubgameEntity ent, List<String> args) {
 
-        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -434,7 +427,7 @@ public class GameExportsImpl implements GameExports {
     private void God_f(SubgameEntity ent) {
         String msg;
 
-        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -455,7 +448,7 @@ public class GameExportsImpl implements GameExports {
     private void Notarget_f(SubgameEntity ent) {
 
         // why do you need notarget in deathmatch??
-        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -479,7 +472,7 @@ public class GameExportsImpl implements GameExports {
     private void Noclip_f(SubgameEntity ent) {
         String msg;
 
-        if (cvarCache.deathmatch.value != 0 && cvarCache.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -504,9 +497,7 @@ public class GameExportsImpl implements GameExports {
     private void Use_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-
         gitem_t it = GameItems.FindItem(itemName, this);
-        Com.dprintln("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -521,7 +512,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
-
+        gameImports.dprintf("using:" + itemName + "\n");
         it.use.use(ent, it, this);
     }
 
@@ -720,7 +711,7 @@ public class GameExportsImpl implements GameExports {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == cvarCache.deathmatch.value && 0 == cvarCache.coop.value)
+        if (0 == gameCvars.deathmatch.value && 0 == gameCvars.coop.value)
             return;
 
         if (client.showscores) {
@@ -740,7 +731,7 @@ public class GameExportsImpl implements GameExports {
      */
     void Help_f(SubgameEntity ent) {
         // this is for backwards compatability
-        if (cvarCache.deathmatch.value != 0) {
+        if (gameCvars.deathmatch.value != 0) {
             Score_f(ent);
             return;
         }
@@ -888,7 +879,7 @@ public class GameExportsImpl implements GameExports {
         if (args.size() < 2 && !sayAll)
             return;
 
-        if (0 == ((int) (cvarCache.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+        if (0 == ((int) (gameCvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             team = false;
 
         gclient_t client = ent.getClient();
@@ -919,7 +910,7 @@ public class GameExportsImpl implements GameExports {
 
         text += "\n";
 
-        if (cvarCache.flood_msgs.value != 0) {
+        if (gameCvars.flood_msgs.value != 0) {
             gclient_t cl = client;
 
             if (level.time < cl.flood_locktill) {
@@ -928,15 +919,15 @@ public class GameExportsImpl implements GameExports {
                         + " more seconds\n");
                 return;
             }
-            int i = (int) (cl.flood_whenhead - cvarCache.flood_msgs.value + 1);
+            int i = (int) (cl.flood_whenhead - gameCvars.flood_msgs.value + 1);
             if (i < 0)
                 i = (10) + i;
             if (cl.flood_when[i] != 0
-                    && level.time - cl.flood_when[i] < cvarCache.flood_persecond.value) {
-                cl.flood_locktill = level.time + cvarCache.flood_waitdelay.value;
+                    && level.time - cl.flood_when[i] < gameCvars.flood_persecond.value) {
+                cl.flood_locktill = level.time + gameCvars.flood_waitdelay.value;
                 gameImports.cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
-                                + (int) cvarCache.flood_waitdelay.value
+                                + (int) gameCvars.flood_waitdelay.value
                                 + " seconds.\n");
                 return;
             }
@@ -955,7 +946,7 @@ public class GameExportsImpl implements GameExports {
             if (other.getClient() == null)
                 continue;
             if (team) {
-                if (!GameUtil.OnSameTeam(ent, other, cvarCache.dmflags.value))
+                if (!GameUtil.OnSameTeam(ent, other, gameCvars.dmflags.value))
                     continue;
             }
             gameImports.cprintf(other, Defines.PRINT_CHAT, "" + text + "");
@@ -1004,6 +995,8 @@ public class GameExportsImpl implements GameExports {
      */
     private void exitLevel() {
         gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
+
+        // todo: remove as not necessary, new game instance will be created anyway
         level.changemap = null;
         level.exitintermission = false;
         level.intermissiontime = 0;
@@ -1050,7 +1043,7 @@ public class GameExportsImpl implements GameExports {
 
         gclient_t client = ent.getClient();
 
-        if (cvarCache.deathmatch.value != 0
+        if (gameCvars.deathmatch.value != 0
                 && client.pers.spectator != client.resp.spectator
                 && (level.time - client.respawn_time) >= 5) {
             spectatorRespawn(ent);
@@ -1068,13 +1061,13 @@ public class GameExportsImpl implements GameExports {
             if (level.time > client.respawn_time) {
                 // in deathmatch, only wait for attack button
                 int buttonMask;
-                if (cvarCache.deathmatch.value != 0)
+                if (gameCvars.deathmatch.value != 0)
                     buttonMask = Defines.BUTTON_ATTACK;
                 else
                     buttonMask = -1;
 
                 if ((client.latched_buttons & buttonMask) != 0
-                        || (cvarCache.deathmatch.value != 0 && 0 != ((int) cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                        || (gameCvars.deathmatch.value != 0 && 0 != ((int) gameCvars.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
                     respawn(ent, this);
                     client.latched_buttons = 0;
                 }
@@ -1083,7 +1076,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         // add player trail so monsters can follow
-        if (cvarCache.deathmatch.value != 0)
+        if (gameCvars.deathmatch.value != 0)
             if (!GameUtil.visible(ent, playerTrail.LastSpot(), this))
                 playerTrail.Add(ent.s.old_origin, level.time);
 
@@ -1103,7 +1096,7 @@ public class GameExportsImpl implements GameExports {
         if (client.pers.spectator) {
             String spectator = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
 
-            if (!passwdOK(cvarCache.spectator_password.string, spectator)) {
+            if (!passwdOK(gameCvars.spectator_password.string, spectator)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
                 gameImports.WriteByte(NetworkCommands.svc_stufftext);
@@ -1121,7 +1114,7 @@ public class GameExportsImpl implements GameExports {
                     numspec++;
             }
 
-            if (numspec >= cvarCache.maxspectators.value) {
+            if (numspec >= gameCvars.maxspectators.value) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
@@ -1135,7 +1128,7 @@ public class GameExportsImpl implements GameExports {
             // he was a spectator and wants to join the game
             // he must have the right password
             String password = Info.Info_ValueForKey(client.pers.userinfo, "password");
-            if (!passwdOK(cvarCache.password.string, password)) {
+            if (!passwdOK(gameCvars.password.string, password)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
                 gameImports.WriteByte(NetworkCommands.svc_stufftext);
@@ -1218,24 +1211,24 @@ public class GameExportsImpl implements GameExports {
         if (level.intermissiontime != 0)
             return;
 
-        if (0 == cvarCache.deathmatch.value)
+        if (0 == gameCvars.deathmatch.value)
             return;
 
-        if (cvarCache.timelimit.value != 0) {
-            if (level.time >= cvarCache.timelimit.value * 60) {
+        if (gameCvars.timelimit.value != 0) {
+            if (level.time >= gameCvars.timelimit.value * 60) {
                 gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
                 EndDMLevel();
                 return;
             }
         }
 
-        if (cvarCache.fraglimit.value != 0) {
+        if (gameCvars.fraglimit.value != 0) {
             for (i = 0; i < game.maxclients; i++) {
                 cl = game.clients[i];
                 if (!g_edicts[i + 1].inuse)
                     continue;
 
-                if (cl.resp.score >= cvarCache.fraglimit.value) {
+                if (cl.resp.score >= gameCvars.fraglimit.value) {
                     gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
                     EndDMLevel();
                     return;
@@ -1253,14 +1246,14 @@ public class GameExportsImpl implements GameExports {
         String seps = " ,\n\r";
 
         // stay on same level flag
-        if (((int) cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
+        if (((int) gameCvars.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
             return;
         }
 
         // see if it's in the map list
-        if (cvarCache.sv_maplist.string.length() > 0) {
-            String mapList = cvarCache.sv_maplist.string;
+        if (gameCvars.sv_maplist.string.length() > 0) {
+            String mapList = gameCvars.sv_maplist.string;
             // todo: cleanup parsing of maplist
             String f = null;
             StringTokenizer tk = new StringTokenizer(mapList, seps);
@@ -1308,17 +1301,17 @@ public class GameExportsImpl implements GameExports {
     private void checkNeedPassCvar() {
         // if password or spectator_password has changed, update needpass
         // as needed
-        if (cvarCache.password.modified || cvarCache.spectator_password.modified) {
+        if (gameCvars.password.modified || gameCvars.spectator_password.modified) {
 
-            cvarCache.password.modified = false;
-            cvarCache.spectator_password.modified = false;
+            gameCvars.password.modified = false;
+            gameCvars.spectator_password.modified = false;
 
             int need = 0;
 
-            if (!cvarCache.password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.password.string))
+            if (!gameCvars.password.string.isEmpty() && !"none".equalsIgnoreCase(gameCvars.password.string))
                 need |= 1;
 
-            if (!cvarCache.spectator_password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.spectator_password.string))
+            if (!gameCvars.spectator_password.string.isEmpty() && !"none".equalsIgnoreCase(gameCvars.spectator_password.string))
                 need |= 2;
 
             gameImports.cvar_set("needpass", "" + need);
@@ -1442,6 +1435,9 @@ public class GameExportsImpl implements GameExports {
             case "spawn":
                 GameSpawn.SpawnNewEntity(ent, args, this);
                 break;
+            case "spawnrandommonster":
+                GameSpawn.SpawnRandomMonster(ent, this);
+                break;
             default:
                 // anything that doesn't match a command will be a chat
                 Say_f(ent, false, true, args);
@@ -1459,6 +1455,7 @@ public class GameExportsImpl implements GameExports {
 
         // exit intermissions
         if (level.exitintermission) {
+            // expected level.changemap != null
             exitLevel();
             return;
         }
@@ -1529,7 +1526,6 @@ public class GameExportsImpl implements GameExports {
         try {
 
             QuakeFile f = new QuakeFile(filename, "r");
-            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
             game.load(f);
 
@@ -1577,19 +1573,12 @@ public class GameExportsImpl implements GameExports {
 
             QuakeFile f = new QuakeFile(filename, "r");
 
-            if (f == null)
-                gameImports.error("Couldn't read level file " + filename);
-
-            // wipe all the entities
-            CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
-
             num_edicts = game.maxclients + 1;
 
             // load the level locals
             level.read(f, g_edicts);
 
             // load all the entities
-            SubgameEntity ent;
             while (true) {
                 int entnum = f.readInt();
                 if (entnum == -1)
@@ -1598,7 +1587,7 @@ public class GameExportsImpl implements GameExports {
                 if (entnum >= num_edicts)
                     num_edicts = entnum + 1;
 
-                ent = g_edicts[entnum];
+                SubgameEntity ent = g_edicts[entnum];
                 ent.read(f, g_edicts, game.clients, this);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
@@ -1608,7 +1597,7 @@ public class GameExportsImpl implements GameExports {
 
             // mark all clients as unconnected
             for (int i = 0; i < game.maxclients; i++) {
-                ent = g_edicts[i + 1];
+                SubgameEntity ent = g_edicts[i + 1];
                 ent.setClient(game.clients[i]);
                 gclient_t client = ent.getClient();
                 client.pers.connected = false;
@@ -1616,7 +1605,7 @@ public class GameExportsImpl implements GameExports {
 
             // do any load time things at this point
             for (int i = 0; i < num_edicts; i++) {
-                ent = g_edicts[i];
+                SubgameEntity ent = g_edicts[i];
 
                 if (!ent.inuse)
                     continue;
@@ -1642,8 +1631,7 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void ClientBegin(edict_t e) {
-        SubgameEntity ent = g_edicts[e.index];
-        PlayerClient.ClientBegin(ent, this);
+        PlayerClient.ClientBegin(g_edicts[e.index], this);
     }
 
     @Override

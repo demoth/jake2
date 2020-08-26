@@ -644,7 +644,7 @@ public class M_Mutant {
                     || self.enemy.health <= 0)
                 return true;
 
-            if (((gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.gameCvars.skill.value == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attack09;
             return true;
@@ -891,7 +891,7 @@ public class M_Mutant {
 
             self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             r = Lib.random();
@@ -1008,7 +1008,7 @@ public class M_Mutant {
     public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_mutant"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.cvarCache.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self, gameExports);
                 return false;
             }

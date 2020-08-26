@@ -26,8 +26,8 @@ package jake2.client.render.fast;
 import jake2.client.particle_t;
 import jake2.client.render.image_t;
 import jake2.qcommon.Com;
-import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.Defines;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
@@ -1598,10 +1598,10 @@ public abstract class Image extends Main {
 		registration_sequence = 1;
 
 		// init intensity conversions
-		intensity = Cvar.Get("intensity", "2", 0);
+		intensity = Cvar.getInstance().Get("intensity", "2", 0);
 
 		if (intensity.value <= 1)
-			Cvar.Set("intensity", "1");
+			Cvar.getInstance().Set("intensity", "1");
 
 		gl_state.inverse_intensity = 1 / intensity.value;
 

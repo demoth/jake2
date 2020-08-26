@@ -1034,7 +1034,7 @@ public class M_Boss2 {
      * Sight
      */
     public static void SP_monster_boss2(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

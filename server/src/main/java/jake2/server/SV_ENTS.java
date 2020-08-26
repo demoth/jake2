@@ -30,6 +30,7 @@ import java.io.IOException;
 
 public class SV_ENTS {
 
+    final GameImportsImpl gameImports;
     /**
      * =============================================================================
      * 
@@ -38,7 +39,15 @@ public class SV_ENTS {
      * =============================================================================
      */
 
-    public static byte fatpvs[] = new byte[65536 / 8]; // 32767 is MAX_MAP_LEAFS
+    public final byte[] fatpvs; // 32767 is MAX_MAP_LEAFS
+    // stack variable
+    private final byte[] buf_data;
+
+    public SV_ENTS(GameImportsImpl gameImports) {
+        fatpvs = new byte[65536 / 8];
+        buf_data = new byte[32768];
+        this.gameImports = gameImports;
+    }
 
     /*
      * =============================================================================
@@ -51,37 +60,37 @@ public class SV_ENTS {
     /**
      * Writes a delta update of an entity_state_t list to the message.
      */
-    static void SV_EmitPacketEntities(client_frame_t from, client_frame_t to,
-            sizebuf_t msg) {
-        entity_state_t oldent = null, newent = null;
-        int oldindex, newindex;
-        int oldnum, newnum;
-        int from_num_entities;
-        int bits;
+    void SV_EmitPacketEntities(client_frame_t from, client_frame_t to) {
+        entity_state_t oldent = null;
+        entity_state_t newent = null;
 
+        final sizebuf_t msg = gameImports.msg;
         MSG.WriteByte(msg, NetworkCommands.svc_packetentities);
 
+        int from_num_entities;
         if (from == null)
             from_num_entities = 0;
         else
             from_num_entities = from.num_entities;
 
-        newindex = 0;
-        oldindex = 0;
+        int newindex = 0;
+        int oldindex = 0;
         while (newindex < to.num_entities || oldindex < from_num_entities) {
+            int newnum;
             if (newindex >= to.num_entities)
                 newnum = 9999;
             else {
-                newent = SV_INIT.gameImports.svs.client_entities[(to.first_entity + newindex)
-                        % SV_INIT.gameImports.svs.num_client_entities];
+                newent = gameImports.svs.client_entities[(to.first_entity + newindex)
+                        % gameImports.svs.num_client_entities];
                 newnum = newent.number;
             }
 
+            int oldnum;
             if (oldindex >= from_num_entities)
                 oldnum = 9999;
             else {
-                oldent = SV_INIT.gameImports.svs.client_entities[(from.first_entity + oldindex)
-                        % SV_INIT.gameImports.svs.num_client_entities];
+                oldent = gameImports.svs.client_entities[(from.first_entity + oldindex)
+                        % gameImports.svs.num_client_entities];
                 oldnum = oldent.number;
             }
 
@@ -93,7 +102,7 @@ public class SV_ENTS {
                 // their oldorigin always
                 // and prevents warping
                 MSG.WriteDeltaEntity(oldent, newent, msg, false,
-                        newent.number <= SV_MAIN.maxclients.value);
+                        newent.number <= gameImports.maxclients.value);
                 oldindex++;
                 newindex++;
                 continue;
@@ -101,7 +110,7 @@ public class SV_ENTS {
 
             if (newnum < oldnum) { 
             	// this is a new entity, send it from the baseline
-                MSG.WriteDeltaEntity(SV_INIT.gameImports.sv.baselines[newnum], newent, msg,
+                MSG.WriteDeltaEntity(gameImports.sv.baselines[newnum], newent, msg,
                         true, true);
                 newindex++;
                 continue;
@@ -109,7 +118,7 @@ public class SV_ENTS {
 
             if (newnum > oldnum) { 
             	// the old entity isn't present in the new message
-                bits = Defines.U_REMOVE;
+                int bits = Defines.U_REMOVE;
                 if (oldnum >= 256)
                     bits |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
 
@@ -134,18 +143,12 @@ public class SV_ENTS {
     /** 
      * Writes the status of a player to a client system.
      */
-    static void SV_WritePlayerstateToClient(client_frame_t from,
-            client_frame_t to, sizebuf_t msg) {
-        // ptr
-        player_state_t ps, ops;
-        // mem
-        player_state_t dummy;
+    static void SV_WritePlayerstateToClient(client_frame_t from, client_frame_t to, GameImportsImpl gameImports) {
+        player_state_t ops;
+        player_state_t ps = to.ps;
 
-        ps = to.ps;
         if (from == null) {
-            //memset (dummy, 0, sizeof(dummy));
-            dummy = new player_state_t();
-            ops = dummy;
+            ops = new player_state_t();
         } else {
             ops = from.ps;
         }
@@ -210,6 +213,7 @@ public class SV_ENTS {
 
         pflags |= Defines.PS_WEAPONINDEX;
 
+        final sizebuf_t msg = gameImports.msg;
         // write it
         MSG.WriteByte(msg, NetworkCommands.svc_playerinfo);
         MSG.WriteShort(msg, pflags);
@@ -303,7 +307,7 @@ public class SV_ENTS {
     /**
      * Writes a frame to a client system.
      */
-    public static void SV_WriteFrameToClient(client_t client, sizebuf_t msg) {
+    public void SV_WriteFrameToClient(client_t client) {
         //ptr
         client_frame_t frame, oldframe;
         int lastframe;
@@ -311,11 +315,11 @@ public class SV_ENTS {
         //Com.Printf ("%i . %i\n", new
         // Vargs().add(client.lastframe).add(sv.framenum));
         // this is the frame we are creating
-        frame = client.frames[SV_INIT.gameImports.sv.framenum & Defines.UPDATE_MASK];
+        frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
         if (client.lastframe <= 0) { // client is asking for a retransmit
             oldframe = null;
             lastframe = -1;
-        } else if (SV_INIT.gameImports.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
+        } else if (gameImports.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
             // client hasn't gotten a good message through in a long time
             // Com_Printf ("%s: Delta request from out-of-date packet.\n",
             // client.name);
@@ -326,28 +330,28 @@ public class SV_ENTS {
             lastframe = client.lastframe;
         }
 
-        MSG.WriteByte(msg, NetworkCommands.svc_frame);
-        MSG.WriteLong(msg, SV_INIT.gameImports.sv.framenum);
-        MSG.WriteLong(msg, lastframe); // what we are delta'ing from
-        MSG.WriteByte(msg, client.surpressCount); // rate dropped packets
+        MSG.WriteByte(gameImports.msg, NetworkCommands.svc_frame);
+        MSG.WriteLong(gameImports.msg, gameImports.sv.framenum);
+        MSG.WriteLong(gameImports.msg, lastframe); // what we are delta'ing from
+        MSG.WriteByte(gameImports.msg, client.surpressCount); // rate dropped packets
         client.surpressCount = 0;
 
         // send over the areabits
-        MSG.WriteByte(msg, frame.areabytes);
-        SZ.Write(msg, frame.areabits, frame.areabytes);
+        MSG.WriteByte(gameImports.msg, frame.areabytes);
+        SZ.Write(gameImports.msg, frame.areabits, frame.areabytes);
 
         // delta encode the playerstate
-        SV_WritePlayerstateToClient(oldframe, frame, msg);
+        SV_WritePlayerstateToClient(oldframe, frame, gameImports);
 
         // delta encode the entities
-        SV_EmitPacketEntities(oldframe, frame, msg);
+        SV_EmitPacketEntities(oldframe, frame);
     }
 
     /** 
      * The client will interpolate the view position, so we can't use a single
      * PVS point. 
      */
-    public static void SV_FatPVS(float[] org) {
+    public void SV_FatPVS(float[] org) {
         int leafs[] = new int[64];
         int i, j, count;
         int longs;
@@ -358,19 +362,19 @@ public class SV_ENTS {
             mins[i] = org[i] - 8;
             maxs[i] = org[i] + 8;
         }
-
-        count = CM.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
+        final CM cm = gameImports.cm;
+        count = cm.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
 
         if (count < 1)
             Com.Error(Defines.ERR_FATAL, "SV_FatPVS: count < 1");
 
-        longs = (CM.CM_NumClusters() + 31) >> 5;
+        longs = (cm.CM_NumClusters() + 31) >> 5;
 
         // convert leafs to clusters
         for (i = 0; i < count; i++)
-            leafs[i] = CM.CM_LeafCluster(leafs[i]);
+            leafs[i] = cm.CM_LeafCluster(leafs[i]);
 
-        System.arraycopy(CM.CM_ClusterPVS(leafs[0]), 0, SV_ENTS.fatpvs, 0,
+        System.arraycopy(cm.CM_ClusterPVS(leafs[0]), 0, fatpvs, 0,
                 longs << 2);
         // or in all the other leaf bits
         for (i = 1; i < count; i++) {
@@ -380,16 +384,16 @@ public class SV_ENTS {
             if (j != i)
                 continue; // already have the cluster we want
 
-            src = CM.CM_ClusterPVS(leafs[i]);
+            src = cm.CM_ClusterPVS(leafs[i]);
 
             //for (j=0 ; j<longs ; j++)
             //	((long *)fatpvs)[j] |= ((long *)src)[j];
             int k = 0;
             for (j = 0; j < longs; j++) {
-                SV_ENTS.fatpvs[k] |= src[k++];
-                SV_ENTS.fatpvs[k] |= src[k++];
-                SV_ENTS.fatpvs[k] |= src[k++];
-                SV_ENTS.fatpvs[k] |= src[k++];
+                fatpvs[k] |= src[k++];
+                fatpvs[k] |= src[k++];
+                fatpvs[k] |= src[k++];
+                fatpvs[k] |= src[k++];
             }
         }
     }
@@ -398,55 +402,43 @@ public class SV_ENTS {
      * Decides which entities are going to be visible to the client, and copies
      * off the playerstat and areabits.
      */
-    public static void SV_BuildClientFrame(client_t client) {
-        int e, i;
-        float[] org = { 0, 0, 0 };
-        edict_t ent;
-        edict_t clent;
-        client_frame_t frame;
-        entity_state_t state;
-        int l;
-        int clientarea, clientcluster;
-        int leafnum;
-        int c_fullsend;
-        byte clientphs[];
-        byte bitvector[];
+    public void SV_BuildClientFrame(client_t client) {
 
-        clent = client.edict;
+        edict_t clent = client.edict;
         if (clent.getClient() == null)
             return; // not in game yet
 
         // this is the frame we are creating
-        frame = client.frames[SV_INIT.gameImports.sv.framenum & Defines.UPDATE_MASK];
+        client_frame_t frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
 
-        frame.senttime = SV_INIT.gameImports.svs.realtime; // save it for ping calc later
+        frame.senttime = gameImports.svs.realtime; // save it for ping calc later
 
         // find the client's PVS
+        int i;
+        float[] org = {0, 0, 0};
         for (i = 0; i < 3; i++)
             org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
                     + clent.getClient().getPlayerState().viewoffset[i];
 
-        leafnum = CM.CM_PointLeafnum(org);
-        clientarea = CM.CM_LeafArea(leafnum);
-        clientcluster = CM.CM_LeafCluster(leafnum);
+        int leafnum = gameImports.cm.CM_PointLeafnum(org);
+        int clientarea = gameImports.cm.CM_LeafArea(leafnum);
+        int clientcluster = gameImports.cm.CM_LeafCluster(leafnum);
 
         // calculate the visible areas
-        frame.areabytes = CM.CM_WriteAreaBits(frame.areabits, clientarea);
+        frame.areabytes = gameImports.cm.CM_WriteAreaBits(frame.areabits, clientarea);
 
         // grab the current player_state_t
         frame.ps.set(clent.getClient().getPlayerState());
 
         SV_FatPVS(org);
-        clientphs = CM.CM_ClusterPHS(clientcluster);
+        byte[] clientphs = gameImports.cm.CM_ClusterPHS(clientcluster);
 
         // build up the list of visible entities
         frame.num_entities = 0;
-        frame.first_entity = SV_INIT.gameImports.svs.next_client_entities;
+        frame.first_entity = gameImports.svs.next_client_entities;
 
-        c_fullsend = 0;
-
-        for (e = 1; e < SV_INIT.gameImports.gameExports.getNumEdicts(); e++) {
-            ent = SV_INIT.gameImports.gameExports.getEdict(e);
+        for (int e = 1; e < gameImports.gameExports.getNumEdicts(); e++) {
+            edict_t ent = gameImports.gameExports.getEdict(e);
 
             // ignore ents without visible models
             if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)
@@ -460,13 +452,14 @@ public class SV_ENTS {
             // ignore if not touching a PV leaf
             // check area
             if (ent != clent) {
-                if (!CM.CM_AreasConnected(clientarea, ent.areanum)) {
+                if (!gameImports.cm.CM_AreasConnected(clientarea, ent.areanum)) {
                 	// doors can legally straddle two areas, so we may need to check another one
-                    if (0 == ent.areanum2 || !CM.CM_AreasConnected(clientarea, ent.areanum2))
+                    if (0 == ent.areanum2 || !gameImports.cm.CM_AreasConnected(clientarea, ent.areanum2))
                         continue; // blocked by a door
                 }
 
                 // beams just check one point for PHS
+                int l;
                 if ((ent.s.renderfx & Defines.RF_BEAM) != 0) {
                     l = ent.clusternums[0];
                     if (0 == (clientphs[l >> 3] & (1 << (l & 7))))
@@ -474,17 +467,17 @@ public class SV_ENTS {
                 } else {
                     // FIXME: if an ent has a model and a sound, but isn't
                     // in the PVS, only the PHS, clear the model
+                    byte[] bitvector;
                     if (ent.s.sound == 0) {
-                        bitvector = SV_ENTS.fatpvs; //clientphs;
+                        bitvector = fatpvs; //clientphs;
                     } else
-                        bitvector = SV_ENTS.fatpvs;
+                        bitvector = fatpvs;
 
                     if (ent.num_clusters == -1) { // too many leafs for
                                                   // individual check, go by
                                                   // headnode
-                        if (!CM.CM_HeadnodeVisible(ent.headnode, bitvector))
+                        if (!gameImports.cm.CM_HeadnodeVisible(ent.headnode, bitvector))
                             continue;
-                        c_fullsend++;
                     } else { // check individual leafs
                         for (i = 0; i < ent.num_clusters; i++) {
                             l = ent.clusternums[i];
@@ -509,36 +502,32 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = SV_INIT.gameImports.svs.next_client_entities
-                    % SV_INIT.gameImports.svs.num_client_entities;
-            state = SV_INIT.gameImports.svs.client_entities[ix];
+            int ix = gameImports.svs.next_client_entities
+                    % gameImports.svs.num_client_entities;
+            entity_state_t state = gameImports.svs.client_entities[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
                 ent.s.number = e;
             }
 
             //*state = ent.s;
-            SV_INIT.gameImports.svs.client_entities[ix].set(ent.s);
+            gameImports.svs.client_entities[ix].set(ent.s);
 
             // don't mark players missiles as solid
             if (ent.getOwner() == client.edict)
                 state.solid = 0;
 
-            SV_INIT.gameImports.svs.next_client_entities++;
+            gameImports.svs.next_client_entities++;
             frame.num_entities++;
         }
     }
 
-
-    // stack variable
-    private static final byte buf_data[] = new byte[32768];
-    
     /**
      * Save everything in the world out without deltas. Used for recording
      * footage for merged or assembled demos.
      */
-    public static void SV_RecordDemoMessage() {
-        if (SV_INIT.gameImports.svs.demofile == null)
+    public void SV_RecordDemoMessage() {
+        if (gameImports.svs.demofile == null)
             return;
 
         //memset (nostate, 0, sizeof(nostate));
@@ -548,41 +537,40 @@ public class SV_ENTS {
 
         // write a frame message that doesn't contain a player_state_t
         MSG.WriteByte(buf, NetworkCommands.svc_frame);
-        MSG.WriteLong(buf, SV_INIT.gameImports.sv.framenum);
+        MSG.WriteLong(buf, gameImports.sv.framenum);
 
         MSG.WriteByte(buf, NetworkCommands.svc_packetentities);
 
         int e = 1;
-        edict_t ent = SV_INIT.gameImports.gameExports.getEdict(e);
+        edict_t ent = gameImports.gameExports.getEdict(e);
 
-        while (e < SV_INIT.gameImports.gameExports.getNumEdicts()) {
+        while (e < gameImports.gameExports.getNumEdicts()) {
             // ignore ents without visible models unless they have an effect
             if (ent.inuse
                     && ent.s.number != 0
                     && (ent.s.modelindex != 0 || ent.s.effects != 0
-                            || ent.s.sound != 0 || ent.s.event != 0)
+                    || ent.s.sound != 0 || ent.s.event != 0)
                     && 0 == (ent.svflags & Defines.SVF_NOCLIENT))
                 MSG.WriteDeltaEntity(nostate, ent.s, buf, false, true);
 
             e++;
-            ent = SV_INIT.gameImports.gameExports.getEdict(e);
+            ent = gameImports.gameExports.getEdict(e);
         }
 
         MSG.WriteShort(buf, 0); // end of packetentities
 
         // now add the accumulated multicast information
-        SZ.Write(buf, SV_INIT.gameImports.svs.demo_multicast.data,
-                SV_INIT.gameImports.svs.demo_multicast.cursize);
-        SV_INIT.gameImports.svs.demo_multicast.clear();
+        SZ.Write(buf, gameImports.svs.demo_multicast.data, gameImports.svs.demo_multicast.cursize);
+        gameImports.svs.demo_multicast.clear();
 
         // now write the entire message to the file, prefixed by the length
         int len = EndianHandler.swapInt(buf.cursize);
 
         try {
             //fwrite (len, 4, 1, svs.demofile);
-            SV_INIT.gameImports.svs.demofile.writeInt(len);
+            gameImports.svs.demofile.writeInt(len);
             //fwrite (buf.data, buf.cursize, 1, svs.demofile);
-            SV_INIT.gameImports.svs.demofile.write(buf.data, 0, buf.cursize);
+            gameImports.svs.demofile.write(buf.data, 0, buf.cursize);
         } catch (IOException e1) {
             Com.Printf("Error writing demo file:" + e);
         }

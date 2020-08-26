@@ -40,7 +40,7 @@ public class PlayerHud {
 
     public static void MoveClientToIntermission(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
-        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0)
+        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0)
             client.showscores = true;
         Math3D.VectorCopy(gameExports.level.intermission_origin, ent.s.origin);
         client.getPlayerState().pmove.origin[0] = (short) (gameExports.level.intermission_origin[0] * 8);
@@ -72,7 +72,7 @@ public class PlayerHud {
 
         // add the layout
 
-        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
             DeathmatchScoreboardMessage(ent, null, gameExports);
             gameExports.gameImports.unicast(ent, true);
         }
@@ -101,7 +101,7 @@ public class PlayerHud {
         gameExports.level.changemap = targ.map;
 
         if (gameExports.level.changemap.indexOf('*') > -1) {
-            if (gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.gameCvars.coop.value != 0) {
                 for (i = 0; i < gameExports.game.maxclients; i++) {
                     client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
@@ -118,7 +118,7 @@ public class PlayerHud {
                 }
             }
         } else {
-            if (0 == gameExports.cvarCache.deathmatch.value) {
+            if (0 == gameExports.gameCvars.deathmatch.value) {
                 gameExports.level.exitintermission = true; // go immediately to the
                                                         // next level
                 return;
@@ -387,7 +387,7 @@ public class PlayerHud {
         //
         client.getPlayerState().stats[Defines.STAT_LAYOUTS] = 0;
 
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             if (client.pers.health <= 0
                     || gameExports.level.intermissiontime != 0
                     || client.showscores)

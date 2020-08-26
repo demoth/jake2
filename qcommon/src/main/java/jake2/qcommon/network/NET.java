@@ -81,6 +81,7 @@ public final class NET {
 
     /**
      * Compares ip address without the port.
+     * Returns true for a LOOPBACK type - assuming that singleplayer client is the first one
      */
     public static boolean CompareBaseAdr(netadr_t a, netadr_t b) {
         if (a.type != b.type)
@@ -184,15 +185,12 @@ public final class NET {
     /**
      * Sends a packet via internal loopback.
      */
-    public static void SendLoopPacket(int sock, int length, byte[] data,
-            netadr_t to) {
-        int i;
-        loopback_t loop;
+    public static void SendLoopPacket(int sock, int length, byte[] data, netadr_t to) {
 
-        loop = loopbacks[sock ^ 1];
+        loopback_t loop = loopbacks[sock ^ 1];
 
         // modulo 4
-        i = loop.send & (MAX_LOOPBACK - 1);
+        int i = loop.send & (MAX_LOOPBACK - 1);
         loop.send++;
 
         System.arraycopy(data, 0, loop.msgs[i].data, 0, length);
@@ -201,6 +199,9 @@ public final class NET {
 
     /**
      * Gets a packet from a network channel
+     * @param sock - socket type: server or client;
+     * @param net_from - set incoming address to net_from
+     * @param net_message - body of the packet
      */
     public static boolean GetPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
@@ -275,12 +276,12 @@ public final class NET {
     public static void OpenIP() {
         cvar_t port, ip, clientport;
 
-        port = Cvar.Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
-        ip = Cvar.Get("ip", "localhost", Defines.CVAR_NOSET);
-        clientport = Cvar.Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
+        port = Cvar.getInstance().Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
+        ip = Cvar.getInstance().Get("ip", "localhost", Defines.CVAR_NOSET);
+        clientport = Cvar.getInstance().Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
 
-        cvar_t thinclient = Cvar.Get("thinclient", "0", 0);
-        cvar_t dedicated = Cvar.Get("dedicated", "0", 0);
+        cvar_t thinclient = Cvar.getInstance().Get("thinclient", "0", 0);
+        cvar_t dedicated = Cvar.getInstance().Get("dedicated", "0", 0);
 
         // clients do not need server sockets
         if (thinclient.value == 0.f) {
@@ -321,7 +322,7 @@ public final class NET {
      * Init
      */
     public static void Init() {
-        // nothing to do
+        SZ.Init(Globals.net_message, Globals.net_message_buffer, Globals.net_message_buffer.length);
     }
 
     /*

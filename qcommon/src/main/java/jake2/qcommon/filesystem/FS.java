@@ -41,10 +41,24 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
-/**
- * FS
- * 
- * @author cwei
+/*
+ * All of Quake's data access is through a hierarchical file system, but the
+ * contents of the file system can be transparently merged from several
+ * sources.
+ *
+ * The "base directory" is the path to the directory holding the quake.exe
+ * and all game directories. The sys_* files pass this to host_init in
+ * quakeparms_t->basedir. This can be overridden with the "-basedir" command
+ * line parm to allow code debugging in a different directory. The base
+ * directory is only used during filesystem initialization.
+ *
+ * The "game directory" is the first tree on the search path and directory
+ * that all generated files (savegames, screenshots, demos, config files)
+ * will be saved to. This can be overridden with the "-game" command line
+ * parameter. The game directory can never be changed while quake is
+ * executing. This is a precacution against having a malicious server
+ * instruct clients to write files over areas they shouldn't.
+ *
  */
 public final class FS extends Globals {
 
@@ -56,6 +70,9 @@ public final class FS extends Globals {
      * ==================================================
      */
 
+    /**
+     * Represents a file inside a PAK archive
+     */
     static class packfile_t {
         static final int SIZE = 64;
 
@@ -80,14 +97,14 @@ public final class FS extends Globals {
     static class pack_t {
         final String filename;
         final int numfiles;
-        final Hashtable<String, packfile_t> files;
+        final Map<String, packfile_t> files;
 
         RandomAccessFile handle;
         
         ByteBuffer mappedFileChannel;
 
 
-        pack_t(String filename, int numfiles, Hashtable<String, packfile_t> files) {
+        pack_t(String filename, int numfiles, Map<String, packfile_t> files) {
             this.filename = filename;
             this.numfiles = numfiles;
             this.files = files;
@@ -138,8 +155,8 @@ public final class FS extends Globals {
 
     private static List<filelink_t> fs_links = new LinkedList<>();
 
-    // only one of filename or pack will be used
     static class SearchPath {
+        // only one of filename or pack will be used
         final String filename;
         final pack_t pack;
         // all entries with 'true' values will be freed after change of 'game' cvar
@@ -158,26 +175,6 @@ public final class FS extends Globals {
     }
     private static final Deque<SearchPath> searchPaths = new ArrayDeque<>();
 
-
-    /*
-     * All of Quake's data access is through a hierarchical file system, but the
-     * contents of the file system can be transparently merged from several
-     * sources.
-     * 
-     * The "base directory" is the path to the directory holding the quake.exe
-     * and all game directories. The sys_* files pass this to host_init in
-     * quakeparms_t->basedir. This can be overridden with the "-basedir" command
-     * line parm to allow code debugging in a different directory. The base
-     * directory is only used during filesystem initialization.
-     * 
-     * The "game directory" is the first tree on the search path and directory
-     * that all generated files (savegames, screenshots, demos, config files)
-     * will be saved to. This can be overridden with the "-game" command line
-     * parameter. The game directory can never be changed while quake is
-     * executing. This is a precacution against having a malicious server
-     * instruct clients to write files over areas they shouldn't.
-     *  
-     */
 
     /*
      * CreatePath
@@ -446,7 +443,7 @@ public final class FS extends Globals {
     private static pack_t LoadPackFile(String packfile) {
 
         dpackheader_t header;
-        Hashtable<String, packfile_t> newfiles;
+        Map<String, packfile_t> newfiles;
         RandomAccessFile file;
         int numpackfiles;
         //		unsigned checksum;
@@ -472,7 +469,7 @@ public final class FS extends Globals {
             if (numpackfiles > MAX_FILES_IN_PACK)
                 Com.Error(Defines.ERR_FATAL, packfile + " has " + numpackfiles + " files");
 
-            newfiles = new Hashtable<>(numpackfiles);
+            newfiles = new HashMap<>(numpackfiles);
 
             packhandle.position(header.dirofs);
 
@@ -612,10 +609,10 @@ public final class FS extends Globals {
         fs_gamedir = fs_basedir.string + '/' + gameName;
 
         if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
-            Cvar.FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
-            Cvar.FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+            Cvar.getInstance().FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
+            Cvar.getInstance().FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
         } else {
-            Cvar.FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
+            Cvar.getInstance().FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
             if (fs_cddir.string != null && fs_cddir.string.length() > 0)
                 AddGameDirectory(fs_cddir.string + '/' + gameName, true);
 
@@ -775,7 +772,7 @@ public final class FS extends Globals {
         // basedir <path>
         // allows the game to run from outside the data tree
         //
-        fs_basedir = Cvar.Get("basedir", ".", CVAR_NOSET);
+        fs_basedir = Cvar.getInstance().Get("basedir", ".", CVAR_NOSET);
 
         //
         // cddir <path>
@@ -791,7 +788,7 @@ public final class FS extends Globals {
         AddGameDirectory(fs_basedir.string + '/' + Globals.BASEQ2, false);
 
         // check for game override
-        fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+        fs_gamedirvar = Cvar.getInstance().Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 
         if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
@@ -801,7 +798,7 @@ public final class FS extends Globals {
      * set baseq2 directory
      */
     public static void setCDDir() {
-        fs_cddir = Cvar.Get("cddir", "", CVAR_ARCHIVE);
+        fs_cddir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE);
         if (fs_cddir.string.length() > 0)
             AddGameDirectory(fs_cddir.string, false);
     }

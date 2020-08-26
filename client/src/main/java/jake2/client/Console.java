@@ -25,7 +25,10 @@
  */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Command;
@@ -65,14 +68,14 @@ public final class Console extends Globals {
 
 		if (ClientGlobals.cls.key_dest == Defines.key_console) {
 		Menu.ForceMenuOff();
-		Cvar.Set("paused", "0");
+		Cvar.getInstance().Set("paused", "0");
 		} else {
 		Menu.ForceMenuOff();
 		ClientGlobals.cls.key_dest = Defines.key_console;
 
-		if (Cvar.VariableValue("maxclients") == 1
+		if (Cvar.getInstance().VariableValue("maxclients") == 1
 			&& Globals.server_state != ServerStates.SS_DEAD)
-			Cvar.Set("paused", "1");
+			Cvar.getInstance().Set("paused", "1");
 		}
 	};
 
@@ -188,7 +191,7 @@ public final class Console extends Globals {
 	//
 	// register our commands
 	//
-	ClientGlobals.con_notifytime = Cvar.Get("con_notifytime", "3", 0);
+	ClientGlobals.con_notifytime = Cvar.getInstance().Get("con_notifytime", "3", 0);
 
 	Cmd.AddCommand("toggleconsole", ToggleConsole_f);
 	Cmd.AddCommand("togglechat", ToggleChat_f);
@@ -289,7 +292,7 @@ public final class Console extends Globals {
 	int i = (ClientGlobals.con.current % ClientGlobals.con.totallines)
 		* ClientGlobals.con.linewidth;
 	int e = i + ClientGlobals.con.linewidth;
-	while (i < ClientGlobals.con.text.length && i++ < e)
+	while (i < ClientGlobals.con.text.length - 1 && i++ < e)
 	    ClientGlobals.con.text[i] = (byte) ' ';
     }
 

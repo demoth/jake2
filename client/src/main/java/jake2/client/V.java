@@ -25,7 +25,9 @@
  */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Command;
 import jake2.qcommon.exec.Cvar;
@@ -437,13 +439,13 @@ public final class V extends Globals {
 
         Cmd.AddCommand("viewpos", Viewpos_f);
 
-        ClientGlobals.crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
+        ClientGlobals.crosshair = Cvar.getInstance().Get("crosshair", "0", CVAR_ARCHIVE);
 
-        cl_testblend = Cvar.Get("cl_testblend", "0", 0);
-        cl_testparticles = Cvar.Get("cl_testparticles", "0", 0);
-        cl_testentities = Cvar.Get("cl_testentities", "0", 0);
-        cl_testlights = Cvar.Get("cl_testlights", "0", 0);
+        cl_testblend = Cvar.getInstance().Get("cl_testblend", "0", 0);
+        cl_testparticles = Cvar.getInstance().Get("cl_testparticles", "0", 0);
+        cl_testentities = Cvar.getInstance().Get("cl_testentities", "0", 0);
+        cl_testlights = Cvar.getInstance().Get("cl_testlights", "0", 0);
 
-        cl_stats = Cvar.Get("cl_stats", "0", 0);
+        cl_stats = Cvar.getInstance().Get("cl_stats", "0", 0);
     }
 }

@@ -108,9 +108,9 @@ public final class Netchan {
         // pick a port value that should be nice and random
         port = Timer.Milliseconds() & 0xffff;
 
-        showpackets = Cvar.Get("showpackets", "0", 0);
-        showdrop = Cvar.Get("showdrop", "0", 0);
-        qport = Cvar.Get("qport", "" + port, Defines.CVAR_NOSET);
+        showpackets = Cvar.getInstance().Get("showpackets", "0", 0);
+        showdrop = Cvar.getInstance().Get("showdrop", "0", 0);
+        qport = Cvar.getInstance().Get("qport", "" + port, Defines.CVAR_NOSET);
     }
 
     private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];

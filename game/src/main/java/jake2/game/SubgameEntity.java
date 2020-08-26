@@ -1,14 +1,11 @@
 package jake2.game;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
-import jake2.qcommon.util.Lib;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
-
-import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SubgameEntity extends edict_t {
     public SubgameEntity(int i) {
@@ -196,9 +193,6 @@ public class SubgameEntity extends edict_t {
 
     public monsterinfo_t monsterinfo = new monsterinfo_t();
 
-
-
-
     public boolean setField(String key, String value) {
         if (key.equals("classname")) {
             classname = Lib.ED_NewString(value);
@@ -266,7 +260,6 @@ public class SubgameEntity extends edict_t {
 
         if (key.equals("team")) {
             team = Lib.ED_NewString(value);
-            Com.dprintln("Monster Team:" + team);
             return true;
         } // F_LSTRING),
 
@@ -360,8 +353,10 @@ public class SubgameEntity extends edict_t {
         } // F_ANGLEHACK),
 
         if (key.equals("item")) {
-            Com.Error(ERR_FATAL, "ent.set(\"item\") called.");
-            return true;
+            // this field is set to spawn_temp
+            // so this line is never reachable
+            // todo log error
+            return false;
         } // F_ITEM)
 
         return false;

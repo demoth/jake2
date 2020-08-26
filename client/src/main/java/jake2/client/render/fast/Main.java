@@ -30,7 +30,9 @@ import jake2.client.entity_t;
 import jake2.client.particle_t;
 import jake2.client.refdef_t;
 import jake2.client.render.*;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
@@ -939,75 +941,75 @@ public abstract class Main extends Base {
 	 * R_Register
 	 */
 	protected void R_Register() {
-		r_lefthand = Cvar.Get("hand", "0", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
-		r_norefresh = Cvar.Get("r_norefresh", "0", 0);
-		r_fullbright = Cvar.Get("r_fullbright", "0", 0);
-		r_drawentities = Cvar.Get("r_drawentities", "1", 0);
-		r_drawworld = Cvar.Get("r_drawworld", "1", 0);
-		r_novis = Cvar.Get("r_novis", "0", 0);
-		r_nocull = Cvar.Get("r_nocull", "0", 0);
-		r_lerpmodels = Cvar.Get("r_lerpmodels", "1", 0);
-		r_speeds = Cvar.Get("r_speeds", "0", 0);
+		r_lefthand = Cvar.getInstance().Get("hand", "0", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+		r_norefresh = Cvar.getInstance().Get("r_norefresh", "0", 0);
+		r_fullbright = Cvar.getInstance().Get("r_fullbright", "0", 0);
+		r_drawentities = Cvar.getInstance().Get("r_drawentities", "1", 0);
+		r_drawworld = Cvar.getInstance().Get("r_drawworld", "1", 0);
+		r_novis = Cvar.getInstance().Get("r_novis", "0", 0);
+		r_nocull = Cvar.getInstance().Get("r_nocull", "0", 0);
+		r_lerpmodels = Cvar.getInstance().Get("r_lerpmodels", "1", 0);
+		r_speeds = Cvar.getInstance().Get("r_speeds", "0", 0);
 
-		r_lightlevel = Cvar.Get("r_lightlevel", "1", 0);
+		r_lightlevel = Cvar.getInstance().Get("r_lightlevel", "1", 0);
 
-		gl_modeltris = Cvar.Get("gl_modeltris", "0", 0);
-		gl_modelbbox = Cvar.Get("gl_modelbbox", "0", 0);
-		gl_showtrisnum = Cvar.Get("gl_showtrisnum", "0", 0);
-		gl_nosubimage = Cvar.Get("gl_nosubimage", "0", 0);
-		gl_allow_software = Cvar.Get("gl_allow_software", "0", 0);
+		gl_modeltris = Cvar.getInstance().Get("gl_modeltris", "0", 0);
+		gl_modelbbox = Cvar.getInstance().Get("gl_modelbbox", "0", 0);
+		gl_showtrisnum = Cvar.getInstance().Get("gl_showtrisnum", "0", 0);
+		gl_nosubimage = Cvar.getInstance().Get("gl_nosubimage", "0", 0);
+		gl_allow_software = Cvar.getInstance().Get("gl_allow_software", "0", 0);
 
-		gl_particle_min_size = Cvar.Get("gl_particle_min_size", "2", Defines.CVAR_ARCHIVE);
-		gl_particle_max_size = Cvar.Get("gl_particle_max_size", "40", Defines.CVAR_ARCHIVE);
-		gl_particle_size = Cvar.Get("gl_particle_size", "40", Defines.CVAR_ARCHIVE);
-		gl_particle_att_a = Cvar.Get("gl_particle_att_a", "0.01", Defines.CVAR_ARCHIVE);
-		gl_particle_att_b = Cvar.Get("gl_particle_att_b", "0.0", Defines.CVAR_ARCHIVE);
-		gl_particle_att_c = Cvar.Get("gl_particle_att_c", "0.01", Defines.CVAR_ARCHIVE);
+		gl_particle_min_size = Cvar.getInstance().Get("gl_particle_min_size", "2", Defines.CVAR_ARCHIVE);
+		gl_particle_max_size = Cvar.getInstance().Get("gl_particle_max_size", "40", Defines.CVAR_ARCHIVE);
+		gl_particle_size = Cvar.getInstance().Get("gl_particle_size", "40", Defines.CVAR_ARCHIVE);
+		gl_particle_att_a = Cvar.getInstance().Get("gl_particle_att_a", "0.01", Defines.CVAR_ARCHIVE);
+		gl_particle_att_b = Cvar.getInstance().Get("gl_particle_att_b", "0.0", Defines.CVAR_ARCHIVE);
+		gl_particle_att_c = Cvar.getInstance().Get("gl_particle_att_c", "0.01", Defines.CVAR_ARCHIVE);
 
-		gl_modulate = Cvar.Get("gl_modulate", "1.5", Defines.CVAR_ARCHIVE);
-		gl_log = Cvar.Get("gl_log", "0", 0);
-		gl_bitdepth = Cvar.Get("gl_bitdepth", "0", 0);
-		gl_mode = Cvar.Get("gl_mode", "3", Defines.CVAR_ARCHIVE); // 640x480
-		gl_lightmap = Cvar.Get("gl_lightmap", "0", 0);
-		gl_shadows = Cvar.Get("gl_shadows", "0", Defines.CVAR_ARCHIVE);
-		gl_dynamic = Cvar.Get("gl_dynamic", "1", 0);
-		gl_nobind = Cvar.Get("gl_nobind", "0", 0);
-		gl_round_down = Cvar.Get("gl_round_down", "1", 0);
-		gl_picmip = Cvar.Get("gl_picmip", "0", 0);
-		gl_skymip = Cvar.Get("gl_skymip", "0", 0);
-		gl_showtris = Cvar.Get("gl_showtris", "0", 0);
-		gl_ztrick = Cvar.Get("gl_ztrick", "0", 0);
-		gl_finish = Cvar.Get("gl_finish", "0", Defines.CVAR_ARCHIVE);
-		gl_clear = Cvar.Get("gl_clear", "0", 0);
-		gl_cull = Cvar.Get("gl_cull", "1", 0);
-		gl_polyblend = Cvar.Get("gl_polyblend", "1", 0);
-		gl_flashblend = Cvar.Get("gl_flashblend", "0", 0);
-		gl_playermip = Cvar.Get("gl_playermip", "0", 0);
-		gl_monolightmap = Cvar.Get("gl_monolightmap", "0", 0);
-		gl_driver = Cvar.Get("gl_driver", "opengl32", Defines.CVAR_ARCHIVE);
-		gl_texturemode = Cvar.Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Defines.CVAR_ARCHIVE);
-		gl_texturealphamode = Cvar.Get("gl_texturealphamode", "default", Defines.CVAR_ARCHIVE);
-		gl_texturesolidmode = Cvar.Get("gl_texturesolidmode", "default", Defines.CVAR_ARCHIVE);
-		gl_lockpvs = Cvar.Get("gl_lockpvs", "0", 0);
+		gl_modulate = Cvar.getInstance().Get("gl_modulate", "1.5", Defines.CVAR_ARCHIVE);
+		gl_log = Cvar.getInstance().Get("gl_log", "0", 0);
+		gl_bitdepth = Cvar.getInstance().Get("gl_bitdepth", "0", 0);
+		gl_mode = Cvar.getInstance().Get("gl_mode", "3", Defines.CVAR_ARCHIVE); // 640x480
+		gl_lightmap = Cvar.getInstance().Get("gl_lightmap", "0", 0);
+		gl_shadows = Cvar.getInstance().Get("gl_shadows", "0", Defines.CVAR_ARCHIVE);
+		gl_dynamic = Cvar.getInstance().Get("gl_dynamic", "1", 0);
+		gl_nobind = Cvar.getInstance().Get("gl_nobind", "0", 0);
+		gl_round_down = Cvar.getInstance().Get("gl_round_down", "1", 0);
+		gl_picmip = Cvar.getInstance().Get("gl_picmip", "0", 0);
+		gl_skymip = Cvar.getInstance().Get("gl_skymip", "0", 0);
+		gl_showtris = Cvar.getInstance().Get("gl_showtris", "0", 0);
+		gl_ztrick = Cvar.getInstance().Get("gl_ztrick", "0", 0);
+		gl_finish = Cvar.getInstance().Get("gl_finish", "0", Defines.CVAR_ARCHIVE);
+		gl_clear = Cvar.getInstance().Get("gl_clear", "0", 0);
+		gl_cull = Cvar.getInstance().Get("gl_cull", "1", 0);
+		gl_polyblend = Cvar.getInstance().Get("gl_polyblend", "1", 0);
+		gl_flashblend = Cvar.getInstance().Get("gl_flashblend", "0", 0);
+		gl_playermip = Cvar.getInstance().Get("gl_playermip", "0", 0);
+		gl_monolightmap = Cvar.getInstance().Get("gl_monolightmap", "0", 0);
+		gl_driver = Cvar.getInstance().Get("gl_driver", "opengl32", Defines.CVAR_ARCHIVE);
+		gl_texturemode = Cvar.getInstance().Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Defines.CVAR_ARCHIVE);
+		gl_texturealphamode = Cvar.getInstance().Get("gl_texturealphamode", "default", Defines.CVAR_ARCHIVE);
+		gl_texturesolidmode = Cvar.getInstance().Get("gl_texturesolidmode", "default", Defines.CVAR_ARCHIVE);
+		gl_lockpvs = Cvar.getInstance().Get("gl_lockpvs", "0", 0);
 
-		gl_vertex_arrays = Cvar.Get("gl_vertex_arrays", "1", Defines.CVAR_ARCHIVE);
+		gl_vertex_arrays = Cvar.getInstance().Get("gl_vertex_arrays", "1", Defines.CVAR_ARCHIVE);
 
-		gl_ext_swapinterval = Cvar.Get("gl_ext_swapinterval", "1", Defines.CVAR_ARCHIVE);
-		gl_ext_palettedtexture = Cvar.Get("gl_ext_palettedtexture", "0", Defines.CVAR_ARCHIVE);
-		gl_ext_multitexture = Cvar.Get("gl_ext_multitexture", "1", Defines.CVAR_ARCHIVE);
-		gl_ext_pointparameters = Cvar.Get("gl_ext_pointparameters", "1", Defines.CVAR_ARCHIVE);
-		gl_ext_compiled_vertex_array = Cvar.Get("gl_ext_compiled_vertex_array", "1", Defines.CVAR_ARCHIVE);
+		gl_ext_swapinterval = Cvar.getInstance().Get("gl_ext_swapinterval", "1", Defines.CVAR_ARCHIVE);
+		gl_ext_palettedtexture = Cvar.getInstance().Get("gl_ext_palettedtexture", "0", Defines.CVAR_ARCHIVE);
+		gl_ext_multitexture = Cvar.getInstance().Get("gl_ext_multitexture", "1", Defines.CVAR_ARCHIVE);
+		gl_ext_pointparameters = Cvar.getInstance().Get("gl_ext_pointparameters", "1", Defines.CVAR_ARCHIVE);
+		gl_ext_compiled_vertex_array = Cvar.getInstance().Get("gl_ext_compiled_vertex_array", "1", Defines.CVAR_ARCHIVE);
 
-		gl_drawbuffer = Cvar.Get("gl_drawbuffer", "GL_BACK", 0);
-		gl_swapinterval = Cvar.Get("gl_swapinterval", "0", Defines.CVAR_ARCHIVE);
+		gl_drawbuffer = Cvar.getInstance().Get("gl_drawbuffer", "GL_BACK", 0);
+		gl_swapinterval = Cvar.getInstance().Get("gl_swapinterval", "0", Defines.CVAR_ARCHIVE);
 
-		gl_saturatelighting = Cvar.Get("gl_saturatelighting", "0", 0);
+		gl_saturatelighting = Cvar.getInstance().Get("gl_saturatelighting", "0", 0);
 
-		gl_3dlabs_broken = Cvar.Get("gl_3dlabs_broken", "1", Defines.CVAR_ARCHIVE);
+		gl_3dlabs_broken = Cvar.getInstance().Get("gl_3dlabs_broken", "1", Defines.CVAR_ARCHIVE);
 
-		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", Defines.CVAR_ARCHIVE);
-		vid_gamma = Cvar.Get("vid_gamma", "1.0", Defines.CVAR_ARCHIVE);
-		vid_ref = Cvar.Get("vid_ref", "lwjgl", Defines.CVAR_ARCHIVE);
+		vid_fullscreen = Cvar.getInstance().Get("vid_fullscreen", "0", Defines.CVAR_ARCHIVE);
+		vid_gamma = Cvar.getInstance().Get("vid_gamma", "1.0", Defines.CVAR_ARCHIVE);
+		vid_ref = Cvar.getInstance().Get("vid_ref", "lwjgl", Defines.CVAR_ARCHIVE);
 
 		Cmd.AddCommand("imagelist", (List<String> args) -> GL_ImageList_f());
 		Cmd.AddCommand("screenshot", (List<String> args) -> glImpl.screenshot());
@@ -1032,14 +1034,14 @@ public abstract class Main extends Base {
 		}
 		else {
 			if (err == rserr_invalid_fullscreen) {
-				Cvar.SetValue("vid_fullscreen", 0);
+				Cvar.getInstance().SetValue("vid_fullscreen", 0);
 				vid_fullscreen.modified = false;
 				Com.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 				if ((err = glImpl.setMode(dim, (int) gl_mode.value, false)) == rserr_ok)
 					return true;
 			}
 			else if (err == rserr_invalid_mode) {
-				Cvar.SetValue("gl_mode", gl_state.prev_mode);
+				Cvar.getInstance().SetValue("gl_mode", gl_state.prev_mode);
 				gl_mode.modified = false;
 				Com.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 			}
@@ -1139,29 +1141,29 @@ public abstract class Main extends Base {
 		String monolightmap = gl_monolightmap.string.toUpperCase();
 		if (monolightmap.length() < 2 || monolightmap.charAt(1) != 'F') {
 			if (gl_config.renderer == GL_RENDERER_PERMEDIA2) {
-				Cvar.Set("gl_monolightmap", "A");
+				Cvar.getInstance().Set("gl_monolightmap", "A");
 				Com.Printf(Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n");
 			}
 			else if ((gl_config.renderer & GL_RENDERER_POWERVR) != 0) {
-				Cvar.Set("gl_monolightmap", "0");
+				Cvar.getInstance().Set("gl_monolightmap", "0");
 			}
 			else {
-				Cvar.Set("gl_monolightmap", "0");
+				Cvar.getInstance().Set("gl_monolightmap", "0");
 			}
 		}
 
 		// power vr can't have anything stay in the framebuffer, so
 		// the screen needs to redraw the tiled background every frame
 		if ((gl_config.renderer & GL_RENDERER_POWERVR) != 0) {
-			Cvar.Set("scr_drawall", "1");
+			Cvar.getInstance().Set("scr_drawall", "1");
 		}
 		else {
-			Cvar.Set("scr_drawall", "0");
+			Cvar.getInstance().Set("scr_drawall", "0");
 		}
 
 		// MCD has buffering issues
 		if (gl_config.renderer == GL_RENDERER_MCD) {
-			Cvar.SetValue("gl_finish", 1);
+			Cvar.getInstance().SetValue("gl_finish", 1);
 		}
 
 		if ((gl_config.renderer & GL_RENDERER_3DLABS) != 0) {
@@ -1334,7 +1336,7 @@ public abstract class Main extends Base {
 			// FIXME: only restart if CDS is required
 			cvar_t ref;
 
-			ref = Cvar.Get("vid_ref", "lwjgl", 0);
+			ref = Cvar.getInstance().Get("vid_ref", "lwjgl", 0);
 			ref.modified = true;
 		}
 

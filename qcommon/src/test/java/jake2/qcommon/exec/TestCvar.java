@@ -31,48 +31,48 @@ public class TestCvar {
 
 	@Test
 	public void testInit() {
-		Cvar.Init();
+		Cvar.getInstance().Init();
 	}
 
 	@Test
 	public void testGet() {
-		Cvar.Set("rene", "is cool.");
+		Cvar.getInstance().Set("rene", "is cool.");
 
-		Assert.assertEquals("is cool.", Cvar.Get("rene", "default", 0).string);
+		Assert.assertEquals("is cool.", Cvar.getInstance().Get("rene", "default", 0).string);
 	}
 
 	@Test
 	public void testGetDefault() {
-		Cvar.Set("rene1", "is cool.");
+		Cvar.getInstance().Set("rene1", "is cool.");
 
-		Assert.assertEquals("default", Cvar.Get("hello", "default", 0).string);
+		Assert.assertEquals("default", Cvar.getInstance().Get("hello", "default", 0).string);
 	}
 
 	@Test
 	public void testGetDefaultNull() {
-		Cvar.Set("rene2", "is cool.");
+		Cvar.getInstance().Set("rene2", "is cool.");
 
-		Assert.assertNull(Cvar.Get("hello2", null, 0));
+		Assert.assertNull(Cvar.getInstance().Get("hello2", null, 0));
 	}
 
 	@Test
 	public void testFind() {
-		Cvar.Set("rene3", "is cool.");
+		Cvar.getInstance().Set("rene3", "is cool.");
 
-		Assert.assertEquals("is cool.", Cvar.FindVar("rene3").string);
+		Assert.assertEquals("is cool.", Cvar.getInstance().FindVar("rene3").string);
 	}
 
 	@Test
 	public void testVariableString() {
-		Cvar.Set("rene4", "is cool.");
-		Assert.assertEquals("is cool.", Cvar.VariableString("rene4"));
+		Cvar.getInstance().Set("rene4", "is cool.");
+		Assert.assertEquals("is cool.", Cvar.getInstance().VariableString("rene4"));
 	}
 
 	@Test
 	public void testFullSetCreateNew() {
-		Cvar.FullSet("rene5", "0.56", 0);
+		Cvar.getInstance().FullSet("rene5", "0.56", 0);
 
-		cvar_t rene5 = Cvar.FindVar("rene5");
+		cvar_t rene5 = Cvar.getInstance().FindVar("rene5");
 		Assert.assertNotNull(rene5);
 		Assert.assertEquals("0.56", rene5.string);
 		Assert.assertTrue(rene5.value > 0.5f);
@@ -80,10 +80,10 @@ public class TestCvar {
 
 	@Test
 	public void testFullSetOverwrite() {
-		Cvar.FullSet("rene6", "0.56", 0);
-		Cvar.FullSet("rene6", "10.6", 0);
+		Cvar.getInstance().FullSet("rene6", "0.56", 0);
+		Cvar.getInstance().FullSet("rene6", "10.6", 0);
 
-		cvar_t rene6 = Cvar.FindVar("rene6");
+		cvar_t rene6 = Cvar.getInstance().FindVar("rene6");
 		Assert.assertNotNull(rene6);
 		Assert.assertTrue(rene6.modified);
 		Assert.assertEquals("10.6", rene6.string);

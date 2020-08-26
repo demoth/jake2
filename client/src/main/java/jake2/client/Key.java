@@ -25,7 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
@@ -869,7 +871,7 @@ public class Key extends Globals {
 		String s = new String(ClientGlobals.key_lines[ClientGlobals.edit_line], start, end-start);
 		
 		List<String> cmds = Cmd.CompleteCommand(s);
-		List<String> vars = Cvar.CompleteVariable(s);
+		List<String> vars = Cvar.getInstance().CompleteVariable(s);
 		
 		int commandsSize = cmds.size();
 		int cvarsSize = vars.size();

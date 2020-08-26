@@ -26,8 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client.sound;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.Defines;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 
 import java.nio.ByteBuffer;
@@ -112,7 +112,7 @@ public class S {
 		
 		Com.Printf("\n------- sound initialization -------\n");
 
-		cvar_t cv = Cvar.Get("s_initsound", "1", 0);
+		cvar_t cv = Cvar.getInstance().Get("s_initsound", "1", 0);
 		if (cv.value == 0.0f) {
 			Com.Printf("not initializing.\n");
 			useDriver("dummy");
@@ -125,12 +125,12 @@ public class S {
 			defaultDriver = ((Sound)drivers.lastElement()).getName();
 		}
 		
-		s_impl = Cvar.Get("s_impl", defaultDriver, Defines.CVAR_ARCHIVE);
+		s_impl = Cvar.getInstance().Get("s_impl", defaultDriver, Defines.CVAR_ARCHIVE);
 		useDriver(s_impl.string);
 
 		if (impl.Init()) {
 			// driver ok
-			Cvar.Set("s_impl", impl.getName());
+			Cvar.getInstance().Set("s_impl", impl.getName());
 		} else {
 			// fallback
 			useDriver("dummy");

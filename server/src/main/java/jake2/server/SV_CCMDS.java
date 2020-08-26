@@ -23,7 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
@@ -201,7 +204,7 @@ public class SV_CCMDS {
 
 		Com.DPrintf("SV_WriteLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sv2";
+		String name = FS.getWriteDir() + "/save/current/" + SV_MAIN.gameImports.sv.name + ".sv2";
 
 		try {
 			QuakeFile f = new QuakeFile(name, "rw");
@@ -209,7 +212,7 @@ public class SV_CCMDS {
 			for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
 				f.writeString(gameImports.sv.configstrings[i]);
 
-			CM.CM_WritePortalState(f);
+			gameImports.cm.CM_WritePortalState(f);
 			f.close();
 		}
 		catch (Exception e) {
@@ -237,7 +240,7 @@ public class SV_CCMDS {
 			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
 				gameImports.sv.configstrings[n] = f.readString();
 
-			CM.CM_ReadPortalState(f);
+			gameImports.cm.CM_ReadPortalState(f);
 
 			f.close();
 		}
@@ -280,7 +283,7 @@ public class SV_CCMDS {
 
 			// write all CVAR_LATCH cvars
 			// these will be things like coop, skill, deathmatch, etc
-			Cvar.eachCvarByFlags(Defines.CVAR_LATCH, var -> {
+			Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
 					try {
 						f.writeString(var.name);
 						f.writeString(var.string);
@@ -329,15 +332,11 @@ public class SV_CCMDS {
 				String value = f.readString();
 
 				Com.DPrintf("Set " + name + " = " + value + "\n");
-				Cvar.ForceSet(name, value);
+				Cvar.getInstance().ForceSet(name, value);
 			}
 
 			f.close();
 
-			// start a new game fresh with new cvars
-			SV_INIT.SV_InitGame();
-
-			// fixme: SV_INIT.gameImports is changed after SV_INIT.SV_InitGame();
 			gameImports.svs.mapcmd = mapcmd;
 
 			// read game state
@@ -396,23 +395,22 @@ public class SV_CCMDS {
 		}
 		else { // save the map just exited
 			// todo: init gameImports in a proper place
-			if (SV_INIT.gameImports != null && SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
+			if (SV_MAIN.gameImports != null && SV_MAIN.gameImports.sv.state == ServerStates.SS_GAME) {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
-				client_t cl;
-				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					cl = SV_INIT.gameImports.svs.clients[i];
+				boolean[] savedInuse = new boolean[(int) SV_MAIN.gameImports.maxclients.value];
+				for (int i = 0; i < SV_MAIN.gameImports.maxclients.value; i++) {
+					client_t cl = SV_MAIN.gameImports.svs.clients[i];
 					savedInuse[i] = cl.edict.inuse;
 					cl.edict.inuse = false;
 				}
 
-				SV_WriteLevelFile(SV_INIT.gameImports);
+				SV_WriteLevelFile(SV_MAIN.gameImports);
 
 				// we must restore these for clients to transfer over correctly
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					cl = SV_INIT.gameImports.svs.clients[i];
+				for (int i = 0; i < SV_MAIN.gameImports.maxclients.value; i++) {
+					client_t cl = SV_MAIN.gameImports.svs.clients[i];
 					cl.edict.inuse = savedInuse[i];
 
 				}
@@ -423,11 +421,11 @@ public class SV_CCMDS {
 		SV_INIT.SV_Map(false, mapName, false);
 
 		// archive server state
-		SV_INIT.gameImports.svs.mapcmd = mapName;
+		SV_MAIN.gameImports.svs.mapcmd = mapName;
 
 		// copy off the level to the autosave slot
 		if (0 == Globals.dedicated.value) {
-			SV_WriteServerFile(true, SV_INIT.gameImports);
+			SV_WriteServerFile(true, SV_MAIN.gameImports);
 			SV_CopySaveGame("current", "save0");
 		}
 	}
@@ -466,8 +464,8 @@ public class SV_CCMDS {
 			}
 		}
 
-		if (SV_INIT.gameImports != null)
-			SV_INIT.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+		if (SV_MAIN.gameImports != null)
+			SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
 		SV_WipeSavegame("current");
 		SV_GameMap_f(args);
@@ -520,25 +518,14 @@ public class SV_CCMDS {
 		}
 
 		SV_CopySaveGame(saveGame, "current");
-		SV_ReadServerFile(SV_INIT.gameImports);
+
+		// start a new game fresh with new cvars
+		SV_INIT.SV_InitGame();
+
+		SV_ReadServerFile(SV_MAIN.gameImports);
 
 		// go to the map
-		SV_INIT.SV_Map(false, SV_INIT.gameImports.svs.mapcmd, true);
+		SV_INIT.SV_Map(false, SV_MAIN.gameImports.svs.mapcmd, true);
 	}
-	/*
-	==================
-	SV_InitOperatorCommands
-	==================
-	*/
-	static void SV_InitOperatorCommands(final GameImportsImpl gameImports) {
 
-		// remove and add new versions of this commands
-
-
-//		Cmd.AddCommand("spawnbot", new Command() {
-//			public void execute() {
-//				AdvancedBot.SP_Oak();
-//			}
-//		});
-	}
 }

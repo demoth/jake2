@@ -1060,10 +1060,6 @@ public class CL_ents {
 		if (0 == ClientGlobals.cl_gun.value)
 			return;
 
-		// don't draw gun if in wide angle view
-		if (ps.fov > 90)
-			return;
-
 		//memset( gun, 0, sizeof(gun));
 		gun.clear();
 
@@ -1196,11 +1192,11 @@ public class CL_ents {
 			float angle;
 			
 			if (ClientGlobals.cl_3rd_angle.value < 0)
-				Cvar.SetValue( "cl_3rd_angle", 0);
+				Cvar.getInstance().SetValue( "cl_3rd_angle", 0);
 			if (ClientGlobals.cl_3rd_angle.value > 60)
-				Cvar.SetValue( "cl_3rd_angle", 60);
+				Cvar.getInstance().SetValue( "cl_3rd_angle", 60);
 			if (ClientGlobals.cl_3rd_dist.value < 0)
-				Cvar.SetValue( "cl_3rd_dist", 0);
+				Cvar.getInstance().SetValue( "cl_3rd_dist", 0);
 			
 			//this'll use polar coords for cam offset
 			angle = (float) (Math.PI * ClientGlobals.cl_3rd_angle.value / 180.0f);
@@ -1301,7 +1297,7 @@ public class CL_ents {
 		float[] mins = { 0, 0, 0 };
 		Math3D.VectorSet(maxs, size, size, size);
 		Math3D.VectorSet(mins, -size, -size, -size);
-		return CM.BoxTrace (start, end, mins, maxs, 0, contentmask);
+		return ClientGlobals.cm.BoxTrace (start, end, mins, maxs, 0, contentmask);
 	}
 	
 	static void ClipCam (float[] start, float[] end, float[] newpos) {

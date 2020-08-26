@@ -32,6 +32,7 @@ import java.util.Vector;
  * 
  * @author cwei
  */
+@Deprecated
 public class Vargs {
 
 	// initial capacity

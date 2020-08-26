@@ -1141,7 +1141,7 @@ public class M_Float {
                 return;
 
             self.pain_debounce_time = gameExports.level.time + 3;
-            if (gameExports.cvarCache.skill.value == 3)
+            if (gameExports.gameCvars.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = (Lib.rand() + 1) % 3;
@@ -1175,7 +1175,7 @@ public class M_Float {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_floater(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
             return;
         }

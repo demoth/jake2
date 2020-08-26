@@ -119,14 +119,14 @@ public class CL_pred {
                 bmins[2] = -zd;
                 bmaxs[2] = zu;
 
-                headnode = CM.HeadnodeForBox(bmins, bmaxs);
+                headnode = ClientGlobals.cm.HeadnodeForBox(bmins, bmaxs);
                 angles = Globals.vec3_origin; // boxes don't rotate
             }
 
             if (tr.allsolid)
                 return;
 
-            trace = CM.TransformedBoxTrace(start, end, mins, maxs, headnode,
+            trace = ClientGlobals.cm.TransformedBoxTrace(start, end, mins, maxs, headnode,
                     Defines.MASK_PLAYERSOLID, ent.origin, angles);
 
             if (trace.allsolid || trace.startsolid
@@ -155,7 +155,7 @@ public class CL_pred {
         trace_t t;
 
         // check against world
-        t = CM.BoxTrace(start, end, mins, maxs, 0, Defines.MASK_PLAYERSOLID);
+        t = ClientGlobals.cm.BoxTrace(start, end, mins, maxs, 0, Defines.MASK_PLAYERSOLID);
 
         if (t.fraction < 1.0f) {
             t.ent = DUMMY_ENT;
@@ -179,7 +179,7 @@ public class CL_pred {
         cmodel_t cmodel;
         int contents;
 
-        contents = CM.PointContents(point, 0);
+        contents = ClientGlobals.cm.PointContents(point, 0);
 
         for (i = 0; i < ClientGlobals.cl.frame.num_entities; i++) {
             num = (ClientGlobals.cl.frame.parse_entities + i)
@@ -193,7 +193,7 @@ public class CL_pred {
             if (cmodel == null)
                 continue;
 
-            contents |= CM.TransformedPointContents(point, cmodel.headnode,
+            contents |= ClientGlobals.cm.TransformedPointContents(point, cmodel.headnode,
                     ent.origin, ent.angles);
         }
         return contents;

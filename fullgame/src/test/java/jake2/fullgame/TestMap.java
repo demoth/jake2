@@ -72,7 +72,7 @@ public class TestMap
 
 	void init()
 	{
-        Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
+        Globals.dedicated = Cvar.getInstance().Get("dedicated", "0", Defines.CVAR_NOSET );
 
 		Jake2.Init(new String[] { "TestMap" });
 		// sehr wichtig !!!

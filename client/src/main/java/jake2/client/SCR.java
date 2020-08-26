@@ -246,8 +246,7 @@ public final class SCR extends Globals {
         }
 
         // echo it to the console
-        Com
-                .Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
+        Com.Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 
         s = 0;
 
@@ -277,8 +276,7 @@ public final class SCR extends Globals {
                 s++; // skip the \n
             } while (true);
         }
-        Com
-                .Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
+        Com.Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
         Console.ClearNotify();
     }
 
@@ -354,9 +352,9 @@ public final class SCR extends Globals {
 
         // bound viewsize
         if (scr_viewsize.value < 40)
-            Cvar.Set("viewsize", "40");
+            Cvar.getInstance().Set("viewsize", "40");
         if (scr_viewsize.value > 100)
-            Cvar.Set("viewsize", "100");
+            Cvar.getInstance().Set("viewsize", "100");
 
         size = (int) scr_viewsize.value;
 
@@ -376,7 +374,7 @@ public final class SCR extends Globals {
      * Keybinding command =================
      */
     private static void SizeUp_f() {
-        Cvar.SetValue("viewsize", scr_viewsize.value + 10);
+        Cvar.getInstance().SetValue("viewsize", scr_viewsize.value + 10);
     }
 
     /*
@@ -385,7 +383,7 @@ public final class SCR extends Globals {
      * Keybinding command =================
      */
     private static void SizeDown_f() {
-        Cvar.SetValue("viewsize", scr_viewsize.value - 10);
+        Cvar.getInstance().SetValue("viewsize", scr_viewsize.value - 10);
     }
 
     /*
@@ -424,20 +422,20 @@ public final class SCR extends Globals {
      * ================== SCR_Init ==================
      */
     static void Init() {
-        scr_viewsize = Cvar.Get("viewsize", "100", CVAR_ARCHIVE);
-        scr_conspeed = Cvar.Get("scr_conspeed", "3", 0);
-        scr_showturtle = Cvar.Get("scr_showturtle", "0", 0);
-        scr_showpause = Cvar.Get("scr_showpause", "1", 0);
-        scr_centertime = Cvar.Get("scr_centertime", "2.5", 0);
-        scr_printspeed = Cvar.Get("scr_printspeed", "8", 0);
-        scr_netgraph = Cvar.Get("netgraph", "0", 0);
-        scr_timegraph = Cvar.Get("timegraph", "0", 0);
-        scr_debuggraph = Cvar.Get("debuggraph", "0", 0);
-        scr_graphheight = Cvar.Get("graphheight", "32", 0);
-        scr_graphscale = Cvar.Get("graphscale", "1", 0);
-        scr_graphshift = Cvar.Get("graphshift", "0", 0);
-        scr_drawall = Cvar.Get("scr_drawall", "1", 0);
-        fps = Cvar.Get("fps", "0", 0);
+        scr_viewsize = Cvar.getInstance().Get("viewsize", "100", CVAR_ARCHIVE);
+        scr_conspeed = Cvar.getInstance().Get("scr_conspeed", "3", 0);
+        scr_showturtle = Cvar.getInstance().Get("scr_showturtle", "0", 0);
+        scr_showpause = Cvar.getInstance().Get("scr_showpause", "1", 0);
+        scr_centertime = Cvar.getInstance().Get("scr_centertime", "2.5", 0);
+        scr_printspeed = Cvar.getInstance().Get("scr_printspeed", "8", 0);
+        scr_netgraph = Cvar.getInstance().Get("netgraph", "0", 0);
+        scr_timegraph = Cvar.getInstance().Get("timegraph", "0", 0);
+        scr_debuggraph = Cvar.getInstance().Get("debuggraph", "0", 0);
+        scr_graphheight = Cvar.getInstance().Get("graphheight", "32", 0);
+        scr_graphscale = Cvar.getInstance().Get("graphscale", "1", 0);
+        scr_graphshift = Cvar.getInstance().Get("graphshift", "0", 0);
+        scr_drawall = Cvar.getInstance().Get("scr_drawall", "1", 0);
+        fps = Cvar.getInstance().Get("fps", "0", 0);
 
         //
         // register our commands
@@ -1178,9 +1176,9 @@ public final class SCR extends Globals {
          * someone's * brain
          */
         if (ClientGlobals.cl_stereo_separation.value > 1.0)
-            Cvar.SetValue("cl_stereo_separation", 1.0f);
+            Cvar.getInstance().SetValue("cl_stereo_separation", 1.0f);
         else if (ClientGlobals.cl_stereo_separation.value < 0)
-            Cvar.SetValue("cl_stereo_separation", 0.0f);
+            Cvar.getInstance().SetValue("cl_stereo_separation", 0.0f);
 
         if (ClientGlobals.cl_stereo.value != 0) {
             numframes = 2;
@@ -1317,7 +1315,7 @@ public final class SCR extends Globals {
         if (fps.value > 0.0f) {
             if (fps.modified) {
                 fps.modified = false;
-                Cvar.SetValue("cl_maxfps", 90);
+                Cvar.getInstance().SetValue("cl_maxfps", 90);
             }
 
             int diff = cls.realtime - lasttime;
@@ -1334,7 +1332,7 @@ public final class SCR extends Globals {
             }
         } else if (fps.modified) {
             fps.modified = false;
-            Cvar.SetValue("cl_maxfps", 90);
+            Cvar.getInstance().SetValue("cl_maxfps", 90);
         }
     }
 

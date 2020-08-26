@@ -209,7 +209,7 @@ public class GameWeapon {
                         GameDefines.MOD_ROCKET, gameExports);
             } else {
                 // don't throw any debris in net games
-                if (gameExports.cvarCache.deathmatch.value == 0 && 0 == gameExports.cvarCache.coop.value) {
+                if (gameExports.gameCvars.deathmatch.value == 0 && 0 == gameExports.gameCvars.coop.value) {
                     if ((surf != null)
                             && 0 == (surf.flags & (Defines.SURF_WARP
                                     | Defines.SURF_TRANS33
@@ -351,7 +351,7 @@ public class GameWeapon {
             int dmg;
             trace_t tr;
     
-            if (gameExports.cvarCache.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.value != 0)
                 dmg = 5;
             else
                 dmg = 10;
@@ -445,7 +445,7 @@ public class GameWeapon {
         float eta;
     
         // easy mode only ducks one quarter the time
-        if (gameExports.cvarCache.skill.value == 0) {
+        if (gameExports.gameCvars.skill.value == 0) {
             if (Lib.random() > 0.25)
                 return;
         }

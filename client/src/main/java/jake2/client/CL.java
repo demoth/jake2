@@ -282,13 +282,13 @@ public final class CL {
     private static Command Pause_f = (List<String> args) -> {
         // never pause in multiplayer
 
-        if (Cvar.VariableValue("maxclients") > 1
+        if (Cvar.getInstance().VariableValue("maxclients") > 1
                 || Globals.server_state == ServerStates.SS_DEAD) {
-            Cvar.SetValue("paused", 0);
+            Cvar.getInstance().SetValue("paused", 0);
             return;
         }
 
-        Cvar.SetValue("paused", ClientGlobals.cl_paused.value);
+        Cvar.getInstance().SetValue("paused", ClientGlobals.cl_paused.value);
     };
 
     /**
@@ -450,7 +450,7 @@ public final class CL {
         // send a broadcast packet
         Com.Printf("pinging broadcast...\n");
 
-        noudp = Cvar.Get("noudp", "0", Defines.CVAR_NOSET);
+        noudp = Cvar.getInstance().Get("noudp", "0", Defines.CVAR_NOSET);
         if (noudp.value == 0.0f) {
             adr.type = NetAddrType.NA_BROADCAST;
             adr.port = Defines.PORT_SERVER;
@@ -460,7 +460,7 @@ public final class CL {
         }
 
         // we use no IPX
-        noipx = Cvar.Get("noipx", "1", Defines.CVAR_NOSET);
+        noipx = Cvar.getInstance().Get("noipx", "1", Defines.CVAR_NOSET);
         if (noipx.value == 0.0f) {
             adr.type = NetAddrType.NA_BROADCAST_IPX;
             //adr.port = BigShort(PORT_SERVER);
@@ -473,7 +473,7 @@ public final class CL {
         for (i = 0; i < 16; i++) {
             //Com_sprintf (name, sizeof(name), "adr%i", i);
             name = "adr" + i;
-            adrstring = Cvar.VariableString(name);
+            adrstring = Cvar.getInstance().VariableString(name);
             if (adrstring == null || adrstring.length() == 0)
                 continue;
 
@@ -515,7 +515,7 @@ public final class CL {
      */
     private static Command Userinfo_f = (List<String> args) -> {
         Com.Printf("User info settings:\n");
-        Info.Print(Cvar.Userinfo());
+        Info.Print(Cvar.getInstance().Userinfo());
     };
 
     /**
@@ -548,7 +548,7 @@ public final class CL {
 
             int iw[] = { 0 }; // for detecting cheater maps
 
-            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
+            ClientGlobals.cm.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
 
             CL_parse.RegisterSounds();
@@ -657,12 +657,12 @@ public final class CL {
             adr.port = Defines.PORT_SERVER;
         //			adr.port = BigShort(PORT_SERVER);
 
-        port = (int) Cvar.VariableValue("qport");
+        port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
         Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "connect "
                 + Defines.PROTOCOL_VERSION + " " + port + " "
-                + ClientGlobals.cls.challenge + " \"" + Cvar.Userinfo() + "\"\n");
+                + ClientGlobals.cls.challenge + " \"" + Cvar.getInstance().Userinfo() + "\"\n");
     }
 
     /**
@@ -951,11 +951,11 @@ public final class CL {
 
             sk = ClientGlobals.skin.string;
             if (sk.startsWith("male") || sk.startsWith("cyborg"))
-                Cvar.Set("gender", "male");
+                Cvar.getInstance().Set("gender", "male");
             else if (sk.startsWith("female") || sk.startsWith("crackhor"))
-                Cvar.Set("gender", "female");
+                Cvar.getInstance().Set("gender", "female");
             else
-                Cvar.Set("gender", "none");
+                Cvar.getInstance().Set("gender", "none");
             ClientGlobals.gender.modified = false;
         }
     }
@@ -968,11 +968,11 @@ public final class CL {
         if (ClientGlobals.cls.state != Defines.ca_connected)
             return;
 
-        cvar_t allowDownload = Cvar.Get("allow_download", "1", Defines.CVAR_ARCHIVE);
-        cvar_t allowDownloadMaps = Cvar.Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
-        cvar_t allowDownloadModels = Cvar.Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
-        cvar_t allowDownloadSounds = Cvar.Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
-        cvar_t allowDownloadPlayers = Cvar.Get( "allow_download_players","0", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownload = Cvar.getInstance().Get("allow_download", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadMaps = Cvar.getInstance().Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadModels = Cvar.getInstance().Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadSounds = Cvar.getInstance().Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadPlayers = Cvar.getInstance().Get( "allow_download_players","0", Defines.CVAR_ARCHIVE);
 
         if (allowDownload.value == 0 && CL.precache_check < ENV_CNT)
             CL.precache_check = ENV_CNT;
@@ -1210,7 +1210,7 @@ public final class CL {
 
             int iw[] = { map_checksum };
 
-            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
+            ClientGlobals.cm.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
             map_checksum = iw[0];
 
@@ -1260,9 +1260,9 @@ public final class CL {
 
             if (allowDownload.value != 0
                     && allowDownloadMaps.value != 0) {
-                while (CL.precache_tex < CM.numtexinfo) {
+                while (CL.precache_tex < ClientGlobals.cm.numtexinfo) {
 
-                    fn = "textures/" + CM.map_surfaces[CL.precache_tex++].rname
+                    fn = "textures/" + ClientGlobals.cm.map_surfaces[CL.precache_tex++].rname
                             + ".wal";
                     if (!CL_parse.CheckOrDownloadFile(fn))
                         return; // started a download
@@ -1288,100 +1288,98 @@ public final class CL {
 
         CL_input.InitInput();
 
-        Cvar.Get("adr0", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr1", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr2", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr3", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr4", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr5", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr6", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr7", "", Defines.CVAR_ARCHIVE);
-        Cvar.Get("adr8", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr0", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr1", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr2", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr3", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr4", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr5", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr6", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr7", "", Defines.CVAR_ARCHIVE);
+        Cvar.getInstance().Get("adr8", "", Defines.CVAR_ARCHIVE);
 
         //
         // register our variables
         //
-        ClientGlobals.cl_stereo_separation = Cvar.Get("cl_stereo_separation", "0.4",
+        ClientGlobals.cl_stereo_separation = Cvar.getInstance().Get("cl_stereo_separation", "0.4",
                 Defines.CVAR_ARCHIVE);
-        ClientGlobals.cl_stereo = Cvar.Get("cl_stereo", "0", 0);
+        ClientGlobals.cl_stereo = Cvar.getInstance().Get("cl_stereo", "0", 0);
 
-        ClientGlobals.cl_add_blend = Cvar.Get("cl_blend", "1", 0);
-        ClientGlobals.cl_add_lights = Cvar.Get("cl_lights", "1", 0);
-        ClientGlobals.cl_add_particles = Cvar.Get("cl_particles", "1", 0);
-        ClientGlobals.cl_add_entities = Cvar.Get("cl_entities", "1", 0);
-        ClientGlobals.cl_gun = Cvar.Get("cl_gun", "1", 0);
-        ClientGlobals.cl_footsteps = Cvar.Get("cl_footsteps", "1", 0);
-        ClientGlobals.cl_noskins = Cvar.Get("cl_noskins", "0", 0);
-        ClientGlobals.cl_autoskins = Cvar.Get("cl_autoskins", "0", 0);
-        ClientGlobals.cl_predict = Cvar.Get("cl_predict", "1", 0);
+        ClientGlobals.cl_add_blend = Cvar.getInstance().Get("cl_blend", "1", 0);
+        ClientGlobals.cl_add_lights = Cvar.getInstance().Get("cl_lights", "1", 0);
+        ClientGlobals.cl_add_particles = Cvar.getInstance().Get("cl_particles", "1", 0);
+        ClientGlobals.cl_add_entities = Cvar.getInstance().Get("cl_entities", "1", 0);
+        ClientGlobals.cl_gun = Cvar.getInstance().Get("cl_gun", "1", 0);
+        ClientGlobals.cl_footsteps = Cvar.getInstance().Get("cl_footsteps", "1", 0);
+        ClientGlobals.cl_noskins = Cvar.getInstance().Get("cl_noskins", "0", 0);
+        ClientGlobals.cl_autoskins = Cvar.getInstance().Get("cl_autoskins", "0", 0);
+        ClientGlobals.cl_predict = Cvar.getInstance().Get("cl_predict", "1", 0);
 
-        ClientGlobals.cl_maxfps = Cvar.Get("cl_maxfps", "90", 0);
+        ClientGlobals.cl_maxfps = Cvar.getInstance().Get("cl_maxfps", "90", 0);
 
-        ClientGlobals.cl_upspeed = Cvar.Get("cl_upspeed", "200", 0);
-        ClientGlobals.cl_forwardspeed = Cvar.Get("cl_forwardspeed", "200", 0);
-        ClientGlobals.cl_sidespeed = Cvar.Get("cl_sidespeed", "200", 0);
-        ClientGlobals.cl_yawspeed = Cvar.Get("cl_yawspeed", "140", 0);
-        ClientGlobals.cl_pitchspeed = Cvar.Get("cl_pitchspeed", "150", 0);
-        ClientGlobals.cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
+        ClientGlobals.cl_upspeed = Cvar.getInstance().Get("cl_upspeed", "200", 0);
+        ClientGlobals.cl_forwardspeed = Cvar.getInstance().Get("cl_forwardspeed", "200", 0);
+        ClientGlobals.cl_sidespeed = Cvar.getInstance().Get("cl_sidespeed", "200", 0);
+        ClientGlobals.cl_yawspeed = Cvar.getInstance().Get("cl_yawspeed", "140", 0);
+        ClientGlobals.cl_pitchspeed = Cvar.getInstance().Get("cl_pitchspeed", "150", 0);
+        ClientGlobals.cl_anglespeedkey = Cvar.getInstance().Get("cl_anglespeedkey", "1.5", 0);
         
         // third person view
-        ClientGlobals.cl_3rd = Cvar.Get("cl_3rd", "0", Defines.CVAR_ARCHIVE);
-        ClientGlobals.cl_3rd_angle = Cvar.Get("cl_3rd_angle", "30", Defines.CVAR_ARCHIVE);
-        ClientGlobals.cl_3rd_dist = Cvar.Get("cl_3rd_dist", "50", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd = Cvar.getInstance().Get("cl_3rd", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd_angle = Cvar.getInstance().Get("cl_3rd_angle", "30", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd_dist = Cvar.getInstance().Get("cl_3rd_dist", "50", Defines.CVAR_ARCHIVE);
 
         // CDawg hud map, sfranzyshen 
-        ClientGlobals.cl_map = Cvar.Get("cl_map", "0", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
-        ClientGlobals.cl_map_zoom = Cvar.Get("cl_map_zoom", "300", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
+        ClientGlobals.cl_map = Cvar.getInstance().Get("cl_map", "0", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
+        ClientGlobals.cl_map_zoom = Cvar.getInstance().Get("cl_map_zoom", "300", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
 
-        ClientGlobals.cl_run = Cvar.Get("cl_run", "0", Defines.CVAR_ARCHIVE);
-        ClientGlobals.lookspring = Cvar.Get("lookspring", "0", Defines.CVAR_ARCHIVE);
-        ClientGlobals.lookstrafe = Cvar.Get("lookstrafe", "0", Defines.CVAR_ARCHIVE);
-        ClientGlobals.sensitivity = Cvar
-                .Get("sensitivity", "3", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_run = Cvar.getInstance().Get("cl_run", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.lookspring = Cvar.getInstance().Get("lookspring", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.lookstrafe = Cvar.getInstance().Get("lookstrafe", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.sensitivity = Cvar.getInstance().Get("sensitivity", "3", Defines.CVAR_ARCHIVE);
 
-        ClientGlobals.m_pitch = Cvar.Get("m_pitch", "0.022", Defines.CVAR_ARCHIVE);
-        ClientGlobals.m_yaw = Cvar.Get("m_yaw", "0.022", 0);
-        ClientGlobals.m_forward = Cvar.Get("m_forward", "1", 0);
-        ClientGlobals.m_side = Cvar.Get("m_side", "1", 0);
+        ClientGlobals.m_pitch = Cvar.getInstance().Get("m_pitch", "0.022", Defines.CVAR_ARCHIVE);
+        ClientGlobals.m_yaw = Cvar.getInstance().Get("m_yaw", "0.022", 0);
+        ClientGlobals.m_forward = Cvar.getInstance().Get("m_forward", "1", 0);
+        ClientGlobals.m_side = Cvar.getInstance().Get("m_side", "1", 0);
 
-        ClientGlobals.cl_shownet = Cvar.Get("cl_shownet", "0", 0);
-        ClientGlobals.cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
-        ClientGlobals.cl_showclamp = Cvar.Get("showclamp", "0", 0);
-        ClientGlobals.cl_timeout = Cvar.Get("cl_timeout", "120", 0);
-        ClientGlobals.cl_paused = Cvar.Get("paused", "0", 0);
-        ClientGlobals.cl_timedemo = Cvar.Get("timedemo", "0", 0);
+        ClientGlobals.cl_shownet = Cvar.getInstance().Get("cl_shownet", "0", 0);
+        ClientGlobals.cl_showmiss = Cvar.getInstance().Get("cl_showmiss", "0", 0);
+        ClientGlobals.cl_showclamp = Cvar.getInstance().Get("showclamp", "0", 0);
+        ClientGlobals.cl_timeout = Cvar.getInstance().Get("cl_timeout", "120", 0);
+        ClientGlobals.cl_paused = Cvar.getInstance().Get("paused", "0", 0);
+        ClientGlobals.cl_timedemo = Cvar.getInstance().Get("timedemo", "0", 0);
 
-        ClientGlobals.rcon_client_password = Cvar.Get("rcon_password", "", 0);
-        ClientGlobals.rcon_address = Cvar.Get("rcon_address", "", 0);
+        ClientGlobals.rcon_client_password = Cvar.getInstance().Get("rcon_password", "", 0);
+        ClientGlobals.rcon_address = Cvar.getInstance().Get("rcon_address", "", 0);
 
-        ClientGlobals.cl_lightlevel = Cvar.Get("r_lightlevel", "0", 0);
+        ClientGlobals.cl_lightlevel = Cvar.getInstance().Get("r_lightlevel", "0", 0);
 
         //
         // userinfo
         //
-        ClientGlobals.info_password = Cvar.Get("password", "", Defines.CVAR_USERINFO);
-        ClientGlobals.info_spectator = Cvar.Get("spectator", "0",
+        ClientGlobals.info_password = Cvar.getInstance().Get("password", "", Defines.CVAR_USERINFO);
+        ClientGlobals.info_spectator = Cvar.getInstance().Get("spectator", "0",
                 Defines.CVAR_USERINFO);
-        ClientGlobals.name = Cvar.Get("name", "unnamed", Defines.CVAR_USERINFO
+        ClientGlobals.name = Cvar.getInstance().Get("name", "unnamed", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.skin = Cvar.Get("skin", "male/grunt", Defines.CVAR_USERINFO
+        ClientGlobals.skin = Cvar.getInstance().Get("skin", "male/grunt", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.rate = Cvar.Get("rate", "25000", Defines.CVAR_USERINFO
+        ClientGlobals.rate = Cvar.getInstance().Get("rate", "25000", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE); // FIXME
-        ClientGlobals.msg = Cvar.Get("msg", "1", Defines.CVAR_USERINFO
+        ClientGlobals.msg = Cvar.getInstance().Get("msg", "1", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.hand = Cvar.Get("hand", "0", Defines.CVAR_USERINFO
+        ClientGlobals.hand = Cvar.getInstance().Get("hand", "0", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.fov = Cvar.Get("fov", "90", Defines.CVAR_USERINFO
+        ClientGlobals.fov = Cvar.getInstance().Get("fov", "90", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.gender = Cvar.Get("gender", "male", Defines.CVAR_USERINFO
+        ClientGlobals.gender = Cvar.getInstance().Get("gender", "male", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        ClientGlobals.gender_auto = Cvar
-                .Get("gender_auto", "1", Defines.CVAR_ARCHIVE);
+        ClientGlobals.gender_auto = Cvar.getInstance().Get("gender_auto", "1", Defines.CVAR_ARCHIVE);
         ClientGlobals.gender.modified = false; // clear this so we know when user sets
                                          // it manually
 
-        ClientGlobals.cl_vwep = Cvar.Get("cl_vwep", "1", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_vwep = Cvar.getInstance().Get("cl_vwep", "1", Defines.CVAR_ARCHIVE);
 
         //
         // register our commands
@@ -1468,7 +1466,7 @@ public final class CL {
 
         Key.WriteBindings(f);
         Lib.fclose(f);
-        Cvar.writeArchiveVariables(path);
+        Cvar.getInstance().writeArchiveVariables(path);
     }
 
     /**
@@ -1486,7 +1484,7 @@ public final class CL {
         // find all the cvars if we haven't done it yet
         if (0 == CL.numcheatvars) {
             while (CL.cheatvars[CL.numcheatvars].name != null) {
-                CL.cheatvars[CL.numcheatvars].var = Cvar.Get(
+                CL.cheatvars[CL.numcheatvars].var = Cvar.getInstance().Get(
                         CL.cheatvars[CL.numcheatvars].name,
                         CL.cheatvars[CL.numcheatvars].value, 0);
                 CL.numcheatvars++;
@@ -1497,7 +1495,7 @@ public final class CL {
         for (i = 0; i < CL.numcheatvars; i++) {
             var = CL.cheatvars[i];
             if (!var.var.string.equals(var.value)) {
-                Cvar.Set(var.name, var.value);
+                Cvar.getInstance().Set(var.name, var.value);
             }
         }
     }
@@ -1533,10 +1531,6 @@ public final class CL {
      * Frame
      */
     public static void Frame(int msec) {
-        
-        if (Globals.dedicated.value != 0)
-            return;
-
         extratime += msec;
 
         if (ClientGlobals.cl_timedemo.value == 0.0f) {

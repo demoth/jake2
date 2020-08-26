@@ -22,7 +22,10 @@
 
 package jake2.game;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -345,7 +348,7 @@ class GameTrigger {
 
             gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
                     .soundindex("misc/keyuse.wav"), 1, Defines.ATTN_NORM, 0);
-            if (gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.gameCvars.coop.value != 0) {
                 int player;
                 SubgameEntity ent;
 

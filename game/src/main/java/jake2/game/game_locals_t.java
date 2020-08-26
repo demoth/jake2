@@ -22,7 +22,6 @@
 
 package jake2.game;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.filesystem.QuakeFile;
 
@@ -79,11 +78,6 @@ public class game_locals_t {
         serverflags = f.readInt();
         num_items = f.readInt();
         autosaved = f.readInt() != 0;
-
-        // rst's checker :-)
-        if (f.readInt() != 1928)
-            Com.DPrintf("error in loading game_locals, 1928\n");
-
     }
 
     /** Writes the game locals to a file. */
@@ -102,7 +96,5 @@ public class game_locals_t {
         f.writeInt(serverflags);
         f.writeInt(num_items);
         f.writeInt(autosaved ? 1 : 0);
-        // rst's checker :-)
-        f.writeInt(1928);
     }
 }

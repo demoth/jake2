@@ -26,16 +26,18 @@
 package jake2.client;
 
 import jake2.client.sound.S;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.filesystem.QuakeFile;
 
 import java.awt.*;
 import java.io.RandomAccessFile;
@@ -189,8 +191,8 @@ public final class Menu extends Key {
                                                            // (int k) ) {
         int i;
 
-        if (Cvar.VariableValue("maxclients") == 1 && Globals.server_state != ServerStates.SS_DEAD)
-            Cvar.Set("paused", "1");
+        if (Cvar.getInstance().VariableValue("maxclients") == 1 && Globals.server_state != ServerStates.SS_DEAD)
+            Cvar.getInstance().Set("paused", "1");
 
         // if this menu is already present, drop back to that level
         // to avoid stacking menus by hotkeys
@@ -221,7 +223,7 @@ public final class Menu extends Key {
         ClientGlobals.cls.key_dest = key_game;
         m_menudepth = 0;
         Key.ClearStates();
-        Cvar.Set("paused", "0");
+        Cvar.getInstance().Set("paused", "0");
     }
 
     static void PopMenu() {
@@ -1228,11 +1230,11 @@ public final class Menu extends Key {
     private static menuaction_s s_options_console_action = new menuaction_s();
 
     private static void CrosshairFunc(Object unused) {
-        Cvar.SetValue("crosshair", s_options_crosshair_box.curvalue);
+        Cvar.getInstance().SetValue("crosshair", s_options_crosshair_box.curvalue);
     }
 
     private static void JoystickFunc(Object unused) {
-        Cvar.SetValue("in_joystick", s_options_joystick_box.curvalue);
+        Cvar.getInstance().SetValue("in_joystick", s_options_joystick_box.curvalue);
     }
 
     private static void CustomizeControlsFunc(Object unused) {
@@ -1240,20 +1242,20 @@ public final class Menu extends Key {
     }
 
     private static void AlwaysRunFunc(Object unused) {
-        Cvar.SetValue("cl_run", s_options_alwaysrun_box.curvalue);
+        Cvar.getInstance().SetValue("cl_run", s_options_alwaysrun_box.curvalue);
     }
 
     private static void FreeLookFunc(Object unused) {
-        Cvar.SetValue("freelook", s_options_freelook_box.curvalue);
+        Cvar.getInstance().SetValue("freelook", s_options_freelook_box.curvalue);
     }
 
     private static void MouseSpeedFunc(Object unused) {
-        Cvar.SetValue("sensitivity",
+        Cvar.getInstance().SetValue("sensitivity",
                 s_options_sensitivity_slider.curvalue / 2.0F);
     }
 
     static void NoAltTabFunc(Object unused) {
-        Cvar.SetValue("win_noalttab", s_options_noalttab_box.curvalue);
+        Cvar.getInstance().SetValue("win_noalttab", s_options_noalttab_box.curvalue);
     }
 
     private static float ClampCvar(float min, float max, float value) {
@@ -1265,12 +1267,11 @@ public final class Menu extends Key {
     }
 
     private static void ControlsSetMenuItemValues() {
-        s_options_sfxvolume_slider.curvalue = Cvar.VariableValue("s_volume") * 10;
-        s_options_cdvolume_box.curvalue = 1 - ((int) Cvar
-                .VariableValue("cd_nocd"));
+        s_options_sfxvolume_slider.curvalue = Cvar.getInstance().VariableValue("s_volume") * 10;
+        s_options_cdvolume_box.curvalue = 1 - ((int) Cvar.getInstance().VariableValue("cd_nocd"));
         //s_options_quality_list.curvalue = 1 - ((int)
         // Cvar.VariableValue("s_loadas8bit"));
-        String s = Cvar.VariableString("s_impl");
+        String s = Cvar.getInstance().VariableString("s_impl");
         for (int i = 0; i < s_drivers.length; i++) {
         	if (s.equals(s_drivers[i])) {
         		s_options_quality_list.curvalue = i;
@@ -1279,24 +1280,24 @@ public final class Menu extends Key {
 
         s_options_sensitivity_slider.curvalue = (ClientGlobals.sensitivity.value) * 2;
 
-        Cvar.SetValue("cl_run", ClampCvar(0, 1, ClientGlobals.cl_run.value));
+        Cvar.getInstance().SetValue("cl_run", ClampCvar(0, 1, ClientGlobals.cl_run.value));
         s_options_alwaysrun_box.curvalue = (int) ClientGlobals.cl_run.value;
 
         s_options_invertmouse_box.curvalue = ClientGlobals.m_pitch.value < 0 ? 1 : 0;
 
-        Cvar.SetValue("lookspring", ClampCvar(0, 1, ClientGlobals.lookspring.value));
+        Cvar.getInstance().SetValue("lookspring", ClampCvar(0, 1, ClientGlobals.lookspring.value));
         s_options_lookspring_box.curvalue = (int) ClientGlobals.lookspring.value;
 
-        Cvar.SetValue("lookstrafe", ClampCvar(0, 1, ClientGlobals.lookstrafe.value));
+        Cvar.getInstance().SetValue("lookstrafe", ClampCvar(0, 1, ClientGlobals.lookstrafe.value));
         s_options_lookstrafe_box.curvalue = (int) ClientGlobals.lookstrafe.value;
 
-        Cvar.SetValue("freelook", ClampCvar(0, 1, ClientGlobals.freelook.value));
+        Cvar.getInstance().SetValue("freelook", ClampCvar(0, 1, ClientGlobals.freelook.value));
         s_options_freelook_box.curvalue = (int) ClientGlobals.freelook.value;
 
-        Cvar.SetValue("crosshair", ClampCvar(0, 3, ClientGlobals.crosshair.value));
+        Cvar.getInstance().SetValue("crosshair", ClampCvar(0, 3, ClientGlobals.crosshair.value));
         s_options_crosshair_box.curvalue = (int) ClientGlobals.crosshair.value;
 
-        Cvar.SetValue("in_joystick", ClampCvar(0, 1, ClientGlobals.in_joystick.value));
+        Cvar.getInstance().SetValue("in_joystick", ClampCvar(0, 1, ClientGlobals.in_joystick.value));
         s_options_joystick_box.curvalue = (int) ClientGlobals.in_joystick.value;
 
         s_options_noalttab_box.curvalue = (int) win_noalttab.value;
@@ -1310,23 +1311,23 @@ public final class Menu extends Key {
     }
 
     private static void InvertMouseFunc(Object unused) {
-        Cvar.SetValue("m_pitch", -ClientGlobals.m_pitch.value);
+        Cvar.getInstance().SetValue("m_pitch", -ClientGlobals.m_pitch.value);
     }
 
     private static void LookspringFunc(Object unused) {
-        Cvar.SetValue("lookspring", 1 - ClientGlobals.lookspring.value);
+        Cvar.getInstance().SetValue("lookspring", 1 - ClientGlobals.lookspring.value);
     }
 
     private static void LookstrafeFunc(Object unused) {
-        Cvar.SetValue("lookstrafe", 1 - ClientGlobals.lookstrafe.value);
+        Cvar.getInstance().SetValue("lookstrafe", 1 - ClientGlobals.lookstrafe.value);
     }
 
     private static void UpdateVolumeFunc(Object unused) {
-        Cvar.SetValue("s_volume", s_options_sfxvolume_slider.curvalue / 10);
+        Cvar.getInstance().SetValue("s_volume", s_options_sfxvolume_slider.curvalue / 10);
     }
 
     private static void UpdateCDVolumeFunc(Object unused) {
-        Cvar.SetValue("cd_nocd", 1 - s_options_cdvolume_box.curvalue);
+        Cvar.getInstance().SetValue("cd_nocd", 1 - s_options_cdvolume_box.curvalue);
     }
 
     private static void ConsoleFunc(Object unused) {
@@ -1369,7 +1370,7 @@ public final class Menu extends Key {
             ClientGlobals.re.EndFrame();
             return;
         } else {
-        	Cvar.Set("s_impl", current);
+        	Cvar.getInstance().Set("s_impl", current);
         	
             DrawTextBox(8, 120 - 48, 36, 3);
             Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
@@ -1407,7 +1408,7 @@ public final class Menu extends Key {
     		}
     	}
     	
-        win_noalttab = Cvar.Get("win_noalttab", "0", CVAR_ARCHIVE);
+        win_noalttab = Cvar.getInstance().Get("win_noalttab", "0", CVAR_ARCHIVE);
 
         /*
          * * configure controls menu and menu items
@@ -1427,7 +1428,7 @@ public final class Menu extends Key {
         };
         s_options_sfxvolume_slider.minvalue = 0;
         s_options_sfxvolume_slider.maxvalue = 10;
-        s_options_sfxvolume_slider.curvalue = Cvar.VariableValue("s_volume") * 10;
+        s_options_sfxvolume_slider.curvalue = Cvar.getInstance().VariableValue("s_volume") * 10;
 
         s_options_cdvolume_box.type = MTYPE_SPINCONTROL;
         s_options_cdvolume_box.x = 0;
@@ -1439,8 +1440,7 @@ public final class Menu extends Key {
             }
         };
         s_options_cdvolume_box.itemnames = cd_music_items;
-        s_options_cdvolume_box.curvalue = 1 - (int) Cvar
-                .VariableValue("cd_nocd");
+        s_options_cdvolume_box.curvalue = 1 - (int) Cvar.getInstance().VariableValue("cd_nocd");
 
         s_options_quality_list.type = MTYPE_SPINCONTROL;
         s_options_quality_list.x = 0;
@@ -1905,32 +1905,32 @@ public final class Menu extends Key {
         // disable updates and start the cinematic going
         ClientGlobals.cl.servercount = -1;
         ForceMenuOff();
-        Cvar.SetValue("deathmatch", 0);
-        Cvar.SetValue("coop", 0);
+        Cvar.getInstance().SetValue("deathmatch", 0);
+        Cvar.getInstance().SetValue("coop", 0);
 
-        Cvar.SetValue("gamerules", 0); //PGM
+        Cvar.getInstance().SetValue("gamerules", 0); //PGM
 
         Cbuf.AddText("loading ; killserver ; wait ; newgame\n");
         ClientGlobals.cls.key_dest = key_game;
     }
 
     private static void EasyGameFunc(Object data) {
-        Cvar.ForceSet("skill", "0");
+        Cvar.getInstance().ForceSet("skill", "0");
         StartGame();
     }
 
     private static void MediumGameFunc(Object data) {
-        Cvar.ForceSet("skill", "1");
+        Cvar.getInstance().ForceSet("skill", "1");
         StartGame();
     }
 
     private static void HardGameFunc(Object data) {
-        Cvar.ForceSet("skill", "2");
+        Cvar.getInstance().ForceSet("skill", "2");
         StartGame();
     }
 
     private static void NighmareFunc(Object data) {
-        Cvar.ForceSet("skill", "3");
+        Cvar.getInstance().ForceSet("skill", "3");
         StartGame();
     }
 
@@ -2536,24 +2536,24 @@ public final class Menu extends Key {
         timelimit = Lib.atoi(s_timelimit_field.buffer.toString());
         fraglimit = Lib.atoi(s_fraglimit_field.buffer.toString());
 
-        Cvar.SetValue("maxclients", ClampCvar(0, maxclients, maxclients));
-        Cvar.SetValue("timelimit", ClampCvar(0, timelimit, timelimit));
-        Cvar.SetValue("fraglimit", ClampCvar(0, fraglimit, fraglimit));
-        Cvar.Set("hostname", s_hostname_field.buffer.toString());
+        Cvar.getInstance().SetValue("maxclients", ClampCvar(0, maxclients, maxclients));
+        Cvar.getInstance().SetValue("timelimit", ClampCvar(0, timelimit, timelimit));
+        Cvar.getInstance().SetValue("fraglimit", ClampCvar(0, fraglimit, fraglimit));
+        Cvar.getInstance().Set("hostname", s_hostname_field.buffer.toString());
         //		Cvar.SetValue ("deathmatch", !s_rules_box.curvalue );
         //		Cvar.SetValue ("coop", s_rules_box.curvalue );
 
         //	  PGM
         if ((s_rules_box.curvalue < 2) || (FS.Developer_searchpath() != 2)) {
-            Cvar.SetValue("deathmatch", 1 - (int) (s_rules_box.curvalue));
-            Cvar.SetValue("coop", s_rules_box.curvalue);
-            Cvar.SetValue("gamerules", 0);
+            Cvar.getInstance().SetValue("deathmatch", 1 - (int) (s_rules_box.curvalue));
+            Cvar.getInstance().SetValue("coop", s_rules_box.curvalue);
+            Cvar.getInstance().SetValue("gamerules", 0);
         } else {
-            Cvar.SetValue("deathmatch", 1);
+            Cvar.getInstance().SetValue("deathmatch", 1);
             // deathmatch is always true for rogue games, right?
-            Cvar.SetValue("coop", 0);
+            Cvar.getInstance().SetValue("coop", 0);
             // FIXME - this might need to depend on which game we're running
-            Cvar.SetValue("gamerules", s_rules_box.curvalue);
+            Cvar.getInstance().SetValue("gamerules", s_rules_box.curvalue);
         }
         //	  PGM
 
@@ -2678,7 +2678,7 @@ public final class Menu extends Key {
             s_rules_box.itemnames = dm_coop_names;
         //	  PGM
 
-        if (Cvar.VariableValue("coop") != 0)
+        if (Cvar.getInstance().VariableValue("coop") != 0)
             s_rules_box.curvalue = 1;
         else
             s_rules_box.curvalue = 0;
@@ -2696,8 +2696,7 @@ public final class Menu extends Key {
         s_timelimit_field.statusbar = "0 = no limit";
         s_timelimit_field.length = 3;
         s_timelimit_field.visible_length = 3;
-        s_timelimit_field.buffer = new StringBuffer(Cvar
-                .VariableString("timelimit"));
+        s_timelimit_field.buffer = new StringBuffer(Cvar.getInstance().VariableString("timelimit"));
 
         s_fraglimit_field.type = MTYPE_FIELD;
         s_fraglimit_field.name = "frag limit";
@@ -2707,8 +2706,7 @@ public final class Menu extends Key {
         s_fraglimit_field.statusbar = "0 = no limit";
         s_fraglimit_field.length = 3;
         s_fraglimit_field.visible_length = 3;
-        s_fraglimit_field.buffer = new StringBuffer(Cvar
-                .VariableString("fraglimit"));
+        s_fraglimit_field.buffer = new StringBuffer(Cvar.getInstance().VariableString("fraglimit"));
 
         /*
          * * maxclients determines the maximum number of players that can join *
@@ -2724,11 +2722,10 @@ public final class Menu extends Key {
         s_maxclients_field.statusbar = null;
         s_maxclients_field.length = 3;
         s_maxclients_field.visible_length = 3;
-        if (Cvar.VariableValue("maxclients") == 1)
+        if (Cvar.getInstance().VariableValue("maxclients") == 1)
             s_maxclients_field.buffer = new StringBuffer("8");
         else
-            s_maxclients_field.buffer = new StringBuffer(Cvar
-                    .VariableString("maxclients"));
+            s_maxclients_field.buffer = new StringBuffer(Cvar.getInstance().VariableString("maxclients"));
 
         s_hostname_field.type = MTYPE_FIELD;
         s_hostname_field.name = "hostname";
@@ -2738,8 +2735,7 @@ public final class Menu extends Key {
         s_hostname_field.statusbar = null;
         s_hostname_field.length = 12;
         s_hostname_field.visible_length = 12;
-        s_hostname_field.buffer = new StringBuffer(Cvar
-                .VariableString("hostname"));
+        s_hostname_field.buffer = new StringBuffer(Cvar.getInstance().VariableString("hostname"));
         s_hostname_field.cursor = s_hostname_field.buffer.length();
 
         s_startserver_dmoptions_action.type = MTYPE_ACTION;
@@ -2864,7 +2860,7 @@ public final class Menu extends Key {
     //	  ROGUE
 
     private static void setvalue(int flags) {
-        Cvar.SetValue("dmflags", flags);
+        Cvar.getInstance().SetValue("dmflags", flags);
         dmoptions_statusbar = "dmflags = " + flags;
     }
 
@@ -2873,7 +2869,7 @@ public final class Menu extends Key {
         int flags;
         int bit = 0;
 
-        flags = (int) Cvar.VariableValue("dmflags");
+        flags = (int) Cvar.getInstance().VariableValue("dmflags");
 
         if (f == s_friendlyfire_box) {
             if (f.curvalue != 0)
@@ -2966,7 +2962,7 @@ public final class Menu extends Key {
                 flags |= bit;
         }
 
-        Cvar.SetValue("dmflags", flags);
+        Cvar.getInstance().SetValue("dmflags", flags);
 
         dmoptions_statusbar = "dmflags = " + flags;
 
@@ -2977,7 +2973,7 @@ public final class Menu extends Key {
 
     private static void DMOptions_MenuInit() {
 
-        int dmflags = (int) Cvar.VariableValue("dmflags");
+        int dmflags = (int) Cvar.getInstance().VariableValue("dmflags");
         int y = 0;
 
         s_dmoptions_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
@@ -3298,23 +3294,23 @@ public final class Menu extends Key {
         menulist_s f = (menulist_s) self;
 
         if (f == s_allow_download_box) {
-            Cvar.SetValue("allow_download", f.curvalue);
+            Cvar.getInstance().SetValue("allow_download", f.curvalue);
         }
 
         else if (f == s_allow_download_maps_box) {
-            Cvar.SetValue("allow_download_maps", f.curvalue);
+            Cvar.getInstance().SetValue("allow_download_maps", f.curvalue);
         }
 
         else if (f == s_allow_download_models_box) {
-            Cvar.SetValue("allow_download_models", f.curvalue);
+            Cvar.getInstance().SetValue("allow_download_models", f.curvalue);
         }
 
         else if (f == s_allow_download_players_box) {
-            Cvar.SetValue("allow_download_players", f.curvalue);
+            Cvar.getInstance().SetValue("allow_download_players", f.curvalue);
         }
 
         else if (f == s_allow_download_sounds_box) {
-            Cvar.SetValue("allow_download_sounds", f.curvalue);
+            Cvar.getInstance().SetValue("allow_download_sounds", f.curvalue);
         }
     }
 
@@ -3342,7 +3338,7 @@ public final class Menu extends Key {
             }
         };
         s_allow_download_box.itemnames = yes_no_names;
-        s_allow_download_box.curvalue = (Cvar.VariableValue("allow_download") != 0) ? 1
+        s_allow_download_box.curvalue = (Cvar.getInstance().VariableValue("allow_download") != 0) ? 1
                 : 0;
 
         s_allow_download_maps_box.type = MTYPE_SPINCONTROL;
@@ -3355,8 +3351,7 @@ public final class Menu extends Key {
             }
         };
         s_allow_download_maps_box.itemnames = yes_no_names;
-        s_allow_download_maps_box.curvalue = (Cvar
-                .VariableValue("allow_download_maps") != 0) ? 1 : 0;
+        s_allow_download_maps_box.curvalue = (Cvar.getInstance().VariableValue("allow_download_maps") != 0) ? 1 : 0;
 
         s_allow_download_players_box.type = MTYPE_SPINCONTROL;
         s_allow_download_players_box.x = 0;
@@ -3368,8 +3363,7 @@ public final class Menu extends Key {
             }
         };
         s_allow_download_players_box.itemnames = yes_no_names;
-        s_allow_download_players_box.curvalue = (Cvar
-                .VariableValue("allow_download_players") != 0) ? 1 : 0;
+        s_allow_download_players_box.curvalue = (Cvar.getInstance().VariableValue("allow_download_players") != 0) ? 1 : 0;
 
         s_allow_download_models_box.type = MTYPE_SPINCONTROL;
         s_allow_download_models_box.x = 0;
@@ -3381,8 +3375,7 @@ public final class Menu extends Key {
             }
         };
         s_allow_download_models_box.itemnames = yes_no_names;
-        s_allow_download_models_box.curvalue = (Cvar
-                .VariableValue("allow_download_models") != 0) ? 1 : 0;
+        s_allow_download_models_box.curvalue = (Cvar.getInstance().VariableValue("allow_download_models") != 0) ? 1 : 0;
 
         s_allow_download_sounds_box.type = MTYPE_SPINCONTROL;
         s_allow_download_sounds_box.x = 0;
@@ -3394,8 +3387,7 @@ public final class Menu extends Key {
             }
         };
         s_allow_download_sounds_box.itemnames = yes_no_names;
-        s_allow_download_sounds_box.curvalue = (Cvar
-                .VariableValue("allow_download_sounds") != 0) ? 1 : 0;
+        s_allow_download_sounds_box.curvalue = (Cvar.getInstance().VariableValue("allow_download_sounds") != 0) ? 1 : 0;
 
         Menu_AddItem(s_downloadoptions_menu, s_download_title);
         Menu_AddItem(s_downloadoptions_menu, s_allow_download_box);
@@ -3450,7 +3442,7 @@ public final class Menu extends Key {
         s_addressbook_menu.nitems = 0;
 
         for (int i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
-            cvar_t adr = Cvar.Get("adr" + i, "", CVAR_ARCHIVE);
+            cvar_t adr = Cvar.getInstance().Get("adr" + i, "", CVAR_ARCHIVE);
 
             s_addressbook_fields[i].type = MTYPE_FIELD;
             s_addressbook_fields[i].name = null;
@@ -3478,7 +3470,7 @@ public final class Menu extends Key {
     private static String AddressBook_MenuKey_f(int key) {
         if (key == K_ESCAPE) {
             for (int index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
-                Cvar.Set("adr" + index, s_addressbook_fields[index].buffer.toString());
+                Cvar.getInstance().Set("adr" + index, s_addressbook_fields[index].buffer.toString());
             }
         }
         return Default_MenuKey(s_addressbook_menu, key);
@@ -3557,14 +3549,14 @@ public final class Menu extends Key {
     }
 
     private static void HandednessCallback(Object unused) {
-        Cvar.SetValue("hand", s_player_handedness_box.curvalue);
+        Cvar.getInstance().SetValue("hand", s_player_handedness_box.curvalue);
     }
 
     private static void RateCallback(Object unused) {
         if (s_player_rate_box.curvalue != rate_tbl.length - 1) //sizeof(rate_tbl)
                                                                // / sizeof(*
                                                                // rate_tbl) - 1)
-            Cvar.SetValue("rate", rate_tbl[s_player_rate_box.curvalue]);
+            Cvar.getInstance().SetValue("rate", rate_tbl[s_player_rate_box.curvalue]);
     }
 
     private static void ModelCallback(Object unused) {
@@ -3772,7 +3764,7 @@ public final class Menu extends Key {
         int currentdirectoryindex = 0;
         int currentskinindex = 0;
 
-        cvar_t hand = Cvar.Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+        cvar_t hand = Cvar.getInstance().Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 
         PlayerConfig_ScanDirectories();
 
@@ -3780,7 +3772,7 @@ public final class Menu extends Key {
             return false;
 
         if (hand.value < 0 || hand.value > 2)
-            Cvar.SetValue("hand", 0);
+            Cvar.getInstance().SetValue("hand", 0);
 
         currentdirectory = ClientGlobals.skin.string;
 
@@ -3879,11 +3871,11 @@ public final class Menu extends Key {
                 HandednessCallback(o);
             }
         };
-        s_player_handedness_box.curvalue = (int) Cvar.VariableValue("hand");
+        s_player_handedness_box.curvalue = (int) Cvar.getInstance().VariableValue("hand");
         s_player_handedness_box.itemnames = handedness;
 
         for (i = 0; i < rate_tbl.length - 1; i++)
-            if (Cvar.VariableValue("rate") == rate_tbl[i])
+            if (Cvar.getInstance().VariableValue("rate") == rate_tbl[i])
                 break;
 
         s_player_rate_title.type = MTYPE_SEPARATOR;
@@ -4013,13 +4005,13 @@ public final class Menu extends Key {
         if (key == K_ESCAPE) {
             String scratch;
 
-            Cvar.Set("name", s_player_name_field.buffer.toString());
+            Cvar.getInstance().Set("name", s_player_name_field.buffer.toString());
 
             scratch = s_pmi[s_player_model_box.curvalue].directory
                     + "/"
                     + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue];
 
-            Cvar.Set("skin", scratch);
+            Cvar.getInstance().Set("skin", scratch);
 
             for (i = 0; i < s_numplayermodels; i++) {
                 int j;

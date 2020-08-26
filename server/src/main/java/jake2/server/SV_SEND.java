@@ -24,7 +24,6 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
@@ -41,15 +40,15 @@ public class SV_SEND {
 	=============================================================================
 	*/
 
-	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
+	public static void SV_FlushRedirect(int sv_redirected, byte[] outputbuf, GameImportsImpl gameImports) {
 		if (sv_redirected == Defines.RD_PACKET) {
 			String s = ("print\n" + Lib.CtoJava(outputbuf));
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, NetworkCommands.svc_print);
-			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.PRINT_HIGH);
-			MSG.WriteString(SV_MAIN.sv_client.netchan.message, outputbuf);
+			MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_print);
+			MSG.WriteByte(gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
+			MSG.WriteString(gameImports.sv_client.netchan.message, outputbuf);
         }
 	}
 	/*
@@ -78,51 +77,6 @@ public class SV_SEND {
 	}
 	/*
 	=================
-	SV_BroadcastPrintf
-	
-	Sends text to all active clients
-	=================
-	*/
-	public static void SV_BroadcastPrintf(int level, String s) {
-
-		client_t cl;
-
-		// echo to console
-		if (Globals.dedicated.value != 0) {
-
-			Com.Printf(s);
-		}
-
-		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-			cl = SV_INIT.gameImports.svs.clients[i];
-			if (level < cl.messagelevel)
-				continue;
-			if (cl.state != ClientStates.CS_SPAWNED)
-				continue;
-			MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
-			MSG.WriteByte(cl.netchan.message, level);
-			MSG.WriteString(cl.netchan.message, s);
-		}
-	}
-	/*
-	=================
-	SV_BroadcastCommand
-	
-	Sends text to all active clients
-	=================
-	*/
-	public static void SV_BroadcastCommand(String s) {
-
-		//fixme: check if server is running
-		if (SV_INIT.gameImports == null || SV_INIT.gameImports.sv == null || SV_INIT.gameImports.sv.state == ServerStates.SS_DEAD)
-			return;
-
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_stufftext);
-		MSG.WriteString(SV_INIT.gameImports.sv.multicast, s);
-		SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
-	}
-	/*
-	=================
 	SV_Multicast
 	
 	Sends the contents of sv.multicast to a subset of the clients,
@@ -133,19 +87,20 @@ public class SV_SEND {
 	MULTICAST_PHS	send to clients potentially hearable from org
 	=================
 	*/
-	public static void SV_Multicast(float[] origin, MulticastTypes to) {
+	public static void SV_Multicast(float[] origin, MulticastTypes to, GameImportsImpl gameImports) {
 		client_t client;
 		byte mask[];
 		int leafnum, cluster;
 		int j;
 		boolean reliable;
 		int area1, area2;
+		final CM cm = gameImports.cm;
 
 		reliable = false;
 
 		if (to != MulticastTypes.MULTICAST_ALL_R && to != MulticastTypes.MULTICAST_ALL) {
-			leafnum = CM.CM_PointLeafnum(origin);
-			area1 = CM.CM_LeafArea(leafnum);
+			leafnum = cm.CM_PointLeafnum(origin);
+			area1 = cm.CM_LeafArea(leafnum);
 		}
 		else {
 			leafnum = 0; // just to avoid compiler warnings
@@ -153,8 +108,8 @@ public class SV_SEND {
 		}
 
 		// if doing a serverrecord, store everything
-		if (SV_INIT.gameImports.svs.demofile != null)
-			SZ.Write(SV_INIT.gameImports.svs.demo_multicast, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+		if (gameImports.svs.demofile != null)
+			SZ.Write(gameImports.svs.demo_multicast, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 
 		switch (to) {
 			case MULTICAST_ALL_R :
@@ -167,17 +122,17 @@ public class SV_SEND {
 			case MULTICAST_PHS_R :
 				reliable = true; // intentional fallthrough
 			case MULTICAST_PHS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPHS(cluster);
+				leafnum = cm.CM_PointLeafnum(origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				mask = cm.CM_ClusterPHS(cluster);
 				break;
 
 			case MULTICAST_PVS_R :
 				reliable = true; // intentional fallthrough
 			case MULTICAST_PVS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPVS(cluster);
+				leafnum = cm.CM_PointLeafnum(origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				mask = cm.CM_ClusterPVS(cluster);
 				break;
 
 			default :
@@ -186,8 +141,8 @@ public class SV_SEND {
 		}
 
 		// send the data to all relevent clients
-		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
-			client = SV_INIT.gameImports.svs.clients[j];
+		for (j = 0; j < gameImports.maxclients.value; j++) {
+			client = gameImports.svs.clients[j];
 
 			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
 				continue;
@@ -195,10 +150,10 @@ public class SV_SEND {
 				continue;
 
 			if (mask != null) {
-				leafnum = CM.CM_PointLeafnum(client.edict.s.origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				area2 = CM.CM_LeafArea(leafnum);
-				if (!CM.CM_AreasConnected(area1, area2))
+				leafnum = cm.CM_PointLeafnum(client.edict.s.origin);
+				cluster = cm.CM_LeafCluster(leafnum);
+				area2 = cm.CM_LeafArea(leafnum);
+				if (!cm.CM_AreasConnected(area1, area2))
 					continue;
 
 				// quake2 bugfix
@@ -209,16 +164,15 @@ public class SV_SEND {
 			}
 
 			if (reliable)
-				SZ.Write(client.netchan.message, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+				SZ.Write(client.netchan.message, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 			else
-				SZ.Write(client.datagram, SV_INIT.gameImports.sv.multicast.data, SV_INIT.gameImports.sv.multicast.cursize);
+				SZ.Write(client.datagram, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
 		}
 
-        SV_INIT.gameImports.sv.multicast.clear();
+        gameImports.sv.multicast.clear();
     }
 
-	private static final float[] origin_v = { 0, 0, 0 };
-	/*  
+	/*
 	==================
 	SV_StartSound
 	
@@ -251,12 +205,8 @@ public class SV_SEND {
 		int soundindex,
 		float volume,
 		float attenuation,
-		float timeofs) {
-		int sendchan;
-		int flags;
-		int i;
-		int ent;
-		boolean use_phs;
+		float timeofs,
+		GameImportsImpl gameImports) {
 
 		if (volume < 0 || volume > 1.0)
 			Com.Error(Defines.ERR_FATAL, "SV_StartSound: volume = " + volume);
@@ -270,9 +220,10 @@ public class SV_SEND {
 		if (timeofs < 0 || timeofs > 0.255)
 			Com.Error(Defines.ERR_FATAL, "SV_StartSound: timeofs = " + timeofs);
 
-		ent = entity.index;
+		int ent = entity.index;
 
 		// no PHS flag
+		boolean use_phs;
 		if ((channel & 8) != 0) {
 			use_phs = false;
 			channel &= 7;
@@ -280,9 +231,9 @@ public class SV_SEND {
 		else
 			use_phs = true;
 
-		sendchan = (ent << 3) | (channel & 7);
+		int sendchan = (ent << 3) | (channel & 7);
 
-		flags = 0;
+		int flags = 0;
 		if (volume != Defines.DEFAULT_SOUND_PACKET_VOLUME)
 			flags |= Defines.SND_VOLUME;
 		if (attenuation != Defines.DEFAULT_SOUND_PACKET_ATTENUATION)
@@ -301,32 +252,33 @@ public class SV_SEND {
 
 		// use the entity origin unless it is a bmodel or explicitly specified
 		if (origin == null) {
-			origin = origin_v;
+			origin = gameImports.origin_v;
 			if (entity.solid == Defines.SOLID_BSP) {
-				for (i = 0; i < 3; i++)
-					origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
+				for (int i = 0; i < 3; i++)
+					gameImports.origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
 			}
 			else {
-				Math3D.VectorCopy(entity.s.origin, origin_v);
+				Math3D.VectorCopy(entity.s.origin, gameImports.origin_v);
 			}
 		}
 
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_sound);
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, flags);
-		MSG.WriteByte(SV_INIT.gameImports.sv.multicast, soundindex);
+
+		MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_sound);
+		MSG.WriteByte(gameImports.sv.multicast, flags);
+		MSG.WriteByte(gameImports.sv.multicast, soundindex);
 
 		if ((flags & Defines.SND_VOLUME) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, volume * 255);
+			MSG.WriteByte(gameImports.sv.multicast, volume * 255);
 		if ((flags & Defines.SND_ATTENUATION) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, attenuation * 64);
+			MSG.WriteByte(gameImports.sv.multicast, attenuation * 64);
 		if ((flags & Defines.SND_OFFSET) != 0)
-			MSG.WriteByte(SV_INIT.gameImports.sv.multicast, timeofs * 1000);
+			MSG.WriteByte(gameImports.sv.multicast, timeofs * 1000);
 
 		if ((flags & Defines.SND_ENT) != 0)
-			MSG.WriteShort(SV_INIT.gameImports.sv.multicast, sendchan);
+			MSG.WriteShort(gameImports.sv.multicast, sendchan);
 
 		if ((flags & Defines.SND_POS) != 0)
-			MSG.WritePos(SV_INIT.gameImports.sv.multicast, origin);
+			MSG.WritePos(gameImports.sv.multicast, origin);
 
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)
@@ -335,15 +287,15 @@ public class SV_SEND {
 
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R, gameImports);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
 		}
 		else {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS, gameImports);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL, gameImports);
 		}
 	}
 	/*
@@ -354,23 +306,22 @@ public class SV_SEND {
 	===============================================================================
 	*/
 
-	private static final sizebuf_t msg = new sizebuf_t();
 	/*
 	=======================
 	SV_SendClientDatagram
 	=======================
 	*/
-	public static boolean SV_SendClientDatagram(client_t client) {
+	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 
-		SV_ENTS.SV_BuildClientFrame(client);
+		gameImports.sv_ents.SV_BuildClientFrame(client);
 
-		SZ.Init(msg, msgbuf, msgbuf.length);
-		msg.allowoverflow = true;
+		SZ.Init(gameImports.msg, gameImports.msgbuf, gameImports.msgbuf.length);
+		gameImports.msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		SV_ENTS.SV_WriteFrameToClient(client, msg);
+		gameImports.sv_ents.SV_WriteFrameToClient(client);
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
@@ -379,19 +330,19 @@ public class SV_SEND {
 		if (client.datagram.overflowed)
 			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
 		else
-			SZ.Write(msg, client.datagram.data, client.datagram.cursize);
+			SZ.Write(gameImports.msg, client.datagram.data, client.datagram.cursize);
         client.datagram.clear();
 
-        if (msg.overflowed) { // must have room left for the packet header
+        if (gameImports.msg.overflowed) { // must have room left for the packet header
 			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-            msg.clear();
+			gameImports.msg.clear();
         }
 
 		// send the datagram
-		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
+		Netchan.Transmit(client.netchan, gameImports.msg.cursize, gameImports.msg.data);
 
 		// record the size for rate estimation
-		client.message_size[SV_INIT.gameImports.sv.framenum % Defines.RATE_MESSAGES] = msg.cursize;
+		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = gameImports.msg.cursize;
 
 		return true;
 	}
@@ -400,133 +351,18 @@ public class SV_SEND {
 	SV_DemoCompleted
 	==================
 	*/
-	public static void SV_DemoCompleted() {
-		if (SV_INIT.gameImports.sv.demofile != null) {
+	public static void SV_DemoCompleted(GameImportsImpl gameImports) {
+		if (gameImports.sv.demofile != null) {
 			try {
-				SV_INIT.gameImports.sv.demofile.close();
+				gameImports.sv.demofile.close();
 			}
 			catch (IOException e) {
 				Com.Printf("IOError closing d9emo fiele:" + e);
 			}
-			SV_INIT.gameImports.sv.demofile = null;
+			gameImports.sv.demofile = null;
 		}
-		SV_USER.SV_Nextserver();
-	}
-	/*
-	=======================
-	SV_RateDrop
-	
-	Returns true if the client is over its current
-	bandwidth estimation and should not be sent another packet
-	=======================
-	*/
-	public static boolean SV_RateDrop(client_t c) {
-		int total;
-		int i;
-
-		// never drop over the loopback
-		if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
-			return false;
-
-		total = 0;
-
-		for (i = 0; i < Defines.RATE_MESSAGES; i++) {
-			total += c.message_size[i];
-		}
-
-		if (total > c.rate) {
-			c.surpressCount++;
-			c.message_size[SV_INIT.gameImports.sv.framenum % Defines.RATE_MESSAGES] = 0;
-			return true;
-		}
-
-		return false;
+		SV_USER.SV_Nextserver(gameImports);
 	}
 
-	private static final byte msgbuf[] = new byte[Defines.MAX_MSGLEN];
-	private static final byte[] NULLBYTE = {0};
-	/*
-	=======================
-	SV_SendClientMessages
-	=======================
-	*/
-	public static void SV_SendClientMessages() {
-		int i;
-		client_t c;
-		int msglen;
-		int r;
-
-		msglen = 0;
-
-		// read the next demo message if needed
-		if (SV_INIT.gameImports.sv.state == ServerStates.SS_DEMO && SV_INIT.gameImports.sv.demofile != null) {
-			if (SV_MAIN.sv_paused.value != 0)
-				msglen = 0;
-			else {
-				// get the next message
-				//r = fread (&msglen, 4, 1, sv.demofile);
-				try {
-					msglen = EndianHandler.swapInt(SV_INIT.gameImports.sv.demofile.readInt());
-				}
-				catch (Exception e) {
-					SV_DemoCompleted();
-					return;
-				}
-
-				//msglen = LittleLong (msglen);
-				if (msglen == -1) {
-					SV_DemoCompleted();
-					return;
-				}
-				if (msglen > Defines.MAX_MSGLEN)
-					Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
-
-				//r = fread (msgbuf, msglen, 1, sv.demofile);
-				r = 0;
-				try {
-					r = SV_INIT.gameImports.sv.demofile.read(msgbuf, 0, msglen);
-				}
-				catch (IOException e1) {
-					Com.Printf("IOError: reading demo file, " + e1);
-				}
-				if (r != msglen) {
-					SV_DemoCompleted();
-					return;
-				}
-			}
-		}
-
-		// send a message to each connected client
-		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-			c = SV_INIT.gameImports.svs.clients[i];
-
-			if (c.state == ClientStates.CS_FREE)
-				continue;
-			// if the reliable message overflowed,
-			// drop the client
-			if (c.netchan.message.overflowed) {
-                c.netchan.message.clear();
-                c.datagram.clear();
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
-				SV_MAIN.SV_DropClient(c);
-			}
-
-			if (SV_INIT.gameImports.sv.state == ServerStates.SS_CINEMATIC
-				|| SV_INIT.gameImports.sv.state == ServerStates.SS_DEMO
-				|| SV_INIT.gameImports.sv.state == ServerStates.SS_PIC)
-				Netchan.Transmit(c.netchan, msglen, msgbuf);
-			else if (c.state == ClientStates.CS_SPAWNED) {
-				// don't overrun bandwidth
-				if (SV_RateDrop(c))
-					continue;
-
-				SV_SendClientDatagram(c);
-			}
-			else {
-				// just update reliable	if needed
-				if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-					Netchan.Transmit(c.netchan, 0, NULLBYTE);
-			}
-		}
-	}
 }
+

@@ -25,9 +25,9 @@
  */
 package jake2.client;
 
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.Globals;
 import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Math3D;
 
@@ -92,8 +92,8 @@ public final class IN extends Globals {
     }
 
     public static void Init() {
-        ClientGlobals.in_mouse = Cvar.Get("in_mouse", "1", CVAR_ARCHIVE);
-        ClientGlobals.in_joystick = Cvar.Get("in_joystick", "0", CVAR_ARCHIVE);
+        ClientGlobals.in_mouse = Cvar.getInstance().Get("in_mouse", "1", CVAR_ARCHIVE);
+        ClientGlobals.in_joystick = Cvar.getInstance().Get("in_joystick", "0", CVAR_ARCHIVE);
     }
 
     public static void Shutdown() {
@@ -102,15 +102,15 @@ public final class IN extends Globals {
 
     public static void Real_IN_Init() {
         // mouse variables
-        ClientGlobals.m_filter = Cvar.Get("m_filter", "0", 0);
-        ClientGlobals.in_mouse = Cvar.Get("in_mouse", "1", CVAR_ARCHIVE);
-        ClientGlobals.freelook = Cvar.Get("freelook", "1", 0);
-        ClientGlobals.lookstrafe = Cvar.Get("lookstrafe", "0", 0);
-        ClientGlobals.sensitivity = Cvar.Get("sensitivity", "3", 0);
-        ClientGlobals.m_pitch = Cvar.Get("m_pitch", "0.022", 0);
-        ClientGlobals.m_yaw = Cvar.Get("m_yaw", "0.022", 0);
-        ClientGlobals.m_forward = Cvar.Get("m_forward", "1", 0);
-        ClientGlobals.m_side = Cvar.Get("m_side", "0.8", 0);
+        ClientGlobals.m_filter = Cvar.getInstance().Get("m_filter", "0", 0);
+        ClientGlobals.in_mouse = Cvar.getInstance().Get("in_mouse", "1", CVAR_ARCHIVE);
+        ClientGlobals.freelook = Cvar.getInstance().Get("freelook", "1", 0);
+        ClientGlobals.lookstrafe = Cvar.getInstance().Get("lookstrafe", "0", 0);
+        ClientGlobals.sensitivity = Cvar.getInstance().Get("sensitivity", "3", 0);
+        ClientGlobals.m_pitch = Cvar.getInstance().Get("m_pitch", "0.022", 0);
+        ClientGlobals.m_yaw = Cvar.getInstance().Get("m_yaw", "0.022", 0);
+        ClientGlobals.m_forward = Cvar.getInstance().Get("m_forward", "1", 0);
+        ClientGlobals.m_side = Cvar.getInstance().Get("m_side", "0.8", 0);
 
         Cmd.AddCommand("+mlook", (List<String> args) -> MLookDown());
         Cmd.AddCommand("-mlook", (List<String> args) -> MLookUp());

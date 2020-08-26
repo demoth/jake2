@@ -28,6 +28,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -252,7 +253,7 @@ public class GameSpawn {
             gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (gameExports.game.maxclients));
             // status bar program
-            if (gameExports.cvarCache.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.value != 0)
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
@@ -1208,8 +1209,7 @@ public class GameSpawn {
             gameExports.gameImports.dprintf("nextmap: " + value + "\n");
         if (!gameExports.st.set(key, value))
             if (!ent.setField(key, value))
-                gameExports.gameImports.dprintf("??? The key [" + key
-                        + "] is not a field\n");
+                gameExports.gameImports.dprintf("??? The key [" + key + "] is not a field\n");
 
     }
 
@@ -1308,20 +1308,20 @@ public class GameSpawn {
 
     static void SpawnEntities(String mapname, String entities, String spawnpoint, GameExportsImpl gameExports) {
 
-        Com.dprintln("SpawnEntities(), mapname=" + mapname);
+        gameExports.gameImports.dprintf("SpawnEntities(), mapname=" + mapname);
         SubgameEntity ent;
         int inhibit;
         String com_token;
         int i;
         float skill_level;
         //skill.value =2.0f;
-        skill_level = (float) Math.floor(gameExports.cvarCache.skill.value);
+        skill_level = (float) Math.floor(gameExports.gameCvars.skill.value);
 
         if (skill_level < 0)
             skill_level = 0;
         if (skill_level > 3)
             skill_level = 3;
-        if (gameExports.cvarCache.skill.value != skill_level)
+        if (gameExports.gameCvars.skill.value != skill_level)
             gameExports.gameImports.cvar_forceset("skill", "" + skill_level);
 
         PlayerClient.SaveClientData(gameExports);
@@ -1358,7 +1358,7 @@ public class GameSpawn {
                 ent = G_Spawn(gameExports);
 
             ED_ParseEdict(ph, ent, gameExports);
-            Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
+            gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
                     ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
 
             // yet another map hack
@@ -1370,10 +1370,10 @@ public class GameSpawn {
             // remove things (except the world) from different skill levels or
             // deathmatch
             if (ent != gameExports.g_edicts[0]) {
-                if (gameExports.cvarCache.deathmatch.value != 0) {
+                if (gameExports.gameCvars.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
-                        Com.DPrintf("->inhibited.\n");
+                        gameExports.gameImports.dprintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
                         continue;
@@ -1383,11 +1383,11 @@ public class GameSpawn {
                      * ((coop.value) && (ent.spawnflags &
                      * SPAWNFLAG_NOT_COOP)) ||
                      */
-                            ((gameExports.cvarCache.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
-                                    || ((gameExports.cvarCache.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                                    || (((gameExports.cvarCache.skill.value == 2) || (gameExports.cvarCache.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
+                            ((gameExports.gameCvars.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
+                                    || ((gameExports.gameCvars.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
+                                    || (((gameExports.gameCvars.skill.value == 2) || (gameExports.gameCvars.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
-                        Com.DPrintf("->inhibited.\n");
+                        gameExports.gameImports.dprintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
 
@@ -1401,10 +1401,10 @@ public class GameSpawn {
                         | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             ED_CallSpawn(ent, gameExports);
-            Com.DPrintf("\n");
+            gameExports.gameImports.dprintf("\n");
         }
-        Com.DPrintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
-        Com.DPrintf(inhibit + " entities inhibited.\n");
+        gameExports.gameImports.dprintf("player skill level:" + gameExports.gameCvars.skill.value + "\n");
+        gameExports.gameImports.dprintf(inhibit + " entities inhibited.\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
     }
@@ -1441,6 +1441,15 @@ public class GameSpawn {
         }
     }
 
+
+    static String[] mobs = { "monster_berserk", "monster_gladiator", "monster_gunner", "monster_infantry", "monster_soldier_light", "monster_soldier", "monster_soldier_ss", "monster_tank", "monster_tank_commander", "monster_medic", "monster_chick", "monster_parasite", "monster_flyer", "monster_brain", "monster_floater", "monster_mutant"};
+    // for debugging and testing
+    static void SpawnRandomMonster(SubgameEntity ent, GameExportsImpl gameExports){
+        final int index = Lib.rand() % mobs.length;
+        SpawnNewEntity(ent, Arrays.asList("spawn", mobs[index]), gameExports);
+
+    }
+
     static void SpawnNewEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {
         String className;
         if (args.size() >= 2)
@@ -1450,7 +1459,7 @@ public class GameSpawn {
             return;
         }
 
-        if (gameExports.cvarCache.deathmatch.value != 0 && gameExports.cvarCache.sv_cheats.value == 0) {
+        if (gameExports.gameCvars.deathmatch.value != 0 && gameExports.gameCvars.sv_cheats.value == 0) {
             gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;

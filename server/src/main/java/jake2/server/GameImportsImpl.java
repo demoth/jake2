@@ -38,7 +38,8 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_INIT.gameImports;
+import static jake2.server.SV_SEND.*;
+import static jake2.server.SV_USER.userCommands;
 
 /*
  Collection of functions provided by the main engine.
@@ -47,9 +48,12 @@ import static jake2.server.SV_INIT.gameImports;
  todo make singleton (same as game exports)
 */
 public class GameImportsImpl implements GameImports {
+    private static final int MAX_STRINGCMDS = 8;
+
     public GameExports gameExports;
 
     // persistent server state
+    @Deprecated
     public server_static_t svs;
 
     // local (instance) server state
@@ -60,6 +64,24 @@ public class GameImportsImpl implements GameImports {
 
     SV_WORLD world;
 
+    private final Cvar localCvars;
+
+    CM cm;
+
+    SV_ENTS sv_ents;
+
+    SV_GAME sv_game;
+
+    // todo move to SV_MAIN
+    @Deprecated
+    cvar_t maxclients; // FIXME: rename sv_maxclients
+
+    client_t sv_client; // current client
+
+    final float[] origin_v = { 0, 0, 0 };
+    final sizebuf_t msg = new sizebuf_t();
+    final byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
+
     public GameImportsImpl() {
 
         // Initialize server static state
@@ -67,15 +89,17 @@ public class GameImportsImpl implements GameImports {
         svs.initialized = true;
         svs.spawncount = Lib.rand();
 
+        maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
         // Clear all clients
-        svs.clients = new client_t[(int) SV_MAIN.maxclients.value]; //todo use cvar
+        svs.clients = new client_t[(int) maxclients.value];
         for (int n = 0; n < svs.clients.length; n++) {
             svs.clients[n] = new client_t();
             svs.clients[n].serverindex = n;
+            svs.clients[n].lastcmd = new usercmd_t();
         }
 
-        svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
-                * Defines.UPDATE_BACKUP * 64; //ok.
+        svs.num_client_entities = ((int) maxclients.value) * Defines.UPDATE_BACKUP * 64; //ok.
 
         // Clear all client entity states
         svs.client_entities = new entity_state_t[svs.num_client_entities];
@@ -90,9 +114,13 @@ public class GameImportsImpl implements GameImports {
         sv = new server_t();
 
         world = new SV_WORLD();
+        cm = new CM();
+        sv_ents = new SV_ENTS(this);
+        sv_game = new SV_GAME(this);
 
         SV_InitOperatorCommands();
 
+        localCvars = new Cvar();
     }
 
     /**
@@ -135,16 +163,15 @@ public class GameImportsImpl implements GameImports {
     }
 
     void resetClients() {
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (int i = 0; i < maxclients.value; i++) {
             svs.clients[i].edict = gameExports.getEdict(i + 1);
-            svs.clients[i].lastcmd = new usercmd_t();
         }
     }
 
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {
-        SV_SEND.SV_BroadcastPrintf(printlevel, s);
+        SV_BroadcastPrintf(printlevel, s);
     }
 
     @Override
@@ -154,18 +181,18 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void cprintf(edict_t ent, int printlevel, String s) {
-        SV_GAME.PF_cprintf(ent, printlevel, s);
+        sv_game.PF_cprintf(ent, printlevel, s);
     }
 
     @Override
     public void centerprintf(edict_t ent, String s) {
-        SV_GAME.PF_centerprintf(ent, s);
+        sv_game.PF_centerprintf(ent, s);
     }
 
     @Override
     public void sound(edict_t ent, int channel, int soundindex, float volume,
                       float attenuation, float timeofs) {
-        SV_GAME.PF_StartSound(ent, channel, soundindex, volume, attenuation,
+        sv_game.PF_StartSound(ent, channel, soundindex, volume, attenuation,
                 timeofs);
     }
 
@@ -174,7 +201,7 @@ public class GameImportsImpl implements GameImports {
                                  int soundinedex, float volume, float attenuation, float timeofs) {
 
         SV_SEND.SV_StartSound(origin, ent, channel, soundinedex, volume,
-                attenuation, timeofs);
+                attenuation, timeofs, this);
     }
 
     /*
@@ -185,7 +212,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void configstring(int num, String string) {
-        SV_GAME.PF_Configstring(num, string);
+        sv_game.PF_Configstring(num, string);
     }
 
     @Override
@@ -201,22 +228,22 @@ public class GameImportsImpl implements GameImports {
     /* the *index functions create configstrings and some internal server state */
     @Override
     public int modelindex(String name) {
-        return SV_INIT.SV_ModelIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
     }
 
     @Override
     public int soundindex(String name) {
-        return SV_INIT.SV_SoundIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS, true);
     }
 
     @Override
     public int imageindex(String name) {
-        return SV_INIT.SV_ImageIndex(name);
+        return sv_game.SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
     }
 
     @Override
     public void setmodel(edict_t ent, String name) {
-        SV_GAME.PF_setmodel(ent, name, this);
+        sv_game.PF_setmodel(ent, name);
     }
 
     /* collision detection */
@@ -228,17 +255,17 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public boolean inPHS(float[] p1, float[] p2) {
-        return SV_GAME.PF_inPHS(p1, p2);
+        return sv_game.PF_inPHS(p1, p2);
     }
 
     @Override
     public void SetAreaPortalState(int portalnum, boolean open) {
-        CM.CM_SetAreaPortalState(portalnum, open);
+        cm.CM_SetAreaPortalState(portalnum, open);
     }
 
     @Override
     public boolean AreasConnected(int area1, int area2) {
-        return CM.CM_AreasConnected(area1, area2);
+        return cm.CM_AreasConnected(area1, area2);
     }
 
     /*
@@ -274,59 +301,63 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void multicast(float[] origin, MulticastTypes to) {
-        SV_SEND.SV_Multicast(origin, to);
+        SV_SEND.SV_Multicast(origin, to, this);
     }
 
     @Override
     public void unicast(edict_t ent, boolean reliable) {
-        SV_GAME.PF_Unicast(ent, reliable);
+        sv_game.PF_Unicast(ent, reliable);
     }
-
 
     @Override
     public void WriteByte(int c) {
-        SV_GAME.PF_WriteByte(c);
+        sv_game.PF_WriteByte(c);
     }
 
     @Override
     public void WriteShort(int c) {
-        SV_GAME.PF_WriteShort(c);
+        sv_game.PF_WriteShort(c);
     }
 
     @Override
     public void WriteString(String s) {
-        SV_GAME.PF_WriteString(s);
+        sv_game.PF_WriteString(s);
     }
 
     @Override
     public void WritePosition(float[] pos) {
-        SV_GAME.PF_WritePos(pos);
+        sv_game.PF_WritePos(pos);
     }
 
     /* some fractional bits */
     @Override
     public void WriteDir(float[] pos) {
-        SV_GAME.PF_WriteDir(pos);
+        sv_game.PF_WriteDir(pos);
     }
 
-    /* console variable interaction */
+    /**
+     * Ready only expected
+     * Todo: return value instead
+     */
     @Override
     public cvar_t cvar(String var_name, String value, int flags) {
-        return Cvar.Get(var_name, value, flags);
+        final cvar_t parentValue = Cvar.getInstance().FindVar(var_name);
+        if (parentValue != null) {
+            return parentValue;
+        } else {
+            return localCvars.Get(var_name, value, flags);
+        }
     }
 
-    /* console variable interaction */
     @Override
     public cvar_t cvar_set(String var_name, String value) {
-        return Cvar.Set(var_name, value);
+        return localCvars.Set(var_name, value);
     }
 
-    /* console variable interaction */
     @Override
     public cvar_t cvar_forceset(String var_name, String value) {
-        return Cvar.ForceSet(var_name, value);
+        return localCvars.ForceSet(var_name, value);
     }
-
 
     /*
      add commands to the server console as if they were typed in
@@ -342,13 +373,6 @@ public class GameImportsImpl implements GameImports {
         return SV_WORLD.SV_PointContents(p, this);
     }
 
-
-    /*
-==============
-SV_Savegame_f
-
-==============
-*/
     private void SV_Savegame_f(List<String> args) {
 
         if (sv.state != ServerStates.SS_GAME) {
@@ -361,7 +385,7 @@ SV_Savegame_f
             return;
         }
 
-        if (Cvar.VariableValue("deathmatch") != 0) {
+        if (cvar("deathmatch", "", 0).value != 0) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -372,7 +396,7 @@ SV_Savegame_f
             return;
         }
 
-        if (SV_MAIN.maxclients.value == 1 && svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+        if (maxclients.value == 1 && svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
             Com.Printf("\nCan't savegame while dead!\n");
             return;
         }
@@ -400,7 +424,7 @@ SV_Savegame_f
         SV_CopySaveGame("current", saveGame);
         Com.Printf("Done.\n");
     }
-    //===============================================================
+
 	/*
 	==================
 	SV_Kick_f
@@ -422,12 +446,12 @@ SV_Savegame_f
         if (!SV_SetPlayer(args))
             return;
 
-        SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, SV_MAIN.sv_client.name + " was kicked\n");
+        SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
-        SV_SEND.SV_ClientPrintf(SV_MAIN.sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
-        SV_MAIN.SV_DropClient(SV_MAIN.sv_client);
-        SV_MAIN.sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
+        SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
+        SV_DropClient(sv_client);
+        sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
     }
     /*
     ================
@@ -447,7 +471,7 @@ SV_Savegame_f
 
         Com.Printf("num score ping name            lastmsg address               qport \n");
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < maxclients.value; i++) {
             cl = svs.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
@@ -506,7 +530,7 @@ SV_Savegame_f
 
         text += p;
 
-        for (j = 0; j < SV_MAIN.maxclients.value; j++) {
+        for (j = 0; j < maxclients.value; j++) {
             client = svs.clients[j];
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
@@ -530,7 +554,7 @@ SV_Savegame_f
     */
     private void SV_Serverinfo_f(List<String> args) {
         Com.Printf("Server info settings:\n");
-        Info.Print(Cvar.Serverinfo());
+        Info.Print(Cvar.getInstance().Serverinfo());
     }
     /*
     ===========
@@ -550,7 +574,7 @@ SV_Savegame_f
 
         Com.Printf("userinfo\n");
         Com.Printf("--------\n");
-        Info.Print(SV_MAIN.sv_client.userinfo);
+        Info.Print(sv_client.userinfo);
 
     }
     /*
@@ -615,7 +639,7 @@ SV_Savegame_f
         MSG.WriteLong(buf, svs.spawncount);
         // 2 means server demo
         MSG.WriteByte(buf, 2); // demos are always attract loops
-        MSG.WriteString(buf, Cvar.VariableString("gamedir"));
+        MSG.WriteString(buf, cvar("gamedir", "", 0).string);
         MSG.WriteShort(buf, -1);
         // send full levelname
         MSG.WriteString(buf, sv.configstrings[Defines.CS_NAME]);
@@ -698,7 +722,7 @@ SV_Savegame_f
         }
 
         // make sure the server is listed public
-        Cvar.Set("public", "1");
+        Cvar.getInstance().Set("public", "1");
 
         for (i = 1; i < Defines.MAX_MASTERS; i++)
             SV_MAIN.master_adr[i] = new netadr_t();
@@ -723,8 +747,9 @@ SV_Savegame_f
             slot++;
         }
 
-        gameImports.svs.last_heartbeat = -9999999;
+        svs.last_heartbeat = -9999999;
     }
+
     /*
     ==================
     SV_SetPlayer
@@ -742,14 +767,13 @@ SV_Savegame_f
         // numeric values are just slot numbers
         if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
             int id = Lib.atoi(idOrName);
-            if (id < 0 || id >= SV_MAIN.maxclients.value) {
+            if (id < 0 || id >= maxclients.value) {
                 Com.Printf("Bad client slot: " + id + "\n");
                 return false;
             }
 
-            SV_MAIN.sv_client = gameImports.svs.clients[id];
-            SV_USER.sv_player = SV_MAIN.sv_client.edict;
-            if (ClientStates.CS_FREE == SV_MAIN.sv_client.state) {
+            sv_client = svs.clients[id];
+            if (ClientStates.CS_FREE == sv_client.state) {
                 Com.Printf("Client " + id + " is not active\n");
                 return false;
             }
@@ -757,19 +781,487 @@ SV_Savegame_f
         }
 
         // check for a name match
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t cl = gameImports.svs.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = svs.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
-                SV_MAIN.sv_client = cl;
-                SV_USER.sv_player = SV_MAIN.sv_client.edict;
+                sv_client = cl;
                 return true;
             }
         }
 
         Com.Printf("Userid " + idOrName + " is not on the server\n");
         return false;
+    }
+
+    /**
+     * SV_SpawnServer.
+     *
+     * Change the server to a new map, taking all connected clients along with
+     * it.
+     */
+    void SV_SpawnServer(String mapName, String spawnpoint, ServerStates serverstate, boolean isDemo, boolean loadgame) {
+
+        if (isDemo)
+            Cvar.getInstance().Set("paused", "0");
+
+        Com.Printf("------- Server Initialization -------\n");
+
+        Com.DPrintf("SpawnServer: " + mapName + "\n");
+        if (sv != null && sv.demofile != null)
+            try {
+                sv.demofile.close();
+            }
+            catch (Exception e) {
+                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
+            }
+
+        // any partially connected client will be restarted
+        svs.spawncount++;
+
+        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
+
+        // wipe the entire per-level structure
+        sv = new server_t();
+
+        svs.realtime = 0;
+        sv.loadgame = loadgame;
+        sv.isDemo = isDemo;
+
+        // save name for levels that don't set message
+        sv.configstrings[Defines.CS_NAME] = mapName;
+
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            sv.configstrings[Defines.CS_AIRACCEL] = "" + SV_MAIN.sv_airaccelerate.value;
+            PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
+        } else {
+            sv.configstrings[Defines.CS_AIRACCEL] = "0";
+            PMove.pm_airaccelerate = 0;
+        }
+
+        SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
+
+        sv.name = mapName;
+
+        // leave slots at start for clients only
+        for (int i = 0; i < maxclients.value; i++) {
+            // needs to reconnect
+            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
+                svs.clients[i].state = ClientStates.CS_CONNECTED;
+            svs.clients[i].lastframe = -1;
+        }
+
+        sv.time = 1000;
+
+        sv.name = mapName;
+        sv.configstrings[Defines.CS_NAME] = mapName;
+
+        int checksum = 0;
+        int iw[] = { checksum };
+
+        if (serverstate != ServerStates.SS_GAME) {
+            sv.models[1] = cm.CM_LoadMap("", false, iw); // no real map
+        } else {
+            sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + mapName + ".bsp";
+            sv.models[1] = cm.CM_LoadMap(sv.configstrings[Defines.CS_MODELS + 1], false, iw);
+        }
+        checksum = iw[0];
+        sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
+
+
+        // clear physics interaction links
+
+        SV_WORLD.SV_ClearWorld(this);
+
+        for (int i = 1; i < cm.CM_NumInlineModels(); i++) {
+            sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
+
+            // copy references
+            sv.models[i + 1] = cm.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
+        }
+
+
+        // spawn the rest of the entities on the map
+
+        // precache and static commands can be issued during
+        // map initialization
+
+        sv.state = ServerStates.SS_LOADING;
+        Globals.server_state = sv.state;
+
+        // load and spawn all other entities
+        gameExports.SpawnEntities(sv.name, cm.CM_EntityString(), spawnpoint);
+
+        // run two frames to allow everything to settle
+        gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
+
+        // all precaches are complete
+        sv.state = serverstate;
+        Globals.server_state = sv.state;
+
+        // create a baseline for more efficient communications
+        sv_game.SV_CreateBaseline();
+
+        // check for a savegame
+        sv_game.SV_CheckForSavegame(sv);
+
+        // set serverinfo variable
+        Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+    }
+
+
+    /**
+     * Called when the player is totally leaving the server, either willingly or
+     * unwillingly. This is NOT called if the entire server is quiting or
+     * crashing.
+     */
+    void SV_DropClient(client_t client) {
+        // add the disconnect
+        MSG.WriteByte(client.netchan.message, NetworkCommands.svc_disconnect);
+
+        if (client.state == ClientStates.CS_SPAWNED) {
+            // call the prog function for removing a client
+            // this will remove the body, among other things
+            gameExports.ClientDisconnect(client.edict);
+        }
+
+        if (client.download != null) {
+            client.download = null;
+        }
+
+        client.state = ClientStates.CS_ZOMBIE; // become free in a few seconds
+        client.name = "";
+    }
+
+
+
+    /**
+     * SV_RunGameFrame.
+     */
+    void SV_RunGameFrame() {
+
+        // we always need to bump framenum, even if we
+        // don't run the world, otherwise the delta
+        // compression can get confused when a client
+        // has the "current" frame
+        sv.framenum++;
+        sv.time = sv.framenum * 100;
+
+        // don't run if paused
+        if (0 == SV_MAIN.sv_paused.value || maxclients.value > 1) {
+            gameExports.G_RunFrame();
+
+            // never get more than one tic behind
+            if (sv.time < svs.realtime) {
+                if (SV_MAIN.sv_showclamp.value != 0)
+                    Com.Printf("sv highclamp\n");
+                svs.realtime = sv.time;
+            }
+        }
+
+    }
+
+
+    /*
+     * =================== SV_ExecuteClientMessage
+     *
+     * The current net_message is parsed for the given client
+     * ===================
+     */
+    void SV_ExecuteClientMessage(client_t cl) {
+
+        usercmd_t oldest = new usercmd_t();
+        usercmd_t oldcmd = new usercmd_t();
+        usercmd_t newcmd = new usercmd_t();
+
+        sv_client = cl;
+
+        // only allow one move command
+        boolean move_issued = false;
+        int stringCmdCount = 0;
+
+        while (true) {
+            if (Globals.net_message.readcount > Globals.net_message.cursize) {
+                Com.Printf("SV_ReadClientMessage: bad read:\n");
+                Com.Printf(Lib.hexDump(Globals.net_message.data, 32, false));
+                SV_DropClient(cl);
+                return;
+            }
+
+            ClientCommands c = ClientCommands.fromInt(MSG.ReadByte(Globals.net_message));
+            if (c == ClientCommands.CLC_BAD)
+                break;
+
+            String s;
+            usercmd_t nullcmd;
+            int checksum;
+            int calculatedChecksum;
+            int checksumIndex;
+            int lastframe;
+            switch (c) {
+                default:
+                    Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
+                    SV_DropClient(cl);
+                    return;
+
+                case CLC_NOP:
+                    break;
+
+                case CLC_USERINFO:
+                    cl.userinfo = MSG.ReadString(Globals.net_message);
+                    SV_MAIN.SV_UserinfoChanged(cl, this);
+                    break;
+
+                case CLC_MOVE:
+                    if (move_issued)
+                        return; // someone is trying to cheat...
+
+                    move_issued = true;
+                    checksumIndex = Globals.net_message.readcount;
+                    checksum = MSG.ReadByte(Globals.net_message);
+                    lastframe = MSG.ReadLong(Globals.net_message);
+
+                    if (lastframe != cl.lastframe) {
+                        cl.lastframe = lastframe;
+                        if (cl.lastframe > 0) {
+                            cl.frame_latency[cl.lastframe & (Defines.LATENCY_COUNTS - 1)] = svs.realtime - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
+                        }
+                    }
+
+                    //memset (nullcmd, 0, sizeof(nullcmd));
+                    nullcmd = new usercmd_t();
+                    MSG.ReadDeltaUsercmd(Globals.net_message, nullcmd, oldest);
+                    MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
+                    MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
+
+                    if (cl.state != ClientStates.CS_SPAWNED) {
+                        cl.lastframe = -1;
+                        break;
+                    }
+
+                    // if the checksum fails, ignore the rest of the packet
+
+                    calculatedChecksum = CRC.BlockSequenceCRCByte(
+                            Globals.net_message.data, checksumIndex + 1,
+                            Globals.net_message.readcount - checksumIndex - 1,
+                            cl.netchan.incoming_sequence);
+
+                    if ((calculatedChecksum & 0xff) != checksum) {
+                        Com.DPrintf("Failed command checksum for " + cl.name + " ("
+                                + calculatedChecksum + " != " + checksum + ")/"
+                                + cl.netchan.incoming_sequence + "\n");
+                        return;
+                    }
+
+                    if (0 == SV_MAIN.sv_paused.value) {
+                        int net_drop = cl.netchan.dropped;
+                        if (net_drop < 20) {
+
+                            //if (net_drop > 2)
+
+                            //	Com.Printf ("drop %i\n", net_drop);
+                            while (net_drop > 2) {
+                                SV_ClientThink(cl, cl.lastcmd);
+
+                                net_drop--;
+                            }
+                            if (net_drop > 1)
+                                SV_ClientThink(cl, oldest);
+
+                            if (net_drop > 0)
+                                SV_ClientThink(cl, oldcmd);
+
+                        }
+                        SV_ClientThink(cl, newcmd);
+                    }
+
+                    // copy.
+                    cl.lastcmd.set(newcmd);
+                    break;
+
+                case CLC_STRINGCMD:
+                    s = MSG.ReadString(Globals.net_message);
+
+                    // malicious users may try using too many string commands
+                    if (++stringCmdCount < MAX_STRINGCMDS)
+                        SV_ExecuteUserCommand(s);
+
+                    if (cl.state == ClientStates.CS_ZOMBIE)
+                        return; // disconnect command
+                    break;
+            }
+        }
+    }
+
+    private void SV_ClientThink(client_t cl, usercmd_t cmd) {
+        cl.commandMsec -= cmd.msec & 0xFF;
+
+        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
+            Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
+            return;
+        }
+
+        gameExports.ClientThink(cl.edict, cmd);
+    }
+
+    private void SV_ExecuteUserCommand(String s) {
+
+        Com.dprintln("SV_ExecuteUserCommand:" + s );
+
+        List<String> args = Cmd.TokenizeString(s, true);
+        if (args.isEmpty())
+            return;
+
+        if (userCommands.containsKey(args.get(0))) {
+            userCommands.get(args.get(0)).execute(args, this);
+            return;
+        }
+
+        if (sv.state == ServerStates.SS_GAME)
+            gameExports.ClientCommand(sv_client.edict, args);
+    }
+
+    private static final byte[] NULLBYTE = {0};
+
+    void SV_SendClientMessages() {
+
+        int msglen = 0;
+
+        // read the next demo message if needed
+        if (sv.state == ServerStates.SS_DEMO && sv.demofile != null) {
+            if (SV_MAIN.sv_paused.value != 0)
+                msglen = 0;
+            else {
+                // get the next message
+                //r = fread (&msglen, 4, 1, sv.demofile);
+                try {
+                    msglen = EndianHandler.swapInt(sv.demofile.readInt());
+                }
+                catch (Exception e) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+
+                //msglen = LittleLong (msglen);
+                if (msglen == -1) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+                if (msglen > Defines.MAX_MSGLEN)
+                    Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
+
+                //r = fread (msgbuf, msglen, 1, sv.demofile);
+                int r = 0;
+                try {
+                    r = sv.demofile.read(msgbuf, 0, msglen);
+                }
+                catch (IOException e1) {
+                    Com.Printf("IOError: reading demo file, " + e1);
+                }
+                if (r != msglen) {
+                    SV_DemoCompleted(this);
+                    return;
+                }
+            }
+        }
+
+        // send a message to each connected client
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t c = svs.clients[i];
+
+            if (c.state == ClientStates.CS_FREE)
+                continue;
+            // if the reliable message overflowed,
+            // drop the client
+            if (c.netchan.message.overflowed) {
+                c.netchan.message.clear();
+                c.datagram.clear();
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
+                SV_DropClient(c);
+            }
+
+            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC)
+                Netchan.Transmit(c.netchan, msglen, msgbuf);
+            else if (c.state == ClientStates.CS_SPAWNED) {
+                // don't overrun bandwidth
+                if (SV_RateDrop(c))
+                    continue;
+
+                SV_SendClientDatagram(c, this);
+            }
+            else {
+                // just update reliable	if needed
+                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    Netchan.Transmit(c.netchan, 0, NULLBYTE);
+            }
+        }
+    }
+
+    /**
+     * SV_RateDrop
+     * <p>
+     * Returns true if the client is over its current
+     * bandwidth estimation and should not be sent another packet
+     */
+    boolean SV_RateDrop(client_t c) {
+        int total;
+        int i;
+
+        // never drop over the loopback
+        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
+            return false;
+
+        total = 0;
+
+        for (i = 0; i < Defines.RATE_MESSAGES; i++) {
+            total += c.message_size[i];
+        }
+
+        if (total > c.rate) {
+            c.surpressCount++;
+            c.message_size[sv.framenum % Defines.RATE_MESSAGES] = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Sends text to all active clients
+     */
+    void SV_BroadcastPrintf(int level, String s) {
+
+        // echo to console
+        if (Globals.dedicated.value != 0) {
+            Com.Printf(s);
+        }
+
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = svs.clients[i];
+            if (level < cl.messagelevel)
+                continue;
+            if (cl.state != ClientStates.CS_SPAWNED)
+                continue;
+            MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
+            MSG.WriteByte(cl.netchan.message, level);
+            MSG.WriteString(cl.netchan.message, s);
+        }
+    }
+
+    /**
+     * Sends text to all active clients
+     */
+    void SV_BroadcastCommand(String s) {
+
+        //fixme: check if server is running
+        if (sv.state == ServerStates.SS_DEAD)
+            return;
+
+        MSG.WriteByte(sv.multicast, NetworkCommands.svc_stufftext);
+        MSG.WriteString(sv.multicast, s);
+        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, this);
     }
 
 }

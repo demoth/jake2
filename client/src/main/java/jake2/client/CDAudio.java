@@ -343,13 +343,13 @@ public final class CDAudio {
     }
 
     public static int Init() {
-        cd_nocd = Cvar.Get ("cd_nocd", "0", Defines.CVAR_ARCHIVE );
+        cd_nocd = Cvar.getInstance().Get ("cd_nocd", "0", Defines.CVAR_ARCHIVE );
         
         if ( (int)cd_nocd.value != 0 )
                 return -1;
         
-        cddir = Cvar.Get ("cddir", "C:\\Quake2\\baseq2", Defines.CVAR_ARCHIVE );        
-        cd_volume = Cvar.Get ("cd_volume", "1", Defines.CVAR_ARCHIVE);
+        cddir = Cvar.getInstance().Get ("cddir", "C:\\Quake2\\baseq2", Defines.CVAR_ARCHIVE );
+        cd_volume = Cvar.getInstance().Get ("cd_volume", "1", Defines.CVAR_ARCHIVE);
         cdvolume = cd_volume.value;
         
 
