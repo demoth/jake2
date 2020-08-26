@@ -45,7 +45,6 @@ public class server_static_t {
 
     // used to check late spawns
 
-    client_t clients[]; // [maxclients->value];
 
     int num_client_entities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
 

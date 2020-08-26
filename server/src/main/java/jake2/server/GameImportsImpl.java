@@ -72,10 +72,6 @@ public class GameImportsImpl implements GameImports {
 
     SV_GAME sv_game;
 
-    // todo move to SV_MAIN
-    @Deprecated
-    cvar_t maxclients; // FIXME: rename sv_maxclients
-
     client_t sv_client; // current client
 
     final float[] origin_v = { 0, 0, 0 };
@@ -89,17 +85,8 @@ public class GameImportsImpl implements GameImports {
         svs.initialized = true;
         svs.spawncount = Lib.rand();
 
-        maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
-        // Clear all clients
-        svs.clients = new client_t[(int) maxclients.value];
-        for (int n = 0; n < svs.clients.length; n++) {
-            svs.clients[n] = new client_t();
-            svs.clients[n].serverindex = n;
-            svs.clients[n].lastcmd = new usercmd_t();
-        }
-
-        svs.num_client_entities = ((int) maxclients.value) * Defines.UPDATE_BACKUP * 64; //ok.
+        svs.num_client_entities = ((int) SV_MAIN.maxclients.value) * Defines.UPDATE_BACKUP * 64; //ok.
 
         // Clear all client entity states
         svs.client_entities = new entity_state_t[svs.num_client_entities];
@@ -160,12 +147,6 @@ public class GameImportsImpl implements GameImports {
 
             SV_MAIN.SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
         });
-    }
-
-    void resetClients() {
-        for (int i = 0; i < maxclients.value; i++) {
-            svs.clients[i].edict = gameExports.getEdict(i + 1);
-        }
     }
 
     // special messages
@@ -396,7 +377,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (maxclients.value == 1 && svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+        if (SV_MAIN.maxclients.value == 1 && SV_MAIN.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
             Com.Printf("\nCan't savegame while dead!\n");
             return;
         }
@@ -459,11 +440,8 @@ public class GameImportsImpl implements GameImports {
     ================
     */
     private void SV_Status_f(List<String> args) {
-        int i, j, l;
-        client_t cl;
-        String s;
-        int ping;
-        if (svs.clients == null) {
+        // todo use another way
+        if (SV_MAIN.clients == null) {
             Com.Printf("No server running.\n");
             return;
         }
@@ -471,8 +449,8 @@ public class GameImportsImpl implements GameImports {
 
         Com.Printf("num score ping name            lastmsg address               qport \n");
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
-        for (i = 0; i < maxclients.value; i++) {
-            cl = svs.clients[i];
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = SV_MAIN.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
 
@@ -484,18 +462,19 @@ public class GameImportsImpl implements GameImports {
             else if (cl.state == ClientStates.CS_ZOMBIE)
                 Com.Printf("ZMBI ");
             else {
-                ping = cl.ping < 9999 ? cl.ping : 9999;
+                int ping = cl.ping < 9999 ? cl.ping : 9999;
                 Com.Printf("%4i ", new Vargs().add(ping));
             }
 
             Com.Printf("%s", new Vargs().add(cl.name));
-            l = 16 - cl.name.length();
+            int l = 16 - cl.name.length();
+            int j;
             for (j = 0; j < l; j++)
                 Com.Printf(" ");
 
             Com.Printf("%7i ", new Vargs().add(svs.realtime - cl.lastmessage));
 
-            s = NET.AdrToString(cl.netchan.remote_address);
+            String s = NET.AdrToString(cl.netchan.remote_address);
             Com.Printf(s);
             l = 22 - s.length();
             for (j = 0; j < l; j++)
@@ -513,16 +492,13 @@ public class GameImportsImpl implements GameImports {
     ==================
     */
     private void SV_ConSay_f(List<String> args) {
-        client_t client;
-        int j;
-        String p;
-        String text; // char[1024];
 
         if (args.size() < 2)
             return;
 
-        text = "console: ";
-        p = getArguments(args);
+        // char[1024];
+        String text = "console: ";
+        String p = getArguments(args);
 
         if (p.charAt(0) == '"') {
             p = p.substring(1, p.length() - 1);
@@ -530,8 +506,8 @@ public class GameImportsImpl implements GameImports {
 
         text += p;
 
-        for (j = 0; j < maxclients.value; j++) {
-            client = svs.clients[j];
+        for (int j = 0; j < SV_MAIN.maxclients.value; j++) {
+            client_t client = SV_MAIN.clients[j];
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
             SV_SEND.SV_ClientPrintf(client, Defines.PRINT_CHAT, text + "\n");
@@ -767,12 +743,12 @@ public class GameImportsImpl implements GameImports {
         // numeric values are just slot numbers
         if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
             int id = Lib.atoi(idOrName);
-            if (id < 0 || id >= maxclients.value) {
+            if (id < 0 || id >= SV_MAIN.maxclients.value) {
                 Com.Printf("Bad client slot: " + id + "\n");
                 return false;
             }
 
-            sv_client = svs.clients[id];
+            sv_client = SV_MAIN.clients[id];
             if (ClientStates.CS_FREE == sv_client.state) {
                 Com.Printf("Client " + id + " is not active\n");
                 return false;
@@ -781,8 +757,8 @@ public class GameImportsImpl implements GameImports {
         }
 
         // check for a name match
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = svs.clients[i];
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = SV_MAIN.clients[i];
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
@@ -844,12 +820,15 @@ public class GameImportsImpl implements GameImports {
 
         sv.name = mapName;
 
+        // question: if we spawn a new server - all existing clients will receive the 'reconnect'
+        // then why update state and lastframe?
+
         // leave slots at start for clients only
-        for (int i = 0; i < maxclients.value; i++) {
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
             // needs to reconnect
-            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
-                svs.clients[i].state = ClientStates.CS_CONNECTED;
-            svs.clients[i].lastframe = -1;
+            if (SV_MAIN.clients[i].state == ClientStates.CS_SPAWNED)
+                SV_MAIN.clients[i].state = ClientStates.CS_CONNECTED;
+            SV_MAIN.clients[i].lastframe = -1;
         }
 
         sv.time = 1000;
@@ -950,7 +929,7 @@ public class GameImportsImpl implements GameImports {
         sv.time = sv.framenum * 100;
 
         // don't run if paused
-        if (0 == SV_MAIN.sv_paused.value || maxclients.value > 1) {
+        if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind
@@ -1168,8 +1147,9 @@ public class GameImportsImpl implements GameImports {
         }
 
         // send a message to each connected client
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t c = svs.clients[i];
+        // todo send only to related clients
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t c = SV_MAIN.clients[i];
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
@@ -1238,8 +1218,9 @@ public class GameImportsImpl implements GameImports {
             Com.Printf(s);
         }
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = svs.clients[i];
+        // todo: send only to related clients
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t cl = SV_MAIN.clients[i];
             if (level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)

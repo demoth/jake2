@@ -115,7 +115,8 @@ class SV_USER {
             playernum = -1;
         else
             //playernum = sv_client - svs.clients;
-            playernum = gameImports.sv_client.serverindex;
+            //playernum = gameImports.sv_client.serverindex;
+            playernum = gameImports.sv_client.edict.index - 1;
 
         MSG.WriteShort(gameImports.sv_client.netchan.message, playernum);
 

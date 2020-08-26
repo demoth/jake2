@@ -81,7 +81,4 @@ public class client_t {
 	int challenge; // challenge of this user, randomly generated
 
 	netchan_t netchan = new netchan_t();
-
-	//this was introduced by rst, since java can't calculate the index out of the address.
-	int serverindex;
 }

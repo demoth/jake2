@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommands;
@@ -35,6 +36,9 @@ import jake2.qcommon.util.Lib;
 
 import java.util.List;
 
+import static jake2.qcommon.Defines.ERR_DROP;
+import static jake2.qcommon.Defines.PRINT_ALL;
+
 public class SV_MAIN {
 
     public static GameImportsImpl gameImports;
@@ -42,10 +46,13 @@ public class SV_MAIN {
     /** Addess of group servers.*/
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
 
+    static client_t clients[]; // [maxclients->value];
+
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
             master_adr[i] = new netadr_t();
         }
+
     }
 
     static cvar_t sv_paused;
@@ -75,6 +82,8 @@ public class SV_MAIN {
 
     static cvar_t hostname;
 
+    static cvar_t maxclients;
+
     static cvar_t public_server; // should heartbeats be sent
 
     static cvar_t sv_reconnect_limit; // minimum seconds between connect
@@ -96,24 +105,16 @@ public class SV_MAIN {
      * Builds the string that is sent as heartbeats and status replies.
      */
     private static String SV_StatusString() {
-        String player;
-        String status = "";
-        int i;
-        client_t cl;
-        int statusLength;
-        int playerLength;
 
-        status = Cvar.getInstance().Serverinfo() + "\n";
+        String status = Cvar.getInstance().Serverinfo() + "\n";
 
-        for (i = 0; i < gameImports.maxclients.value; i++) {
-            cl = gameImports.svs.clients[i];
-            if (cl.state == ClientStates.CS_CONNECTED
-                    || cl.state == ClientStates.CS_SPAWNED) {
-                player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]
-                        + " " + cl.ping + "\"" + cl.name + "\"\n";
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = clients[i];
+            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) {
+                String player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
 
-                playerLength = player.length();
-                statusLength = status.length();
+                int playerLength = player.length();
+                int statusLength = status.length();
 
                 if (statusLength + playerLength >= 1024)
                     break; // can't hold any more
@@ -146,7 +147,7 @@ public class SV_MAIN {
      */
     private static void SVC_Info(List<String> args) {
 
-        if (gameImports.maxclients.value == 1)
+        if (maxclients.value == 1)
             return; // ignore in single player
 
         int version = args.size() < 2 ? 0 : Lib.atoi(args.get(1));
@@ -155,18 +156,15 @@ public class SV_MAIN {
         if (version != Defines.PROTOCOL_VERSION)
             string = SV_MAIN.hostname.string + ": wrong version\n";
         else {
-            int count = 0;
-            for (int i = 0; i < gameImports.maxclients.value; i++)
-                if (gameImports.svs.clients[i].state == ClientStates.CS_CONNECTED ||
-                        gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
-                    count++;
+            int players = 0;
+            for (int i = 0; i < maxclients.value; i++)
+                if (clients[i].state == ClientStates.CS_CONNECTED || clients[i].state == ClientStates.CS_SPAWNED)
+                    players++;
 
-            string = SV_MAIN.hostname.string + " " + gameImports.sv.name + " "
-                    + count + "/" + (int) gameImports.maxclients.value + "\n";
+            string = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
         }
 
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "info\n"
-                + string);
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "info\n" + string);
     }
 
     /**
@@ -267,17 +265,15 @@ public class SV_MAIN {
 
         // if there is already a slot for this ip, reuse it
         client_t cl;
-        for (i = 0; i < gameImports.maxclients.value; i++) {
-            cl = gameImports.svs.clients[i];
+        for (i = 0; i < maxclients.value; i++) {
+            cl = clients[i];
 
             if (cl.state == ClientStates.CS_FREE)
                 continue;
             if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!NET.IsLocalAddress(adr)
-                        && (gameImports.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
-                    Com.DPrintf(NET.AdrToString(adr)
-                            + ":reconnect rejected : too soon\n");
+                if (!NET.IsLocalAddress(adr) && (gameImports.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                    Com.DPrintf(NET.AdrToString(adr) + ":reconnect rejected : too soon\n");
                     return;
                 }
                 Com.Printf(NET.AdrToString(adr) + ":reconnect\n");
@@ -290,8 +286,8 @@ public class SV_MAIN {
         // find a client slot
         //newcl = null;
         int index = -1;
-        for (i = 0; i < gameImports.maxclients.value; i++) {
-            cl = gameImports.svs.clients[i];
+        for (i = 0; i < maxclients.value; i++) {
+            cl = clients[i];
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
@@ -314,50 +310,50 @@ public class SV_MAIN {
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        gameImports.sv_client = gameImports.svs.clients[i];
+        gameImports.sv_client = clients[i];
         
         int edictnum = i + 1;
         
         edict_t ent = gameImports.gameExports.getEdict(edictnum);
-        gameImports.svs.clients[i].edict = ent;
+        clients[i].edict = ent;
         
         // save challenge for checksumming
-        gameImports.svs.clients[i].challenge = challenge;
+        clients[i].challenge = challenge;
         
         
 
         // get the game a chance to reject this connection or modify the
         // userinfo
         if (!(gameImports.gameExports.ClientConnect(ent, userinfo))) {
-            if (Info.Info_ValueForKey(userinfo, "rejmsg") != null)
+            if (Info.Info_ValueForKey(userinfo, "rejmsg") != null) {
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\n"
                         + Info.Info_ValueForKey(userinfo, "rejmsg")
                         + "\nConnection refused.\n");
-            else
-                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr,
-                        "print\nConnection refused.\n");
+            } else {
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nConnection refused.\n");
+            }
             Com.DPrintf("Game rejected a connection.\n");
             return;
         }
 
         // parse some info from the info strings
-        gameImports.svs.clients[i].userinfo = userinfo;
-        SV_UserinfoChanged(gameImports.svs.clients[i], gameImports);
+        clients[i].userinfo = userinfo;
+        SV_UserinfoChanged(clients[i], gameImports);
 
         // send the connect packet to the client
         Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "client_connect");
 
-        Netchan.Setup(Defines.NS_SERVER, gameImports.svs.clients[i].netchan, adr, qport);
+        Netchan.Setup(Defines.NS_SERVER, clients[i].netchan, adr, qport);
 
-        gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
+        clients[i].state = ClientStates.CS_CONNECTED;
 
-        SZ.Init(gameImports.svs.clients[i].datagram,
-                gameImports.svs.clients[i].datagram_buf,
-                gameImports.svs.clients[i].datagram_buf.length);
+        SZ.Init(clients[i].datagram,
+                clients[i].datagram_buf,
+                clients[i].datagram_buf.length);
         
-        gameImports.svs.clients[i].datagram.allowoverflow = true;
-        gameImports.svs.clients[i].lastmessage = gameImports.svs.realtime; // don't timeout
-        gameImports.svs.clients[i].lastconnect = gameImports.svs.realtime;
+        clients[i].datagram.allowoverflow = true;
+        clients[i].lastmessage = gameImports.svs.realtime; // don't timeout
+        clients[i].lastconnect = gameImports.svs.realtime;
         Com.DPrintf("new client added.\n");
     }
 
@@ -561,14 +557,12 @@ public class SV_MAIN {
             MSG.ReadLong(Globals.net_message); // sequence number
             int qport = MSG.ReadShort(Globals.net_message) & 0xffff;
 
-            // todo move clients to sv main
             // check for packets from connected clients
-            for (int i = 0; i < gameImports.maxclients.value; i++) {
-                client_t cl = gameImports.svs.clients[i];
+            for (int i = 0; i < maxclients.value; i++) {
+                client_t cl = clients[i];
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
-                if (!NET.CompareBaseAdr(Globals.net_from,
-                        cl.netchan.remote_address))
+                if (!NET.CompareBaseAdr(Globals.net_from, cl.netchan.remote_address))
                     continue;
                 if (cl.netchan.qport != qport)
                     continue;
@@ -581,6 +575,7 @@ public class SV_MAIN {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
                         // todo: identify gameImports instance by client
+                        // todo: use sv_main realtime
                         cl.lastmessage = gameImports.svs.realtime; // don't timeout
                         gameImports.SV_ExecuteClientMessage(cl);
                     }
@@ -601,12 +596,12 @@ public class SV_MAIN {
      * necessary.
      */
     static void SV_CheckTimeouts() {
-        // todo move clients to SV_MAIN
+        // todo move use SV_MAIN realtime
         int droppoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.timeout.value);
         int zombiepoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.zombietime.value);
 
-        for (int i = 0; i < gameImports.maxclients.value; i++) {
-            client_t cl = gameImports.svs.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = clients[i];
             // message times may be wrong across a changelevel
             if (cl.lastmessage > gameImports.svs.realtime)
                 cl.lastmessage = gameImports.svs.realtime;
@@ -629,8 +624,8 @@ public class SV_MAIN {
      */
     static void SV_CalcPings() {
 
-        for (int i = 0; i < gameImports.maxclients.value; i++) {
-            client_t cl = gameImports.svs.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = clients[i];
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -657,14 +652,12 @@ public class SV_MAIN {
      * their command moves. If they exceed it, assume cheating.
      */
     static void SV_GiveMsec() {
-
-        // todo iterate over all gameImports instances
-
+        // todo: base on sv_main state, not on gameImports.sv.framenum
         if ((gameImports.sv.framenum & 15) != 0)
             return;
 
-        for (int i = 0; i < gameImports.maxclients.value; i++) {
-            client_t cl = gameImports.svs.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = clients[i];
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -737,8 +730,6 @@ public class SV_MAIN {
      * freindly form.
      */
     static void SV_UserinfoChanged(client_t cl, GameImportsImpl gameImports) {
-        String val;
-        int i;
 
         // call prog code to allow overrides
         gameImports.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
@@ -752,10 +743,9 @@ public class SV_MAIN {
         //	cl.name[i] &= 127;
 
         // rate command
-        val = Info.Info_ValueForKey(cl.userinfo, "rate");
+        String val = Info.Info_ValueForKey(cl.userinfo, "rate");
         if (val.length() > 0) {
-            i = Lib.atoi(val);
-            cl.rate = i;
+            cl.rate = Lib.atoi(val);
             if (cl.rate < 100)
                 cl.rate = 100;
             if (cl.rate > 15000)
@@ -778,8 +768,6 @@ public class SV_MAIN {
      * totally exit after returning from this function.
      */
     private static void SV_FinalMessage(String message, boolean reconnect) {
-        int i;
-        client_t cl;
 
         Globals.net_message.clear();
         MSG.WriteByte(Globals.net_message, NetworkCommands.svc_print);
@@ -793,18 +781,13 @@ public class SV_MAIN {
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
-
-        for (i = 0; i < gameImports.svs.clients.length; i++) {
-            cl = gameImports.svs.clients[i];
+        for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
-                        Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
         }
-        for (i = 0; i < gameImports.svs.clients.length; i++) {
-            cl = gameImports.svs.clients[i];
+        for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
-                        Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
         }
     }
 
@@ -815,7 +798,8 @@ public class SV_MAIN {
         if (gameImports == null)
             return;
 
-        if (gameImports.svs.clients != null)
+        // todo: identify if we need to send the final message (clients is always != null)
+        if (clients != null)
             SV_FinalMessage(finalmsg, reconnect);
 
         Master_Shutdown();
@@ -847,5 +831,78 @@ public class SV_MAIN {
 
         SV_INIT.gameImports.svs = new server_static_t();
 */
+    }
+    // fixme: update only related clients
+    static void resetClients(GameExports gameExports) {
+        // Clear all clients
+        clients = new client_t[(int) maxclients.value];
+
+        for (int i = 0; i < maxclients.value; i++) {
+            clients[i] = new client_t();
+            clients[i].lastcmd = new usercmd_t();
+            clients[i].edict = gameExports.getEdict(i + 1);
+        }
+    }
+
+
+    /**
+     * Only called at quake2.exe startup, not for each game
+     */
+    public static void SV_Init() {
+        maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
+        // Clear all clients
+        clients = new client_t[(int) maxclients.value];
+        for (int n = 0; n < clients.length; n++) {
+            clients[n] = new client_t();
+            clients[n].lastcmd = new usercmd_t();
+        }
+
+        // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
+        Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
+        Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
+        Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
+        Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
+
+        Cmd.AddCommand("maplist", (List<String> args) -> {
+            byte[] bytes = FS.LoadFile("maps.lst");
+            if (bytes == null) {
+                Com.Error(ERR_DROP, "Could not read maps.lst");
+                return;
+            }
+            for (String line : new String(bytes).split("\n")){
+                Com.Printf(PRINT_ALL, line.trim() + "\n");
+            }
+        });
+        Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
+
+        Cvar.getInstance().Get("rcon_password", "", 0);
+        Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("timelimit", "0", Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+
+        hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
+        timeout = Cvar.getInstance().Get("timeout", "125", 0);
+        zombietime = Cvar.getInstance().Get("zombietime", "2", 0);
+        sv_showclamp = Cvar.getInstance().Get("showclamp", "0", 0);
+        sv_paused = Cvar.getInstance().Get("paused", "0", 0);
+        sv_timedemo = Cvar.getInstance().Get("timedemo", "0", 0);
+        sv_enforcetime = Cvar.getInstance().Get("sv_enforcetime", "0", 0);
+
+        allow_download = Cvar.getInstance().Get("allow_download", "1", Defines.CVAR_ARCHIVE);
+        allow_download_players = Cvar.getInstance().Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
+        allow_download_models = Cvar.getInstance().Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
+        allow_download_sounds = Cvar.getInstance().Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
+        allow_download_maps = Cvar.getInstance().Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+
+        Cvar.getInstance().Get("sv_noreload", "0", 0);
+        sv_airaccelerate = Cvar.getInstance().Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
+        public_server = Cvar.getInstance().Get("public", "0", 0);
+        sv_reconnect_limit = Cvar.getInstance().Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
+
     }
 }

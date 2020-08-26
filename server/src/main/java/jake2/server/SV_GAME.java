@@ -44,17 +44,16 @@ public class SV_GAME {
      * Sends the contents of the mutlicast buffer to a single client.
      */
     public void PF_Unicast(edict_t ent, boolean reliable) {
-        int p;
-        client_t client;
 
         if (ent == null)
             return;
 
-        p = ent.index;
-        if (p < 1 || p > gameImports.maxclients.value)
+        int p = ent.index;
+
+        if (p < 1 || p > SV_MAIN.maxclients.value)
             return;
 
-        client = gameImports.svs.clients[p - 1];
+        client_t client = SV_MAIN.clients[p - 1];
 
         if (reliable)
             SZ.Write(client.netchan.message, gameImports.sv.multicast.data,
@@ -84,12 +83,12 @@ public class SV_GAME {
 
         if (ent != null) {
             n = ent.index;
-            if (n < 1 || n > gameImports.maxclients.value)
+            if (n < 1 || n > SV_MAIN.maxclients.value)
                 Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
         }
 
         if (ent != null)
-            SV_SEND.SV_ClientPrintf(gameImports.svs.clients[n - 1], level, fmt);
+            SV_SEND.SV_ClientPrintf(SV_MAIN.clients[n - 1], level, fmt);
         else
             Com.Printf(fmt);
     }
@@ -103,7 +102,7 @@ public class SV_GAME {
         int n;
 
         n = ent.index;
-        if (n < 1 || n > gameImports.maxclients.value)
+        if (n < 1 || n > SV_MAIN.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
         MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_centerprint);

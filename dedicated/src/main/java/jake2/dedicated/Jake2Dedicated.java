@@ -12,7 +12,6 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
-import jake2.server.SV_INIT;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -73,7 +72,7 @@ public class Jake2Dedicated {
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
-            SV_INIT.SV_Init();	//ok
+            SV_MAIN.SV_Init();	//ok
 
             // add + commands from command line
             if (Cbuf.AddLateCommands(args1)) {
