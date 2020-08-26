@@ -40,7 +40,6 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
-import jake2.server.SV_INIT;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -187,7 +186,7 @@ public final class Jake2 {
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
-            SV_INIT.SV_Init();	//ok
+            SV_MAIN.SV_Init();	//ok
 
             CL.Init();
 

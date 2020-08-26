@@ -141,8 +141,8 @@ public class SV_SEND {
 		}
 
 		// send the data to all relevent clients
-		for (j = 0; j < gameImports.maxclients.value; j++) {
-			client = gameImports.svs.clients[j];
+		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
+			client = SV_MAIN.clients[j];
 
 			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
 				continue;

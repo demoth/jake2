@@ -27,13 +27,11 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 
 import java.lang.reflect.Constructor;
-import java.util.List;
 
-import static jake2.qcommon.Defines.*;
+import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SV_INIT {
 
@@ -96,7 +94,9 @@ public class SV_INIT {
         NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
         SV_MAIN.gameImports.gameExports = createGameModInstance(SV_MAIN.gameImports);
-        SV_MAIN.gameImports.resetClients(); // why? should have default values already
+        // why? should have default values already
+        // fixme should not recreate all the clients
+        SV_MAIN.resetClients(SV_MAIN.gameImports.gameExports);
         return SV_MAIN.gameImports;
     }
 
@@ -203,58 +203,4 @@ public class SV_INIT {
         SV_MAIN.gameImports.SV_BroadcastCommand("reconnect\n");
     }
 
-    /**
-     * Only called at quake2.exe startup, not for each game
-     */
-    public static void SV_Init() {
-
-        // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
-        Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
-        Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
-        Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
-        Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
-
-        Cmd.AddCommand("maplist", (List<String> args) -> {
-            byte[] bytes = FS.LoadFile("maps.lst");
-            if (bytes == null) {
-                Com.Error(ERR_DROP, "Could not read maps.lst");
-                return;
-            }
-            for (String line : new String(bytes).split("\n")){
-                Com.Printf(PRINT_ALL, line.trim() + "\n");
-            }
-        });
-        Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
-
-
-
-        Cvar.getInstance().Get("rcon_password", "", 0);
-        Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("timelimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-
-        SV_MAIN.hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
-        SV_MAIN.timeout = Cvar.getInstance().Get("timeout", "125", 0);
-        SV_MAIN.zombietime = Cvar.getInstance().Get("zombietime", "2", 0);
-        SV_MAIN.sv_showclamp = Cvar.getInstance().Get("showclamp", "0", 0);
-        SV_MAIN.sv_paused = Cvar.getInstance().Get("paused", "0", 0);
-        SV_MAIN.sv_timedemo = Cvar.getInstance().Get("timedemo", "0", 0);
-        SV_MAIN.sv_enforcetime = Cvar.getInstance().Get("sv_enforcetime", "0", 0);
-
-        SV_MAIN.allow_download = Cvar.getInstance().Get("allow_download", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_players = Cvar.getInstance().Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_models = Cvar.getInstance().Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_sounds = Cvar.getInstance().Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
-        SV_MAIN.allow_download_maps = Cvar.getInstance().Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
-
-        Cvar.getInstance().Get("sv_noreload", "0", 0);
-        SV_MAIN.sv_airaccelerate = Cvar.getInstance().Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
-        SV_MAIN.public_server = Cvar.getInstance().Get("public", "0", 0);
-        SV_MAIN.sv_reconnect_limit = Cvar.getInstance().Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
-
-    }
 }
