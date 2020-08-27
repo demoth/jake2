@@ -24,19 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.ServerStates;
-import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.filesystem.QuakeFile;
-import jake2.qcommon.sys.Sys;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Date;
 import java.util.List;
 
 public class SV_CCMDS {
@@ -48,6 +37,7 @@ public class SV_CCMDS {
 	These commands can only be entered from stdin or by a remote operator datagram
 	===============================================================================
 	*/
+/*
 
 	public static void remove(String name) {
 		try {
@@ -57,7 +47,9 @@ public class SV_CCMDS {
 		}
 	}
 	
-	/** Delete save files save/(number)/.  */
+	*/
+/** Delete save files save/(number)/.  *//*
+
 	private static void SV_WipeSavegame(String savename) {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
@@ -87,11 +79,13 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 	}
-	/*
+	*/
+/*
 	================
 	CopyFile
 	================
-	*/
+	*//*
+
 	private static void CopyFile(String src, String dst) {
 		RandomAccessFile f1, f2;
 		int l = -1;
@@ -152,11 +146,13 @@ public class SV_CCMDS {
 			e2.printStackTrace();
 		}
 	}
-	/*
+	*/
+/*
 	================
 	SV_CopySaveGame
 	================
-	*/
+	*//*
+
 	static void SV_CopySaveGame(String src, String dst) {
 
 		Com.DPrintf("SV_CopySaveGame(" + src + "," + dst + ")\n");
@@ -194,12 +190,14 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 	}
-	/*
+	*/
+/*
 	==============
 	SV_WriteLevelFile
 	
 	==============
-	*/
+	*//*
+
 	static void SV_WriteLevelFile(GameImportsImpl gameImports) {
 
 		Com.DPrintf("SV_WriteLevelFile()\n");
@@ -223,12 +221,14 @@ public class SV_CCMDS {
 		name = FS.getWriteDir() + "/save/current/" + gameImports.sv.name + ".sav";
 		gameImports.gameExports.WriteLevel(name);
 	}
-	/*
+	*/
+/*
 	==============
 	SV_ReadLevelFile
 	
 	==============
-	*/
+	*//*
+
 	static void SV_ReadLevelFile(String saveName, GameImportsImpl gameImports) {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
@@ -252,6 +252,7 @@ public class SV_CCMDS {
 		name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
 		gameImports.gameExports.ReadLevel(name);
 	}
+*/
 
 	/*
 	 * SV_WriteServerFile.
@@ -263,7 +264,7 @@ public class SV_CCMDS {
 	 *
 	 * Game state saving is delegated to the game module
 	 */
-	static void SV_WriteServerFile(boolean autosave, GameImportsImpl gameImports) {
+	/*static void SV_WriteServerFile(boolean autosave, GameImportsImpl gameImports) {
 
 		Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
@@ -301,11 +302,12 @@ public class SV_CCMDS {
 
 		// write game state
 		gameImports.gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
-	}
+	}*/
 
 	/*
 	 * 	SV_ReadServerFile
 	 */
+/*
 	private static void SV_ReadServerFile(GameImportsImpl gameImports) {
 		String filename = "";
 		try {
@@ -346,18 +348,9 @@ public class SV_CCMDS {
 			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
 		}
 	}
+*/
 	//=========================================================
 
-	/*
-	==================
-	SV_DemoMap_f
-	
-	Puts the server in demo mode on a specific map/cinematic
-	==================
-	*/
-	static void SV_DemoMap_f(List<String> args) {
-		SV_INIT.SV_Map(true, args.size() >= 2 ? args.get(1) : "", false);
-	}
 	/*
 	==================
 	SV_GameMap_f
@@ -383,51 +376,9 @@ public class SV_CCMDS {
 			return;
 		}
 
-		String mapName = args.get(1);
-		Com.DPrintf("SV_GameMap(" + mapName + ")\n");
-
-		FS.CreatePath(FS.getWriteDir() + "/save/current/");
-
-		// check for clearing the current savegame
-		if (mapName.charAt(0) == '*') {
-			// wipe all the *.sav files
-			SV_WipeSavegame("current");
-		}
-		else { // save the map just exited
-			// todo: init gameImports in a proper place
-			if (SV_MAIN.gameImports != null && SV_MAIN.gameImports.sv.state == ServerStates.SS_GAME) {
-				// clear all the client inuse flags before saving so that
-				// when the level is re-entered, the clients will spawn
-				// at spawn points instead of occupying body shells
-				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					client_t cl = SV_MAIN.clients[i];
-					savedInuse[i] = cl.edict.inuse;
-					cl.edict.inuse = false;
-				}
-
-				SV_WriteLevelFile(SV_MAIN.gameImports);
-
-				// we must restore these for clients to transfer over correctly
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					client_t cl = SV_MAIN.clients[i];
-					cl.edict.inuse = savedInuse[i];
-
-				}
-			}
-		}
-
 		// start up the next map
-		SV_INIT.SV_Map(false, mapName, false);
+		SV_INIT.SV_Map(args.get(1));
 
-		// archive server state
-		SV_MAIN.gameImports.svs.mapcmd = mapName;
-
-		// copy off the level to the autosave slot
-		if (0 == Globals.dedicated.value) {
-			SV_WriteServerFile(true, SV_MAIN.gameImports);
-			SV_CopySaveGame("current", "save0");
-		}
 	}
 
 	/** Print the memory used by the java vm. */
@@ -447,15 +398,13 @@ public class SV_CCMDS {
 	==================
 	*/
 	static void SV_Map_f(List<String> args) {
-		String mapName;
-		//char expanded[MAX_QPATH];
 		if (args.size() < 2) {
 			Com.Printf("usage: map <map_name>\n");
 			return;
 		}
 
 		// if not a pcx, demo, or cinematic, check to make sure the level exists
-		mapName = args.get(1);
+		String mapName = args.get(1);
 		if (!mapName.contains(".")) {
 			String mapPath = "maps/" + mapName + ".bsp";
 			if (FS.LoadFile(mapPath) == null) {
@@ -464,10 +413,9 @@ public class SV_CCMDS {
 			}
 		}
 
-		if (SV_MAIN.gameImports != null)
-			SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+//		if (SV_MAIN.gameImports != null)
+//			SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
-		SV_WipeSavegame("current");
 		SV_GameMap_f(args);
 	}
 	/*
@@ -484,6 +432,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
+/*
 	static void SV_Loadgame_f(List<String> args) {
 
 		if (args.size() != 2) {
@@ -527,5 +476,6 @@ public class SV_CCMDS {
 		// go to the map
 		SV_INIT.SV_Map(false, SV_MAIN.gameImports.svs.mapcmd, true);
 	}
+*/
 
 }

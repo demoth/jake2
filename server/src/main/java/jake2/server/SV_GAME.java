@@ -23,13 +23,9 @@
 package jake2.server;
 
 import jake2.qcommon.*;
-import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
-
-import java.io.File;
 
 public class SV_GAME {
     final GameImportsImpl gameImports;
@@ -337,6 +333,7 @@ public class SV_GAME {
      * SV_CheckForSavegame.
      * @param sv
      */
+/*
     void SV_CheckForSavegame(server_t sv) {
 
         if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
@@ -373,6 +370,7 @@ public class SV_GAME {
             sv.state = previousState; // PGM
         }
     }
+*/
 
 
 }

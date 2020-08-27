@@ -27,17 +27,14 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
-import static jake2.server.SV_CCMDS.*;
 import static jake2.server.SV_SEND.*;
 import static jake2.server.SV_USER.userCommands;
 
@@ -125,8 +122,8 @@ public class GameImportsImpl implements GameImports {
         if (Globals.dedicated.value != 0)
             Cmd.AddCommand("say", this::SV_ConSay_f, true);
 
-        Cmd.AddCommand("serverrecord", this::SV_ServerRecord_f, true);
-        Cmd.AddCommand("serverstop", this::SV_ServerStop_f, true);
+//        Cmd.AddCommand("serverrecord", this::SV_ServerRecord_f, true);
+//        Cmd.AddCommand("serverstop", this::SV_ServerStop_f, true);
         Cmd.AddCommand("save", this::SV_Savegame_f, true);
         Cmd.AddCommand("killserver", this::SV_KillServer_f, true);
 
@@ -356,6 +353,7 @@ public class GameImportsImpl implements GameImports {
 
     private void SV_Savegame_f(List<String> args) {
 
+/*
         if (sv.state != ServerStates.SS_GAME) {
             Com.Printf("You must be in a game to save.\n");
             return;
@@ -404,6 +402,7 @@ public class GameImportsImpl implements GameImports {
         // copy it off
         SV_CopySaveGame("current", saveGame);
         Com.Printf("Done.\n");
+*/
     }
 
 	/*
@@ -561,6 +560,7 @@ public class GameImportsImpl implements GameImports {
     recorded, but no playerinfo will be stored.  Primarily for demo merging.
     ==============
     */
+/*
     private void SV_ServerRecord_f(List<String> args) {
         byte[] buf_data = new byte[32768];
         sizebuf_t buf = new sizebuf_t();
@@ -643,6 +643,7 @@ public class GameImportsImpl implements GameImports {
 
         // the rest of the demo file will be individual frames
     }
+*/
     /*
     ==============
     SV_ServerStop_f
@@ -650,6 +651,7 @@ public class GameImportsImpl implements GameImports {
     Ends server demo recording
     ==============
     */
+/*
     private void SV_ServerStop_f(List<String> args) {
         if (svs.demofile == null) {
             Com.Printf("Not doing a serverrecord.\n");
@@ -664,6 +666,7 @@ public class GameImportsImpl implements GameImports {
         svs.demofile = null;
         Com.Printf("Recording completed.\n");
     }
+*/
     /*
     ===============
     SV_KillServer_f
@@ -884,7 +887,7 @@ public class GameImportsImpl implements GameImports {
         sv_game.SV_CreateBaseline();
 
         // check for a savegame
-        sv_game.SV_CheckForSavegame(sv);
+//        sv_game.SV_CheckForSavegame(sv);
 
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);

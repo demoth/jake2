@@ -34,7 +34,9 @@ import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static jake2.qcommon.Defines.ERR_DROP;
 import static jake2.qcommon.Defines.PRINT_ALL;
@@ -42,6 +44,8 @@ import static jake2.qcommon.Defines.PRINT_ALL;
 public class SV_MAIN {
 
     public static GameImportsImpl gameImports;
+
+    public static Map<String, GameImportsImpl> serverInstances = new HashMap<>();
 
     /** Addess of group servers.*/
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
@@ -860,9 +864,7 @@ public class SV_MAIN {
 
         // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
         Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
-        Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
         Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
-        Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
 
         Cmd.AddCommand("maplist", (List<String> args) -> {
             byte[] bytes = FS.LoadFile("maps.lst");
