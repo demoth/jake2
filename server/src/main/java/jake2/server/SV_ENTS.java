@@ -414,9 +414,8 @@ public class SV_ENTS {
         frame.senttime = gameImports.svs.realtime; // save it for ping calc later
 
         // find the client's PVS
-        int i;
         float[] org = {0, 0, 0};
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
                     + clent.getClient().getPlayerState().viewoffset[i];
 
@@ -479,6 +478,7 @@ public class SV_ENTS {
                         if (!gameImports.cm.CM_HeadnodeVisible(ent.headnode, bitvector))
                             continue;
                     } else { // check individual leafs
+                        int i;
                         for (i = 0; i < ent.num_clusters; i++) {
                             l = ent.clusternums[i];
                             if ((bitvector[l >> 3] & (1 << (l & 7))) != 0)

@@ -7,6 +7,7 @@ import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 
+// todo split into several components
 public class SubgameEntity extends edict_t {
     public SubgameEntity(int i) {
         super(i);

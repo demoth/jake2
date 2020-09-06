@@ -31,11 +31,10 @@ import jake2.qcommon.network.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
-import java.io.IOException;
 import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
-import static jake2.server.SV_SEND.*;
+import static jake2.server.SV_SEND.SV_Multicast;
 import static jake2.server.SV_USER.userCommands;
 
 /*
@@ -1105,111 +1104,10 @@ public class GameImportsImpl implements GameImports {
             gameExports.ClientCommand(sv_client.edict, args);
     }
 
-    private static final byte[] NULLBYTE = {0};
+    static final byte[] NULLBYTE = {0};
 
-    void SV_SendClientMessages() {
 
-        int msglen = 0;
 
-        // read the next demo message if needed
-        if (sv.state == ServerStates.SS_DEMO && sv.demofile != null) {
-            if (SV_MAIN.sv_paused.value != 0)
-                msglen = 0;
-            else {
-                // get the next message
-                //r = fread (&msglen, 4, 1, sv.demofile);
-                try {
-                    msglen = EndianHandler.swapInt(sv.demofile.readInt());
-                }
-                catch (Exception e) {
-                    SV_DemoCompleted(this);
-                    return;
-                }
-
-                //msglen = LittleLong (msglen);
-                if (msglen == -1) {
-                    SV_DemoCompleted(this);
-                    return;
-                }
-                if (msglen > Defines.MAX_MSGLEN)
-                    Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
-
-                //r = fread (msgbuf, msglen, 1, sv.demofile);
-                int r = 0;
-                try {
-                    r = sv.demofile.read(msgbuf, 0, msglen);
-                }
-                catch (IOException e1) {
-                    Com.Printf("IOError: reading demo file, " + e1);
-                }
-                if (r != msglen) {
-                    SV_DemoCompleted(this);
-                    return;
-                }
-            }
-        }
-
-        // send a message to each connected client
-        // todo send only to related clients
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t c = SV_MAIN.clients[i];
-
-            if (c.state == ClientStates.CS_FREE)
-                continue;
-            // if the reliable message overflowed,
-            // drop the client
-            if (c.netchan.message.overflowed) {
-                c.netchan.message.clear();
-                c.datagram.clear();
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
-                SV_DropClient(c);
-            }
-
-            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC)
-                Netchan.Transmit(c.netchan, msglen, msgbuf);
-            else if (c.state == ClientStates.CS_SPAWNED) {
-                // don't overrun bandwidth
-                if (SV_RateDrop(c))
-                    continue;
-
-                SV_SendClientDatagram(c, this);
-            }
-            else {
-                // just update reliable	if needed
-                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-                    Netchan.Transmit(c.netchan, 0, NULLBYTE);
-            }
-        }
-    }
-
-    /**
-     * SV_RateDrop
-     * <p>
-     * Returns true if the client is over its current
-     * bandwidth estimation and should not be sent another packet
-     */
-    boolean SV_RateDrop(client_t c) {
-        int total;
-        int i;
-
-        // never drop over the loopback
-        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
-            return false;
-
-        total = 0;
-
-        for (i = 0; i < Defines.RATE_MESSAGES; i++) {
-            total += c.message_size[i];
-        }
-
-        if (total > c.rate) {
-            c.surpressCount++;
-            c.message_size[sv.framenum % Defines.RATE_MESSAGES] = 0;
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * Sends text to all active clients

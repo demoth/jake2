@@ -58,7 +58,7 @@ public class Globals extends Defines {
 	public static int c_brush_traces;
 	public static int c_pointcontents;
 	// todo move from static
-	public static ServerStates server_state;
+	public static ServerStates server_state = ServerStates.SS_DEAD;
 
 	public static cvar_t dedicated;
 	public static cvar_t developer;

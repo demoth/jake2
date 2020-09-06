@@ -27,19 +27,19 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NET;
-import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.NetworkCommands;
-import jake2.qcommon.network.netadr_t;
+import jake2.qcommon.network.*;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static jake2.qcommon.Defines.ERR_DROP;
 import static jake2.qcommon.Defines.PRINT_ALL;
+import static jake2.server.SV_SEND.SV_DemoCompleted;
+import static jake2.server.SV_SEND.SV_SendClientDatagram;
 
 public class SV_MAIN {
 
@@ -525,7 +525,7 @@ public class SV_MAIN {
         serverInstance.SV_RunGameFrame();
 
         // send messages back to the clients that had packets read this frame
-        serverInstance.SV_SendClientMessages();
+        SV_SendClientMessages(serverInstance);
 
         // save the entire world state if recording a serverdemo
         serverInstance.sv_ents.SV_RecordDemoMessage();
@@ -667,6 +667,111 @@ public class SV_MAIN {
 
             cl.commandMsec = 1800; // 1600 + some slop
         }
+    }
+
+    static void SV_SendClientMessages(GameImportsImpl gameImports) {
+
+        int msglen = 0;
+
+        // todo should be common?
+        final server_t sv = gameImports.sv;
+
+        // read the next demo message if needed
+        if (sv.state == ServerStates.SS_DEMO && sv.demofile != null) {
+            if (SV_MAIN.sv_paused.value != 0)
+                msglen = 0;
+            else {
+                // get the next message
+                //r = fread (&msglen, 4, 1, sv.demofile);
+                try {
+                    msglen = EndianHandler.swapInt(sv.demofile.readInt());
+                }
+                catch (Exception e) {
+                    SV_DemoCompleted(gameImports);
+                    return;
+                }
+
+                //msglen = LittleLong (msglen);
+                if (msglen == -1) {
+                    SV_DemoCompleted(gameImports);
+                    return;
+                }
+                if (msglen > Defines.MAX_MSGLEN)
+                    Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
+
+                //r = fread (msgbuf, msglen, 1, sv.demofile);
+                int r = 0;
+                try {
+                    r = sv.demofile.read(gameImports.msgbuf, 0, msglen);
+                }
+                catch (IOException e1) {
+                    Com.Printf("IOError: reading demo file, " + e1);
+                }
+                if (r != msglen) {
+                    SV_DemoCompleted(gameImports);
+                    return;
+                }
+            }
+        }
+
+        // send a message to each connected client
+        // todo send only to related clients
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            client_t c = SV_MAIN.clients[i];
+
+            if (c.state == ClientStates.CS_FREE)
+                continue;
+            // if the reliable message overflowed,
+            // drop the client
+            if (c.netchan.message.overflowed) {
+                c.netchan.message.clear();
+                c.datagram.clear();
+                gameImports.SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
+                gameImports.SV_DropClient(c);
+            }
+
+            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC)
+                Netchan.Transmit(c.netchan, msglen, gameImports.msgbuf);
+            else if (c.state == ClientStates.CS_SPAWNED) {
+                // don't overrun bandwidth
+                if (SV_RateDrop(c, sv))
+                    continue;
+
+                SV_SendClientDatagram(c, gameImports);
+            }
+            else {
+                // just update reliable	if needed
+                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    Netchan.Transmit(c.netchan, 0, GameImportsImpl.NULLBYTE);
+            }
+        }
+    }
+
+    /**
+     * SV_RateDrop
+     * <p>
+     * Returns true if the client is over its current
+     * bandwidth estimation and should not be sent another packet
+     */
+    static boolean SV_RateDrop(client_t c, server_t sv) {
+
+        // never drop over the loopback
+        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
+            return false;
+
+        int total = 0;
+
+        for (int i = 0; i < Defines.RATE_MESSAGES; i++) {
+            total += c.message_size[i];
+        }
+
+        if (total > c.rate) {
+            c.surpressCount++;
+            c.message_size[sv.framenum % Defines.RATE_MESSAGES] = 0;
+            return true;
+        }
+
+        return false;
     }
 
 

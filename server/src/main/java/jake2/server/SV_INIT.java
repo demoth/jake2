@@ -187,14 +187,15 @@ public class SV_INIT {
             } else if (l > 4 && level.endsWith(".pcx")) {
                 gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, false, false);
             } else {
-                gameImports.SV_SendClientMessages();
+                SV_MAIN.SV_SendClientMessages(gameImports);
                 gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, false, false);
                 Cbuf.CopyToDefer();
                 SV_MAIN.serverInstances.put(level, gameImports);
                 SV_MAIN.gameImports = gameImports;
             }
         } else {
-            gameImports.SV_SendClientMessages();
+            SV_MAIN.gameImports = gameImports;
+            SV_MAIN.SV_SendClientMessages(gameImports);
         }
 
         // todo send only to relative clients
