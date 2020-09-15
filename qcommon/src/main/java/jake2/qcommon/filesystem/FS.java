@@ -213,7 +213,16 @@ public final class FS extends Globals {
      * @return null in case of error
      */
     public static QuakeFile FOpenFile(String filename) {
+
+
         try {
+            // used for tools
+            // todo: unify with other code
+            if (filename.startsWith("/")) {
+                final File file = new File(filename);
+                return new QuakeFile(file, "r", false, file.length());
+            }
+
             // check for links first
             for (filelink_t link : fs_links) {
                 if (filename.startsWith(link.from)) {

@@ -109,7 +109,7 @@ public class CM {
 
     String map_name = "";
 
-    int numbrushsides;
+    public int numbrushsides;
 
     cbrushside_t[] map_brushsides = new cbrushside_t[Defines.MAX_MAP_BRUSHSIDES];
 
@@ -117,23 +117,23 @@ public class CM {
 
     public mapsurface_t[] map_surfaces = new mapsurface_t[Defines.MAX_MAP_TEXINFO];
 
-    int numplanes;
+    public int numplanes;
 
     /** Extra for box hull ( +6) */
     cplane_t[] map_planes = new cplane_t[Defines.MAX_MAP_PLANES + 6];
 
-    int numnodes;
+    public int numnodes;
 
     /** Extra for box hull ( +6) */
     cnode_t[] map_nodes = new cnode_t[Defines.MAX_MAP_NODES + 6];
 
-    int numleafs = 1; // allow leaf funcs to be called without a map
+    public int numleafs = 1; // allow leaf funcs to be called without a map
 
     cleaf_t[] map_leafs = new cleaf_t[Defines.MAX_MAP_LEAFS];
     int emptyleaf;
     int solidleaf;
 
-    int numleafbrushes;
+    public int numleafbrushes;
 
     public int[] map_leafbrushes = new int[Defines.MAX_MAP_LEAFBRUSHES];
 
@@ -810,7 +810,7 @@ public class CM {
 
     cplane_t[] box_planes;
 
-    int box_headnode;
+    public int box_headnode;
 
     cbrush_t box_brush;
 
