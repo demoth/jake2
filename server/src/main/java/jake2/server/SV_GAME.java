@@ -99,9 +99,8 @@ public class SV_GAME {
      * centerprint to a single client.
      */
     public void PF_centerprintf(edict_t ent, String fmt) {
-        int n;
 
-        n = ent.index;
+        int n = ent.index;
         if (n < 1 || n > SV_MAIN.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 

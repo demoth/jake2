@@ -142,10 +142,12 @@ public class SV_INIT {
         if (SV_MAIN.gameImports == null || SV_MAIN.gameImports.sv == null || SV_MAIN.gameImports.sv.state == ServerStates.SS_DEAD && !SV_MAIN.gameImports.sv.loadgame)
             SV_InitGame(); // the game is just starting
 
+        // archive server state to be used in savegame
+        SV_MAIN.gameImports.svs.mapcmd = levelstring;
+
         String level = levelstring; // bis hier her ok.
 
         // if there is a + in the map, set nextserver to the remainder
-
         int c = level.indexOf('+');
         if (c != -1) {
             Cvar.getInstance().Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
@@ -195,7 +197,7 @@ public class SV_INIT {
         } else if (l > 4 && level.endsWith(".pcx")) {
             SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
         } else {
-            SV_MAIN.gameImports.SV_SendClientMessages();
+            SV_MAIN.SV_SendClientMessages();
             SV_MAIN.gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
             Cbuf.CopyToDefer();
         }

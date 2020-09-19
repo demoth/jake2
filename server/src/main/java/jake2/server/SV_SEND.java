@@ -311,6 +311,7 @@ public class SV_SEND {
 	SV_SendClientDatagram
 	=======================
 	*/
+	// todo move to gameImports
 	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 

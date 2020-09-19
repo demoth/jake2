@@ -360,7 +360,7 @@ class SV_USER {
      */
     private static void SV_Disconnect_f(List<String> args, GameImportsImpl gameImports) {
         //	SV_EndRedirect ();
-        gameImports.SV_DropClient(gameImports.sv_client);
+        SV_MAIN.SV_DropClient(gameImports.sv_client);
     }
 
     /*

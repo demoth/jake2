@@ -196,35 +196,6 @@ public class SV_CCMDS {
 	}
 	/*
 	==============
-	SV_WriteLevelFile
-	
-	==============
-	*/
-	static void SV_WriteLevelFile(GameImportsImpl gameImports) {
-
-		Com.DPrintf("SV_WriteLevelFile()\n");
-
-		String name = FS.getWriteDir() + "/save/current/" + SV_MAIN.gameImports.sv.name + ".sv2";
-
-		try {
-			QuakeFile f = new QuakeFile(name, "rw");
-
-			for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
-				f.writeString(gameImports.sv.configstrings[i]);
-
-			gameImports.cm.CM_WritePortalState(f);
-			f.close();
-		}
-		catch (Exception e) {
-			Com.Printf("Failed to open " + name + "\n");
-			e.printStackTrace();
-		}
-
-		name = FS.getWriteDir() + "/save/current/" + gameImports.sv.name + ".sav";
-		gameImports.gameExports.WriteLevel(name);
-	}
-	/*
-	==============
 	SV_ReadLevelFile
 	
 	==============
@@ -253,60 +224,11 @@ public class SV_CCMDS {
 		gameImports.gameExports.ReadLevel(name);
 	}
 
-	/*
-	 * SV_WriteServerFile.
-	 * Save contains 2 steps: server state information (server.ssv) and game state information (game.ssv).
-	 * Server state contains:
-	 * 		comment (date)
-	 * 		mapcommand
-	 * 		latched cvars
-	 *
-	 * Game state saving is delegated to the game module
-	 */
-	static void SV_WriteServerFile(boolean autosave, GameImportsImpl gameImports) {
-
-		Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
-
-		final String saveFile = FS.getWriteDir() + "/save/current/server.ssv";
-		try {
-			QuakeFile f = new QuakeFile(saveFile, "rw");
-
-			final String comment;
-			if (autosave) {
-				comment = "Autosave in " + gameImports.sv.configstrings[Defines.CS_NAME];
-			} else {
-				comment = new Date().toString() + " " + gameImports.sv.configstrings[Defines.CS_NAME];
-			}
-
-			f.writeString(comment);
-			f.writeString(gameImports.svs.mapcmd);
-
-			// write all CVAR_LATCH cvars
-			// these will be things like coop, skill, deathmatch, etc
-			Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-					try {
-						f.writeString(var.name);
-						f.writeString(var.string);
-					} catch (IOException e) {
-						Com.Printf("Could not write cvar(" + var + " to " + saveFile + ", " + e.getMessage());
-					}
-			});
-
-			// rst: for termination.
-			f.writeString(null);
-			f.close();
-		} catch (Exception e) {
-			Com.Printf("Couldn't write " + saveFile + ", " + e.getMessage() + "\n");
-		}
-
-		// write game state
-		gameImports.gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
-	}
 
 	/*
 	 * 	SV_ReadServerFile
 	 */
-	private static void SV_ReadServerFile(GameImportsImpl gameImports) {
+	private static String SV_ReadServerFile(GameImportsImpl gameImports) {
 		String filename = "";
 		try {
 
@@ -337,14 +259,14 @@ public class SV_CCMDS {
 
 			f.close();
 
-			gameImports.svs.mapcmd = mapcmd;
-
 			// read game state
 			filename = FS.getWriteDir() + "/save/current/game.ssv";
 			gameImports.gameExports.readGameLocals(filename);
+			return mapcmd;
 		} catch (Exception e) {
 			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
 		}
+		return null;
 	}
 	//=========================================================
 
@@ -406,7 +328,7 @@ public class SV_CCMDS {
 					cl.edict.inuse = false;
 				}
 
-				SV_WriteLevelFile(SV_MAIN.gameImports);
+				SV_MAIN.gameImports.SV_WriteLevelFile();
 
 				// we must restore these for clients to transfer over correctly
 				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
@@ -420,12 +342,9 @@ public class SV_CCMDS {
 		// start up the next map
 		SV_INIT.SV_Map(false, mapName, false);
 
-		// archive server state
-		SV_MAIN.gameImports.svs.mapcmd = mapName;
-
 		// copy off the level to the autosave slot
 		if (0 == Globals.dedicated.value) {
-			SV_WriteServerFile(true, SV_MAIN.gameImports);
+			SV_MAIN.gameImports.SV_WriteServerFile(true);
 			SV_CopySaveGame("current", "save0");
 		}
 	}
@@ -522,10 +441,10 @@ public class SV_CCMDS {
 		// start a new game fresh with new cvars
 		SV_INIT.SV_InitGame();
 
-		SV_ReadServerFile(SV_MAIN.gameImports);
+		final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
 
 		// go to the map
-		SV_INIT.SV_Map(false, SV_MAIN.gameImports.svs.mapcmd, true);
+		SV_INIT.SV_Map(false, mapCommand, true);
 	}
 
 }
