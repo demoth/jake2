@@ -58,7 +58,7 @@ public class SV_CCMDS {
 	}
 	
 	/** Delete save files save/(number)/.  */
-	private static void SV_WipeSavegame(String savename) {
+	static void SV_WipeSavegame(String savename) {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
@@ -228,7 +228,7 @@ public class SV_CCMDS {
 	/*
 	 * 	SV_ReadServerFile
 	 */
-	private static String SV_ReadServerFile(GameImportsImpl gameImports) {
+	static String SV_ReadServerFile(GameImportsImpl gameImports) {
 		String filename = "";
 		try {
 
@@ -270,85 +270,6 @@ public class SV_CCMDS {
 	}
 	//=========================================================
 
-	/*
-	==================
-	SV_DemoMap_f
-	
-	Puts the server in demo mode on a specific map/cinematic
-	==================
-	*/
-	static void SV_DemoMap_f(List<String> args) {
-		SV_INIT.SV_Map(true, args.size() >= 2 ? args.get(1) : "", false);
-	}
-	/*
-	==================
-	SV_GameMap_f
-	
-	Saves the state of the map just being exited and goes to a new map.
-	
-	If the initial character of the map string is '*', the next map is
-	in a new unit, so the current savegame directory is cleared of
-	map files.
-	
-	Example:
-	
-	*inter.cin+jail
-	
-	Clears the archived maps, plays the inter.cin cinematic, then
-	goes to map jail.bsp.
-	==================
-	*/
-	static void SV_GameMap_f(List<String> args) {
-
-		if (args.size() != 2) {
-			Com.Printf("USAGE: gamemap <map>\n");
-			return;
-		}
-
-		String mapName = args.get(1);
-		Com.DPrintf("SV_GameMap(" + mapName + ")\n");
-
-		FS.CreatePath(FS.getWriteDir() + "/save/current/");
-
-		// check for clearing the current savegame
-		if (mapName.charAt(0) == '*') {
-			// wipe all the *.sav files
-			SV_WipeSavegame("current");
-		}
-		else { // save the map just exited
-			// todo: init gameImports in a proper place
-			if (SV_MAIN.gameImports != null && SV_MAIN.gameImports.sv.state == ServerStates.SS_GAME) {
-				// clear all the client inuse flags before saving so that
-				// when the level is re-entered, the clients will spawn
-				// at spawn points instead of occupying body shells
-				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					client_t cl = SV_MAIN.clients[i];
-					savedInuse[i] = cl.edict.inuse;
-					cl.edict.inuse = false;
-				}
-
-				SV_MAIN.gameImports.SV_WriteLevelFile();
-
-				// we must restore these for clients to transfer over correctly
-				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-					client_t cl = SV_MAIN.clients[i];
-					cl.edict.inuse = savedInuse[i];
-
-				}
-			}
-		}
-
-		// start up the next map
-		SV_INIT.SV_Map(false, mapName, false);
-
-		// copy off the level to the autosave slot
-		if (0 == Globals.dedicated.value) {
-			SV_MAIN.gameImports.SV_WriteServerFile(true);
-			SV_CopySaveGame("current", "save0");
-		}
-	}
-
 	/** Print the memory used by the java vm. */
 	static void VM_Mem_f(List<String> args)
 	{
@@ -357,94 +278,5 @@ public class SV_CCMDS {
 						Runtime.getRuntime().freeMemory()) + "\n" );
 	}
 	
-	/*
-	==================
-	SV_Map_f
-	
-	Goes directly to a given map without any savegame archiving.
-	For development work
-	==================
-	*/
-	static void SV_Map_f(List<String> args) {
-		String mapName;
-		//char expanded[MAX_QPATH];
-		if (args.size() < 2) {
-			Com.Printf("usage: map <map_name>\n");
-			return;
-		}
-
-		// if not a pcx, demo, or cinematic, check to make sure the level exists
-		mapName = args.get(1);
-		if (!mapName.contains(".")) {
-			String mapPath = "maps/" + mapName + ".bsp";
-			if (FS.LoadFile(mapPath) == null) {
-				Com.Printf("Can't find " + mapPath + "\n");
-				return;
-			}
-		}
-
-		if (SV_MAIN.gameImports != null)
-			SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
-
-		SV_WipeSavegame("current");
-		SV_GameMap_f(args);
-	}
-	/*
-	=====================================================================
-	
-	  SAVEGAMES
-	
-	=====================================================================
-	*/
-
-	/*
-	==============
-	SV_Loadgame_f
-	
-	==============
-	*/
-	static void SV_Loadgame_f(List<String> args) {
-
-		if (args.size() != 2) {
-			Com.Printf("USAGE: load <directory>\n");
-			return;
-		}
-
-		Com.Printf("Loading game...\n");
-
-		String saveGame = args.get(1);
-		if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
-			Com.Printf("Bad save name.\n");
-			return;
-		}
-
-		// make sure the server.ssv file exists
-		String name = FS.getWriteDir() + "/save/" + saveGame + "/server.ssv";
-		RandomAccessFile f;
-		try {
-			f = new RandomAccessFile(name, "r");
-		}
-		catch (FileNotFoundException e) {
-			Com.Printf("No such savegame: " + name + "\n");
-			return;
-		}
-
-		try {
-			f.close();
-		}
-		catch (IOException e1) {
-			e1.printStackTrace();
-		}
-
-		SV_CopySaveGame(saveGame, "current");
-
-		// start a new game fresh with new cvars
-		SV_INIT.SV_InitGame();
-
-		final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
-
-		// go to the map
-		SV_INIT.SV_Map(false, mapCommand, true);
-	}
 
 }

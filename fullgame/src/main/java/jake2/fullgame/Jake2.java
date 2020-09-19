@@ -40,6 +40,7 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
+import jake2.server.JakeServer;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -103,7 +104,7 @@ public final class Jake2 {
         if (argc > 1) {
             System.arraycopy(args, 0, c_args, 1, argc - 1);
         }
-        Init(c_args);
+        JakeServer serverMain = Init(c_args);
 
         Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
 
@@ -124,7 +125,7 @@ public final class Jake2 {
 
                     Cbuf.Execute();
 
-                    SV_MAIN.SV_Frame(adjustedTime);
+                    serverMain.update(adjustedTime);
 
                     CL.Frame(adjustedTime);
 
@@ -142,8 +143,10 @@ public final class Jake2 {
      * the game engine. The setjmp/longjmp mechanism of the original
      * was replaced with exceptions.
      * @param argsMain the original unmodified command line arguments
+     * @return
      */
-    public static void Init(String[] argsMain) {
+    public static JakeServer Init(String[] argsMain) {
+        JakeServer result = null;
         try {
 
             // prepare enough of the subsystems to handle
@@ -186,7 +189,7 @@ public final class Jake2 {
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
-            SV_MAIN.SV_Init();	//ok
+            result = new SV_MAIN(); //SV_MAIN.SV_Init();	//ok
 
             CL.Init();
 
@@ -213,5 +216,6 @@ public final class Jake2 {
         } catch (longjmpException e) {
             Sys.Error("Error during initialization");
         }
+        return result;
     }
 }

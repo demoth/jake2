@@ -12,6 +12,7 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
+import jake2.server.JakeServer;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -33,6 +34,7 @@ public class Jake2Dedicated {
         if (argc > 1) {
             System.arraycopy(args, 0, c_args, 1, argc - 1);
         }
+        JakeServer serverMain = null;
         try {
 
             // prepare enough of the subsystems to handle
@@ -72,7 +74,7 @@ public class Jake2Dedicated {
             NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
-            SV_MAIN.SV_Init();	//ok
+            serverMain = new SV_MAIN();	//ok
 
             // add + commands from command line
             if (Cbuf.AddLateCommands(args1)) {
@@ -107,7 +109,7 @@ public class Jake2Dedicated {
 
                     Cbuf.Execute();
 
-                    SV_MAIN.SV_Frame(adjustedTime);
+                    serverMain.update(adjustedTime);
 
                 } catch (longjmpException e) {
                     Com.DPrintf("longjmp exception:" + e);

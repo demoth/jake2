@@ -75,102 +75,6 @@ public class SV_SEND {
 		MSG.WriteByte(cl.netchan.message, level);
 		MSG.WriteString(cl.netchan.message, s);
 	}
-	/*
-	=================
-	SV_Multicast
-	
-	Sends the contents of sv.multicast to a subset of the clients,
-	then clears sv.multicast.
-	
-	MULTICAST_ALL	same as broadcast (origin can be null)
-	MULTICAST_PVS	send to clients potentially visible from org
-	MULTICAST_PHS	send to clients potentially hearable from org
-	=================
-	*/
-	public static void SV_Multicast(float[] origin, MulticastTypes to, GameImportsImpl gameImports) {
-		client_t client;
-		byte mask[];
-		int leafnum, cluster;
-		int j;
-		boolean reliable;
-		int area1, area2;
-		final CM cm = gameImports.cm;
-
-		reliable = false;
-
-		if (to != MulticastTypes.MULTICAST_ALL_R && to != MulticastTypes.MULTICAST_ALL) {
-			leafnum = cm.CM_PointLeafnum(origin);
-			area1 = cm.CM_LeafArea(leafnum);
-		}
-		else {
-			leafnum = 0; // just to avoid compiler warnings
-			area1 = 0;
-		}
-
-		// if doing a serverrecord, store everything
-		if (gameImports.svs.demofile != null)
-			SZ.Write(gameImports.svs.demo_multicast, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
-
-		switch (to) {
-			case MULTICAST_ALL_R :
-				reliable = true; // intentional fallthrough, no break here
-			case MULTICAST_ALL :
-				leafnum = 0;
-				mask = null;
-				break;
-
-			case MULTICAST_PHS_R :
-				reliable = true; // intentional fallthrough
-			case MULTICAST_PHS :
-				leafnum = cm.CM_PointLeafnum(origin);
-				cluster = cm.CM_LeafCluster(leafnum);
-				mask = cm.CM_ClusterPHS(cluster);
-				break;
-
-			case MULTICAST_PVS_R :
-				reliable = true; // intentional fallthrough
-			case MULTICAST_PVS :
-				leafnum = cm.CM_PointLeafnum(origin);
-				cluster = cm.CM_LeafCluster(leafnum);
-				mask = cm.CM_ClusterPVS(cluster);
-				break;
-
-			default :
-				mask = null;
-				Com.Error(Defines.ERR_FATAL, "SV_Multicast: bad to:" + to + "\n");
-		}
-
-		// send the data to all relevent clients
-		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
-			client = SV_MAIN.clients[j];
-
-			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
-				continue;
-			if (client.state != ClientStates.CS_SPAWNED && !reliable)
-				continue;
-
-			if (mask != null) {
-				leafnum = cm.CM_PointLeafnum(client.edict.s.origin);
-				cluster = cm.CM_LeafCluster(leafnum);
-				area2 = cm.CM_LeafArea(leafnum);
-				if (!cm.CM_AreasConnected(area1, area2))
-					continue;
-
-				// quake2 bugfix
-				if (cluster == -1)
-					continue;
-				if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
-					continue;
-			}
-
-			if (reliable)
-				SZ.Write(client.netchan.message, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
-			else
-				SZ.Write(client.datagram, gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
-		}
-
-        gameImports.sv.multicast.clear();
-    }
 
 	/*
 	==================
@@ -287,15 +191,15 @@ public class SV_SEND {
 
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R, gameImports);
+				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
+				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R);
 		}
 		else {
 			if (use_phs)
-				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS, gameImports);
+				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_PHS);
 			else
-				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL, gameImports);
+				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_ALL);
 		}
 	}
 	/*

@@ -50,10 +50,10 @@ public class SV_GAME {
 
         int p = ent.index;
 
-        if (p < 1 || p > SV_MAIN.maxclients.value)
+        if (p < 1 || p > gameImports.serverMain.getClients().size())
             return;
 
-        client_t client = SV_MAIN.clients[p - 1];
+        client_t client = gameImports.serverMain.getClients().get(p - 1);
 
         if (reliable)
             SZ.Write(client.netchan.message, gameImports.sv.multicast.data,
@@ -83,12 +83,12 @@ public class SV_GAME {
 
         if (ent != null) {
             n = ent.index;
-            if (n < 1 || n > SV_MAIN.maxclients.value)
+            if (n < 1 || n > gameImports.serverMain.getClients().size())
                 Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
         }
 
         if (ent != null)
-            SV_SEND.SV_ClientPrintf(SV_MAIN.clients[n - 1], level, fmt);
+            SV_SEND.SV_ClientPrintf(gameImports.serverMain.getClients().get(n - 1), level, fmt);
         else
             Com.Printf(fmt);
     }
@@ -101,7 +101,7 @@ public class SV_GAME {
     public void PF_centerprintf(edict_t ent, String fmt) {
 
         int n = ent.index;
-        if (n < 1 || n > SV_MAIN.maxclients.value)
+        if (n < 1 || n > gameImports.serverMain.getClients().size())
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
         MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_centerprint);
@@ -162,7 +162,7 @@ public class SV_GAME {
             MSG.WriteShort(gameImports.sv.multicast, index);
             MSG.WriteString(gameImports.sv.multicast, val);
 
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
+            gameImports.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
     }
 
@@ -302,7 +302,7 @@ public class SV_GAME {
             MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
             MSG.WriteShort(gameImports.sv.multicast, start + i);
             MSG.WriteString(gameImports.sv.multicast, name);
-            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R, gameImports);
+            gameImports.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
 
         return i;

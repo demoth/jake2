@@ -23,6 +23,7 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
@@ -31,16 +32,32 @@ import jake2.qcommon.network.*;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static jake2.qcommon.Defines.ERR_DROP;
-import static jake2.qcommon.Defines.PRINT_ALL;
+import static jake2.qcommon.Defines.*;
+import static jake2.server.SV_CCMDS.*;
 import static jake2.server.SV_SEND.SV_DemoCompleted;
 import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
-public class SV_MAIN {
+public class SV_MAIN implements JakeServer {
+
+    @Override
+    public boolean isPaused() {
+        return false;
+    }
+
+    @Override
+    public List<client_t> getClients() {
+        return clients;
+    }
+
     private static final int MAX_STRINGCMDS = 8;
     private static final byte[] NULLBYTE = {0};
 
@@ -49,7 +66,7 @@ public class SV_MAIN {
     /** Addess of group servers.*/
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
 
-    static client_t clients[]; // [maxclients->value];
+    private List<client_t> clients; // [maxclients->value];
 
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
@@ -107,12 +124,12 @@ public class SV_MAIN {
     /**
      * Builds the string that is sent as heartbeats and status replies.
      */
-    private static String SV_StatusString() {
+    private String SV_StatusString() {
 
         String status = Cvar.getInstance().Serverinfo() + "\n";
 
         for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients[i];
+            client_t cl = clients.get(i);
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) {
                 String player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
 
@@ -132,7 +149,7 @@ public class SV_MAIN {
     /**
      * Responds with all the info that qplug or qspy can see
      */
-    private static void SVC_Status() {
+    private void SVC_Status() {
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "print\n" + SV_StatusString());
     }
 
@@ -148,7 +165,7 @@ public class SV_MAIN {
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    private static void SVC_Info(List<String> args) {
+    private void SVC_Info(List<String> args) {
 
         if (maxclients.value == 1)
             return; // ignore in single player
@@ -161,7 +178,7 @@ public class SV_MAIN {
         else {
             int players = 0;
             for (int i = 0; i < maxclients.value; i++)
-                if (clients[i].state == ClientStates.CS_CONNECTED || clients[i].state == ClientStates.CS_SPAWNED)
+                if (clients.get(i).state == ClientStates.CS_CONNECTED || clients.get(i).state == ClientStates.CS_SPAWNED)
                     players++;
 
             string = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
@@ -215,7 +232,7 @@ public class SV_MAIN {
     /**
      * A connection request that did not come from the master.
      */
-    private static void SVC_DirectConnect(List<String> args) {
+    private void SVC_DirectConnect(List<String> args) {
 
         netadr_t adr = Globals.net_from;
 
@@ -264,7 +281,7 @@ public class SV_MAIN {
         // if there is already a slot for this ip, reuse it
         client_t cl;
         for (int i = 0; i < maxclients.value; i++) {
-            cl = clients[i];
+            cl = clients.get(i);
 
             if (cl.state == ClientStates.CS_FREE)
                 continue;
@@ -285,7 +302,7 @@ public class SV_MAIN {
         //newcl = null;
         int index = -1;
         for (int i = 0; i < maxclients.value; i++) {
-            cl = clients[i];
+            cl = clients.get(i);
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
@@ -302,21 +319,21 @@ public class SV_MAIN {
     /**
      * Initializes player structures after successfull connection.
      */
-    private static void gotnewcl(int i, int challenge, String userinfo,
+    private void gotnewcl(int i, int challenge, String userinfo,
                                  netadr_t adr, int qport) {
         // build a new connection
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        gameImports.sv_client = clients[i];
+        gameImports.sv_client = clients.get(i);
         
         int edictnum = i + 1;
         
         edict_t ent = gameImports.gameExports.getEdict(edictnum);
-        clients[i].edict = ent;
+        clients.get(i).edict = ent;
         
         // save challenge for checksumming
-        clients[i].challenge = challenge;
+        clients.get(i).challenge = challenge;
         
         
 
@@ -333,21 +350,21 @@ public class SV_MAIN {
         }
 
         // parse some info from the info strings
-        clients[i].userinfo = userinfo;
-        SV_UserinfoChanged(clients[i]);
+        clients.get(i).userinfo = userinfo;
+        SV_UserinfoChanged(clients.get(i));
 
         // send the connect packet to the client
         Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "client_connect");
 
-        Netchan.Setup(Defines.NS_SERVER, clients[i].netchan, adr, qport);
+        Netchan.Setup(Defines.NS_SERVER, clients.get(i).netchan, adr, qport);
 
-        clients[i].state = ClientStates.CS_CONNECTED;
+        clients.get(i).state = ClientStates.CS_CONNECTED;
 
-        SZ.Init(clients[i].datagram, clients[i].datagram_buf, clients[i].datagram_buf.length);
+        SZ.Init(clients.get(i).datagram, clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
         
-        clients[i].datagram.allowoverflow = true;
-        clients[i].lastmessage = gameImports.svs.realtime; // don't timeout
-        clients[i].lastconnect = gameImports.svs.realtime;
+        clients.get(i).datagram.allowoverflow = true;
+        clients.get(i).lastmessage = gameImports.svs.realtime; // don't timeout
+        clients.get(i).lastconnect = gameImports.svs.realtime;
         Com.DPrintf("new client added.\n");
     }
 
@@ -398,7 +415,7 @@ public class SV_MAIN {
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    static void SV_ConnectionlessPacket() {
+    void SV_ConnectionlessPacket() {
 
         MSG.BeginReading(Globals.net_message);
         MSG.ReadLong(Globals.net_message); // skip the -1 marker
@@ -459,13 +476,12 @@ public class SV_MAIN {
             // events only last for a single message
             gameExports.getEdict(i).s.event = 0;
         }
-
     }
 
     /**
      * SV_Frame.
      */
-    public static void SV_Frame(long msec) {
+    public void update(long msec) {
         Globals.time_before_game = Globals.time_after_game = 0;
 
         // if server is not active, do nothing
@@ -526,7 +542,7 @@ public class SV_MAIN {
 
     }
 
-    static void SV_SendClientMessages() {
+    void SV_SendClientMessages() {
 
         int msglen = 0;
         server_t sv = gameImports.sv;
@@ -570,8 +586,8 @@ public class SV_MAIN {
 
         // send a message to each connected client
         // todo send only to related clients
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t c = SV_MAIN.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t c = clients.get(i);
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
@@ -627,7 +643,7 @@ public class SV_MAIN {
     /**
      * Sends text to all active clients
      */
-    static void SV_BroadcastPrintf(int level, String s) {
+    public void SV_BroadcastPrintf(int level, String s) {
 
         // echo to console
         if (Globals.dedicated.value != 0) {
@@ -635,8 +651,8 @@ public class SV_MAIN {
         }
 
         // todo: send only to related clients
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t cl = SV_MAIN.clients[i];
+        for (int i = 0; i < maxclients.value; i++) {
+            client_t cl = clients.get(i);
             if (level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
@@ -679,7 +695,7 @@ public class SV_MAIN {
     /**
      * Reads packets from the network or loopback.
      */
-    static void SV_ReadPackets() {
+    void SV_ReadPackets() {
 
         while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from, Globals.net_message)) {
 
@@ -701,7 +717,7 @@ public class SV_MAIN {
 
             // check for packets from connected clients
             for (int i = 0; i < maxclients.value; i++) {
-                client_t cl = clients[i];
+                client_t cl = clients.get(i);
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!NET.CompareBaseAdr(Globals.net_from, cl.netchan.remote_address))
@@ -932,13 +948,13 @@ public class SV_MAIN {
      * for a few seconds to make sure any final reliable message gets resent if
      * necessary.
      */
-    static void SV_CheckTimeouts() {
+    void SV_CheckTimeouts() {
         // todo move use SV_MAIN realtime
         int droppoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.timeout.value);
         int zombiepoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.zombietime.value);
 
         for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients[i];
+            client_t cl = clients.get(i);
             // message times may be wrong across a changelevel
             if (cl.lastmessage > gameImports.svs.realtime)
                 cl.lastmessage = gameImports.svs.realtime;
@@ -959,10 +975,10 @@ public class SV_MAIN {
     /**
      * Updates the cl.ping variables.
      */
-    static void SV_CalcPings() {
+    void SV_CalcPings() {
 
         for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients[i];
+            client_t cl = clients.get(i);
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -988,13 +1004,13 @@ public class SV_MAIN {
      * Every few frames, gives all clients an allotment of milliseconds for
      * their command moves. If they exceed it, assume cheating.
      */
-    static void SV_GiveMsec() {
+    void SV_GiveMsec() {
         // todo: base on sv_main state, not on gameImports.sv.framenum
         if ((gameImports.sv.framenum & 15) != 0)
             return;
 
         for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients[i];
+            client_t cl = clients.get(i);
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -1002,8 +1018,7 @@ public class SV_MAIN {
         }
     }
 
-
-    private static void Master_Heartbeat() {
+    private void Master_Heartbeat() {
         String string;
         int i;
 
@@ -1068,7 +1083,7 @@ public class SV_MAIN {
      * stuck on the outgoing message list, because the server is going to
      * totally exit after returning from this function.
      */
-    private static void SV_FinalMessage(String message, boolean reconnect) {
+    private void SV_FinalMessage(String message, boolean reconnect) {
 
         Globals.net_message.clear();
         MSG.WriteByte(Globals.net_message, NetworkCommands.svc_print);
@@ -1096,7 +1111,8 @@ public class SV_MAIN {
      * Called when each game quits, before Sys_Quit or Sys_Error.
      * todo: shutdown a particular instance, not the whole server
      */
-    public static void SV_Shutdown(String finalmsg, boolean reconnect) {
+    @Override
+    public void SV_Shutdown(String finalmsg, boolean reconnect) {
         if (gameImports == null)
             return;
 
@@ -1139,35 +1155,40 @@ public class SV_MAIN {
     /**
      * Resets the clients, use when maxclients.value is changed
      */
-    static void resetClients(GameExports gameExports) {
+    void resetClients(GameExports gameExports) {
         // Clear all clients
-        clients = new client_t[(int) maxclients.value];
+        final int max = (int) maxclients.value;
+        clients = new ArrayList<>(max);
 
-        for (int i = 0; i < maxclients.value; i++) {
-            clients[i] = new client_t();
-            clients[i].lastcmd = new usercmd_t();
-            clients[i].edict = gameExports.getEdict(i + 1);
+        for (int i = 0; i < max; i++) {
+            client_t cl = new client_t();
+            cl.lastcmd = new usercmd_t();
+            cl.edict = gameExports.getEdict(i + 1);
+            clients.add(cl);
         }
     }
 
     /**
      * Only called at quake2.exe startup, not for each game
      */
-    public static void SV_Init() {
+    public SV_MAIN() {
         maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         // Clear all clients
-        clients = new client_t[(int) maxclients.value];
-        for (int n = 0; n < clients.length; n++) {
-            clients[n] = new client_t();
-            clients[n].lastcmd = new usercmd_t();
+        final int max = (int) maxclients.value;
+        clients = new ArrayList<>(max);
+
+        for (int n = 0; n < max; n++) {
+            client_t cl = new client_t();
+            cl.lastcmd = new usercmd_t();
+            clients.add(cl);
         }
 
         // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
-        Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
-        Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
-        Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
-        Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
+        Cmd.AddCommand("map", this::SV_Map_f);
+        Cmd.AddCommand("demomap", this::SV_DemoMap_f);
+        Cmd.AddCommand("gamemap", this::SV_GameMap_f);
+        Cmd.AddCommand("load", this::SV_Loadgame_f);
         Cmd.AddCommand("sv_shutdown", args -> {
             String reason;
             if (args.size() > 1) {
@@ -1176,7 +1197,7 @@ public class SV_MAIN {
                 reason = "Server is shut down";
             }
 
-            SV_MAIN.SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
+            SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
         });
 
         Cmd.AddCommand("maplist", (List<String> args) -> {
@@ -1219,4 +1240,325 @@ public class SV_MAIN {
         public_server = Cvar.getInstance().Get("public", "0", 0);
         sv_reconnect_limit = Cvar.getInstance().Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
     }
+
+    /**
+     * SV_InitGame.
+     *
+     * A brand new game has been started.
+     */
+    GameImportsImpl SV_InitGame() {
+
+        if (gameImports != null) {
+            // cause any connected clients to reconnect
+            SV_Shutdown("Server restarted\n", true);
+        } else {
+            // make sure the client is down
+            Cmd.ExecuteFunction("loading");
+            Cmd.ExecuteFunction("cl_drop");
+        }
+
+        // get any latched variable changes (maxclients, etc)
+        Cvar.getInstance().updateLatchedVars();
+
+        if (Cvar.getInstance().VariableValue("coop") != 0 && Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
+            Cvar.getInstance().FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        }
+
+        // dedicated servers are can't be single player and are usually DM
+        // so unless they explicity set coop, force it to deathmatch
+        if (Globals.dedicated.value != 0) {
+            if (0 == Cvar.getInstance().VariableValue("coop"))
+                Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        }
+
+
+        // set max clients based on game mode
+        final cvar_t maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            if (maxclients.value <= 1)
+                Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            else if (maxclients.value > Defines.MAX_CLIENTS)
+                Cvar.getInstance().FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        } else if (Cvar.getInstance().VariableValue("coop") != 0) {
+            if (maxclients.value <= 1 || maxclients.value > 4)
+                Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
+        } else {
+            // non-deathmatch, non-coop is one player
+            Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        }
+
+        // todo: persist server static (svs)
+        SV_MAIN.gameImports = new GameImportsImpl(this);
+
+        // init network stuff
+        NET.Config((maxclients.value > 1));
+        NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
+
+        SV_MAIN.gameImports.gameExports = createGameModInstance(SV_MAIN.gameImports);
+        // why? should have default values already
+        // fixme should not recreate all the clients
+        resetClients(SV_MAIN.gameImports.gameExports);
+        return SV_MAIN.gameImports;
+    }
+
+    /**
+     * Find and create an instance of the game subsystem
+     */
+    private static GameExports createGameModInstance(GameImportsImpl gameImports) {
+        // todo: introduce proper Dependency Injection
+        try {
+            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
+            Constructor<?> constructor = game.getConstructor(GameImports.class);
+            return (GameExports) constructor.newInstance(gameImports);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
+            return null;
+        }
+    }
+
+    void SV_Loadgame_f(List<String> args) {
+
+        if (args.size() != 2) {
+            Com.Printf("USAGE: load <directory>\n");
+            return;
+        }
+
+        Com.Printf("Loading game...\n");
+
+        String saveGame = args.get(1);
+        if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
+            Com.Printf("Bad save name.\n");
+            return;
+        }
+
+        // make sure the server.ssv file exists
+        String name = FS.getWriteDir() + "/save/" + saveGame + "/server.ssv";
+        RandomAccessFile f;
+        try {
+            f = new RandomAccessFile(name, "r");
+        }
+        catch (FileNotFoundException e) {
+            Com.Printf("No such savegame: " + name + "\n");
+            return;
+        }
+
+        try {
+            f.close();
+        }
+        catch (IOException e1) {
+            e1.printStackTrace();
+        }
+
+        SV_CopySaveGame(saveGame, "current");
+
+        // start a new game fresh with new cvars
+        SV_InitGame();
+
+        final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
+
+        // go to the map
+        SV_Map(false, mapCommand, true);
+    }
+
+    /*
+==================
+SV_GameMap_f
+
+Saves the state of the map just being exited and goes to a new map.
+
+If the initial character of the map string is '*', the next map is
+in a new unit, so the current savegame directory is cleared of
+map files.
+
+Example:
+
+*inter.cin+jail
+
+Clears the archived maps, plays the inter.cin cinematic, then
+goes to map jail.bsp.
+==================
+*/
+    void SV_GameMap_f(List<String> args) {
+
+        if (args.size() != 2) {
+            Com.Printf("USAGE: gamemap <map>\n");
+            return;
+        }
+
+        String mapName = args.get(1);
+        Com.DPrintf("SV_GameMap(" + mapName + ")\n");
+
+        FS.CreatePath(FS.getWriteDir() + "/save/current/");
+
+        // check for clearing the current savegame
+        if (mapName.charAt(0) == '*') {
+            // wipe all the *.sav files
+            SV_WipeSavegame("current");
+        }
+        else { // save the map just exited
+            // todo: init gameImports in a proper place
+            if (SV_MAIN.gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
+                // clear all the client inuse flags before saving so that
+                // when the level is re-entered, the clients will spawn
+                // at spawn points instead of occupying body shells
+                boolean[] savedInuse = new boolean[(int) maxclients.value];
+                for (int i = 0; i < maxclients.value; i++) {
+                    client_t cl = clients.get(i);
+                    savedInuse[i] = cl.edict.inuse;
+                    cl.edict.inuse = false;
+                }
+
+                gameImports.SV_WriteLevelFile();
+
+                // we must restore these for clients to transfer over correctly
+                for (int i = 0; i < maxclients.value; i++) {
+                    client_t cl = clients.get(i);
+                    cl.edict.inuse = savedInuse[i];
+
+                }
+            }
+        }
+
+        // start up the next map
+        SV_Map(false, mapName, false);
+
+        // copy off the level to the autosave slot
+        if (0 == Globals.dedicated.value) {
+            SV_MAIN.gameImports.SV_WriteServerFile(true);
+            SV_CopySaveGame("current", "save0");
+        }
+    }
+
+    /**
+     * SV_Map
+     *
+     * @param levelstring
+     * the full syntax is:
+     *
+     * map [*]mapname$spawnpoint+nextserver
+     *
+     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
+     *
+     * Nextserver is used to allow a cinematic to play, then proceed to
+     * another level:
+     *
+     * map tram.cin+jail_e3
+     */
+    void SV_Map(boolean isDemo, String levelstring, boolean loadgame) {
+
+        if (gameImports != null && gameImports.sv != null) {
+            SV_MAIN.gameImports.sv.loadgame = loadgame;
+            SV_MAIN.gameImports.sv.isDemo = isDemo;
+        }
+
+        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
+            SV_InitGame(); // the game is just starting
+
+        // archive server state to be used in savegame
+        gameImports.svs.mapcmd = levelstring;
+
+        String level = levelstring; // bis hier her ok.
+
+        // if there is a + in the map, set nextserver to the remainder
+        int c = level.indexOf('+');
+        if (c != -1) {
+            Cvar.getInstance().Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
+            level = level.substring(0, c);
+        } else {
+            Cvar.getInstance().Set("nextserver", "");
+        }
+
+        // rst: base1 works for full, damo1 works for demo, so we need to store first map.
+        if (gameImports.firstmap.length() == 0)
+        {
+            if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
+            {
+                int pos = levelstring.indexOf('+');
+                gameImports.firstmap = levelstring.substring(pos + 1);
+            }
+        }
+
+        // ZOID: special hack for end game screen in coop mode
+        if (Cvar.getInstance().VariableValue("coop") != 0 && level.equals("victory.pcx"))
+            Cvar.getInstance().Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
+
+        // if there is a $, use the remainder as a spawnpoint
+        int pos = level.indexOf('$');
+        String spawnpoint;
+        if (pos != -1) {
+            spawnpoint = level.substring(pos + 1);
+            level = level.substring(0, pos);
+
+        } else
+            spawnpoint = "";
+
+        // skip the end-of-unit flag * if necessary
+        if (level.charAt(0) == '*')
+            level = level.substring(1);
+
+        int l = level.length();
+
+
+        Cmd.ExecuteFunction("loading"); // for local system
+        SV_MAIN.gameImports.SV_BroadcastCommand("changing\n");
+
+        if (l > 4 && level.endsWith(".cin")) {
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
+        } else if (l > 4 && level.endsWith(".dm2")) {
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
+        } else if (l > 4 && level.endsWith(".pcx")) {
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
+        } else {
+            SV_SendClientMessages();
+            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
+            Cbuf.CopyToDefer();
+        }
+
+        gameImports.SV_BroadcastCommand("reconnect\n");
+    }
+
+    /**
+     *Puts the server in demo mode on a specific map/cinematic
+     */
+    void SV_DemoMap_f(List<String> args) {
+        SV_Map(true, args.size() >= 2 ? args.get(1) : "", false);
+    }
+
+    /*
+==================
+SV_Map_f
+
+Goes directly to a given map without any savegame archiving.
+For development work
+==================
+*/
+    void SV_Map_f(List<String> args) {
+        String mapName;
+        //char expanded[MAX_QPATH];
+        if (args.size() < 2) {
+            Com.Printf("usage: map <map_name>\n");
+            return;
+        }
+
+        // if not a pcx, demo, or cinematic, check to make sure the level exists
+        mapName = args.get(1);
+        if (!mapName.contains(".")) {
+            String mapPath = "maps/" + mapName + ".bsp";
+            if (FS.LoadFile(mapPath) == null) {
+                Com.Printf("Can't find " + mapPath + "\n");
+                return;
+            }
+        }
+
+        if (SV_MAIN.gameImports != null)
+            SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+
+        SV_WipeSavegame("current");
+        SV_GameMap_f(args);
+    }
+
 }

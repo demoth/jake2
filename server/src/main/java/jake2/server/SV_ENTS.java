@@ -102,7 +102,7 @@ public class SV_ENTS {
                 // their oldorigin always
                 // and prevents warping
                 MSG.WriteDeltaEntity(oldent, newent, msg, false,
-                        newent.number <= SV_MAIN.maxclients.value);
+                        newent.number <= gameImports.serverMain.getClients().size());
                 oldindex++;
                 newindex++;
                 continue;

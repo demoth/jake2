@@ -40,7 +40,6 @@ import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_SEND.SV_Multicast;
 
 /*
  Collection of functions provided by the main engine.
@@ -50,6 +49,7 @@ import static jake2.server.SV_SEND.SV_Multicast;
 */
 public class GameImportsImpl implements GameImports {
 
+    final JakeServer serverMain;
     public GameExports gameExports;
 
     // persistent server state
@@ -78,7 +78,8 @@ public class GameImportsImpl implements GameImports {
     final sizebuf_t msg = new sizebuf_t();
     final byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
 
-    public GameImportsImpl() {
+    public GameImportsImpl(JakeServer serverMain) {
+        this.serverMain = serverMain;
 
         // Initialize server static state
         svs = new server_static_t();
@@ -86,7 +87,7 @@ public class GameImportsImpl implements GameImports {
         svs.spawncount = Lib.rand();
 
 
-        svs.num_client_entities = ((int) SV_MAIN.maxclients.value) * Defines.UPDATE_BACKUP * 64; //ok.
+        svs.num_client_entities = serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64; //ok.
 
         // Clear all client entity states
         svs.client_entities = new entity_state_t[svs.num_client_entities];
@@ -142,7 +143,7 @@ public class GameImportsImpl implements GameImports {
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {
-        SV_MAIN.SV_BroadcastPrintf(printlevel, s);
+        serverMain.SV_BroadcastPrintf(printlevel, s);
     }
 
     @Override
@@ -272,7 +273,7 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void multicast(float[] origin, MulticastTypes to) {
-        SV_SEND.SV_Multicast(origin, to, this);
+        SV_Multicast(origin, to);
     }
 
     @Override
@@ -368,7 +369,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // fixme: quite hacky way to get a player
-        if (SV_MAIN.maxclients.value == 1 && SV_MAIN.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+        if (serverMain.getClients().size() == 1 && serverMain.getClients().get(0).edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
             Com.Printf("\nCan't savegame while dead!\n");
             return;
         }
@@ -418,7 +419,7 @@ public class GameImportsImpl implements GameImports {
         if (!SV_SetPlayer(args))
             return;
 
-        SV_MAIN.SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
+        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
@@ -431,8 +432,8 @@ public class GameImportsImpl implements GameImports {
     ================
     */
     private void SV_Status_f(List<String> args) {
-        // todo use another way
-        if (SV_MAIN.clients == null) {
+        // todo: check
+        if (serverMain.getClients().isEmpty()) {
             Com.Printf("No server running.\n");
             return;
         }
@@ -440,8 +441,9 @@ public class GameImportsImpl implements GameImports {
 
         Com.Printf("num score ping name            lastmsg address               qport \n");
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t cl = SV_MAIN.clients[i];
+
+        int i = 0;
+        for (client_t cl : serverMain.getClients()) {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
 
@@ -474,6 +476,7 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("%5i", new Vargs().add(cl.netchan.qport));
 
             Com.Printf("\n");
+            i++;
         }
         Com.Printf("\n");
     }
@@ -497,8 +500,7 @@ public class GameImportsImpl implements GameImports {
 
         text += p;
 
-        for (int j = 0; j < SV_MAIN.maxclients.value; j++) {
-            client_t client = SV_MAIN.clients[j];
+        for (client_t client: serverMain.getClients()) {
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
             SV_SEND.SV_ClientPrintf(client, Defines.PRINT_CHAT, text + "\n");
@@ -666,7 +668,7 @@ public class GameImportsImpl implements GameImports {
     private void SV_KillServer_f(List<String> args) {
         if (!svs.initialized)
             return;
-        SV_MAIN.SV_Shutdown("Server was killed.\n", false);
+        serverMain.SV_Shutdown("Server was killed.\n", false);
         NET.Config(false); // close network sockets
     }
     //===========================================================
@@ -731,12 +733,12 @@ public class GameImportsImpl implements GameImports {
         // fixme: player name cannot start with a number?
         if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
             int id = Lib.atoi(idOrName);
-            if (id < 0 || id >= SV_MAIN.maxclients.value) {
+            if (id < 0 || id >= serverMain.getClients().size()) {
                 Com.Printf("Bad client slot: " + id + "\n");
                 return false;
             }
 
-            sv_client = SV_MAIN.clients[id];
+            sv_client = serverMain.getClients().get(id);
             if (ClientStates.CS_FREE == sv_client.state) {
                 Com.Printf("Client " + id + " is not active\n");
                 return false;
@@ -745,8 +747,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // check for a name match
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            client_t cl = SV_MAIN.clients[i];
+        for (client_t cl: serverMain.getClients()) {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
@@ -812,11 +813,11 @@ public class GameImportsImpl implements GameImports {
         // then why update state and lastframe?
 
         // leave slots at start for clients only
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (client_t cl: serverMain.getClients()) {
             // needs to reconnect
-            if (SV_MAIN.clients[i].state == ClientStates.CS_SPAWNED)
-                SV_MAIN.clients[i].state = ClientStates.CS_CONNECTED;
-            SV_MAIN.clients[i].lastframe = -1;
+            if (cl.state == ClientStates.CS_SPAWNED)
+                cl.state = ClientStates.CS_CONNECTED;
+            cl.lastframe = -1;
         }
 
         sv.time = 1000;
@@ -891,7 +892,7 @@ public class GameImportsImpl implements GameImports {
         sv.time = sv.framenum * 100;
 
         // don't run if paused
-        if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
+        if (0 == SV_MAIN.sv_paused.value || serverMain.getClients().size() > 1) {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind
@@ -915,7 +916,7 @@ public class GameImportsImpl implements GameImports {
 
         MSG.WriteByte(sv.multicast, NetworkCommands.svc_stufftext);
         MSG.WriteString(sv.multicast, s);
-        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, this);
+        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
     }
 
     void SV_WriteLevelFile() {
@@ -991,4 +992,97 @@ public class GameImportsImpl implements GameImports {
         // write game state
         gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
     }
+
+    /**
+     *SV_Multicast
+     *
+     * Sends the contents of sv.multicast to a subset of the clients,
+     * then clears sv.multicast.
+     *
+     * MULTICAST_ALL	same as broadcast (origin can be null)
+     * MULTICAST_PVS	send to clients potentially visible from org
+     * MULTICAST_PHS	send to clients potentially hearable from org
+     */
+    public void SV_Multicast(float[] origin, MulticastTypes to) {
+        byte mask[];
+        int leafnum, cluster;
+        int j;
+        boolean reliable;
+        int area1, area2;
+
+        reliable = false;
+
+        if (to != MulticastTypes.MULTICAST_ALL_R && to != MulticastTypes.MULTICAST_ALL) {
+            leafnum = cm.CM_PointLeafnum(origin);
+            area1 = cm.CM_LeafArea(leafnum);
+        }
+        else {
+            leafnum = 0; // just to avoid compiler warnings
+            area1 = 0;
+        }
+
+        // if doing a serverrecord, store everything
+        if (svs.demofile != null)
+            SZ.Write(svs.demo_multicast, sv.multicast.data, sv.multicast.cursize);
+
+        switch (to) {
+            case MULTICAST_ALL_R :
+                reliable = true; // intentional fallthrough, no break here
+            case MULTICAST_ALL :
+                leafnum = 0;
+                mask = null;
+                break;
+
+            case MULTICAST_PHS_R :
+                reliable = true; // intentional fallthrough
+            case MULTICAST_PHS :
+                leafnum = cm.CM_PointLeafnum(origin);
+                cluster = cm.CM_LeafCluster(leafnum);
+                mask = cm.CM_ClusterPHS(cluster);
+                break;
+
+            case MULTICAST_PVS_R :
+                reliable = true; // intentional fallthrough
+            case MULTICAST_PVS :
+                leafnum = cm.CM_PointLeafnum(origin);
+                cluster = cm.CM_LeafCluster(leafnum);
+                mask = cm.CM_ClusterPVS(cluster);
+                break;
+
+            default :
+                mask = null;
+                Com.Error(Defines.ERR_FATAL, "SV_Multicast: bad to:" + to + "\n");
+        }
+
+        // send the data to all relevent clients
+        for (client_t client: serverMain.getClients()) {
+
+            if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
+                continue;
+            if (client.state != ClientStates.CS_SPAWNED && !reliable)
+                continue;
+
+            if (mask != null) {
+                leafnum = cm.CM_PointLeafnum(client.edict.s.origin);
+                cluster = cm.CM_LeafCluster(leafnum);
+                area2 = cm.CM_LeafArea(leafnum);
+                if (!cm.CM_AreasConnected(area1, area2))
+                    continue;
+
+                // quake2 bugfix
+                if (cluster == -1)
+                    continue;
+                if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
+                    continue;
+            }
+
+            if (reliable)
+                SZ.Write(client.netchan.message, sv.multicast.data, sv.multicast.cursize);
+            else
+                SZ.Write(client.datagram, sv.multicast.data, sv.multicast.cursize);
+        }
+
+        sv.multicast.clear();
+    }
+
 }
