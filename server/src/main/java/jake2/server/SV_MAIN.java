@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static jake2.qcommon.Defines.*;
@@ -1361,7 +1360,7 @@ public class SV_MAIN implements JakeServer {
         final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
 
         // go to the map
-        SV_Map(false, mapCommand, true);
+        spawnServerInstance(false, mapCommand, true);
     }
 
     /*
@@ -1424,7 +1423,7 @@ goes to map jail.bsp.
         }
 
         // start up the next map
-        SV_Map(false, mapName, false);
+        spawnServerInstance(false, mapName, false);
 
         // copy off the level to the autosave slot
         if (0 == Globals.dedicated.value) {
@@ -1448,7 +1447,7 @@ goes to map jail.bsp.
      *
      * map tram.cin+jail_e3
      */
-    void SV_Map(boolean isDemo, String levelstring, boolean loadgame) {
+    void spawnServerInstance(boolean isDemo, String levelstring, boolean loadgame) {
 
         if (gameImports != null && gameImports.sv != null) {
             SV_MAIN.gameImports.sv.loadgame = loadgame;
@@ -1505,18 +1504,134 @@ goes to map jail.bsp.
 
         Cmd.ExecuteFunction("loading"); // for local system
         SV_MAIN.gameImports.SV_BroadcastCommand("changing\n");
+        SV_SendClientMessages();
+
+        final ServerStates serverState;
 
         if (l > 4 && level.endsWith(".cin")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC, isDemo, loadgame);
+            serverState = ServerStates.SS_CINEMATIC;
         } else if (l > 4 && level.endsWith(".dm2")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, isDemo, loadgame);
+            serverState = ServerStates.SS_DEMO;
         } else if (l > 4 && level.endsWith(".pcx")) {
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, isDemo, loadgame);
+            serverState = ServerStates.SS_PIC;
         } else {
-            SV_SendClientMessages();
-            gameImports.SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, isDemo, loadgame);
-            Cbuf.CopyToDefer();
+            serverState = ServerStates.SS_GAME;
         }
+
+        if (isDemo)
+            Cvar.getInstance().Set("paused", "0");
+
+        Com.Printf("------- Server Initialization -------\n");
+
+        Com.DPrintf("SpawnServer: " + level + "\n");
+        if (gameImports.sv != null && gameImports.sv.demofile != null)
+            try {
+                gameImports.sv.demofile.close();
+            }
+            catch (Exception e) {
+                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
+            }
+
+        // any partially connected client will be restarted
+        gameImports.svs.spawncount++;
+
+        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
+
+        // wipe the entire per-level structure
+        gameImports.sv = new server_t();
+
+        gameImports.svs.realtime = 0;
+        gameImports.sv.loadgame = loadgame;
+        gameImports.sv.isDemo = isDemo;
+
+        // save name for levels that don't set message
+        gameImports.sv.configstrings[CS_NAME] = level;
+
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            gameImports.sv.configstrings[CS_AIRACCEL] = "" + sv_airaccelerate.value;
+            PMove.pm_airaccelerate = sv_airaccelerate.value;
+        } else {
+            gameImports.sv.configstrings[CS_AIRACCEL] = "0";
+            PMove.pm_airaccelerate = 0;
+        }
+
+        SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
+
+        gameImports.sv.name = level;
+
+        // question: if we spawn a new server - all existing clients will receive the 'reconnect'
+        // then why update state and lastframe?
+
+        // leave slots at start for clients only
+        for (client_t cl: gameImports.serverMain.getClients()) {
+            // needs to reconnect
+            if (cl.state == ClientStates.CS_SPAWNED)
+                cl.state = ClientStates.CS_CONNECTED;
+            cl.lastframe = -1;
+        }
+
+        gameImports.sv.time = 1000;
+
+        gameImports.sv.name = level;
+        gameImports.sv.configstrings[CS_NAME] = level;
+
+        int checksum = 0;
+        int iw[] = { checksum };
+
+        if (serverState != ServerStates.SS_GAME) {
+            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap("", false, iw); // no real map
+        } else {
+            gameImports.sv.configstrings[CS_MODELS + 1] = "maps/" + level + ".bsp";
+            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap(gameImports.sv.configstrings[CS_MODELS + 1], false, iw);
+        }
+        checksum = iw[0];
+        gameImports.sv.configstrings[CS_MAPCHECKSUM] = "" + checksum;
+
+
+        // clear physics interaction links
+
+        SV_WORLD.SV_ClearWorld(gameImports);
+
+        for (int i = 1; i < gameImports.cm.CM_NumInlineModels(); i++) {
+            gameImports.sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
+
+            // copy references
+            gameImports.sv.models[i + 1] = gameImports.cm.InlineModel(gameImports.sv.configstrings[CS_MODELS + 1 + i]);
+        }
+
+
+        // spawn the rest of the entities on the map
+
+        // precache and static commands can be issued during
+        // map initialization
+
+        gameImports.sv.state = ServerStates.SS_LOADING;
+        Globals.server_state = gameImports.sv.state;
+
+        // load and spawn all other entities
+        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), spawnpoint);
+
+        // run two frames to allow everything to settle
+        gameImports.gameExports.G_RunFrame();
+        gameImports.gameExports.G_RunFrame();
+
+        // all precaches are complete
+        gameImports.sv.state = serverState;
+        Globals.server_state = gameImports.sv.state;
+
+        // create a baseline for more efficient communications
+        gameImports.sv_game.SV_CreateBaseline();
+
+        // check for a savegame
+        gameImports.sv_game.SV_CheckForSavegame(gameImports.sv);
+
+        // set serverinfo variable
+        Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+
+        if (serverState == ServerStates.SS_GAME)
+            Cbuf.CopyToDefer();
+
+
 
         gameImports.SV_BroadcastCommand("reconnect\n");
     }
@@ -1525,7 +1640,7 @@ goes to map jail.bsp.
      *Puts the server in demo mode on a specific map/cinematic
      */
     void SV_DemoMap_f(List<String> args) {
-        SV_Map(true, args.size() >= 2 ? args.get(1) : "", false);
+        spawnServerInstance(true, args.size() >= 2 ? args.get(1) : "", false);
     }
 
     /*
