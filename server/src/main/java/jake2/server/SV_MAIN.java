@@ -1360,7 +1360,7 @@ public class SV_MAIN implements JakeServer {
         final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
 
         // go to the map
-        spawnServerInstance(false, mapCommand, true);
+        spawnServerInstance(false, new ChangeMapInfo(mapCommand), true);
     }
 
     /*
@@ -1423,7 +1423,7 @@ goes to map jail.bsp.
         }
 
         // start up the next map
-        spawnServerInstance(false, mapName, false);
+        spawnServerInstance(false, new ChangeMapInfo(mapName), false);
 
         // copy off the level to the autosave slot
         if (0 == Globals.dedicated.value) {
@@ -1435,7 +1435,7 @@ goes to map jail.bsp.
     /**
      * SV_Map
      *
-     * @param levelstring
+     * @param changeMapInfo
      * the full syntax is:
      *
      * map [*]mapname$spawnpoint+nextserver
@@ -1447,83 +1447,21 @@ goes to map jail.bsp.
      *
      * map tram.cin+jail_e3
      */
-    void spawnServerInstance(boolean isDemo, String levelstring, boolean loadgame) {
-
-        if (gameImports != null && gameImports.sv != null) {
-            SV_MAIN.gameImports.sv.loadgame = loadgame;
-            SV_MAIN.gameImports.sv.isDemo = isDemo;
-        }
+    void spawnServerInstance(boolean isDemo, ChangeMapInfo changeMapInfo, boolean loadgame) {
+        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
 
         if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
             SV_InitGame(); // the game is just starting
 
-        // archive server state to be used in savegame
-        gameImports.svs.mapcmd = levelstring;
 
-        String level = levelstring; // bis hier her ok.
-
-        // if there is a + in the map, set nextserver to the remainder
-        int c = level.indexOf('+');
-        if (c != -1) {
-            Cvar.getInstance().Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
-            level = level.substring(0, c);
-        } else {
-            Cvar.getInstance().Set("nextserver", "");
-        }
-
-        // rst: base1 works for full, damo1 works for demo, so we need to store first map.
-        if (gameImports.firstmap.length() == 0)
-        {
-            if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
-            {
-                int pos = levelstring.indexOf('+');
-                gameImports.firstmap = levelstring.substring(pos + 1);
-            }
-        }
-
-        // ZOID: special hack for end game screen in coop mode
-        if (Cvar.getInstance().VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.getInstance().Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
-
-        // if there is a $, use the remainder as a spawnpoint
-        int pos = level.indexOf('$');
-        String spawnpoint;
-        if (pos != -1) {
-            spawnpoint = level.substring(pos + 1);
-            level = level.substring(0, pos);
-
-        } else
-            spawnpoint = "";
-
-        // skip the end-of-unit flag * if necessary
-        if (level.charAt(0) == '*')
-            level = level.substring(1);
-
-        int l = level.length();
-
+        Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
         SV_MAIN.gameImports.SV_BroadcastCommand("changing\n");
         SV_SendClientMessages();
 
-        final ServerStates serverState;
-
-        if (l > 4 && level.endsWith(".cin")) {
-            serverState = ServerStates.SS_CINEMATIC;
-        } else if (l > 4 && level.endsWith(".dm2")) {
-            serverState = ServerStates.SS_DEMO;
-        } else if (l > 4 && level.endsWith(".pcx")) {
-            serverState = ServerStates.SS_PIC;
-        } else {
-            serverState = ServerStates.SS_GAME;
-        }
-
-        if (isDemo)
-            Cvar.getInstance().Set("paused", "0");
-
         Com.Printf("------- Server Initialization -------\n");
 
-        Com.DPrintf("SpawnServer: " + level + "\n");
         if (gameImports.sv != null && gameImports.sv.demofile != null)
             try {
                 gameImports.sv.demofile.close();
@@ -1534,18 +1472,21 @@ goes to map jail.bsp.
 
         // any partially connected client will be restarted
         gameImports.svs.spawncount++;
+        gameImports.svs.realtime = 0;
+        // archive server state to be used in savegame
+        gameImports.svs.mapcmd = changeMapInfo.levelString;
 
-        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
 
         // wipe the entire per-level structure
         gameImports.sv = new server_t();
 
-        gameImports.svs.realtime = 0;
         gameImports.sv.loadgame = loadgame;
         gameImports.sv.isDemo = isDemo;
+        gameImports.sv.name = changeMapInfo.mapName;
+        gameImports.sv.time = 1000;
 
         // save name for levels that don't set message
-        gameImports.sv.configstrings[CS_NAME] = level;
+        gameImports.sv.configstrings[CS_NAME] = changeMapInfo.mapName;
 
         if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
             gameImports.sv.configstrings[CS_AIRACCEL] = "" + sv_airaccelerate.value;
@@ -1557,7 +1498,6 @@ goes to map jail.bsp.
 
         SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
 
-        gameImports.sv.name = level;
 
         // question: if we spawn a new server - all existing clients will receive the 'reconnect'
         // then why update state and lastframe?
@@ -1570,23 +1510,15 @@ goes to map jail.bsp.
             cl.lastframe = -1;
         }
 
-        gameImports.sv.time = 1000;
+        int[] iw = { 0 };
 
-        gameImports.sv.name = level;
-        gameImports.sv.configstrings[CS_NAME] = level;
-
-        int checksum = 0;
-        int iw[] = { checksum };
-
-        if (serverState != ServerStates.SS_GAME) {
-            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap("", false, iw); // no real map
-        } else {
-            gameImports.sv.configstrings[CS_MODELS + 1] = "maps/" + level + ".bsp";
+        if (changeMapInfo.state == ServerStates.SS_GAME) {
+            gameImports.sv.configstrings[CS_MODELS + 1] = "maps/" + changeMapInfo.mapName + ".bsp";
             gameImports.sv.models[1] = gameImports.cm.CM_LoadMap(gameImports.sv.configstrings[CS_MODELS + 1], false, iw);
+        } else {
+            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap("", false, iw); // no real map
         }
-        checksum = iw[0];
-        gameImports.sv.configstrings[CS_MAPCHECKSUM] = "" + checksum;
-
+        gameImports.sv.configstrings[CS_MAPCHECKSUM] = "" + iw[0];
 
         // clear physics interaction links
 
@@ -1604,19 +1536,18 @@ goes to map jail.bsp.
 
         // precache and static commands can be issued during
         // map initialization
-
         gameImports.sv.state = ServerStates.SS_LOADING;
         Globals.server_state = gameImports.sv.state;
 
         // load and spawn all other entities
-        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), spawnpoint);
+        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
 
         // run two frames to allow everything to settle
         gameImports.gameExports.G_RunFrame();
         gameImports.gameExports.G_RunFrame();
 
         // all precaches are complete
-        gameImports.sv.state = serverState;
+        gameImports.sv.state = changeMapInfo.state;
         Globals.server_state = gameImports.sv.state;
 
         // create a baseline for more efficient communications
@@ -1628,10 +1559,8 @@ goes to map jail.bsp.
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
 
-        if (serverState == ServerStates.SS_GAME)
+        if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
-
-
 
         gameImports.SV_BroadcastCommand("reconnect\n");
     }
@@ -1640,7 +1569,7 @@ goes to map jail.bsp.
      *Puts the server in demo mode on a specific map/cinematic
      */
     void SV_DemoMap_f(List<String> args) {
-        spawnServerInstance(true, args.size() >= 2 ? args.get(1) : "", false);
+        spawnServerInstance(true, new ChangeMapInfo(args.size() >= 2 ? args.get(1) : ""), false);
     }
 
     /*

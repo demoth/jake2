@@ -276,16 +276,16 @@ public class SV_GAME {
     }
 
     /**
-     * SV_FindIndex.
+     * Find an index of a configstring with `val` value, or create a new one.
      */
-    int SV_FindIndex(String name, int start, int max, boolean create) {
+    int SV_FindIndex(String val, int start, int max, boolean create) {
         int i;
 
-        if (name == null || name.length() == 0)
+        if (val == null || val.length() == 0)
             return 0;
 
         for (i = 1; i < max && gameImports.sv.configstrings[start + i] != null; i++)
-            if (name.equals(gameImports.sv.configstrings[start + i]))
+            if (val.equals(gameImports.sv.configstrings[start + i]))
                 return i;
 
         if (!create)
@@ -294,16 +294,7 @@ public class SV_GAME {
         if (i == max)
             Com.Error(Defines.ERR_DROP, "*Index: overflow");
 
-        gameImports.sv.configstrings[start + i] = name;
-
-        if (gameImports.sv.state != ServerStates.SS_LOADING) {
-            // send the update to everyone
-            gameImports.sv.multicast.clear();
-            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
-            MSG.WriteShort(gameImports.sv.multicast, start + i);
-            MSG.WriteString(gameImports.sv.multicast, name);
-            gameImports.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
-        }
+        PF_Configstring(start + i, val);
 
         return i;
     }

@@ -58,6 +58,7 @@ public class Globals extends Defines {
 	public static int c_brush_traces;
 	public static int c_pointcontents;
 	// todo move from static
+	@Deprecated
 	public static ServerStates server_state;
 
 	public static cvar_t dedicated;
