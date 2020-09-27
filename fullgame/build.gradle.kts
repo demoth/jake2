@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":server"))
 
     runtimeOnly(project(":game"))
+    testImplementation(project(":game"))
 }
 
 task("listNatives") {

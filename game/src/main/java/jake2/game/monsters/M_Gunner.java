@@ -636,7 +636,7 @@ public class M_Gunner {
             new mframe_t(GameAI.ai_run, 13, null),
             new mframe_t(GameAI.ai_run, 6, null) };
 
-    static mmove_t gunner_move_run = new mmove_t(FRAME_run01, FRAME_run08,
+    public static mmove_t gunner_move_run = new mmove_t(FRAME_run01, FRAME_run08,
             gunner_frames_run, null);
 
     static EntThinkAdapter gunner_run = new EntThinkAdapter() {

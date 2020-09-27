@@ -49,7 +49,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameFunc",
                     "jake2.game.GameMisc",
                     "jake2.game.GameSVCmds",
-                    "jake2.game.GameSave",
                     "jake2.game.GameSpawn",
                     "jake2.game.GameTarget",
                     "jake2.game.GameTrigger",

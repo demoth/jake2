@@ -49,11 +49,6 @@ import static jake2.server.SV_USER.userCommands;
 public class SV_MAIN implements JakeServer {
 
     @Override
-    public boolean isPaused() {
-        return false;
-    }
-
-    @Override
     public List<client_t> getClients() {
         return clients;
     }
@@ -1248,15 +1243,16 @@ public class SV_MAIN implements JakeServer {
      */
     GameImportsImpl createGameInstance() {
 
-        if (gameImports != null) {
-            // cause any connected clients to reconnect
-            SV_Shutdown("Server restarted\n", true);
-        } else {
-            // make sure the client is down
-            Cmd.ExecuteFunction("loading");
-            Cmd.ExecuteFunction("cl_drop");
-        }
+        // todo: persist server static (svs)
+        GameImportsImpl gameImports = new GameImportsImpl(this);
+        gameImports.gameExports = createGameModInstance(gameImports);
+        // why? should have default values already
+        // fixme should not recreate all the clients
+        resetClients(gameImports.gameExports);
+        return gameImports;
+    }
 
+    private boolean initializeServerCvars() {
         // get any latched variable changes (maxclients, etc)
         Cvar.getInstance().updateLatchedVars();
 
@@ -1267,7 +1263,7 @@ public class SV_MAIN implements JakeServer {
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
-        if (Globals.dedicated.value != 0) {
+        if (Cvar.getInstance().Get("dedicated", "0", 0).value != 0) {
             if (0 == Cvar.getInstance().VariableValue("coop"))
                 Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
@@ -1289,19 +1285,7 @@ public class SV_MAIN implements JakeServer {
             // non-deathmatch, non-coop is one player
             Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
-
-        // todo: persist server static (svs)
-        SV_MAIN.gameImports = new GameImportsImpl(this);
-
-        // init network stuff
-        NET.Config((maxclients.value > 1));
-        NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
-
-        SV_MAIN.gameImports.gameExports = createGameModInstance(SV_MAIN.gameImports);
-        // why? should have default values already
-        // fixme should not recreate all the clients
-        resetClients(SV_MAIN.gameImports.gameExports);
-        return SV_MAIN.gameImports;
+        return maxclients.value > 1;
     }
 
     /**
@@ -1451,8 +1435,26 @@ goes to map jail.bsp.
     void spawnServerInstance(ChangeMapInfo changeMapInfo) {
         Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
 
-        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
-            createGameInstance(); // the game is just starting
+        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame) {
+
+            if (gameImports != null) {
+                // cause any connected clients to reconnect
+                SV_Shutdown("Server restarted\n", true);
+            } else {
+                // make sure the client is down
+                Cmd.ExecuteFunction("loading");
+                Cmd.ExecuteFunction("cl_drop");
+            }
+
+
+            boolean multiplayer = initializeServerCvars();
+            // init network stuff
+            NET.Config(multiplayer);
+            NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
+
+
+            gameImports = createGameInstance(); // the game is just starting
+        }
 
         if (changeMapInfo.isLoadgame) {
             SV_Read_Latched_Vars(gameImports);
@@ -1461,7 +1463,7 @@ goes to map jail.bsp.
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
-        SV_MAIN.gameImports.SV_BroadcastCommand("changing\n");
+        gameImports.SV_BroadcastCommand("changing\n");
         SV_SendClientMessages();
 
         Com.Printf("------- Server Initialization -------\n");

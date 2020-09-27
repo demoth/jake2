@@ -147,3 +147,8 @@
 "classname" "weapon_chaingun"
 "origin" "160 224 16"
 }
+// entity 16
+{
+"classname" "monster_soldier"
+"origin" "256 -0 24"
+}

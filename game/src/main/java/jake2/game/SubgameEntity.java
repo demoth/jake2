@@ -703,4 +703,9 @@ public class SubgameEntity extends edict_t {
     public void setOwner(SubgameEntity owner) {
         this.owner = owner;
     }
+
+    @Override
+    public String toString() {
+        return classname;
+    }
 }

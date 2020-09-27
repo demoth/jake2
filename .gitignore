@@ -1,5 +1,5 @@
 build
-baseq2
+/baseq2
 .DS_Store
 .idea
 .gradle

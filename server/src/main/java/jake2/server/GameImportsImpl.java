@@ -123,7 +123,7 @@ public class GameImportsImpl implements GameImports {
 
         //Cmd.AddCommand("setmaster", this::SV_SetMaster_f, true);
 
-        if (Globals.dedicated.value != 0)
+        if (Globals.dedicated != null && Globals.dedicated.value != 0)
             Cmd.AddCommand("say", this::SV_ConSay_f, true);
 
         Cmd.AddCommand("serverrecord", this::SV_ServerRecord_f, true);
@@ -773,7 +773,7 @@ public class GameImportsImpl implements GameImports {
         sv.time = sv.framenum * 100;
 
         // don't run if paused
-        if (0 == SV_MAIN.sv_paused.value || serverMain.getClients().size() > 1) {
+        if (SV_MAIN.sv_paused == null || 1 != SV_MAIN.sv_paused.value || serverMain.getClients().size() > 1) {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind

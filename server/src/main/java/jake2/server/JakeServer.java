@@ -5,8 +5,6 @@ import java.util.List;
 public interface JakeServer {
     void update(long time);
 
-    boolean isPaused();
-
     List<client_t> getClients();
 
     void SV_BroadcastPrintf(int level, String s);
