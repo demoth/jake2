@@ -2106,7 +2106,7 @@ public final class Menu extends Key {
         for (i = 0; i < MAX_SAVEGAMES; i++) {
 
             m_savestrings[i] = "<EMPTY>";
-            name = FS.getWriteDir() + "/save/save" + i + "/server.ssv";
+            name = FS.getWriteDir() + "/save/save" + i + "/server_mapcmd.ssv";
 
             try {
                 f = new QuakeFile(name, "r", false, -1);

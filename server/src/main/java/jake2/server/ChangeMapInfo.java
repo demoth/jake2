@@ -12,9 +12,26 @@ public class ChangeMapInfo {
     final String nextServer;
     final String spawnPoint;
     final ServerStates state;
+    final boolean isDemo;
+    final boolean isLoadgame;
 
-    ChangeMapInfo(String levelString) {
+    /**
+     * @param levelString - change map command. The full syntax is:
+     *
+     * [*]mapname$spawnpoint+nextserver
+     *
+     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
+     *
+     * Nextserver is used to allow a cinematic to play, then proceed to
+     * another level:
+     *
+     * map tram.cin+jail_e3
+     *
+     */
+    ChangeMapInfo(String levelString, boolean isDemo, boolean isLoadgame) {
         this.levelString = levelString;
+        this.isLoadgame = isLoadgame;
+        this.isDemo = isDemo;
         newUnit = levelString.startsWith("*");
 
         // next server
@@ -44,6 +61,10 @@ public class ChangeMapInfo {
         if (levelString.endsWith(".cin")) {
             state = ServerStates.SS_CINEMATIC;
         } else if (levelString.endsWith(".dm2")) {
+            if (!isDemo) {
+                // todo remove
+                throw new IllegalStateException(".dm2 server should have isDemo=true");
+            }
             state = ServerStates.SS_DEMO;
         } else if (levelString.endsWith(".pcx")) {
             state = ServerStates.SS_PIC;

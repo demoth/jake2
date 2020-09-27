@@ -838,9 +838,8 @@ public class GameImportsImpl implements GameImports {
 
         Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
-        final String saveFile = FS.getWriteDir() + "/save/current/server.ssv";
         try {
-            QuakeFile f = new QuakeFile(saveFile, "rw");
+            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv", "rw");
 
             final String comment;
             if (autosave) {
@@ -851,23 +850,27 @@ public class GameImportsImpl implements GameImports {
 
             f.writeString(comment);
             f.writeString(svs.mapcmd);
+            f.close();
+
+
+            QuakeFile cvarsFile = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "rw");
 
             // write all CVAR_LATCH cvars
             // these will be things like coop, skill, deathmatch, etc
             Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
                 try {
-                    f.writeString(var.name);
-                    f.writeString(var.string);
+                    cvarsFile.writeString(var.name);
+                    cvarsFile.writeString(var.string);
                 } catch (IOException e) {
-                    Com.Printf("Could not write cvar(" + var + " to " + saveFile + ", " + e.getMessage());
+                    throw new RuntimeException(e);
                 }
             });
 
             // rst: for termination.
-            f.writeString(null);
-            f.close();
+            cvarsFile.writeString(null);
+            cvarsFile.close();
         } catch (Exception e) {
-            Com.Printf("Couldn't write " + saveFile + ", " + e.getMessage() + "\n");
+            throw new RuntimeException(e);
         }
 
         // write game state

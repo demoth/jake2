@@ -28,6 +28,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.*;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
@@ -1245,7 +1246,7 @@ public class SV_MAIN implements JakeServer {
      *
      * A brand new game has been started.
      */
-    GameImportsImpl SV_InitGame() {
+    GameImportsImpl createGameInstance() {
 
         if (gameImports != null) {
             // cause any connected clients to reconnect
@@ -1335,7 +1336,7 @@ public class SV_MAIN implements JakeServer {
         }
 
         // make sure the server.ssv file exists
-        String name = FS.getWriteDir() + "/save/" + saveGame + "/server.ssv";
+        String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv";
         RandomAccessFile f;
         try {
             f = new RandomAccessFile(name, "r");
@@ -1354,13 +1355,25 @@ public class SV_MAIN implements JakeServer {
 
         SV_CopySaveGame(saveGame, "current");
 
-        // start a new game fresh with new cvars
-        SV_InitGame();
-
-        final String mapCommand = SV_ReadServerFile(SV_MAIN.gameImports);
+        final String mapCommand = SV_ReadMapCommand();
 
         // go to the map
-        spawnServerInstance(false, new ChangeMapInfo(mapCommand), true);
+        spawnServerInstance(new ChangeMapInfo(mapCommand, false, true));
+    }
+
+    private String SV_ReadMapCommand() {
+        Com.DPrintf("SV_ReadMapCommand()\n");
+
+        try {
+            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv", "r");
+            // read the comment field
+            Com.DPrintf("SV_ReadMapCommand: Loading save: " + f.readString() + "\n");
+
+            // read the mapcmd
+            return f.readString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /*
@@ -1400,7 +1413,7 @@ goes to map jail.bsp.
         }
         else { // save the map just exited
             // todo: init gameImports in a proper place
-            if (SV_MAIN.gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
+            if (gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
                 // at spawn points instead of occupying body shells
@@ -1423,7 +1436,7 @@ goes to map jail.bsp.
         }
 
         // start up the next map
-        spawnServerInstance(false, new ChangeMapInfo(mapName), false);
+        spawnServerInstance(new ChangeMapInfo(mapName, false, false));
 
         // copy off the level to the autosave slot
         if (0 == Globals.dedicated.value) {
@@ -1434,25 +1447,16 @@ goes to map jail.bsp.
 
     /**
      * SV_Map
-     *
-     * @param changeMapInfo
-     * the full syntax is:
-     *
-     * map [*]mapname$spawnpoint+nextserver
-     *
-     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
-     *
-     * Nextserver is used to allow a cinematic to play, then proceed to
-     * another level:
-     *
-     * map tram.cin+jail_e3
      */
-    void spawnServerInstance(boolean isDemo, ChangeMapInfo changeMapInfo, boolean loadgame) {
+    void spawnServerInstance(ChangeMapInfo changeMapInfo) {
         Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
 
         if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame)
-            SV_InitGame(); // the game is just starting
+            createGameInstance(); // the game is just starting
 
+        if (changeMapInfo.isLoadgame) {
+            SV_Read_Latched_Vars(gameImports);
+        }
 
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
@@ -1480,8 +1484,8 @@ goes to map jail.bsp.
         // wipe the entire per-level structure
         gameImports.sv = new server_t();
 
-        gameImports.sv.loadgame = loadgame;
-        gameImports.sv.isDemo = isDemo;
+        gameImports.sv.loadgame = changeMapInfo.isLoadgame;
+        gameImports.sv.isDemo = changeMapInfo.isDemo;
         gameImports.sv.name = changeMapInfo.mapName;
         gameImports.sv.time = 1000;
 
@@ -1569,7 +1573,7 @@ goes to map jail.bsp.
      *Puts the server in demo mode on a specific map/cinematic
      */
     void SV_DemoMap_f(List<String> args) {
-        spawnServerInstance(true, new ChangeMapInfo(args.size() >= 2 ? args.get(1) : ""), false);
+        spawnServerInstance(new ChangeMapInfo(args.size() >= 2 ? args.get(1) : "", true, false));
     }
 
     /*

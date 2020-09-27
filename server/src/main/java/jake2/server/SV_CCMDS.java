@@ -25,18 +25,14 @@ package jake2.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.sys.Sys;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Date;
 import java.util.List;
 
 public class SV_CCMDS {
@@ -62,7 +58,10 @@ public class SV_CCMDS {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
-		String name = FS.getWriteDir() + "/save/" + savename + "/server.ssv";
+		String name = FS.getWriteDir() + "/save/" + savename + "/server_latched_cvars.ssv";
+		remove(name);
+
+		name = FS.getWriteDir() + "/save/" + savename + "/server_mapcmd.ssv";
 		remove(name);
 
 		name = FS.getWriteDir() + "/save/" + savename + "/game.ssv";
@@ -164,8 +163,14 @@ public class SV_CCMDS {
 		SV_WipeSavegame(dst);
 
 		// copy the savegame over
-		String name = FS.getWriteDir() + "/save/" + src + "/server.ssv";
-		String name2 = FS.getWriteDir() + "/save/" + dst + "/server.ssv";
+		String name = FS.getWriteDir() + "/save/" + src + "/server_latched_cvars.ssv";
+		String name2 = FS.getWriteDir() + "/save/" + dst + "/server_latched_cvars.ssv";
+		FS.CreatePath(name2);
+		CopyFile(name, name2);
+
+		// copy the savegame over
+		name = FS.getWriteDir() + "/save/" + src + "/server_mapcmd.ssv";
+		name2 = FS.getWriteDir() + "/save/" + dst + "/server_mapcmd.ssv";
 		FS.CreatePath(name2);
 		CopyFile(name, name2);
 
@@ -225,25 +230,17 @@ public class SV_CCMDS {
 	}
 
 
-	/*
+	/**
 	 * 	SV_ReadServerFile
+	 *
+	 * 	todo - move read game locals to another function
 	 */
-	static String SV_ReadServerFile(GameImportsImpl gameImports) {
-		String filename = "";
+	static void SV_Read_Latched_Vars(GameImportsImpl gameImports) {
 		try {
 
 			Com.DPrintf("SV_ReadServerFile()\n");
 
-			filename = FS.getWriteDir() + "/save/current/server.ssv";
-
-			QuakeFile f = new QuakeFile(filename, "r");
-
-			// read the comment field
-			Com.DPrintf("SV_ReadServerFile: Loading save: " + f.readString() + "\n");
-
-
-			// read the mapcmd
-			String mapcmd = f.readString();
+			QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "r");
 
 			// read all CVAR_LATCH cvars
 			// these will be things like coop, skill, deathmatch, etc
@@ -260,13 +257,10 @@ public class SV_CCMDS {
 			f.close();
 
 			// read game state
-			filename = FS.getWriteDir() + "/save/current/game.ssv";
-			gameImports.gameExports.readGameLocals(filename);
-			return mapcmd;
+			gameImports.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv");
 		} catch (Exception e) {
-			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
+			Com.Printf("Couldn't read file " + e.getMessage() + "\n");
 		}
-		return null;
 	}
 	//=========================================================
 
