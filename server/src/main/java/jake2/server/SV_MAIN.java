@@ -30,7 +30,6 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.*;
-import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
 import java.io.FileNotFoundException;
@@ -60,6 +59,9 @@ public class SV_MAIN implements JakeServer {
 
     /** Addess of group servers.*/
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
+
+    // prevent invalid IPs from connecting
+    private final challenge_t[] challenges = new challenge_t[Defines.MAX_CHALLENGES]; // to
 
     private List<client_t> clients; // [maxclients->value];
 
@@ -103,12 +105,6 @@ public class SV_MAIN implements JakeServer {
 
     static cvar_t sv_reconnect_limit; // minimum seconds between connect
                                              // messages
-
-    /**
-     * Send a message to the master every few minutes to let it know we are
-     * alive, and log information.
-     */
-    private static final int HEARTBEAT_SECONDS = 300;
 
     /* ==============================================================================
      * 
@@ -195,7 +191,7 @@ public class SV_MAIN implements JakeServer {
      * that flood the server with invalid connection IPs. With a challenge, they
      * must give a valid IP address.
      */
-    private static void SVC_GetChallenge() {
+    private void SVC_GetChallenge() {
         int i;
         int oldest;
         int oldestTime;
@@ -204,24 +200,24 @@ public class SV_MAIN implements JakeServer {
         oldestTime = 0x7fffffff;
 
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
-            if (NET.CompareBaseAdr(Globals.net_from, gameImports.svs.challenges[i].adr))
+            if (NET.CompareBaseAdr(Globals.net_from, challenges[i].adr))
                 break;
-            if (gameImports.svs.challenges[i].time < oldestTime) {
-                oldestTime = gameImports.svs.challenges[i].time;
+            if (challenges[i].time < oldestTime) {
+                oldestTime = challenges[i].time;
                 oldest = i;
             }
         }
 
         if (i == Defines.MAX_CHALLENGES) {
             // overwrite the oldest
-            gameImports.svs.challenges[oldest].challenge = Lib.rand() & 0x7fff;
-            gameImports.svs.challenges[oldest].adr = Globals.net_from;
-            gameImports.svs.challenges[oldest].time = (int) Globals.curtime;
+            challenges[oldest].challenge = Lib.rand() & 0x7fff;
+            challenges[oldest].adr = Globals.net_from;
+            challenges[oldest].time = (int) Globals.curtime;
             i = oldest;
         }
 
         // send it back
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "challenge " + gameImports.svs.challenges[i].challenge);
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "challenge " + challenges[i].challenge);
     }
 
     /**
@@ -260,8 +256,8 @@ public class SV_MAIN implements JakeServer {
         int j;
         if (!NET.IsLocalAddress(adr)) {
             for (j = 0; j < Defines.MAX_CHALLENGES; j++) {
-                if (NET.CompareBaseAdr(Globals.net_from, gameImports.svs.challenges[j].adr)) {
-                    if (challenge == gameImports.svs.challenges[j].challenge)
+                if (NET.CompareBaseAdr(Globals.net_from, challenges[j].adr)) {
+                    if (challenge == challenges[j].challenge)
                         break; // good
                     Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nBad challenge.\n");
                     return;
@@ -282,7 +278,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!NET.IsLocalAddress(adr) && (gameImports.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                if (!NET.IsLocalAddress(adr) && (gameImports.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
                     Com.DPrintf(NET.AdrToString(adr) + ":reconnect rejected : too soon\n");
                     return;
                 }
@@ -358,8 +354,8 @@ public class SV_MAIN implements JakeServer {
         SZ.Init(clients.get(i).datagram, clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
         
         clients.get(i).datagram.allowoverflow = true;
-        clients.get(i).lastmessage = gameImports.svs.realtime; // don't timeout
-        clients.get(i).lastconnect = gameImports.svs.realtime;
+        clients.get(i).lastmessage = gameImports.realtime; // don't timeout
+        clients.get(i).lastconnect = gameImports.realtime;
         Com.DPrintf("new client added.\n");
     }
 
@@ -484,11 +480,8 @@ public class SV_MAIN implements JakeServer {
         final GameImportsImpl serverInstance = gameImports;
         if (serverInstance == null)
             return;
-        if (!serverInstance.svs.initialized) {
-            Sys.Error("!serverInstance.svs.initialized");
-        }
 
-        serverInstance.svs.realtime += msec;
+        serverInstance.realtime += msec;
 
         // keep the random time dependent
         Lib.rand();
@@ -503,14 +496,14 @@ public class SV_MAIN implements JakeServer {
         //	Com.p("player at:" + Lib.vtofsbeaty(Game.g_edicts[1].s.origin ));
 
         // move autonomous things around if enough time has passed
-        if (0 == SV_MAIN.sv_timedemo.value && serverInstance.svs.realtime < serverInstance.sv.time) {
+        if (0 == SV_MAIN.sv_timedemo.value && serverInstance.realtime < serverInstance.sv.time) {
             // never let the time get too far off
-            if (serverInstance.sv.time - serverInstance.svs.realtime > 100) {
+            if (serverInstance.sv.time - serverInstance.realtime > 100) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv lowclamp\n");
-                serverInstance.svs.realtime = serverInstance.sv.time - 100;
+                serverInstance.realtime = serverInstance.sv.time - 100;
             }
-            NET.Sleep(serverInstance.sv.time - serverInstance.svs.realtime);
+            NET.Sleep(serverInstance.sv.time - serverInstance.realtime);
             return;
         }
 
@@ -526,8 +519,6 @@ public class SV_MAIN implements JakeServer {
         // send messages back to the clients that had packets read this frame
         SV_SendClientMessages();
 
-        // save the entire world state if recording a serverdemo
-        serverInstance.sv_ents.SV_RecordDemoMessage();
 
         // send a heartbeat to the master if needed
         //Master_Heartbeat();
@@ -729,7 +720,7 @@ public class SV_MAIN implements JakeServer {
                     if (cl.state != ClientStates.CS_ZOMBIE) {
                         // todo: identify gameImports instance by client
                         // todo: use sv_main realtime
-                        cl.lastmessage = gameImports.svs.realtime; // don't timeout
+                        cl.lastmessage = gameImports.realtime; // don't timeout
                         SV_ExecuteClientMessage(cl);
                     }
                 }
@@ -801,7 +792,7 @@ public class SV_MAIN implements JakeServer {
                     if (lastframe != cl.lastframe) {
                         cl.lastframe = lastframe;
                         if (cl.lastframe > 0) {
-                            cl.frame_latency[cl.lastframe & (Defines.LATENCY_COUNTS - 1)] = gameImports.svs.realtime - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
+                            cl.frame_latency[cl.lastframe & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
                         }
                     }
 
@@ -945,14 +936,14 @@ public class SV_MAIN implements JakeServer {
      */
     void SV_CheckTimeouts() {
         // todo move use SV_MAIN realtime
-        int droppoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.timeout.value);
-        int zombiepoint = (int) (gameImports.svs.realtime - 1000 * SV_MAIN.zombietime.value);
+        int droppoint = (int) (gameImports.realtime - 1000 * SV_MAIN.timeout.value);
+        int zombiepoint = (int) (gameImports.realtime - 1000 * SV_MAIN.zombietime.value);
 
         for (int i = 0; i < maxclients.value; i++) {
             client_t cl = clients.get(i);
             // message times may be wrong across a changelevel
-            if (cl.lastmessage > gameImports.svs.realtime)
-                cl.lastmessage = gameImports.svs.realtime;
+            if (cl.lastmessage > gameImports.realtime)
+                cl.lastmessage = gameImports.realtime;
 
             if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
                 cl.state = ClientStates.CS_FREE; // can now be reused
@@ -1013,40 +1004,6 @@ public class SV_MAIN implements JakeServer {
         }
     }
 
-    private void Master_Heartbeat() {
-        String string;
-        int i;
-
-        // pgm post3.19 change, cvar pointer not validated before dereferencing
-        if (Globals.dedicated == null || 0 == Globals.dedicated.value)
-            return; // only dedicated servers send heartbeats
-
-        // pgm post3.19 change, cvar pointer not validated before dereferencing
-        if (null == SV_MAIN.public_server || 0 == SV_MAIN.public_server.value)
-            return; // a private dedicated game
-
-        // check for time wraparound
-        if (gameImports.svs.last_heartbeat > gameImports.svs.realtime)
-            gameImports.svs.last_heartbeat = gameImports.svs.realtime;
-
-        if (gameImports.svs.realtime - gameImports.svs.last_heartbeat < SV_MAIN.HEARTBEAT_SECONDS * 1000)
-            return; // not time to send yet
-
-        gameImports.svs.last_heartbeat = gameImports.svs.realtime;
-
-        // send the same string that we would give for a status OOB command
-        string = SV_StatusString();
-
-        // send to group master
-        for (i = 0; i < Defines.MAX_MASTERS; i++)
-            if (SV_MAIN.master_adr[i].port != 0) {
-                Com.Printf("Sending heartbeat to "
-                        + NET.AdrToString(SV_MAIN.master_adr[i]) + "\n");
-                Netchan.OutOfBandPrint(Defines.NS_SERVER,
-                        SV_MAIN.master_adr[i], "heartbeat\n" + string);
-            }
-    }
-    
     /**
      * Master_Shutdown, Informs all masters that this server is going down.
      */
@@ -1167,6 +1124,10 @@ public class SV_MAIN implements JakeServer {
      * Only called at quake2.exe startup, not for each game
      */
     public SV_MAIN() {
+        for (int n = 0; n < Defines.MAX_CHALLENGES; n++) {
+            challenges[n] = new challenge_t();
+        }
+
         maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
         // Clear all clients
@@ -1243,7 +1204,6 @@ public class SV_MAIN implements JakeServer {
      */
     GameImportsImpl createGameInstance() {
 
-        // todo: persist server static (svs)
         GameImportsImpl gameImports = new GameImportsImpl(this);
         gameImports.gameExports = createGameModInstance(gameImports);
         // why? should have default values already
@@ -1477,10 +1437,10 @@ goes to map jail.bsp.
             }
 
         // any partially connected client will be restarted
-        gameImports.svs.spawncount++;
-        gameImports.svs.realtime = 0;
+        gameImports.spawncount++;
+        gameImports.realtime = 0;
         // archive server state to be used in savegame
-        gameImports.svs.mapcmd = changeMapInfo.levelString;
+        gameImports.mapcmd = changeMapInfo.levelString;
 
 
         // wipe the entire per-level structure

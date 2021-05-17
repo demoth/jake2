@@ -26,8 +26,6 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
-
 public class SV_ENTS {
 
     final GameImportsImpl gameImports;
@@ -43,10 +41,24 @@ public class SV_ENTS {
     // stack variable
     private final byte[] buf_data;
 
-    public SV_ENTS(GameImportsImpl gameImports) {
+    private final int num_client_entities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
+    private final entity_state_t[] client_entities; // [num_client_entities]
+    private int next_client_entities; // next client_entity to use
+
+
+    public SV_ENTS(GameImportsImpl gameImports, int clientEntitiesMax) {
         fatpvs = new byte[65536 / 8];
         buf_data = new byte[32768];
         this.gameImports = gameImports;
+
+        num_client_entities = clientEntitiesMax;
+
+        // Clear all client entity states
+        client_entities = new entity_state_t[num_client_entities];
+        for (int n = 0; n < client_entities.length; n++) {
+            client_entities[n] = new entity_state_t(null);
+        }
+
     }
 
     /*
@@ -80,8 +92,8 @@ public class SV_ENTS {
             if (newindex >= to.num_entities)
                 newnum = 9999;
             else {
-                newent = gameImports.svs.client_entities[(to.first_entity + newindex)
-                        % gameImports.svs.num_client_entities];
+                newent = client_entities[(to.first_entity + newindex)
+                        % num_client_entities];
                 newnum = newent.number;
             }
 
@@ -89,8 +101,7 @@ public class SV_ENTS {
             if (oldindex >= from_num_entities)
                 oldnum = 9999;
             else {
-                oldent = gameImports.svs.client_entities[(from.first_entity + oldindex)
-                        % gameImports.svs.num_client_entities];
+                oldent = client_entities[(from.first_entity + oldindex) % num_client_entities];
                 oldnum = oldent.number;
             }
 
@@ -411,7 +422,7 @@ public class SV_ENTS {
         // this is the frame we are creating
         client_frame_t frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
 
-        frame.senttime = gameImports.svs.realtime; // save it for ping calc later
+        frame.senttime = gameImports.realtime; // save it for ping calc later
 
         // find the client's PVS
         int i;
@@ -435,7 +446,7 @@ public class SV_ENTS {
 
         // build up the list of visible entities
         frame.num_entities = 0;
-        frame.first_entity = gameImports.svs.next_client_entities;
+        frame.first_entity = next_client_entities;
 
         for (int e = 1; e < gameImports.gameExports.getNumEdicts(); e++) {
             edict_t ent = gameImports.gameExports.getEdict(e);
@@ -502,77 +513,22 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = gameImports.svs.next_client_entities
-                    % gameImports.svs.num_client_entities;
-            entity_state_t state = gameImports.svs.client_entities[ix];
+            int ix = next_client_entities % num_client_entities;
+            entity_state_t state = client_entities[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
                 ent.s.number = e;
             }
 
             //*state = ent.s;
-            gameImports.svs.client_entities[ix].set(ent.s);
+            client_entities[ix].set(ent.s);
 
             // don't mark players missiles as solid
             if (ent.getOwner() == client.edict)
                 state.solid = 0;
 
-            gameImports.svs.next_client_entities++;
+            next_client_entities++;
             frame.num_entities++;
-        }
-    }
-
-    /**
-     * Save everything in the world out without deltas. Used for recording
-     * footage for merged or assembled demos.
-     */
-    public void SV_RecordDemoMessage() {
-        if (gameImports.svs.demofile == null)
-            return;
-
-        //memset (nostate, 0, sizeof(nostate));
-        entity_state_t nostate = new entity_state_t(null);
-        sizebuf_t buf = new sizebuf_t();
-        SZ.Init(buf, buf_data, buf_data.length);
-
-        // write a frame message that doesn't contain a player_state_t
-        MSG.WriteByte(buf, NetworkCommands.svc_frame);
-        MSG.WriteLong(buf, gameImports.sv.framenum);
-
-        MSG.WriteByte(buf, NetworkCommands.svc_packetentities);
-
-        int e = 1;
-        edict_t ent = gameImports.gameExports.getEdict(e);
-
-        while (e < gameImports.gameExports.getNumEdicts()) {
-            // ignore ents without visible models unless they have an effect
-            if (ent.inuse
-                    && ent.s.number != 0
-                    && (ent.s.modelindex != 0 || ent.s.effects != 0
-                    || ent.s.sound != 0 || ent.s.event != 0)
-                    && 0 == (ent.svflags & Defines.SVF_NOCLIENT))
-                MSG.WriteDeltaEntity(nostate, ent.s, buf, false, true);
-
-            e++;
-            ent = gameImports.gameExports.getEdict(e);
-        }
-
-        MSG.WriteShort(buf, 0); // end of packetentities
-
-        // now add the accumulated multicast information
-        SZ.Write(buf, gameImports.svs.demo_multicast.data, gameImports.svs.demo_multicast.cursize);
-        gameImports.svs.demo_multicast.clear();
-
-        // now write the entire message to the file, prefixed by the length
-        int len = EndianHandler.swapInt(buf.cursize);
-
-        try {
-            //fwrite (len, 4, 1, svs.demofile);
-            gameImports.svs.demofile.writeInt(len);
-            //fwrite (buf.data, buf.cursize, 1, svs.demofile);
-            gameImports.svs.demofile.write(buf.data, 0, buf.cursize);
-        } catch (IOException e1) {
-            Com.Printf("Error writing demo file:" + e);
         }
     }
 }

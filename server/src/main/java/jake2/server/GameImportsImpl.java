@@ -29,12 +29,13 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
-import jake2.qcommon.network.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
 
@@ -52,15 +53,15 @@ public class GameImportsImpl implements GameImports {
     final JakeServer serverMain;
     public GameExports gameExports;
 
-    // persistent server state
-    @Deprecated
-    public server_static_t svs;
-
     // local (instance) server state
     public server_t sv;
+    public int realtime; // always increasing, no clamping, etc
+    public int spawncount; // incremented each server start
 
     // hack for finishing game in coop mode
     public String firstmap = "";
+
+    String mapcmd = ""; // ie: *intro.cin+base
 
     SV_WORLD world;
 
@@ -81,29 +82,18 @@ public class GameImportsImpl implements GameImports {
     public GameImportsImpl(JakeServer serverMain) {
         this.serverMain = serverMain;
 
-        // Initialize server static state
-        svs = new server_static_t();
-        svs.initialized = true;
-        svs.spawncount = Lib.rand();
+        spawncount = Lib.rand();
 
-
-        svs.num_client_entities = serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64; //ok.
-
-        // Clear all client entity states
-        svs.client_entities = new entity_state_t[svs.num_client_entities];
-        for (int n = 0; n < svs.client_entities.length; n++) {
-            svs.client_entities[n] = new entity_state_t(null);
-        }
 
         // heartbeats will always be sent to the id master
-        svs.last_heartbeat = -99999; // send immediately
 
         // create local server state
         sv = new server_t();
 
         world = new SV_WORLD();
         cm = new CM();
-        sv_ents = new SV_ENTS(this);
+        sv_ents = new SV_ENTS(this, serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64);
+
         sv_game = new SV_GAME(this);
 
         SV_InitOperatorCommands();
@@ -120,14 +110,7 @@ public class GameImportsImpl implements GameImports {
         Cmd.AddCommand("status", this::SV_Status_f, true);
         Cmd.AddCommand("serverinfo", this::SV_Serverinfo_f, true);
         Cmd.AddCommand("dumpuser", this::SV_DumpUser_f, true);
-
-        //Cmd.AddCommand("setmaster", this::SV_SetMaster_f, true);
-
-        if (Globals.dedicated != null && Globals.dedicated.value != 0)
-            Cmd.AddCommand("say", this::SV_ConSay_f, true);
-
-        Cmd.AddCommand("serverrecord", this::SV_ServerRecord_f, true);
-        Cmd.AddCommand("serverstop", this::SV_ServerStop_f, true);
+        Cmd.AddCommand("say", this::SV_ConSay_f, true);
         Cmd.AddCommand("save", this::SV_Savegame_f, true);
         Cmd.AddCommand("killserver", this::SV_KillServer_f, true);
 
@@ -136,8 +119,6 @@ public class GameImportsImpl implements GameImports {
             if (gameExports != null)
                 gameExports.ServerCommand(args);
         }, true);
-
-        // this command doesn't look like linked to this particular instance
     }
 
     // special messages
@@ -406,11 +387,6 @@ public class GameImportsImpl implements GameImports {
 	==================
 	*/
     private void SV_Kick_f(List<String> args) {
-        if (!svs.initialized) {
-            Com.Printf("No server running.\n");
-            return;
-        }
-
         if (args.size() != 2) {
             Com.Printf("Usage: kick <userid>\n");
             return;
@@ -424,7 +400,7 @@ public class GameImportsImpl implements GameImports {
         // SV_BroadcastPrintf message
         SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
         SV_MAIN.SV_DropClient(sv_client);
-        sv_client.lastmessage = svs.realtime; // min case there is a funny zombie
+        sv_client.lastmessage = realtime; // min case there is a funny zombie
     }
     /*
     ================
@@ -465,7 +441,7 @@ public class GameImportsImpl implements GameImports {
             for (j = 0; j < l; j++)
                 Com.Printf(" ");
 
-            Com.Printf("%7i ", new Vargs().add(svs.realtime - cl.lastmessage));
+            Com.Printf("%7i ", new Vargs().add(realtime - cl.lastmessage));
 
             String s = NET.AdrToString(cl.netchan.remote_address);
             Com.Printf(s);
@@ -512,7 +488,6 @@ public class GameImportsImpl implements GameImports {
     ==================
     */
     private void SV_Heartbeat_f(List<String> agrs) {
-        svs.last_heartbeat = -9999999;
     }
     /*
     ===========
@@ -546,117 +521,7 @@ public class GameImportsImpl implements GameImports {
         Info.Print(sv_client.userinfo);
 
     }
-    /*
-    ==============
-    SV_ServerRecord_f
 
-    Begins server demo recording.  Every entity and every message will be
-    recorded, but no playerinfo will be stored.  Primarily for demo merging.
-    ==============
-    */
-    private void SV_ServerRecord_f(List<String> args) {
-        byte[] buf_data = new byte[32768];
-        sizebuf_t buf = new sizebuf_t();
-        int len;
-        int i;
-
-        if (args.size() != 2) {
-            Com.Printf("serverrecord <demoname>\n");
-            return;
-        }
-
-        if (svs.demofile != null) {
-            Com.Printf("Already recording.\n");
-            return;
-        }
-
-        if (sv.state != ServerStates.SS_GAME) {
-            Com.Printf("You must be in a level to record.\n");
-            return;
-        }
-
-        //
-        // open the demo file
-        //
-        String name = FS.getWriteDir() + "/demos/" + args.get(1) + ".dm2";
-
-        Com.Printf("recording to " + name + ".\n");
-        FS.CreatePath(name);
-        try {
-            svs.demofile = new RandomAccessFile(name, "rw");
-        }
-        catch (Exception e) {
-            Com.Printf("ERROR: couldn't open.\n");
-            return;
-        }
-
-        // setup a buffer to catch all multicasts
-        SZ.Init(svs.demo_multicast, svs.demo_multicast_buf, svs.demo_multicast_buf.length);
-
-        //
-        // write a single giant fake message with all the startup info
-        //
-        SZ.Init(buf, buf_data, buf_data.length);
-
-        //
-        // serverdata needs to go over for all types of servers
-        // to make sure the protocol is right, and to set the gamedir
-        //
-        // send the serverdata
-        MSG.WriteByte(buf, NetworkCommands.svc_serverdata);
-        MSG.WriteLong(buf, Defines.PROTOCOL_VERSION);
-        MSG.WriteLong(buf, svs.spawncount);
-        // 2 means server demo
-        MSG.WriteByte(buf, 2); // demos are always attract loops
-        MSG.WriteString(buf, cvar("gamedir", "", 0).string);
-        MSG.WriteShort(buf, -1);
-        // send full levelname
-        MSG.WriteString(buf, sv.configstrings[Defines.CS_NAME]);
-
-        for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
-            if (sv.configstrings[i] != null && sv.configstrings[i].length() > 0) {
-                MSG.WriteByte(buf, NetworkCommands.svc_configstring);
-                MSG.WriteShort(buf, i);
-                MSG.WriteString(buf, sv.configstrings[i]);
-            }
-
-        // write it to the demo file
-        Com.DPrintf("signon message length: " + buf.cursize + "\n");
-        len = EndianHandler.swapInt(buf.cursize);
-        //fwrite(len, 4, 1, svs.demofile);
-        //fwrite(buf.data, buf.cursize, 1, svs.demofile);
-        try {
-            svs.demofile.writeInt(len);
-            svs.demofile.write(buf.data, 0, buf.cursize);
-        }
-        catch (IOException e1) {
-            // TODO: do quake2 error handling!
-            e1.printStackTrace();
-        }
-
-        // the rest of the demo file will be individual frames
-    }
-    /*
-    ==============
-    SV_ServerStop_f
-
-    Ends server demo recording
-    ==============
-    */
-    private void SV_ServerStop_f(List<String> args) {
-        if (svs.demofile == null) {
-            Com.Printf("Not doing a serverrecord.\n");
-            return;
-        }
-        try {
-            svs.demofile.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        svs.demofile = null;
-        Com.Printf("Recording completed.\n");
-    }
     /*
     ===============
     SV_KillServer_f
@@ -666,58 +531,10 @@ public class GameImportsImpl implements GameImports {
     ===============
     */
     private void SV_KillServer_f(List<String> args) {
-        if (!svs.initialized)
-            return;
         serverMain.SV_Shutdown("Server was killed.\n", false);
         NET.Config(false); // close network sockets
     }
     //===========================================================
-
-    /*
-    ====================
-    SV_SetMaster_f
-
-    Specify a list of master servers
-    ====================
-    */
-    @Deprecated
-    private void SV_SetMaster_f(List<String> args) {
-        int i, slot;
-
-        // only dedicated servers send heartbeats
-        if (Globals.dedicated.value == 0) {
-            Com.Printf("Only dedicated servers use masters.\n");
-            return;
-        }
-
-        // make sure the server is listed public
-        Cvar.getInstance().Set("public", "1");
-
-        for (i = 1; i < Defines.MAX_MASTERS; i++)
-            SV_MAIN.master_adr[i] = new netadr_t();
-
-        slot = 1; // slot 0 will always contain the id master
-        for (i = 1; i < args.size(); i++) {
-            if (slot == Defines.MAX_MASTERS)
-                break;
-
-            if (!NET.StringToAdr(args.get(i), SV_MAIN.master_adr[i])) {
-                Com.Printf("Bad address: " + args.get(i) + "\n");
-                continue;
-            }
-            if (SV_MAIN.master_adr[slot].port == 0)
-                SV_MAIN.master_adr[slot].port = Defines.PORT_MASTER;
-
-            Com.Printf("Master server at " + NET.AdrToString(SV_MAIN.master_adr[slot]) + "\n");
-            Com.Printf("Sending a ping.\n");
-
-            Netchan.OutOfBandPrint(Defines.NS_SERVER, SV_MAIN.master_adr[slot], "ping");
-
-            slot++;
-        }
-
-        svs.last_heartbeat = -9999999;
-    }
 
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
@@ -777,10 +594,10 @@ public class GameImportsImpl implements GameImports {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind
-            if (sv.time < svs.realtime) {
+            if (sv.time < realtime) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv highclamp\n");
-                svs.realtime = sv.time;
+                realtime = sv.time;
             }
         }
 
@@ -845,11 +662,11 @@ public class GameImportsImpl implements GameImports {
             if (autosave) {
                 comment = "Autosave in " + sv.configstrings[Defines.CS_NAME];
             } else {
-                comment = new Date().toString() + " " + sv.configstrings[Defines.CS_NAME];
+                comment = new Date() + " " + sv.configstrings[Defines.CS_NAME];
             }
 
             f.writeString(comment);
-            f.writeString(svs.mapcmd);
+            f.writeString(mapcmd);
             f.close();
 
 
@@ -904,10 +721,6 @@ public class GameImportsImpl implements GameImports {
             leafnum = 0; // just to avoid compiler warnings
             area1 = 0;
         }
-
-        // if doing a serverrecord, store everything
-        if (svs.demofile != null)
-            SZ.Write(svs.demo_multicast, sv.multicast.data, sv.multicast.cursize);
 
         switch (to) {
             case MULTICAST_ALL_R :
