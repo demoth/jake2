@@ -31,7 +31,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
-import jake2.qcommon.network.*;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -364,15 +367,14 @@ public final class CL {
 
         netadr_t to = new netadr_t();
 
-        if (ClientGlobals.cls.state >= Defines.ca_connected)
+        if (ClientGlobals.cls.state >= Defines.ca_connected) {
             to = ClientGlobals.cls.netchan.remote_address;
-        else {
+        } else {
             if (ClientGlobals.rcon_address.string.length() == 0) {
                 Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
                 return;
             }
-            NET.StringToAdr(ClientGlobals.rcon_address.string, to);
-            if (to.port == 0) to.port = Defines.PORT_SERVER;
+            to = netadr_t.fromString(ClientGlobals.rcon_address.string, Defines.PORT_SERVER);
         }
         message.append('\0');
         String b = message.toString();
@@ -430,63 +432,6 @@ public final class CL {
 
             ClientGlobals.cls.state = Defines.ca_connecting;
             Com.Printf("reconnecting...\n");
-        }
-    };
-
-    /**
-     * PingServers_f
-     */
-    static Command PingServers_f = (List<String> args) -> {
-        int i;
-        netadr_t adr = new netadr_t();
-        //char name[32];
-        String name;
-        String adrstring;
-        cvar_t noudp;
-        cvar_t noipx;
-
-        NET.Config(true); // allow remote
-
-        // send a broadcast packet
-        Com.Printf("pinging broadcast...\n");
-
-        noudp = Cvar.getInstance().Get("noudp", "0", Defines.CVAR_NOSET);
-        if (noudp.value == 0.0f) {
-            adr.type = NetAddrType.NA_BROADCAST;
-            adr.port = Defines.PORT_SERVER;
-            //adr.port = BigShort(PORT_SERVER);
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                    + Defines.PROTOCOL_VERSION);
-        }
-
-        // we use no IPX
-        noipx = Cvar.getInstance().Get("noipx", "1", Defines.CVAR_NOSET);
-        if (noipx.value == 0.0f) {
-            adr.type = NetAddrType.NA_BROADCAST_IPX;
-            //adr.port = BigShort(PORT_SERVER);
-            adr.port = Defines.PORT_SERVER;
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                    + Defines.PROTOCOL_VERSION);
-        }
-
-        // send a packet to each address book entry
-        for (i = 0; i < 16; i++) {
-            //Com_sprintf (name, sizeof(name), "adr%i", i);
-            name = "adr" + i;
-            adrstring = Cvar.getInstance().VariableString(name);
-            if (adrstring == null || adrstring.length() == 0)
-                continue;
-
-            Com.Printf("pinging " + adrstring + "...\n");
-            if (!NET.StringToAdr(adrstring, adr)) {
-                Com.Printf("Bad address: " + adrstring + "\n");
-                continue;
-            }
-            if (adr.port == 0)
-                //adr.port = BigShort(PORT_SERVER);
-                adr.port = Defines.PORT_SERVER;
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                    + Defines.PROTOCOL_VERSION);
         }
     };
 
@@ -645,19 +590,14 @@ public final class CL {
      * We have gotten a challenge from the server, so try and connect.
      */
     private static void SendConnectPacket() {
-        netadr_t adr = new netadr_t();
-        int port;
-
-        if (!NET.StringToAdr(ClientGlobals.cls.servername, adr)) {
+        netadr_t adr = netadr_t.fromString(ClientGlobals.cls.servername, Defines.PORT_SERVER);
+        if (adr == null) {
             Com.Printf("Bad server address\n");
             ClientGlobals.cls.connect_time = 0;
             return;
         }
-        if (adr.port == 0)
-            adr.port = Defines.PORT_SERVER;
-        //			adr.port = BigShort(PORT_SERVER);
 
-        port = (int) Cvar.getInstance().VariableValue("qport");
+        int port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
         Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "connect "
@@ -689,14 +629,12 @@ public final class CL {
         if (ClientGlobals.cls.realtime - ClientGlobals.cls.connect_time < 3000)
             return;
 
-        netadr_t adr = new netadr_t();
-        if (!NET.StringToAdr(ClientGlobals.cls.servername, adr)) {
+        netadr_t adr = netadr_t.fromString(ClientGlobals.cls.servername, Defines.PORT_SERVER);
+        if (adr == null) {
             Com.Printf("Bad server address\n");
             ClientGlobals.cls.state = Defines.ca_disconnected;
             return;
         }
-        if (adr.port == 0)
-            adr.port = Defines.PORT_SERVER;
 
         // for retransmit requests
         ClientGlobals.cls.connect_time = ClientGlobals.cls.realtime;
@@ -834,7 +772,7 @@ public final class CL {
 
         // remote command from gui front end
         if (c.equals("cmd")) {
-            if (!NET.IsLocalAddress(Globals.net_from)) {
+            if (!Globals.net_from.IsLocalAddress()) {
                 Com.Printf("Command packet from remote host.  Ignored.\n");
                 return;
             }
@@ -898,7 +836,7 @@ public final class CL {
                 continue; // dump it if not connected
 
             if (Globals.net_message.cursize < 8) {
-                Com.Printf(NET.AdrToString(Globals.net_from)
+                Com.Printf(Globals.net_from.toString()
                         + ": Runt packet\n");
                 continue;
             }
@@ -906,10 +844,8 @@ public final class CL {
             //
             // packet from server
             //
-            if (!NET.CompareAdr(Globals.net_from,
-                    ClientGlobals.cls.netchan.remote_address)) {
-                Com.DPrintf(NET.AdrToString(Globals.net_from)
-                        + ":sequenced packet without connection\n");
+            if (!Globals.net_from.compareIp(ClientGlobals.cls.netchan.remote_address)) {
+                Com.DPrintf(Globals.net_from + ":sequenced packet without connection\n");
                 continue;
             }
             if (!Netchan.Process(ClientGlobals.cls.netchan, Globals.net_message))
@@ -1386,7 +1322,6 @@ public final class CL {
         //
         Cmd.AddCommand("cmd", ForwardToServer_f);
         Cmd.AddCommand("pause", Pause_f);
-        Cmd.AddCommand("pingservers", PingServers_f);
         Cmd.AddCommand("skins", Skins_f);
 
         Cmd.AddCommand("userinfo", Userinfo_f);

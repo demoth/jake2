@@ -195,7 +195,7 @@ public final class Netchan {
         // check for message overflow
         if (chan.message.overflowed) {
             chan.fatal_error = true;
-            Com.Printf(NET.AdrToString(chan.remote_address)
+            Com.Printf(chan.remote_address.toString()
                     + ":Outgoing message overflow\n");
             return;
         }
@@ -299,7 +299,7 @@ public final class Netchan {
         //
         if (sequence <= chan.incoming_sequence) {
             if (showdrop.value != 0)
-                Com.Printf(NET.AdrToString(chan.remote_address)
+                Com.Printf(chan.remote_address.toString()
                         + ":Out of order packet " + sequence + " at "
                         + chan.incoming_sequence + "\n");
             return false;
@@ -311,7 +311,7 @@ public final class Netchan {
         chan.dropped = sequence - (chan.incoming_sequence + 1);
         if (chan.dropped > 0) {
             if (showdrop.value != 0)
-                Com.Printf(NET.AdrToString(chan.remote_address) + ":Dropped "
+                Com.Printf(chan.remote_address.toString() + ":Dropped "
                         + chan.dropped + " packets at " + sequence + "\n");
         }
 

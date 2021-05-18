@@ -32,7 +32,6 @@ import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
-import jake2.qcommon.network.NET;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
@@ -2332,7 +2331,7 @@ public final class Menu extends Key {
         if (index >= m_num_servers)
             return;
 
-        buffer = "connect " + NET.AdrToString(local_server_netadr[index])
+        buffer = "connect " + local_server_netadr[index].toString()
                 + "\n";
         Cbuf.AddText(buffer);
         ForceMenuOff();
@@ -2361,7 +2360,7 @@ public final class Menu extends Key {
         ClientGlobals.re.EndFrame();
 
         // send out info packets
-        CL.PingServers_f.execute(Collections.emptyList());
+        // CL.PingServers_f.execute(Collections.emptyList());
     }
 
     private static void SearchLocalGamesFunc(Object self) {

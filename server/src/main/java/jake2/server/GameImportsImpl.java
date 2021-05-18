@@ -443,7 +443,7 @@ public class GameImportsImpl implements GameImports {
 
             Com.Printf("%7i ", new Vargs().add(realtime - cl.lastmessage));
 
-            String s = NET.AdrToString(cl.netchan.remote_address);
+            String s = cl.netchan.remote_address.toString();
             Com.Printf(s);
             l = 22 - s.length();
             for (j = 0; j < l; j++)

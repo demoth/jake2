@@ -64,17 +64,6 @@ class SV_USER {
      */
 
     /*
-     * ================== SV_BeginDemoServer ==================
-     */
-    private static void SV_BeginDemoserver(GameImportsImpl gameImports) {
-
-        String name = "demos/" + gameImports.sv.name;
-        gameImports.sv.demofile = FS.FOpenFile(name);
-        if (gameImports.sv.demofile == null)
-            Com.Error(Defines.ERR_DROP, "Couldn't open " + name + "\n");
-    }
-
-    /*
      * ================ SV_New_f
      * 
      * Sends the first message from the server to a connected client. This will
@@ -87,12 +76,6 @@ class SV_USER {
 
         if (gameImports.sv_client.state != ClientStates.CS_CONNECTED) {
             Com.Printf("New not valid -- already spawned\n");
-            return;
-        }
-
-        // demo servers just dump the file message
-        if (gameImports.sv.state == ServerStates.SS_DEMO) {
-            SV_BeginDemoserver(gameImports);
             return;
         }
 

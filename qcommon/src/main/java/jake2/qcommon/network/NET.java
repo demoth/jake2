@@ -25,7 +25,6 @@ package jake2.qcommon.network;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -40,10 +39,10 @@ public final class NET {
     private final static int MAX_LOOPBACK = 4;
 
     /** Local loopback adress. */
-    private static netadr_t net_local_adr = new netadr_t();
+    public static final netadr_t net_local_adr = new netadr_t();
 
     public static class loopmsg_t {
-        byte data[] = new byte[Defines.MAX_MSGLEN];
+        byte[] data = new byte[Defines.MAX_MSGLEN];
 
         int datalen;
     };
@@ -56,9 +55,10 @@ public final class NET {
             }
         }
 
-        loopmsg_t msgs[];
+        loopmsg_t[] msgs;
 
-        int get, send;
+        int get;
+        int send;
     };
 
     public static loopback_t loopbacks[] = new loopback_t[2];
@@ -70,84 +70,6 @@ public final class NET {
     private static DatagramChannel[] ip_channels = { null, null };
 
     private static DatagramSocket[] ip_sockets = { null, null };
-
-    /**
-     * Compares ip address and port.
-     */
-    public static boolean CompareAdr(netadr_t a, netadr_t b) {
-        return (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
-                && a.ip[3] == b.ip[3] && a.port == b.port);
-    }
-
-    /**
-     * Compares ip address without the port.
-     * Returns true for a LOOPBACK type - assuming that singleplayer client is the first one
-     */
-    public static boolean CompareBaseAdr(netadr_t a, netadr_t b) {
-        if (a.type != b.type)
-            return false;
-
-        if (a.type == NetAddrType.NA_LOOPBACK)
-            return true;
-
-        if (a.type == NetAddrType.NA_IP) {
-            return (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1]
-                    && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3]);
-        }
-        return false;
-    }
-
-    /**
-     * Returns a string holding ip address and port like "ip0.ip1.ip2.ip3:port".
-     */
-    public static String AdrToString(netadr_t a) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(a.ip[0] & 0xFF).append('.').append(a.ip[1] & 0xFF);
-        sb.append('.');
-        sb.append(a.ip[2] & 0xFF).append('.').append(a.ip[3] & 0xFF);
-        sb.append(':').append(a.port);
-        return sb.toString();
-    }
-
-    /**
-     * Returns IP address without the port as string.
-     */
-    public static String BaseAdrToString(netadr_t a) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(a.ip[0] & 0xFF).append('.').append(a.ip[1] & 0xFF);
-        sb.append('.');
-        sb.append(a.ip[2] & 0xFF).append('.').append(a.ip[3] & 0xFF);
-        return sb.toString();
-    }
-
-    /**
-     * Creates an netadr_t from an string.
-     */
-    public static boolean StringToAdr(String s, netadr_t a) {
-        if (s.equalsIgnoreCase("localhost") || s.equalsIgnoreCase("loopback")) {
-            a.set(net_local_adr);
-            return true;
-        }
-        try {
-            String[] address = s.split(":");
-            InetAddress ia = InetAddress.getByName(address[0]);
-            a.ip = ia.getAddress();
-            a.type = NetAddrType.NA_IP;
-            if (address.length == 2)
-                a.port = Lib.atoi(address[1]);
-            return true;
-        } catch (Exception e) {
-            Com.Println(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Seems to return true, if the address is is on 127.0.0.1.
-     */
-    public static boolean IsLocalAddress(netadr_t adr) {
-        return CompareAdr(adr, net_local_adr);
-    }
 
     /*
      * ==================================================
@@ -228,7 +150,7 @@ public final class NET {
             int packetLength = receiveBuffer.position();
 
             if (packetLength > net_message.maxsize) {
-                Com.Println("Oversize packet from " + AdrToString(net_from));
+                Com.Println("Oversize packet from " + net_from.toString());
                 return false;
             }
 
@@ -240,7 +162,7 @@ public final class NET {
 
         } catch (IOException e) {
             Com.DPrintf("NET_GetPacket: " + e + " from "
-                    + AdrToString(net_from) + "\n");
+                    + net_from.toString() + "\n");
             return false;
         }
     }
@@ -266,7 +188,7 @@ public final class NET {
             SocketAddress dstSocket = new InetSocketAddress(to.getInetAddress(), to.port);
             ip_channels[sock].send(ByteBuffer.wrap(data, 0, length), dstSocket);
         } catch (Exception e) {
-            Com.Println("NET_SendPacket ERROR: " + e + " to " + AdrToString(to));
+            Com.Println("NET_SendPacket ERROR: " + e + " to " + to.toString());
         }
     }
 

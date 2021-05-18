@@ -29,8 +29,6 @@ import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
-
 public class SV_SEND {
 	/*
 	=============================================================================
@@ -250,23 +248,6 @@ public class SV_SEND {
 		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = gameImports.msg.cursize;
 
 		return true;
-	}
-	/*
-	==================
-	SV_DemoCompleted
-	==================
-	*/
-	public static void SV_DemoCompleted(GameImportsImpl gameImports) {
-		if (gameImports.sv.demofile != null) {
-			try {
-				gameImports.sv.demofile.close();
-			}
-			catch (IOException e) {
-				Com.Printf("IOError closing d9emo fiele:" + e);
-			}
-			gameImports.sv.demofile = null;
-		}
-		SV_USER.SV_Nextserver(gameImports);
 	}
 
 }

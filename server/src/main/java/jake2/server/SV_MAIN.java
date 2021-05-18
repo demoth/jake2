@@ -41,7 +41,6 @@ import java.util.List;
 
 import static jake2.qcommon.Defines.*;
 import static jake2.server.SV_CCMDS.*;
-import static jake2.server.SV_SEND.SV_DemoCompleted;
 import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
@@ -148,7 +147,7 @@ public class SV_MAIN implements JakeServer {
      *  SVC_Ack
      */
     private static void SVC_Ack() {
-        Com.Printf("Ping acknowledge from " + NET.AdrToString(Globals.net_from)
+        Com.Printf("Ping acknowledge from " + Globals.net_from.toString()
                 + "\n");
     }
 
@@ -200,7 +199,7 @@ public class SV_MAIN implements JakeServer {
         oldestTime = 0x7fffffff;
 
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
-            if (NET.CompareBaseAdr(Globals.net_from, challenges[i].adr))
+            if (Globals.net_from.CompareBaseAdr(challenges[i].adr))
                 break;
             if (challenges[i].time < oldestTime) {
                 oldestTime = challenges[i].time;
@@ -242,10 +241,10 @@ public class SV_MAIN implements JakeServer {
         String userinfo = args.size() >= 5 ? args.get(4) : "";
 
         // force the IP key/value pair so the game can filter based on ip
-        userinfo = Info.Info_SetValueForKey(userinfo, "ip", NET.AdrToString(Globals.net_from));
+        userinfo = Info.Info_SetValueForKey(userinfo, "ip", Globals.net_from.toString());
 
         if (gameImports.sv.isDemo) {
-            if (!NET.IsLocalAddress(adr)) {
+            if (!adr.IsLocalAddress()) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nConnection refused.\n");
                 return;
@@ -254,9 +253,9 @@ public class SV_MAIN implements JakeServer {
 
         // see if the challenge is valid
         int j;
-        if (!NET.IsLocalAddress(adr)) {
+        if (!adr.IsLocalAddress()) {
             for (j = 0; j < Defines.MAX_CHALLENGES; j++) {
-                if (NET.CompareBaseAdr(Globals.net_from, challenges[j].adr)) {
+                if (Globals.net_from.CompareBaseAdr(challenges[j].adr)) {
                     if (challenge == challenges[j].challenge)
                         break; // good
                     Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nBad challenge.\n");
@@ -270,19 +269,18 @@ public class SV_MAIN implements JakeServer {
         }
 
         // if there is already a slot for this ip, reuse it
-        client_t cl;
         for (int i = 0; i < maxclients.value; i++) {
-            cl = clients.get(i);
+            client_t cl = clients.get(i);
 
             if (cl.state == ClientStates.CS_FREE)
                 continue;
-            if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
+            if (adr.CompareBaseAdr(cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!NET.IsLocalAddress(adr) && (gameImports.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
-                    Com.DPrintf(NET.AdrToString(adr) + ":reconnect rejected : too soon\n");
+                if (!adr.IsLocalAddress() && (gameImports.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                    Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n");
                     return;
                 }
-                Com.Printf(NET.AdrToString(adr) + ":reconnect\n");
+                Com.Printf(adr + ":reconnect\n");
 
                 gotnewcl(i, challenge, userinfo, adr, qport);
                 return;
@@ -293,7 +291,7 @@ public class SV_MAIN implements JakeServer {
         //newcl = null;
         int index = -1;
         for (int i = 0; i < maxclients.value; i++) {
-            cl = clients.get(i);
+            client_t cl = clients.get(i);
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
@@ -381,9 +379,9 @@ public class SV_MAIN implements JakeServer {
         String msg = Lib.CtoJava(Globals.net_message.data, 4, 1024);
 
         if (rconIsValid) {
-            Com.Printf("Rcon from " + NET.AdrToString(Globals.net_from) + ":\n" + msg + "\n");
+            Com.Printf("Rcon from " + Globals.net_from.toString() + ":\n" + msg + "\n");
         } else {
-            Com.Printf("Bad rcon from " + NET.AdrToString(Globals.net_from) + ":\n" + msg + "\n");
+            Com.Printf("Bad rcon from " + Globals.net_from.toString() + ":\n" + msg + "\n");
         }
 
         // todo identify gameImports instance by client
@@ -449,7 +447,7 @@ public class SV_MAIN implements JakeServer {
                 SVC_RemoteCommand(args, gameImports);
                 break;
             default:
-                Com.Printf("bad connectionless packet from " + NET.AdrToString(Globals.net_from) + "\n");
+                Com.Printf("bad connectionless packet from " + Globals.net_from.toString() + "\n");
                 Com.Printf("[" + messageLine + "]\n");
                 Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
                 break;
@@ -532,44 +530,6 @@ public class SV_MAIN implements JakeServer {
 
         int msglen = 0;
         server_t sv = gameImports.sv;
-        // read the next demo message if needed
-        if (sv.state == ServerStates.SS_DEMO && sv.demofile != null) {
-            if (SV_MAIN.sv_paused.value != 0)
-                msglen = 0;
-            else {
-                // get the next message
-                //r = fread (&msglen, 4, 1, sv.demofile);
-                try {
-                    msglen = EndianHandler.swapInt(sv.demofile.readInt());
-                }
-                catch (Exception e) {
-                    SV_DemoCompleted(gameImports);
-                    return;
-                }
-
-                //msglen = LittleLong (msglen);
-                if (msglen == -1) {
-                    SV_DemoCompleted(gameImports);
-                    return;
-                }
-                if (msglen > Defines.MAX_MSGLEN)
-                    Com.Error(Defines.ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
-
-                //r = fread (msgbuf, msglen, 1, sv.demofile);
-                int r = 0;
-                try {
-                    r = sv.demofile.read(gameImports.msgbuf, 0, msglen);
-                }
-                catch (IOException e1) {
-                    Com.Printf("IOError: reading demo file, " + e1);
-                }
-                if (r != msglen) {
-                    SV_DemoCompleted(gameImports);
-                    return;
-                }
-            }
-        }
-
         // send a message to each connected client
         // todo send only to related clients
         for (int i = 0; i < maxclients.value; i++) {
@@ -706,7 +666,7 @@ public class SV_MAIN implements JakeServer {
                 client_t cl = clients.get(i);
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
-                if (!NET.CompareBaseAdr(Globals.net_from, cl.netchan.remote_address))
+                if (!Globals.net_from.CompareBaseAdr(cl.netchan.remote_address))
                     continue;
                 if (cl.netchan.qport != qport)
                     continue;
@@ -1023,7 +983,7 @@ public class SV_MAIN implements JakeServer {
             if (SV_MAIN.master_adr[i].port != 0) {
                 if (i > 0)
                     Com.Printf("Sending heartbeat to "
-                            + NET.AdrToString(SV_MAIN.master_adr[i]) + "\n");
+                            + SV_MAIN.master_adr[i].toString() + "\n");
                 Netchan.OutOfBandPrint(Defines.NS_SERVER,
                         SV_MAIN.master_adr[i], "shutdown");
             }
@@ -1142,7 +1102,6 @@ public class SV_MAIN implements JakeServer {
 
         // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
         Cmd.AddCommand("map", this::SV_Map_f);
-        Cmd.AddCommand("demomap", this::SV_DemoMap_f);
         Cmd.AddCommand("gamemap", this::SV_GameMap_f);
         Cmd.AddCommand("load", this::SV_Loadgame_f);
         Cmd.AddCommand("sv_shutdown", args -> {
@@ -1410,8 +1369,8 @@ goes to map jail.bsp.
             boolean multiplayer = initializeServerCvars();
             // init network stuff
             NET.Config(multiplayer);
-            NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
-
+            // long gone
+            SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
 
             gameImports = createGameInstance(); // the game is just starting
         }
@@ -1427,14 +1386,6 @@ goes to map jail.bsp.
         SV_SendClientMessages();
 
         Com.Printf("------- Server Initialization -------\n");
-
-        if (gameImports.sv != null && gameImports.sv.demofile != null)
-            try {
-                gameImports.sv.demofile.close();
-            }
-            catch (Exception e) {
-                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
-            }
 
         // any partially connected client will be restarted
         gameImports.spawncount++;
@@ -1529,13 +1480,6 @@ goes to map jail.bsp.
             Cbuf.CopyToDefer();
 
         gameImports.SV_BroadcastCommand("reconnect\n");
-    }
-
-    /**
-     *Puts the server in demo mode on a specific map/cinematic
-     */
-    void SV_DemoMap_f(List<String> args) {
-        spawnServerInstance(new ChangeMapInfo(args.size() >= 2 ? args.get(1) : "", true, false));
     }
 
     /*
