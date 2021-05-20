@@ -26,7 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
@@ -86,7 +86,7 @@ class SV_USER {
         String gamedir = Cvar.getInstance().VariableString("gamedir");
 
         // send the serverdata
-        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_serverdata);
+        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_serverdata);
         MSG.WriteInt(gameImports.sv_client.netchan.message, Defines.PROTOCOL_VERSION);
         
         MSG.WriteLong(gameImports.sv_client.netchan.message, gameImports.spawncount);
@@ -117,7 +117,7 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
             MSG.WriteString(gameImports.sv_client.netchan.message, "cmd configstrings " + gameImports.spawncount + " 0\n");
         }
         
@@ -148,7 +148,7 @@ class SV_USER {
         // write a packet full of data
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.sv.configstrings[start] != null && gameImports.sv.configstrings[start].length() != 0) {
-                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_configstring);
+                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_configstring);
                 MSG.WriteShort(gameImports.sv_client.netchan.message, start);
                 MSG.WriteString(gameImports.sv_client.netchan.message, gameImports.sv.configstrings[start]);
             }
@@ -157,10 +157,10 @@ class SV_USER {
 
         // send next command
         if (start == Defines.MAX_CONFIGSTRINGS) {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
             MSG.WriteString(gameImports.sv_client.netchan.message, "cmd baselines " + gameImports.spawncount + " 0\n");
         } else {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
             MSG.WriteString(gameImports.sv_client.netchan.message, "cmd configstrings " + gameImports.spawncount + " " + start + "\n");
         }
     }
@@ -194,7 +194,7 @@ class SV_USER {
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             entity_state_t base = gameImports.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
-                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_spawnbaseline);
+                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_spawnbaseline);
                 MSG.WriteDeltaEntity(nullstate, base, gameImports.sv_client.netchan.message, true, true);
             }
             start++;
@@ -202,10 +202,10 @@ class SV_USER {
 
         // send next command
         if (start == Defines.MAX_EDICTS) {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
             MSG.WriteString(gameImports.sv_client.netchan.message, "precache " + gameImports.spawncount + "\n");
         } else {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
             MSG.WriteString(gameImports.sv_client.netchan.message, "cmd baselines " + gameImports.spawncount + " " + start + "\n");
         }
     }
@@ -246,7 +246,7 @@ class SV_USER {
         if (packet > 1024)
             packet = 1024;
 
-        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_download);
+        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download);
         MSG.WriteShort(gameImports.sv_client.netchan.message, packet);
 
         gameImports.sv_client.downloadcount += packet;
@@ -297,7 +297,7 @@ class SV_USER {
                                                                                         // subdirectory
                 || name.indexOf('/') == -1) { // don't allow anything with ..
                                               // path
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_download);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download);
             MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
             MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
             return;
@@ -323,7 +323,7 @@ class SV_USER {
                 gameImports.sv_client.download = null;
             }
 
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_download);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download);
             MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
             MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
             return;

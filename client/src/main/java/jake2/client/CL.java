@@ -33,7 +33,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -202,7 +202,7 @@ public final class CL {
             SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 
             // send the serverdata
-            MSG.WriteByte(buf, NetworkCommands.svc_serverdata);
+            MSG.WriteByte(buf, NetworkCommandType.svc_serverdata);
             MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
             MSG.WriteInt(buf, 0x10000 + ClientGlobals.cl.servercount);
             MSG.WriteByte(buf, 1); // demos are always attract loops
@@ -223,7 +223,7 @@ public final class CL {
                         buf.cursize = 0;
                     }
 
-                    MSG.WriteByte(buf, NetworkCommands.svc_configstring);
+                    MSG.WriteByte(buf, NetworkCommandType.svc_configstring);
                     MSG.WriteShort(buf, i);
                     MSG.WriteString(buf, ClientGlobals.cl.configstrings[i]);
                 }
@@ -243,12 +243,12 @@ public final class CL {
                     buf.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, NetworkCommands.svc_spawnbaseline);
+                MSG.WriteByte(buf, NetworkCommandType.svc_spawnbaseline);
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
 
-            MSG.WriteByte(buf, NetworkCommands.svc_stufftext);
+            MSG.WriteByte(buf, NetworkCommandType.svc_stufftext);
             MSG.WriteString(buf, "precache\n");
 
             // write it to the demo file
@@ -816,8 +816,7 @@ public final class CL {
      * ReadPackets
      */
     private static void ReadPackets() {
-        while (NET.GetPacket(Defines.NS_CLIENT, Globals.net_from,
-                Globals.net_message)) {
+        while (NET.GetPacket(Defines.NS_CLIENT, Globals.net_from, Globals.net_message)) {
 
             //
             // remote command packet

@@ -23,7 +23,7 @@
 package jake2.server;
 
 import jake2.qcommon.*;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Math3D;
 
 public class SV_ENTS {
@@ -77,7 +77,7 @@ public class SV_ENTS {
         entity_state_t newent = null;
 
         final sizebuf_t msg = gameImports.msg;
-        MSG.WriteByte(msg, NetworkCommands.svc_packetentities);
+        MSG.WriteByte(msg, NetworkCommandType.svc_packetentities);
 
         int from_num_entities;
         if (from == null)
@@ -226,7 +226,7 @@ public class SV_ENTS {
 
         final sizebuf_t msg = gameImports.msg;
         // write it
-        MSG.WriteByte(msg, NetworkCommands.svc_playerinfo);
+        MSG.WriteByte(msg, NetworkCommandType.svc_playerinfo);
         MSG.WriteShort(msg, pflags);
 
         // write the pmove_state_t
@@ -341,7 +341,7 @@ public class SV_ENTS {
             lastframe = client.lastframe;
         }
 
-        MSG.WriteByte(gameImports.msg, NetworkCommands.svc_frame);
+        MSG.WriteByte(gameImports.msg, NetworkCommandType.svc_frame);
         MSG.WriteLong(gameImports.msg, gameImports.sv.framenum);
         MSG.WriteLong(gameImports.msg, lastframe); // what we are delta'ing from
         MSG.WriteByte(gameImports.msg, client.surpressCount); // rate dropped packets

@@ -24,8 +24,6 @@ package jake2.server;
 
 import jake2.qcommon.*;
 
-import java.io.RandomAccessFile;
-
 class server_t {
 
     server_t() {
@@ -50,20 +48,16 @@ class server_t {
 
     String name = ""; // map name, or cinematic name
 
-    cmodel_t models[];
+    cmodel_t[] models;
 
-    String configstrings[] = new String[Defines.MAX_CONFIGSTRINGS];
+    String[] configstrings = new String[Defines.MAX_CONFIGSTRINGS];
 
-    entity_state_t baselines[] = new entity_state_t[Defines.MAX_EDICTS];
+    entity_state_t[] baselines = new entity_state_t[Defines.MAX_EDICTS];
 
     // the multicast buffer is used to send a message to a set of clients
     // it is only used to marshall data until SV_Multicast is called
     sizebuf_t multicast = new sizebuf_t();
 
-    byte multicast_buf[] = new byte[Defines.MAX_MSGLEN];
+    byte[] multicast_buf = new byte[Defines.MAX_MSGLEN];
 
-    // demo server information
-    RandomAccessFile demofile;
-
-    boolean timedemo; // don't time sync
 }

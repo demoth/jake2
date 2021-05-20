@@ -26,7 +26,7 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -626,7 +626,7 @@ public class M_Parasite {
                 damage = 2;
             }
 
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_PARASITE_ATTACK);
             //gi.WriteShort(self - g_edicts);
             gameExports.gameImports.WriteShort(self.index);

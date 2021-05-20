@@ -27,7 +27,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -858,7 +858,7 @@ public class M_Float {
                     Defines.ATTN_NORM, 0);
 
             //FIXME use the flash, Luke
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
             gameExports.gameImports.WriteByte(32);
             gameExports.gameImports.WritePosition(origin);

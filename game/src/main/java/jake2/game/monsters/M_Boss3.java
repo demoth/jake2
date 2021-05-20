@@ -25,7 +25,7 @@ package jake2.game.monsters;
 import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Math3D;
 
 public class M_Boss3 {
@@ -33,7 +33,7 @@ public class M_Boss3 {
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_BOSSTPORT);
             gameExports.gameImports.WritePosition(ent.s.origin);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);

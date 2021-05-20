@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -246,7 +246,7 @@ public class PlayerHud {
                             (gameExports.level.framenum - cl.resp.enterframe) / 600);
         }
 
-        gameExports.gameImports.WriteByte(NetworkCommands.svc_layout);
+        gameExports.gameImports.WriteByte(NetworkCommandType.svc_layout);
         gameExports.gameImports.WriteString(string.toString());
     }
 

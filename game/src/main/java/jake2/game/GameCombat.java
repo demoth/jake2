@@ -27,7 +27,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 
@@ -148,7 +148,7 @@ public class GameCombat {
     private static void SpawnDamage(int type, float[] origin, float[] normal, int damage, GameExportsImpl gameExports) {
         if (damage > 255)
             damage = 255;
-        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
         gameExports.gameImports.WriteByte(type);
         //		gi.WriteByte (damage);
         gameExports.gameImports.WritePosition(origin);

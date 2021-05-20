@@ -1,6 +1,6 @@
 package jake2.qcommon.network;
 
-public interface NetworkCommands {
+public interface NetworkCommandType {
     // these ops are known to the game dll
     // protocol bytes that can be directly added to messages
     int svc_bad = 0;

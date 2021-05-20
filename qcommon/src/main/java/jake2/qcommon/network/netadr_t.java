@@ -78,14 +78,10 @@ public class netadr_t {
      * Seems to return true, if the address is is on 127.0.0.1.
      */
     public boolean IsLocalAddress() {
-        return this.equals(net_local_adr);
+        return this.compareIp(net_local_adr);
     }
 
-    public boolean compareIp(Object obj) {
-        if (!(obj instanceof netadr_t))
-            return false;
-        netadr_t other = (netadr_t) obj;
-
+    public boolean compareIp(netadr_t other) {
         return (this.ip[0] == other.ip[0]
                 && this.ip[1] == other.ip[1]
                 && this.ip[2] == other.ip[2]

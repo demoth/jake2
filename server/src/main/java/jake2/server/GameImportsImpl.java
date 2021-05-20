@@ -31,7 +31,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
@@ -139,7 +139,14 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void centerprintf(edict_t ent, String s) {
-        sv_game.PF_centerprintf(ent, s);
+
+        int n = ent.index;
+        if (n < 1 || n > sv_game.gameImports.serverMain.getClients().size())
+            return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
+
+        MSG.WriteByte(sv.multicast, NetworkCommandType.svc_centerprint);
+        MSG.WriteString(sv.multicast, s);
+        sv_game.PF_Unicast(ent, true);
     }
 
     @Override
@@ -612,7 +619,7 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        MSG.WriteByte(sv.multicast, NetworkCommands.svc_stufftext);
+        MSG.WriteByte(sv.multicast, NetworkCommandType.svc_stufftext);
         MSG.WriteString(sv.multicast, s);
         SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
     }

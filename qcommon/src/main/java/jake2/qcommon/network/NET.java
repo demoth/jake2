@@ -48,6 +48,11 @@ public final class NET {
     };
 
     public static class loopback_t {
+        loopmsg_t[] msgs;
+        int get;
+        int send;
+
+
         public loopback_t() {
             msgs = new loopmsg_t[MAX_LOOPBACK];
             for (int n = 0; n < MAX_LOOPBACK; n++) {
@@ -55,21 +60,15 @@ public final class NET {
             }
         }
 
-        loopmsg_t[] msgs;
-
-        int get;
-        int send;
-    };
-
-    public static loopback_t loopbacks[] = new loopback_t[2];
-    static {
-        loopbacks[0] = new loopback_t();
-        loopbacks[1] = new loopback_t();
     }
 
-    private static DatagramChannel[] ip_channels = { null, null };
+    public static final loopback_t[] loopbacks = new loopback_t[] {
+            new loopback_t(), new loopback_t()
+    };
 
-    private static DatagramSocket[] ip_sockets = { null, null };
+    private static final DatagramChannel[] ip_channels = { null, null };
+
+    private static final DatagramSocket[] ip_sockets = { null, null };
 
     /*
      * ==================================================
@@ -82,8 +81,7 @@ public final class NET {
     /**
      * Gets a packet from internal loopback.
      */
-    public static boolean GetLoopPacket(int sock, netadr_t net_from,
-            sizebuf_t net_message) {
+    public static boolean GetLoopPacket(int sock, netadr_t net_from, sizebuf_t net_message) {
 	
         loopback_t loop = loopbacks[sock];
 

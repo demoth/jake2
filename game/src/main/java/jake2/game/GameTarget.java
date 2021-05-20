@@ -26,7 +26,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -271,7 +271,7 @@ class GameTarget {
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(ent.style);
             gameExports.gameImports.WritePosition(ent.s.origin);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
@@ -380,7 +380,7 @@ class GameTarget {
 
             float save;
 
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
             gameExports.gameImports.WritePosition(self.s.origin);
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
@@ -468,7 +468,7 @@ class GameTarget {
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
             gameExports.gameImports.WriteByte(self.count);
             gameExports.gameImports.WritePosition(self.s.origin);
@@ -633,7 +633,7 @@ class GameTarget {
                         && (null == target.getClient())) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
-                        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                         gameExports.gameImports.WriteByte(Defines.TE_LASER_SPARKS);
                         gameExports.gameImports.WriteByte(count);
                         gameExports.gameImports.WritePosition(tr.endpos);

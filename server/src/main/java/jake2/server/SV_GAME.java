@@ -26,7 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Math3D;
 
 import java.io.File;
@@ -94,22 +94,6 @@ public class SV_GAME {
     }
 
     /**
-     * PF_centerprintf
-     * 
-     * centerprint to a single client.
-     */
-    public void PF_centerprintf(edict_t ent, String fmt) {
-
-        int n = ent.index;
-        if (n < 1 || n > gameImports.serverMain.getClients().size())
-            return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
-
-        MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_centerprint);
-        MSG.WriteString(gameImports.sv.multicast, fmt);
-        PF_Unicast(ent, true);
-    }
-
-    /**
      *  PF_error
      * 
      *  Abort the server with a game error.
@@ -158,7 +142,7 @@ public class SV_GAME {
         if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
             gameImports.sv.multicast.clear();
-            MSG.WriteChar(gameImports.sv.multicast, NetworkCommands.svc_configstring);
+            MSG.WriteChar(gameImports.sv.multicast, NetworkCommandType.svc_configstring);
             MSG.WriteShort(gameImports.sv.multicast, index);
             MSG.WriteString(gameImports.sv.multicast, val);
 

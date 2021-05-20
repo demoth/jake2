@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -68,7 +68,7 @@ public class GameWeapon {
                         Defines.DAMAGE_ENERGY, mod, gameExports);
     
             } else {
-                gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                 gameExports.gameImports.WriteByte(Defines.TE_BLASTER);
                 gameExports.gameImports.WritePosition(self.s.origin);
                 if (plane == null)
@@ -122,7 +122,7 @@ public class GameWeapon {
                     ent.dmg_radius, mod, gameExports);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             if (ent.waterlevel != 0) {
                 if (ent.groundentity != null)
                     gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION_WATER);
@@ -226,7 +226,7 @@ public class GameWeapon {
             GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.radius_dmg, other,
                     ent.dmg_radius, GameDefines.MOD_R_SPLASH, gameExports);
     
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             if (ent.waterlevel != 0)
                 gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
             else
@@ -275,7 +275,7 @@ public class GameWeapon {
                     if (ent == self.getOwner())
                         points = points * 0.5f;
     
-                    gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                    gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                     gameExports.gameImports.WriteByte(Defines.TE_BFG_EXPLOSION);
                     gameExports.gameImports.WritePosition(ent.s.origin);
                     gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
@@ -334,7 +334,7 @@ public class GameWeapon {
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_BFG_BIGEXPLOSION);
             gameExports.gameImports.WritePosition(self.s.origin);
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
@@ -403,7 +403,7 @@ public class GameWeapon {
                     // done
                     if (0 == (target.svflags & Defines.SVF_MONSTER)
                             && (null == target.getClient())) {
-                        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                         gameExports.gameImports.WriteByte(Defines.TE_LASER_SPARKS);
                         gameExports.gameImports.WriteByte(4);
                         gameExports.gameImports.WritePosition(tr.endpos);
@@ -417,7 +417,7 @@ public class GameWeapon {
                     Math3D.VectorCopy(tr.endpos, start);
                 }
     
-                gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                 gameExports.gameImports.WriteByte(Defines.TE_BFG_LASER);
                 gameExports.gameImports.WritePosition(self.s.origin);
                 gameExports.gameImports.WritePosition(tr.endpos);
@@ -596,7 +596,7 @@ public class GameWeapon {
                         color = Defines.SPLASH_UNKNOWN;
     
                     if (color != Defines.SPLASH_UNKNOWN) {
-                        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                         gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
                         gameExports.gameImports.WriteByte(8);
                         gameExports.gameImports.WritePosition(tr.endpos);
@@ -632,7 +632,7 @@ public class GameWeapon {
                             Defines.DAMAGE_BULLET, mod, gameExports);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
-                        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
                         gameExports.gameImports.WriteByte(te_impact);
                         gameExports.gameImports.WritePosition(tr.endpos);
                         gameExports.gameImports.WriteDir(tr.plane.normal);
@@ -663,7 +663,7 @@ public class GameWeapon {
             Math3D.VectorAdd(water_start, tr.endpos, pos);
             Math3D.VectorScale(pos, 0.5f, pos);
     
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_BUBBLETRAIL);
             gameExports.gameImports.WritePosition(water_start);
             gameExports.gameImports.WritePosition(tr.endpos);
@@ -917,14 +917,14 @@ public class GameWeapon {
         }
     
         // send gun puff / flash
-        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
         gameExports.gameImports.WriteByte(Defines.TE_RAILTRAIL);
         gameExports.gameImports.WritePosition(start);
         gameExports.gameImports.WritePosition(tr.endpos);
         gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
         // gi.multicast (start, MULTICAST_PHS);
         if (water) {
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_RAILTRAIL);
             gameExports.gameImports.WritePosition(start);
             gameExports.gameImports.WritePosition(tr.endpos);

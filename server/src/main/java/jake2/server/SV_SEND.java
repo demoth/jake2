@@ -25,7 +25,7 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -44,7 +44,7 @@ public class SV_SEND {
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommands.svc_print);
+			MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_print);
 			MSG.WriteByte(gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
 			MSG.WriteString(gameImports.sv_client.netchan.message, outputbuf);
         }
@@ -69,7 +69,7 @@ public class SV_SEND {
 		if (level < cl.messagelevel)
 			return;
 
-		MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
+		MSG.WriteByte(cl.netchan.message, NetworkCommandType.svc_print);
 		MSG.WriteByte(cl.netchan.message, level);
 		MSG.WriteString(cl.netchan.message, s);
 	}
@@ -165,7 +165,7 @@ public class SV_SEND {
 		}
 
 
-		MSG.WriteByte(gameImports.sv.multicast, NetworkCommands.svc_sound);
+		MSG.WriteByte(gameImports.sv.multicast, NetworkCommandType.svc_sound);
 		MSG.WriteByte(gameImports.sv.multicast, flags);
 		MSG.WriteByte(gameImports.sv.multicast, soundindex);
 

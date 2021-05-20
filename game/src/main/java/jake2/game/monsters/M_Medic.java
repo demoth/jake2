@@ -26,7 +26,7 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -1171,7 +1171,7 @@ public class M_Medic {
             Math3D.VectorCopy(self.enemy.s.origin, end);
             end[2] = self.enemy.absmin[2] + self.enemy.size[2] / 2;
 
-            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
             gameExports.gameImports.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
             gameExports.gameImports.WriteShort(self.index);
             gameExports.gameImports.WritePosition(start);

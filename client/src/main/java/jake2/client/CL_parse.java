@@ -29,7 +29,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NetworkCommands;
+import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -614,15 +614,15 @@ public class CL_parse {
                         "CL_ParseServerMessage: Illegible server message\n");
                 break;
 
-            case NetworkCommands.svc_nop:
+            case NetworkCommandType.svc_nop:
                 //				Com.Printf ("svc_nop\n");
                 break;
 
-            case NetworkCommands.svc_disconnect:
+            case NetworkCommandType.svc_disconnect:
                 Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
                 break;
 
-            case NetworkCommands.svc_reconnect:
+            case NetworkCommandType.svc_reconnect:
                 Com.Printf("Server disconnected, reconnecting\n");
                 if (ClientGlobals.cls.download != null) {
                     //ZOID, close download
@@ -637,7 +637,7 @@ public class CL_parse {
                 // fire immediately
                 break;
 
-            case NetworkCommands.svc_print:
+            case NetworkCommandType.svc_print:
                 int i = MSG.ReadByte(Globals.net_message);
                 if (i == Defines.PRINT_CHAT) {
                     S.StartLocalSound("misc/talk.wav");
@@ -647,64 +647,64 @@ public class CL_parse {
                 ClientGlobals.con.ormask = 0;
                 break;
 
-            case NetworkCommands.svc_centerprint:
+            case NetworkCommandType.svc_centerprint:
                 SCR.CenterPrint(MSG.ReadString(Globals.net_message));
                 break;
 
-            case NetworkCommands.svc_stufftext:
+            case NetworkCommandType.svc_stufftext:
                 String s = MSG.ReadString(Globals.net_message);
                 Com.DPrintf("stufftext: " + s + "\n");
                 Cbuf.AddText(s);
                 break;
 
-            case NetworkCommands.svc_serverdata:
+            case NetworkCommandType.svc_serverdata:
                 Cbuf.Execute(); // make sure any stuffed commands are done
                 ParseServerData();
                 break;
 
-            case NetworkCommands.svc_configstring:
+            case NetworkCommandType.svc_configstring:
                 ParseConfigString();
                 break;
 
-            case NetworkCommands.svc_sound:
+            case NetworkCommandType.svc_sound:
                 ParseStartSoundPacket();
                 break;
 
-            case NetworkCommands.svc_spawnbaseline:
+            case NetworkCommandType.svc_spawnbaseline:
                 ParseBaseline();
                 break;
 
-            case NetworkCommands.svc_temp_entity:
+            case NetworkCommandType.svc_temp_entity:
                 CL_tent.ParseTEnt();
                 break;
 
-            case NetworkCommands.svc_muzzleflash:
+            case NetworkCommandType.svc_muzzleflash:
                 CL_fx.ParseMuzzleFlash();
                 break;
 
-            case NetworkCommands.svc_muzzleflash2:
+            case NetworkCommandType.svc_muzzleflash2:
                 CL_fx.ParseMuzzleFlash2();
                 break;
 
-            case NetworkCommands.svc_download:
+            case NetworkCommandType.svc_download:
                 ParseDownload();
                 break;
 
-            case NetworkCommands.svc_frame:
+            case NetworkCommandType.svc_frame:
                 CL_ents.ParseFrame();
                 break;
 
-            case NetworkCommands.svc_inventory:
+            case NetworkCommandType.svc_inventory:
                 CL_inv.ParseInventory();
                 break;
 
-            case NetworkCommands.svc_layout:
+            case NetworkCommandType.svc_layout:
         	ClientGlobals.cl.layout = MSG.ReadString(Globals.net_message);
                 break;
 
-            case NetworkCommands.svc_playerinfo:
-            case NetworkCommands.svc_packetentities:
-            case NetworkCommands.svc_deltapacketentities:
+            case NetworkCommandType.svc_playerinfo:
+            case NetworkCommandType.svc_packetentities:
+            case NetworkCommandType.svc_deltapacketentities:
                 Com.Error(Defines.ERR_DROP, "Out of place frame data");
                 break;
             }

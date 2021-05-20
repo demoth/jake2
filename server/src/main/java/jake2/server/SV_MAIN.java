@@ -570,7 +570,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        MSG.WriteByte(client.netchan.message, NetworkCommands.svc_disconnect);
+        MSG.WriteByte(client.netchan.message, NetworkCommandType.svc_disconnect);
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -603,7 +603,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
+            MSG.WriteByte(cl.netchan.message, NetworkCommandType.svc_print);
             MSG.WriteByte(cl.netchan.message, level);
             MSG.WriteString(cl.netchan.message, s);
         }
@@ -998,14 +998,14 @@ public class SV_MAIN implements JakeServer {
     private void SV_FinalMessage(String message, boolean reconnect) {
 
         Globals.net_message.clear();
-        MSG.WriteByte(Globals.net_message, NetworkCommands.svc_print);
+        MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_print);
         MSG.WriteByte(Globals.net_message, Defines.PRINT_HIGH);
         MSG.WriteString(Globals.net_message, message);
 
         if (reconnect)
-            MSG.WriteByte(Globals.net_message, NetworkCommands.svc_reconnect);
+            MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_reconnect);
         else
-            MSG.WriteByte(Globals.net_message, NetworkCommands.svc_disconnect);
+            MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_disconnect);
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
