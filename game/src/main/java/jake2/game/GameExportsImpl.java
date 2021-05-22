@@ -5,10 +5,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.commands.InventoryMessage;
 import jake2.qcommon.network.commands.LayoutMessage;
 import jake2.qcommon.network.commands.StuffTextMessage;
+import jake2.qcommon.network.commands.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1142,11 +1142,7 @@ public class GameExportsImpl implements GameExports {
         // add a teleportation effect
         if (!client.pers.spectator) {
             // send effect
-            gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-            //gi.WriteShort(ent - g_edicts);
-            gameImports.WriteShort(ent.index);
-
-            gameImports.WriteByte(Defines.MZ_LOGIN);
+            gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
             gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             // hold in place briefly

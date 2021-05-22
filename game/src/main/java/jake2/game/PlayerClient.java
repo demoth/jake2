@@ -25,7 +25,7 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1029,10 +1029,7 @@ public class PlayerClient {
             PlayerHud.MoveClientToIntermission(ent, gameExports);
         } else {
             // send effect
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-            //gi.WriteShort(ent - g_edicts);
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
 
@@ -1079,9 +1076,7 @@ public class PlayerClient {
         } else {
             // send effect if in a multiplayer game
             if (gameExports.game.maxclients > 1) {
-                gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-                gameExports.gameImports.WriteShort(ent.index);
-                gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+                gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
                 gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
@@ -1226,9 +1221,7 @@ public class PlayerClient {
                 + " disconnected\n");
 
         // send effect
-        gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-        gameImports.WriteShort(ent.index);
-        gameImports.WriteByte(Defines.MZ_LOGOUT);
+        gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGOUT));
         gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         gameImports.unlinkentity(ent);

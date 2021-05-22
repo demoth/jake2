@@ -6,7 +6,9 @@ public interface NetworkCommandType {
     // these ops are known to the game dll
     // protocol bytes that can be directly added to messages
     int svc_bad = 0;
+    // +
     int svc_muzzleflash = 1;
+    // +
     int svc_muzzleflash2 = 2;
     int svc_temp_entity = 3;
     // +

@@ -26,7 +26,7 @@ import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -170,9 +170,7 @@ public class PlayerWeapon {
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius, gameExports);
 
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_GRENADE | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -240,10 +238,7 @@ public class PlayerWeapon {
                     radius_damage, gameExports);
 
             // send muzzle flash
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_ROCKET | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_ROCKET | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -463,10 +458,8 @@ public class PlayerWeapon {
                         GameDefines.DEFAULT_SHOTGUN_COUNT, GameDefines.MOD_SHOTGUN, gameExports);
 
             // send muzzle flash
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
 
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_SHOTGUN | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_SHOTGUN | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -533,11 +526,7 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_SHOTGUN_VSPREAD,
                     GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN, gameExports);
 
-            // send muzzle flash
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_SSHOTGUN | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_SSHOTGUN | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -606,11 +595,7 @@ public class PlayerWeapon {
                     start);
             GameWeapon.fire_rail(ent, start, forward, damage, kick, gameExports);
 
-            // send muzzle flash
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_RAILGUN | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_RAILGUN | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
@@ -661,11 +646,7 @@ public class PlayerWeapon {
 
             gclient_t client = ent.getClient();
             if (client.getPlayerState().gunframe == 9) {
-                // send muzzle flash
-                gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-                gameExports.gameImports.WriteShort(ent.index);
-                gameExports.gameImports.WriteByte(Defines.MZ_BFG | gameExports.is_silenced);
+                gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_BFG | gameExports.is_silenced));
                 gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 client.getPlayerState().gunframe++;
@@ -872,10 +853,7 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN, gameExports);
 
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte(Defines.MZ_MACHINEGUN | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_MACHINEGUN | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -1004,12 +982,7 @@ public class PlayerWeapon {
                         GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_CHAINGUN, gameExports);
             }
 
-            // send muzzle flash
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-
-            gameExports.gameImports.WriteShort(ent.index);
-            gameExports.gameImports.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1)
-                    | gameExports.is_silenced);
+            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, (Defines.MZ_CHAINGUN1 + shots - 1) | gameExports.is_silenced));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -1446,12 +1419,13 @@ public class PlayerWeapon {
         GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper, gameExports);
 
         // send muzzle flash
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash);
-        gameExports.gameImports.WriteShort(ent.index);
+        final int flashType;
         if (hyper)
-            gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | gameExports.is_silenced);
+            flashType = Defines.MZ_HYPERBLASTER | gameExports.is_silenced;
         else
-            gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | gameExports.is_silenced);
+            flashType = Defines.MZ_BLASTER | gameExports.is_silenced;
+
+        gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, flashType));
         gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
