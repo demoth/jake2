@@ -10,6 +10,7 @@ public interface NetworkCommandType {
     int svc_muzzleflash2 = 2;
     int svc_temp_entity = 3;
     int svc_layout = 4;
+    // +
     int svc_inventory = 5;
 
     // the rest are private to the client and server

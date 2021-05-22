@@ -6,6 +6,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.InventoryMessage;
 import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -561,10 +562,7 @@ public class GameExportsImpl implements GameExports {
 
         cl.showinventory = true;
 
-        gameImports.WriteByte(NetworkCommandType.svc_inventory);
-        for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            gameImports.WriteShort(cl.pers.inventory[i]);
-        }
+        gameImports.multicastMessage(new InventoryMessage(cl.pers.inventory));
         gameImports.unicast(ent, true);
     }
 

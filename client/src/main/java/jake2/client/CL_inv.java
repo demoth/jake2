@@ -43,9 +43,8 @@ public class CL_inv {
 	 * ================ CL_ParseInventory ================
 	 */
 	static void ParseInventory() {
-		int i;
 
-		for (i = 0; i < Defines.MAX_ITEMS; i++)
+		for (int i = 0; i < Defines.MAX_ITEMS; i++)
 			ClientGlobals.cl.inventory[i] = MSG.ReadShort(Globals.net_message);
 	}
 
