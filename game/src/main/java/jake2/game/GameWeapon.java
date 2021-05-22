@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -122,19 +123,20 @@ public class GameWeapon {
                     ent.dmg_radius, mod, gameExports);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
+
+            final int style;
             if (ent.waterlevel != 0) {
                 if (ent.groundentity != null)
-                    gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION_WATER);
+                    style = Defines.TE_GRENADE_EXPLOSION_WATER;
                 else
-                    gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
+                    style = Defines.TE_ROCKET_EXPLOSION_WATER;
             } else {
                 if (ent.groundentity != null)
-                    gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION);
+                    style = Defines.TE_GRENADE_EXPLOSION;
                 else
-                    gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
+                    style = Defines.TE_ROCKET_EXPLOSION;
             }
-            gameExports.gameImports.WritePosition(origin);
+            gameExports.gameImports.multicastMessage(new PointTEMessage(style, origin));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent, gameExports);
@@ -226,12 +228,12 @@ public class GameWeapon {
             GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.radius_dmg, other,
                     ent.dmg_radius, GameDefines.MOD_R_SPLASH, gameExports);
     
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
+            final int style;
             if (ent.waterlevel != 0)
-                gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
+                style = Defines.TE_ROCKET_EXPLOSION_WATER;
             else
-                gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
-            gameExports.gameImports.WritePosition(origin);
+                style = Defines.TE_ROCKET_EXPLOSION;
+            gameExports.gameImports.multicastMessage(new PointTEMessage(style, origin));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent, gameExports);
@@ -275,10 +277,9 @@ public class GameWeapon {
                     if (ent == self.getOwner())
                         points = points * 0.5f;
     
-                    gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                    gameExports.gameImports.WriteByte(Defines.TE_BFG_EXPLOSION);
-                    gameExports.gameImports.WritePosition(ent.s.origin);
+                    gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_BFG_EXPLOSION, ent.s.origin));
                     gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+
                     GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
                             Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT, gameExports);
@@ -334,9 +335,7 @@ public class GameWeapon {
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(Defines.TE_BFG_BIGEXPLOSION);
-            gameExports.gameImports.WritePosition(self.s.origin);
+            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_BFG_BIGEXPLOSION, self.s.origin));
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };

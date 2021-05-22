@@ -146,7 +146,7 @@ public class GameImportsImpl implements GameImports {
         if (n < 1 || n > sv_game.gameImports.serverMain.getClients().size())
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
-        new PrintCenterMessage(s).send(sv.multicast);
+        new PrintCenterMessage(s).writeTo(sv.multicast);
         sv_game.PF_Unicast(ent, true);
     }
 
@@ -620,7 +620,7 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        new StuffTextMessage(s).send(sv.multicast);
+        new StuffTextMessage(s).writeTo(sv.multicast);
         SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
     }
 
@@ -791,6 +791,6 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void multicastMessage(NetworkMessage msg) {
-        msg.send(sv.multicast);
+        msg.writeTo(sv.multicast);
     }
 }

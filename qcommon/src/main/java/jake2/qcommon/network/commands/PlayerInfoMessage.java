@@ -53,7 +53,7 @@ public class PlayerInfoMessage extends NetworkMessage {
     public final short[] stats;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteShort(buffer, messageFlags);
 
         // write the pmove_state_t

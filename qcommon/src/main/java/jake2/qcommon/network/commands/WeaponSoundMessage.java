@@ -20,7 +20,7 @@ public class WeaponSoundMessage extends NetworkMessage {
     public final int type;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteShort(buffer, entityIndex);
         MSG.WriteByte(buffer, type);
     }

@@ -17,7 +17,7 @@ public class PrintCenterMessage extends NetworkMessage {
     public final String text;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteString(buffer, text);
     }
 

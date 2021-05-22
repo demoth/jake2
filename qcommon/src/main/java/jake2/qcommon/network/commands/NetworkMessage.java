@@ -11,12 +11,12 @@ public abstract class NetworkMessage {
         this.type = type;
     }
 
-    public final void send(sizebuf_t buffer) {
+    public final void writeTo(sizebuf_t buffer) {
         MSG.WriteByte(buffer, type);
-        sendProps(buffer);
+        writeProperties(buffer);
     }
 
-    protected abstract void sendProps(sizebuf_t buffer);
+    protected abstract void writeProperties(sizebuf_t buffer);
 
     abstract void parse(sizebuf_t buffer);
 }

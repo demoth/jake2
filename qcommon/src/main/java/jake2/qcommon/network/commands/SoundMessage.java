@@ -48,7 +48,7 @@ public class SoundMessage extends NetworkMessage {
     public final float[] origin;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteByte(buffer, flags);
         MSG.WriteByte(buffer, soundIndex);
 

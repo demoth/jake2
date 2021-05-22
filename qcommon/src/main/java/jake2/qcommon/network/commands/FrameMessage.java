@@ -26,7 +26,7 @@ public class FrameMessage extends NetworkMessage {
     public final byte[] areaBits;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteLong(buffer, frameNumber);
         MSG.WriteLong(buffer, lastFrame); // what we are delta'ing from
         MSG.WriteByte(buffer, suppressCount); // rate dropped packets

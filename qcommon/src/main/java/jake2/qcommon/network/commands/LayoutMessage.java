@@ -13,7 +13,7 @@ public class LayoutMessage extends NetworkMessage {
     public final String layout;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteString(buffer, layout);
     }
 

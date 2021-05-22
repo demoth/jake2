@@ -223,7 +223,7 @@ public final class CL {
                         buf.cursize = 0;
                     }
 
-                    new ConfigStringMessage(i, ClientGlobals.cl.configstrings[i]).send(buf);
+                    new ConfigStringMessage(i, ClientGlobals.cl.configstrings[i]).writeTo(buf);
                 }
 
             }
@@ -245,7 +245,7 @@ public final class CL {
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
-            new StuffTextMessage("precache\n").send(buf);
+            new StuffTextMessage("precache\n").writeTo(buf);
 
             // write it to the demo file
             ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));

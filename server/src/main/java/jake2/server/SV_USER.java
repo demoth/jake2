@@ -98,7 +98,7 @@ class SV_USER {
             playernum = gameImports.sv_client.edict.index - 1;
 
 
-        new ServerDataMessage(gameImports.spawncount, gameImports.sv.isDemo, gamedir, playernum, gameImports.sv.configstrings[Defines.CS_NAME]).send(gameImports.sv_client.netchan.message);
+        new ServerDataMessage(gameImports.spawncount, gameImports.sv.isDemo, gamedir, playernum, gameImports.sv.configstrings[Defines.CS_NAME]).writeTo(gameImports.sv_client.netchan.message);
         //
         // game server
         // 
@@ -110,7 +110,7 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            new StuffTextMessage("cmd configstrings " + gameImports.spawncount + " 0\n").send(gameImports.sv_client.netchan.message);
+            new StuffTextMessage("cmd configstrings " + gameImports.spawncount + " 0\n").writeTo(gameImports.sv_client.netchan.message);
         }
         
     }
@@ -140,7 +140,7 @@ class SV_USER {
         // write a packet full of data
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.sv.configstrings[start] != null && gameImports.sv.configstrings[start].length() != 0) {
-                new ConfigStringMessage(start, gameImports.sv.configstrings[start]).send(gameImports.sv_client.netchan.message);
+                new ConfigStringMessage(start, gameImports.sv.configstrings[start]).writeTo(gameImports.sv_client.netchan.message);
             }
             start++;
         }
@@ -153,7 +153,7 @@ class SV_USER {
         } else {
             nextCmd = "cmd configstrings " + gameImports.spawncount + " " + start + "\n";
         }
-        new StuffTextMessage(nextCmd).send(gameImports.sv_client.netchan.message);
+        new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
 
     /*
@@ -198,7 +198,7 @@ class SV_USER {
         } else {
             nextCmd = "cmd baselines " + gameImports.spawncount + " " + start + "\n";
         }
-        new StuffTextMessage(nextCmd).send(gameImports.sv_client.netchan.message);
+        new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
 
     /*

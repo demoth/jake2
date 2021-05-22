@@ -38,8 +38,10 @@ public interface NetworkCommandType {
     // +
     int svc_centerprint = 15; // [string] to put in center of the screen
     int svc_download = 16; // [short] size [size bytes]
+    // +
     int svc_playerinfo = 17; // variable
     int svc_packetentities = 18; // [...]
     int svc_deltapacketentities = 19; // [...]
+    // +
     int svc_frame = 20;
 }

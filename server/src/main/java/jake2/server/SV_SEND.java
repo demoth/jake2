@@ -45,7 +45,7 @@ public class SV_SEND {
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			new PrintMessage(Defines.PRINT_HIGH, new String(outputbuf).trim()).send(gameImports.sv_client.netchan.message);
+			new PrintMessage(Defines.PRINT_HIGH, new String(outputbuf).trim()).writeTo(gameImports.sv_client.netchan.message);
         }
 	}
 	/*
@@ -66,7 +66,7 @@ public class SV_SEND {
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
 
 		if (level >= cl.messagelevel) {
-			new PrintMessage(level, s).send(cl.netchan.message);
+			new PrintMessage(level, s).writeTo(cl.netchan.message);
 		}
 	}
 
@@ -160,7 +160,7 @@ public class SV_SEND {
 			}
 		}
 
-		new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin).send(gameImports.sv.multicast);
+		new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin).writeTo(gameImports.sv.multicast);
 
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)

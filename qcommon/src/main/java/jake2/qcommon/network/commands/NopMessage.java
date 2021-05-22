@@ -10,7 +10,7 @@ public class NopMessage extends NetworkMessage {
     }
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
 
     }
 

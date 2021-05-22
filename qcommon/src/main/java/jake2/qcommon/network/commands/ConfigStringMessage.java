@@ -15,7 +15,7 @@ public class ConfigStringMessage extends NetworkMessage {
     public final String config;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteShort(buffer, index);
         MSG.WriteString(buffer, config);
 

@@ -14,7 +14,7 @@ public class InventoryMessage extends NetworkMessage {
     final int[] inventory;
 
     @Override
-    protected void sendProps(sizebuf_t buffer) {
+    protected void writeProperties(sizebuf_t buffer) {
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
             MSG.WriteShort(buffer, inventory[i]);
         }

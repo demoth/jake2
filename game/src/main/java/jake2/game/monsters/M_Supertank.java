@@ -26,7 +26,7 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1265,9 +1265,7 @@ public class M_Supertank {
                 return true;
             }
     
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
-            gameExports.gameImports.WritePosition(org);
+            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, org));
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
             self.nextthink = gameExports.level.time + 0.1f;

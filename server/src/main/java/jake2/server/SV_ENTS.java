@@ -74,37 +74,35 @@ public class SV_ENTS {
     /**
      * Writes a delta update of an entity_state_t list to the message.
      */
-    void SV_EmitPacketEntities(client_frame_t from, client_frame_t to) {
-        entity_state_t oldent = null;
-        entity_state_t newent = null;
+    void SV_EmitPacketEntities(client_frame_t lastReceivedFrame, client_frame_t currentFrame) {
 
         final sizebuf_t msg = gameImports.msg;
         MSG.WriteByte(msg, NetworkCommandType.svc_packetentities);
 
         int from_num_entities;
-        if (from == null)
+        if (lastReceivedFrame == null)
             from_num_entities = 0;
         else
-            from_num_entities = from.num_entities;
+            from_num_entities = lastReceivedFrame.num_entities;
 
         int newindex = 0;
         int oldindex = 0;
-        while (newindex < to.num_entities || oldindex < from_num_entities) {
-            int newnum;
-            if (newindex >= to.num_entities)
+        entity_state_t oldState = null;
+        entity_state_t newState = null;
+        while (newindex < currentFrame.num_entities || oldindex < from_num_entities) {
+            final int newnum;
+            if (newindex >= currentFrame.num_entities) {
                 newnum = 9999;
-            else {
-                newent = client_entities[(to.first_entity + newindex)
-                        % num_client_entities];
-                newnum = newent.number;
+            } else {
+                newState = client_entities[(currentFrame.first_entity + newindex) % num_client_entities];
+                newnum = newState.number;
             }
-
-            int oldnum;
+            final int oldnum;
             if (oldindex >= from_num_entities)
                 oldnum = 9999;
             else {
-                oldent = client_entities[(from.first_entity + oldindex) % num_client_entities];
-                oldnum = oldent.number;
+                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % num_client_entities];
+                oldnum = oldState.number;
             }
 
             if (newnum == oldnum) { 
@@ -114,22 +112,16 @@ public class SV_ENTS {
                 // all note that players are always 'newentities', this updates
                 // their oldorigin always
                 // and prevents warping
-                MSG.WriteDeltaEntity(oldent, newent, msg, false,
-                        newent.number <= gameImports.serverMain.getClients().size());
+                MSG.WriteDeltaEntity(oldState, newState, msg, false, newState.number <= gameImports.serverMain.getClients().size());
                 oldindex++;
                 newindex++;
-                continue;
-            }
-
-            if (newnum < oldnum) { 
+            } else if (newnum < oldnum) {
             	// this is a new entity, send it from the baseline
-                MSG.WriteDeltaEntity(gameImports.sv.baselines[newnum], newent, msg,
-                        true, true);
+                MSG.WriteDeltaEntity(gameImports.sv.baselines[newnum], newState, msg, true, true);
                 newindex++;
-                continue;
-            }
+            } else {
+                // if (newnum > oldnum) {
 
-            if (newnum > oldnum) { 
             	// the old entity isn't present in the new message
                 int bits = Defines.U_REMOVE;
                 if (oldnum >= 256)
@@ -145,7 +137,6 @@ public class SV_ENTS {
                     MSG.WriteByte(msg, oldnum);
 
                 oldindex++;
-                continue;
             }
         }
 
@@ -157,75 +148,68 @@ public class SV_ENTS {
      * SV_WritePlayerstateToClient
      * Writes the status of a player to a PlayerInfoMessage.
      */
-    static PlayerInfoMessage createPlayerInfoMessage(client_frame_t from, client_frame_t to, GameImportsImpl gameImports) {
-        player_state_t ops;
-        player_state_t ps = to.ps;
-
-        if (from == null) {
-            ops = new player_state_t();
-        } else {
-            ops = from.ps;
-        }
+    static PlayerInfoMessage buildPlayerInfoMessage(player_state_t lastFrameState, player_state_t currentPlayerState, GameImportsImpl gameImports) {
+        player_state_t ops = lastFrameState != null ? lastFrameState : new player_state_t();
 
         // determine what needs to be sent
-        int pflags = 0;
+        int messageFlags = 0;
 
-        if (ps.pmove.pm_type != ops.pmove.pm_type)
-            pflags |= Defines.PS_M_TYPE;
+        if (currentPlayerState.pmove.pm_type != ops.pmove.pm_type)
+            messageFlags |= Defines.PS_M_TYPE;
 
-        if (ps.pmove.origin[0] != ops.pmove.origin[0]
-                || ps.pmove.origin[1] != ops.pmove.origin[1]
-                || ps.pmove.origin[2] != ops.pmove.origin[2])
-            pflags |= Defines.PS_M_ORIGIN;
+        if (currentPlayerState.pmove.origin[0] != ops.pmove.origin[0]
+                || currentPlayerState.pmove.origin[1] != ops.pmove.origin[1]
+                || currentPlayerState.pmove.origin[2] != ops.pmove.origin[2])
+            messageFlags |= Defines.PS_M_ORIGIN;
 
-        if (ps.pmove.velocity[0] != ops.pmove.velocity[0]
-                || ps.pmove.velocity[1] != ops.pmove.velocity[1]
-                || ps.pmove.velocity[2] != ops.pmove.velocity[2])
-            pflags |= Defines.PS_M_VELOCITY;
+        if (currentPlayerState.pmove.velocity[0] != ops.pmove.velocity[0]
+                || currentPlayerState.pmove.velocity[1] != ops.pmove.velocity[1]
+                || currentPlayerState.pmove.velocity[2] != ops.pmove.velocity[2])
+            messageFlags |= Defines.PS_M_VELOCITY;
 
-        if (ps.pmove.pm_time != ops.pmove.pm_time)
-            pflags |= Defines.PS_M_TIME;
+        if (currentPlayerState.pmove.pm_time != ops.pmove.pm_time)
+            messageFlags |= Defines.PS_M_TIME;
 
-        if (ps.pmove.pm_flags != ops.pmove.pm_flags)
-            pflags |= Defines.PS_M_FLAGS;
+        if (currentPlayerState.pmove.pm_flags != ops.pmove.pm_flags)
+            messageFlags |= Defines.PS_M_FLAGS;
 
-        if (ps.pmove.gravity != ops.pmove.gravity)
-            pflags |= Defines.PS_M_GRAVITY;
+        if (currentPlayerState.pmove.gravity != ops.pmove.gravity)
+            messageFlags |= Defines.PS_M_GRAVITY;
 
-        if (ps.pmove.delta_angles[0] != ops.pmove.delta_angles[0]
-                || ps.pmove.delta_angles[1] != ops.pmove.delta_angles[1]
-                || ps.pmove.delta_angles[2] != ops.pmove.delta_angles[2])
-            pflags |= Defines.PS_M_DELTA_ANGLES;
+        if (currentPlayerState.pmove.delta_angles[0] != ops.pmove.delta_angles[0]
+                || currentPlayerState.pmove.delta_angles[1] != ops.pmove.delta_angles[1]
+                || currentPlayerState.pmove.delta_angles[2] != ops.pmove.delta_angles[2])
+            messageFlags |= Defines.PS_M_DELTA_ANGLES;
 
-        if (ps.viewoffset[0] != ops.viewoffset[0]
-                || ps.viewoffset[1] != ops.viewoffset[1]
-                || ps.viewoffset[2] != ops.viewoffset[2])
-            pflags |= Defines.PS_VIEWOFFSET;
+        if (currentPlayerState.viewoffset[0] != ops.viewoffset[0]
+                || currentPlayerState.viewoffset[1] != ops.viewoffset[1]
+                || currentPlayerState.viewoffset[2] != ops.viewoffset[2])
+            messageFlags |= Defines.PS_VIEWOFFSET;
 
-        if (ps.viewangles[0] != ops.viewangles[0]
-                || ps.viewangles[1] != ops.viewangles[1]
-                || ps.viewangles[2] != ops.viewangles[2])
-            pflags |= Defines.PS_VIEWANGLES;
+        if (currentPlayerState.viewangles[0] != ops.viewangles[0]
+                || currentPlayerState.viewangles[1] != ops.viewangles[1]
+                || currentPlayerState.viewangles[2] != ops.viewangles[2])
+            messageFlags |= Defines.PS_VIEWANGLES;
 
-        if (ps.kick_angles[0] != ops.kick_angles[0]
-                || ps.kick_angles[1] != ops.kick_angles[1]
-                || ps.kick_angles[2] != ops.kick_angles[2])
-            pflags |= Defines.PS_KICKANGLES;
+        if (currentPlayerState.kick_angles[0] != ops.kick_angles[0]
+                || currentPlayerState.kick_angles[1] != ops.kick_angles[1]
+                || currentPlayerState.kick_angles[2] != ops.kick_angles[2])
+            messageFlags |= Defines.PS_KICKANGLES;
 
-        if (ps.blend[0] != ops.blend[0] || ps.blend[1] != ops.blend[1]
-                || ps.blend[2] != ops.blend[2] || ps.blend[3] != ops.blend[3])
-            pflags |= Defines.PS_BLEND;
+        if (currentPlayerState.blend[0] != ops.blend[0] || currentPlayerState.blend[1] != ops.blend[1]
+                || currentPlayerState.blend[2] != ops.blend[2] || currentPlayerState.blend[3] != ops.blend[3])
+            messageFlags |= Defines.PS_BLEND;
 
-        if (ps.fov != ops.fov)
-            pflags |= Defines.PS_FOV;
+        if (currentPlayerState.fov != ops.fov)
+            messageFlags |= Defines.PS_FOV;
 
-        if (ps.rdflags != ops.rdflags)
-            pflags |= Defines.PS_RDFLAGS;
+        messageFlags |= Defines.PS_WEAPONINDEX;
 
-        if (ps.gunframe != ops.gunframe)
-            pflags |= Defines.PS_WEAPONFRAME;
+        if (currentPlayerState.gunframe != ops.gunframe)
+            messageFlags |= Defines.PS_WEAPONFRAME;
 
-        pflags |= Defines.PS_WEAPONINDEX;
+        if (currentPlayerState.rdflags != ops.rdflags)
+            messageFlags |= Defines.PS_RDFLAGS;
 
         final sizebuf_t msg = gameImports.msg;
         // write it
@@ -233,30 +217,30 @@ public class SV_ENTS {
         // send stats
         int statbits = 0;
         for (int i = 0; i < Defines.MAX_STATS; i++)
-            if (ps.stats[i] != ops.stats[i])
+            if (currentPlayerState.stats[i] != ops.stats[i])
                 statbits |= 1 << i;
 
         return new PlayerInfoMessage(
-                pflags,
-                ps.pmove.pm_type,
-                ps.pmove.origin,
-                ps.pmove.velocity,
-                ps.pmove.pm_time,
-                ps.pmove.pm_flags,
-                ps.pmove.gravity,
-                ps.pmove.delta_angles,
-                ps.viewoffset,
-                ps.viewangles,
-                ps.kick_angles,
-                ps.gunindex,
-                ps.gunframe,
-                ps.gunoffset,
-                ps.gunangles,
-                ps.blend,
-                ps.fov,
-                ps.rdflags,
+                messageFlags,
+                currentPlayerState.pmove.pm_type,
+                currentPlayerState.pmove.origin,
+                currentPlayerState.pmove.velocity,
+                currentPlayerState.pmove.pm_time,
+                currentPlayerState.pmove.pm_flags,
+                currentPlayerState.pmove.gravity,
+                currentPlayerState.pmove.delta_angles,
+                currentPlayerState.viewoffset,
+                currentPlayerState.viewangles,
+                currentPlayerState.kick_angles,
+                currentPlayerState.gunindex,
+                currentPlayerState.gunframe,
+                currentPlayerState.gunoffset,
+                currentPlayerState.gunangles,
+                currentPlayerState.blend,
+                currentPlayerState.fov,
+                currentPlayerState.rdflags,
                 statbits,
-                ps.stats
+                currentPlayerState.stats
         );
     }
 
@@ -265,41 +249,41 @@ public class SV_ENTS {
      */
     public void SV_WriteFrameToClient(client_t client) {
         // this is the frame we are creating
-        client_frame_t frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
-        client_frame_t oldframe;
-        int lastframe;
+        client_frame_t currentFrame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
+        client_frame_t lastReceivedFrame;
+        int lastReceivedFrameNum;
         // client is asking for a retransmit
-        if (client.lastframe <= 0) {
-            oldframe = null;
-            lastframe = -1;
-        } else if (gameImports.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
+        if (client.lastReceivedFrame <= 0) {
+            lastReceivedFrame = null;
+            lastReceivedFrameNum = -1;
+        } else if (gameImports.sv.framenum - client.lastReceivedFrame >= (Defines.UPDATE_BACKUP - 3)) {
             // client hasn't gotten a good message through in a long time
             // Com_Printf ("%s: Delta request from out-of-date packet.\n",
             // client.name);
-            oldframe = null;
-            lastframe = -1;
+            lastReceivedFrame = null;
+            lastReceivedFrameNum = -1;
         } else {
             // we have a valid message to delta from
-            oldframe = client.frames[client.lastframe & Defines.UPDATE_MASK];
-            lastframe = client.lastframe;
+            lastReceivedFrame = client.frames[client.lastReceivedFrame & Defines.UPDATE_MASK];
+            lastReceivedFrameNum = client.lastReceivedFrame;
         }
 
         new FrameMessage(
                 gameImports.sv.framenum,
-                lastframe,
+                lastReceivedFrameNum,
                 client.surpressCount,
-                frame.areabytes,
-                frame.areabits
-        ).send(gameImports.msg);
+                currentFrame.areabytes,
+                currentFrame.areabits
+        ).writeTo(gameImports.msg);
 
         client.surpressCount = 0;
 
         // delta encode the playerstate
-        PlayerInfoMessage playerInfoMsg = createPlayerInfoMessage(oldframe, frame, gameImports);
-        playerInfoMsg.send(gameImports.msg);
+        PlayerInfoMessage playerInfoMsg = buildPlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : null, currentFrame.ps, gameImports);
+        playerInfoMsg.writeTo(gameImports.msg);
 
         // delta encode the entities
-        SV_EmitPacketEntities(oldframe, frame);
+        SV_EmitPacketEntities(lastReceivedFrame, currentFrame);
     }
 
     /** 

@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -712,20 +712,14 @@ public class GameMisc {
     }
 
     public static void BecomeExplosion1(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-        gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
-        gameExports.gameImports.WritePosition(self.s.origin);
+        gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin));
         gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
-    
         GameUtil.G_FreeEdict(self, gameExports);
     }
 
     private static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-        gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION2);
-        gameExports.gameImports.WritePosition(self.s.origin);
+        gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin));
         gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
-    
         GameUtil.G_FreeEdict(self, gameExports);
     }
 

@@ -27,6 +27,7 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -271,9 +272,7 @@ class GameTarget {
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(ent.style);
-            gameExports.gameImports.WritePosition(ent.s.origin);
+            gameExports.gameImports.multicastMessage(new PointTEMessage(ent.style, ent.s.origin));
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };
@@ -380,9 +379,7 @@ class GameTarget {
 
             float save;
 
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(Defines.TE_EXPLOSION1);
-            gameExports.gameImports.WritePosition(self.s.origin);
+            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin));
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,

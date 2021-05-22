@@ -576,7 +576,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        new DisconnectMessage().send(client.netchan.message);
+        new DisconnectMessage().writeTo(client.netchan.message);
         // MSG.WriteByte(client.netchan.message, NetworkCommandType.svc_disconnect);
 
         if (client.state == ClientStates.CS_SPAWNED) {
@@ -610,7 +610,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            new PrintMessage(level, s).send(cl.netchan.message);
+            new PrintMessage(level, s).writeTo(cl.netchan.message);
         }
     }
 
@@ -730,7 +730,7 @@ public class SV_MAIN implements JakeServer {
             int checksum;
             int calculatedChecksum;
             int checksumIndex;
-            int lastframe;
+            int lastReceivedFrame;
             switch (c) {
                 default:
                     Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
@@ -752,12 +752,12 @@ public class SV_MAIN implements JakeServer {
                     move_issued = true;
                     checksumIndex = Globals.net_message.readcount;
                     checksum = MSG.ReadByte(Globals.net_message);
-                    lastframe = MSG.ReadLong(Globals.net_message);
+                    lastReceivedFrame = MSG.ReadLong(Globals.net_message);
 
-                    if (lastframe != cl.lastframe) {
-                        cl.lastframe = lastframe;
-                        if (cl.lastframe > 0) {
-                            cl.frame_latency[cl.lastframe & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
+                    if (lastReceivedFrame != cl.lastReceivedFrame) {
+                        cl.lastReceivedFrame = lastReceivedFrame;
+                        if (cl.lastReceivedFrame > 0) {
+                            cl.frame_latency[cl.lastReceivedFrame & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastReceivedFrame & Defines.UPDATE_MASK].senttime;
                         }
                     }
 
@@ -768,7 +768,7 @@ public class SV_MAIN implements JakeServer {
                     MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
 
                     if (cl.state != ClientStates.CS_SPAWNED) {
-                        cl.lastframe = -1;
+                        cl.lastReceivedFrame = -1;
                         break;
                     }
 
@@ -1003,12 +1003,12 @@ public class SV_MAIN implements JakeServer {
     private void SV_FinalMessage(String message, boolean reconnect) {
 
         Globals.net_message.clear();
-        new PrintMessage(Defines.PRINT_HIGH, message).send(Globals.net_message);
+        new PrintMessage(Defines.PRINT_HIGH, message).writeTo(Globals.net_message);
 
         if (reconnect)
-            new ReconnectMessage().send(Globals.net_message);
+            new ReconnectMessage().writeTo(Globals.net_message);
         else
-            new DisconnectMessage().send(Globals.net_message);
+            new DisconnectMessage().writeTo(Globals.net_message);
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
@@ -1427,7 +1427,7 @@ goes to map jail.bsp.
             // needs to reconnect
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;
-            cl.lastframe = -1;
+            cl.lastReceivedFrame = -1;
         }
 
         int[] iw = { 0 };

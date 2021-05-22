@@ -22,16 +22,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import jake2.qcommon.util.Math3D;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 
+/**
+ * entity_state_t is the information conveyed from the server
+ * in an update message about entities that the client will
+ * need to render in some way.
+ */
 public class entity_state_t implements Cloneable
 {
-	/** entity_state_t is the information conveyed from the server
-		in an update message about entities that the client will
-		need to render in some way. */
 	public entity_state_t(edict_t ent)
 	{
 		this.surrounding_ent = ent;

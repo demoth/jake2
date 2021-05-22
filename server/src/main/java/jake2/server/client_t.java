@@ -43,7 +43,8 @@ public class client_t {
 
 	String userinfo = "";
 
-	int lastframe; // for delta compression
+	// for delta compression
+	int lastReceivedFrame;
 	usercmd_t lastcmd = new usercmd_t(); // for filling in big drops
 
 	int commandMsec; // every seconds this is reset, if user
