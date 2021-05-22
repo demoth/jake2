@@ -24,6 +24,8 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.FrameMessage;
+import jake2.qcommon.network.commands.PlayerInfoMessage;
 import jake2.qcommon.util.Math3D;
 
 public class SV_ENTS {
@@ -151,10 +153,11 @@ public class SV_ENTS {
 
     }
 
-    /** 
-     * Writes the status of a player to a client system.
+    /**
+     * SV_WritePlayerstateToClient
+     * Writes the status of a player to a PlayerInfoMessage.
      */
-    static void SV_WritePlayerstateToClient(client_frame_t from, client_frame_t to, GameImportsImpl gameImports) {
+    static PlayerInfoMessage createPlayerInfoMessage(client_frame_t from, client_frame_t to, GameImportsImpl gameImports) {
         player_state_t ops;
         player_state_t ps = to.ps;
 
@@ -226,108 +229,47 @@ public class SV_ENTS {
 
         final sizebuf_t msg = gameImports.msg;
         // write it
-        MSG.WriteByte(msg, NetworkCommandType.svc_playerinfo);
-        MSG.WriteShort(msg, pflags);
-
-        // write the pmove_state_t
-        if ((pflags & Defines.PS_M_TYPE) != 0)
-            MSG.WriteByte(msg, ps.pmove.pm_type);
-
-        if ((pflags & Defines.PS_M_ORIGIN) != 0) {
-            MSG.WriteShort(msg, ps.pmove.origin[0]);
-            MSG.WriteShort(msg, ps.pmove.origin[1]);
-            MSG.WriteShort(msg, ps.pmove.origin[2]);
-        }
-
-        if ((pflags & Defines.PS_M_VELOCITY) != 0) {
-            MSG.WriteShort(msg, ps.pmove.velocity[0]);
-            MSG.WriteShort(msg, ps.pmove.velocity[1]);
-            MSG.WriteShort(msg, ps.pmove.velocity[2]);
-        }
-
-        if ((pflags & Defines.PS_M_TIME) != 0)
-            MSG.WriteByte(msg, ps.pmove.pm_time);
-
-        if ((pflags & Defines.PS_M_FLAGS) != 0)
-            MSG.WriteByte(msg, ps.pmove.pm_flags);
-
-        if ((pflags & Defines.PS_M_GRAVITY) != 0)
-            MSG.WriteShort(msg, ps.pmove.gravity);
-
-        if ((pflags & Defines.PS_M_DELTA_ANGLES) != 0) {
-            MSG.WriteShort(msg, ps.pmove.delta_angles[0]);
-            MSG.WriteShort(msg, ps.pmove.delta_angles[1]);
-            MSG.WriteShort(msg, ps.pmove.delta_angles[2]);
-        }
-
-        // write the rest of the player_state_t
-        if ((pflags & Defines.PS_VIEWOFFSET) != 0) {
-            MSG.WriteChar(msg, ps.viewoffset[0] * 4);
-            MSG.WriteChar(msg, ps.viewoffset[1] * 4);
-            MSG.WriteChar(msg, ps.viewoffset[2] * 4);
-        }
-
-        if ((pflags & Defines.PS_VIEWANGLES) != 0) {
-            MSG.WriteAngle16(msg, ps.viewangles[0]);
-            MSG.WriteAngle16(msg, ps.viewangles[1]);
-            MSG.WriteAngle16(msg, ps.viewangles[2]);
-        }
-
-        if ((pflags & Defines.PS_KICKANGLES) != 0) {
-            MSG.WriteChar(msg, ps.kick_angles[0] * 4);
-            MSG.WriteChar(msg, ps.kick_angles[1] * 4);
-            MSG.WriteChar(msg, ps.kick_angles[2] * 4);
-        }
-
-        if ((pflags & Defines.PS_WEAPONINDEX) != 0) {
-            MSG.WriteByte(msg, ps.gunindex);
-        }
-
-        if ((pflags & Defines.PS_WEAPONFRAME) != 0) {
-            MSG.WriteByte(msg, ps.gunframe);
-            MSG.WriteChar(msg, ps.gunoffset[0] * 4);
-            MSG.WriteChar(msg, ps.gunoffset[1] * 4);
-            MSG.WriteChar(msg, ps.gunoffset[2] * 4);
-            MSG.WriteChar(msg, ps.gunangles[0] * 4);
-            MSG.WriteChar(msg, ps.gunangles[1] * 4);
-            MSG.WriteChar(msg, ps.gunangles[2] * 4);
-        }
-
-        if ((pflags & Defines.PS_BLEND) != 0) {
-            MSG.WriteByte(msg, ps.blend[0] * 255);
-            MSG.WriteByte(msg, ps.blend[1] * 255);
-            MSG.WriteByte(msg, ps.blend[2] * 255);
-            MSG.WriteByte(msg, ps.blend[3] * 255);
-        }
-        if ((pflags & Defines.PS_FOV) != 0)
-            MSG.WriteByte(msg, ps.fov);
-        if ((pflags & Defines.PS_RDFLAGS) != 0)
-            MSG.WriteByte(msg, ps.rdflags);
 
         // send stats
         int statbits = 0;
         for (int i = 0; i < Defines.MAX_STATS; i++)
             if (ps.stats[i] != ops.stats[i])
                 statbits |= 1 << i;
-        MSG.WriteLong(msg, statbits);
-        for (int i = 0; i < Defines.MAX_STATS; i++)
-            if ((statbits & (1 << i)) != 0)
-                MSG.WriteShort(msg, ps.stats[i]);
+
+        return new PlayerInfoMessage(
+                pflags,
+                ps.pmove.pm_type,
+                ps.pmove.origin,
+                ps.pmove.velocity,
+                ps.pmove.pm_time,
+                ps.pmove.pm_flags,
+                ps.pmove.gravity,
+                ps.pmove.delta_angles,
+                ps.viewoffset,
+                ps.viewangles,
+                ps.kick_angles,
+                ps.gunindex,
+                ps.gunframe,
+                ps.gunoffset,
+                ps.gunangles,
+                ps.blend,
+                ps.fov,
+                ps.rdflags,
+                statbits,
+                ps.stats
+        );
     }
 
     /**
      * Writes a frame to a client system.
      */
     public void SV_WriteFrameToClient(client_t client) {
-        //ptr
-        client_frame_t frame, oldframe;
-        int lastframe;
-
-        //Com.Printf ("%i . %i\n", new
-        // Vargs().add(client.lastframe).add(sv.framenum));
         // this is the frame we are creating
-        frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
-        if (client.lastframe <= 0) { // client is asking for a retransmit
+        client_frame_t frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
+        client_frame_t oldframe;
+        int lastframe;
+        // client is asking for a retransmit
+        if (client.lastframe <= 0) {
             oldframe = null;
             lastframe = -1;
         } else if (gameImports.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
@@ -336,23 +278,25 @@ public class SV_ENTS {
             // client.name);
             oldframe = null;
             lastframe = -1;
-        } else { // we have a valid message to delta from
+        } else {
+            // we have a valid message to delta from
             oldframe = client.frames[client.lastframe & Defines.UPDATE_MASK];
             lastframe = client.lastframe;
         }
 
-        MSG.WriteByte(gameImports.msg, NetworkCommandType.svc_frame);
-        MSG.WriteLong(gameImports.msg, gameImports.sv.framenum);
-        MSG.WriteLong(gameImports.msg, lastframe); // what we are delta'ing from
-        MSG.WriteByte(gameImports.msg, client.surpressCount); // rate dropped packets
+        new FrameMessage(
+                gameImports.sv.framenum,
+                lastframe,
+                client.surpressCount,
+                frame.areabytes,
+                frame.areabits
+        ).send(gameImports.msg);
+
         client.surpressCount = 0;
 
-        // send over the areabits
-        MSG.WriteByte(gameImports.msg, frame.areabytes);
-        SZ.Write(gameImports.msg, frame.areabits, frame.areabytes);
-
         // delta encode the playerstate
-        SV_WritePlayerstateToClient(oldframe, frame, gameImports);
+        PlayerInfoMessage playerInfoMsg = createPlayerInfoMessage(oldframe, frame, gameImports);
+        playerInfoMsg.send(gameImports.msg);
 
         // delta encode the entities
         SV_EmitPacketEntities(oldframe, frame);
