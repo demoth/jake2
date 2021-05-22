@@ -15,8 +15,7 @@ public class PrintMessage extends NetworkMessage {
     public final String text;
 
     @Override
-    public void send(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, type);
+    protected void sendProps(sizebuf_t buffer) {
         MSG.WriteByte(buffer, level);
         MSG.WriteString(buffer, text);
 

@@ -1,5 +1,6 @@
 package jake2.qcommon.network.commands;
 
+import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 public abstract class NetworkMessage {
@@ -10,7 +11,12 @@ public abstract class NetworkMessage {
         this.type = type;
     }
 
-    abstract void send(sizebuf_t buffer);
+    public final void send(sizebuf_t buffer) {
+        MSG.WriteByte(buffer, type);
+        sendProps(buffer);
+    }
+
+    protected abstract void sendProps(sizebuf_t buffer);
 
     abstract void parse(sizebuf_t buffer);
 }

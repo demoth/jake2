@@ -32,6 +32,8 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.NetworkMessage;
+import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
@@ -271,17 +273,17 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void WriteByte(int c) {
-        sv_game.PF_WriteByte(c);
+        MSG.WriteByte(sv.multicast, c);
     }
 
     @Override
     public void WriteShort(int c) {
-        sv_game.PF_WriteShort(c);
+        MSG.WriteShort(sv.multicast, c);
     }
 
     @Override
     public void WriteString(String s) {
-        sv_game.PF_WriteString(s);
+        MSG.WriteString(sv.multicast, s);
     }
 
     @Override
@@ -619,8 +621,7 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        MSG.WriteByte(sv.multicast, NetworkCommandType.svc_stufftext);
-        MSG.WriteString(sv.multicast, s);
+        new StuffTextMessage(s).send(sv.multicast);
         SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
     }
 
@@ -789,4 +790,8 @@ public class GameImportsImpl implements GameImports {
         sv.multicast.clear();
     }
 
+    @Override
+    public void multicastMessage(NetworkMessage msg) {
+        msg.send(sv.multicast);
+    }
 }

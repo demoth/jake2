@@ -154,24 +154,12 @@ public class SV_GAME {
         MSG.WriteChar(gameImports.sv.multicast, c);
     }
 
-    public void PF_WriteByte(int c) {
-        MSG.WriteByte(gameImports.sv.multicast, c);
-    }
-
-    public void PF_WriteShort(int c) {
-        MSG.WriteShort(gameImports.sv.multicast, c);
-    }
-
     public void PF_WriteLong(int c) {
         MSG.WriteLong(gameImports.sv.multicast, c);
     }
 
     public void PF_WriteFloat(float f) {
         MSG.WriteFloat(gameImports.sv.multicast, f);
-    }
-
-    public void PF_WriteString(String s) {
-        MSG.WriteString(gameImports.sv.multicast, s);
     }
 
     public void PF_WritePos(float[] pos) {

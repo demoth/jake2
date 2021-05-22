@@ -6,6 +6,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1098,8 +1099,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.spectator_password.string, spectator)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
-                gameImports.WriteByte(NetworkCommandType.svc_stufftext);
-                gameImports.WriteString("spectator 0\n");
+                gameImports.multicastMessage(new StuffTextMessage("spectator 0\n"));
                 gameImports.unicast(ent, true);
                 return;
             }
@@ -1118,8 +1118,7 @@ public class GameExportsImpl implements GameExports {
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
-                gameImports.WriteByte(NetworkCommandType.svc_stufftext);
-                gameImports.WriteString("spectator 0\n");
+                gameImports.multicastMessage(new StuffTextMessage("spectator 0\n"));
                 gameImports.unicast(ent, true);
                 return;
             }
@@ -1130,8 +1129,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.password.string, password)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
-                gameImports.WriteByte(NetworkCommandType.svc_stufftext);
-                gameImports.WriteString("spectator 1\n");
+                gameImports.multicastMessage(new StuffTextMessage("spectator 1\n"));
                 gameImports.unicast(ent, true);
                 return;
             }

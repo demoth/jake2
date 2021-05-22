@@ -34,6 +34,7 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -247,9 +248,7 @@ public final class CL {
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
-
-            MSG.WriteByte(buf, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(buf, "precache\n");
+            new StuffTextMessage("precache\n").send(buf);
 
             // write it to the demo file
             ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));

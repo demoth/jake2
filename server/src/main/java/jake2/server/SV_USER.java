@@ -27,6 +27,7 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
@@ -117,8 +118,7 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(gameImports.sv_client.netchan.message, "cmd configstrings " + gameImports.spawncount + " 0\n");
+            new StuffTextMessage("cmd configstrings " + gameImports.spawncount + " 0\n").send(gameImports.sv_client.netchan.message);
         }
         
     }
@@ -156,13 +156,14 @@ class SV_USER {
         }
 
         // send next command
+        final String nextCmd;
+
         if (start == Defines.MAX_CONFIGSTRINGS) {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(gameImports.sv_client.netchan.message, "cmd baselines " + gameImports.spawncount + " 0\n");
+            nextCmd = "cmd baselines " + gameImports.spawncount + " 0\n";
         } else {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(gameImports.sv_client.netchan.message, "cmd configstrings " + gameImports.spawncount + " " + start + "\n");
+            nextCmd = "cmd configstrings " + gameImports.spawncount + " " + start + "\n";
         }
+        new StuffTextMessage(nextCmd).send(gameImports.sv_client.netchan.message);
     }
 
     /*
@@ -201,13 +202,13 @@ class SV_USER {
         }
 
         // send next command
+        final String nextCmd;
         if (start == Defines.MAX_EDICTS) {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(gameImports.sv_client.netchan.message, "precache " + gameImports.spawncount + "\n");
+            nextCmd = "precache " + gameImports.spawncount + "\n";
         } else {
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_stufftext);
-            MSG.WriteString(gameImports.sv_client.netchan.message, "cmd baselines " + gameImports.spawncount + " " + start + "\n");
+            nextCmd = "cmd baselines " + gameImports.spawncount + " " + start + "\n";
         }
+        new StuffTextMessage(nextCmd).send(gameImports.sv_client.netchan.message);
     }
 
     /*
