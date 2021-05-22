@@ -26,7 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.ConfigStringMessage;
 import jake2.qcommon.util.Math3D;
 
 import java.io.File;
@@ -142,10 +142,7 @@ public class SV_GAME {
         if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
             gameImports.sv.multicast.clear();
-            MSG.WriteChar(gameImports.sv.multicast, NetworkCommandType.svc_configstring);
-            MSG.WriteShort(gameImports.sv.multicast, index);
-            MSG.WriteString(gameImports.sv.multicast, val);
-
+            gameImports.multicastMessage(new ConfigStringMessage(index, val));
             gameImports.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
     }

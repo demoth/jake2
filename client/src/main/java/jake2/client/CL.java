@@ -34,6 +34,8 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.ConfigStringMessage;
+import jake2.qcommon.network.commands.ServerDataMessage;
 import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
@@ -203,14 +205,11 @@ public final class CL {
             SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 
             // send the serverdata
-            MSG.WriteByte(buf, NetworkCommandType.svc_serverdata);
-            MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
-            MSG.WriteInt(buf, 0x10000 + ClientGlobals.cl.servercount);
-            MSG.WriteByte(buf, 1); // demos are always attract loops
-            MSG.WriteString(buf, ClientGlobals.cl.gamedir);
-            MSG.WriteShort(buf, ClientGlobals.cl.playernum);
-
-            MSG.WriteString(buf, ClientGlobals.cl.configstrings[Defines.CS_NAME]);
+            new ServerDataMessage(0x10000 + ClientGlobals.cl.servercount,
+                    true,
+                    ClientGlobals.cl.gamedir,
+                    ClientGlobals.cl.playernum,
+                    ClientGlobals.cl.configstrings[Defines.CS_NAME]);
 
             // configstrings
             for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
@@ -224,9 +223,7 @@ public final class CL {
                         buf.cursize = 0;
                     }
 
-                    MSG.WriteByte(buf, NetworkCommandType.svc_configstring);
-                    MSG.WriteShort(buf, i);
-                    MSG.WriteString(buf, ClientGlobals.cl.configstrings[i]);
+                    new ConfigStringMessage(i, ClientGlobals.cl.configstrings[i]).send(buf);
                 }
 
             }

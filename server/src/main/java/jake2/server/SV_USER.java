@@ -27,6 +27,8 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.ConfigStringMessage;
+import jake2.qcommon.network.commands.ServerDataMessage;
 import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 
@@ -87,26 +89,16 @@ class SV_USER {
         String gamedir = Cvar.getInstance().VariableString("gamedir");
 
         // send the serverdata
-        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_serverdata);
-        MSG.WriteInt(gameImports.sv_client.netchan.message, Defines.PROTOCOL_VERSION);
-        
-        MSG.WriteLong(gameImports.sv_client.netchan.message, gameImports.spawncount);
-        MSG.WriteByte(gameImports.sv_client.netchan.message, gameImports.sv.isDemo ? 1 : 0);
-        MSG.WriteString(gameImports.sv_client.netchan.message, gamedir);
+        // send full levelname
 
-        int playernum;
+        final int playernum;
         if (gameImports.sv.state == ServerStates.SS_CINEMATIC || gameImports.sv.state == ServerStates.SS_PIC)
             playernum = -1;
         else
-            //playernum = sv_client - svs.clients;
-            //playernum = gameImports.sv_client.serverindex;
             playernum = gameImports.sv_client.edict.index - 1;
 
-        MSG.WriteShort(gameImports.sv_client.netchan.message, playernum);
 
-        // send full levelname
-        MSG.WriteString(gameImports.sv_client.netchan.message, gameImports.sv.configstrings[Defines.CS_NAME]);
-
+        new ServerDataMessage(gameImports.spawncount, gameImports.sv.isDemo, gamedir, playernum, gameImports.sv.configstrings[Defines.CS_NAME]).send(gameImports.sv_client.netchan.message);
         //
         // game server
         // 
@@ -148,9 +140,7 @@ class SV_USER {
         // write a packet full of data
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.sv.configstrings[start] != null && gameImports.sv.configstrings[start].length() != 0) {
-                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_configstring);
-                MSG.WriteShort(gameImports.sv_client.netchan.message, start);
-                MSG.WriteString(gameImports.sv_client.netchan.message, gameImports.sv.configstrings[start]);
+                new ConfigStringMessage(start, gameImports.sv.configstrings[start]).send(gameImports.sv_client.netchan.message);
             }
             start++;
         }

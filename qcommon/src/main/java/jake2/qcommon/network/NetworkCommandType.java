@@ -30,7 +30,9 @@ public interface NetworkCommandType {
     // +
     int svc_stufftext = 11;
     // [string] stuffed into client's console buffer, should be \n terminated
+    // +
     int svc_serverdata = 12; // [long] protocol ...
+    // +
     int svc_configstring = 13; // [short] [string]
     int svc_spawnbaseline = 14;
     int svc_centerprint = 15; // [string] to put in center of the screen
