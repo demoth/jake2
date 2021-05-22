@@ -25,8 +25,8 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.commands.PrintMessage;
+import jake2.qcommon.network.commands.SoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -160,23 +160,7 @@ public class SV_SEND {
 			}
 		}
 
-
-		MSG.WriteByte(gameImports.sv.multicast, NetworkCommandType.svc_sound);
-		MSG.WriteByte(gameImports.sv.multicast, flags);
-		MSG.WriteByte(gameImports.sv.multicast, soundindex);
-
-		if ((flags & Defines.SND_VOLUME) != 0)
-			MSG.WriteByte(gameImports.sv.multicast, volume * 255);
-		if ((flags & Defines.SND_ATTENUATION) != 0)
-			MSG.WriteByte(gameImports.sv.multicast, attenuation * 64);
-		if ((flags & Defines.SND_OFFSET) != 0)
-			MSG.WriteByte(gameImports.sv.multicast, timeofs * 1000);
-
-		if ((flags & Defines.SND_ENT) != 0)
-			MSG.WriteShort(gameImports.sv.multicast, sendchan);
-
-		if ((flags & Defines.SND_POS) != 0)
-			MSG.WritePos(gameImports.sv.multicast, origin);
+		new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin).send(gameImports.sv.multicast);
 
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)

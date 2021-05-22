@@ -13,11 +13,17 @@ public interface NetworkCommandType {
     int svc_inventory = 5;
 
     // the rest are private to the client and server
+    // +
     int svc_nop = 6;
+    // +
     int svc_disconnect = 7;
+    // +
     int svc_reconnect = 8;
+    // +
     int svc_sound = 9; // <see code>
+    // +
     int svc_print = 10; // [byte] id [string] null terminated string
+    // +
     int svc_stufftext = 11;
     // [string] stuffed into client's console buffer, should be \n terminated
     int svc_serverdata = 12; // [long] protocol ...

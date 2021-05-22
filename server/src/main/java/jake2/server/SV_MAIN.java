@@ -29,9 +29,13 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
-import jake2.qcommon.network.*;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.NetAddrType;
+import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.commands.DisconnectMessage;
 import jake2.qcommon.network.commands.PrintMessage;
+import jake2.qcommon.network.commands.ReconnectMessage;
+import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
 
 import java.io.FileNotFoundException;
@@ -1002,7 +1006,7 @@ public class SV_MAIN implements JakeServer {
         new PrintMessage(Defines.PRINT_HIGH, message).send(Globals.net_message);
 
         if (reconnect)
-            MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_reconnect);
+            new ReconnectMessage().send(Globals.net_message);
         else
             new DisconnectMessage().send(Globals.net_message);
 
