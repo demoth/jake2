@@ -1,5 +1,7 @@
 package jake2.qcommon.network;
 
+// todo: rename to NetworkMessageType
+// todo: enum
 public interface NetworkCommandType {
     // these ops are known to the game dll
     // protocol bytes that can be directly added to messages

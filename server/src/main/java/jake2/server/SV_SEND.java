@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PrintMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -44,9 +45,7 @@ public class SV_SEND {
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_print);
-			MSG.WriteByte(gameImports.sv_client.netchan.message, Defines.PRINT_HIGH);
-			MSG.WriteString(gameImports.sv_client.netchan.message, outputbuf);
+			new PrintMessage(Defines.PRINT_HIGH, new String(outputbuf).trim()).send(gameImports.sv_client.netchan.message);
         }
 	}
 	/*
@@ -66,12 +65,9 @@ public class SV_SEND {
 	*/
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
 
-		if (level < cl.messagelevel)
-			return;
-
-		MSG.WriteByte(cl.netchan.message, NetworkCommandType.svc_print);
-		MSG.WriteByte(cl.netchan.message, level);
-		MSG.WriteString(cl.netchan.message, s);
+		if (level >= cl.messagelevel) {
+			new PrintMessage(level, s).send(cl.netchan.message);
+		}
 	}
 
 	/*

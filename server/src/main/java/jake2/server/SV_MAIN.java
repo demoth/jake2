@@ -30,6 +30,8 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.*;
+import jake2.qcommon.network.commands.DisconnectMessage;
+import jake2.qcommon.network.commands.PrintMessage;
 import jake2.qcommon.util.Lib;
 
 import java.io.FileNotFoundException;
@@ -570,7 +572,8 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        MSG.WriteByte(client.netchan.message, NetworkCommandType.svc_disconnect);
+        new DisconnectMessage().send(client.netchan.message);
+        // MSG.WriteByte(client.netchan.message, NetworkCommandType.svc_disconnect);
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -603,9 +606,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            MSG.WriteByte(cl.netchan.message, NetworkCommandType.svc_print);
-            MSG.WriteByte(cl.netchan.message, level);
-            MSG.WriteString(cl.netchan.message, s);
+            new PrintMessage(level, s).send(cl.netchan.message);
         }
     }
 
@@ -998,14 +999,12 @@ public class SV_MAIN implements JakeServer {
     private void SV_FinalMessage(String message, boolean reconnect) {
 
         Globals.net_message.clear();
-        MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_print);
-        MSG.WriteByte(Globals.net_message, Defines.PRINT_HIGH);
-        MSG.WriteString(Globals.net_message, message);
+        new PrintMessage(Defines.PRINT_HIGH, message).send(Globals.net_message);
 
         if (reconnect)
             MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_reconnect);
         else
-            MSG.WriteByte(Globals.net_message, NetworkCommandType.svc_disconnect);
+            new DisconnectMessage().send(Globals.net_message);
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
