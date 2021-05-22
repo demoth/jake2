@@ -35,6 +35,7 @@ public interface NetworkCommandType {
     // +
     int svc_configstring = 13; // [short] [string]
     int svc_spawnbaseline = 14;
+    // +
     int svc_centerprint = 15; // [string] to put in center of the screen
     int svc_download = 16; // [short] size [size bytes]
     int svc_playerinfo = 17; // variable
