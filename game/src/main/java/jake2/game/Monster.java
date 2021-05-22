@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.MuzzleFlash2Message;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -40,9 +40,7 @@ public class Monster {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
                 GameDefines.MOD_UNKNOWN, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -53,9 +51,7 @@ public class Monster {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
                 count, GameDefines.MOD_UNKNOWN, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -64,9 +60,7 @@ public class Monster {
                                             float[] dir, int damage, int speed, int flashtype, int effect, GameExportsImpl gameExports) {
         GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -77,9 +71,7 @@ public class Monster {
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
                         damage + 40, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -88,9 +80,7 @@ public class Monster {
                                            float[] dir, int damage, int speed, int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -99,9 +89,7 @@ public class Monster {
                                             float[] aimdir, int damage, int kick, int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_rail(self, start, aimdir, damage, kick, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
@@ -111,9 +99,7 @@ public class Monster {
                                         float damage_radius, int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius, gameExports);
 
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_muzzleflash2);
-        gameExports.gameImports.WriteShort(self.index);
-        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicastMessage(new MuzzleFlash2Message(self.index, flashtype));
         gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 

@@ -7,6 +7,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.commands.InventoryMessage;
+import jake2.qcommon.network.commands.LayoutMessage;
 import jake2.qcommon.network.commands.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -262,8 +263,7 @@ public class GameExportsImpl implements GameExports {
         sb.append("xv 50 yv 172 string2 \"");
         sb.append(String.format("%3d/%3d     %d/%d       %d/%d\" ", level.killed_monsters, level.total_monsters, level.found_goals, level.total_goals, level.found_secrets, level.total_secrets));
 
-        gameImports.WriteByte(NetworkCommandType.svc_layout);
-        gameImports.WriteString(sb.toString());
+        gameImports.multicastMessage(new LayoutMessage(sb.toString()));
         gameImports.unicast(ent, true);
     }
 
