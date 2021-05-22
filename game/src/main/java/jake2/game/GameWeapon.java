@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.PointDirectionTEMessage;
 import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -69,13 +70,12 @@ public class GameWeapon {
                         Defines.DAMAGE_ENERGY, mod, gameExports);
     
             } else {
-                gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                gameExports.gameImports.WriteByte(Defines.TE_BLASTER);
-                gameExports.gameImports.WritePosition(self.s.origin);
+                final float[] dir;
                 if (plane == null)
-                    gameExports.gameImports.WriteDir(Globals.vec3_origin);
+                    dir = Globals.vec3_origin;
                 else
-                    gameExports.gameImports.WriteDir(plane.normal);
+                    dir = plane.normal;
+                gameExports.gameImports.multicastMessage(new PointDirectionTEMessage(Defines.TE_BLASTER, self.s.origin, dir));
                 gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             }
     
@@ -631,10 +631,7 @@ public class GameWeapon {
                             Defines.DAMAGE_BULLET, mod, gameExports);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
-                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                        gameExports.gameImports.WriteByte(te_impact);
-                        gameExports.gameImports.WritePosition(tr.endpos);
-                        gameExports.gameImports.WriteDir(tr.plane.normal);
+                        gameExports.gameImports.multicastMessage(new PointDirectionTEMessage(te_impact, tr.endpos, tr.plane.normal));
                         gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
     
                         if (self.getClient() != null)
