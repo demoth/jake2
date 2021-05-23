@@ -26,8 +26,9 @@
 package jake2.client;
 
 import jake2.client.sound.S;
-import jake2.qcommon.M_Flash;
 import jake2.qcommon.*;
+import jake2.qcommon.network.commands.MuzzleFlash2Message;
+import jake2.qcommon.network.commands.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -254,15 +255,15 @@ public class CL_fx {
 	 *  CL_ParseMuzzleFlash
 	 * ==============
 	 */
-	static void ParseMuzzleFlash() {
+	static void ParseMuzzleFlash(WeaponSoundMessage mzzl) {
 		float volume;
 		String soundname;
 
-		int i = MSG.ReadShort(Globals.net_message);
+		int i = mzzl.entityIndex;
 		if (i < 1 || i >= Defines.MAX_EDICTS)
 			Com.Error(Defines.ERR_DROP, "CL_ParseMuzzleFlash: bad entity");
 
-		int weapon = MSG.ReadByte(Globals.net_message);
+		int weapon = mzzl.type;
 		int silenced = weapon & Defines.MZ_SILENCED;
 		weapon &= ~Defines.MZ_SILENCED;
 
@@ -508,14 +509,14 @@ public class CL_fx {
 	/*
 	 * ============== CL_ParseMuzzleFlash2 ==============
 	 */
-	static void ParseMuzzleFlash2() {
+	static void ParseMuzzleFlash2(MuzzleFlash2Message mzzl) {
 		String soundname;
 
-		int ent = MSG.ReadShort(Globals.net_message);
+		int ent = mzzl.entityIndex;
 		if (ent < 1 || ent >= Defines.MAX_EDICTS)
 			Com.Error(Defines.ERR_DROP, "CL_ParseMuzzleFlash2: bad entity");
 
-		int flash_number = MSG.ReadByte(Globals.net_message);
+		int flash_number = mzzl.flashType;
 
 		// locate the origin
 		Math3D.AngleVectors(ClientGlobals.cl_entities[ent].current.angles, forward, right, null);

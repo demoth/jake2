@@ -8,12 +8,16 @@ import jake2.qcommon.sizebuf_t;
  todo: append newline automatically
  */
 public class StuffTextMessage extends NetworkMessage {
-    public StuffTextMessage(String text) {
+    public String text;
+
+    public StuffTextMessage() {
         super(NetworkCommandType.svc_stufftext);
-        this.text = text;
     }
 
-    final String text;
+    public StuffTextMessage(String text) {
+        this();
+        this.text = text;
+    }
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -22,6 +26,12 @@ public class StuffTextMessage extends NetworkMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
+        this.text = MSG.ReadString(buffer);
+    }
 
+    @Override
+    public String toString() {
+        return "StuffTextMessage{" + text + '}';
     }
 }
+

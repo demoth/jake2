@@ -205,7 +205,8 @@ public final class CL {
             SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 
             // send the serverdata
-            new ServerDataMessage(0x10000 + ClientGlobals.cl.servercount,
+            new ServerDataMessage(Defines.PROTOCOL_VERSION,
+                    0x10000 + ClientGlobals.cl.servercount,
                     true,
                     ClientGlobals.cl.gamedir,
                     ClientGlobals.cl.playernum,
@@ -241,7 +242,7 @@ public final class CL {
                     buf.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, NetworkCommandType.svc_spawnbaseline);
+                MSG.WriteByte(buf, NetworkCommandType.svc_spawnbaseline.type);
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }

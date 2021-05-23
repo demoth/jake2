@@ -5,15 +5,18 @@ import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 public class MuzzleFlash2Message extends NetworkMessage {
-    public MuzzleFlash2Message(int entityIndex, int flashType) {
+    public int entityIndex;
+    public int flashType;
+
+    public MuzzleFlash2Message() {
         super(NetworkCommandType.svc_muzzleflash2);
+    }
+
+    public MuzzleFlash2Message(int entityIndex, int flashType) {
+        this();
         this.entityIndex = entityIndex;
         this.flashType = flashType;
     }
-
-    public final int entityIndex;
-    public final int flashType;
-
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -23,6 +26,7 @@ public class MuzzleFlash2Message extends NetworkMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.entityIndex = MSG.ReadShort(buffer);
+        this.flashType = MSG.ReadByte(buffer);
     }
 }

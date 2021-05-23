@@ -8,14 +8,19 @@ import jake2.qcommon.sizebuf_t;
  * Print message to console or to the top of the screen
  */
 public class PrintMessage extends NetworkMessage {
-    public PrintMessage(int level, String text) {
+
+    public int level;
+    public String text;
+
+    public PrintMessage() {
         super(NetworkCommandType.svc_print);
+    }
+
+    public PrintMessage(int level, String text) {
+        this();
         this.level = level;
         this.text = text;
     }
-
-    public final int level;
-    public final String text;
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -26,6 +31,12 @@ public class PrintMessage extends NetworkMessage {
 
     @Override
     public void parse(sizebuf_t buffer) {
-        //todo
+        this.level = MSG.ReadByte(buffer);
+        this.text = MSG.ReadString(buffer);
+    }
+
+    @Override
+    public String toString() {
+        return "PrintMessage{" + level + "=" + text + '}';
     }
 }

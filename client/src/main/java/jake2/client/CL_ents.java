@@ -29,6 +29,8 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.FrameMessage;
+import jake2.qcommon.network.commands.PlayerInfoMessage;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -351,115 +353,64 @@ public class CL_ents {
 	/*
 	 * =================== CL_ParsePlayerstate ===================
 	 */
-	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe) {
-		int flags;
-		player_state_t state;
-		int i;
-		int statbits;
+	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe, PlayerInfoMessage msg) {
+		CL_parse.SHOWNET(CL_parse.svc_strings[NetworkCommandType.svc_playerinfo.type]);
 
-		state = newframe.playerstate;
+		player_state_t state = newframe.playerstate;
 
 		// clear to old value before delta parsing
-		if (oldframe != null)
-			state.set(oldframe.playerstate);
-		else
-			//memset (state, 0, sizeof(*state));
+		if (oldframe == null) {
 			state.clear();
-
-		flags = MSG.ReadShort(Globals.net_message);
+		} else {
+			state.set(oldframe.playerstate);
+		}
 
 		//
 		// parse the pmove_state_t
 		//
-		if ((flags & Defines.PS_M_TYPE) != 0)
-			state.pmove.pm_type = MSG.ReadByte(Globals.net_message);
-
-		if ((flags & Defines.PS_M_ORIGIN) != 0) {
-			state.pmove.origin[0] = MSG.ReadShort(Globals.net_message);
-			state.pmove.origin[1] = MSG.ReadShort(Globals.net_message);
-			state.pmove.origin[2] = MSG.ReadShort(Globals.net_message);
-		}
-
-		if ((flags & Defines.PS_M_VELOCITY) != 0) {
-			state.pmove.velocity[0] = MSG.ReadShort(Globals.net_message);
-			state.pmove.velocity[1] = MSG.ReadShort(Globals.net_message);
-			state.pmove.velocity[2] = MSG.ReadShort(Globals.net_message);
-		}
-
-		if ((flags & Defines.PS_M_TIME) != 0) {
-			state.pmove.pm_time = (byte) MSG.ReadByte(Globals.net_message);
-		}
-
-		if ((flags & Defines.PS_M_FLAGS) != 0)
-			state.pmove.pm_flags = (byte) MSG.ReadByte(Globals.net_message);
-
-		if ((flags & Defines.PS_M_GRAVITY) != 0)
-			state.pmove.gravity = MSG.ReadShort(Globals.net_message);
-
-		if ((flags & Defines.PS_M_DELTA_ANGLES) != 0) {
-			state.pmove.delta_angles[0] = MSG.ReadShort(Globals.net_message);
-			state.pmove.delta_angles[1] = MSG.ReadShort(Globals.net_message);
-			state.pmove.delta_angles[2] = MSG.ReadShort(Globals.net_message);
-		}
+		if (msg.pmType != null)
+			state.pmove.pm_type = msg.pmType;
 
 		if (ClientGlobals.cl.attractloop)
 			state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
 
+		if (msg.pmOrigin != null)
+			state.pmove.origin = msg.pmOrigin;
+		if (msg.pmVelocity != null)
+			state.pmove.velocity = msg.pmVelocity;
+		if (msg.pmTime != null)
+			state.pmove.pm_time = msg.pmTime;
+		if (msg.pmFlags != null)
+			state.pmove.pm_flags = msg.pmFlags;
+		if (msg.pmGravity != null)
+			state.pmove.gravity = msg.pmGravity;
+		if (msg.pmDeltaAngles != null)
+			state.pmove.delta_angles = msg.pmDeltaAngles;
 		//
 		// parse the rest of the player_state_t
 		//
-		if ((flags & Defines.PS_VIEWOFFSET) != 0) {
-			state.viewoffset[0] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.viewoffset[1] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.viewoffset[2] = MSG.ReadChar(Globals.net_message) * 0.25f;
-		}
-
-		if ((flags & Defines.PS_VIEWANGLES) != 0) {
-			state.viewangles[0] = MSG.ReadAngle16(Globals.net_message);
-			state.viewangles[1] = MSG.ReadAngle16(Globals.net_message);
-			state.viewangles[2] = MSG.ReadAngle16(Globals.net_message);
-		}
-
-		if ((flags & Defines.PS_KICKANGLES) != 0) {
-
-			state.kick_angles[0] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.kick_angles[1] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.kick_angles[2] = MSG.ReadChar(Globals.net_message) * 0.25f;
-
-		}
-
-		if ((flags & Defines.PS_WEAPONINDEX) != 0) {
-			state.gunindex = MSG.ReadByte(Globals.net_message);
-		}
-
-		if ((flags & Defines.PS_WEAPONFRAME) != 0) {
-			state.gunframe = MSG.ReadByte(Globals.net_message);
-			state.gunoffset[0] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.gunoffset[1] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.gunoffset[2] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.gunangles[0] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.gunangles[1] = MSG.ReadChar(Globals.net_message) * 0.25f;
-			state.gunangles[2] = MSG.ReadChar(Globals.net_message) * 0.25f;
-		}
-
-		if ((flags & Defines.PS_BLEND) != 0) {
-			state.blend[0] = MSG.ReadByte(Globals.net_message) / 255.0f;
-			state.blend[1] = MSG.ReadByte(Globals.net_message) / 255.0f;
-			state.blend[2] = MSG.ReadByte(Globals.net_message) / 255.0f;
-			state.blend[3] = MSG.ReadByte(Globals.net_message) / 255.0f;
-		}
-
-		if ((flags & Defines.PS_FOV) != 0)
-			state.fov = MSG.ReadByte(Globals.net_message);
-
-		if ((flags & Defines.PS_RDFLAGS) != 0)
-			state.rdflags = MSG.ReadByte(Globals.net_message);
-
-		// parse stats
-		statbits = MSG.ReadLong(Globals.net_message);
-		for (i = 0; i < Defines.MAX_STATS; i++)
-			if ((statbits & (1 << i)) != 0)
-				state.stats[i] = MSG.ReadShort(Globals.net_message);
+		if (msg.viewOffset != null)
+			state.viewoffset = msg.viewOffset;
+		if (msg.viewAngles != null)
+			state.viewangles = msg.viewAngles;
+		if (msg.kickAngles != null)
+			state.kick_angles = msg.kickAngles;
+		if (msg.gunIndex != null)
+			state.gunindex = msg.gunIndex;
+		if (msg.gunFrame != null)
+			state.gunframe = msg.gunFrame;
+		if (msg.gunOffset != null)
+			state.gunoffset = msg.gunOffset;
+		if (msg.gunAngles != null)
+			state.gunangles = msg.gunAngles;
+		if (msg.blend != null)
+			state.blend = msg.blend;
+		if (msg.fov != null)
+			state.fov = msg.fov;
+		if (msg.rdFlags != null)
+			state.rdflags = msg.rdFlags;
+		if (msg.stats != null)
+			state.stats = msg.stats;
 	}
 
 	/*
@@ -483,24 +434,15 @@ public class CL_ents {
 		}
 	}
 
-	/*
-	 * ================ CL_ParseFrame ================
-	 */
-	public static void ParseFrame() {
-		int cmd;
-		int len;
-		frame_t old;
-
+	public static frame_t processFrameMessage(FrameMessage frameMsg) {
 		//memset( cl.frame, 0, sizeof(cl.frame));
 		ClientGlobals.cl.frame.reset();
 
-		ClientGlobals.cl.frame.serverframe = MSG.ReadLong(Globals.net_message);
-		ClientGlobals.cl.frame.deltaframe = MSG.ReadLong(Globals.net_message);
+		ClientGlobals.cl.frame.serverframe = frameMsg.frameNumber;
+		ClientGlobals.cl.frame.deltaframe = frameMsg.lastFrame;
 		ClientGlobals.cl.frame.servertime = ClientGlobals.cl.frame.serverframe * 100;
 
-		// BIG HACK to let old demos continue to work
-		if (ClientGlobals.cls.serverProtocol != 26)
-			ClientGlobals.cl.surpressCount = MSG.ReadByte(Globals.net_message);
+		ClientGlobals.cl.surpressCount = frameMsg.suppressCount;
 
 		if (ClientGlobals.cl_shownet.value == 3)
 			Com.Printf("   frame:" + ClientGlobals.cl.frame.serverframe + "  delta:" + ClientGlobals.cl.frame.deltaframe + "\n");
@@ -509,6 +451,7 @@ public class CL_ents {
 		// no longer have available, we must suck up the rest of
 		// the frame, but not use it, then ask for a non-compressed
 		// message
+		frame_t old;
 		if (ClientGlobals.cl.frame.deltaframe <= 0) {
 			ClientGlobals.cl.frame.valid = true; // uncompressed frame
 			old = null;
@@ -518,12 +461,8 @@ public class CL_ents {
 			if (!old.valid) { // should never happen
 				Com.Printf("Delta from invalid frame (not supposed to happen!).\n");
 			}
-			if (old.serverframe != ClientGlobals.cl.frame.deltaframe) { // The frame
-																  // that the
-																  // server did
-																  // the delta
-																  // from
-				// is too old, so we can't reconstruct it properly.
+			if (old.serverframe != ClientGlobals.cl.frame.deltaframe) {
+				// The frame that the server did the delta from is too old, so we can't reconstruct it properly.
 				Com.Printf("Delta frame too old.\n");
 			} else if (ClientGlobals.cl.parse_entities - old.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
 				Com.Printf("Delta parse_entities too old.\n");
@@ -538,21 +477,22 @@ public class CL_ents {
 			ClientGlobals.cl.time = ClientGlobals.cl.frame.servertime - 100;
 
 		// read areabits
-		len = MSG.ReadByte(Globals.net_message);
-		MSG.ReadData(Globals.net_message, ClientGlobals.cl.frame.areabits, len);
+		ClientGlobals.cl.frame.areabits = frameMsg.areaBits;
+		return old;
+	}
 
-		// read playerinfo
-		cmd = MSG.ReadByte(Globals.net_message);
-		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
-		if (cmd != NetworkCommandType.svc_playerinfo)
-			Com.Error(Defines.ERR_DROP, "CL_ParseFrame: not playerinfo");
-		ParsePlayerstate(old, ClientGlobals.cl.frame);
+
+	public static void parsePlayerInfo(PlayerInfoMessage msg, frame_t old) {
+		ParsePlayerstate(old, ClientGlobals.cl.frame, msg);
+
+	}
+		/*
+	 * ================ CL_ParseFrame ================
+	 */
+	public static void parsePacketEntities(frame_t old) {
 
 		// read packet entities
-		cmd = MSG.ReadByte(Globals.net_message);
-		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
-		if (cmd != NetworkCommandType.svc_packetentities)
-			Com.Error(Defines.ERR_DROP, "CL_ParseFrame: not packetentities");
+		CL_parse.SHOWNET(CL_parse.svc_strings[NetworkCommandType.svc_packetentities.type]);
 
 		ParsePacketEntities(old, ClientGlobals.cl.frame);
 

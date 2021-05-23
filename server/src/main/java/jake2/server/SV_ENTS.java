@@ -77,7 +77,7 @@ public class SV_ENTS {
     void SV_EmitPacketEntities(client_frame_t lastReceivedFrame, client_frame_t currentFrame) {
 
         final sizebuf_t msg = gameImports.msg;
-        MSG.WriteByte(msg, NetworkCommandType.svc_packetentities);
+        MSG.WriteByte(msg, NetworkCommandType.svc_packetentities.type);
 
         int from_num_entities;
         if (lastReceivedFrame == null)

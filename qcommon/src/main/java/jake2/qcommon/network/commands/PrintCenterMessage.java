@@ -9,12 +9,16 @@ import jake2.qcommon.sizebuf_t;
  * Sent to a particular client only
  */
 public class PrintCenterMessage extends NetworkMessage {
-    public PrintCenterMessage(String text) {
+    public String text;
+
+    public PrintCenterMessage() {
         super(NetworkCommandType.svc_centerprint);
-        this.text = text;
     }
 
-    public final String text;
+    public PrintCenterMessage(String text) {
+        this();
+        this.text = text;
+    }
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -23,6 +27,12 @@ public class PrintCenterMessage extends NetworkMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.text = MSG.ReadString(buffer);
     }
+
+    @Override
+    public String toString() {
+        return "PrintCenterMessage{" + text + '}';
+    }
+
 }

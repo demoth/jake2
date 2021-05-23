@@ -29,8 +29,7 @@ package jake2.client;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.MSG;
+import jake2.qcommon.network.commands.InventoryMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
@@ -42,10 +41,10 @@ public class CL_inv {
 	/*
 	 * ================ CL_ParseInventory ================
 	 */
-	static void ParseInventory() {
+	static void ParseInventory(InventoryMessage msg) {
 
 		for (int i = 0; i < Defines.MAX_ITEMS; i++)
-			ClientGlobals.cl.inventory[i] = MSG.ReadShort(Globals.net_message);
+			ClientGlobals.cl.inventory[i] = msg.inventory[i];
 	}
 
 	/*

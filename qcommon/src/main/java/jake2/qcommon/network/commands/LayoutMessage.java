@@ -5,12 +5,16 @@ import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 public class LayoutMessage extends NetworkMessage {
-    public LayoutMessage(String layout) {
+    public String layout;
+
+    public LayoutMessage() {
         super(NetworkCommandType.svc_layout);
-        this.layout = layout;
     }
 
-    public final String layout;
+    public LayoutMessage(String layout) {
+        this();
+        this.layout = layout;
+    }
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -19,6 +23,6 @@ public class LayoutMessage extends NetworkMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.layout = MSG.ReadString(buffer);
     }
 }

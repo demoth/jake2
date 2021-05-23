@@ -30,6 +30,7 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommandType;
+import jake2.qcommon.network.commands.*;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -236,7 +237,7 @@ public class CL_parse {
      * ================== CL_ParseServerData ==================
      */
     //checked once, was ok.
-    public static void ParseServerData() {
+    public static void ParseServerData(ServerDataMessage serverData) {
         Com.DPrintf("ParseServerData():Serverdata packet received.\n");
         //
         //	   wipe the client_state_t struct
@@ -245,48 +246,48 @@ public class CL_parse {
         ClientGlobals.cls.state = Defines.ca_connected;
 
         //	   parse protocol version number
-        int i = MSG.ReadLong(Globals.net_message);
-        ClientGlobals.cls.serverProtocol = i;
+        ClientGlobals.cls.serverProtocol = serverData.protocol;
 
         // BIG HACK to let demos from release work with the 3.0x patch!!!
-        if (Globals.server_state != ServerStates.SS_DEAD && Defines.PROTOCOL_VERSION == 34) {
-        } else if (i != Defines.PROTOCOL_VERSION)
-            Com.Error(Defines.ERR_DROP, "Server returned version " + i
-                    + ", not " + Defines.PROTOCOL_VERSION);
+        // fixme: get rid of this
+        if (Globals.server_state == ServerStates.SS_DEAD || Defines.PROTOCOL_VERSION != 34) {
+            if (serverData.protocol != Defines.PROTOCOL_VERSION)
+                Com.Error(Defines.ERR_DROP, "Server returned version " + serverData.protocol
+                        + ", not " + Defines.PROTOCOL_VERSION);
+        }
 
-        ClientGlobals.cl.servercount = MSG.ReadLong(Globals.net_message);
-        ClientGlobals.cl.attractloop = MSG.ReadByte(Globals.net_message) != 0;
+        ClientGlobals.cl.servercount = serverData.spawnCount;
+        ClientGlobals.cl.attractloop = serverData.demo;
 
         // game directory
-        String str = MSG.ReadString(Globals.net_message);
-        ClientGlobals.cl.gamedir = str;
-        Com.dprintln("gamedir=" + str);
+        ClientGlobals.cl.gamedir = serverData.gameName;
+        Com.dprintln("gamedir=" + serverData.gameName);
 
         // set gamedir
-        if (str.length() > 0
+        // wtf?!
+        if (serverData.gameName.length() > 0
                 && (FS.fs_gamedirvar.string == null
                         || FS.fs_gamedirvar.string.length() == 0 || FS.fs_gamedirvar.string
-                        .equals(str))
-                || (str.length() == 0 && (FS.fs_gamedirvar.string != null || FS.fs_gamedirvar.string
+                        .equals(serverData.gameName))
+                || (serverData.gameName.length() == 0 && (FS.fs_gamedirvar.string != null || FS.fs_gamedirvar.string
                         .length() == 0)))
-            Cvar.getInstance().Set("game", str);
+            Cvar.getInstance().Set("game", serverData.gameName);
 
         // parse player entity number
-        ClientGlobals.cl.playernum = MSG.ReadShort(Globals.net_message);
+        ClientGlobals.cl.playernum = serverData.playerNumber;
         Com.dprintln("numplayers=" + ClientGlobals.cl.playernum);
         // get the full level name
-        str = MSG.ReadString(Globals.net_message);
-        Com.dprintln("levelname=" + str);
+        Com.dprintln("levelname=" + serverData.levelString);
 
         if (ClientGlobals.cl.playernum == -1) { // playing a cinematic or showing a
             // pic, not a level
-            SCR.PlayCinematic(str);
+            SCR.PlayCinematic(serverData.levelString);
         } else {
             // seperate the printfs so the server message can have a color
             //			Com.Printf(
             //				"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
             //			Com.Printf('\02' + str + "\n");
-            Com.Printf("Levelname:" + str + "\n");
+            Com.Printf("Levelname:" + serverData.levelString + "\n");
             // need to prep refresh at next oportunity
             ClientGlobals.cl.refresh_prepped = false;
         }
@@ -450,53 +451,49 @@ public class CL_parse {
     /*
      * ================ CL_ParseConfigString ================
      */
-    public static void ParseConfigString() {
-        int i = MSG.ReadShort(Globals.net_message);
-
-        if (i < 0 || i >= Defines.MAX_CONFIGSTRINGS)
+    public static void ParseConfigString(ConfigStringMessage configMsg) {
+        Com.Printf("Received " + configMsg + "\n");
+        if (configMsg.index < 0 || configMsg.index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring > MAX_CONFIGSTRINGS");
 
-        String s = MSG.ReadString(Globals.net_message);
-
-        String olds = ClientGlobals.cl.configstrings[i];
-        ClientGlobals.cl.configstrings[i] = s;
+        client_state_t clientState = ClientGlobals.cl;
+        String olds = clientState.configstrings[configMsg.index];
+        clientState.configstrings[configMsg.index] = configMsg.config;
         
-        //Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
-
         // do something apropriate
 
-        if (i >= Defines.CS_LIGHTS
-                && i < Defines.CS_LIGHTS + Defines.MAX_LIGHTSTYLES) {
+        if (configMsg.index >= Defines.CS_LIGHTS
+                && configMsg.index < Defines.CS_LIGHTS + Defines.MAX_LIGHTSTYLES) {
             
-            CL_fx.SetLightstyle(i - Defines.CS_LIGHTS);
+            CL_fx.SetLightstyle(configMsg.index - Defines.CS_LIGHTS);
             
-        } else if (i == Defines.CS_CDTRACK) {
-        	if (ClientGlobals.cl.refresh_prepped)
-        		CDAudio.Play(Lib.atoi(ClientGlobals.cl.configstrings[Defines.CS_CDTRACK]), true);
+        } else if (configMsg.index == Defines.CS_CDTRACK) {
+        	if (clientState.refresh_prepped)
+        		CDAudio.Play(Lib.atoi(clientState.configstrings[Defines.CS_CDTRACK]), true);
         	
-        } else if (i >= Defines.CS_MODELS && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
-            if (ClientGlobals.cl.refresh_prepped) {
-                ClientGlobals.cl.model_draw[i - Defines.CS_MODELS] = ClientGlobals.re
-                        .RegisterModel(ClientGlobals.cl.configstrings[i]);
-                if (ClientGlobals.cl.configstrings[i].startsWith("*"))
-                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = ClientGlobals.cm.InlineModel(ClientGlobals.cl.configstrings[i]);
+        } else if (configMsg.index >= Defines.CS_MODELS && configMsg.index < Defines.CS_MODELS + Defines.MAX_MODELS) {
+            if (clientState.refresh_prepped) {
+                clientState.model_draw[configMsg.index - Defines.CS_MODELS] = ClientGlobals.re
+                        .RegisterModel(clientState.configstrings[configMsg.index]);
+                if (clientState.configstrings[configMsg.index].startsWith("*"))
+                    clientState.model_clip[configMsg.index - Defines.CS_MODELS] = ClientGlobals.cm.InlineModel(clientState.configstrings[configMsg.index]);
                 else
-                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = null;
+                    clientState.model_clip[configMsg.index - Defines.CS_MODELS] = null;
             }
-        } else if (i >= Defines.CS_SOUNDS
-                && i < Defines.CS_SOUNDS + Defines.MAX_MODELS) {
-            if (ClientGlobals.cl.refresh_prepped)
-                ClientGlobals.cl.sound_precache[i - Defines.CS_SOUNDS] = S
-                        .RegisterSound(ClientGlobals.cl.configstrings[i]);
-        } else if (i >= Defines.CS_IMAGES
-                && i < Defines.CS_IMAGES + Defines.MAX_MODELS) {
-            if (ClientGlobals.cl.refresh_prepped)
-                ClientGlobals.cl.image_precache[i - Defines.CS_IMAGES] = ClientGlobals.re
-                        .RegisterPic(ClientGlobals.cl.configstrings[i]);
-        } else if (i >= Defines.CS_PLAYERSKINS
-                && i < Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS) {
-            if (ClientGlobals.cl.refresh_prepped && !olds.equals(s))
-                ParseClientinfo(i - Defines.CS_PLAYERSKINS);
+        } else if (configMsg.index >= Defines.CS_SOUNDS
+                && configMsg.index < Defines.CS_SOUNDS + Defines.MAX_MODELS) {
+            if (clientState.refresh_prepped)
+                clientState.sound_precache[configMsg.index - Defines.CS_SOUNDS] = S
+                        .RegisterSound(clientState.configstrings[configMsg.index]);
+        } else if (configMsg.index >= Defines.CS_IMAGES
+                && configMsg.index < Defines.CS_IMAGES + Defines.MAX_MODELS) {
+            if (clientState.refresh_prepped)
+                clientState.image_precache[configMsg.index - Defines.CS_IMAGES] = ClientGlobals.re
+                        .RegisterPic(clientState.configstrings[configMsg.index]);
+        } else if (configMsg.index >= Defines.CS_PLAYERSKINS
+                && configMsg.index < Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS) {
+            if (clientState.refresh_prepped && !olds.equals(configMsg.config))
+                ParseClientinfo(configMsg.index - Defines.CS_PLAYERSKINS);
         }
     }
 
@@ -512,57 +509,21 @@ public class CL_parse {
     /*
      * ================== CL_ParseStartSoundPacket ==================
      */
-    public static void ParseStartSoundPacket() {
-        int flags = MSG.ReadByte(Globals.net_message);
-        int sound_num = MSG.ReadByte(Globals.net_message);
+    public static void ParseStartSoundPacket(SoundMessage soundMsg) {
 
-        float volume;
-        if ((flags & Defines.SND_VOLUME) != 0)
-            volume = MSG.ReadByte(Globals.net_message) / 255.0f;
-        else
-            volume = Defines.DEFAULT_SOUND_PACKET_VOLUME;
-
-        float attenuation;
-        if ((flags & Defines.SND_ATTENUATION) != 0)
-            attenuation = MSG.ReadByte(Globals.net_message) / 64.0f;
-        else
-            attenuation = Defines.DEFAULT_SOUND_PACKET_ATTENUATION;
-
-        float ofs;
-        if ((flags & Defines.SND_OFFSET) != 0)
-            ofs = MSG.ReadByte(Globals.net_message) / 1000.0f;
-        else
-            ofs = 0;
-
-        int channel;
-        int ent;
-        if ((flags & Defines.SND_ENT) != 0) { // entity reletive
-            channel = MSG.ReadShort(Globals.net_message);
-            ent = channel >> 3;
-            if (ent > Defines.MAX_EDICTS)
-                Com.Error(Defines.ERR_DROP, "CL_ParseStartSoundPacket: ent = "
-                        + ent);
-
-            channel &= 7;
-        } else {
-            ent = 0;
-            channel = 0;
+        if (null == ClientGlobals.cl.sound_precache[soundMsg.soundIndex]) {
+            // todo: warning
+            return;
         }
 
-        float pos[];
-        if ((flags & Defines.SND_POS) != 0) { // positioned in space
-            MSG.ReadPos(Globals.net_message, pos_v);
-            // is ok. sound driver copies
-            pos = pos_v;
-        } else
-            // use entity number
-            pos = null;
-
-        if (null == ClientGlobals.cl.sound_precache[sound_num])
-            return;
-
-        S.StartSound(pos, ent, channel, ClientGlobals.cl.sound_precache[sound_num],
-                volume, attenuation, ofs);
+        S.StartSound(
+                soundMsg.origin,
+                soundMsg.entityIndex,
+                soundMsg.sendchan,
+                ClientGlobals.cl.sound_precache[soundMsg.soundIndex],
+                soundMsg.volume,
+                soundMsg.attenuation,
+                soundMsg.timeOffset);
     }
 
     public static void SHOWNET(String s) {
@@ -570,6 +531,8 @@ public class CL_parse {
             Com.Printf(Globals.net_message.readcount - 1 + ":" + s + "\n");
     }
 
+
+    static frame_t old;
     /*
      * ===================== CL_ParseServerMessage =====================
      */
@@ -607,104 +570,83 @@ public class CL_parse {
                     SHOWNET(svc_strings[cmd]);
             }
 
-            // other commands
-            switch (cmd) {
-            default:
-                Com.Error(Defines.ERR_DROP,
-                        "CL_ParseServerMessage: Illegible server message\n");
-                break;
-
-            case NetworkCommandType.svc_nop:
-                //				Com.Printf ("svc_nop\n");
-                break;
-
-            case NetworkCommandType.svc_disconnect:
-                Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
-                break;
-
-            case NetworkCommandType.svc_reconnect:
-                Com.Printf("Server disconnected, reconnecting\n");
-                if (ClientGlobals.cls.download != null) {
-                    //ZOID, close download
-                    try {
-                        ClientGlobals.cls.download.close();
-                    } catch (IOException e) {
+            NetworkCommandType msgType = NetworkCommandType.fromInt(cmd);
+            NetworkMessage msg = NetworkMessage.parseFromBuffer(msgType, Globals.net_message);
+            if (msg != null) {
+                // process
+                if (msg instanceof DisconnectMessage) {
+                    Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
+                } else if (msg instanceof ReconnectMessage) {
+                    Com.Printf("Server disconnected, reconnecting\n");
+                    if (ClientGlobals.cls.download != null) {
+                        //ZOID, close download
+                        try {
+                            ClientGlobals.cls.download.close();
+                        } catch (IOException e) {
+                        }
+                        ClientGlobals.cls.download = null;
                     }
-                    ClientGlobals.cls.download = null;
+                    ClientGlobals.cls.state = Defines.ca_connecting;
+                    ClientGlobals.cls.connect_time = -99999; // CL_CheckForResend() will
+                    // fire immediately
+
+                } else if (msg instanceof PrintMessage) {
+                    if (((PrintMessage) msg).level == Defines.PRINT_CHAT) {
+                        S.StartLocalSound("misc/talk.wav");
+                        ClientGlobals.con.ormask = 128;
+                    }
+                    Com.Printf(((PrintMessage) msg).text);
+                    ClientGlobals.con.ormask = 0;
+                } else if (msg instanceof PrintCenterMessage) {
+                    SCR.CenterPrint(((PrintCenterMessage) msg).text);
+                } else if (msg instanceof StuffTextMessage) {
+                    Com.DPrintf("stufftext: " + ((StuffTextMessage) msg).text + "\n");
+                    Cbuf.AddText(((StuffTextMessage) msg).text);
+                } else if (msg instanceof ServerDataMessage) {
+                    Cbuf.Execute(); // make sure any stuffed commands are done
+                    ParseServerData((ServerDataMessage) msg);
+                } else if (msg instanceof ConfigStringMessage) {
+                    ParseConfigString((ConfigStringMessage) msg);
+                } else if (msg instanceof SoundMessage) {
+                    ParseStartSoundPacket((SoundMessage) msg);
+                } else if (msg instanceof WeaponSoundMessage) {
+                    CL_fx.ParseMuzzleFlash((WeaponSoundMessage) msg);
+                } else if (msg instanceof MuzzleFlash2Message) {
+                    CL_fx.ParseMuzzleFlash2((MuzzleFlash2Message) msg);
+                } else if (msg instanceof FrameMessage) {
+                    old = CL_ents.processFrameMessage((FrameMessage) msg);
+                } else if (msg instanceof PlayerInfoMessage) {
+                    CL_ents.parsePlayerInfo((PlayerInfoMessage) msg, old);
+                } else if (msg instanceof LayoutMessage) {
+                    ClientGlobals.cl.layout = ((LayoutMessage) msg).layout;
+                } else if (msg instanceof InventoryMessage) {
+                    CL_inv.ParseInventory((InventoryMessage) msg);
                 }
-                ClientGlobals.cls.state = Defines.ca_connecting;
-                ClientGlobals.cls.connect_time = -99999; // CL_CheckForResend() will
-                // fire immediately
+                continue;
+            }
+            // other commands
+        switch (msgType) {
+            case svc_nop:
                 break;
 
-            case NetworkCommandType.svc_print:
-                int i = MSG.ReadByte(Globals.net_message);
-                if (i == Defines.PRINT_CHAT) {
-                    S.StartLocalSound("misc/talk.wav");
-                    ClientGlobals.con.ormask = 128;
-                }
-                Com.Printf(MSG.ReadString(Globals.net_message));
-                ClientGlobals.con.ormask = 0;
-                break;
-
-            case NetworkCommandType.svc_centerprint:
-                SCR.CenterPrint(MSG.ReadString(Globals.net_message));
-                break;
-
-            case NetworkCommandType.svc_stufftext:
-                String s = MSG.ReadString(Globals.net_message);
-                Com.DPrintf("stufftext: " + s + "\n");
-                Cbuf.AddText(s);
-                break;
-
-            case NetworkCommandType.svc_serverdata:
-                Cbuf.Execute(); // make sure any stuffed commands are done
-                ParseServerData();
-                break;
-
-            case NetworkCommandType.svc_configstring:
-                ParseConfigString();
-                break;
-
-            case NetworkCommandType.svc_sound:
-                ParseStartSoundPacket();
-                break;
-
-            case NetworkCommandType.svc_spawnbaseline:
+            case svc_spawnbaseline:
                 ParseBaseline();
                 break;
 
-            case NetworkCommandType.svc_temp_entity:
+            case svc_packetentities:
+                // should be called after CL_ents.ParseFrameMessage
+                CL_ents.parsePacketEntities(old);
+                break;
+
+            case svc_temp_entity:
                 CL_tent.ParseTEnt();
                 break;
 
-            case NetworkCommandType.svc_muzzleflash:
-                CL_fx.ParseMuzzleFlash();
-                break;
-
-            case NetworkCommandType.svc_muzzleflash2:
-                CL_fx.ParseMuzzleFlash2();
-                break;
-
-            case NetworkCommandType.svc_download:
+            case svc_download:
                 ParseDownload();
                 break;
 
-            case NetworkCommandType.svc_frame:
-                CL_ents.ParseFrame();
-                break;
-
-            case NetworkCommandType.svc_inventory:
-                CL_inv.ParseInventory();
-                break;
-
-            case NetworkCommandType.svc_layout:
-        	ClientGlobals.cl.layout = MSG.ReadString(Globals.net_message);
-                break;
-
-            case NetworkCommandType.svc_playerinfo:
-            case NetworkCommandType.svc_packetentities:
-            case NetworkCommandType.svc_deltapacketentities:
+            case svc_deltapacketentities:
                 Com.Error(Defines.ERR_DROP, "Out of place frame data");
                 break;
             }

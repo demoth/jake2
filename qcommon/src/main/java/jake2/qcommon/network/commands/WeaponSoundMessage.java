@@ -11,13 +11,17 @@ public class WeaponSoundMessage extends NetworkMessage {
      * @param entityIndex - index of the owner
      */
     public WeaponSoundMessage(int entityIndex, int type) {
-        super(NetworkCommandType.svc_muzzleflash);
+        this();
         this.entityIndex = entityIndex;
         this.type = type;
     }
 
-    public final int entityIndex;
-    public final int type;
+    public WeaponSoundMessage() {
+        super(NetworkCommandType.svc_muzzleflash);
+    }
+
+    public int entityIndex;
+    public int type;
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -27,6 +31,7 @@ public class WeaponSoundMessage extends NetworkMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.entityIndex = MSG.ReadShort(buffer);
+        this.type = MSG.ReadByte(buffer);
     }
 }
