@@ -409,8 +409,13 @@ public class CL_ents {
 			state.fov = msg.fov;
 		if (msg.rdFlags != null)
 			state.rdflags = msg.rdFlags;
-		if (msg.stats != null)
-			state.stats = msg.stats;
+
+		// copy only changed stats
+		for (int i = 0; i < Defines.MAX_STATS; i++) {
+			if ((msg.statsMask & (1 << i)) != 0) {
+				state.stats[i] = msg.stats[i];
+			}
+		}
 	}
 
 	/*
