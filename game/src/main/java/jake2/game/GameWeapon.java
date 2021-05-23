@@ -27,6 +27,7 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.commands.PointDirectionTEMessage;
 import jake2.qcommon.network.commands.PointTEMessage;
+import jake2.qcommon.network.commands.SplashTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -402,12 +403,7 @@ public class GameWeapon {
                     // done
                     if (0 == (target.svflags & Defines.SVF_MONSTER)
                             && (null == target.getClient())) {
-                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                        gameExports.gameImports.WriteByte(Defines.TE_LASER_SPARKS);
-                        gameExports.gameImports.WriteByte(4);
-                        gameExports.gameImports.WritePosition(tr.endpos);
-                        gameExports.gameImports.WriteDir(tr.plane.normal);
-                        gameExports.gameImports.WriteByte(self.s.skinnum);
+                        gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_LASER_SPARKS, 4, tr.endpos, tr.plane.normal, self.s.skinnum));
                         gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                         break;
                     }
@@ -595,12 +591,7 @@ public class GameWeapon {
                         color = Defines.SPLASH_UNKNOWN;
     
                     if (color != Defines.SPLASH_UNKNOWN) {
-                        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                        gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
-                        gameExports.gameImports.WriteByte(8);
-                        gameExports.gameImports.WritePosition(tr.endpos);
-                        gameExports.gameImports.WriteDir(tr.plane.normal);
-                        gameExports.gameImports.WriteByte(color);
+                        gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_SPLASH, 8, tr.endpos, tr.plane.normal, color));
                         gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                     }
     
