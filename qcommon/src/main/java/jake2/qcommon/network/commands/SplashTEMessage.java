@@ -3,6 +3,12 @@ package jake2.qcommon.network.commands;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * TE_SPLASH
+ * TE_LASER_SPARKS
+ * TE_WELDING_SPARKS
+ * TE_TUNNEL_SPARKS
+ */
 public class SplashTEMessage extends TEMessage {
     public SplashTEMessage(int style, int count, float[] position, float[] direction, int param) {
         super(style);

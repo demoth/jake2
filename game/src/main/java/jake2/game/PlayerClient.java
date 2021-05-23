@@ -1029,8 +1029,7 @@ public class PlayerClient {
             PlayerHud.MoveClientToIntermission(ent, gameExports);
         } else {
             // send effect
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN), MulticastTypes.MULTICAST_PVS);
         }
 
         gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
@@ -1076,8 +1075,7 @@ public class PlayerClient {
         } else {
             // send effect if in a multiplayer game
             if (gameExports.game.maxclients > 1) {
-                gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
-                gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+                gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN), MulticastTypes.MULTICAST_PVS);
 
                 gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                         + " entered the game\n");
@@ -1221,8 +1219,7 @@ public class PlayerClient {
                 + " disconnected\n");
 
         // send effect
-        gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGOUT));
-        gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_LOGOUT), MulticastTypes.MULTICAST_PVS);
 
         gameImports.unlinkentity(ent);
         ent.s.modelindex = 0;

@@ -75,19 +75,6 @@ public interface GameImports {
             */
     void multicast(float[] origin, MulticastTypes to);
 
-    void unicast(edict_t ent, boolean reliable);
-
-    void WriteByte(int c);
-
-    void WriteShort(int c);
-
-    void WriteString(String s);
-
-    void WritePosition(float[] pos);
-
-    /* some fractional bits */
-    void WriteDir(float[] pos);
-
     /* console variable interaction */
     cvar_t cvar(String var_name, String value, int flags);
 
@@ -105,5 +92,7 @@ public interface GameImports {
 
     int getPointContents(float[] p);
 
-    void multicastMessage(NetworkMessage msg);
+    void multicastMessage(float[] origin, NetworkMessage msg, MulticastTypes to);
+
+    void unicastMessage(int index, NetworkMessage msg, boolean reliable);
 }

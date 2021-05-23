@@ -263,8 +263,7 @@ public class GameExportsImpl implements GameExports {
         sb.append("xv 50 yv 172 string2 \"");
         sb.append(String.format("%3d/%3d     %d/%d       %d/%d\" ", level.killed_monsters, level.total_monsters, level.found_goals, level.total_goals, level.found_secrets, level.total_secrets));
 
-        gameImports.multicastMessage(new LayoutMessage(sb.toString()));
-        gameImports.unicast(ent, true);
+        gameImports.unicastMessage(ent.index, new LayoutMessage(sb.toString()), true);
     }
 
     /**
@@ -562,8 +561,7 @@ public class GameExportsImpl implements GameExports {
 
         cl.showinventory = true;
 
-        gameImports.multicastMessage(new InventoryMessage(cl.pers.inventory));
-        gameImports.unicast(ent, true);
+        gameImports.unicastMessage(ent.index, new InventoryMessage(cl.pers.inventory), true);
     }
 
     /**
@@ -1097,8 +1095,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.spectator_password.string, spectator)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
-                gameImports.multicastMessage(new StuffTextMessage("spectator 0\n"));
-                gameImports.unicast(ent, true);
+                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0\n"), true);
                 return;
             }
 
@@ -1116,8 +1113,7 @@ public class GameExportsImpl implements GameExports {
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
-                gameImports.multicastMessage(new StuffTextMessage("spectator 0\n"));
-                gameImports.unicast(ent, true);
+                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0\n"), true);
                 return;
             }
         } else {
@@ -1127,8 +1123,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.password.string, password)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
-                gameImports.multicastMessage(new StuffTextMessage("spectator 1\n"));
-                gameImports.unicast(ent, true);
+                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 1\n"), true);
                 return;
             }
         }
@@ -1142,8 +1137,7 @@ public class GameExportsImpl implements GameExports {
         // add a teleportation effect
         if (!client.pers.spectator) {
             // send effect
-            gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN));
-            gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_LOGIN), MulticastTypes.MULTICAST_PVS);
 
             // hold in place briefly
             client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;

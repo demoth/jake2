@@ -1082,8 +1082,7 @@ class PlayerView {
 
         // if the scoreboard is up, update it
         if (current_client.showscores && 0 == (gameExports.level.framenum & 31)) {
-            PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy, gameExports);
-            gameExports.gameImports.unicast(ent, false);
+            gameExports.gameImports.unicastMessage(ent.index, PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy, gameExports), false);
         }
     }
 

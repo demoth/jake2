@@ -170,8 +170,7 @@ public class PlayerWeapon {
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius, gameExports);
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_GRENADE | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_GRENADE | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
@@ -238,8 +237,7 @@ public class PlayerWeapon {
                     radius_damage, gameExports);
 
             // send muzzle flash
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_ROCKET | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_ROCKET | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
@@ -459,8 +457,7 @@ public class PlayerWeapon {
 
             // send muzzle flash
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_SHOTGUN | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_SHOTGUN | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -526,8 +523,7 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_SHOTGUN_VSPREAD,
                     GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN, gameExports);
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_SSHOTGUN | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_SSHOTGUN | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -595,8 +591,7 @@ public class PlayerWeapon {
                     start);
             GameWeapon.fire_rail(ent, start, forward, damage, kick, gameExports);
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_RAILGUN | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_RAILGUN | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
@@ -646,8 +641,7 @@ public class PlayerWeapon {
 
             gclient_t client = ent.getClient();
             if (client.getPlayerState().gunframe == 9) {
-                gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_BFG | gameExports.is_silenced));
-                gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+                gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_BFG | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
                 client.getPlayerState().gunframe++;
 
@@ -853,8 +847,7 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN, gameExports);
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, Defines.MZ_MACHINEGUN | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_MACHINEGUN | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
@@ -982,8 +975,7 @@ public class PlayerWeapon {
                         GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_CHAINGUN, gameExports);
             }
 
-            gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, (Defines.MZ_CHAINGUN1 + shots - 1) | gameExports.is_silenced));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, (Defines.MZ_CHAINGUN1 + shots - 1) | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
@@ -1425,8 +1417,7 @@ public class PlayerWeapon {
         else
             flashType = Defines.MZ_BLASTER | gameExports.is_silenced;
 
-        gameExports.gameImports.multicastMessage(new WeaponSoundMessage(ent.index, flashType));
-        gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, flashType), MulticastTypes.MULTICAST_PVS);
 
         PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
     }

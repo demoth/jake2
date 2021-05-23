@@ -146,8 +146,7 @@ public class GameCombat {
      * SpawnDamage.
      */
     private static void SpawnDamage(int type, float[] origin, float[] normal, int damage, GameExportsImpl gameExports) {
-        gameExports.gameImports.multicastMessage(new PointDirectionTEMessage(type, origin, normal));
-        gameExports.gameImports.multicast(origin, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.multicastMessage(origin, new PointDirectionTEMessage(type, origin, normal), MulticastTypes.MULTICAST_PVS);
     }
 
     private static int CheckPowerArmor(SubgameEntity ent, float[] point, float[] normal,

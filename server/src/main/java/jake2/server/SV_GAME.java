@@ -43,12 +43,7 @@ public class SV_GAME {
      * 
      * Sends the contents of the mutlicast buffer to a single client.
      */
-    public void PF_Unicast(edict_t ent, boolean reliable) {
-
-        if (ent == null)
-            return;
-
-        int p = ent.index;
+    public void PF_Unicast(int p, boolean reliable) {
 
         if (p < 1 || p > gameImports.serverMain.getClients().size())
             return;
@@ -142,33 +137,8 @@ public class SV_GAME {
         if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
             gameImports.sv.multicast.clear();
-            gameImports.multicastMessage(new ConfigStringMessage(index, val));
-            gameImports.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
+            gameImports.multicastMessage(Globals.vec3_origin, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
         }
-    }
-
-    public void PF_WriteChar(int c) {
-        MSG.WriteChar(gameImports.sv.multicast, c);
-    }
-
-    public void PF_WriteLong(int c) {
-        MSG.WriteLong(gameImports.sv.multicast, c);
-    }
-
-    public void PF_WriteFloat(float f) {
-        MSG.WriteFloat(gameImports.sv.multicast, f);
-    }
-
-    public void PF_WritePos(float[] pos) {
-        MSG.WritePos(gameImports.sv.multicast, pos);
-    }
-
-    public void PF_WriteDir(float[] dir) {
-        MSG.WriteDir(gameImports.sv.multicast, dir);
-    }
-
-    public void PF_WriteAngle(float f) {
-        MSG.WriteAngle(gameImports.sv.multicast, f);
     }
 
     /**

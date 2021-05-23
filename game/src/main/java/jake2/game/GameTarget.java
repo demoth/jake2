@@ -272,8 +272,7 @@ class GameTarget {
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.multicastMessage(new PointTEMessage(ent.style, ent.s.origin));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(ent.style, ent.s.origin), MulticastTypes.MULTICAST_PVS);
         }
     };
 
@@ -379,8 +378,7 @@ class GameTarget {
 
             float save;
 
-            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin));
-            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
+            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PHS);
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
                     self.dmg + 40, GameDefines.MOD_EXPLOSIVE, gameExports);
@@ -465,8 +463,7 @@ class GameTarget {
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds));
-            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(self.s.origin, new SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds), MulticastTypes.MULTICAST_PVS);
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
@@ -625,8 +622,7 @@ class GameTarget {
                         && (null == target.getClient())) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
-                        gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_LASER_SPARKS, count, tr.endpos, tr.plane.normal, self.s.skinnum));
-                        gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
+                        gameExports.gameImports.multicastMessage(tr.endpos, new SplashTEMessage(Defines.TE_LASER_SPARKS, count, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS);
                     }
                     break;
                 }

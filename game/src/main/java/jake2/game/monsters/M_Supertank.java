@@ -1265,8 +1265,7 @@ public class M_Supertank {
                 return true;
             }
     
-            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, org));
-            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, org), MulticastTypes.MULTICAST_PVS);
     
             self.nextthink = gameExports.level.time + 0.1f;
             return true;

@@ -858,8 +858,7 @@ public class M_Float {
                     Defines.ATTN_NORM, 0);
 
             //FIXME use the flash, Luke
-            gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_SPLASH, 32, origin, dir, 1));
-            gameExports.gameImports.multicast(origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(origin, new SplashTEMessage(Defines.TE_SPLASH, 32, origin, dir, 1), MulticastTypes.MULTICAST_PVS);
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,

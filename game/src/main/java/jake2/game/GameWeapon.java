@@ -24,10 +24,10 @@ package jake2.game;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.network.commands.PointDirectionTEMessage;
 import jake2.qcommon.network.commands.PointTEMessage;
 import jake2.qcommon.network.commands.SplashTEMessage;
+import jake2.qcommon.network.commands.TrailTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -76,8 +76,7 @@ public class GameWeapon {
                     dir = Globals.vec3_origin;
                 else
                     dir = plane.normal;
-                gameExports.gameImports.multicastMessage(new PointDirectionTEMessage(Defines.TE_BLASTER, self.s.origin, dir));
-                gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+                gameExports.gameImports.multicastMessage(self.s.origin, new PointDirectionTEMessage(Defines.TE_BLASTER, self.s.origin, dir), MulticastTypes.MULTICAST_PVS);
             }
     
             GameUtil.G_FreeEdict(self, gameExports);
@@ -137,8 +136,7 @@ public class GameWeapon {
                 else
                     style = Defines.TE_ROCKET_EXPLOSION;
             }
-            gameExports.gameImports.multicastMessage(new PointTEMessage(style, origin));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(style, origin), MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent, gameExports);
             return true;
@@ -234,8 +232,7 @@ public class GameWeapon {
                 style = Defines.TE_ROCKET_EXPLOSION_WATER;
             else
                 style = Defines.TE_ROCKET_EXPLOSION;
-            gameExports.gameImports.multicastMessage(new PointTEMessage(style, origin));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(style, origin), MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent, gameExports);
         }
@@ -278,8 +275,7 @@ public class GameWeapon {
                     if (ent == self.getOwner())
                         points = points * 0.5f;
     
-                    gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_BFG_EXPLOSION, ent.s.origin));
-                    gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+                    gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BFG_EXPLOSION, ent.s.origin), MulticastTypes.MULTICAST_PHS);
 
                     GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
@@ -336,8 +332,7 @@ public class GameWeapon {
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
-            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_BFG_BIGEXPLOSION, self.s.origin));
-            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_BFG_BIGEXPLOSION, self.s.origin), MulticastTypes.MULTICAST_PVS);
         }
     };
     
@@ -403,8 +398,7 @@ public class GameWeapon {
                     // done
                     if (0 == (target.svflags & Defines.SVF_MONSTER)
                             && (null == target.getClient())) {
-                        gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_LASER_SPARKS, 4, tr.endpos, tr.plane.normal, self.s.skinnum));
-                        gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
+                        gameExports.gameImports.multicastMessage(tr.endpos, new SplashTEMessage(Defines.TE_LASER_SPARKS, 4, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS);
                         break;
                     }
     
@@ -412,11 +406,7 @@ public class GameWeapon {
                     Math3D.VectorCopy(tr.endpos, start);
                 }
     
-                gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-                gameExports.gameImports.WriteByte(Defines.TE_BFG_LASER);
-                gameExports.gameImports.WritePosition(self.s.origin);
-                gameExports.gameImports.WritePosition(tr.endpos);
-                gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
+                gameExports.gameImports.multicastMessage(self.s.origin, new TrailTEMessage(Defines.TE_BFG_LASER, self.s.origin, tr.endpos), MulticastTypes.MULTICAST_PHS);
             }
     
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
@@ -591,8 +581,7 @@ public class GameWeapon {
                         color = Defines.SPLASH_UNKNOWN;
     
                     if (color != Defines.SPLASH_UNKNOWN) {
-                        gameExports.gameImports.multicastMessage(new SplashTEMessage(Defines.TE_SPLASH, 8, tr.endpos, tr.plane.normal, color));
-                        gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
+                        gameExports.gameImports.multicastMessage(tr.endpos, new SplashTEMessage(Defines.TE_SPLASH, 8, tr.endpos, tr.plane.normal, color), MulticastTypes.MULTICAST_PVS);
                     }
     
                     // change bullet's course when it enters water
@@ -622,8 +611,7 @@ public class GameWeapon {
                             Defines.DAMAGE_BULLET, mod, gameExports);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
-                        gameExports.gameImports.multicastMessage(new PointDirectionTEMessage(te_impact, tr.endpos, tr.plane.normal));
-                        gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
+                        gameExports.gameImports.multicastMessage(tr.endpos, new PointDirectionTEMessage(te_impact, tr.endpos, tr.plane.normal), MulticastTypes.MULTICAST_PVS);
     
                         if (self.getClient() != null)
                             PlayerWeapon.PlayerNoise(self, tr.endpos,
@@ -650,11 +638,7 @@ public class GameWeapon {
             Math3D.VectorAdd(water_start, tr.endpos, pos);
             Math3D.VectorScale(pos, 0.5f, pos);
     
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(Defines.TE_BUBBLETRAIL);
-            gameExports.gameImports.WritePosition(water_start);
-            gameExports.gameImports.WritePosition(tr.endpos);
-            gameExports.gameImports.multicast(pos, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(pos, new TrailTEMessage(Defines.TE_BUBBLETRAIL, water_start, tr.endpos), MulticastTypes.MULTICAST_PVS);
         }
     }
 
@@ -904,18 +888,12 @@ public class GameWeapon {
         }
     
         // send gun puff / flash
-        gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-        gameExports.gameImports.WriteByte(Defines.TE_RAILTRAIL);
-        gameExports.gameImports.WritePosition(start);
-        gameExports.gameImports.WritePosition(tr.endpos);
-        gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
+
+        gameExports.gameImports.multicastMessage(self.s.origin, new TrailTEMessage(Defines.TE_RAILTRAIL, start, tr.endpos), MulticastTypes.MULTICAST_PHS);
         // gi.multicast (start, MULTICAST_PHS);
         if (water) {
-            gameExports.gameImports.WriteByte(NetworkCommandType.svc_temp_entity);
-            gameExports.gameImports.WriteByte(Defines.TE_RAILTRAIL);
-            gameExports.gameImports.WritePosition(start);
-            gameExports.gameImports.WritePosition(tr.endpos);
-            gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PHS);
+            // fixme: Bubble trail?
+            gameExports.gameImports.multicastMessage(tr.endpos, new TrailTEMessage(Defines.TE_RAILTRAIL, start, tr.endpos), MulticastTypes.MULTICAST_PHS);
         }
     
         if (self.getClient() != null)

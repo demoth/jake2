@@ -147,7 +147,7 @@ public class GameImportsImpl implements GameImports {
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
         new PrintCenterMessage(s).writeTo(sv.multicast);
-        sv_game.PF_Unicast(ent, true);
+        sv_game.PF_Unicast(ent.index, true);
     }
 
     @Override
@@ -263,37 +263,6 @@ public class GameImportsImpl implements GameImports {
     @Override
     public void multicast(float[] origin, MulticastTypes to) {
         SV_Multicast(origin, to);
-    }
-
-    @Override
-    public void unicast(edict_t ent, boolean reliable) {
-        sv_game.PF_Unicast(ent, reliable);
-    }
-
-    @Override
-    public void WriteByte(int c) {
-        MSG.WriteByte(sv.multicast, c);
-    }
-
-    @Override
-    public void WriteShort(int c) {
-        MSG.WriteShort(sv.multicast, c);
-    }
-
-    @Override
-    public void WriteString(String s) {
-        MSG.WriteString(sv.multicast, s);
-    }
-
-    @Override
-    public void WritePosition(float[] pos) {
-        sv_game.PF_WritePos(pos);
-    }
-
-    /* some fractional bits */
-    @Override
-    public void WriteDir(float[] pos) {
-        sv_game.PF_WriteDir(pos);
     }
 
     /**
@@ -711,7 +680,7 @@ public class GameImportsImpl implements GameImports {
      * MULTICAST_PVS	send to clients potentially visible from org
      * MULTICAST_PHS	send to clients potentially hearable from org
      */
-    public void SV_Multicast(float[] origin, MulticastTypes to) {
+    private void SV_Multicast(float[] origin, MulticastTypes to) {
         byte mask[];
         int leafnum, cluster;
         int j;
@@ -790,7 +759,14 @@ public class GameImportsImpl implements GameImports {
     }
 
     @Override
-    public void multicastMessage(NetworkMessage msg) {
+    public void multicastMessage(float[] origin, NetworkMessage msg, MulticastTypes to) {
         msg.writeTo(sv.multicast);
+        SV_Multicast(origin, to);
+    }
+
+    @Override
+    public void unicastMessage(int index, NetworkMessage msg, boolean reliable) {
+        msg.writeTo(sv.multicast);
+        sv_game.PF_Unicast(index, reliable);
     }
 }

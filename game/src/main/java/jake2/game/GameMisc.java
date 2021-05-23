@@ -712,14 +712,12 @@ public class GameMisc {
     }
 
     public static void BecomeExplosion1(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin));
-        gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PVS);
         GameUtil.G_FreeEdict(self, gameExports);
     }
 
     private static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin));
-        gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin), MulticastTypes.MULTICAST_PVS);
         GameUtil.G_FreeEdict(self, gameExports);
     }
 

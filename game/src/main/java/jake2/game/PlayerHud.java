@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.commands.LayoutMessage;
+import jake2.qcommon.network.commands.NetworkMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -73,8 +74,7 @@ public class PlayerHud {
         // add the layout
 
         if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
-            DeathmatchScoreboardMessage(ent, null, gameExports);
-            gameExports.gameImports.unicast(ent, true);
+            gameExports.gameImports.unicastMessage(ent.index, DeathmatchScoreboardMessage(ent, null, gameExports), true);
         }
 
     }
@@ -168,7 +168,7 @@ public class PlayerHud {
      * DeathmatchScoreboardMessage
      * ==================
      */
-    public static void DeathmatchScoreboardMessage(edict_t ent, edict_t killer, GameExportsImpl gameExports) {
+    public static NetworkMessage DeathmatchScoreboardMessage(edict_t ent, edict_t killer, GameExportsImpl gameExports) {
         StringBuffer string = new StringBuffer(1400);
 
         int stringlength;
@@ -246,7 +246,7 @@ public class PlayerHud {
                             (gameExports.level.framenum - cl.resp.enterframe) / 600);
         }
 
-        gameExports.gameImports.multicastMessage(new LayoutMessage(string.toString()));
+        return new LayoutMessage(string.toString());
     }
 
     /*
@@ -258,8 +258,7 @@ public class PlayerHud {
      * ==================
      */
     public static void DeathmatchScoreboard(SubgameEntity ent, GameExportsImpl gameExports) {
-        DeathmatchScoreboardMessage(ent, ent.enemy, gameExports);
-        gameExports.gameImports.unicast(ent, true);
+        gameExports.gameImports.unicastMessage(ent.index, DeathmatchScoreboardMessage(ent, ent.enemy, gameExports), true);
     }
 
     /*

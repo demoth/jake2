@@ -33,8 +33,7 @@ public class M_Boss3 {
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.multicastMessage(new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin));
-            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin), MulticastTypes.MULTICAST_PVS);
             GameUtil.G_FreeEdict(ent, gameExports);
         }
     };

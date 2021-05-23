@@ -160,25 +160,25 @@ public class SV_SEND {
 			}
 		}
 
-		new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin).writeTo(gameImports.sv.multicast);
-
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)
 		if (attenuation == Defines.ATTN_NONE)
 			use_phs = false;
 
+		final MulticastTypes multicastType;
+
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R);
+				multicastType = MulticastTypes.MULTICAST_PHS_R;
 			else
-				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R);
-		}
-		else {
+				multicastType = MulticastTypes.MULTICAST_ALL_R;
+		} else {
 			if (use_phs)
-				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_PHS);
+				multicastType = MulticastTypes.MULTICAST_PHS;
 			else
-				gameImports.SV_Multicast(origin, MulticastTypes.MULTICAST_ALL);
+				multicastType = MulticastTypes.MULTICAST_ALL;
 		}
+		gameImports.multicastMessage(origin, new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
 	}
 	/*
 	===============================================================================
