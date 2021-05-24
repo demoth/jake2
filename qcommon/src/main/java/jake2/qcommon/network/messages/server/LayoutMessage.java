@@ -1,14 +1,13 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class LayoutMessage extends NetworkMessage {
+public class LayoutMessage extends ServerMessage {
     public String layout;
 
     public LayoutMessage() {
-        super(NetworkCommandType.svc_layout);
+        super(ServerMessageType.svc_layout);
     }
 
     public LayoutMessage(String layout) {

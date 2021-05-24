@@ -1,15 +1,14 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
 
 import static jake2.qcommon.Defines.MAX_MAP_AREAS;
 
-public class FrameMessage extends NetworkMessage {
+public class FrameMessage extends ServerMessage {
     public int frameNumber;
     public int lastFrame;
     public int suppressCount;
@@ -18,7 +17,7 @@ public class FrameMessage extends NetworkMessage {
     public byte[] areaBits;
 
     public FrameMessage() {
-        super(NetworkCommandType.svc_frame);
+        super(ServerMessageType.svc_frame);
     }
 
     /**

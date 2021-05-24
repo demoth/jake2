@@ -32,6 +32,7 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
+import jake2.qcommon.network.messages.client.ClientMessageType;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Vargs;
 
@@ -1475,7 +1476,7 @@ public final class SCR extends Globals {
      */
     static void FinishCinematic() {
         // tell the server to advance to the next map / cinematic
-        MSG.WriteByte(cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
+        MSG.WriteByte(cls.netchan.message, ClientMessageType.CLC_STRINGCMD.value);
         SZ.Print(cls.netchan.message, "nextserver " + ClientGlobals.cl.servercount + '\n');
     }
 

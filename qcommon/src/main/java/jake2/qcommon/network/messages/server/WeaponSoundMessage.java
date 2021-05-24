@@ -1,10 +1,9 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class WeaponSoundMessage extends NetworkMessage {
+public class WeaponSoundMessage extends ServerMessage {
 
     /**
      * @param type - weapon index and silenced flag packed together into 1 byte
@@ -17,7 +16,7 @@ public class WeaponSoundMessage extends NetworkMessage {
     }
 
     public WeaponSoundMessage() {
-        super(NetworkCommandType.svc_muzzleflash);
+        super(ServerMessageType.svc_muzzleflash);
     }
 
     public int entityIndex;

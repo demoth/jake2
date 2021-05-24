@@ -1,19 +1,18 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 /**
  * Print message to console or to the top of the screen
  */
-public class PrintMessage extends NetworkMessage {
+public class PrintMessage extends ServerMessage {
 
     public int level;
     public String text;
 
     public PrintMessage() {
-        super(NetworkCommandType.svc_print);
+        super(ServerMessageType.svc_print);
     }
 
     public PrintMessage(int level, String text) {

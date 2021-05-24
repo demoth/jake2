@@ -26,10 +26,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NetworkCommandType;
-import jake2.qcommon.network.commands.ConfigStringMessage;
-import jake2.qcommon.network.commands.ServerDataMessage;
-import jake2.qcommon.network.commands.StuffTextMessage;
+import jake2.qcommon.network.messages.server.ConfigStringMessage;
+import jake2.qcommon.network.messages.server.ServerDataMessage;
+import jake2.qcommon.network.messages.server.ServerMessageType;
+import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
@@ -185,7 +185,7 @@ class SV_USER {
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             entity_state_t base = gameImports.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
-                MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_spawnbaseline.type);
+                MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_spawnbaseline.type);
                 MSG.WriteDeltaEntity(nullstate, base, gameImports.sv_client.netchan.message, true, true);
             }
             start++;
@@ -237,7 +237,7 @@ class SV_USER {
         if (packet > 1024)
             packet = 1024;
 
-        MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download.type);
+        MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
         MSG.WriteShort(gameImports.sv_client.netchan.message, packet);
 
         gameImports.sv_client.downloadcount += packet;
@@ -288,7 +288,7 @@ class SV_USER {
                                                                                         // subdirectory
                 || name.indexOf('/') == -1) { // don't allow anything with ..
                                               // path
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download.type);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
             MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
             MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
             return;
@@ -314,7 +314,7 @@ class SV_USER {
                 gameImports.sv_client.download = null;
             }
 
-            MSG.WriteByte(gameImports.sv_client.netchan.message, NetworkCommandType.svc_download.type);
+            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
             MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
             MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
             return;

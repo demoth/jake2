@@ -24,10 +24,10 @@ package jake2.game;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.PointDirectionTEMessage;
-import jake2.qcommon.network.commands.PointTEMessage;
-import jake2.qcommon.network.commands.SplashTEMessage;
-import jake2.qcommon.network.commands.TrailTEMessage;
+import jake2.qcommon.network.messages.server.PointDirectionTEMessage;
+import jake2.qcommon.network.messages.server.PointTEMessage;
+import jake2.qcommon.network.messages.server.SplashTEMessage;
+import jake2.qcommon.network.messages.server.TrailTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

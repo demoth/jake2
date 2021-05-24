@@ -27,7 +27,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.SplashTEMessage;
+import jake2.qcommon.network.messages.server.SplashTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

@@ -1,11 +1,10 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class DisconnectMessage extends NetworkMessage {
+public class DisconnectMessage extends ServerMessage {
     public DisconnectMessage() {
-        super(NetworkCommandType.svc_disconnect);
+        super(ServerMessageType.svc_disconnect);
     }
 
     @Override

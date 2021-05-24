@@ -30,6 +30,8 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.client.ClientMessageType;
+import jake2.qcommon.network.messages.client.UserInfoMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -430,8 +432,9 @@ public class CL_input {
 		if (Globals.userinfo_modified) {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
-			MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_USERINFO.value);
-			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.getInstance().Userinfo());
+			new UserInfoMessage(Cvar.getInstance().Userinfo()).writeTo(ClientGlobals.cls.netchan.message);
+//			MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientMessageType.CLC_USERINFO.value);
+//			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.getInstance().Userinfo());
 		}
 
 		SZ.Init(buf, data, data.length);
@@ -447,7 +450,7 @@ public class CL_input {
 		}
 
 		// begin a client move command
-		MSG.WriteByte(buf, ClientCommands.CLC_MOVE.value);
+		MSG.WriteByte(buf, ClientMessageType.CLC_MOVE.value);
 
 		// save the position for a checksum byte
 		checksumIndex = buf.cursize;

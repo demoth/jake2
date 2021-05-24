@@ -1,4 +1,4 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;

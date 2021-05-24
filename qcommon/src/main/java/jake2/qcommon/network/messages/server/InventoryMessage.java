@@ -1,15 +1,14 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class InventoryMessage extends NetworkMessage {
+public class InventoryMessage extends ServerMessage {
     public int[] inventory;
 
     public InventoryMessage() {
-        super(NetworkCommandType.svc_inventory);
+        super(ServerMessageType.svc_inventory);
     }
 
     public InventoryMessage(int[] inventory) {

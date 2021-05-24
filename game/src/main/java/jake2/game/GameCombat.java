@@ -27,7 +27,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.PointDirectionTEMessage;
+import jake2.qcommon.network.messages.server.PointDirectionTEMessage;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 

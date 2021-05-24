@@ -1,11 +1,10 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class ReconnectMessage extends NetworkMessage {
+public class ReconnectMessage extends ServerMessage {
     public ReconnectMessage() {
-        super(NetworkCommandType.svc_reconnect);
+        super(ServerMessageType.svc_reconnect);
     }
 
     @Override

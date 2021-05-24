@@ -1,7 +1,7 @@
-package jake2.qcommon.network;
+package jake2.qcommon.network.messages.server;
 
 // todo: rename to NetworkMessageType
-public enum NetworkCommandType {
+public enum ServerMessageType {
     // these ops are known to the game dll
     // protocol bytes that can be directly added to messages
     svc_bad(0),
@@ -47,12 +47,12 @@ public enum NetworkCommandType {
     // +
     svc_frame(20);
 
-    NetworkCommandType(int type) {
+    ServerMessageType(int type) {
         this.type = type;
     }
 
-    public static NetworkCommandType fromInt(int type) {
-        for (NetworkCommandType t: values()) {
+    public static ServerMessageType fromInt(int type) {
+        for (ServerMessageType t: values()) {
             if (t.type == type)
                 return t;
         }

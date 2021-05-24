@@ -1,11 +1,10 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class PlayerInfoMessage extends NetworkMessage {
+public class PlayerInfoMessage extends ServerMessage {
     // determine what needs to be sent
     public int messageFlags;
     public Integer pmType = null;
@@ -29,7 +28,7 @@ public class PlayerInfoMessage extends NetworkMessage {
     public short[] stats = null;
 
     public PlayerInfoMessage() {
-        super(NetworkCommandType.svc_playerinfo);
+        super(ServerMessageType.svc_playerinfo);
     }
 
     public PlayerInfoMessage(int messageFlags, int pmType, short[] pmOrigin, short[] pmVelocity, byte pmTime, byte pmFlags, short pmGravity, short[] pmDeltaAngles, float[] viewOffset, float[] viewAngles, float[] kickAngles, int gunIndex, int gunFrame, float[] gunOffset, float[] gunAngles, float[] blend, float fov, int rdFlags, int statsMask, short[] stats) {

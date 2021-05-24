@@ -32,9 +32,10 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.commands.DisconnectMessage;
-import jake2.qcommon.network.commands.PrintMessage;
-import jake2.qcommon.network.commands.ReconnectMessage;
+import jake2.qcommon.network.messages.client.ClientMessageType;
+import jake2.qcommon.network.messages.server.DisconnectMessage;
+import jake2.qcommon.network.messages.server.PrintMessage;
+import jake2.qcommon.network.messages.server.ReconnectMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
 
@@ -721,8 +722,8 @@ public class SV_MAIN implements JakeServer {
                 return;
             }
 
-            ClientCommands c = ClientCommands.fromInt(MSG.ReadByte(Globals.net_message));
-            if (c == ClientCommands.CLC_BAD)
+            ClientMessageType c = ClientMessageType.fromInt(MSG.ReadByte(Globals.net_message));
+            if (c == ClientMessageType.CLC_BAD)
                 break;
 
             String s;

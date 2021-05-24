@@ -31,9 +31,9 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
-import jake2.qcommon.network.commands.NetworkMessage;
-import jake2.qcommon.network.commands.PrintCenterMessage;
-import jake2.qcommon.network.commands.StuffTextMessage;
+import jake2.qcommon.network.messages.server.PrintCenterMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
+import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 
@@ -759,13 +759,13 @@ public class GameImportsImpl implements GameImports {
     }
 
     @Override
-    public void multicastMessage(float[] origin, NetworkMessage msg, MulticastTypes to) {
+    public void multicastMessage(float[] origin, ServerMessage msg, MulticastTypes to) {
         msg.writeTo(sv.multicast);
         SV_Multicast(origin, to);
     }
 
     @Override
-    public void unicastMessage(int index, NetworkMessage msg, boolean reliable) {
+    public void unicastMessage(int index, ServerMessage msg, boolean reliable) {
         msg.writeTo(sv.multicast);
         sv_game.PF_Unicast(index, reliable);
     }

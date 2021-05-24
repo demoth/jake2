@@ -1,17 +1,16 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 /*
  [string] stuffed into client's console buffer, should be \n terminated
  todo: append newline automatically
  */
-public class StuffTextMessage extends NetworkMessage {
+public class StuffTextMessage extends ServerMessage {
     public String text;
 
     public StuffTextMessage() {
-        super(NetworkCommandType.svc_stufftext);
+        super(ServerMessageType.svc_stufftext);
     }
 
     public StuffTextMessage(String text) {

@@ -1,12 +1,11 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 // fixme: why do we need it?
-public class NopMessage extends NetworkMessage {
+public class NopMessage extends ServerMessage {
     public NopMessage() {
-        super(NetworkCommandType.svc_nop);
+        super(ServerMessageType.svc_nop);
     }
 
     @Override

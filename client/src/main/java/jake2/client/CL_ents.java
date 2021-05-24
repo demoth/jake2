@@ -28,9 +28,9 @@ package jake2.client;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NetworkCommandType;
-import jake2.qcommon.network.commands.FrameMessage;
-import jake2.qcommon.network.commands.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.FrameMessage;
+import jake2.qcommon.network.messages.server.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.ServerMessageType;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -354,7 +354,7 @@ public class CL_ents {
 	 * =================== CL_ParsePlayerstate ===================
 	 */
 	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe, PlayerInfoMessage msg) {
-		CL_parse.SHOWNET(CL_parse.svc_strings[NetworkCommandType.svc_playerinfo.type]);
+		CL_parse.SHOWNET(CL_parse.svc_strings[ServerMessageType.svc_playerinfo.type]);
 
 		player_state_t state = newframe.playerstate;
 
@@ -495,7 +495,7 @@ public class CL_ents {
 	public static void parsePacketEntities(frame_t old) {
 
 		// read packet entities
-		CL_parse.SHOWNET(CL_parse.svc_strings[NetworkCommandType.svc_packetentities.type]);
+		CL_parse.SHOWNET(CL_parse.svc_strings[ServerMessageType.svc_packetentities.type]);
 
 		ParsePacketEntities(old, ClientGlobals.cl.frame);
 

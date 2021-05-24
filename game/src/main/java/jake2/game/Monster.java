@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.MuzzleFlash2Message;
+import jake2.qcommon.network.messages.server.MuzzleFlash2Message;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

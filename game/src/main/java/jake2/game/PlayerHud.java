@@ -24,8 +24,8 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
-import jake2.qcommon.network.commands.LayoutMessage;
-import jake2.qcommon.network.commands.NetworkMessage;
+import jake2.qcommon.network.messages.server.LayoutMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -168,7 +168,7 @@ public class PlayerHud {
      * DeathmatchScoreboardMessage
      * ==================
      */
-    public static NetworkMessage DeathmatchScoreboardMessage(edict_t ent, edict_t killer, GameExportsImpl gameExports) {
+    public static ServerMessage DeathmatchScoreboardMessage(edict_t ent, edict_t killer, GameExportsImpl gameExports) {
         StringBuffer string = new StringBuffer(1400);
 
         int stringlength;

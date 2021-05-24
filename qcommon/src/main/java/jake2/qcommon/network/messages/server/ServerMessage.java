@@ -1,13 +1,12 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public abstract class NetworkMessage {
-    public NetworkCommandType type;
+public abstract class ServerMessage {
+    public ServerMessageType type;
 
-    public NetworkMessage(NetworkCommandType type) {
+    public ServerMessage(ServerMessageType type) {
         this.type = type;
     }
 
@@ -20,9 +19,9 @@ public abstract class NetworkMessage {
 
     abstract void parse(sizebuf_t buffer);
 
-    public static NetworkMessage parseFromBuffer(NetworkCommandType type, sizebuf_t buffer) {
+    public static ServerMessage parseFromBuffer(ServerMessageType type, sizebuf_t buffer) {
 
-        final NetworkMessage msg;
+        final ServerMessage msg;
         // skip parsing of messages not yet migrated to the NetworkMessage class
         switch (type) {
             case svc_bad:

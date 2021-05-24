@@ -1,15 +1,14 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class MuzzleFlash2Message extends NetworkMessage {
+public class MuzzleFlash2Message extends ServerMessage {
     public int entityIndex;
     public int flashType;
 
     public MuzzleFlash2Message() {
-        super(NetworkCommandType.svc_muzzleflash2);
+        super(ServerMessageType.svc_muzzleflash2);
     }
 
     public MuzzleFlash2Message(int entityIndex, int flashType) {

@@ -1,9 +1,8 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 /**
@@ -28,7 +27,7 @@ import jake2.qcommon.sizebuf_t;
  * or the midpoint of the entity box for bmodels.
  * ==================
  */
-public class SoundMessage extends NetworkMessage {
+public class SoundMessage extends ServerMessage {
     public int flags;
     public int soundIndex;
     public float volume;
@@ -40,7 +39,7 @@ public class SoundMessage extends NetworkMessage {
     public int entityIndex;
 
     public SoundMessage() {
-        super(NetworkCommandType.svc_sound);
+        super(ServerMessageType.svc_sound);
     }
 
     public SoundMessage(int flags, int soundIndex, float volume, float attenuation, float timeOffset, int sendchan, float[] origin) {

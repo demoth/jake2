@@ -1,15 +1,14 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class ConfigStringMessage extends NetworkMessage {
+public class ConfigStringMessage extends ServerMessage {
     public int index;
     public String config;
 
     public ConfigStringMessage() {
-        super(NetworkCommandType.svc_configstring);
+        super(ServerMessageType.svc_configstring);
     }
 
     public ConfigStringMessage(int index, String config) {

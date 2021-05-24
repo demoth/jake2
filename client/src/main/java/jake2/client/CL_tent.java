@@ -29,7 +29,7 @@ import jake2.client.render.model_t;
 import jake2.client.sound.S;
 import jake2.client.sound.sfx_t;
 import jake2.qcommon.*;
-import jake2.qcommon.network.commands.*;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

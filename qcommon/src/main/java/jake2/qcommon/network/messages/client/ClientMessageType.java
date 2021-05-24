@@ -1,6 +1,6 @@
-package jake2.qcommon;
+package jake2.qcommon.network.messages.client;
 
-public enum ClientCommands {
+public enum ClientMessageType {
     CLC_BAD(0),
     CLC_NOP(1),
     CLC_MOVE(2), // [[usercmd_t]
@@ -9,12 +9,12 @@ public enum ClientCommands {
 
     public final int value;
 
-    ClientCommands(int value) {
+    ClientMessageType(int value) {
         this.value = value;
     }
 
-    public static ClientCommands fromInt(int value) {
-        for (ClientCommands cmd : values()) {
+    public static ClientMessageType fromInt(int value) {
+        for (ClientMessageType cmd : values()) {
             if (cmd.value == value)
                 return cmd;
         }

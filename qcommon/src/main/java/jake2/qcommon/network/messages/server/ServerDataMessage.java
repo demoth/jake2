@@ -1,11 +1,10 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
-public class ServerDataMessage extends NetworkMessage {
+public class ServerDataMessage extends ServerMessage {
     public int protocol; //fixme: write as int, read as long
     public int spawnCount;
     public boolean demo;
@@ -14,7 +13,7 @@ public class ServerDataMessage extends NetworkMessage {
     public String levelString;
 
     public ServerDataMessage() {
-        super(NetworkCommandType.svc_serverdata);
+        super(ServerMessageType.svc_serverdata);
     }
 
     public ServerDataMessage(int protocol, int spawnCount, boolean demo, String gameName, int playerNumber, String levelString) {

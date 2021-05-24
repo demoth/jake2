@@ -1,18 +1,17 @@
-package jake2.qcommon.network.commands;
+package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
-import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
 
 /**
  * Print a message in the center of the screen, like when a door is closed.
  * Sent to a particular client only
  */
-public class PrintCenterMessage extends NetworkMessage {
+public class PrintCenterMessage extends ServerMessage {
     public String text;
 
     public PrintCenterMessage() {
-        super(NetworkCommandType.svc_centerprint);
+        super(ServerMessageType.svc_centerprint);
     }
 
     public PrintCenterMessage(String text) {
