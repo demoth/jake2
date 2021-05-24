@@ -482,7 +482,9 @@ public class CL_ents {
 			ClientGlobals.cl.time = ClientGlobals.cl.frame.servertime - 100;
 
 		// read areabits
-		ClientGlobals.cl.frame.areabits = frameMsg.areaBits;
+		//ClientGlobals.cl.frame.areabits = frameMsg.areaBits;
+		// fixme: ref to ClientGlobals.cl.frame.areabits is scattered across code, can not change it
+		System.arraycopy(frameMsg.areaBits, 0, ClientGlobals.cl.frame.areabits, 0, frameMsg.areaBits.length);
 		return old;
 	}
 
