@@ -13,7 +13,7 @@ public abstract class TEMessage extends NetworkMessage {
         this.style = style;
     }
 
-    protected final int style;
+    public final int style;
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -25,40 +25,3 @@ public abstract class TEMessage extends NetworkMessage {
 
     }
 }
-/*
-
-WriteByte(Defines.TE_EXPLOSION1);
-WritePosition(self.s.origin);
-
-WriteByte(te_impact);
-WritePosition(tr.endpos);
-WriteDir(tr.plane.normal);
-
-WriteByte(Defines.TE_BUBBLETRAIL);
-WritePosition(water_start);
-WritePosition(tr.endpos);
-
-WriteByte(Defines.TE_LASER_SPARKS);
-WriteByte(count);
-WritePosition(tr.endpos);
-WriteDir(tr.plane.normal);
-WriteByte(self.s.skinnum);
-
-WriteByte(Defines.TE_SPLASH);
-WriteByte(self.count);
-WritePosition(self.s.origin);
-WriteDir(self.movedir);
-WriteByte(self.sounds);
-
-WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
-WriteShort(self.index);
-WritePosition(start);
-WritePosition(end);
-
-
-
-
-
-
-
- */

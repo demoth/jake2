@@ -487,11 +487,7 @@ public class CL_ents {
 	}
 
 
-	public static void parsePlayerInfo(PlayerInfoMessage msg, frame_t old) {
-		ParsePlayerstate(old, ClientGlobals.cl.frame, msg);
-
-	}
-		/*
+	/*
 	 * ================ CL_ParseFrame ================
 	 */
 	public static void parsePacketEntities(frame_t old) {

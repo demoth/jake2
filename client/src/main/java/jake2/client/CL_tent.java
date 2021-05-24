@@ -29,8 +29,11 @@ import jake2.client.render.model_t;
 import jake2.client.sound.S;
 import jake2.client.sound.sfx_t;
 import jake2.qcommon.*;
+import jake2.qcommon.network.commands.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+
+import static jake2.qcommon.Defines.*;
 
 /**
  * CL_tent
@@ -385,95 +388,70 @@ public class CL_tent {
      * CL_ParseBeam
      * =================
      */
-    static int ParseBeam(model_t model) {
-        int ent;
-        float[] start = new float[3];
-        float[] end = new float[3];
-        beam_t[] b;
-        int i;
-
-        ent = MSG.ReadShort(Globals.net_message);
-
-        MSG.ReadPos(Globals.net_message, start);
-        MSG.ReadPos(Globals.net_message, end);
+    static int ParseBeam(model_t model, BeamTEMessage beam) {
 
         //	   override any beam with the same entity
-        b = cl_beams;
-        for (i = 0; i < MAX_BEAMS; i++)
-            if (b[i].entity == ent) {
-                b[i].entity = ent;
+        beam_t[] b = cl_beams;
+        for (int i = 0; i < MAX_BEAMS; i++)
+            if (b[i].entity == beam.ownerIndex) {
+                b[i].entity = beam.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 200;
-                Math3D.VectorCopy(start, b[i].start);
-                Math3D.VectorCopy(end, b[i].end);
+                Math3D.VectorCopy(beam.origin, b[i].start);
+                Math3D.VectorCopy(beam.destination, b[i].end);
                 Math3D.VectorClear(b[i].offset);
-                return ent;
+                return beam.ownerIndex;
             }
 
         //	   find a free beam
         b = cl_beams;
-        for (i = 0; i < MAX_BEAMS; i++) {
+        for (int i = 0; i < MAX_BEAMS; i++) {
             if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
-                b[i].entity = ent;
+                b[i].entity = beam.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 200;
-                Math3D.VectorCopy(start, b[i].start);
-                Math3D.VectorCopy(end, b[i].end);
+                Math3D.VectorCopy(beam.origin, b[i].start);
+                Math3D.VectorCopy(beam.destination, b[i].end);
                 Math3D.VectorClear(b[i].offset);
-                return ent;
+                return beam.ownerIndex;
             }
         }
         Com.Printf("beam list overflow!\n");
-        return ent;
+        return beam.ownerIndex;
     }
 
     /*
      * ================= CL_ParseBeam2 =================
      */
-    static int ParseBeam2(model_t model) {
-        int ent;
-        float[] start = new float[3];
-        float[] end = new float[3];
-        float[] offset = new float[3];
-        beam_t[] b;
-        int i;
-
-        ent = MSG.ReadShort(Globals.net_message);
-
-        MSG.ReadPos(Globals.net_message, start);
-        MSG.ReadPos(Globals.net_message, end);
-        MSG.ReadPos(Globals.net_message, offset);
-
-        //		Com_Printf ("end- %f %f %f\n", end[0], end[1], end[2]);
-
+    static int ParseBeam2(model_t model, BeamOffsetTEMessage beam) {
         //	   override any beam with the same entity
-        b = cl_beams;
-        for (i = 0; i < MAX_BEAMS; i++)
-            if (b[i].entity == ent) {
-                b[i].entity = ent;
+        beam_t[] b = cl_beams;
+        for (int i = 0; i < MAX_BEAMS; i++)
+            if (b[i].entity == beam.ownerIndex) {
+                b[i].entity = beam.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 200;
-                Math3D.VectorCopy(start, b[i].start);
-                Math3D.VectorCopy(end, b[i].end);
-                Math3D.VectorCopy(offset, b[i].offset);
-                return ent;
+                Math3D.VectorCopy(beam.origin, b[i].start);
+                Math3D.VectorCopy(beam.destination, b[i].end);
+                Math3D.VectorCopy(beam.offset, b[i].offset);
+                return beam.ownerIndex;
             }
 
         //	   find a free beam
         b = cl_beams;
-        for (i = 0; i < MAX_BEAMS; i++) {
+        for (int i = 0; i < MAX_BEAMS; i++) {
             if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
-                b[i].entity = ent;
+                b[i].entity = beam.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 200;
-                Math3D.VectorCopy(start, b[i].start);
-                Math3D.VectorCopy(end, b[i].end);
-                Math3D.VectorCopy(offset, b[i].offset);
-                return ent;
+                Math3D.VectorCopy(beam.origin, b[i].start);
+                Math3D.VectorCopy(beam.destination, b[i].end);
+                Math3D.VectorCopy(beam.offset, b[i].offset);
+                return beam.ownerIndex;
             }
         }
         Com.Printf("beam list overflow!\n");
-        return ent;
+        return beam.ownerIndex;
     }
 
     //	   ROGUE
@@ -481,49 +459,45 @@ public class CL_tent {
      * ================= CL_ParsePlayerBeam - adds to the cl_playerbeam array
      * instead of the cl_beams array =================
      */
-    static int ParsePlayerBeam(model_t model) {
-        int ent;
-        float[] start = new float[3];
-        float[] end = new float[3];
+    static int ParsePlayerBeam(model_t model, BeamTEMessage m) {
+        float[] start = m.origin;
+        float[] end = m.destination;
         float[] offset = new float[3];
-        beam_t[] b;
-        int i;
 
-        ent = MSG.ReadShort(Globals.net_message);
-
-        MSG.ReadPos(Globals.net_message, start);
-        MSG.ReadPos(Globals.net_message, end);
         // PMM - network optimization
-        if (model == cl_mod_heatbeam)
+        if (model == cl_mod_heatbeam) {
             Math3D.VectorSet(offset, 2, 7, -3);
-        else if (model == cl_mod_monster_heatbeam) {
+        } else if (model == cl_mod_monster_heatbeam) {
             model = cl_mod_heatbeam;
             Math3D.VectorSet(offset, 0, 0, 0);
-        } else
-            MSG.ReadPos(Globals.net_message, offset);
+        }
+        // else {
+            // fixme: unreachable
+            // MSG.ReadPos(Globals.net_message, offset);
+        //}
 
         //		Com_Printf ("end- %f %f %f\n", end[0], end[1], end[2]);
 
         //	   override any beam with the same entity
         //	   PMM - For player beams, we only want one per player (entity) so..
-        b = cl_playerbeams;
-        for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].entity == ent) {
-                b[i].entity = ent;
+        beam_t[] b = cl_playerbeams;
+        for (int i = 0; i < MAX_BEAMS; i++) {
+            if (b[i].entity == m.ownerIndex) {
+                b[i].entity = m.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorCopy(offset, b[i].offset);
-                return ent;
+                return m.ownerIndex;
             }
         }
 
         //	   find a free beam
         b = cl_playerbeams;
-        for (i = 0; i < MAX_BEAMS; i++) {
+        for (int i = 0; i < MAX_BEAMS; i++) {
             if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
-                b[i].entity = ent;
+                b[i].entity = m.ownerIndex;
                 b[i].model = model;
                 b[i].endtime = ClientGlobals.cl.time + 100; // PMM - this needs to be
                                                       // 100 to prevent multiple
@@ -531,11 +505,11 @@ public class CL_tent {
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorCopy(offset, b[i].offset);
-                return ent;
+                return m.ownerIndex;
             }
         }
         Com.Printf("beam list overflow!\n");
-        return ent;
+        return m.ownerIndex;
     }
 
     //	  rogue
@@ -546,16 +520,17 @@ public class CL_tent {
     /*
      * ================= CL_ParseLightning =================
      */
-    static int ParseLightning(model_t model) {
+    @Deprecated
+    static int ParseLightning(model_t model, sizebuf_t net_message) {
         int srcEnt, destEnt;
         beam_t[] b;
         int i;
 
-        srcEnt = MSG.ReadShort(Globals.net_message);
-        destEnt = MSG.ReadShort(Globals.net_message);
+        srcEnt = MSG.ReadShort(net_message);
+        destEnt = MSG.ReadShort(net_message);
 
-        MSG.ReadPos(Globals.net_message, start);
-        MSG.ReadPos(Globals.net_message, end);
+        MSG.ReadPos(net_message, start);
+        MSG.ReadPos(net_message, end);
 
         //	   override any beam with the same source AND destination entities
         b = cl_beams;
@@ -597,15 +572,10 @@ public class CL_tent {
     /*
      * ================= CL_ParseLaser =================
      */
-    static void ParseLaser(int colors) {
-        laser_t[] l;
-        int i;
+    static void ParseLaser(int colors, float[] start, float[] end) {
 
-        MSG.ReadPos(Globals.net_message, start);
-        MSG.ReadPos(Globals.net_message, end);
-
-        l = cl_lasers;
-        for (i = 0; i < MAX_LASERS; i++) {
+        laser_t[] l = cl_lasers;
+        for (int i = 0; i < MAX_LASERS; i++) {
             if (l[i].endtime < ClientGlobals.cl.time) {
                 l[i].ent.flags = Defines.RF_TRANSLUCENT | Defines.RF_BEAM;
                 Math3D.VectorCopy(start, l[i].ent.origin);
@@ -625,7 +595,8 @@ public class CL_tent {
     private static final float[] dir = new float[3];
     //	  =============
     //	  ROGUE
-    static void ParseSteam() {
+    @Deprecated
+    static void ParseSteam(sizebuf_t net_message) {
         int id, i;
         int r;
         int cnt;
@@ -634,7 +605,7 @@ public class CL_tent {
         cl_sustain_t[] s;
         cl_sustain_t free_sustain;
 
-        id = MSG.ReadShort(Globals.net_message); // an id of -1 is an instant
+        id = MSG.ReadShort(net_message); // an id of -1 is an instant
                                                  // effect
         if (id != -1) // sustains
         {
@@ -649,14 +620,14 @@ public class CL_tent {
             }
             if (free_sustain != null) {
                 s[i].id = id;
-                s[i].count = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, s[i].org);
-                MSG.ReadDir(Globals.net_message, s[i].dir);
-                r = MSG.ReadByte(Globals.net_message);
+                s[i].count = MSG.ReadByte(net_message);
+                MSG.ReadPos(net_message, s[i].org);
+                MSG.ReadDir(net_message, s[i].dir);
+                r = MSG.ReadByte(net_message);
                 s[i].color = r & 0xff;
-                s[i].magnitude = MSG.ReadShort(Globals.net_message);
+                s[i].magnitude = MSG.ReadShort(net_message);
                 s[i].endtime = ClientGlobals.cl.time
-                        + MSG.ReadLong(Globals.net_message);
+                        + MSG.ReadLong(net_message);
                 s[i].think = new cl_sustain_t.ThinkAdapter() {
                     void think(cl_sustain_t self) {
                         CL_newfx.ParticleSteamEffect2(self);
@@ -667,21 +638,21 @@ public class CL_tent {
             } else {
                 //					Com_Printf ("No free sustains!\n");
                 // FIXME - read the stuff anyway
-                cnt = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                r = MSG.ReadByte(Globals.net_message);
-                magnitude = MSG.ReadShort(Globals.net_message);
-                magnitude = MSG.ReadLong(Globals.net_message); // really
+                cnt = MSG.ReadByte(net_message);
+                MSG.ReadPos(net_message, pos);
+                MSG.ReadDir(net_message, dir);
+                r = MSG.ReadByte(net_message);
+                magnitude = MSG.ReadShort(net_message);
+                magnitude = MSG.ReadLong(net_message); // really
                                                                // interval
             }
         } else // instant
         {
-            cnt = MSG.ReadByte(Globals.net_message);
-            MSG.ReadPos(Globals.net_message, pos);
-            MSG.ReadDir(Globals.net_message, dir);
-            r = MSG.ReadByte(Globals.net_message);
-            magnitude = MSG.ReadShort(Globals.net_message);
+            cnt = MSG.ReadByte(net_message);
+            MSG.ReadPos(net_message, pos);
+            MSG.ReadDir(net_message, dir);
+            r = MSG.ReadByte(net_message);
+            magnitude = MSG.ReadShort(net_message);
             color = r & 0xff;
             CL_newfx.ParticleSteamEffect(pos, dir, color, cnt, magnitude);
             //			S_StartSound (pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
@@ -690,12 +661,13 @@ public class CL_tent {
     
     // stack variable
     // pos
-    static void ParseWidow() {
+    @Deprecated
+    static void ParseWidow(sizebuf_t net_message) {
         int id, i;
         cl_sustain_t[] s;
         cl_sustain_t free_sustain;
 
-        id = MSG.ReadShort(Globals.net_message);
+        id = MSG.ReadShort(net_message);
 
         free_sustain = null;
         s = cl_sustains;
@@ -707,7 +679,7 @@ public class CL_tent {
         }
         if (free_sustain != null) {
             s[i].id = id;
-            MSG.ReadPos(Globals.net_message, s[i].org);
+            MSG.ReadPos(net_message, s[i].org);
             s[i].endtime = ClientGlobals.cl.time + 2100;
             s[i].think = new cl_sustain_t.ThinkAdapter() {
                 void think(cl_sustain_t self) {
@@ -719,13 +691,14 @@ public class CL_tent {
         } else // no free sustains
         {
             // FIXME - read the stuff anyway
-            MSG.ReadPos(Globals.net_message, pos);
+            MSG.ReadPos(net_message, pos);
         }
     }
 
     // stack variable
     // pos
-    static void ParseNuke() {
+    @Deprecated
+    static void ParseNuke(sizebuf_t net_message) {
         int i;
         cl_sustain_t[] s;
         cl_sustain_t free_sustain;
@@ -740,7 +713,7 @@ public class CL_tent {
         }
         if (free_sustain != null) {
             s[i].id = 21000;
-            MSG.ReadPos(Globals.net_message, s[i].org);
+            MSG.ReadPos(net_message, s[i].org);
             s[i].endtime = ClientGlobals.cl.time + 1000;
             s[i].think = new cl_sustain_t.ThinkAdapter() {
                 void think(cl_sustain_t self) {
@@ -752,7 +725,7 @@ public class CL_tent {
         } else // no free sustains
         {
             // FIXME - read the stuff anyway
-            MSG.ReadPos(Globals.net_message, pos);
+            MSG.ReadPos(net_message, pos);
         }
     }
 
@@ -767,373 +740,375 @@ public class CL_tent {
     // pos, dir
     private static final float[] pos2 = {0, 0, 0};
 
-    static void ParseTEnt() {
+    static void ParseTEnt(TEMessage msg) {
+        if (msg instanceof PointDirectionTEMessage) {
+            PointDirectionTEMessage m = (PointDirectionTEMessage) msg;
+            switch (m.style) {
+                case TE_BLOOD:
+                    CL_fx.ParticleEffect(m.position, m.direction, 0xe8, 60);
+                    break;
+                case TE_GUNSHOT:
+                case TE_SPARKS:
+                case TE_BULLET_SPARKS:
+                    if (m.style == Defines.TE_GUNSHOT)
+                        CL_fx.ParticleEffect(m.position, m.direction, 0, 40);
+                    else
+                        CL_fx.ParticleEffect(m.position, m.direction, 0xe0, 6);
 
-        int type = MSG.ReadByte(Globals.net_message);
+                    if (m.style != Defines.TE_SPARKS) {
+                        SmokeAndFlash(m.position);
 
-        explosion_t ex;
+                        // impact sound
+                        int cnt = Lib.rand() & 15;
+                        if (cnt == 1)
+                            S.StartSound(m.position, 0, 0, cl_sfx_ric1, 1, Defines.ATTN_NORM,0);
+                        else if (cnt == 2)
+                            S.StartSound(m.position, 0, 0, cl_sfx_ric2, 1, Defines.ATTN_NORM,0);
+                        else if (cnt == 3)
+                            S.StartSound(m.position, 0, 0, cl_sfx_ric3, 1, Defines.ATTN_NORM,0);
+                    }
+
+                    break;
+                case TE_SCREEN_SPARKS:
+                case TE_SHIELD_SPARKS:
+                    if (m.style == Defines.TE_SCREEN_SPARKS)
+                        CL_fx.ParticleEffect(m.position, m.direction, 0xd0, 40);
+                    else
+                        CL_fx.ParticleEffect(m.position, m.direction, 0xb0, 40);
+                    //FIXME : replace or remove this sound
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_SHOTGUN:
+                    CL_fx.ParticleEffect(m.position, m.direction, 0, 20);
+                    SmokeAndFlash(m.position);
+                    break;
+                case TE_BLASTER:
+                    CL_fx.BlasterParticles(m.position, m.direction);
+                    explosion_t ex = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex.ent.origin);
+                    ex.ent.angles[0] = (float) (Math.acos(m.direction[2]) / Math.PI * 180);
+                    // PMM - fixed to correct for pitch of 0
+                    if (m.direction[0] != 0.0f)
+                        ex.ent.angles[1] = (float) (Math.atan2(m.direction[1], m.direction[0]) / Math.PI * 180);
+                    else if (m.direction[1] > 0)
+                        ex.ent.angles[1] = 90;
+                    else if (m.direction[1] < 0)
+                        ex.ent.angles[1] = 270;
+                    else
+                        ex.ent.angles[1] = 0;
+
+                    ex.type = ex_misc;
+                    ex.ent.flags = Defines.RF_FULLBRIGHT | Defines.RF_TRANSLUCENT;
+                    ex.start = ClientGlobals.cl.frame.servertime - 100;
+                    ex.light = 150;
+                    ex.lightcolor[0] = 1;
+                    ex.lightcolor[1] = 1;
+                    ex.ent.model = cl_mod_explode;
+                    ex.frames = 4;
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+                case TE_GREENBLOOD:
+                    CL_fx.ParticleEffect2(m.position, m.direction, 0xdf, 30);
+                    break;
+
+                case TE_BLASTER2:
+                case TE_FLECHETTE:
+                    // PGM PMM -following code integrated for flechette (different color)
+                    if (m.style == Defines.TE_BLASTER2)
+                        CL_newfx.BlasterParticles2(m.position, m.direction, 0xd0);
+                    else
+                        CL_newfx.BlasterParticles2(m.position, m.direction, 0x6f); // 75
+
+                    explosion_t ex1 = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex1.ent.origin);
+                    ex1.ent.angles[0] = (float) (Math.acos(m.direction[2]) / Math.PI * 180);
+                    // PMM - fixed to correct for pitch of 0
+                    if (m.direction[0] != 0.0f)
+                        ex1.ent.angles[1] = (float) (Math.atan2(m.direction[1], m.direction[0])
+                                / Math.PI * 180);
+                    else if (m.direction[1] > 0)
+                        ex1.ent.angles[1] = 90;
+                    else if (m.direction[1] < 0)
+                        ex1.ent.angles[1] = 270;
+                    else
+                        ex1.ent.angles[1] = 0;
+
+                    ex1.type = ex_misc;
+                    ex1.ent.flags = Defines.RF_FULLBRIGHT | Defines.RF_TRANSLUCENT;
+
+                    // PMM
+                    if (m.style == Defines.TE_BLASTER2)
+                        ex1.ent.skinnum = 1;
+                    else
+                        // flechette
+                        ex1.ent.skinnum = 2;
+
+                    ex1.start = ClientGlobals.cl.frame.servertime - 100;
+                    ex1.light = 150;
+                    // PMM
+                    if (m.style == Defines.TE_BLASTER2)
+                        ex1.lightcolor[1] = 1;
+                    else // flechette
+                    {
+                        ex1.lightcolor[0] = 0.19f;
+                        ex1.lightcolor[1] = 0.41f;
+                        ex1.lightcolor[2] = 0.75f;
+                    }
+                    ex1.ent.model = cl_mod_explode;
+                    ex1.frames = 4;
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_HEATBEAM_SPARKS:
+                    CL_newfx.ParticleSteamEffect(m.position, m.direction, 8 & 0xff, 50, 60);
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_HEATBEAM_STEAM:
+                    CL_newfx.ParticleSteamEffect(m.position, m.direction, 0xe0, 20, 60);
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+                case TE_MOREBLOOD:
+                    CL_fx.ParticleEffect(m.position, m.direction, 0xe8, 250);
+                    break;
+                case TE_ELECTRIC_SPARKS:
+                    CL_fx.ParticleEffect(m.position, m.direction, 0x75, 40);
+                    //FIXME : replace or remove this sound
+                    S.StartSound(m.position, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
+                    break;
+            }
+        } else if (msg instanceof TrailTEMessage) {
+            TrailTEMessage m = (TrailTEMessage) msg;
+            switch (msg.style) {
+                case TE_BUBBLETRAIL:
+                    CL_fx.BubbleTrail(m.position, m.destination);
+                    break;
+                case TE_RAILTRAIL:
+                    CL_fx.RailTrail(m.position, m.destination);
+                    S.StartSound(m.destination, 0, 0, cl_sfx_railg, 1, Defines.ATTN_NORM, 0);
+                    break;
+                case TE_BLUEHYPERBLASTER:
+                    CL_fx.BlasterParticles(m.position, m.destination);
+                    break;
+                case TE_DEBUGTRAIL:
+                    CL_newfx.DebugTrail(m.position, m.destination);
+                    break;
+                case TE_BFG_LASER:
+                    ParseLaser(0xd0d1d2d3, m.position, m.destination);
+                    break;
+            }
+        } else if (msg instanceof SplashTEMessage) {
+            SplashTEMessage m = (SplashTEMessage) msg;
+            switch (msg.style) {
+                case TE_SPLASH:
+                    // bullet hitting water
+                    int color;
+                    if (m.param > 6)
+                        color = 0x00;
+                    else
+                        color = splash_color[m.param];
+                    CL_fx.ParticleEffect(m.position, m.direction, color, m.count);
+
+                    if (m.param == Defines.SPLASH_SPARKS) {
+                        int r = Lib.rand() & 3;
+                        if (r == 0)
+                            S.StartSound(m.position, 0, 0, cl_sfx_spark5, 1, Defines.ATTN_STATIC, 0);
+                        else if (r == 1)
+                            S.StartSound(m.position, 0, 0, cl_sfx_spark6, 1, Defines.ATTN_STATIC, 0);
+                        else
+                            S.StartSound(m.position, 0, 0, cl_sfx_spark7, 1, Defines.ATTN_STATIC, 0);
+                    }
+                    break;
+                case TE_LASER_SPARKS:
+                    CL_fx.ParticleEffect2(m.position, m.direction, m.param, m.count);
+                    break;
+                case TE_WELDING_SPARKS:
+                    CL_fx.ParticleEffect2(m.position, m.direction, m.param, m.count);
+                    explosion_t ex = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex.ent.origin);
+                    ex.type = ex_flash;
+                    // note to self
+                    // we need a better no draw flag
+                    ex.ent.flags = Defines.RF_BEAM;
+                    ex.start = ClientGlobals.cl.frame.servertime - 0.1f;
+                    ex.light = 100 + (Lib.rand() % 75);
+                    ex.lightcolor[0] = 1.0f;
+                    ex.lightcolor[1] = 1.0f;
+                    ex.lightcolor[2] = 0.3f;
+                    ex.ent.model = cl_mod_flash;
+                    ex.frames = 2;
+                    break;
+                case TE_TUNNEL_SPARKS:
+                    CL_fx.ParticleEffect3(m.position, m.direction, m.param, m.count);
+                    break;
+            }
+        } else if (msg instanceof PointTEMessage) {
+            PointTEMessage m = (PointTEMessage) msg;
+            switch (msg.style) {
+                case TE_EXPLOSION2:
+                case TE_GRENADE_EXPLOSION:
+                case TE_GRENADE_EXPLOSION_WATER:
+                    explosion_t ex = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex.ent.origin);
+                    ex.type = ex_poly;
+                    ex.ent.flags = Defines.RF_FULLBRIGHT;
+                    ex.start = ClientGlobals.cl.frame.servertime - 100;
+                    ex.light = 350;
+                    ex.lightcolor[0] = 1.0f;
+                    ex.lightcolor[1] = 0.5f;
+                    ex.lightcolor[2] = 0.5f;
+                    ex.ent.model = cl_mod_explo4;
+                    ex.frames = 19;
+                    ex.baseframe = 30;
+                    ex.ent.angles[1] = Lib.rand() % 360;
+                    CL_fx.ExplosionParticles(m.position);
+                    if (m.style == Defines.TE_GRENADE_EXPLOSION_WATER)
+                        S.StartSound(m.position, 0, 0, cl_sfx_watrexp, 1, Defines.ATTN_NORM, 0);
+                    else
+                        S.StartSound(m.position, 0, 0, cl_sfx_grenexp, 1, Defines.ATTN_NORM, 0);
+                    break;
+                case TE_PLASMA_EXPLOSION:
+                    explosion_t plasma = AllocExplosion();
+                    Math3D.VectorCopy(m.position, plasma.ent.origin);
+                    plasma.type = ex_poly;
+                    plasma.ent.flags = Defines.RF_FULLBRIGHT;
+                    plasma.start = ClientGlobals.cl.frame.servertime - 100;
+                    plasma.light = 350;
+                    plasma.lightcolor[0] = 1.0f;
+                    plasma.lightcolor[1] = 0.5f;
+                    plasma.lightcolor[2] = 0.5f;
+                    plasma.ent.angles[1] = Lib.rand() % 360;
+                    plasma.ent.model = cl_mod_explo4;
+                    if (Globals.rnd.nextFloat() < 0.5)
+                        plasma.baseframe = 15;
+                    plasma.frames = 15;
+                    CL_fx.ExplosionParticles(m.position);
+                    S.StartSound(m.position, 0, 0, cl_sfx_rockexp, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_EXPLOSION1:
+                case TE_EXPLOSION1_BIG:
+                case TE_ROCKET_EXPLOSION:
+                case TE_ROCKET_EXPLOSION_WATER:
+                case TE_EXPLOSION1_NP:
+
+                    explosion_t ex1 = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex1.ent.origin);
+                    ex1.type = ex_poly;
+                    ex1.ent.flags = Defines.RF_FULLBRIGHT;
+                    ex1.start = ClientGlobals.cl.frame.servertime - 100;
+                    ex1.light = 350;
+                    ex1.lightcolor[0] = 1.0f;
+                    ex1.lightcolor[1] = 0.5f;
+                    ex1.lightcolor[2] = 0.5f;
+                    ex1.ent.angles[1] = Lib.rand() % 360;
+                    if (m.style != Defines.TE_EXPLOSION1_BIG) // PMM
+                        ex1.ent.model = cl_mod_explo4; // PMM
+                    else
+                        ex1.ent.model = cl_mod_explo4_big;
+                    if (Globals.rnd.nextFloat() < 0.5)
+                        ex1.baseframe = 15;
+                    ex1.frames = 15;
+                    if (m.style != Defines.TE_EXPLOSION1_BIG && m.style != Defines.TE_EXPLOSION1_NP) // PMM
+                        CL_fx.ExplosionParticles(m.position); // PMM
+                    if (m.style == Defines.TE_ROCKET_EXPLOSION_WATER)
+                        S.StartSound(m.position, 0, 0, cl_sfx_watrexp, 1, Defines.ATTN_NORM, 0);
+                    else
+                        S.StartSound(m.position, 0, 0, cl_sfx_rockexp, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_BFG_EXPLOSION:
+                    explosion_t bfg = AllocExplosion();
+                    Math3D.VectorCopy(m.position, bfg.ent.origin);
+                    bfg.type = ex_poly;
+                    bfg.ent.flags = Defines.RF_FULLBRIGHT;
+                    bfg.start = ClientGlobals.cl.frame.servertime - 100;
+                    bfg.light = 350;
+                    bfg.lightcolor[0] = 0.0f;
+                    bfg.lightcolor[1] = 1.0f;
+                    bfg.lightcolor[2] = 0.0f;
+                    bfg.ent.model = cl_mod_bfg_explo;
+                    bfg.ent.flags |= Defines.RF_TRANSLUCENT;
+                    bfg.ent.alpha = 0.30f;
+                    bfg.frames = 4;
+                    break;
+
+                case TE_BFG_BIGEXPLOSION:
+                    CL_fx.BFGExplosionParticles(m.position);
+                    break;
+                case TE_BOSSTPORT:
+                    CL_fx.BigTeleportParticles(m.position);
+                    S.StartSound(m.position, 0, 0, S.RegisterSound("misc/bigtele.wav"), 1, Defines.ATTN_NONE, 0);
+                    break;
+
+                case TE_PLAIN_EXPLOSION:
+                    explosion_t ex2 = AllocExplosion();
+                    Math3D.VectorCopy(m.position, ex2.ent.origin);
+                    ex2.type = ex_poly;
+                    ex2.ent.flags = Defines.RF_FULLBRIGHT;
+                    ex2.start = ClientGlobals.cl.frame.servertime - 100;
+                    ex2.light = 350;
+                    ex2.lightcolor[0] = 1.0f;
+                    ex2.lightcolor[1] = 0.5f;
+                    ex2.lightcolor[2] = 0.5f;
+                    ex2.ent.angles[1] = Lib.rand() % 360;
+                    ex2.ent.model = cl_mod_explo4;
+                    if (Globals.rnd.nextFloat() < 0.5)
+                        ex2.baseframe = 15;
+                    ex2.frames = 15;
+                    // fixme: unreachable
+                    if (msg.style == Defines.TE_ROCKET_EXPLOSION_WATER)
+                        S.StartSound(m.position, 0, 0, cl_sfx_watrexp, 1, Defines.ATTN_NORM, 0);
+                    else
+                        S.StartSound(m.position, 0, 0, cl_sfx_rockexp, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_CHAINFIST_SMOKE:
+                    CL_newfx.ParticleSmokeEffect(m.position, new float[]{0, 0, 1}, 0, 20, 20);
+                    break;
+
+                case TE_TRACKER_EXPLOSION:
+                    CL_newfx.ColorFlash(m.position, 0, 150, -1, -1, -1);
+                    CL_newfx.ColorExplosionParticles(m.position, 0, 1);
+                    S.StartSound(m.position, 0, 0, cl_sfx_disrexp, 1, Defines.ATTN_NORM, 0);
+                    break;
+
+                case TE_TELEPORT_EFFECT:
+                case TE_DBALL_GOAL:
+                    CL_fx.TeleportParticles(m.position);
+                    break;
+
+                case TE_WIDOWSPLASH:
+                    CL_newfx.WidowSplash(m.position);
+                    break;
+            }
+        } else if (msg instanceof BeamOffsetTEMessage) {
+            BeamOffsetTEMessage m = (BeamOffsetTEMessage) msg;
+            ParseBeam2(cl_mod_grapple_cable, m);
+        } else if (msg instanceof BeamTEMessage) {
+            BeamTEMessage m = (BeamTEMessage) msg;
+            switch (m.style) {
+                case TE_PARASITE_ATTACK:
+                case TE_MEDIC_CABLE_ATTACK:
+                    ParseBeam(cl_mod_parasite_segment, m);
+                    break;
+                case Defines.TE_HEATBEAM:
+                    ParsePlayerBeam(cl_mod_heatbeam, m);
+                    break;
+                case Defines.TE_MONSTER_HEATBEAM:
+                    ParsePlayerBeam(cl_mod_monster_heatbeam, m);
+                    break;
+            }
+        }
+    }
+
+    /*
+    private static void unsupportedTents(int type) {
         int cnt;
         int color;
-        int r;
         int ent;
-        int magnitude;
         switch (type) {
-            case Defines.TE_BLOOD: // bullet hitting flesh
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                CL_fx.ParticleEffect(pos, dir, 0xe8, 60);
-                break;
-
-            case Defines.TE_GUNSHOT: // bullet hitting wall
-            case Defines.TE_SPARKS:
-            case Defines.TE_BULLET_SPARKS:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                if (type == Defines.TE_GUNSHOT)
-                    CL_fx.ParticleEffect(pos, dir, 0, 40);
-                else
-                    CL_fx.ParticleEffect(pos, dir, 0xe0, 6);
-
-                if (type != Defines.TE_SPARKS) {
-                    SmokeAndFlash(pos);
-
-                    // impact sound
-                    cnt = Lib.rand() & 15;
-                    if (cnt == 1)
-                        S.StartSound(pos, 0, 0, cl_sfx_ric1, 1, Defines.ATTN_NORM,
-                                0);
-                    else if (cnt == 2)
-                        S.StartSound(pos, 0, 0, cl_sfx_ric2, 1, Defines.ATTN_NORM,
-                                0);
-                    else if (cnt == 3)
-                        S.StartSound(pos, 0, 0, cl_sfx_ric3, 1, Defines.ATTN_NORM,
-                                0);
-                }
-
-                break;
-
-            case Defines.TE_SCREEN_SPARKS:
-            case Defines.TE_SHIELD_SPARKS:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                if (type == Defines.TE_SCREEN_SPARKS)
-                    CL_fx.ParticleEffect(pos, dir, 0xd0, 40);
-                else
-                    CL_fx.ParticleEffect(pos, dir, 0xb0, 40);
-                //FIXME : replace or remove this sound
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_SHOTGUN: // bullet hitting wall
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                CL_fx.ParticleEffect(pos, dir, 0, 20);
-                SmokeAndFlash(pos);
-                break;
-
-            case Defines.TE_SPLASH: // bullet hitting water
-                cnt = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                r = MSG.ReadByte(Globals.net_message);
-                if (r > 6)
-                    color = 0x00;
-                else
-                    color = splash_color[r];
-                CL_fx.ParticleEffect(pos, dir, color, cnt);
-
-                if (r == Defines.SPLASH_SPARKS) {
-                    r = Lib.rand() & 3;
-                    if (r == 0)
-                        S.StartSound(pos, 0, 0, cl_sfx_spark5, 1,
-                                Defines.ATTN_STATIC, 0);
-                    else if (r == 1)
-                        S.StartSound(pos, 0, 0, cl_sfx_spark6, 1,
-                                Defines.ATTN_STATIC, 0);
-                    else
-                        S.StartSound(pos, 0, 0, cl_sfx_spark7, 1,
-                                Defines.ATTN_STATIC, 0);
-                }
-                break;
-
-            case Defines.TE_LASER_SPARKS:
-                cnt = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                color = MSG.ReadByte(Globals.net_message);
-                CL_fx.ParticleEffect2(pos, dir, color, cnt);
-                break;
-
-            // RAFAEL
-            case Defines.TE_BLUEHYPERBLASTER:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadPos(Globals.net_message, dir);
-                CL_fx.BlasterParticles(pos, dir);
-                break;
-
-            case Defines.TE_BLASTER: // blaster hitting wall
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                CL_fx.BlasterParticles(pos, dir);
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.ent.angles[0] = (float) (Math.acos(dir[2]) / Math.PI * 180);
-                // PMM - fixed to correct for pitch of 0
-                if (dir[0] != 0.0f)
-                    ex.ent.angles[1] = (float) (Math.atan2(dir[1], dir[0])
-                            / Math.PI * 180);
-                else if (dir[1] > 0)
-                    ex.ent.angles[1] = 90;
-                else if (dir[1] < 0)
-                    ex.ent.angles[1] = 270;
-                else
-                    ex.ent.angles[1] = 0;
-
-                ex.type = ex_misc;
-                ex.ent.flags = Defines.RF_FULLBRIGHT | Defines.RF_TRANSLUCENT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 150;
-                ex.lightcolor[0] = 1;
-                ex.lightcolor[1] = 1;
-                ex.ent.model = cl_mod_explode;
-                ex.frames = 4;
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_RAILTRAIL: // railgun effect
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadPos(Globals.net_message, pos2);
-                CL_fx.RailTrail(pos, pos2);
-                S.StartSound(pos2, 0, 0, cl_sfx_railg, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_EXPLOSION2:
-            case Defines.TE_GRENADE_EXPLOSION:
-            case Defines.TE_GRENADE_EXPLOSION_WATER:
-                MSG.ReadPos(Globals.net_message, pos);
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_poly;
-                ex.ent.flags = Defines.RF_FULLBRIGHT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 350;
-                ex.lightcolor[0] = 1.0f;
-                ex.lightcolor[1] = 0.5f;
-                ex.lightcolor[2] = 0.5f;
-                ex.ent.model = cl_mod_explo4;
-                ex.frames = 19;
-                ex.baseframe = 30;
-                ex.ent.angles[1] = Lib.rand() % 360;
-                CL_fx.ExplosionParticles(pos);
-                if (type == Defines.TE_GRENADE_EXPLOSION_WATER)
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_watrexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                else
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_grenexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                break;
-
-            // RAFAEL
-            case Defines.TE_PLASMA_EXPLOSION:
-                MSG.ReadPos(Globals.net_message, pos);
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_poly;
-                ex.ent.flags = Defines.RF_FULLBRIGHT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 350;
-                ex.lightcolor[0] = 1.0f;
-                ex.lightcolor[1] = 0.5f;
-                ex.lightcolor[2] = 0.5f;
-                ex.ent.angles[1] = Lib.rand() % 360;
-                ex.ent.model = cl_mod_explo4;
-                if (Globals.rnd.nextFloat() < 0.5)
-                    ex.baseframe = 15;
-                ex.frames = 15;
-                CL_fx.ExplosionParticles(pos);
-                S.StartSound(pos, 0, 0, cl_sfx_rockexp, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_EXPLOSION1:
-            case Defines.TE_EXPLOSION1_BIG: // PMM
-            case Defines.TE_ROCKET_EXPLOSION:
-            case Defines.TE_ROCKET_EXPLOSION_WATER:
-            case Defines.TE_EXPLOSION1_NP: // PMM
-                MSG.ReadPos(Globals.net_message, pos);
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_poly;
-                ex.ent.flags = Defines.RF_FULLBRIGHT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 350;
-                ex.lightcolor[0] = 1.0f;
-                ex.lightcolor[1] = 0.5f;
-                ex.lightcolor[2] = 0.5f;
-                ex.ent.angles[1] = Lib.rand() % 360;
-                if (type != Defines.TE_EXPLOSION1_BIG) // PMM
-                    ex.ent.model = cl_mod_explo4; // PMM
-                else
-                    ex.ent.model = cl_mod_explo4_big;
-                if (Globals.rnd.nextFloat() < 0.5)
-                    ex.baseframe = 15;
-                ex.frames = 15;
-                if ((type != Defines.TE_EXPLOSION1_BIG)
-                        && (type != Defines.TE_EXPLOSION1_NP)) // PMM
-                    CL_fx.ExplosionParticles(pos); // PMM
-                if (type == Defines.TE_ROCKET_EXPLOSION_WATER)
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_watrexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                else
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_rockexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_BFG_EXPLOSION:
-                MSG.ReadPos(Globals.net_message, pos);
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_poly;
-                ex.ent.flags = Defines.RF_FULLBRIGHT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 350;
-                ex.lightcolor[0] = 0.0f;
-                ex.lightcolor[1] = 1.0f;
-                ex.lightcolor[2] = 0.0f;
-                ex.ent.model = cl_mod_bfg_explo;
-                ex.ent.flags |= Defines.RF_TRANSLUCENT;
-                ex.ent.alpha = 0.30f;
-                ex.frames = 4;
-                break;
-
-            case Defines.TE_BFG_BIGEXPLOSION:
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_fx.BFGExplosionParticles(pos);
-                break;
-
-            case Defines.TE_BFG_LASER:
-                ParseLaser(0xd0d1d2d3);
-                break;
-
-            case Defines.TE_BUBBLETRAIL:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadPos(Globals.net_message, pos2);
-                CL_fx.BubbleTrail(pos, pos2);
-                break;
-
-            case Defines.TE_PARASITE_ATTACK:
-            case Defines.TE_MEDIC_CABLE_ATTACK:
-                ent = ParseBeam(cl_mod_parasite_segment);
-                break;
-
-            case Defines.TE_BOSSTPORT: // boss teleporting to station
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_fx.BigTeleportParticles(pos);
-                S.StartSound(pos, 0, 0, S.RegisterSound("misc/bigtele.wav"), 1,
-                        Defines.ATTN_NONE, 0);
-                break;
-
-            case Defines.TE_GRAPPLE_CABLE:
-                ent = ParseBeam2(cl_mod_grapple_cable);
-                break;
-
-            // RAFAEL
-            case Defines.TE_WELDING_SPARKS:
-                cnt = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                color = MSG.ReadByte(Globals.net_message);
-                CL_fx.ParticleEffect2(pos, dir, color, cnt);
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_flash;
-                // note to self
-                // we need a better no draw flag
-                ex.ent.flags = Defines.RF_BEAM;
-                ex.start = ClientGlobals.cl.frame.servertime - 0.1f;
-                ex.light = 100 + (Lib.rand() % 75);
-                ex.lightcolor[0] = 1.0f;
-                ex.lightcolor[1] = 1.0f;
-                ex.lightcolor[2] = 0.3f;
-                ex.ent.model = cl_mod_flash;
-                ex.frames = 2;
-                break;
-
-            case Defines.TE_GREENBLOOD:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                CL_fx.ParticleEffect2(pos, dir, 0xdf, 30);
-                break;
-
-            // RAFAEL
-            case Defines.TE_TUNNEL_SPARKS:
-                cnt = MSG.ReadByte(Globals.net_message);
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                color = MSG.ReadByte(Globals.net_message);
-                CL_fx.ParticleEffect3(pos, dir, color, cnt);
-                break;
-
-            //	  =============
-            //	  PGM
-            // PMM -following code integrated for flechette (different color)
-            case Defines.TE_BLASTER2: // green blaster hitting wall
-            case Defines.TE_FLECHETTE: // flechette
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-
-                // PMM
-                if (type == Defines.TE_BLASTER2)
-                    CL_newfx.BlasterParticles2(pos, dir, 0xd0);
-                else
-                    CL_newfx.BlasterParticles2(pos, dir, 0x6f); // 75
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.ent.angles[0] = (float) (Math.acos(dir[2]) / Math.PI * 180);
-                // PMM - fixed to correct for pitch of 0
-                if (dir[0] != 0.0f)
-                    ex.ent.angles[1] = (float) (Math.atan2(dir[1], dir[0])
-                            / Math.PI * 180);
-                else if (dir[1] > 0)
-                    ex.ent.angles[1] = 90;
-                else if (dir[1] < 0)
-                    ex.ent.angles[1] = 270;
-                else
-                    ex.ent.angles[1] = 0;
-
-                ex.type = ex_misc;
-                ex.ent.flags = Defines.RF_FULLBRIGHT | Defines.RF_TRANSLUCENT;
-
-                // PMM
-                if (type == Defines.TE_BLASTER2)
-                    ex.ent.skinnum = 1;
-                else
-                    // flechette
-                    ex.ent.skinnum = 2;
-
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 150;
-                // PMM
-                if (type == Defines.TE_BLASTER2)
-                    ex.lightcolor[1] = 1;
-                else // flechette
-                {
-                    ex.lightcolor[0] = 0.19f;
-                    ex.lightcolor[1] = 0.41f;
-                    ex.lightcolor[2] = 0.75f;
-                }
-                ex.ent.model = cl_mod_explode;
-                ex.frames = 4;
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
 
             case Defines.TE_LIGHTNING:
                 ent = ParseLightning(cl_mod_lightning);
@@ -1141,38 +1116,6 @@ public class CL_tent {
                         Defines.ATTN_NORM, 0);
                 break;
 
-            case Defines.TE_DEBUGTRAIL:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadPos(Globals.net_message, pos2);
-                CL_newfx.DebugTrail(pos, pos2);
-                break;
-
-            case Defines.TE_PLAIN_EXPLOSION:
-                MSG.ReadPos(Globals.net_message, pos);
-
-                ex = AllocExplosion();
-                Math3D.VectorCopy(pos, ex.ent.origin);
-                ex.type = ex_poly;
-                ex.ent.flags = Defines.RF_FULLBRIGHT;
-                ex.start = ClientGlobals.cl.frame.servertime - 100;
-                ex.light = 350;
-                ex.lightcolor[0] = 1.0f;
-                ex.lightcolor[1] = 0.5f;
-                ex.lightcolor[2] = 0.5f;
-                ex.ent.angles[1] = Lib.rand() % 360;
-                ex.ent.model = cl_mod_explo4;
-                if (Globals.rnd.nextFloat() < 0.5)
-                    ex.baseframe = 15;
-                ex.frames = 15;
-                if (type == Defines.TE_ROCKET_EXPLOSION_WATER)
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_watrexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                else
-                    S
-                            .StartSound(pos, 0, 0, cl_sfx_rockexp, 1,
-                                    Defines.ATTN_NORM, 0);
-                break;
 
             case Defines.TE_FLASHLIGHT:
                 MSG.ReadPos(Globals.net_message, pos);
@@ -1187,41 +1130,6 @@ public class CL_tent {
                 CL_newfx.ForceWall(pos, pos2, color);
                 break;
 
-            case Defines.TE_HEATBEAM:
-                ent = ParsePlayerBeam(cl_mod_heatbeam);
-                break;
-
-            case Defines.TE_MONSTER_HEATBEAM:
-                ent = ParsePlayerBeam(cl_mod_monster_heatbeam);
-                break;
-
-            case Defines.TE_HEATBEAM_SPARKS:
-                //			cnt = MSG.ReadByte (net_message);
-                cnt = 50;
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                //			r = MSG.ReadByte (net_message);
-                //			magnitude = MSG.ReadShort (net_message);
-                r = 8;
-                magnitude = 60;
-                color = r & 0xff;
-                CL_newfx.ParticleSteamEffect(pos, dir, color, cnt, magnitude);
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_HEATBEAM_STEAM:
-                //			cnt = MSG.ReadByte (net_message);
-                cnt = 20;
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                //			r = MSG.ReadByte (net_message);
-                //			magnitude = MSG.ReadShort (net_message);
-                //			color = r & 0xff;
-                color = 0xe0;
-                magnitude = 60;
-                CL_newfx.ParticleSteamEffect(pos, dir, color, cnt, magnitude);
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
 
             case Defines.TE_STEAM:
                 ParseSteam();
@@ -1236,41 +1144,6 @@ public class CL_tent {
                 S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
                 break;
 
-            case Defines.TE_MOREBLOOD:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                CL_fx.ParticleEffect(pos, dir, 0xe8, 250);
-                break;
-
-            case Defines.TE_CHAINFIST_SMOKE:
-                dir[0] = 0;
-                dir[1] = 0;
-                dir[2] = 1;
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_newfx.ParticleSmokeEffect(pos, dir, 0, 20, 20);
-                break;
-
-            case Defines.TE_ELECTRIC_SPARKS:
-                MSG.ReadPos(Globals.net_message, pos);
-                MSG.ReadDir(Globals.net_message, dir);
-                //			CL_ParticleEffect (pos, dir, 109, 40);
-                CL_fx.ParticleEffect(pos, dir, 0x75, 40);
-                //FIXME : replace or remove this sound
-                S.StartSound(pos, 0, 0, cl_sfx_lashit, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_TRACKER_EXPLOSION:
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_newfx.ColorFlash(pos, 0, 150, -1, -1, -1);
-                CL_newfx.ColorExplosionParticles(pos, 0, 1);
-                S.StartSound(pos, 0, 0, cl_sfx_disrexp, 1, Defines.ATTN_NORM, 0);
-                break;
-
-            case Defines.TE_TELEPORT_EFFECT:
-            case Defines.TE_DBALL_GOAL:
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_fx.TeleportParticles(pos);
-                break;
 
             case Defines.TE_WIDOWBEAMOUT:
                 ParseWidow();
@@ -1280,18 +1153,13 @@ public class CL_tent {
                 ParseNuke();
                 break;
 
-            case Defines.TE_WIDOWSPLASH:
-                MSG.ReadPos(Globals.net_message, pos);
-                CL_newfx.WidowSplash(pos);
-                break;
-            //	  PGM
-            //	  ==============
 
             default:
                 Com.Error(Defines.ERR_DROP, "CL_ParseTEnt: bad type");
         }
-    }
 
+    }
+*/
     // stack variable
     // dist, org
     private static final entity_t ent = new entity_t();

@@ -30,7 +30,7 @@ public abstract class NetworkMessage {
             case svc_spawnbaseline:
             case svc_download:
             case svc_deltapacketentities:
-            case svc_temp_entity: // todo: parse
+            case svc_packetentities:
             default:
                 msg = null;
                 break;
@@ -76,11 +76,25 @@ public abstract class NetworkMessage {
             case svc_playerinfo:
                 msg = new PlayerInfoMessage();
                 break;
-            case svc_packetentities:
-                msg = null;
-                break;
-
+            case svc_temp_entity:
+                int subtype = MSG.ReadByte(buffer);
+                if (PointTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new PointTEMessage(subtype);
+                } else if (BeamTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new BeamTEMessage(subtype);
+                } else if (BeamOffsetTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new BeamOffsetTEMessage(subtype);
+                } else if (PointDirectionTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new PointDirectionTEMessage(subtype);
+                } else if (TrailTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new TrailTEMessage(subtype);
+                } else if (SplashTEMessage.SUBTYPES.contains(subtype)) {
+                    msg = new SplashTEMessage(subtype);
+                } else {
+                    throw new IllegalStateException("Unexpected temp entity type:" + subtype);
+                }
         }
+
         if (msg != null) {
             msg.parse(buffer);
         }

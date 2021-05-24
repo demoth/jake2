@@ -3,11 +3,27 @@ package jake2.qcommon.network.commands;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Collection;
+import java.util.Set;
+
+import static jake2.qcommon.Defines.TE_MEDIC_CABLE_ATTACK;
+import static jake2.qcommon.Defines.TE_PARASITE_ATTACK;
+
 /**
  * TE_PARASITE_ATTACK
  * TE_MEDIC_CABLE_ATTACK
  */
 public class BeamTEMessage extends TEMessage {
+
+    public static final Collection<Integer> SUBTYPES = Set.of(
+            TE_PARASITE_ATTACK,
+            TE_MEDIC_CABLE_ATTACK
+    );
+
+    public BeamTEMessage(int style) {
+        super(style);
+    }
+
     public BeamTEMessage(int style, int ownerIndex, float[] origin, float[] destination) {
         super(style);
         this.ownerIndex = ownerIndex;
@@ -15,9 +31,9 @@ public class BeamTEMessage extends TEMessage {
         this.destination = destination;
     }
 
-    final int ownerIndex;
-    final float[] origin;
-    final float[] destination;
+    public int ownerIndex;
+    public float[] origin;
+    public float[] destination;
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -25,5 +41,14 @@ public class BeamTEMessage extends TEMessage {
         MSG.WriteShort(buffer, ownerIndex);
         MSG.WritePos(buffer, origin);
         MSG.WritePos(buffer, destination);
+    }
+
+    @Override
+    void parse(sizebuf_t buffer) {
+        ownerIndex = MSG.ReadShort(buffer);
+        origin = new float[3];
+        MSG.ReadPos(buffer, origin);
+        destination = new float[3];
+        MSG.ReadPos(buffer, destination);
     }
 }

@@ -616,11 +616,13 @@ public class CL_parse {
                 } else if (msg instanceof FrameMessage) {
                     old = CL_ents.processFrameMessage((FrameMessage) msg);
                 } else if (msg instanceof PlayerInfoMessage) {
-                    CL_ents.parsePlayerInfo((PlayerInfoMessage) msg, old);
+                    CL_ents.ParsePlayerstate(old, ClientGlobals.cl.frame, (PlayerInfoMessage) msg);
                 } else if (msg instanceof LayoutMessage) {
                     ClientGlobals.cl.layout = ((LayoutMessage) msg).layout;
                 } else if (msg instanceof InventoryMessage) {
                     CL_inv.ParseInventory((InventoryMessage) msg);
+                } else if (msg instanceof TEMessage) {
+                    CL_tent.ParseTEnt((TEMessage) msg);
                 }
                 continue;
             }
@@ -636,10 +638,6 @@ public class CL_parse {
             case svc_packetentities:
                 // should be called after CL_ents.ParseFrameMessage
                 CL_ents.parsePacketEntities(old);
-                break;
-
-            case svc_temp_entity:
-                CL_tent.ParseTEnt();
                 break;
 
             case svc_download:
