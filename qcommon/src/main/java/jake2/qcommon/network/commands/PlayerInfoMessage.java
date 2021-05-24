@@ -1,7 +1,6 @@
 package jake2.qcommon.network.commands;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.MSG;
 import jake2.qcommon.network.NetworkCommandType;
 import jake2.qcommon.sizebuf_t;
@@ -227,7 +226,7 @@ public class PlayerInfoMessage extends NetworkMessage {
         this.stats = new short[Defines.MAX_STATS];
         for (int i = 0; i < Defines.MAX_STATS; i++) {
             if ((statsMask & (1 << i)) != 0) {
-                this.stats[i] = MSG.ReadShort(Globals.net_message);
+                this.stats[i] = MSG.ReadShort(buffer);
             }
         }
     }
