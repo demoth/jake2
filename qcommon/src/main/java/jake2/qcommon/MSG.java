@@ -32,14 +32,9 @@ public class MSG extends Globals {
     //
 
     //ok.
-    public static void WriteChar(sizebuf_t sb, int c) {
-        sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
-    }
-
-    //ok.
     public static void WriteChar(sizebuf_t sb, float c) {
 
-        WriteChar(sb, (int) c);
+        WriteByte(sb, (int) c);
     }
 
     //ok.

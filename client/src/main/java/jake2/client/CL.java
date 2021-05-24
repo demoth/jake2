@@ -34,6 +34,7 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.messages.client.ClientMessageType;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.ServerDataMessage;
 import jake2.qcommon.network.messages.server.ServerMessageType;
@@ -416,7 +417,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientMessageType.CLC_STRINGCMD.value);
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientMessageType.CLC_STRINGCMD.value);
             MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
             return;
         }
@@ -756,8 +757,7 @@ public final class CL {
             }
             Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
                     Globals.net_from, ClientGlobals.cls.quakePort);
-            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientMessageType.CLC_STRINGCMD.value);
-            MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
+            new StringCmdMessage("new").writeTo(ClientGlobals.cls.netchan.message);
             ClientGlobals.cls.state = Defines.ca_connected;
             return;
         }

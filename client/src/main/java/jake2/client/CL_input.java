@@ -433,8 +433,6 @@ public class CL_input {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
 			new UserInfoMessage(Cvar.getInstance().Userinfo()).writeTo(ClientGlobals.cls.netchan.message);
-//			MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientMessageType.CLC_USERINFO.value);
-//			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.getInstance().Userinfo());
 		}
 
 		SZ.Init(buf, data, data.length);
