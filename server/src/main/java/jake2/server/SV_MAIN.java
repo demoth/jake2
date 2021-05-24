@@ -32,7 +32,10 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.ClientMessageType;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
+import jake2.qcommon.network.messages.client.UserInfoMessage;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.ReconnectMessage;
@@ -723,37 +726,44 @@ public class SV_MAIN implements JakeServer {
             }
 
             ClientMessageType c = ClientMessageType.fromInt(MSG.ReadByte(Globals.net_message));
-            if (c == ClientMessageType.CLC_BAD)
+            ClientMessage msg = ClientMessage.parseFromBuffer(c, Globals.net_message);
+            if (c == ClientMessageType.CLC_BAD) {
+                // todo: warn? drop client?
                 break;
+            }
+            if (msg != null) {
+                if (msg instanceof StringCmdMessage) {
+                    StringCmdMessage m = (StringCmdMessage) msg;
+                        // malicious users may try using too many string commands
+                        if (++stringCmdCount < MAX_STRINGCMDS) {
+                            SV_ExecuteUserCommand(cl, m.command);
+                        }
 
-            String s;
-            usercmd_t nullcmd;
-            int checksum;
-            int calculatedChecksum;
-            int checksumIndex;
-            int lastReceivedFrame;
+                        if (cl.state == ClientStates.CS_ZOMBIE) {
+                            return; // disconnect command
+                        }
+
+                } else if (msg instanceof UserInfoMessage) {
+                    UserInfoMessage m = (UserInfoMessage) msg;
+                    cl.userinfo = m.userInfo;
+                    SV_UserinfoChanged(cl);
+                }
+                continue;
+            }
+
             switch (c) {
                 default:
                     Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
                     SV_DropClient(cl);
                     return;
-
-                case CLC_NOP:
-                    break;
-
-                case CLC_USERINFO:
-                    cl.userinfo = MSG.ReadString(Globals.net_message);
-                    SV_UserinfoChanged(cl);
-                    break;
-
                 case CLC_MOVE:
                     if (move_issued)
                         return; // someone is trying to cheat...
 
                     move_issued = true;
-                    checksumIndex = Globals.net_message.readcount;
-                    checksum = MSG.ReadByte(Globals.net_message);
-                    lastReceivedFrame = MSG.ReadLong(Globals.net_message);
+                    int checksumIndex = Globals.net_message.readcount;
+                    int checksum = MSG.ReadByte(Globals.net_message);
+                    int lastReceivedFrame = MSG.ReadLong(Globals.net_message);
 
                     if (lastReceivedFrame != cl.lastReceivedFrame) {
                         cl.lastReceivedFrame = lastReceivedFrame;
@@ -763,7 +773,7 @@ public class SV_MAIN implements JakeServer {
                     }
 
                     //memset (nullcmd, 0, sizeof(nullcmd));
-                    nullcmd = new usercmd_t();
+                    usercmd_t nullcmd = new usercmd_t();
                     MSG.ReadDeltaUsercmd(Globals.net_message, nullcmd, oldest);
                     MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
                     MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
@@ -775,7 +785,7 @@ public class SV_MAIN implements JakeServer {
 
                     // if the checksum fails, ignore the rest of the packet
 
-                    calculatedChecksum = CRC.BlockSequenceCRCByte(
+                    int calculatedChecksum = CRC.BlockSequenceCRCByte(
                             Globals.net_message.data, checksumIndex + 1,
                             Globals.net_message.readcount - checksumIndex - 1,
                             cl.netchan.incoming_sequence);
@@ -813,16 +823,6 @@ public class SV_MAIN implements JakeServer {
                     cl.lastcmd.set(newcmd);
                     break;
 
-                case CLC_STRINGCMD:
-                    s = MSG.ReadString(Globals.net_message);
-
-                    // malicious users may try using too many string commands
-                    if (++stringCmdCount < MAX_STRINGCMDS)
-                        SV_ExecuteUserCommand(cl, s);
-
-                    if (cl.state == ClientStates.CS_ZOMBIE)
-                        return; // disconnect command
-                    break;
             }
         }
     }

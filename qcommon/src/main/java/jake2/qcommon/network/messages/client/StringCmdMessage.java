@@ -7,8 +7,12 @@ public class StringCmdMessage extends ClientMessage {
 
     public String command;
 
-    public StringCmdMessage(String command) {
+    public StringCmdMessage() {
         super(ClientMessageType.CLC_STRINGCMD);
+    }
+
+    public StringCmdMessage(String command) {
+        this();
         this.command = command;
     }
 
@@ -19,6 +23,6 @@ public class StringCmdMessage extends ClientMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.command = MSG.ReadString(buffer);
     }
 }

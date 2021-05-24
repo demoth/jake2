@@ -19,4 +19,26 @@ public abstract class ClientMessage {
 
     abstract void parse(sizebuf_t buffer);
 
+    public static ClientMessage parseFromBuffer(ClientMessageType type, sizebuf_t buffer) {
+        final ClientMessage msg;
+        switch (type) {
+            case CLC_BAD:
+            case CLC_NOP:
+            case CLC_MOVE:
+            default:
+                msg = null;
+                break;
+            case CLC_USERINFO:
+                msg = new UserInfoMessage();
+                break;
+            case CLC_STRINGCMD:
+                msg = new StringCmdMessage();
+                break;
+        }
+        if (msg != null) {
+            msg.parse(buffer);
+        }
+        return msg;
+    }
+
 }

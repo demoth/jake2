@@ -444,7 +444,7 @@ public class CL_input {
 																			 // of
 																			 // the
 																			 // cinematic
-			SCR.FinishCinematic();
+			SCR.nextServerCommand();
 		}
 
 		// begin a client move command

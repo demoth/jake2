@@ -7,8 +7,12 @@ public class UserInfoMessage extends ClientMessage {
 
     public String userInfo;
 
-    public UserInfoMessage(String userInfo) {
+    public UserInfoMessage() {
         super(ClientMessageType.CLC_USERINFO);
+    }
+
+    public UserInfoMessage(String userInfo) {
+        this();
         this.userInfo = userInfo;
     }
 
@@ -19,6 +23,6 @@ public class UserInfoMessage extends ClientMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.userInfo = MSG.ReadString(buffer);
     }
 }
