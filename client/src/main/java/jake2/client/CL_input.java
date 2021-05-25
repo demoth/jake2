@@ -30,7 +30,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.messages.client.ClientMessageType;
+import jake2.qcommon.network.messages.client.MoveMessage;
 import jake2.qcommon.network.messages.client.UserInfoMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -402,16 +402,13 @@ public class CL_input {
 	 * ================= CL_SendCmd =================
 	 */
 	static void SendCmd() {
-		int i;
-		usercmd_t cmd, oldcmd;
-		int checksumIndex;
 
 		// build a command even if not connected
 
 		// save this command off for prediction
-		i = ClientGlobals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
-		cmd = ClientGlobals.cl.cmds[i];
-		ClientGlobals.cl.cmd_time[i] = (int) ClientGlobals.cls.realtime; // for netgraph
+		int cmdIndex = ClientGlobals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
+		usercmd_t cmd = ClientGlobals.cl.cmds[cmdIndex];
+		ClientGlobals.cl.cmd_time[cmdIndex] = (int) ClientGlobals.cls.realtime; // for netgraph
 															 // ping calculation
 
 		// fill the cmd
@@ -435,56 +432,39 @@ public class CL_input {
 			new UserInfoMessage(Cvar.getInstance().Userinfo()).writeTo(ClientGlobals.cls.netchan.message);
 		}
 
-		SZ.Init(buf, data, data.length);
 
-		if (cmd.buttons != 0 && ClientGlobals.cl.cinematictime > 0 && !ClientGlobals.cl.attractloop
-				&& ClientGlobals.cls.realtime - ClientGlobals.cl.cinematictime > 1000) { // skip
-																			 // the
-																			 // rest
-																			 // of
-																			 // the
-																			 // cinematic
+		if (cmd.buttons != 0 && ClientGlobals.cl.cinematictime > 0
+				&& !ClientGlobals.cl.attractloop
+				&& ClientGlobals.cls.realtime - ClientGlobals.cl.cinematictime > 1000) {
+			// skip the rest of the cinematic
 			SCR.nextServerCommand();
 		}
 
-		// begin a client move command
-		MSG.WriteByte(buf, ClientMessageType.CLC_MOVE.value);
-
-		// save the position for a checksum byte
-		checksumIndex = buf.cursize;
-		MSG.WriteByte(buf, 0);
-
 		// let the server know what the last frame we
 		// got was, so the next message can be delta compressed
-		if (cl_nodelta.value != 0.0f || !ClientGlobals.cl.frame.valid || ClientGlobals.cls.demowaiting)
-			MSG.WriteLong(buf, -1); // no compression
-		else
-			MSG.WriteLong(buf, ClientGlobals.cl.frame.serverframe);
+		boolean noCompress = cl_nodelta.value != 0.0f || !ClientGlobals.cl.frame.valid || ClientGlobals.cls.demowaiting;
 
-		// send this and the previous cmds in the message, so
-		// if the last packet was dropped, it can be recovered
-		i = (ClientGlobals.cls.netchan.outgoing_sequence - 2) & (Defines.CMD_BACKUP - 1);
-		cmd = ClientGlobals.cl.cmds[i];
-		//memset (nullcmd, 0, sizeof(nullcmd));
-		nullcmd.clear();
+		// Send 3 latest commands with compression
+		int oldestCmdIndex = (ClientGlobals.cls.netchan.outgoing_sequence - 2) & (Defines.CMD_BACKUP - 1);
+		usercmd_t oldestCmd = ClientGlobals.cl.cmds[oldestCmdIndex];
 
-		MSG.WriteDeltaUsercmd(buf, nullcmd, cmd);
-		oldcmd = cmd;
+		int oldCmdIndex = (ClientGlobals.cls.netchan.outgoing_sequence - 1) & (Defines.CMD_BACKUP - 1);
+		usercmd_t oldCmd = ClientGlobals.cl.cmds[oldCmdIndex];
 
-		i = (ClientGlobals.cls.netchan.outgoing_sequence - 1) & (Defines.CMD_BACKUP - 1);
-		cmd = ClientGlobals.cl.cmds[i];
+		int latestCmdIndex = ClientGlobals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
+		usercmd_t latestCmd = ClientGlobals.cl.cmds[latestCmdIndex];
 
-		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
-		oldcmd = cmd;
+		// write MoveMessage to its own buffer
+		SZ.Init(buf, data, data.length);
 
-		i = (ClientGlobals.cls.netchan.outgoing_sequence) & (Defines.CMD_BACKUP - 1);
-		cmd = ClientGlobals.cl.cmds[i];
-
-		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
-
-		// calculate a checksum over the move commands
-		buf.data[checksumIndex] = CRC.BlockSequenceCRCByte(buf.data, checksumIndex + 1, buf.cursize - checksumIndex - 1,
-				ClientGlobals.cls.netchan.outgoing_sequence);
+		new MoveMessage(
+				noCompress,
+				ClientGlobals.cl.frame.serverframe,
+				oldestCmd,
+				oldCmd,
+				latestCmd,
+				ClientGlobals.cls.netchan.outgoing_sequence
+		).writeTo(buf);
 
 		//
 		// deliver the message

@@ -108,56 +108,6 @@ public class MSG extends Globals {
         WriteShort(sb, Math3D.ANGLE2SHORT(f));
     }
 
-    public static void WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from,
-            usercmd_t cmd) {
-        int bits;
-
-        //
-        // send the movement message
-        //
-        bits = 0;
-        if (cmd.angles[0] != from.angles[0])
-            bits |= CM_ANGLE1;
-        if (cmd.angles[1] != from.angles[1])
-            bits |= CM_ANGLE2;
-        if (cmd.angles[2] != from.angles[2])
-            bits |= CM_ANGLE3;
-        if (cmd.forwardmove != from.forwardmove)
-            bits |= CM_FORWARD;
-        if (cmd.sidemove != from.sidemove)
-            bits |= CM_SIDE;
-        if (cmd.upmove != from.upmove)
-            bits |= CM_UP;
-        if (cmd.buttons != from.buttons)
-            bits |= CM_BUTTONS;
-        if (cmd.impulse != from.impulse)
-            bits |= CM_IMPULSE;
-
-        WriteByte(buf, bits);
-
-        if ((bits & CM_ANGLE1) != 0)
-            WriteShort(buf, cmd.angles[0]);
-        if ((bits & CM_ANGLE2) != 0)
-            WriteShort(buf, cmd.angles[1]);
-        if ((bits & CM_ANGLE3) != 0)
-            WriteShort(buf, cmd.angles[2]);
-
-        if ((bits & CM_FORWARD) != 0)
-            WriteShort(buf, cmd.forwardmove);
-        if ((bits & CM_SIDE) != 0)
-            WriteShort(buf, cmd.sidemove);
-        if ((bits & CM_UP) != 0)
-            WriteShort(buf, cmd.upmove);
-
-        if ((bits & CM_BUTTONS) != 0)
-            WriteByte(buf, cmd.buttons);
-        if ((bits & CM_IMPULSE) != 0)
-            WriteByte(buf, cmd.impulse);
-
-        WriteByte(buf, cmd.msec);
-        WriteByte(buf, cmd.lightlevel);
-    }
-
     //should be ok.
     public static void WriteDir(sizebuf_t sb, float[] dir) {
         int i, best;
