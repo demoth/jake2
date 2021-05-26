@@ -462,46 +462,6 @@ public class MSG extends Globals {
         return Math3D.SHORT2ANGLE(ReadShort(msg_read));
     }
 
-    public static void ReadDeltaUsercmd(sizebuf_t msg_read, usercmd_t from,
-            usercmd_t move) {
-        int bits;
-
-        //memcpy(move, from, sizeof(* move));
-        // IMPORTANT!! copy without new
-        move.set(from);
-        bits = ReadByte(msg_read);
-
-        // read current angles
-        if ((bits & CM_ANGLE1) != 0)
-            move.angles[0] = ReadShort(msg_read);
-        if ((bits & CM_ANGLE2) != 0)
-            move.angles[1] = ReadShort(msg_read);
-        if ((bits & CM_ANGLE3) != 0)
-            move.angles[2] = ReadShort(msg_read);
-
-        // read movement
-        if ((bits & CM_FORWARD) != 0)
-            move.forwardmove = ReadShort(msg_read);
-        if ((bits & CM_SIDE) != 0)
-            move.sidemove = ReadShort(msg_read);
-        if ((bits & CM_UP) != 0)
-            move.upmove = ReadShort(msg_read);
-
-        // read buttons
-        if ((bits & CM_BUTTONS) != 0)
-            move.buttons = (byte) ReadByte(msg_read);
-
-        if ((bits & CM_IMPULSE) != 0)
-            move.impulse = (byte) ReadByte(msg_read);
-
-        // read time to run command
-        move.msec = (byte) ReadByte(msg_read);
-
-        // read the light level
-        move.lightlevel = (byte) ReadByte(msg_read);
-
-    }
-
     public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
         for (int i = 0; i < len; i++)
             data[i] = (byte) ReadByte(msg_read);

@@ -25,4 +25,12 @@ public class UserInfoMessage extends ClientMessage {
     void parse(sizebuf_t buffer) {
         this.userInfo = MSG.ReadString(buffer);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserInfoMessage that = (UserInfoMessage) o;
+        return userInfo.equals(that.userInfo);
+    }
 }

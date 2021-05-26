@@ -19,12 +19,11 @@ public abstract class ClientMessage {
 
     abstract void parse(sizebuf_t buffer);
 
-    public static ClientMessage parseFromBuffer(ClientMessageType type, sizebuf_t buffer) {
+    public static ClientMessage parseFromBuffer(ClientMessageType type, sizebuf_t buffer, int incomingSequence) {
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:
             case CLC_NOP:
-            case CLC_MOVE:
             default:
                 msg = null;
                 break;
@@ -34,6 +33,8 @@ public abstract class ClientMessage {
             case CLC_STRINGCMD:
                 msg = new StringCmdMessage();
                 break;
+            case CLC_MOVE:
+                msg = new MoveMessage(incomingSequence);
         }
         if (msg != null) {
             msg.parse(buffer);

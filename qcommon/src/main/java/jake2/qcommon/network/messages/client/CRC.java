@@ -20,11 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 25.01.2004 by RST.
 
-package jake2.qcommon;
+package jake2.qcommon.network.messages.client;
 
 import jake2.qcommon.sys.Sys;
 
-public class CRC
+class CRC
 {
 
 	private final static short CRC_INIT_VALUE= (short) 0xffff;
@@ -276,7 +276,7 @@ public class CRC
 	/**
 	 * Calculates a crc checksum-sequence over an array.
 	 */
-	public static byte BlockSequenceCRCByte(byte base[], int offset, int length, int sequence) {
+	static byte BlockSequenceCRCByte(byte base[], int offset, int length, int sequence) {
 		byte[] chkb = new byte [60 + 4];
 
 		if (sequence < 0)

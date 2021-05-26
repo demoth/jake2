@@ -1,10 +1,10 @@
-package jake2.qcommon;
+package jake2.qcommon.network.messages.client;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import static jake2.qcommon.CRC.BlockSequenceCRCByte;
-import static jake2.qcommon.CRC.CRC_Block;
+import static jake2.qcommon.network.messages.client.CRC.BlockSequenceCRCByte;
+import static jake2.qcommon.network.messages.client.CRC.CRC_Block;
 
 public class CrcTest {
 

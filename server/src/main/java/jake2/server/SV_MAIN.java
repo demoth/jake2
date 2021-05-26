@@ -32,10 +32,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.messages.client.ClientMessage;
-import jake2.qcommon.network.messages.client.ClientMessageType;
-import jake2.qcommon.network.messages.client.StringCmdMessage;
-import jake2.qcommon.network.messages.client.UserInfoMessage;
+import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.ReconnectMessage;
@@ -707,10 +704,6 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_ExecuteClientMessage(client_t cl) {
 
-        usercmd_t oldest = new usercmd_t();
-        usercmd_t oldcmd = new usercmd_t();
-        usercmd_t newcmd = new usercmd_t();
-
         gameImports.sv_client = cl;
 
         // only allow one move command
@@ -726,7 +719,7 @@ public class SV_MAIN implements JakeServer {
             }
 
             ClientMessageType c = ClientMessageType.fromInt(MSG.ReadByte(Globals.net_message));
-            ClientMessage msg = ClientMessage.parseFromBuffer(c, Globals.net_message);
+            ClientMessage msg = ClientMessage.parseFromBuffer(c, Globals.net_message, cl.netchan.incoming_sequence);
             if (c == ClientMessageType.CLC_BAD) {
                 // todo: warn? drop client?
                 break;
@@ -734,36 +727,26 @@ public class SV_MAIN implements JakeServer {
             if (msg != null) {
                 if (msg instanceof StringCmdMessage) {
                     StringCmdMessage m = (StringCmdMessage) msg;
-                        // malicious users may try using too many string commands
-                        if (++stringCmdCount < MAX_STRINGCMDS) {
-                            SV_ExecuteUserCommand(cl, m.command);
-                        }
+                    // malicious users may try using too many string commands
+                    if (++stringCmdCount < MAX_STRINGCMDS) {
+                        SV_ExecuteUserCommand(cl, m.command);
+                    }
 
-                        if (cl.state == ClientStates.CS_ZOMBIE) {
-                            return; // disconnect command
-                        }
+                    if (cl.state == ClientStates.CS_ZOMBIE) {
+                        return; // disconnect command
+                    }
 
                 } else if (msg instanceof UserInfoMessage) {
                     UserInfoMessage m = (UserInfoMessage) msg;
                     cl.userinfo = m.userInfo;
                     SV_UserinfoChanged(cl);
-                }
-                continue;
-            }
-
-            switch (c) {
-                default:
-                    Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
-                    SV_DropClient(cl);
-                    return;
-                case CLC_MOVE:
+                } else if (msg instanceof MoveMessage) {
+                    MoveMessage m = (MoveMessage) msg;
                     if (move_issued)
                         return; // someone is trying to cheat...
 
                     move_issued = true;
-                    int checksumIndex = Globals.net_message.readcount;
-                    int checksum = MSG.ReadByte(Globals.net_message);
-                    int lastReceivedFrame = MSG.ReadLong(Globals.net_message);
+                    int lastReceivedFrame = m.lastReceivedFrame;
 
                     if (lastReceivedFrame != cl.lastReceivedFrame) {
                         cl.lastReceivedFrame = lastReceivedFrame;
@@ -772,30 +755,17 @@ public class SV_MAIN implements JakeServer {
                         }
                     }
 
-                    //memset (nullcmd, 0, sizeof(nullcmd));
-                    usercmd_t nullcmd = new usercmd_t();
-                    MSG.ReadDeltaUsercmd(Globals.net_message, nullcmd, oldest);
-                    MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
-                    MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
-
                     if (cl.state != ClientStates.CS_SPAWNED) {
                         cl.lastReceivedFrame = -1;
-                        break;
+                        continue;
                     }
 
                     // if the checksum fails, ignore the rest of the packet
-
-                    int calculatedChecksum = CRC.BlockSequenceCRCByte(
-                            Globals.net_message.data, checksumIndex + 1,
-                            Globals.net_message.readcount - checksumIndex - 1,
-                            cl.netchan.incoming_sequence);
-
-                    if ((calculatedChecksum & 0xff) != checksum) {
-                        Com.DPrintf("Failed command checksum for " + cl.name + " ("
-                                + calculatedChecksum + " != " + checksum + ")/"
-                                + cl.netchan.incoming_sequence + "\n");
+                    if (!m.valid) {
+                        Com.Printf("Invalid crc\n");
                         return;
                     }
+
 
                     if (0 == SV_MAIN.sv_paused.value) {
                         int net_drop = cl.netchan.dropped;
@@ -810,19 +780,21 @@ public class SV_MAIN implements JakeServer {
                                 net_drop--;
                             }
                             if (net_drop > 1)
-                                SV_ClientThink(cl, oldest);
+                                SV_ClientThink(cl, m.oldestCmd);
 
                             if (net_drop > 0)
-                                SV_ClientThink(cl, oldcmd);
+                                SV_ClientThink(cl, m.oldCmd);
 
                         }
-                        SV_ClientThink(cl, newcmd);
+                        SV_ClientThink(cl, m.newCmd);
                     }
 
                     // copy.
-                    cl.lastcmd.set(newcmd);
-                    break;
-
+                    cl.lastcmd.set(m.newCmd);
+                } else {
+                    Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
+                    SV_DropClient(cl);
+                }
             }
         }
     }

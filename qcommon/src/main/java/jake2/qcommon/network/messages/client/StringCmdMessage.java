@@ -25,4 +25,12 @@ public class StringCmdMessage extends ClientMessage {
     void parse(sizebuf_t buffer) {
         this.command = MSG.ReadString(buffer);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StringCmdMessage that = (StringCmdMessage) o;
+        return command.equals(that.command);
+    }
 }
