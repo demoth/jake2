@@ -26,7 +26,7 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.BeamTEMessage;
+import jake2.qcommon.network.messages.server.BeamTEMessage;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;

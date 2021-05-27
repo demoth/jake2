@@ -32,14 +32,9 @@ public class MSG extends Globals {
     //
 
     //ok.
-    public static void WriteChar(sizebuf_t sb, int c) {
-        sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
-    }
-
-    //ok.
     public static void WriteChar(sizebuf_t sb, float c) {
 
-        WriteChar(sb, (int) c);
+        WriteByte(sb, (int) c);
     }
 
     //ok.
@@ -111,56 +106,6 @@ public class MSG extends Globals {
 
     public static void WriteAngle16(sizebuf_t sb, float f) {
         WriteShort(sb, Math3D.ANGLE2SHORT(f));
-    }
-
-    public static void WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from,
-            usercmd_t cmd) {
-        int bits;
-
-        //
-        // send the movement message
-        //
-        bits = 0;
-        if (cmd.angles[0] != from.angles[0])
-            bits |= CM_ANGLE1;
-        if (cmd.angles[1] != from.angles[1])
-            bits |= CM_ANGLE2;
-        if (cmd.angles[2] != from.angles[2])
-            bits |= CM_ANGLE3;
-        if (cmd.forwardmove != from.forwardmove)
-            bits |= CM_FORWARD;
-        if (cmd.sidemove != from.sidemove)
-            bits |= CM_SIDE;
-        if (cmd.upmove != from.upmove)
-            bits |= CM_UP;
-        if (cmd.buttons != from.buttons)
-            bits |= CM_BUTTONS;
-        if (cmd.impulse != from.impulse)
-            bits |= CM_IMPULSE;
-
-        WriteByte(buf, bits);
-
-        if ((bits & CM_ANGLE1) != 0)
-            WriteShort(buf, cmd.angles[0]);
-        if ((bits & CM_ANGLE2) != 0)
-            WriteShort(buf, cmd.angles[1]);
-        if ((bits & CM_ANGLE3) != 0)
-            WriteShort(buf, cmd.angles[2]);
-
-        if ((bits & CM_FORWARD) != 0)
-            WriteShort(buf, cmd.forwardmove);
-        if ((bits & CM_SIDE) != 0)
-            WriteShort(buf, cmd.sidemove);
-        if ((bits & CM_UP) != 0)
-            WriteShort(buf, cmd.upmove);
-
-        if ((bits & CM_BUTTONS) != 0)
-            WriteByte(buf, cmd.buttons);
-        if ((bits & CM_IMPULSE) != 0)
-            WriteByte(buf, cmd.impulse);
-
-        WriteByte(buf, cmd.msec);
-        WriteByte(buf, cmd.lightlevel);
     }
 
     //should be ok.
@@ -515,46 +460,6 @@ public class MSG extends Globals {
 
     public static float ReadAngle16(sizebuf_t msg_read) {
         return Math3D.SHORT2ANGLE(ReadShort(msg_read));
-    }
-
-    public static void ReadDeltaUsercmd(sizebuf_t msg_read, usercmd_t from,
-            usercmd_t move) {
-        int bits;
-
-        //memcpy(move, from, sizeof(* move));
-        // IMPORTANT!! copy without new
-        move.set(from);
-        bits = ReadByte(msg_read);
-
-        // read current angles
-        if ((bits & CM_ANGLE1) != 0)
-            move.angles[0] = ReadShort(msg_read);
-        if ((bits & CM_ANGLE2) != 0)
-            move.angles[1] = ReadShort(msg_read);
-        if ((bits & CM_ANGLE3) != 0)
-            move.angles[2] = ReadShort(msg_read);
-
-        // read movement
-        if ((bits & CM_FORWARD) != 0)
-            move.forwardmove = ReadShort(msg_read);
-        if ((bits & CM_SIDE) != 0)
-            move.sidemove = ReadShort(msg_read);
-        if ((bits & CM_UP) != 0)
-            move.upmove = ReadShort(msg_read);
-
-        // read buttons
-        if ((bits & CM_BUTTONS) != 0)
-            move.buttons = (byte) ReadByte(msg_read);
-
-        if ((bits & CM_IMPULSE) != 0)
-            move.impulse = (byte) ReadByte(msg_read);
-
-        // read time to run command
-        move.msec = (byte) ReadByte(msg_read);
-
-        // read the light level
-        move.lightlevel = (byte) ReadByte(msg_read);
-
     }
 
     public static void ReadData(sizebuf_t msg_read, byte data[], int len) {

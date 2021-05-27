@@ -2,7 +2,7 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.NetworkMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
 
 /**
  * Functions exported by the engine to the game system
@@ -92,7 +92,7 @@ public interface GameImports {
 
     int getPointContents(float[] p);
 
-    void multicastMessage(float[] origin, NetworkMessage msg, MulticastTypes to);
+    void multicastMessage(float[] origin, ServerMessage msg, MulticastTypes to);
 
-    void unicastMessage(int index, NetworkMessage msg, boolean reliable);
+    void unicastMessage(int index, ServerMessage msg, boolean reliable);
 }

@@ -5,10 +5,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.InventoryMessage;
-import jake2.qcommon.network.commands.LayoutMessage;
-import jake2.qcommon.network.commands.StuffTextMessage;
-import jake2.qcommon.network.commands.WeaponSoundMessage;
+import jake2.qcommon.network.messages.server.InventoryMessage;
+import jake2.qcommon.network.messages.server.LayoutMessage;
+import jake2.qcommon.network.messages.server.StuffTextMessage;
+import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

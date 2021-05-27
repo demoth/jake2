@@ -29,7 +29,7 @@ package jake2.client;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.network.commands.InventoryMessage;
+import jake2.qcommon.network.messages.server.InventoryMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 

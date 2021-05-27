@@ -23,9 +23,9 @@
 package jake2.server;
 
 import jake2.qcommon.*;
-import jake2.qcommon.network.NetworkCommandType;
-import jake2.qcommon.network.commands.FrameMessage;
-import jake2.qcommon.network.commands.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.FrameMessage;
+import jake2.qcommon.network.messages.server.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.ServerMessageType;
 import jake2.qcommon.util.Math3D;
 
 public class SV_ENTS {
@@ -77,7 +77,7 @@ public class SV_ENTS {
     void SV_EmitPacketEntities(client_frame_t lastReceivedFrame, client_frame_t currentFrame) {
 
         final sizebuf_t msg = gameImports.msg;
-        MSG.WriteByte(msg, NetworkCommandType.svc_packetentities.type);
+        MSG.WriteByte(msg, ServerMessageType.svc_packetentities.type);
 
         int from_num_entities;
         if (lastReceivedFrame == null)

@@ -25,7 +25,7 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.WeaponSoundMessage;
+import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

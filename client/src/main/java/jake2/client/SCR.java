@@ -25,13 +25,16 @@
 package jake2.client;
 
 import jake2.client.sound.S;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Command;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Vargs;
 
@@ -1473,10 +1476,9 @@ public final class SCR extends Globals {
      * 
      * Called when either the cinematic completes, or it is aborted
      */
-    static void FinishCinematic() {
+    static void nextServerCommand() {
         // tell the server to advance to the next map / cinematic
-        MSG.WriteByte(cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-        SZ.Print(cls.netchan.message, "nextserver " + ClientGlobals.cl.servercount + '\n');
+        new StringCmdMessage("nextserver " + ClientGlobals.cl.servercount + '\n').writeTo(cls.netchan.message);
     }
 
     // ==========================================================================
@@ -1748,7 +1750,7 @@ public final class SCR extends Globals {
 
         if (cin.pic_pending == null) {
             StopCinematic();
-            FinishCinematic();
+            nextServerCommand();
             // hack to get the black screen behind loading
             ClientGlobals.cl.cinematictime = 1;
             BeginLoadingPlaque();
@@ -1816,7 +1818,7 @@ public final class SCR extends Globals {
         ClientGlobals.cl.cinematic_file = FS.LoadMappedFile(name);
         if (ClientGlobals.cl.cinematic_file == null) {
             //Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
-            FinishCinematic();
+            nextServerCommand();
             // done
             ClientGlobals.cl.cinematictime = 0;
             return;

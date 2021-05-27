@@ -27,8 +27,8 @@ package jake2.client;
 
 import jake2.client.sound.S;
 import jake2.qcommon.*;
-import jake2.qcommon.network.commands.MuzzleFlash2Message;
-import jake2.qcommon.network.commands.WeaponSoundMessage;
+import jake2.qcommon.network.messages.server.MuzzleFlash2Message;
+import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

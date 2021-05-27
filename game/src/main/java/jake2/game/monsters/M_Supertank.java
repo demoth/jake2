@@ -26,7 +26,7 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.PointTEMessage;
+import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

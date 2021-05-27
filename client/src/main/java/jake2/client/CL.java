@@ -33,10 +33,11 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.NetworkCommandType;
-import jake2.qcommon.network.commands.ConfigStringMessage;
-import jake2.qcommon.network.commands.ServerDataMessage;
-import jake2.qcommon.network.commands.StuffTextMessage;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
+import jake2.qcommon.network.messages.server.ConfigStringMessage;
+import jake2.qcommon.network.messages.server.ServerDataMessage;
+import jake2.qcommon.network.messages.server.ServerMessageType;
+import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -242,7 +243,7 @@ public final class CL {
                     buf.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, NetworkCommandType.svc_spawnbaseline.type);
+                MSG.WriteByte(buf, ServerMessageType.svc_spawnbaseline.type);
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
@@ -271,8 +272,7 @@ public final class CL {
 
         // don't forward the first argument
         if (args.size() > 1) {
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
+            new StringCmdMessage(getArguments(args)).writeTo(ClientGlobals.cls.netchan.message);
         }
     };
 
@@ -415,8 +415,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
+            new StringCmdMessage("new").writeTo(ClientGlobals.cls.netchan.message);
             return;
         }
 
@@ -541,11 +540,7 @@ public final class CL {
         ClientGlobals.cls.downloadtempname = Com
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
-
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-        MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
-                + ClientGlobals.cls.downloadname);
-
+        new StringCmdMessage("download " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
         ClientGlobals.cls.downloadnumber++;
     };
 
@@ -697,10 +692,15 @@ public final class CL {
             Stop_f.execute(Collections.emptyList());
 
         // send a disconnect message to the server
-        String fin = ClientCommands.CLC_STRINGCMD.value + "disconnect";
-        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
-        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
-        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+
+        byte[] data = new byte[128];
+        sizebuf_t buf = new sizebuf_t();
+        SZ.Init(buf, data, data.length);
+        new StringCmdMessage("disconnect").writeTo(buf);
+
+        // fixme: was sending it 3 times
+        Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
+
 
         ClearState();
 
@@ -755,8 +755,7 @@ public final class CL {
             }
             Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
                     Globals.net_from, ClientGlobals.cls.quakePort);
-            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
+            new StringCmdMessage("new").writeTo(ClientGlobals.cls.netchan.message);
             ClientGlobals.cls.state = Defines.ca_connected;
             return;
         }
@@ -1207,8 +1206,7 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-        MSG.WriteString(ClientGlobals.cls.netchan.message, "begin " + CL.precache_spawncount + "\n");
+        new StringCmdMessage("begin " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.message);
     }
 
     /**

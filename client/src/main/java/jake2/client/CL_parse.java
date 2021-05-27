@@ -29,8 +29,8 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.NetworkCommandType;
-import jake2.qcommon.network.commands.*;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -110,14 +110,10 @@ public class CL_parse {
 
             // give the server an offset to start the download
             Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
-                    + ClientGlobals.cls.downloadname + " " + len);
+            new StringCmdMessage("download " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.message);
         } else {
             Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
-                    + ClientGlobals.cls.downloadname);
+            new StringCmdMessage("download " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
         }
 
         ClientGlobals.cls.downloadnumber++;
@@ -200,8 +196,7 @@ public class CL_parse {
             // request next block
             //	   change display routines by zoid
             ClientGlobals.cls.downloadpercent = percent;
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-            SZ.Print(ClientGlobals.cls.netchan.message, "nextdl");
+            new StringCmdMessage("nextdl").writeTo(ClientGlobals.cls.netchan.message);
         } else {
             try {
                 ClientGlobals.cls.download.close();
@@ -570,8 +565,8 @@ public class CL_parse {
                     SHOWNET(svc_strings[cmd]);
             }
 
-            NetworkCommandType msgType = NetworkCommandType.fromInt(cmd);
-            NetworkMessage msg = NetworkMessage.parseFromBuffer(msgType, Globals.net_message);
+            ServerMessageType msgType = ServerMessageType.fromInt(cmd);
+            ServerMessage msg = ServerMessage.parseFromBuffer(msgType, Globals.net_message);
             if (msg != null) {
                 // process
                 if (msg instanceof DisconnectMessage) {

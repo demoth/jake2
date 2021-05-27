@@ -26,7 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.commands.ConfigStringMessage;
+import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.util.Math3D;
 
 import java.io.File;
