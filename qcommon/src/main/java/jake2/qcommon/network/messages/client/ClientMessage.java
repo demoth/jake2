@@ -19,13 +19,16 @@ public abstract class ClientMessage {
 
     abstract void parse(sizebuf_t buffer);
 
-    public static ClientMessage parseFromBuffer(ClientMessageType type, sizebuf_t buffer, int incomingSequence) {
+    public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
+        ClientMessageType type = ClientMessageType.fromInt(MSG.ReadByte(buffer));
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:
+                msg = new EndMessage();
+                break;
             case CLC_NOP:
-            default:
-                msg = null;
+                // fixme: never sent by client directly
+                msg = new NoopMessage();
                 break;
             case CLC_USERINFO:
                 msg = new UserInfoMessage();
@@ -35,6 +38,10 @@ public abstract class ClientMessage {
                 break;
             case CLC_MOVE:
                 msg = new MoveMessage(incomingSequence);
+                break;
+            default:
+                // todo: notify somehow in case of unexpected type
+                msg = null;
         }
         if (msg != null) {
             msg.parse(buffer);
