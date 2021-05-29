@@ -711,90 +711,86 @@ public class SV_MAIN implements JakeServer {
         int stringCmdCount = 0;
 
         while (true) {
-            if (Globals.net_message.readcount > Globals.net_message.cursize) {
+            sizebuf_t buffer = Globals.net_message;
+
+            if (buffer.readcount > buffer.cursize) {
                 Com.Printf("SV_ReadClientMessage: bad read:\n");
-                Com.Printf(Lib.hexDump(Globals.net_message.data, 32, false));
+                Com.Printf(Lib.hexDump(buffer.data, 32, false));
                 SV_DropClient(cl);
                 return;
             }
 
-            ClientMessageType c = ClientMessageType.fromInt(MSG.ReadByte(Globals.net_message));
-            ClientMessage msg = ClientMessage.parseFromBuffer(c, Globals.net_message, cl.netchan.incoming_sequence);
-            if (c == ClientMessageType.CLC_BAD) {
-                // todo: warn? drop client?
+            ClientMessage msg = ClientMessage.parseFromBuffer(buffer, cl.netchan.incoming_sequence);
+            if (msg instanceof EndMessage) {
                 break;
-            }
-            if (msg != null) {
-                if (msg instanceof StringCmdMessage) {
-                    StringCmdMessage m = (StringCmdMessage) msg;
-                    // malicious users may try using too many string commands
-                    if (++stringCmdCount < MAX_STRINGCMDS) {
-                        SV_ExecuteUserCommand(cl, m.command);
-                    }
-
-                    if (cl.state == ClientStates.CS_ZOMBIE) {
-                        return; // disconnect command
-                    }
-
-                } else if (msg instanceof UserInfoMessage) {
-                    UserInfoMessage m = (UserInfoMessage) msg;
-                    cl.userinfo = m.userInfo;
-                    SV_UserinfoChanged(cl);
-                } else if (msg instanceof MoveMessage) {
-                    MoveMessage m = (MoveMessage) msg;
-                    if (move_issued)
-                        return; // someone is trying to cheat...
-
-                    move_issued = true;
-                    int lastReceivedFrame = m.lastReceivedFrame;
-
-                    if (lastReceivedFrame != cl.lastReceivedFrame) {
-                        cl.lastReceivedFrame = lastReceivedFrame;
-                        if (cl.lastReceivedFrame > 0) {
-                            cl.frame_latency[cl.lastReceivedFrame & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastReceivedFrame & Defines.UPDATE_MASK].senttime;
-                        }
-                    }
-
-                    if (cl.state != ClientStates.CS_SPAWNED) {
-                        cl.lastReceivedFrame = -1;
-                        continue;
-                    }
-
-                    // if the checksum fails, ignore the rest of the packet
-                    if (!m.valid) {
-                        Com.Printf("Invalid crc\n");
-                        return;
-                    }
-
-
-                    if (0 == SV_MAIN.sv_paused.value) {
-                        int net_drop = cl.netchan.dropped;
-                        if (net_drop < 20) {
-
-                            //if (net_drop > 2)
-
-                            //	Com.Printf ("drop %i\n", net_drop);
-                            while (net_drop > 2) {
-                                SV_ClientThink(cl, cl.lastcmd);
-
-                                net_drop--;
-                            }
-                            if (net_drop > 1)
-                                SV_ClientThink(cl, m.oldestCmd);
-
-                            if (net_drop > 0)
-                                SV_ClientThink(cl, m.oldCmd);
-
-                        }
-                        SV_ClientThink(cl, m.newCmd);
-                    }
-
-                    // copy.
-                    cl.lastcmd.set(m.newCmd);
-                } else {
-                    Com.Printf("SV_ReadClientMessage: unknown command char: " + c + "\n");
-                    SV_DropClient(cl);
+            } else if (msg instanceof StringCmdMessage) {
+                StringCmdMessage m = (StringCmdMessage) msg;
+                // malicious users may try using too many string commands
+                if (++stringCmdCount < MAX_STRINGCMDS) {
+                    SV_ExecuteUserCommand(cl, m.command);
                 }
+
+                if (cl.state == ClientStates.CS_ZOMBIE) {
+                    return; // disconnect command
+                }
+            } else if (msg instanceof UserInfoMessage) {
+                UserInfoMessage m = (UserInfoMessage) msg;
+                cl.userinfo = m.userInfo;
+                SV_UserinfoChanged(cl);
+            } else if (msg instanceof MoveMessage) {
+                MoveMessage m = (MoveMessage) msg;
+                if (move_issued)
+                    return; // someone is trying to cheat...
+
+                move_issued = true;
+                int lastReceivedFrame = m.lastReceivedFrame;
+
+                if (lastReceivedFrame != cl.lastReceivedFrame) {
+                    cl.lastReceivedFrame = lastReceivedFrame;
+                    if (cl.lastReceivedFrame > 0) {
+                        cl.frame_latency[cl.lastReceivedFrame & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastReceivedFrame & Defines.UPDATE_MASK].senttime;
+                    }
+                }
+
+                if (cl.state != ClientStates.CS_SPAWNED) {
+                    cl.lastReceivedFrame = -1;
+                    continue;
+                }
+
+                // if the checksum fails, ignore the rest of the packet
+                if (!m.valid) {
+                    Com.Printf("Invalid crc\n");
+                    return;
+                }
+
+
+                if (0 == SV_MAIN.sv_paused.value) {
+                    int net_drop = cl.netchan.dropped;
+                    if (net_drop < 20) {
+
+                        //if (net_drop > 2)
+
+                        //	Com.Printf ("drop %i\n", net_drop);
+                        while (net_drop > 2) {
+                            SV_ClientThink(cl, cl.lastcmd);
+
+                            net_drop--;
+                        }
+                        if (net_drop > 1)
+                            SV_ClientThink(cl, m.oldestCmd);
+
+                        if (net_drop > 0)
+                            SV_ClientThink(cl, m.oldCmd);
+
+                    }
+                    SV_ClientThink(cl, m.newCmd);
+                }
+
+                // copy.
+                cl.lastcmd.set(m.newCmd);
+            } else {
+                Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n");
+                SV_DropClient(cl);
             }
         }
     }
