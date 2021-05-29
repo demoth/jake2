@@ -26,10 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.messages.server.ConfigStringMessage;
-import jake2.qcommon.network.messages.server.ServerDataMessage;
-import jake2.qcommon.network.messages.server.ServerMessageType;
-import jake2.qcommon.network.messages.server.StuffTextMessage;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
@@ -185,8 +182,7 @@ class SV_USER {
         while (gameImports.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             entity_state_t base = gameImports.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
-                MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_spawnbaseline.type);
-                MSG.WriteDeltaEntity(nullstate, base, gameImports.sv_client.netchan.message, true, true);
+                new SpawnBaselineMessage(base).writeTo(gameImports.sv_client.netchan.message);
             }
             start++;
         }
