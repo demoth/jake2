@@ -149,6 +149,61 @@ public class entity_state_t implements Cloneable
 		event = from.event;
 	}
 
+	/**
+	 * Copies the fields from another entity state, controlled by the flags
+	 * in the same way it's encoded during serialization.
+	 */
+	public void setByFlags(entity_state_t from, int flags) {
+		number = from.number;
+
+		if ((flags & Defines.U_ORIGIN1) != 0)
+			origin[0] = from.origin[0];
+		if ((flags & Defines.U_ORIGIN2) != 0)
+			origin[1] = from.origin[1];
+		if ((flags & Defines.U_ORIGIN3) != 0)
+			origin[2] = from.origin[2];
+
+		if ((flags & Defines.U_ANGLE1) != 0)
+			angles[0] = from.angles[0];
+		if ((flags & Defines.U_ANGLE2) != 0)
+			angles[1] = from.angles[1];
+		if ((flags & Defines.U_ANGLE3) != 0)
+			angles[2] = from.angles[2];
+
+		if ((flags & Defines.U_OLDORIGIN) != 0)
+			Math3D.VectorCopy(from.old_origin, old_origin);
+
+		if ((flags & Defines.U_MODEL) != 0)
+			modelindex = from.modelindex;
+		if ((flags & Defines.U_MODEL2) != 0)
+			modelindex2 = from.modelindex2;
+		if ((flags & Defines.U_MODEL3) != 0)
+			modelindex3 = from.modelindex3;
+		if ((flags & Defines.U_MODEL4) != 0)
+			modelindex4 = from.modelindex4;
+
+		if ((flags & Defines.U_FRAME8) != 0 || (flags & Defines.U_FRAME16) != 0)
+			frame = from.frame;
+
+		if ((flags & Defines.U_SKIN8) != 0 || (flags & Defines.U_SKIN16) != 0)
+			skinnum = from.skinnum;
+
+		if ((flags & Defines.U_EFFECTS8) != 0 || (flags & Defines.U_EFFECTS16) != 0)
+			effects = from.effects;
+
+		if ((flags & Defines.U_RENDERFX8) != 0 || (flags & Defines.U_RENDERFX16) != 0)
+			renderfx = from.renderfx;
+
+		if ((flags & Defines.U_SOLID) != 0)
+			solid = from.solid;
+
+		if ((flags & Defines.U_SOUND) != 0)
+			sound = from.sound;
+
+		if ((flags & Defines.U_EVENT) != 0)
+			event = from.event;
+	}
+
 	public void clear()
 	{
 	    //TODO: this is critical. The index has to be proper managed.

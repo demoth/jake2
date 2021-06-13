@@ -22,12 +22,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.network.netchan_t;
-import jake2.qcommon.sizebuf_t;
-import jake2.qcommon.usercmd_t;
 
+/**
+ * Server side representation of client.
+ */
 public class client_t {
 
 	public client_t() {

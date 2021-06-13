@@ -415,7 +415,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            new StringCmdMessage("new").writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
             return;
         }
 
@@ -540,7 +540,7 @@ public final class CL {
         ClientGlobals.cls.downloadtempname = Com
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
-        new StringCmdMessage("download " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+        new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
         ClientGlobals.cls.downloadnumber++;
     };
 
@@ -696,7 +696,7 @@ public final class CL {
         byte[] data = new byte[128];
         sizebuf_t buf = new sizebuf_t();
         SZ.Init(buf, data, data.length);
-        new StringCmdMessage("disconnect").writeTo(buf);
+        new StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf);
 
         // fixme: was sending it 3 times
         Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
@@ -755,7 +755,7 @@ public final class CL {
             }
             Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
                     Globals.net_from, ClientGlobals.cls.quakePort);
-            new StringCmdMessage("new").writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
             ClientGlobals.cls.state = Defines.ca_connected;
             return;
         }
@@ -1206,7 +1206,7 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        new StringCmdMessage("begin " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.message);
+        new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.message);
     }
 
     /**

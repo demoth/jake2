@@ -2,9 +2,9 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
-/*
- [string] stuffed into client's console buffer, should be \n terminated
- todo: append newline automatically
+/**
+ * Sent to client stuffed into client's console buffer, should be \n terminated
+ * todo: append newline automatically
  */
 public class StuffTextMessage extends ServerMessage {
     public String text;

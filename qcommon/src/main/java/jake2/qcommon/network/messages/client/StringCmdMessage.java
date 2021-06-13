@@ -3,7 +3,22 @@ package jake2.qcommon.network.messages.client;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * Represents a user command sent from client to server, either manual or automatic.
+ * Some commands are built-in (the constants below).
+ * Other commands are redirected to the game to handle (like, 'god' or 'say')
+ */
 public class StringCmdMessage extends ClientMessage {
+
+    public static final String NEW = "new";
+    public static final String CONFIG_STRINGS = "configstrings";
+    public static final String BASELINE = "baselines";
+    public static final String BEGIN = "begin";
+    public static final String NEXT_SERVER = "nextserver";
+    public static final String DISCONNECT = "disconnect";
+    public static final String INFO = "info";
+    public static final String DOWNLOAD = "download";
+    public static final String NEXT_DOWNLOAD = "nextdl";
 
     public String command;
 

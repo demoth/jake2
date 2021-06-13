@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Lib;
 
@@ -40,17 +41,17 @@ class SV_USER {
     static {
         userCommands = new HashMap<>();
         // auto issued
-        userCommands.put("new", SV_USER::SV_New_f);
-        userCommands.put("configstrings", SV_USER::SV_Configstrings_f);
-        userCommands.put("baselines", SV_USER::SV_Baselines_f);
-        userCommands.put("begin", SV_USER::SV_Begin_f);
-        userCommands.put("nextserver", SV_USER::SV_Nextserver_f);
-        userCommands.put("disconnect", SV_USER::SV_Disconnect_f);
+        userCommands.put(StringCmdMessage.NEW, SV_USER::SV_New_f);
+        userCommands.put(StringCmdMessage.CONFIG_STRINGS, SV_USER::SV_Configstrings_f);
+        userCommands.put(StringCmdMessage.BASELINE, SV_USER::SV_Baselines_f);
+        userCommands.put(StringCmdMessage.BEGIN, SV_USER::SV_Begin_f);
+        userCommands.put(StringCmdMessage.NEXT_SERVER, SV_USER::SV_Nextserver_f);
+        userCommands.put(StringCmdMessage.DISCONNECT, SV_USER::SV_Disconnect_f);
 
         // issued by hand at client consoles
-        userCommands.put("info", SV_USER::SV_ShowServerinfo_f);
-        userCommands.put("download", SV_USER::SV_BeginDownload_f);
-        userCommands.put("nextdl", SV_USER::SV_NextDownload_f);
+        userCommands.put(StringCmdMessage.INFO, SV_USER::SV_ShowServerinfo_f);
+        userCommands.put(StringCmdMessage.DOWNLOAD, SV_USER::SV_BeginDownload_f);
+        userCommands.put(StringCmdMessage.NEXT_DOWNLOAD, SV_USER::SV_NextDownload_f);
 
     }
 
@@ -173,6 +174,7 @@ class SV_USER {
             return;
         }
 
+        // todo: validate argument
         int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
         //memset (&nullstate, 0, sizeof(nullstate));
