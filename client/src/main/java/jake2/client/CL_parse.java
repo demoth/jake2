@@ -291,13 +291,14 @@ public class CL_parse {
     /*
      * ================== CL_ParseBaseline ==================
      */
+    @Deprecated
     public static void ParseBaseline() {
         entity_state_t nullstate = new entity_state_t(null);
         //memset(nullstate, 0, sizeof(nullstate));
         int bits[] = { 0 };
-        int newnum = CL_ents.ParseEntityBits(bits);
+        int newnum = ServerMessage.ParseEntityBits(bits, Globals.net_message);
         entity_state_t es = ClientGlobals.cl_entities[newnum].baseline;
-        CL_ents.ParseDelta(nullstate, es, newnum, bits[0]);
+        ServerMessage.ParseDelta(nullstate, es, newnum, bits[0], Globals.net_message);
     }
 
     /*
@@ -618,6 +619,9 @@ public class CL_parse {
                     CL_inv.ParseInventory((InventoryMessage) msg);
                 } else if (msg instanceof TEMessage) {
                     CL_tent.ParseTEnt((TEMessage) msg);
+                } else if (msg instanceof SpawnBaselineMessage) {
+                    SpawnBaselineMessage m = (SpawnBaselineMessage) msg;
+                    ClientGlobals.cl_entities[m.entityState.number].baseline.set(m.entityState);
                 }
                 continue;
             }
@@ -626,9 +630,9 @@ public class CL_parse {
             case svc_nop:
                 break;
 
-            case svc_spawnbaseline:
-                ParseBaseline();
-                break;
+//            case svc_spawnbaseline:
+//                ParseBaseline();
+//                break;
 
             case svc_packetentities:
                 // should be called after CL_ents.ParseFrameMessage

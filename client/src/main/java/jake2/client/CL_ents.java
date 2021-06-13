@@ -30,6 +30,7 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.messages.server.FrameMessage;
 import jake2.qcommon.network.messages.server.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.ServerMessageType;
 import jake2.qcommon.util.Math3D;
 
@@ -51,128 +52,6 @@ public class CL_ents {
 	static int bfg_lightramp[] = { 300, 400, 600, 300, 150, 75 };
 
 	/*
-	 * ================= CL_ParseEntityBits
-	 * 
-	 * Returns the entity number and the header bits =================
-	 */
-	public static int ParseEntityBits(int bits[]) {
-		int b, total;
-		int i;
-		int number;
-
-		total = MSG.ReadByte(Globals.net_message);
-		if ((total & Defines.U_MOREBITS1) != 0) {
-		    
-			b = MSG.ReadByte(Globals.net_message);
-			total |= b << 8;
-		}
-		if ((total & Defines.U_MOREBITS2) != 0) {
-		    
-			b = MSG.ReadByte(Globals.net_message);
-			total |= b << 16;
-		}
-		if ((total & Defines.U_MOREBITS3) != 0) {
-		    
-			b = MSG.ReadByte(Globals.net_message);
-			total |= b << 24;
-		}
-
-		// count the bits for net profiling
-		for (i = 0; i < 32; i++)
-			if ((total & (1 << i)) != 0)
-				bitcounts[i]++;
-
-		if ((total & Defines.U_NUMBER16) != 0)
-			number = MSG.ReadShort(Globals.net_message);
-		else
-			number = MSG.ReadByte(Globals.net_message);
-
-		bits[0] = total;
-
-		return number;
-	}
-
-	/*
-	 * ================== CL_ParseDelta
-	 * 
-	 * Can go from either a baseline or a previous packet_entity
-	 * ==================
-	 */
-	public static void ParseDelta(entity_state_t from, entity_state_t to, int number, int bits) {
-		// set everything to the state we are delta'ing from
-		to.set(from);
-
-		Math3D.VectorCopy(from.origin, to.old_origin);
-		to.number = number;
-
-		if ((bits & Defines.U_MODEL) != 0)
-			to.modelindex = MSG.ReadByte(Globals.net_message);
-		if ((bits & Defines.U_MODEL2) != 0)
-			to.modelindex2 = MSG.ReadByte(Globals.net_message);
-		if ((bits & Defines.U_MODEL3) != 0)
-			to.modelindex3 = MSG.ReadByte(Globals.net_message);
-		if ((bits & Defines.U_MODEL4) != 0)
-			to.modelindex4 = MSG.ReadByte(Globals.net_message);
-
-		if ((bits & Defines.U_FRAME8) != 0)
-			to.frame = MSG.ReadByte(Globals.net_message);
-		if ((bits & Defines.U_FRAME16) != 0)
-			to.frame = MSG.ReadShort(Globals.net_message);
-
-		if ((bits & Defines.U_SKIN8) != 0 && (bits & Defines.U_SKIN16) != 0) //used
-																			 // for
-																			 // laser
-																			 // colors
-			to.skinnum = MSG.ReadLong(Globals.net_message);
-		else if ((bits & Defines.U_SKIN8) != 0)
-			to.skinnum = MSG.ReadByte(Globals.net_message);
-		else if ((bits & Defines.U_SKIN16) != 0)
-			to.skinnum = MSG.ReadShort(Globals.net_message);
-
-		if ((bits & (Defines.U_EFFECTS8 | Defines.U_EFFECTS16)) == (Defines.U_EFFECTS8 | Defines.U_EFFECTS16))
-			to.effects = MSG.ReadLong(Globals.net_message);
-		else if ((bits & Defines.U_EFFECTS8) != 0)
-			to.effects = MSG.ReadByte(Globals.net_message);
-		else if ((bits & Defines.U_EFFECTS16) != 0)
-			to.effects = MSG.ReadShort(Globals.net_message);
-
-		if ((bits & (Defines.U_RENDERFX8 | Defines.U_RENDERFX16)) == (Defines.U_RENDERFX8 | Defines.U_RENDERFX16))
-			to.renderfx = MSG.ReadLong(Globals.net_message);
-		else if ((bits & Defines.U_RENDERFX8) != 0)
-			to.renderfx = MSG.ReadByte(Globals.net_message);
-		else if ((bits & Defines.U_RENDERFX16) != 0)
-			to.renderfx = MSG.ReadShort(Globals.net_message);
-
-		if ((bits & Defines.U_ORIGIN1) != 0)
-			to.origin[0] = MSG.ReadCoord(Globals.net_message);
-		if ((bits & Defines.U_ORIGIN2) != 0)
-			to.origin[1] = MSG.ReadCoord(Globals.net_message);
-		if ((bits & Defines.U_ORIGIN3) != 0)
-			to.origin[2] = MSG.ReadCoord(Globals.net_message);
-
-		if ((bits & Defines.U_ANGLE1) != 0)
-			to.angles[0] = MSG.ReadAngle(Globals.net_message);
-		if ((bits & Defines.U_ANGLE2) != 0)
-			to.angles[1] = MSG.ReadAngle(Globals.net_message);
-		if ((bits & Defines.U_ANGLE3) != 0)
-			to.angles[2] = MSG.ReadAngle(Globals.net_message);
-
-		if ((bits & Defines.U_OLDORIGIN) != 0)
-			MSG.ReadPos(Globals.net_message, to.old_origin);
-
-		if ((bits & Defines.U_SOUND) != 0)
-			to.sound = MSG.ReadByte(Globals.net_message);
-
-		if ((bits & Defines.U_EVENT) != 0)
-			to.event = MSG.ReadByte(Globals.net_message);
-		else
-			to.event = 0;
-
-		if ((bits & Defines.U_SOLID) != 0)
-			to.solid = MSG.ReadShort(Globals.net_message);
-	}
-
-	/*
 	 * ================== CL_DeltaEntity
 	 * 
 	 * Parses deltas from the given base and adds the resulting entity to the
@@ -188,7 +67,7 @@ public class CL_ents {
 		ClientGlobals.cl.parse_entities++;
 		frame.num_entities++;
 
-		ParseDelta(old, state, newnum, bits);
+		ServerMessage.ParseDelta(old, state, newnum, bits, Globals.net_message);
 
 		// some data changes will force no lerping
 		if (state.modelindex != ent.current.modelindex || state.modelindex2 != ent.current.modelindex2
@@ -260,7 +139,7 @@ public class CL_ents {
 		while (true) {
 			//int iw[] = { bits };
 			iw[0] = bits;
-			newnum = ParseEntityBits(iw);
+			newnum = ServerMessage.ParseEntityBits(iw, Globals.net_message);
 			bits = iw[0];
 
 			if (newnum >= Defines.MAX_EDICTS)

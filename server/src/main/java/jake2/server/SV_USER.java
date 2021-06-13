@@ -190,8 +190,10 @@ class SV_USER {
         // send next command
         final String nextCmd;
         if (start == Defines.MAX_EDICTS) {
+            // finished sending baselines
             nextCmd = "precache " + gameImports.spawncount + "\n";
         } else {
+            // continue from where we finished
             nextCmd = "cmd baselines " + gameImports.spawncount + " " + start + "\n";
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
