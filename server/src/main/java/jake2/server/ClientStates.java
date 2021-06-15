@@ -1,12 +1,25 @@
 package jake2.server;
 
 public enum ClientStates {
-    // can be reused for a new connection
-    CS_FREE, // 0
-    // client has been disconnected, but don't reuse
-    // connection for a couple seconds
-    CS_ZOMBIE, // 1
-    // has been assigned to a client_t, but not in game yet
-    CS_CONNECTED, //2
-    CS_SPAWNED //3
+    /*
+     * No client is connected. This slot can be reused for a new connection.
+     */
+    CS_FREE,
+
+    /*
+     * Client in this slot has been disconnected.
+     * Don't reuse the slot for a couple seconds, maybe he will reconnect.
+     */
+    CS_ZOMBIE,
+
+    /*
+     * Client is connected (new) and been assigned to this slot (client_t).
+     * Client is receiving "baselines" (command), but not in game yet.
+     */
+    CS_CONNECTED,
+
+    /*
+     * Client has received all the entities' baselines and ready to receive game updates. "begin" command
+     */
+    CS_SPAWNED
 }

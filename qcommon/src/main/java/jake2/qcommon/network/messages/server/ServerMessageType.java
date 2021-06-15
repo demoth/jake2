@@ -34,6 +34,7 @@ public enum ServerMessageType {
     svc_serverdata(12), // [long] protocol ...
     // +
     svc_configstring(13), // [short] [string]
+    // +
     svc_spawnbaseline(14),
     // +
     svc_centerprint(15), // [string] to put in center of the screen
