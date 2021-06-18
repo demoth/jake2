@@ -237,21 +237,19 @@ class SV_USER {
         if (packet > 1024)
             packet = 1024;
 
-        MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-        MSG.WriteShort(gameImports.sv_client.netchan.message, packet);
-
         gameImports.sv_client.downloadcount += packet;
         int size = gameImports.sv_client.downloadsize;
         if (size == 0)
             size = 1;
         int percent = gameImports.sv_client.downloadcount * 100 / size;
-        MSG.WriteByte(gameImports.sv_client.netchan.message, percent);
-        SZ.Write(gameImports.sv_client.netchan.message, gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, packet);
 
-        if (gameImports.sv_client.downloadcount != gameImports.sv_client.downloadsize)
-            return;
+        byte[] data = new byte[packet];
+        System.arraycopy(gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, data, 0, packet);
+        new DownloadMessage(data, percent).writeTo(gameImports.sv_client.netchan.message);
 
-        gameImports.sv_client.download = null;
+        if (gameImports.sv_client.downloadcount == gameImports.sv_client.downloadsize) {
+            gameImports.sv_client.download = null;
+        }
     }
 
     /*
@@ -288,9 +286,9 @@ class SV_USER {
                                                                                         // subdirectory
                 || name.indexOf('/') == -1) { // don't allow anything with ..
                                               // path
-            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-            MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
-            MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
+
+            // refuse
+            new DownloadMessage().writeTo(gameImports.sv_client.netchan.message);
             return;
         }
 
@@ -314,9 +312,8 @@ class SV_USER {
                 gameImports.sv_client.download = null;
             }
 
-            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-            MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
-            MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
+            // refuse
+            new DownloadMessage().writeTo(gameImports.sv_client.netchan.message);
             return;
         }
 

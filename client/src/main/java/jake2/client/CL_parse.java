@@ -148,12 +148,11 @@ public class CL_parse {
      * A download message has been received from the server
      * =====================
      */
-    public static void ParseDownload() {
+    public static void ParseDownload(DownloadMessage msg) {
 
         // read the data
-        int size = MSG.ReadShort(Globals.net_message);
-        int percent = MSG.ReadByte(Globals.net_message);
-        if (size == -1) {
+        int percent = msg.percentage;
+        if (msg.data == null) {
             Com.Printf("Server does not have this file.\n");
             if (ClientGlobals.cls.download != null) {
                 // if here, we tried to resume a file but the server said no
@@ -175,9 +174,7 @@ public class CL_parse {
 
             ClientGlobals.cls.download = Lib.fopen(name, "rw");
             if (ClientGlobals.cls.download == null) {
-                Globals.net_message.readcount += size;
-                Com.Printf("Failed to open " + ClientGlobals.cls.downloadtempname
-                        + "\n");
+                Com.Printf("Failed to open " + ClientGlobals.cls.downloadtempname + "\n");
                 CL.RequestNextDownload();
                 return;
             }
@@ -185,12 +182,10 @@ public class CL_parse {
 
 
         try {
-            ClientGlobals.cls.download.write(Globals.net_message.data,
-                    Globals.net_message.readcount, size);
-        } 
-        catch (Exception e) {
+            ClientGlobals.cls.download.write(msg.data);
+        } catch (Exception e) {
+            Com.dprintln("Could not write downloaded data to file: " + e.getMessage());
         }
-        Globals.net_message.readcount += size;
 
         if (percent != 100) {
             // request next block
@@ -602,14 +597,11 @@ public class CL_parse {
                 } else if (msg instanceof PacketEntitiesMessage) {
 //                     should be called after CL_ents.processFrameMessage
                     CL_ents.parsePacketEntities(old, (PacketEntitiesMessage) msg);
+                } else if (msg instanceof DownloadMessage) {
+                    ParseDownload((DownloadMessage) msg);
                 }
                 continue;
             }
-            // other commands
-            if (msgType == ServerMessageType.svc_download) {
-                ParseDownload();
-            }
-
             CL_view.AddNetgraph();
 
             //

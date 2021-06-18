@@ -130,7 +130,6 @@ public abstract class ServerMessage {
         switch (type) {
             case svc_bad:
             case svc_nop:
-            case svc_download:
             default:
                 msg = null;
                 break;
@@ -181,6 +180,9 @@ public abstract class ServerMessage {
                 break;
             case svc_packetentities:
                 msg = new PacketEntitiesMessage();
+                break;
+            case svc_download:
+                msg = new DownloadMessage();
                 break;
             case svc_temp_entity:
                 int subtype = MSG.ReadByte(buffer);
