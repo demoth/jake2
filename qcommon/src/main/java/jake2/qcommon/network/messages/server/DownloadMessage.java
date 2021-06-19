@@ -4,6 +4,9 @@ import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * Transmits chunk of media (maps, skins, sounds, etc)
+ */
 public class DownloadMessage extends ServerMessage {
 
     public byte[] data;

@@ -43,13 +43,29 @@ public class CL_parse {
 
     //// cl_parse.c -- parse a message received from the server
 
-    public static String svc_strings[] = { "svc_bad", "svc_muzzleflash",
-            "svc_muzzlflash2", "svc_temp_entity", "svc_layout",
-            "svc_inventory", "svc_nop", "svc_disconnect", "svc_reconnect",
-            "svc_sound", "svc_print", "svc_stufftext", "svc_serverdata",
-            "svc_configstring", "svc_spawnbaseline", "svc_centerprint",
-            "svc_download", "svc_playerinfo", "svc_packetentities",
-            "svc_deltapacketentities", "svc_frame" };
+    public static String svc_strings[] = {
+            "svc_bad",
+            "svc_muzzleflash",
+            "svc_muzzlflash2",
+            "svc_temp_entity",
+            "svc_layout",
+            "svc_inventory",
+            "svc_nop",
+            "svc_disconnect",
+            "svc_reconnect",
+            "svc_sound",
+            "svc_print",
+            "svc_stufftext",
+            "svc_serverdata",
+            "svc_configstring",
+            "svc_spawnbaseline",
+            "svc_centerprint",
+            "svc_download",
+            "svc_playerinfo",
+            "svc_packetentities",
+            "svc_deltapacketentities",
+            "svc_frame"
+    };
 
     //	  =============================================================================
 
@@ -526,16 +542,7 @@ public class CL_parse {
             int cmd = MSG.ReadByte(Globals.net_message);
 
             if (cmd == -1) {
-                SHOWNET("END OF MESSAGE");
                 break;
-            }
-
-            if (ClientGlobals.cl_shownet.value >= 2) {
-                if (null == svc_strings[cmd])
-                    Com.Printf(Globals.net_message.readcount - 1 + ":BAD CMD "
-                            + cmd + "\n");
-                else
-                    SHOWNET(svc_strings[cmd]);
             }
 
             ServerMessageType msgType = ServerMessageType.fromInt(cmd);

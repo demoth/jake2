@@ -209,8 +209,6 @@ public class CL_ents {
 	 * =================== CL_ParsePlayerstate ===================
 	 */
 	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe, PlayerInfoMessage msg) {
-		CL_parse.SHOWNET(CL_parse.svc_strings[ServerMessageType.svc_playerinfo.type]);
-
 		player_state_t state = newframe.playerstate;
 
 		// clear to old value before delta parsing

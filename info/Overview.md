@@ -17,6 +17,8 @@ In addition to that there are several auxiliary modules:
   
 # Module `game`
 
+Game module handles all the gameplay code like movement, monsters behavior, weapons code, triggers etc.
+
 This was a usual place for modders to start in the original quake version.
 The famous mission pack and mods are actually the `game` + resources.
 

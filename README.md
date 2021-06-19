@@ -1,9 +1,6 @@
 Jake2 README
 ============
 
-|CircleCi build:   | [![CircleCI](https://circleci.com/gh/demoth/jake2/tree/master.svg?style=svg)](https://circleci.com/gh/demoth/jake2/tree/master)   |
-|---|---|
-
 Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
 distributed under the terms of the GPL (see LICENSE).
 
@@ -50,6 +47,13 @@ or to download and install the Quake2 demo files
 
 If you want to have the latest experimental features you can grab the latest
 Jake2 sources from GIT.
+
+Compatibility
+-------------
+
+Jake2 is not compatible with the mods that have custom logic (game.dll).
+
+Jake2 is network compatible with other clients, like Yamagi, Q2pro etc.
 
 Goals of the project
 --------------------

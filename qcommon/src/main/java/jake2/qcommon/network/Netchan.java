@@ -93,11 +93,6 @@ public final class Netchan {
 
     public static cvar_t qport;
 
-    //public static netadr_t net_from = new netadr_t();
-    public static sizebuf_t net_message = new sizebuf_t();
-
-    public static byte net_message_buffer[] = new byte[Defines.MAX_MSGLEN];
-
     /**
      * Netchan_Init.
      * 
