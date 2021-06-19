@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Lib;
 
@@ -40,17 +41,17 @@ class SV_USER {
     static {
         userCommands = new HashMap<>();
         // auto issued
-        userCommands.put("new", SV_USER::SV_New_f);
-        userCommands.put("configstrings", SV_USER::SV_Configstrings_f);
-        userCommands.put("baselines", SV_USER::SV_Baselines_f);
-        userCommands.put("begin", SV_USER::SV_Begin_f);
-        userCommands.put("nextserver", SV_USER::SV_Nextserver_f);
-        userCommands.put("disconnect", SV_USER::SV_Disconnect_f);
+        userCommands.put(StringCmdMessage.NEW, SV_USER::SV_New_f);
+        userCommands.put(StringCmdMessage.CONFIG_STRINGS, SV_USER::SV_Configstrings_f);
+        userCommands.put(StringCmdMessage.BASELINE, SV_USER::SV_Baselines_f);
+        userCommands.put(StringCmdMessage.BEGIN, SV_USER::SV_Begin_f);
+        userCommands.put(StringCmdMessage.NEXT_SERVER, SV_USER::SV_Nextserver_f);
+        userCommands.put(StringCmdMessage.DISCONNECT, SV_USER::SV_Disconnect_f);
 
         // issued by hand at client consoles
-        userCommands.put("info", SV_USER::SV_ShowServerinfo_f);
-        userCommands.put("download", SV_USER::SV_BeginDownload_f);
-        userCommands.put("nextdl", SV_USER::SV_NextDownload_f);
+        userCommands.put(StringCmdMessage.INFO, SV_USER::SV_ShowServerinfo_f);
+        userCommands.put(StringCmdMessage.DOWNLOAD, SV_USER::SV_BeginDownload_f);
+        userCommands.put(StringCmdMessage.NEXT_DOWNLOAD, SV_USER::SV_NextDownload_f);
 
     }
 
@@ -173,6 +174,7 @@ class SV_USER {
             return;
         }
 
+        // todo: validate argument
         int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
         //memset (&nullstate, 0, sizeof(nullstate));
@@ -235,21 +237,19 @@ class SV_USER {
         if (packet > 1024)
             packet = 1024;
 
-        MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-        MSG.WriteShort(gameImports.sv_client.netchan.message, packet);
-
         gameImports.sv_client.downloadcount += packet;
         int size = gameImports.sv_client.downloadsize;
         if (size == 0)
             size = 1;
         int percent = gameImports.sv_client.downloadcount * 100 / size;
-        MSG.WriteByte(gameImports.sv_client.netchan.message, percent);
-        SZ.Write(gameImports.sv_client.netchan.message, gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, packet);
 
-        if (gameImports.sv_client.downloadcount != gameImports.sv_client.downloadsize)
-            return;
+        byte[] data = new byte[packet];
+        System.arraycopy(gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, data, 0, packet);
+        new DownloadMessage(data, percent).writeTo(gameImports.sv_client.netchan.message);
 
-        gameImports.sv_client.download = null;
+        if (gameImports.sv_client.downloadcount == gameImports.sv_client.downloadsize) {
+            gameImports.sv_client.download = null;
+        }
     }
 
     /*
@@ -286,9 +286,9 @@ class SV_USER {
                                                                                         // subdirectory
                 || name.indexOf('/') == -1) { // don't allow anything with ..
                                               // path
-            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-            MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
-            MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
+
+            // refuse
+            new DownloadMessage().writeTo(gameImports.sv_client.netchan.message);
             return;
         }
 
@@ -312,9 +312,8 @@ class SV_USER {
                 gameImports.sv_client.download = null;
             }
 
-            MSG.WriteByte(gameImports.sv_client.netchan.message, ServerMessageType.svc_download.type);
-            MSG.WriteShort(gameImports.sv_client.netchan.message, -1);
-            MSG.WriteByte(gameImports.sv_client.netchan.message, 0);
+            // refuse
+            new DownloadMessage().writeTo(gameImports.sv_client.netchan.message);
             return;
         }
 

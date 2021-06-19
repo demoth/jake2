@@ -28,10 +28,7 @@ package jake2.client;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.messages.server.FrameMessage;
-import jake2.qcommon.network.messages.server.PlayerInfoMessage;
-import jake2.qcommon.network.messages.server.ServerMessage;
-import jake2.qcommon.network.messages.server.ServerMessageType;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -47,33 +44,39 @@ import jake2.qcommon.util.Math3D;
  */
 public class CL_ents {
 
-	static int bitcounts[] = new int[32]; /// just for protocol profiling
-
 	static int bfg_lightramp[] = { 300, 400, 600, 300, 150, 75 };
 
 	/*
-	 * ================== CL_DeltaEntity
+	 * CL_DeltaEntity
 	 * 
-	 * Parses deltas from the given base and adds the resulting entity to the
-	 * current frame ==================
+	 * Parses deltas from the given base and adds the resulting entity to the current frame
 	 */
-	public static void DeltaEntity(frame_t frame, int newnum, entity_state_t old, int bits) {
-		centity_t ent;
-		entity_state_t state;
+	public static void DeltaEntity(frame_t frame, int newnum, entity_state_t old, EntityUpdate update) {
 
-		ent = ClientGlobals.cl_entities[newnum];
+		centity_t ent = ClientGlobals.cl_entities[newnum];
 
-		state = ClientGlobals.cl_parse_entities[ClientGlobals.cl.parse_entities & (Defines.MAX_PARSE_ENTITIES - 1)];
+		entity_state_t state = ClientGlobals.cl_parse_entities[ClientGlobals.cl.parse_entities & (Defines.MAX_PARSE_ENTITIES - 1)];
 		ClientGlobals.cl.parse_entities++;
 		frame.num_entities++;
 
-		ServerMessage.ParseDelta(old, state, newnum, bits, Globals.net_message);
+		state.set(old);
+		state.number = newnum;
+		state.event = 0;
+		Math3D.VectorCopy(old.origin, state.old_origin);
+
+		if (update != null) {
+			state.setByFlags(update.newState, update.header.flags);
+		}
 
 		// some data changes will force no lerping
-		if (state.modelindex != ent.current.modelindex || state.modelindex2 != ent.current.modelindex2
-				|| state.modelindex3 != ent.current.modelindex3 || state.modelindex4 != ent.current.modelindex4
-				|| Math.abs(state.origin[0] - ent.current.origin[0]) > 512 || Math.abs(state.origin[1] - ent.current.origin[1]) > 512
-				|| Math.abs(state.origin[2] - ent.current.origin[2]) > 512 || state.event == Defines.EV_PLAYER_TELEPORT
+		if (state.modelindex != ent.current.modelindex
+				|| state.modelindex2 != ent.current.modelindex2
+				|| state.modelindex3 != ent.current.modelindex3
+				|| state.modelindex4 != ent.current.modelindex4
+				|| Math.abs(state.origin[0] - ent.current.origin[0]) > 512
+				|| Math.abs(state.origin[1] - ent.current.origin[1]) > 512
+				|| Math.abs(state.origin[2] - ent.current.origin[2]) > 512
+				|| state.event == Defines.EV_PLAYER_TELEPORT
 				|| state.event == Defines.EV_OTHER_TELEPORT) {
 			ent.serverframe = -99;
 		}
@@ -104,26 +107,20 @@ public class CL_ents {
 		ent.current.set(state);
 	}
 
-	// call by reference
-	private static final int[] iw = {0};
 	/*
 	 * ================== CL_ParsePacketEntities
 	 * 
 	 * An svc_packetentities has just been parsed, deal with the rest of the
 	 * data stream. ==================
 	 */
-	public static void ParsePacketEntities(frame_t oldframe, frame_t newframe) {
-		int newnum;
-		int bits = 0;
-
-		entity_state_t oldstate = null;
-		int oldnum;
-
+	public static void ParsePacketEntities(frame_t oldframe, frame_t newframe, PacketEntitiesMessage m) {
 		newframe.parse_entities = ClientGlobals.cl.parse_entities;
 		newframe.num_entities = 0;
 
 		// delta from the entities present in oldframe
 		int oldindex = 0;
+		int oldnum;
+		entity_state_t oldstate = null;
 		if (oldframe == null)
 			oldnum = 99999;
 		else {
@@ -136,26 +133,12 @@ public class CL_ents {
 			//			}
 		}
 
-		while (true) {
-			//int iw[] = { bits };
-			iw[0] = bits;
-			newnum = ServerMessage.ParseEntityBits(iw, Globals.net_message);
-			bits = iw[0];
 
-			if (newnum >= Defines.MAX_EDICTS)
-				Com.Error(Defines.ERR_DROP, "CL_ParsePacketEntities: bad number:" + newnum);
-
-			if (Globals.net_message.readcount > Globals.net_message.cursize)
-				Com.Error(Defines.ERR_DROP, "CL_ParsePacketEntities: end of message");
-
-			if (0 == newnum)
-				break;
-
-			while (oldnum < newnum) { // one or more entities from the old
-									  // packet are unchanged
-				if (ClientGlobals.cl_shownet.value == 3)
-					Com.Printf("   unchanged: " + oldnum + "\n");
-				DeltaEntity(newframe, oldnum, oldstate, 0);
+		for (EntityUpdate update: m.updates) {
+			while (oldnum < update.header.number) {
+				// one or more entities from the old packet are unchanged,
+				// copy them to the new frame
+				DeltaEntity(newframe, oldnum, oldstate, null);
 
 				oldindex++;
 
@@ -167,13 +150,12 @@ public class CL_ents {
 				}
 			}
 
-			if ((bits & Defines.U_REMOVE) != 0) { // the entity present in
-												  // oldframe is not in the
-												  // current frame
-				if (ClientGlobals.cl_shownet.value == 3)
-					Com.Printf("   remove: " + newnum + "\n");
-				if (oldnum != newnum)
-					Com.Printf("U_REMOVE: oldnum != newnum\n");
+			// oldnum is either 99999 or has reached newnum value
+
+			if ((update.header.flags & Defines.U_REMOVE) != 0) {
+				// the entity present in oldframe is not in the current frame
+				// fixme: assert oldnum == u.header.number
+				// otherwise we are removing (=not including it in the new frame) an entity that wasn't there O_o
 
 				oldindex++;
 
@@ -186,10 +168,9 @@ public class CL_ents {
 				continue;
 			}
 
-			if (oldnum == newnum) { // delta from previous state
-				if (ClientGlobals.cl_shownet.value == 3)
-					Com.Printf("   delta: " + newnum + "\n");
-				DeltaEntity(newframe, newnum, oldstate, bits);
+			if (oldnum == update.header.number) {
+				// delta from previous state
+				DeltaEntity(newframe, update.header.number, oldstate, update);
 
 				oldindex++;
 
@@ -199,24 +180,19 @@ public class CL_ents {
 					oldstate = ClientGlobals.cl_parse_entities[(oldframe.parse_entities + oldindex) & (Defines.MAX_PARSE_ENTITIES - 1)];
 					oldnum = oldstate.number;
 				}
-				continue;
-			}
-
-			if (oldnum > newnum) { // delta from baseline
-				if (ClientGlobals.cl_shownet.value == 3)
-					Com.Printf("   baseline: " + newnum + "\n");
-				DeltaEntity(newframe, newnum, ClientGlobals.cl_entities[newnum].baseline, bits);
-				continue;
+			} else if (oldnum > update.header.number) {
+				// delta from baseline
+				DeltaEntity(newframe, update.header.number, ClientGlobals.cl_entities[update.header.number].baseline, update);
 			}
 
 		}
 
-		// any remaining entities in the old frame are copied over
-		while (oldnum != 99999) { // one or more entities from the old packet
-								  // are unchanged
-			if (ClientGlobals.cl_shownet.value == 3)
-				Com.Printf("   unchanged: " + oldnum + "\n");
-			DeltaEntity(newframe, oldnum, oldstate, 0);
+		/*
+		 any remaining entities in the old frame are copied over,
+		 one or more entities from the old packet are unchanged
+		*/
+		while (oldnum != 99999) {
+			DeltaEntity(newframe, oldnum, oldstate, null);
 
 			oldindex++;
 
@@ -233,8 +209,6 @@ public class CL_ents {
 	 * =================== CL_ParsePlayerstate ===================
 	 */
 	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe, PlayerInfoMessage msg) {
-		CL_parse.SHOWNET(CL_parse.svc_strings[ServerMessageType.svc_playerinfo.type]);
-
 		player_state_t state = newframe.playerstate;
 
 		// clear to old value before delta parsing
@@ -318,52 +292,53 @@ public class CL_ents {
 		}
 	}
 
-	public static frame_t processFrameMessage(FrameMessage frameMsg) {
+	public static frame_t processFrameMessage(FrameHeaderMessage frameMsg) {
 		//memset( cl.frame, 0, sizeof(cl.frame));
-		ClientGlobals.cl.frame.reset();
+		frame_t currentFrame = ClientGlobals.cl.frame;
+		currentFrame.reset();
 
-		ClientGlobals.cl.frame.serverframe = frameMsg.frameNumber;
-		ClientGlobals.cl.frame.deltaframe = frameMsg.lastFrame;
-		ClientGlobals.cl.frame.servertime = ClientGlobals.cl.frame.serverframe * 100;
+		currentFrame.serverframe = frameMsg.frameNumber;
+		currentFrame.deltaframe = frameMsg.lastFrame;
+		currentFrame.servertime = currentFrame.serverframe * 100;
 
 		ClientGlobals.cl.surpressCount = frameMsg.suppressCount;
 
 		if (ClientGlobals.cl_shownet.value == 3)
-			Com.Printf("   frame:" + ClientGlobals.cl.frame.serverframe + "  delta:" + ClientGlobals.cl.frame.deltaframe + "\n");
+			Com.Printf("   frame:" + currentFrame.serverframe + "  delta:" + currentFrame.deltaframe + "\n");
 
 		// If the frame is delta compressed from data that we
 		// no longer have available, we must suck up the rest of
 		// the frame, but not use it, then ask for a non-compressed
 		// message
 		frame_t old;
-		if (ClientGlobals.cl.frame.deltaframe <= 0) {
-			ClientGlobals.cl.frame.valid = true; // uncompressed frame
+		if (currentFrame.deltaframe <= 0) {
+			currentFrame.valid = true; // uncompressed frame
 			old = null;
 			ClientGlobals.cls.demowaiting = false; // we can start recording now
 		} else {
-			old = ClientGlobals.cl.frames[ClientGlobals.cl.frame.deltaframe & Defines.UPDATE_MASK];
+			old = ClientGlobals.cl.frames[currentFrame.deltaframe & Defines.UPDATE_MASK];
 			if (!old.valid) { // should never happen
 				Com.Printf("Delta from invalid frame (not supposed to happen!).\n");
 			}
-			if (old.serverframe != ClientGlobals.cl.frame.deltaframe) {
+			if (old.serverframe != currentFrame.deltaframe) {
 				// The frame that the server did the delta from is too old, so we can't reconstruct it properly.
 				Com.Printf("Delta frame too old.\n");
 			} else if (ClientGlobals.cl.parse_entities - old.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
 				Com.Printf("Delta parse_entities too old.\n");
 			} else
-				ClientGlobals.cl.frame.valid = true; // valid delta parse
+				currentFrame.valid = true; // valid delta parse
 		}
 
 		// clamp time
-		if (ClientGlobals.cl.time > ClientGlobals.cl.frame.servertime)
-			ClientGlobals.cl.time = ClientGlobals.cl.frame.servertime;
-		else if (ClientGlobals.cl.time < ClientGlobals.cl.frame.servertime - 100)
-			ClientGlobals.cl.time = ClientGlobals.cl.frame.servertime - 100;
+		if (ClientGlobals.cl.time > currentFrame.servertime)
+			ClientGlobals.cl.time = currentFrame.servertime;
+		else if (ClientGlobals.cl.time < currentFrame.servertime - 100)
+			ClientGlobals.cl.time = currentFrame.servertime - 100;
 
 		// read areabits
 		//ClientGlobals.cl.frame.areabits = frameMsg.areaBits;
 		// fixme: ref to ClientGlobals.cl.frame.areabits is scattered across code, can not change it
-		System.arraycopy(frameMsg.areaBits, 0, ClientGlobals.cl.frame.areabits, 0, frameMsg.areaBits.length);
+		System.arraycopy(frameMsg.areaBits, 0, currentFrame.areabits, 0, frameMsg.areaBits.length);
 		return old;
 	}
 
@@ -371,12 +346,9 @@ public class CL_ents {
 	/*
 	 * ================ CL_ParseFrame ================
 	 */
-	public static void parsePacketEntities(frame_t old) {
+	public static void parsePacketEntities(frame_t old, PacketEntitiesMessage m) {
 
-		// read packet entities
-		CL_parse.SHOWNET(CL_parse.svc_strings[ServerMessageType.svc_packetentities.type]);
-
-		ParsePacketEntities(old, ClientGlobals.cl.frame);
+		ParsePacketEntities(old, ClientGlobals.cl.frame, m);
 
 		// save the frame off in the backup array for later delta comparisons
 		ClientGlobals.cl.frames[ClientGlobals.cl.frame.serverframe & Defines.UPDATE_MASK].set(ClientGlobals.cl.frame);

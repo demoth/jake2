@@ -8,15 +8,18 @@ import java.util.Arrays;
 
 import static jake2.qcommon.Defines.MAX_MAP_AREAS;
 
-public class FrameMessage extends ServerMessage {
+/**
+ * Generic information about frame.
+ * Sent along together with {@link PacketEntitiesMessage} and {@link PacketEntitiesMessage} every server frame.
+ */
+public class FrameHeaderMessage extends ServerMessage {
     public int frameNumber;
     public int lastFrame;
     public int suppressCount;
-    // todo: make private
-    public int areaBitsLength;
+    private int areaBitsLength;
     public byte[] areaBits;
 
-    public FrameMessage() {
+    public FrameHeaderMessage() {
         super(ServerMessageType.svc_frame);
     }
 
@@ -24,7 +27,7 @@ public class FrameMessage extends ServerMessage {
      * @param lastFrame what we are delta'ing from
      * @param suppressCount rate dropped packets
      */
-    public FrameMessage(int frameNumber, int lastFrame, int suppressCount, int areaBitsLength, byte[] areaBits) {
+    public FrameHeaderMessage(int frameNumber, int lastFrame, int suppressCount, int areaBitsLength, byte[] areaBits) {
         this();
         this.frameNumber = frameNumber;
         this.lastFrame = lastFrame;

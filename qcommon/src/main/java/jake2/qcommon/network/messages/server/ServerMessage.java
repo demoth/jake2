@@ -1,11 +1,10 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
-import jake2.qcommon.entity_state_t;
-import jake2.qcommon.sizebuf_t;
-import jake2.qcommon.util.Math3D;
+import jake2.qcommon.*;
 
+/**
+ * Common parent for all messages sent from server to client.
+ */
 public abstract class ServerMessage {
     public ServerMessageType type;
 
@@ -14,118 +13,105 @@ public abstract class ServerMessage {
     }
 
     /*
-     * ================= CL_ParseEntityBits
+     * CL_ParseEntityBits
      *
-     * Returns the entity number and the header bits =================
+     * Returns the entity number (index) and the header flags
      */
-    @Deprecated
-    public static int ParseEntityBits(int bits[], sizebuf_t buffer) {
-
-        int total = MSG.ReadByte(buffer);
-        int b;
-        if ((total & Defines.U_MOREBITS1) != 0) {
-
-            b = MSG.ReadByte(buffer);
-            total |= b << 8;
+    protected static DeltaEntityHeader parseDeltaEntityHeader(sizebuf_t buffer) {
+        int flags = MSG.ReadByte(buffer);
+        if ((flags & Defines.U_MOREBITS1) != 0) {
+            int b = MSG.ReadByte(buffer);
+            flags |= b << 8;
         }
-        if ((total & Defines.U_MOREBITS2) != 0) {
-
-            b = MSG.ReadByte(buffer);
-            total |= b << 16;
+        if ((flags & Defines.U_MOREBITS2) != 0) {
+            int b = MSG.ReadByte(buffer);
+            flags |= b << 16;
         }
-        if ((total & Defines.U_MOREBITS3) != 0) {
-
-            b = MSG.ReadByte(buffer);
-            total |= b << 24;
+        if ((flags & Defines.U_MOREBITS3) != 0) {
+            int b = MSG.ReadByte(buffer);
+            flags |= b << 24;
         }
 
         int number;
-        if ((total & Defines.U_NUMBER16) != 0)
+        if ((flags & Defines.U_NUMBER16) != 0)
             number = MSG.ReadShort(buffer);
         else
             number = MSG.ReadByte(buffer);
 
-        bits[0] = total;
-
-        return number;
+        return new DeltaEntityHeader(flags, number);
     }
 
     /*
-     * ================== CL_ParseDelta
-     *
-     * Can go from either a baseline or a previous packet_entity
-     * ==================
+     * former CL_ParseDelta
      */
-    public static void ParseDelta(entity_state_t from, entity_state_t to, int number, int bits, sizebuf_t buffer) {
-        // set everything to the state we are delta'ing from
-        to.set(from);
-
-        Math3D.VectorCopy(from.origin, to.old_origin);
+    protected static entity_state_t parseEntityState(int number, int flags, sizebuf_t buffer) {
+        entity_state_t to = new entity_state_t(new edict_t(number));
         to.number = number;
 
-        if ((bits & Defines.U_MODEL) != 0)
+        if ((flags & Defines.U_MODEL) != 0)
             to.modelindex = MSG.ReadByte(buffer);
-        if ((bits & Defines.U_MODEL2) != 0)
+        if ((flags & Defines.U_MODEL2) != 0)
             to.modelindex2 = MSG.ReadByte(buffer);
-        if ((bits & Defines.U_MODEL3) != 0)
+        if ((flags & Defines.U_MODEL3) != 0)
             to.modelindex3 = MSG.ReadByte(buffer);
-        if ((bits & Defines.U_MODEL4) != 0)
+        if ((flags & Defines.U_MODEL4) != 0)
             to.modelindex4 = MSG.ReadByte(buffer);
 
-        if ((bits & Defines.U_FRAME8) != 0)
+        if ((flags & Defines.U_FRAME8) != 0)
             to.frame = MSG.ReadByte(buffer);
-        if ((bits & Defines.U_FRAME16) != 0)
+        if ((flags & Defines.U_FRAME16) != 0)
             to.frame = MSG.ReadShort(buffer);
 
         // used for laser colors
-        if ((bits & Defines.U_SKIN8) != 0 && (bits & Defines.U_SKIN16) != 0)
+        if ((flags & Defines.U_SKIN8) != 0 && (flags & Defines.U_SKIN16) != 0)
             to.skinnum = MSG.ReadLong(buffer);
-        else if ((bits & Defines.U_SKIN8) != 0)
+        else if ((flags & Defines.U_SKIN8) != 0)
             to.skinnum = MSG.ReadByte(buffer);
-        else if ((bits & Defines.U_SKIN16) != 0)
+        else if ((flags & Defines.U_SKIN16) != 0)
             to.skinnum = MSG.ReadShort(buffer);
 
-        if ((bits & (Defines.U_EFFECTS8 | Defines.U_EFFECTS16)) == (Defines.U_EFFECTS8 | Defines.U_EFFECTS16))
+        if ((flags & (Defines.U_EFFECTS8 | Defines.U_EFFECTS16)) == (Defines.U_EFFECTS8 | Defines.U_EFFECTS16))
             to.effects = MSG.ReadLong(buffer);
-        else if ((bits & Defines.U_EFFECTS8) != 0)
+        else if ((flags & Defines.U_EFFECTS8) != 0)
             to.effects = MSG.ReadByte(buffer);
-        else if ((bits & Defines.U_EFFECTS16) != 0)
+        else if ((flags & Defines.U_EFFECTS16) != 0)
             to.effects = MSG.ReadShort(buffer);
 
-        if ((bits & (Defines.U_RENDERFX8 | Defines.U_RENDERFX16)) == (Defines.U_RENDERFX8 | Defines.U_RENDERFX16))
+        if ((flags & (Defines.U_RENDERFX8 | Defines.U_RENDERFX16)) == (Defines.U_RENDERFX8 | Defines.U_RENDERFX16))
             to.renderfx = MSG.ReadLong(buffer);
-        else if ((bits & Defines.U_RENDERFX8) != 0)
+        else if ((flags & Defines.U_RENDERFX8) != 0)
             to.renderfx = MSG.ReadByte(buffer);
-        else if ((bits & Defines.U_RENDERFX16) != 0)
+        else if ((flags & Defines.U_RENDERFX16) != 0)
             to.renderfx = MSG.ReadShort(buffer);
 
-        if ((bits & Defines.U_ORIGIN1) != 0)
+        if ((flags & Defines.U_ORIGIN1) != 0)
             to.origin[0] = MSG.ReadCoord(buffer);
-        if ((bits & Defines.U_ORIGIN2) != 0)
+        if ((flags & Defines.U_ORIGIN2) != 0)
             to.origin[1] = MSG.ReadCoord(buffer);
-        if ((bits & Defines.U_ORIGIN3) != 0)
+        if ((flags & Defines.U_ORIGIN3) != 0)
             to.origin[2] = MSG.ReadCoord(buffer);
 
-        if ((bits & Defines.U_ANGLE1) != 0)
+        if ((flags & Defines.U_ANGLE1) != 0)
             to.angles[0] = MSG.ReadAngle(buffer);
-        if ((bits & Defines.U_ANGLE2) != 0)
+        if ((flags & Defines.U_ANGLE2) != 0)
             to.angles[1] = MSG.ReadAngle(buffer);
-        if ((bits & Defines.U_ANGLE3) != 0)
+        if ((flags & Defines.U_ANGLE3) != 0)
             to.angles[2] = MSG.ReadAngle(buffer);
 
-        if ((bits & Defines.U_OLDORIGIN) != 0)
+        if ((flags & Defines.U_OLDORIGIN) != 0)
             MSG.ReadPos(buffer, to.old_origin);
 
-        if ((bits & Defines.U_SOUND) != 0)
+        if ((flags & Defines.U_SOUND) != 0)
             to.sound = MSG.ReadByte(buffer);
 
-        if ((bits & Defines.U_EVENT) != 0)
+        if ((flags & Defines.U_EVENT) != 0)
             to.event = MSG.ReadByte(buffer);
         else
             to.event = 0;
 
-        if ((bits & Defines.U_SOLID) != 0)
+        if ((flags & Defines.U_SOLID) != 0)
             to.solid = MSG.ReadShort(buffer);
+        return to;
     }
 
     public final void writeTo(sizebuf_t buffer) {
@@ -144,9 +130,6 @@ public abstract class ServerMessage {
         switch (type) {
             case svc_bad:
             case svc_nop:
-            case svc_download:
-            case svc_deltapacketentities:
-            case svc_packetentities:
             default:
                 msg = null;
                 break;
@@ -187,13 +170,19 @@ public abstract class ServerMessage {
                 msg = new PrintCenterMessage();
                 break;
             case svc_frame:
-                msg = new FrameMessage();
+                msg = new FrameHeaderMessage();
                 break;
             case svc_playerinfo:
                 msg = new PlayerInfoMessage();
                 break;
             case svc_spawnbaseline:
                 msg = new SpawnBaselineMessage();
+                break;
+            case svc_packetentities:
+                msg = new PacketEntitiesMessage();
+                break;
+            case svc_download:
+                msg = new DownloadMessage();
                 break;
             case svc_temp_entity:
                 int subtype = MSG.ReadByte(buffer);

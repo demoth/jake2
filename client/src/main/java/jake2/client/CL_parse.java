@@ -43,13 +43,29 @@ public class CL_parse {
 
     //// cl_parse.c -- parse a message received from the server
 
-    public static String svc_strings[] = { "svc_bad", "svc_muzzleflash",
-            "svc_muzzlflash2", "svc_temp_entity", "svc_layout",
-            "svc_inventory", "svc_nop", "svc_disconnect", "svc_reconnect",
-            "svc_sound", "svc_print", "svc_stufftext", "svc_serverdata",
-            "svc_configstring", "svc_spawnbaseline", "svc_centerprint",
-            "svc_download", "svc_playerinfo", "svc_packetentities",
-            "svc_deltapacketentities", "svc_frame" };
+    public static String svc_strings[] = {
+            "svc_bad",
+            "svc_muzzleflash",
+            "svc_muzzlflash2",
+            "svc_temp_entity",
+            "svc_layout",
+            "svc_inventory",
+            "svc_nop",
+            "svc_disconnect",
+            "svc_reconnect",
+            "svc_sound",
+            "svc_print",
+            "svc_stufftext",
+            "svc_serverdata",
+            "svc_configstring",
+            "svc_spawnbaseline",
+            "svc_centerprint",
+            "svc_download",
+            "svc_playerinfo",
+            "svc_packetentities",
+            "svc_deltapacketentities",
+            "svc_frame"
+    };
 
     //	  =============================================================================
 
@@ -110,10 +126,10 @@ public class CL_parse {
 
             // give the server an offset to start the download
             Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage("download " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.message);
         } else {
             Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage("download " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
         }
 
         ClientGlobals.cls.downloadnumber++;
@@ -148,12 +164,11 @@ public class CL_parse {
      * A download message has been received from the server
      * =====================
      */
-    public static void ParseDownload() {
+    public static void ParseDownload(DownloadMessage msg) {
 
         // read the data
-        int size = MSG.ReadShort(Globals.net_message);
-        int percent = MSG.ReadByte(Globals.net_message);
-        if (size == -1) {
+        int percent = msg.percentage;
+        if (msg.data == null) {
             Com.Printf("Server does not have this file.\n");
             if (ClientGlobals.cls.download != null) {
                 // if here, we tried to resume a file but the server said no
@@ -175,9 +190,7 @@ public class CL_parse {
 
             ClientGlobals.cls.download = Lib.fopen(name, "rw");
             if (ClientGlobals.cls.download == null) {
-                Globals.net_message.readcount += size;
-                Com.Printf("Failed to open " + ClientGlobals.cls.downloadtempname
-                        + "\n");
+                Com.Printf("Failed to open " + ClientGlobals.cls.downloadtempname + "\n");
                 CL.RequestNextDownload();
                 return;
             }
@@ -185,18 +198,16 @@ public class CL_parse {
 
 
         try {
-            ClientGlobals.cls.download.write(Globals.net_message.data,
-                    Globals.net_message.readcount, size);
-        } 
-        catch (Exception e) {
+            ClientGlobals.cls.download.write(msg.data);
+        } catch (Exception e) {
+            Com.dprintln("Could not write downloaded data to file: " + e.getMessage());
         }
-        Globals.net_message.readcount += size;
 
         if (percent != 100) {
             // request next block
             //	   change display routines by zoid
             ClientGlobals.cls.downloadpercent = percent;
-            new StringCmdMessage("nextdl").writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD).writeTo(ClientGlobals.cls.netchan.message);
         } else {
             try {
                 ClientGlobals.cls.download.close();
@@ -286,19 +297,6 @@ public class CL_parse {
             // need to prep refresh at next oportunity
             ClientGlobals.cl.refresh_prepped = false;
         }
-    }
-
-    /*
-     * ================== CL_ParseBaseline ==================
-     */
-    @Deprecated
-    public static void ParseBaseline() {
-        entity_state_t nullstate = new entity_state_t(null);
-        //memset(nullstate, 0, sizeof(nullstate));
-        int bits[] = { 0 };
-        int newnum = ServerMessage.ParseEntityBits(bits, Globals.net_message);
-        entity_state_t es = ClientGlobals.cl_entities[newnum].baseline;
-        ServerMessage.ParseDelta(nullstate, es, newnum, bits[0], Globals.net_message);
     }
 
     /*
@@ -529,21 +527,11 @@ public class CL_parse {
 
 
     static frame_t old;
+
     /*
      * ===================== CL_ParseServerMessage =====================
      */
     public static void ParseServerMessage() {
-        //
-        //	   if recording demos, copy the message out
-        //
-        //if (cl_shownet.value == 1)
-        //Com.Printf(net_message.cursize + " ");
-        //else if (cl_shownet.value >= 2)
-        //Com.Printf("------------------\n");
-
-        //
-        //	   parse the message
-        //
         while (true) {
             if (Globals.net_message.readcount > Globals.net_message.cursize) {
                 Com.Error(Defines.ERR_FATAL,
@@ -554,16 +542,7 @@ public class CL_parse {
             int cmd = MSG.ReadByte(Globals.net_message);
 
             if (cmd == -1) {
-                SHOWNET("END OF MESSAGE");
                 break;
-            }
-
-            if (ClientGlobals.cl_shownet.value >= 2) {
-                if (null == svc_strings[cmd])
-                    Com.Printf(Globals.net_message.readcount - 1 + ":BAD CMD "
-                            + cmd + "\n");
-                else
-                    SHOWNET(svc_strings[cmd]);
             }
 
             ServerMessageType msgType = ServerMessageType.fromInt(cmd);
@@ -609,8 +588,8 @@ public class CL_parse {
                     CL_fx.ParseMuzzleFlash((WeaponSoundMessage) msg);
                 } else if (msg instanceof MuzzleFlash2Message) {
                     CL_fx.ParseMuzzleFlash2((MuzzleFlash2Message) msg);
-                } else if (msg instanceof FrameMessage) {
-                    old = CL_ents.processFrameMessage((FrameMessage) msg);
+                } else if (msg instanceof FrameHeaderMessage) {
+                    old = CL_ents.processFrameMessage((FrameHeaderMessage) msg);
                 } else if (msg instanceof PlayerInfoMessage) {
                     CL_ents.ParsePlayerstate(old, ClientGlobals.cl.frame, (PlayerInfoMessage) msg);
                 } else if (msg instanceof LayoutMessage) {
@@ -622,40 +601,22 @@ public class CL_parse {
                 } else if (msg instanceof SpawnBaselineMessage) {
                     SpawnBaselineMessage m = (SpawnBaselineMessage) msg;
                     ClientGlobals.cl_entities[m.entityState.number].baseline.set(m.entityState);
+                } else if (msg instanceof PacketEntitiesMessage) {
+//                     should be called after CL_ents.processFrameMessage
+                    CL_ents.parsePacketEntities(old, (PacketEntitiesMessage) msg);
+                } else if (msg instanceof DownloadMessage) {
+                    ParseDownload((DownloadMessage) msg);
                 }
                 continue;
             }
-            // other commands
-        switch (msgType) {
-            case svc_nop:
-                break;
+            CL_view.AddNetgraph();
 
-//            case svc_spawnbaseline:
-//                ParseBaseline();
-//                break;
-
-            case svc_packetentities:
-                // should be called after CL_ents.ParseFrameMessage
-                CL_ents.parsePacketEntities(old);
-                break;
-
-            case svc_download:
-                ParseDownload();
-                break;
-
-            case svc_deltapacketentities:
-                Com.Error(Defines.ERR_DROP, "Out of place frame data");
-                break;
-            }
+            //
+            // we don't know if it is ok to save a demo message until
+            // after we have parsed the frame
+            //
+            if (ClientGlobals.cls.demorecording && !ClientGlobals.cls.demowaiting)
+                CL.WriteDemoMessage();
         }
-
-        CL_view.AddNetgraph();
-
-        //
-        // we don't know if it is ok to save a demo message until
-        // after we have parsed the frame
-        //
-        if (ClientGlobals.cls.demorecording && !ClientGlobals.cls.demowaiting)
-            CL.WriteDemoMessage();
     }
 }

@@ -23,9 +23,7 @@
 package jake2.server;
 
 import jake2.qcommon.*;
-import jake2.qcommon.network.messages.server.FrameMessage;
-import jake2.qcommon.network.messages.server.PlayerInfoMessage;
-import jake2.qcommon.network.messages.server.ServerMessageType;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Math3D;
 
 public class SV_ENTS {
@@ -72,83 +70,12 @@ public class SV_ENTS {
      */
 
     /**
-     * Writes a delta update of an entity_state_t list to the message.
-     */
-    void SV_EmitPacketEntities(client_frame_t lastReceivedFrame, client_frame_t currentFrame) {
-
-        final sizebuf_t msg = gameImports.msg;
-        MSG.WriteByte(msg, ServerMessageType.svc_packetentities.type);
-
-        int from_num_entities;
-        if (lastReceivedFrame == null)
-            from_num_entities = 0;
-        else
-            from_num_entities = lastReceivedFrame.num_entities;
-
-        int newindex = 0;
-        int oldindex = 0;
-        entity_state_t oldState = null;
-        entity_state_t newState = null;
-        while (newindex < currentFrame.num_entities || oldindex < from_num_entities) {
-            final int newnum;
-            if (newindex >= currentFrame.num_entities) {
-                newnum = 9999;
-            } else {
-                newState = client_entities[(currentFrame.first_entity + newindex) % num_client_entities];
-                newnum = newState.number;
-            }
-            final int oldnum;
-            if (oldindex >= from_num_entities)
-                oldnum = 9999;
-            else {
-                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % num_client_entities];
-                oldnum = oldState.number;
-            }
-
-            if (newnum == oldnum) { 
-            	// delta update from old position
-                // because the force parm is false, this will not result
-                // in any bytes being emited if the entity has not changed at
-                // all note that players are always 'newentities', this updates
-                // their oldorigin always
-                // and prevents warping
-                MSG.WriteDeltaEntity(oldState, newState, msg, false, newState.number <= gameImports.serverMain.getClients().size());
-                oldindex++;
-                newindex++;
-            } else if (newnum < oldnum) {
-            	// this is a new entity, send it from the baseline
-                MSG.WriteDeltaEntity(gameImports.sv.baselines[newnum], newState, msg, true, true);
-                newindex++;
-            } else {
-                // if (newnum > oldnum) {
-
-            	// the old entity isn't present in the new message
-                int bits = Defines.U_REMOVE;
-                if (oldnum >= 256)
-                    bits |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
-
-                MSG.WriteByte(msg, bits & 255);
-                if ((bits & 0x0000ff00) != 0)
-                    MSG.WriteByte(msg, (bits >> 8) & 255);
-
-                if ((bits & Defines.U_NUMBER16) != 0)
-                    MSG.WriteShort(msg, oldnum);
-                else
-                    MSG.WriteByte(msg, oldnum);
-
-                oldindex++;
-            }
-        }
-
-        MSG.WriteShort(msg, 0); // end of packetentities
-
-    }
-
-    /**
      * SV_WritePlayerstateToClient
      * Writes the status of a player to a PlayerInfoMessage.
      */
-    static PlayerInfoMessage buildPlayerInfoMessage(player_state_t lastFrameState, player_state_t currentPlayerState, GameImportsImpl gameImports) {
+    // todo: move this logic into players state message write Properties function.
+    // todo: PlayerInfoMessage should hold only player state
+    static PlayerInfoMessage buildPlayerInfoMessage(player_state_t lastFrameState, player_state_t currentPlayerState) {
         player_state_t ops = lastFrameState != null ? lastFrameState : new player_state_t();
 
         // determine what needs to be sent
@@ -211,9 +138,6 @@ public class SV_ENTS {
         if (currentPlayerState.rdflags != ops.rdflags)
             messageFlags |= Defines.PS_RDFLAGS;
 
-        final sizebuf_t msg = gameImports.msg;
-        // write it
-
         // send stats
         int statbits = 0;
         for (int i = 0; i < Defines.MAX_STATS; i++)
@@ -268,7 +192,7 @@ public class SV_ENTS {
             lastReceivedFrameNum = client.lastReceivedFrame;
         }
 
-        new FrameMessage(
+        new FrameHeaderMessage(
                 gameImports.sv.framenum,
                 lastReceivedFrameNum,
                 client.surpressCount,
@@ -279,11 +203,76 @@ public class SV_ENTS {
         client.surpressCount = 0;
 
         // delta encode the playerstate
-        PlayerInfoMessage playerInfoMsg = buildPlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : null, currentFrame.ps, gameImports);
+        PlayerInfoMessage playerInfoMsg = buildPlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : null, currentFrame.ps);
         playerInfoMsg.writeTo(gameImports.msg);
 
         // delta encode the entities
-        SV_EmitPacketEntities(lastReceivedFrame, currentFrame);
+        PacketEntitiesMessage packetEntities = buildPacketEntities(lastReceivedFrame, currentFrame);
+        packetEntities.writeTo(gameImports.msg);
+    }
+
+    // SV_EmitPacketEntities
+    private PacketEntitiesMessage buildPacketEntities(client_frame_t lastReceivedFrame,
+                                                      client_frame_t currentFrame) {
+
+        PacketEntitiesMessage result = new PacketEntitiesMessage();
+
+        // Write delta entity
+        int from_num_entities;
+        if (lastReceivedFrame == null)
+            from_num_entities = 0;
+        else
+            from_num_entities = lastReceivedFrame.num_entities;
+
+        int newindex = 0;
+        int oldindex = 0;
+        entity_state_t oldState = null;
+        entity_state_t newState = null;
+        while (newindex < currentFrame.num_entities || oldindex < from_num_entities) {
+            final int newnum;
+            if (newindex >= currentFrame.num_entities) {
+                // does not exist in the frame
+                newnum = 9999;
+            } else {
+                newState = client_entities[(currentFrame.first_entity + newindex) % this.num_client_entities];
+                newnum = newState.number;
+            }
+            final int oldnum;
+            if (oldindex >= from_num_entities)
+                // does not exist in the frame
+                oldnum = 9999;
+            else {
+                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % this.num_client_entities];
+                oldnum = oldState.number;
+            }
+
+            if (newnum == oldnum) {
+                // delta update from old position
+                // because the force parm is false, this will not result
+                // in any bytes being emited if the entity has not changed at
+                // all note that players are always 'newentities', this updates
+                // their oldorigin always
+                // and prevents warping
+                result.updates.add(new EntityUpdate(oldState, newState, false, newState.number <= gameImports.serverMain.getClients().size()));
+                oldindex++;
+                newindex++;
+            } else if (newnum < oldnum) {
+                // this is a new entity, send it from the baseline
+                result.updates.add(new EntityUpdate(gameImports.sv.baselines[newnum], newState, true, true));
+                newindex++;
+            } else {
+                // if (newnum > oldnum) {
+                // the old entity isn't present in the new message
+
+                int flags = Defines.U_REMOVE;
+                if (oldnum >= 256)
+                    flags |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
+
+                result.updates.add(new EntityUpdate(new DeltaEntityHeader(flags, oldnum)));
+                oldindex++;
+            }
+        }
+        return result;
     }
 
     /** 

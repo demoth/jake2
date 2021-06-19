@@ -42,9 +42,8 @@ public enum ServerMessageType {
     svc_download(16), // [short] size [size bytes]
     // +
     svc_playerinfo(17), // variable
-    svc_packetentities(18), // [...]
     // +
-    svc_deltapacketentities(19), // [...]
+    svc_packetentities(18), // [...]
     // +
     svc_frame(20);
 

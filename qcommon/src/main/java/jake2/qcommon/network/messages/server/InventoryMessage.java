@@ -4,6 +4,11 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * Inventory sent to client.
+ * Holds information about how many specific items player holds.
+ * The names of the items are sent via {@link ConfigStringMessage} starting from {@link Defines#CS_ITEMS} (Max 256).
+ */
 public class InventoryMessage extends ServerMessage {
     public int[] inventory;
 

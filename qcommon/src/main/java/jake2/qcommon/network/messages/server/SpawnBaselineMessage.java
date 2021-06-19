@@ -1,11 +1,14 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.MSG;
+import jake2.qcommon.entity_state_t;
+import jake2.qcommon.sizebuf_t;
 
 /**
  * Contains baseline for a single entity,
- * sent to a new client
- * when the client is just connected to the server.
+ * sent to a new client when the client is just connected to the server.
+ *
+ * Baseline is a snapshot of an entity state at the moment of level instantiation.
  */
 public class SpawnBaselineMessage extends ServerMessage {
 
@@ -27,30 +30,7 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-        // todo: extract to function returning bits & number
-        // up until ParseDelta
-        int bits = MSG.ReadByte(buffer);
-        if ((bits & Defines.U_MOREBITS1) != 0) {
-            int b = MSG.ReadByte(buffer);
-            bits |= b << 8;
-        }
-        if ((bits & Defines.U_MOREBITS2) != 0) {
-            int b = MSG.ReadByte(buffer);
-            bits |= b << 16;
-        }
-        if ((bits & Defines.U_MOREBITS3) != 0) {
-            int b = MSG.ReadByte(buffer);
-            bits |= b << 24;
-        }
-
-        int number;
-        if ((bits & Defines.U_NUMBER16) != 0)
-            number = MSG.ReadShort(buffer);
-        else
-            number = MSG.ReadByte(buffer);
-
-        entityState = new entity_state_t(new edict_t(number));
-
-        ParseDelta(new entity_state_t(null), entityState, number, bits, buffer);
+        DeltaEntityHeader header = parseDeltaEntityHeader(buffer);
+        entityState = parseEntityState(header.number, header.flags, buffer);
     }
 }
