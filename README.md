@@ -1,6 +1,10 @@
 Jake2 README
 ============
 
+![jake2 screenshot](info/screenshots/jake2-screenshot-1.png "Jake 2")
+
+[Screenshots](info/screenshots/Screenshots.md)
+
 Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
 distributed under the terms of the GPL (see LICENSE).
 
