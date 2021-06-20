@@ -18,6 +18,12 @@ Requirements:
 Please note that there is an issue with more recent java versions on linux with lwjgl natives.
 
 
+Documentation & Info
+--------------------
+ * [Overview](info/Overview.md)
+ * [BSP file format](info/BSP.md)
+ * [Networking](info/Networking.md)
+
 Installation
 ------------
 

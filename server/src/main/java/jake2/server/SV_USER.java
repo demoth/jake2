@@ -43,7 +43,7 @@ class SV_USER {
         // auto issued
         userCommands.put(StringCmdMessage.NEW, SV_USER::SV_New_f);
         userCommands.put(StringCmdMessage.CONFIG_STRINGS, SV_USER::SV_Configstrings_f);
-        userCommands.put(StringCmdMessage.BASELINE, SV_USER::SV_Baselines_f);
+        userCommands.put(StringCmdMessage.BASELINES, SV_USER::SV_Baselines_f);
         userCommands.put(StringCmdMessage.BEGIN, SV_USER::SV_Begin_f);
         userCommands.put(StringCmdMessage.NEXT_SERVER, SV_USER::SV_Nextserver_f);
         userCommands.put(StringCmdMessage.DISCONNECT, SV_USER::SV_Disconnect_f);
@@ -147,9 +147,9 @@ class SV_USER {
         final String nextCmd;
 
         if (start == Defines.MAX_CONFIGSTRINGS) {
-            nextCmd = "cmd baselines " + gameImports.spawncount + " 0\n";
+            nextCmd = "cmd " + StringCmdMessage.BASELINES + " " + gameImports.spawncount + " 0\n";
         } else {
-            nextCmd = "cmd configstrings " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = "cmd " + StringCmdMessage.CONFIG_STRINGS + " " + gameImports.spawncount + " " + start + "\n";
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
@@ -196,7 +196,7 @@ class SV_USER {
             nextCmd = "precache " + gameImports.spawncount + "\n";
         } else {
             // continue from where we finished
-            nextCmd = "cmd baselines " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = "cmd " + StringCmdMessage.BASELINES + " " + gameImports.spawncount + " " + start + "\n";
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }

@@ -12,7 +12,7 @@ public class StringCmdMessage extends ClientMessage {
 
     public static final String NEW = "new";
     public static final String CONFIG_STRINGS = "configstrings";
-    public static final String BASELINE = "baselines";
+    public static final String BASELINES = "baselines";
     public static final String BEGIN = "begin";
     public static final String NEXT_SERVER = "nextserver";
     public static final String DISCONNECT = "disconnect";
