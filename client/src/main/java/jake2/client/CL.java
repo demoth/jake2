@@ -247,7 +247,7 @@ public final class CL {
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
-            new StuffTextMessage("precache\n").writeTo(buf);
+            new StuffTextMessage(StringCmdMessage.PRECACHE).writeTo(buf);
 
             // write it to the demo file
             ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));

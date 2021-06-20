@@ -1354,7 +1354,7 @@ goes to map jail.bsp.
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
-        gameImports.SV_BroadcastCommand("changing\n");
+        gameImports.SV_BroadcastCommand("changing");
         SV_SendClientMessages();
 
         Com.Printf("------- Server Initialization -------\n");
@@ -1451,7 +1451,7 @@ goes to map jail.bsp.
         if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
 
-        gameImports.SV_BroadcastCommand("reconnect\n");
+        gameImports.SV_BroadcastCommand("reconnect");
     }
 
     /*

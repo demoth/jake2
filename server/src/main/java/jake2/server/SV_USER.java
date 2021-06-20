@@ -43,7 +43,7 @@ class SV_USER {
         // auto issued
         userCommands.put(StringCmdMessage.NEW, SV_USER::SV_New_f);
         userCommands.put(StringCmdMessage.CONFIG_STRINGS, SV_USER::SV_Configstrings_f);
-        userCommands.put(StringCmdMessage.BASELINE, SV_USER::SV_Baselines_f);
+        userCommands.put(StringCmdMessage.BASELINES, SV_USER::SV_Baselines_f);
         userCommands.put(StringCmdMessage.BEGIN, SV_USER::SV_Begin_f);
         userCommands.put(StringCmdMessage.NEXT_SERVER, SV_USER::SV_Nextserver_f);
         userCommands.put(StringCmdMessage.DISCONNECT, SV_USER::SV_Disconnect_f);
@@ -108,9 +108,8 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            new StuffTextMessage("cmd configstrings " + gameImports.spawncount + " 0\n").writeTo(gameImports.sv_client.netchan.message);
+            new StuffTextMessage(String.format("cmd %s %d 0", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount)).writeTo(gameImports.sv_client.netchan.message);
         }
-        
     }
 
     /*
@@ -147,9 +146,9 @@ class SV_USER {
         final String nextCmd;
 
         if (start == Defines.MAX_CONFIGSTRINGS) {
-            nextCmd = "cmd baselines " + gameImports.spawncount + " 0\n";
+            nextCmd = String.format("cmd %s %d 0", StringCmdMessage.BASELINES, gameImports.spawncount);
         } else {
-            nextCmd = "cmd configstrings " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start);
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
@@ -193,10 +192,10 @@ class SV_USER {
         final String nextCmd;
         if (start == Defines.MAX_EDICTS) {
             // finished sending baselines
-            nextCmd = "precache " + gameImports.spawncount + "\n";
+            nextCmd = String.format("%s %d", StringCmdMessage.PRECACHE,gameImports.spawncount);
         } else {
             // continue from where we finished
-            nextCmd = "cmd baselines " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start);
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
