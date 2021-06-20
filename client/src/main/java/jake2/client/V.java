@@ -53,6 +53,8 @@ public final class V extends Globals {
 
     private static cvar_t cl_testlights;
 
+    private static cvar_t cl_flashlight;
+
     private static cvar_t cl_stats;
 
     private static int r_numdlights;
@@ -259,6 +261,27 @@ public final class V extends Globals {
         }
     }
 
+    private static void FlashLight() {
+
+        r_numdlights = 32;
+        for (int i = 0; i < r_dlights.length; i++)
+            r_dlights[i] = new dlight_t();
+
+        for (int i = 0; i < r_numdlights; i++) {
+            dlight_t dl = r_dlights[i];
+
+            float r = 64 * ((i % 4) - 1.5f);
+            float f = 64 * (i / 4) + 128;
+
+            for (int j = 0; j < 3; j++)
+                dl.origin[j] = ClientGlobals.cl.refdef.vieworg[j] + ClientGlobals.cl.v_forward[j] * f + ClientGlobals.cl.v_right[j] * r;
+            dl.color[0] = 1;
+            dl.color[1] = 1;
+            dl.color[2] = 0.7f;
+            dl.intensity = 150;
+        }
+    }
+
     private static Command Gun_Next_f = (List<String> args) -> {
         ClientGlobals.gun_frame++;
         Com.Printf("frame " + ClientGlobals.gun_frame + "\n");
@@ -319,6 +342,8 @@ public final class V extends Globals {
                 TestEntities();
             if (cl_testlights.value != 0.0f)
                 TestLights();
+            if (cl_flashlight.value != 0.0f)
+                FlashLight();
             if (cl_testblend.value != 0.0f) {
                 ClientGlobals.cl.refdef.blend[0] = 1.0f;
                 ClientGlobals.cl.refdef.blend[1] = 0.5f;
@@ -445,6 +470,8 @@ public final class V extends Globals {
         cl_testparticles = Cvar.getInstance().Get("cl_testparticles", "0", 0);
         cl_testentities = Cvar.getInstance().Get("cl_testentities", "0", 0);
         cl_testlights = Cvar.getInstance().Get("cl_testlights", "0", 0);
+
+        cl_flashlight = Cvar.getInstance().Get("cl_flashlight", "0", 0);
 
         cl_stats = Cvar.getInstance().Get("cl_stats", "0", 0);
     }
