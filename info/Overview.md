@@ -54,7 +54,7 @@ Thus, a debris gib, a monster and an ammo clip will have the same class.
 ## Behavior serialization
 
 During entity serialization (when the game is saved) along with the field values the behavior should be saved.
-To achieve that, so called adapters(`EntUseAdapter`, `EntUseAdapter`) are used. 
+To achieve that, so called adapters(`EntUseAdapter`, `EntTouchAdapter`, etc) are used. 
 These are "named" functions - an interface with String ID (see jake2.game.SuperAdapter).
 When such property is serialized - the Id is written to the file.
 During deserialization the id is read from the file and corresponding adapter is looked up in the registry.
