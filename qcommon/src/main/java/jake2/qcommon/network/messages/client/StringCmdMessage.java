@@ -19,6 +19,7 @@ public class StringCmdMessage extends ClientMessage {
     public static final String INFO = "info";
     public static final String DOWNLOAD = "download";
     public static final String NEXT_DOWNLOAD = "nextdl";
+    public static final String PRECACHE = "precache";
 
     public String command;
 

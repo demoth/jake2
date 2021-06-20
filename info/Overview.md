@@ -67,6 +67,7 @@ This requires the registry to be build beforehand and kept consistent between sa
 Quake2 is single threaded, so as Jake2. All IO operations and computation are done in the same thread.
 Although the performance of jake2 is not a problem at the moment (mostly because it uses too little resources),
 splitting io and non io operation will improve execution structure.
-Introduction of non blocking io can improve resource consumption even more.
+In future when jake can run multiple map instances in one process
+introduction of non-blocking io can improve thread utilization even more.
 
 **state**: todo

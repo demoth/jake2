@@ -3,8 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 /**
- * Sent to client stuffed into client's console buffer, should be \n terminated
- * todo: append newline automatically
+ * Sent to client stuffed into client's console buffer, \n terminated
  */
 public class StuffTextMessage extends ServerMessage {
     public String text;
@@ -20,7 +19,7 @@ public class StuffTextMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteString(buffer, text);
+        MSG.WriteString(buffer, text + "\n");
     }
 
     @Override

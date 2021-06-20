@@ -108,9 +108,8 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            new StuffTextMessage("cmd configstrings " + gameImports.spawncount + " 0\n").writeTo(gameImports.sv_client.netchan.message);
+            new StuffTextMessage(String.format("cmd %s %d 0", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount)).writeTo(gameImports.sv_client.netchan.message);
         }
-        
     }
 
     /*
@@ -147,9 +146,9 @@ class SV_USER {
         final String nextCmd;
 
         if (start == Defines.MAX_CONFIGSTRINGS) {
-            nextCmd = "cmd " + StringCmdMessage.BASELINES + " " + gameImports.spawncount + " 0\n";
+            nextCmd = String.format("cmd %s %d 0", StringCmdMessage.BASELINES, gameImports.spawncount);
         } else {
-            nextCmd = "cmd " + StringCmdMessage.CONFIG_STRINGS + " " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start);
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
@@ -193,10 +192,10 @@ class SV_USER {
         final String nextCmd;
         if (start == Defines.MAX_EDICTS) {
             // finished sending baselines
-            nextCmd = "precache " + gameImports.spawncount + "\n";
+            nextCmd = String.format("%s %d", StringCmdMessage.PRECACHE,gameImports.spawncount);
         } else {
             // continue from where we finished
-            nextCmd = "cmd " + StringCmdMessage.BASELINES + " " + gameImports.spawncount + " " + start + "\n";
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start);
         }
         new StuffTextMessage(nextCmd).writeTo(gameImports.sv_client.netchan.message);
     }
