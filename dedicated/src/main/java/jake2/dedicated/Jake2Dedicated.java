@@ -63,11 +63,9 @@ public class Jake2Dedicated {
             // init commands and vars
 
             Globals.host_speeds= Cvar.getInstance().Get("host_speeds", "0", 0);
-            Globals.log_stats= Cvar.getInstance().Get("log_stats", "0", 0);
             Globals.developer= Cvar.getInstance().Get("developer", "0", Defines.CVAR_ARCHIVE);
             Globals.timescale= Cvar.getInstance().Get("timescale", "0", 0);
             Globals.fixedtime= Cvar.getInstance().Get("fixedtime", "0", 0);
-            Globals.logfile_active= Cvar.getInstance().Get("logfile", "0", 0);
             Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
             Cvar.getInstance().Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
@@ -90,8 +88,6 @@ public class Jake2Dedicated {
             Sys.Error("Error during initialization");
         }
 
-        Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
-
         int oldtime = Timer.Milliseconds();
         while (true) {
             // find time spending rendering last frame
@@ -100,8 +96,6 @@ public class Jake2Dedicated {
 
             if (time > 0) {
                 try {
-
-                    debugLogStatsFile();
 
                     int adjustedTime = adjustTime(time);
 

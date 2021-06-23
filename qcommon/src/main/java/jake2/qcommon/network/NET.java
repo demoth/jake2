@@ -25,6 +25,7 @@ package jake2.qcommon.network;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.network.messages.ClientPacket;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -33,6 +34,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+
+import static jake2.qcommon.Defines.NS_SERVER;
 
 public final class NET {
 
@@ -118,13 +121,76 @@ public final class NET {
     }
 
     /**
+     * Gets a packet from internal loopback.
+     */
+    private static ClientPacket getClientPacketFromLoopback() {
+
+        loopback_t loop = loopbacks[NS_SERVER];
+
+        if (loop.send - loop.get > MAX_LOOPBACK)
+            loop.get = loop.send - MAX_LOOPBACK;
+
+        if (loop.get >= loop.send)
+            return null;
+
+        int i = loop.get & (MAX_LOOPBACK - 1);
+        loop.get++;
+
+        ClientPacket loopbackPacket = new ClientPacket();
+        loopbackPacket.length = loop.msgs[i].datalen;
+        loopbackPacket.buffer.data = new byte[loop.msgs[i].datalen];
+        loopbackPacket.buffer.cursize = loopbackPacket.length;
+        System.arraycopy(loop.msgs[i].data, 0, loopbackPacket.buffer.data, 0, loop.msgs[i].datalen);
+        return loopbackPacket;
+    }
+
+
+    public static ClientPacket getClientPacket() {
+        ClientPacket result = getClientPacketFromLoopback();
+
+        if (result != null) {
+            result.parseHeader();
+            return result;
+        }
+
+        if (ip_sockets[NS_SERVER] == null)  // why?
+            return null;
+
+        try {
+            byte[] bytes = new byte[1400];
+            ByteBuffer receiveBuffer = ByteBuffer.wrap(bytes);
+
+            InetSocketAddress srcSocket = (InetSocketAddress) ip_channels[NS_SERVER].receive(receiveBuffer);
+            if (srcSocket == null)
+                return null;
+
+            if (receiveBuffer.position() > 1400)
+                return null;
+
+            ClientPacket clientPacket = new ClientPacket();
+            clientPacket.from.ip = srcSocket.getAddress().getAddress();
+            clientPacket.from.port = srcSocket.getPort();
+            clientPacket.from.type = NetAddrType.NA_IP;
+            clientPacket.length = receiveBuffer.position();
+            clientPacket.buffer.cursize = clientPacket.length;
+            clientPacket.buffer.data = bytes;
+            clientPacket.buffer.data[clientPacket.buffer.cursize] = 0; // set the sentinel
+            clientPacket.parseHeader();
+            return clientPacket;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    /**
      * Gets a packet from a network channel
      * @param sock - socket type: server or client;
      * @param net_from - set incoming address to net_from
      * @param net_message - body of the packet
      */
-    public static boolean GetPacket(int sock, netadr_t net_from,
-            sizebuf_t net_message) {
+    public static boolean GetPacket(int sock, netadr_t net_from, sizebuf_t net_message) {
 
         if (GetLoopPacket(sock, net_from, net_message)) {
             return true;
@@ -205,8 +271,8 @@ public final class NET {
 
         // clients do not need server sockets
         if (thinclient.value == 0.f) {
-            if (ip_sockets[Defines.NS_SERVER] == null)
-                ip_sockets[Defines.NS_SERVER] = Socket(Defines.NS_SERVER, ip.string, (int) port.value);
+            if (ip_sockets[NS_SERVER] == null)
+                ip_sockets[NS_SERVER] = Socket(NS_SERVER, ip.string, (int) port.value);
         }
 
         // servers do not need client sockets
@@ -291,7 +357,7 @@ public final class NET {
 
     /** Sleeps msec or until net socket is ready. */
     public static void Sleep(int msec) {
-        if (ip_sockets[Defines.NS_SERVER] == null
+        if (ip_sockets[NS_SERVER] == null
                 || (Globals.dedicated != null && Globals.dedicated.value == 0))
             return; // we're not a server, just run full speed
 

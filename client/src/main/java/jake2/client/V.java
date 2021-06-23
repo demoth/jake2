@@ -435,12 +435,6 @@ public final class V extends Globals {
         if (cl_stats.value != 0.0f)
             Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(
                     r_numentities).add(r_numdlights).add(r_numparticles));
-        if (log_stats.value != 0.0f && (log_stats_file != null))
-            try {
-                log_stats_file.write(r_numentities + "," + r_numdlights + ","
-                        + r_numparticles);
-            } catch (IOException e) {
-            }
 
         SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x, ClientGlobals.scr_vrect.y);
         SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x + ClientGlobals.scr_vrect.width - 1, ClientGlobals.scr_vrect.y
