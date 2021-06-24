@@ -730,7 +730,7 @@ public final class CL {
      * 
      * Responses to broadcasts, etc
      */
-    private static void ConnectionlessPacket(NetworkPacket packet) {
+    private static void CL_ConnectionlessPacket(NetworkPacket packet) {
 
         List<String> args = Cmd.TokenizeString(packet.connectionlessMessage, false);
 
@@ -796,13 +796,18 @@ public final class CL {
      * ReadPackets
      */
     private static void CL_ReadPackets() {
-
         while (true) {
-            NetworkPacket networkPacket = NET.receiveNetworkPacket(NET.ip_sockets[NS_CLIENT], NET.ip_channels[NS_CLIENT], NET.loopbacks[NS_CLIENT], false);
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(
+                    NET.ip_sockets[NS_CLIENT],
+                    NET.ip_channels[NS_CLIENT],
+                    NET.loopbacks[NS_CLIENT],
+                    false);
+
             if (networkPacket == null)
                 break;
+
             if (networkPacket.isConnectionless()) {
-                ConnectionlessPacket(networkPacket);
+                CL_ConnectionlessPacket(networkPacket);
                 continue;
             }
 
@@ -817,9 +822,9 @@ public final class CL {
                 Com.DPrintf(networkPacket.from + ":sequenced packet without connection\n");
                 continue;
             }
-            if (!networkPacket.isValidForClient(ClientGlobals.cls.netchan))
-                continue; // wasn't accepted for some reason
-            CL_parse.ParseServerMessage(networkPacket.parseBodyFromServer());
+            if (networkPacket.isValidForClient(ClientGlobals.cls.netchan)) {
+                CL_parse.ParseServerMessage(networkPacket.parseBodyFromServer());
+            } //else wasn't accepted for some reason
         }
 
         //

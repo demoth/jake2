@@ -641,46 +641,52 @@ public class SV_MAIN implements JakeServer {
      * Reads packets from the network or loopback.
      */
     void SV_ReadPackets() {
-
         while (true) {
-            NetworkPacket networkPacket = NET.receiveNetworkPacket(NET.ip_sockets[NS_SERVER], NET.ip_channels[NS_SERVER], NET.loopbacks[NS_SERVER], true);
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(
+                    NET.ip_sockets[NS_SERVER],
+                    NET.ip_channels[NS_SERVER],
+                    NET.loopbacks[NS_SERVER],
+                    true);
 
             if (networkPacket == null)
                 break;
 
             if (networkPacket.isConnectionless()) {
                 SV_ConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage);
-            } else {
-                // check for packets from connected clients
-                for (int i = 0; i < maxclients.value; i++) {
-                    client_t cl = clients.get(i);
-                    if (cl.state == ClientStates.CS_FREE)
-                        continue;
-                    if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
-                        continue;
-                    if (cl.netchan.qport != networkPacket.qport)
-                        continue;
-                    if (cl.netchan.remote_address.port != networkPacket.from.port) {
-                        Com.Printf("SV_ReadPackets: fixing up a translated port\n");
-                        cl.netchan.remote_address.port = networkPacket.from.port;
-                    }
-
-                    if (networkPacket.isValidForClient(cl.netchan)) {
-                        // this is a valid, sequenced packet, so process it
-                        if (cl.state != ClientStates.CS_ZOMBIE) {
-                            // todo: identify gameImports instance by client
-                            // todo: use sv_main realtime
-                            cl.lastmessage = gameImports.realtime; // don't timeout
-                            Collection<ClientMessage> body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence);
-                            if (body == null)
-                                SV_DropClient(cl);
-                            else
-                                SV_ExecuteClientMessage(cl, body);
-                        }
-                    }
-                    break;
-                }
+                continue;
             }
+
+            // check for packets from connected clients
+            // todo: get client by address (hashmap?)
+            for (int i = 0; i < maxclients.value; i++) {
+                client_t cl = clients.get(i);
+                if (cl.state == ClientStates.CS_FREE)
+                    continue;
+                if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
+                    continue;
+                if (cl.netchan.qport != networkPacket.qport)
+                    continue;
+                if (cl.netchan.remote_address.port != networkPacket.from.port) {
+                    Com.Printf("SV_ReadPackets: fixing up a translated port\n");
+                    cl.netchan.remote_address.port = networkPacket.from.port;
+                }
+
+                if (networkPacket.isValidForClient(cl.netchan)) {
+                    // this is a valid, sequenced packet, so process it
+                    if (cl.state != ClientStates.CS_ZOMBIE) {
+                        // todo: identify gameImports instance by client
+                        // todo: use sv_main realtime
+                        cl.lastmessage = gameImports.realtime; // don't timeout
+                        Collection<ClientMessage> body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence);
+                        if (body == null)
+                            SV_DropClient(cl);
+                        else
+                            SV_ExecuteClientMessage(cl, body);
+                    }
+                }
+                break;
+            }
+
         }
     }
 

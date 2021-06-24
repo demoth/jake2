@@ -27,7 +27,6 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.NetworkPacket;
 
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -83,30 +82,6 @@ public final class NET {
      */
 
     /**
-     * Gets a packet from internal loopback.
-     */
-    public static boolean GetLoopPacket(int sock, netadr_t net_from, sizebuf_t net_message) {
-	
-        loopback_t loop = loopbacks[sock];
-
-        if (loop.send - loop.get > MAX_LOOPBACK)
-            loop.get = loop.send - MAX_LOOPBACK;
-
-        if (loop.get >= loop.send)
-            return false;
-
-        int i = loop.get & (MAX_LOOPBACK - 1);
-        loop.get++;
-
-        System.arraycopy(loop.msgs[i].data, 0, net_message.data, 0,
-                loop.msgs[i].datalen);
-        net_message.cursize = loop.msgs[i].datalen;
-
-        net_from.set(net_local_adr);
-        return true;
-    }
-
-    /**
      * Sends a packet via internal loopback.
      */
     public static void SendLoopPacket(int sock, int length, byte[] data, netadr_t to) {
@@ -135,19 +110,13 @@ public final class NET {
         int i = loop.get & (MAX_LOOPBACK - 1);
         loop.get++;
 
-        NetworkPacket loopbackPacket = new NetworkPacket(fromClient);
-        loopbackPacket.length = loop.msgs[i].datalen;
-        loopbackPacket.buffer.data = new byte[loop.msgs[i].datalen];
-        loopbackPacket.buffer.cursize = loopbackPacket.length;
-        System.arraycopy(loop.msgs[i].data, 0, loopbackPacket.buffer.data, 0, loop.msgs[i].datalen);
-        return loopbackPacket;
+        return NetworkPacket.fromLoopback(fromClient, loop.msgs[i].data, loop.msgs[i].datalen);
     }
 
     public static NetworkPacket receiveNetworkPacket(DatagramSocket socket, DatagramChannel channel, loopback_t loopback, boolean fromClient) {
         NetworkPacket result = receiveNetworkPacketLoopback(loopback, fromClient);
 
         if (result != null) {
-            result.parseHeader();
             return result;
         }
 
@@ -165,69 +134,13 @@ public final class NET {
             if (receiveBuffer.position() > MAX_MSGLEN) // how it is possible?
                 return null;
 
-            NetworkPacket networkPacket = new NetworkPacket(fromClient);
-            networkPacket.from.ip = srcSocket.getAddress().getAddress();
-            networkPacket.from.port = srcSocket.getPort();
-            networkPacket.from.type = NetAddrType.NA_IP;
-            networkPacket.length = receiveBuffer.position();
-            networkPacket.buffer.cursize = networkPacket.length;
-            networkPacket.buffer.data = bytes;
-            networkPacket.buffer.data[networkPacket.buffer.cursize] = 0; // set the sentinel
-            networkPacket.parseHeader();
-            return networkPacket;
+            return NetworkPacket.fromSocket(fromClient, bytes, receiveBuffer.position(), srcSocket.getAddress().getAddress(), srcSocket.getPort());
 
         } catch (Exception e) {
             return null;
         }
     }
 
-
-    /**
-     * Gets a packet from a network channel
-     * @param sock - socket type: server or client;
-     * @param net_from - set incoming address to net_from
-     * @param net_message - body of the packet
-     */
-    public static boolean GetPacket(int sock, netadr_t net_from, sizebuf_t net_message) {
-
-        if (GetLoopPacket(sock, net_from, net_message)) {
-            return true;
-        }
-
-        if (ip_sockets[sock] == null)
-            return false;
-
-        try {
-            ByteBuffer receiveBuffer = ByteBuffer.wrap(net_message.data);
-
-            InetSocketAddress srcSocket = (InetSocketAddress) ip_channels[sock]
-                    .receive(receiveBuffer);
-            if (srcSocket == null)
-                return false;
-
-            net_from.ip = srcSocket.getAddress().getAddress();
-            net_from.port = srcSocket.getPort();
-            net_from.type = NetAddrType.NA_IP;
-
-            int packetLength = receiveBuffer.position();
-
-            if (packetLength > net_message.maxsize) {
-                Com.Println("Oversize packet from " + net_from.toString());
-                return false;
-            }
-
-            // set the size
-            net_message.cursize = packetLength;
-            // set the sentinel
-            net_message.data[packetLength] = 0;
-            return true;
-
-        } catch (IOException e) {
-            Com.DPrintf("NET_GetPacket: " + e + " from "
-                    + net_from.toString() + "\n");
-            return false;
-        }
-    }
 
     /**
      * Sends a Packet.

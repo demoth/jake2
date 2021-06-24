@@ -1,6 +1,7 @@
 package jake2.qcommon.network.messages;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
@@ -17,17 +18,15 @@ public class NetworkPacket {
     private final boolean fromClient;
 
     // Long, -1 for connectionless
-    public int sequence;
+    private int sequence;
 
     // Long
-    public int sequenceAck;
+    private int sequenceAck;
 
     // read the qport out of the message so we can fix up
     // stupid address translating routers
     // Short
     public int qport;
-
-    public int length;
 
     public String connectionlessMessage;
 
@@ -37,7 +36,29 @@ public class NetworkPacket {
 
     public sizebuf_t buffer = new sizebuf_t();
 
-    public NetworkPacket(boolean fromClient) {
+    public static NetworkPacket fromLoopback(boolean fromClient, byte[] data, int datalen) {
+        // localhost by default
+        NetworkPacket loopbackPacket = new NetworkPacket(fromClient);
+        loopbackPacket.buffer.data = new byte[datalen];
+        loopbackPacket.buffer.cursize = datalen;
+        System.arraycopy(data, 0, loopbackPacket.buffer.data, 0, datalen);
+        loopbackPacket.parseHeader();
+        return loopbackPacket;
+    }
+
+    public static NetworkPacket fromSocket(boolean fromClient, byte[] data, int datalen, byte[] address, int port) {
+        NetworkPacket networkPacket = new NetworkPacket(fromClient);
+        networkPacket.from.ip = address;
+        networkPacket.from.port = port;
+        networkPacket.from.type = NetAddrType.NA_IP;
+        networkPacket.buffer.cursize = datalen;
+        networkPacket.buffer.data = data;
+        networkPacket.buffer.data[datalen] = 0; // set the sentinel
+        networkPacket.parseHeader();
+        return networkPacket;
+    }
+
+    private NetworkPacket(boolean fromClient) {
         this.fromClient = fromClient;
     }
 
