@@ -4,6 +4,7 @@ package jake2.qcommon.network.messages.server;
 public enum ServerMessageType {
     // these ops are known to the game dll
     // protocol bytes that can be directly added to messages
+    svc_end(-1),
     svc_bad(0),
     // +
     svc_muzzleflash(1),

@@ -32,7 +32,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.messages.ClientPacket;
+import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
@@ -643,35 +643,35 @@ public class SV_MAIN implements JakeServer {
     void SV_ReadPackets() {
 
         while (true) {
-            ClientPacket clientPacket = NET.getClientPacket();
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(NET.ip_sockets[NS_SERVER], NET.ip_channels[NS_SERVER], NET.loopbacks[NS_SERVER], true);
 
-            if (clientPacket == null)
+            if (networkPacket == null)
                 break;
 
-            if (clientPacket.isConnectionless()) {
-                SV_ConnectionlessPacket(clientPacket.from, clientPacket.connectionlessMessage);
+            if (networkPacket.isConnectionless()) {
+                SV_ConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage);
             } else {
                 // check for packets from connected clients
                 for (int i = 0; i < maxclients.value; i++) {
                     client_t cl = clients.get(i);
                     if (cl.state == ClientStates.CS_FREE)
                         continue;
-                    if (!clientPacket.from.CompareBaseAdr(cl.netchan.remote_address))
+                    if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
                         continue;
-                    if (cl.netchan.qport != clientPacket.qport)
+                    if (cl.netchan.qport != networkPacket.qport)
                         continue;
-                    if (cl.netchan.remote_address.port != clientPacket.from.port) {
+                    if (cl.netchan.remote_address.port != networkPacket.from.port) {
                         Com.Printf("SV_ReadPackets: fixing up a translated port\n");
-                        cl.netchan.remote_address.port = clientPacket.from.port;
+                        cl.netchan.remote_address.port = networkPacket.from.port;
                     }
 
-                    if (clientPacket.isValidForClient(cl.netchan)) {
+                    if (networkPacket.isValidForClient(cl.netchan)) {
                         // this is a valid, sequenced packet, so process it
                         if (cl.state != ClientStates.CS_ZOMBIE) {
                             // todo: identify gameImports instance by client
                             // todo: use sv_main realtime
                             cl.lastmessage = gameImports.realtime; // don't timeout
-                            Collection<ClientMessage> body = clientPacket.parseBody(cl.netchan.incoming_sequence);
+                            Collection<ClientMessage> body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence);
                             if (body == null)
                                 SV_DropClient(cl);
                             else

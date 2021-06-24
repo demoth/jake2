@@ -1,19 +1,20 @@
 package jake2.qcommon.network.messages;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Globals;
-import jake2.qcommon.MSG;
+import jake2.qcommon.*;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.network.netchan_t;
-import jake2.qcommon.sizebuf_t;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class ClientPacket {
+public class NetworkPacket {
+
+    // should parse port
+    private final boolean fromClient;
 
     // Long, -1 for connectionless
     public int sequence;
@@ -30,9 +31,15 @@ public class ClientPacket {
 
     public String connectionlessMessage;
 
+    public String connectionlessParameters; // client only
+
     public netadr_t from = new netadr_t();
 
     public sizebuf_t buffer = new sizebuf_t();
+
+    public NetworkPacket(boolean fromClient) {
+        this.fromClient = fromClient;
+    }
 
     public boolean isConnectionless() {
         return sequence == -1;
@@ -43,13 +50,48 @@ public class ClientPacket {
 
         if (isConnectionless()) {
             connectionlessMessage = MSG.ReadStringLine(buffer);
+            if (!fromClient) {
+                switch (connectionlessMessage) {
+                    case "info":
+                    case "cmd":
+                    case "print":
+                        connectionlessParameters = MSG.ReadStringLine(buffer);
+                        break;
+                    default:
+                        // challenge
+                        // ping
+                        // cmd
+                        // client_connect
+                        break;
+                }
+
+            }
         } else {
             sequenceAck = MSG.ReadLong(buffer);
-            qport = MSG.ReadShort(buffer) & 0xffff;
+
+            if (fromClient)
+                qport = MSG.ReadShort(buffer) & 0xffff;
         }
     }
 
-    public Collection<ClientMessage> parseBody(int incomingSequence) {
+    public Collection<ServerMessage> parseBodyFromServer() {
+        List<ServerMessage> result = new ArrayList<>();
+        while (true) {
+            ServerMessage msg = ServerMessage.parseFromBuffer(buffer);
+            if (msg instanceof jake2.qcommon.network.messages.server.EndMessage) {
+                break;
+            } else if (msg != null) {
+                result.add(msg);
+            }
+            if (buffer.readcount > buffer.cursize) {
+                Com.Error(Defines.ERR_FATAL, "CL_ParseServerMessage: Bad server message:");
+                break;
+            }
+        }
+        return result;
+    }
+
+    public Collection<ClientMessage> parseBodyFromClient(int incomingSequence) {
         List<ClientMessage> result = new ArrayList<>();
         while (true) {
             ClientMessage msg = ClientMessage.parseFromBuffer(buffer, incomingSequence);

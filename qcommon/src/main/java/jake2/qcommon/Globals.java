@@ -257,8 +257,7 @@ public class Globals extends Defines {
 	public static boolean userinfo_modified = false;
 
 	public static int sys_frame_time;
-	public static netadr_t net_from = new netadr_t();
-	
+
 	// logfile
 	public static RandomAccessFile logfile = null;
 	

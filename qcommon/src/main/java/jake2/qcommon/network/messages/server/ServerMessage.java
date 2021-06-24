@@ -123,8 +123,12 @@ public abstract class ServerMessage {
 
     abstract void parse(sizebuf_t buffer);
 
-    public static ServerMessage parseFromBuffer(ServerMessageType type, sizebuf_t buffer) {
+    public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
 
+        final int cmd = MSG.ReadByte(buffer);
+        if (cmd == -1)
+            return new EndMessage();
+        ServerMessageType type = ServerMessageType.fromInt(cmd);
         final ServerMessage msg;
         // skip parsing of messages not yet migrated to the ServerMessage class
         switch (type) {

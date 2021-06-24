@@ -33,6 +33,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.ServerDataMessage;
@@ -51,6 +52,7 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.List;
 
+import static jake2.qcommon.Defines.NS_CLIENT;
 import static jake2.qcommon.exec.Cmd.getArguments;
 
 /**
@@ -718,13 +720,9 @@ public final class CL {
      * 
      * Handle a reply from a ping.
      */
-    private static void ParseStatusMessage() {
-        String s;
-
-        s = MSG.ReadString(Globals.net_message);
-
+    private static void ParseStatusMessage(netadr_t from, String s) {
         Com.Printf(s + "\n");
-        Menu.AddToServerList(Globals.net_from, s);
+        Menu.AddToServerList(from, s);
     }
 
     /**
@@ -732,97 +730,79 @@ public final class CL {
      * 
      * Responses to broadcasts, etc
      */
-    private static void ConnectionlessPacket() {
-        String s;
-        String c;
+    private static void ConnectionlessPacket(NetworkPacket packet) {
 
-        MSG.BeginReading(Globals.net_message);
-        MSG.ReadLong(Globals.net_message); // skip the -1
+        List<String> args = Cmd.TokenizeString(packet.connectionlessMessage, false);
 
-        s = MSG.ReadStringLine(Globals.net_message);
-
-        List<String> args = Cmd.TokenizeString(s, false);
-
-        c = args.get(0);
+        String c = args.get(0);
         
-        Com.Println(Globals.net_from.toString() + ": " + c);
+        Com.Println(packet.from + ": " + c);
 
         // server connection
-        if (c.equals("client_connect")) {
-            if (ClientGlobals.cls.state == Defines.ca_connected) {
-                Com.Printf("Dup connect received.  Ignored.\n");
-                return;
-            }
-            Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
-                    Globals.net_from, ClientGlobals.cls.quakePort);
-            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
-            ClientGlobals.cls.state = Defines.ca_connected;
-            return;
-        }
+        switch (c) {
+            case "client_connect":
+                if (ClientGlobals.cls.state == Defines.ca_connected) {
+                    Com.Printf("Dup connect received.  Ignored.\n");
+                    break;
+                }
+                Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan, packet.from, ClientGlobals.cls.quakePort);
+                new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
+                ClientGlobals.cls.state = Defines.ca_connected;
+                break;
 
-        // server responding to a status broadcast
-        if (c.equals("info")) {
-            ParseStatusMessage();
-            return;
-        }
+            // server responding to a status broadcast
+            case "info":
+                ParseStatusMessage(packet.from, packet.connectionlessParameters);
+                break;
 
-        // remote command from gui front end
-        if (c.equals("cmd")) {
-            if (!Globals.net_from.IsLocalAddress()) {
-                Com.Printf("Command packet from remote host.  Ignored.\n");
-                return;
-            }
-            s = MSG.ReadString(Globals.net_message);
-            Cbuf.AddText(s);
-            Cbuf.AddText("\n");
-            return;
-        }
-        // print command from somewhere
-        if (c.equals("print")) {
-            s = MSG.ReadString(Globals.net_message);
-            if (s.length() > 0)
-            	Com.Printf(s);
-            return;
-        }
+            // remote command from gui front end
+            case "cmd":
+                if (!packet.from.IsLocalAddress()) {
+                    Com.Printf("Command packet from remote host.  Ignored.\n");
+                    break;
+                }
+                Cbuf.AddText(packet.connectionlessParameters + '\n');
+                break;
 
-        // ping from somewhere
-        if (c.equals("ping")) {
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, Globals.net_from, "ack");
-            return;
-        }
+            // print command from somewhere
+            case "print":
+                if (packet.connectionlessParameters.length() > 0)
+                    Com.Printf(packet.connectionlessParameters);
+                break;
 
-        // challenge from the server we are connecting to
-        if (c.equals("challenge")) {
-            ClientGlobals.cls.challenge = Lib.atoi(args.get(1));
-            SendConnectPacket();
-            return;
-        }
+            // ping from somewhere
+            case "ping":
+                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, "ack");
+                break;
 
-        // echo request from server
-        if (c.equals("echo")) {
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, Globals.net_from, args.get(1));
-            return;
-        }
+            // challenge from the server we are connecting to
+            case "challenge":
+                ClientGlobals.cls.challenge = Lib.atoi(args.get(1));
+                SendConnectPacket();
+                break;
 
-        Com.Printf("Unknown command.\n");
+            // echo request from server
+            case "echo":
+                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, args.get(1));
+                break;
+            default:
+                Com.Printf("Unknown command.\n");
+                break;
+        }
     }
 
 
     /**
      * ReadPackets
      */
-    private static void ReadPackets() {
-        while (NET.GetPacket(Defines.NS_CLIENT, Globals.net_from, Globals.net_message)) {
+    private static void CL_ReadPackets() {
 
-            //
-            // remote command packet
-            //		
-            if (Globals.net_message.data[0] == -1
-                    && Globals.net_message.data[1] == -1
-                    && Globals.net_message.data[2] == -1
-                    && Globals.net_message.data[3] == -1) {
-                //			if (*(int *)net_message.data == -1)
-                ConnectionlessPacket();
+        while (true) {
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(NET.ip_sockets[NS_CLIENT], NET.ip_channels[NS_CLIENT], NET.loopbacks[NS_CLIENT], false);
+            if (networkPacket == null)
+                break;
+            if (networkPacket.isConnectionless()) {
+                ConnectionlessPacket(networkPacket);
                 continue;
             }
 
@@ -830,22 +810,16 @@ public final class CL {
                     || ClientGlobals.cls.state == Defines.ca_connecting)
                 continue; // dump it if not connected
 
-            if (Globals.net_message.cursize < 8) {
-                Com.Printf(Globals.net_from.toString()
-                        + ": Runt packet\n");
-                continue;
-            }
-
             //
             // packet from server
             //
-            if (!Globals.net_from.compareIp(ClientGlobals.cls.netchan.remote_address)) {
-                Com.DPrintf(Globals.net_from + ":sequenced packet without connection\n");
+            if (!networkPacket.from.compareIp(ClientGlobals.cls.netchan.remote_address)) {
+                Com.DPrintf(networkPacket.from + ":sequenced packet without connection\n");
                 continue;
             }
-            if (!Netchan.Process(ClientGlobals.cls.netchan, Globals.net_message))
+            if (!networkPacket.isValidForClient(ClientGlobals.cls.netchan))
                 continue; // wasn't accepted for some reason
-            CL_parse.ParseServerMessage();
+            CL_parse.ParseServerMessage(networkPacket.parseBodyFromServer());
         }
 
         //
@@ -857,7 +831,6 @@ public final class CL {
             {
                 Com.Printf("\nServer connection timed out.\n");
                 Disconnect();
-                return;
             }
         } else
             ClientGlobals.cl.timeoutcount = 0;
@@ -1489,7 +1462,7 @@ public final class CL {
             ClientGlobals.cls.netchan.last_received = Timer.Milliseconds();
 
         // fetch results from server
-        ReadPackets();
+        CL_ReadPackets();
 
         // send a new command message to the server
         SendCommand();

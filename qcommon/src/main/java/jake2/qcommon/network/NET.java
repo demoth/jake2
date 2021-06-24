@@ -25,7 +25,7 @@ package jake2.qcommon.network;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.network.messages.ClientPacket;
+import jake2.qcommon.network.messages.NetworkPacket;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -35,6 +35,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
+import static jake2.qcommon.Defines.MAX_MSGLEN;
 import static jake2.qcommon.Defines.NS_SERVER;
 
 public final class NET {
@@ -69,9 +70,9 @@ public final class NET {
             new loopback_t(), new loopback_t()
     };
 
-    private static final DatagramChannel[] ip_channels = { null, null };
+    public static final DatagramChannel[] ip_channels = { null, null };
 
-    private static final DatagramSocket[] ip_sockets = { null, null };
+    public static final DatagramSocket[] ip_sockets = { null, null };
 
     /*
      * ==================================================
@@ -123,9 +124,7 @@ public final class NET {
     /**
      * Gets a packet from internal loopback.
      */
-    private static ClientPacket getClientPacketFromLoopback() {
-
-        loopback_t loop = loopbacks[NS_SERVER];
+    private static NetworkPacket receiveNetworkPacketLoopback(loopback_t loop, boolean fromClient) {
 
         if (loop.send - loop.get > MAX_LOOPBACK)
             loop.get = loop.send - MAX_LOOPBACK;
@@ -136,7 +135,7 @@ public final class NET {
         int i = loop.get & (MAX_LOOPBACK - 1);
         loop.get++;
 
-        ClientPacket loopbackPacket = new ClientPacket();
+        NetworkPacket loopbackPacket = new NetworkPacket(fromClient);
         loopbackPacket.length = loop.msgs[i].datalen;
         loopbackPacket.buffer.data = new byte[loop.msgs[i].datalen];
         loopbackPacket.buffer.cursize = loopbackPacket.length;
@@ -144,39 +143,38 @@ public final class NET {
         return loopbackPacket;
     }
 
-
-    public static ClientPacket getClientPacket() {
-        ClientPacket result = getClientPacketFromLoopback();
+    public static NetworkPacket receiveNetworkPacket(DatagramSocket socket, DatagramChannel channel, loopback_t loopback, boolean fromClient) {
+        NetworkPacket result = receiveNetworkPacketLoopback(loopback, fromClient);
 
         if (result != null) {
             result.parseHeader();
             return result;
         }
 
-        if (ip_sockets[NS_SERVER] == null)  // why?
+        if (socket == null)  // why?
             return null;
 
         try {
-            byte[] bytes = new byte[1400];
+            byte[] bytes = new byte[MAX_MSGLEN];
             ByteBuffer receiveBuffer = ByteBuffer.wrap(bytes);
 
-            InetSocketAddress srcSocket = (InetSocketAddress) ip_channels[NS_SERVER].receive(receiveBuffer);
+            InetSocketAddress srcSocket = (InetSocketAddress) channel.receive(receiveBuffer);
             if (srcSocket == null)
                 return null;
 
-            if (receiveBuffer.position() > 1400)
+            if (receiveBuffer.position() > MAX_MSGLEN) // how it is possible?
                 return null;
 
-            ClientPacket clientPacket = new ClientPacket();
-            clientPacket.from.ip = srcSocket.getAddress().getAddress();
-            clientPacket.from.port = srcSocket.getPort();
-            clientPacket.from.type = NetAddrType.NA_IP;
-            clientPacket.length = receiveBuffer.position();
-            clientPacket.buffer.cursize = clientPacket.length;
-            clientPacket.buffer.data = bytes;
-            clientPacket.buffer.data[clientPacket.buffer.cursize] = 0; // set the sentinel
-            clientPacket.parseHeader();
-            return clientPacket;
+            NetworkPacket networkPacket = new NetworkPacket(fromClient);
+            networkPacket.from.ip = srcSocket.getAddress().getAddress();
+            networkPacket.from.port = srcSocket.getPort();
+            networkPacket.from.type = NetAddrType.NA_IP;
+            networkPacket.length = receiveBuffer.position();
+            networkPacket.buffer.cursize = networkPacket.length;
+            networkPacket.buffer.data = bytes;
+            networkPacket.buffer.data[networkPacket.buffer.cursize] = 0; // set the sentinel
+            networkPacket.parseHeader();
+            return networkPacket;
 
         } catch (Exception e) {
             return null;

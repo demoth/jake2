@@ -35,6 +35,7 @@ import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collection;
 
 /**
  * CL_parse
@@ -531,92 +532,67 @@ public class CL_parse {
     /*
      * ===================== CL_ParseServerMessage =====================
      */
-    public static void ParseServerMessage() {
-        while (true) {
-            if (Globals.net_message.readcount > Globals.net_message.cursize) {
-                Com.Error(Defines.ERR_FATAL,
-                        "CL_ParseServerMessage: Bad server message:");
-                break;
-            }
-
-            int cmd = MSG.ReadByte(Globals.net_message);
-
-            if (cmd == -1) {
-                break;
-            }
-
-            ServerMessageType msgType = ServerMessageType.fromInt(cmd);
-            ServerMessage msg = ServerMessage.parseFromBuffer(msgType, Globals.net_message);
-            if (msg != null) {
-                // process
-                if (msg instanceof DisconnectMessage) {
-                    Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
-                } else if (msg instanceof ReconnectMessage) {
-                    Com.Printf("Server disconnected, reconnecting\n");
-                    if (ClientGlobals.cls.download != null) {
-                        //ZOID, close download
-                        try {
-                            ClientGlobals.cls.download.close();
-                        } catch (IOException e) {
-                        }
-                        ClientGlobals.cls.download = null;
+    public static void ParseServerMessage(Collection<ServerMessage> messages) {
+        for (ServerMessage msg: messages) {
+            // process
+            if (msg instanceof DisconnectMessage) {
+                Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
+            } else if (msg instanceof ReconnectMessage) {
+                Com.Printf("Server disconnected, reconnecting\n");
+                if (ClientGlobals.cls.download != null) {
+                    //ZOID, close download
+                    try {
+                        ClientGlobals.cls.download.close();
+                    } catch (IOException e) {
                     }
-                    ClientGlobals.cls.state = Defines.ca_connecting;
-                    ClientGlobals.cls.connect_time = -99999; // CL_CheckForResend() will
-                    // fire immediately
-
-                } else if (msg instanceof PrintMessage) {
-                    if (((PrintMessage) msg).level == Defines.PRINT_CHAT) {
-                        S.StartLocalSound("misc/talk.wav");
-                        ClientGlobals.con.ormask = 128;
-                    }
-                    Com.Printf(((PrintMessage) msg).text);
-                    ClientGlobals.con.ormask = 0;
-                } else if (msg instanceof PrintCenterMessage) {
-                    SCR.CenterPrint(((PrintCenterMessage) msg).text);
-                } else if (msg instanceof StuffTextMessage) {
-                    Com.DPrintf("stufftext: " + ((StuffTextMessage) msg).text + "\n");
-                    Cbuf.AddText(((StuffTextMessage) msg).text);
-                } else if (msg instanceof ServerDataMessage) {
-                    Cbuf.Execute(); // make sure any stuffed commands are done
-                    ParseServerData((ServerDataMessage) msg);
-                } else if (msg instanceof ConfigStringMessage) {
-                    ParseConfigString((ConfigStringMessage) msg);
-                } else if (msg instanceof SoundMessage) {
-                    ParseStartSoundPacket((SoundMessage) msg);
-                } else if (msg instanceof WeaponSoundMessage) {
-                    CL_fx.ParseMuzzleFlash((WeaponSoundMessage) msg);
-                } else if (msg instanceof MuzzleFlash2Message) {
-                    CL_fx.ParseMuzzleFlash2((MuzzleFlash2Message) msg);
-                } else if (msg instanceof FrameHeaderMessage) {
-                    old = CL_ents.processFrameMessage((FrameHeaderMessage) msg);
-                } else if (msg instanceof PlayerInfoMessage) {
-                    CL_ents.ParsePlayerstate(old, ClientGlobals.cl.frame, (PlayerInfoMessage) msg);
-                } else if (msg instanceof LayoutMessage) {
-                    ClientGlobals.cl.layout = ((LayoutMessage) msg).layout;
-                } else if (msg instanceof InventoryMessage) {
-                    CL_inv.ParseInventory((InventoryMessage) msg);
-                } else if (msg instanceof TEMessage) {
-                    CL_tent.ParseTEnt((TEMessage) msg);
-                } else if (msg instanceof SpawnBaselineMessage) {
-                    SpawnBaselineMessage m = (SpawnBaselineMessage) msg;
-                    ClientGlobals.cl_entities[m.entityState.number].baseline.set(m.entityState);
-                } else if (msg instanceof PacketEntitiesMessage) {
-//                     should be called after CL_ents.processFrameMessage
-                    CL_ents.parsePacketEntities(old, (PacketEntitiesMessage) msg);
-                } else if (msg instanceof DownloadMessage) {
-                    ParseDownload((DownloadMessage) msg);
+                    ClientGlobals.cls.download = null;
                 }
-                continue;
-            }
-            CL_view.AddNetgraph();
+                ClientGlobals.cls.state = Defines.ca_connecting;
+                ClientGlobals.cls.connect_time = -99999; // CL_CheckForResend() will
+                // fire immediately
 
-            //
-            // we don't know if it is ok to save a demo message until
-            // after we have parsed the frame
-            //
-            if (ClientGlobals.cls.demorecording && !ClientGlobals.cls.demowaiting)
-                CL.WriteDemoMessage();
+            } else if (msg instanceof PrintMessage) {
+                if (((PrintMessage) msg).level == Defines.PRINT_CHAT) {
+                    S.StartLocalSound("misc/talk.wav");
+                    ClientGlobals.con.ormask = 128;
+                }
+                Com.Printf(((PrintMessage) msg).text);
+                ClientGlobals.con.ormask = 0;
+            } else if (msg instanceof PrintCenterMessage) {
+                SCR.CenterPrint(((PrintCenterMessage) msg).text);
+            } else if (msg instanceof StuffTextMessage) {
+                Com.DPrintf("stufftext: " + ((StuffTextMessage) msg).text + "\n");
+                Cbuf.AddText(((StuffTextMessage) msg).text);
+            } else if (msg instanceof ServerDataMessage) {
+                Cbuf.Execute(); // make sure any stuffed commands are done
+                ParseServerData((ServerDataMessage) msg);
+            } else if (msg instanceof ConfigStringMessage) {
+                ParseConfigString((ConfigStringMessage) msg);
+            } else if (msg instanceof SoundMessage) {
+                ParseStartSoundPacket((SoundMessage) msg);
+            } else if (msg instanceof WeaponSoundMessage) {
+                CL_fx.ParseMuzzleFlash((WeaponSoundMessage) msg);
+            } else if (msg instanceof MuzzleFlash2Message) {
+                CL_fx.ParseMuzzleFlash2((MuzzleFlash2Message) msg);
+            } else if (msg instanceof FrameHeaderMessage) {
+                old = CL_ents.processFrameMessage((FrameHeaderMessage) msg);
+            } else if (msg instanceof PlayerInfoMessage) {
+                CL_ents.ParsePlayerstate(old, ClientGlobals.cl.frame, (PlayerInfoMessage) msg);
+            } else if (msg instanceof LayoutMessage) {
+                ClientGlobals.cl.layout = ((LayoutMessage) msg).layout;
+            } else if (msg instanceof InventoryMessage) {
+                CL_inv.ParseInventory((InventoryMessage) msg);
+            } else if (msg instanceof TEMessage) {
+                CL_tent.ParseTEnt((TEMessage) msg);
+            } else if (msg instanceof SpawnBaselineMessage) {
+                SpawnBaselineMessage m = (SpawnBaselineMessage) msg;
+                ClientGlobals.cl_entities[m.entityState.number].baseline.set(m.entityState);
+            } else if (msg instanceof PacketEntitiesMessage) {
+//                     should be called after CL_ents.processFrameMessage
+                CL_ents.parsePacketEntities(old, (PacketEntitiesMessage) msg);
+            } else if (msg instanceof DownloadMessage) {
+                ParseDownload((DownloadMessage) msg);
+            }
         }
     }
 }
