@@ -347,18 +347,13 @@ public final class CL {
             return;
         }
 
-        StringBuilder message = new StringBuilder(1024);
-
-        // connection less packet
-        message.append('\u00ff');
-        message.append('\u00ff');
-        message.append('\u00ff');
-        message.append('\u00ff');
-
         // allow remote
+        // fixme: why?
         NET.Config(true);
 
-        message.append("rcon ");
+        // assemble password and arguments into a string and send
+        StringBuilder message = new StringBuilder(1024);
+        message.append(" ");
         message.append(ClientGlobals.rcon_client_password.string);
         message.append(" ");
 
@@ -367,9 +362,9 @@ public final class CL {
             message.append(" ");
         }
 
-        netadr_t to = new netadr_t();
+        final netadr_t to;
 
-        if (ClientGlobals.cls.state >= Defines.ca_connected) {
+        if (ClientGlobals.cls.state == Defines.ca_connected || ClientGlobals.cls.state == Defines.ca_active) {
             to = ClientGlobals.cls.netchan.remote_address;
         } else {
             if (ClientGlobals.rcon_address.string.length() == 0) {
@@ -378,9 +373,7 @@ public final class CL {
             }
             to = netadr_t.fromString(ClientGlobals.rcon_address.string, Defines.PORT_SERVER);
         }
-        message.append('\0');
-        String b = message.toString();
-        NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, to, ConnectionlessCommand.rcon, message.toString());
     };
 
     private static Command Disconnect_f = (List<String> args) -> Com.Error(Defines.ERR_DROP, "Disconnected from server");

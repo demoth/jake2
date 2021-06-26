@@ -356,7 +356,7 @@ public class SV_MAIN implements JakeServer {
      * A client issued an rcon command. Shift down the remaining args Redirect
      * all printfs from the server to the client.
      */
-    private static void SVC_RemoteCommand(List<String> args, GameImportsImpl gameImports, netadr_t from) {
+    private static void SVC_RemoteCommand(List<String> args, final netadr_t from) {
 
         boolean rconIsValid = Rcon_Validate(args);
 
@@ -421,7 +421,7 @@ public class SV_MAIN implements JakeServer {
                 SVC_DirectConnect(args, from);
                 break;
             case rcon:
-                SVC_RemoteCommand(args, gameImports, from);
+                SVC_RemoteCommand(args, from);
                 break;
             default:
                 Com.Printf("Unknown ClientConnectionlessCommand: " + c + '\n');
