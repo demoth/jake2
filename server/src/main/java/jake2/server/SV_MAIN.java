@@ -32,6 +32,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static jake2.qcommon.Defines.*;
@@ -145,24 +147,25 @@ public class SV_MAIN implements JakeServer {
 
     /**
      * Responds with all the info that qplug or qspy can see
+     * @param from
      */
-    private void SVC_Status() {
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "print\n" + SV_StatusString());
+    private void SVC_Status(netadr_t from) {
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "print\n" + SV_StatusString());
     }
 
     /**
      *  SVC_Ack
+     * @param from
      */
-    private static void SVC_Ack() {
-        Com.Printf("Ping acknowledge from " + Globals.net_from.toString()
-                + "\n");
+    private static void SVC_Ack(netadr_t from) {
+        Com.Printf("Ping acknowledge from " + from + "\n");
     }
 
     /**
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    private void SVC_Info(List<String> args) {
+    private void SVC_Info(List<String> args, netadr_t from) {
 
         if (maxclients.value == 1)
             return; // ignore in single player
@@ -181,14 +184,15 @@ public class SV_MAIN implements JakeServer {
             string = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
         }
 
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "info\n" + string);
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "info\n" + string);
     }
 
     /**
      * SVC_Ping, Just responds with an acknowledgement.
+     * @param from
      */
-    private static void SVC_Ping() {
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "ack");
+    private static void SVC_Ping(netadr_t from) {
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "ack");
     }
 
     /** 
@@ -196,8 +200,9 @@ public class SV_MAIN implements JakeServer {
      * client_connect command. We do this to prevent denial of service attacks
      * that flood the server with invalid connection IPs. With a challenge, they
      * must give a valid IP address.
+     * @param from
      */
-    private void SVC_GetChallenge() {
+    private void SVC_GetChallenge(netadr_t from) {
         int i;
         int oldest;
         int oldestTime;
@@ -206,7 +211,7 @@ public class SV_MAIN implements JakeServer {
         oldestTime = 0x7fffffff;
 
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
-            if (Globals.net_from.CompareBaseAdr(challenges[i].adr))
+            if (from.CompareBaseAdr(challenges[i].adr))
                 break;
             if (challenges[i].time < oldestTime) {
                 oldestTime = challenges[i].time;
@@ -217,21 +222,19 @@ public class SV_MAIN implements JakeServer {
         if (i == Defines.MAX_CHALLENGES) {
             // overwrite the oldest
             challenges[oldest].challenge = Lib.rand() & 0x7fff;
-            challenges[oldest].adr = Globals.net_from;
+            challenges[oldest].adr = from;
             challenges[oldest].time = (int) Globals.curtime;
             i = oldest;
         }
 
         // send it back
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "challenge " + challenges[i].challenge);
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "challenge " + challenges[i].challenge);
     }
 
     /**
      * A connection request that did not come from the master.
      */
-    private void SVC_DirectConnect(List<String> args) {
-
-        netadr_t adr = Globals.net_from;
+    private void SVC_DirectConnect(List<String> args, netadr_t adr) {
 
         Com.DPrintf("SVC_DirectConnect ()\n");
 
@@ -248,7 +251,7 @@ public class SV_MAIN implements JakeServer {
         String userinfo = args.size() >= 5 ? args.get(4) : "";
 
         // force the IP key/value pair so the game can filter based on ip
-        userinfo = Info.Info_SetValueForKey(userinfo, "ip", Globals.net_from.toString());
+        userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString());
 
         if (gameImports.sv.isDemo) {
             if (!adr.IsLocalAddress()) {
@@ -262,7 +265,7 @@ public class SV_MAIN implements JakeServer {
         int j;
         if (!adr.IsLocalAddress()) {
             for (j = 0; j < Defines.MAX_CHALLENGES; j++) {
-                if (Globals.net_from.CompareBaseAdr(challenges[j].adr)) {
+                if (adr.CompareBaseAdr(challenges[j].adr)) {
                     if (challenge == challenges[j].challenge)
                         break; // good
                     Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nBad challenge.\n");
@@ -379,22 +382,20 @@ public class SV_MAIN implements JakeServer {
      * A client issued an rcon command. Shift down the remaining args Redirect
      * all printfs from the server to the client.
      */
-    private static void SVC_RemoteCommand(List<String> args, GameImportsImpl gameImports) {
+    private static void SVC_RemoteCommand(List<String> args, GameImportsImpl gameImports, netadr_t from) {
 
         boolean rconIsValid = Rcon_Validate(args);
 
-        String msg = Lib.CtoJava(Globals.net_message.data, 4, 1024);
-
         if (rconIsValid) {
-            Com.Printf("Rcon from " + Globals.net_from.toString() + ":\n" + msg + "\n");
+            Com.Printf("Rcon from " + from + ":\n" + args + "\n");
         } else {
-            Com.Printf("Bad rcon from " + Globals.net_from.toString() + ":\n" + msg + "\n");
+            Com.Printf("Bad rcon from " + from + ":\n" + args + "\n");
         }
 
         // todo identify gameImports instance by client
 
         Com.BeginRedirect(Defines.RD_PACKET, Defines.SV_OUTPUTBUF_LENGTH,
-                (target, buffer) -> SV_SEND.SV_FlushRedirect(target, Lib.stringToBytes(buffer.toString()), gameImports));
+                (target, buffer) -> SV_SEND.SV_FlushRedirect(from, target, Lib.stringToBytes(buffer.toString()), gameImports));
 
         if (rconIsValid) {
             Cmd.ExecuteString(Cmd.getArguments(args, 2));
@@ -411,12 +412,7 @@ public class SV_MAIN implements JakeServer {
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    void SV_ConnectionlessPacket() {
-
-        MSG.BeginReading(Globals.net_message);
-        MSG.ReadLong(Globals.net_message); // skip the -1 marker
-
-        String messageLine = MSG.ReadStringLine(Globals.net_message);
+    void SV_ConnectionlessPacket(netadr_t from, String messageLine) {
 
         List<String> args = Cmd.TokenizeString(messageLine, false);
 
@@ -433,30 +429,28 @@ public class SV_MAIN implements JakeServer {
 
         switch (cmd) {
             case "ping":
-                SVC_Ping();
+                SVC_Ping(from);
                 break;
             case "ack":
-                SVC_Ack();
+                SVC_Ack(from);
                 break;
             case "status":
-                SVC_Status();
+                SVC_Status(from);
                 break;
             case "info":
-                SVC_Info(args);
+                SVC_Info(args, from);
                 break;
             case "getchallenge":
-                SVC_GetChallenge();
+                SVC_GetChallenge(from);
                 break;
             case "connect":
-                SVC_DirectConnect(args);
+                SVC_DirectConnect(args, from);
                 break;
             case "rcon":
-                SVC_RemoteCommand(args, gameImports);
+                SVC_RemoteCommand(args, gameImports, from);
                 break;
             default:
-                Com.Printf("bad connectionless packet from " + Globals.net_from.toString() + "\n");
-                Com.Printf("[" + messageLine + "]\n");
-                Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
+                Com.Printf("bad connectionless packet from " + from + "\n");
                 break;
         }
     }
@@ -578,7 +572,6 @@ public class SV_MAIN implements JakeServer {
     static void SV_DropClient(client_t client) {
         // add the disconnect
         new DisconnectMessage().writeTo(client.netchan.message);
-        // MSG.WriteByte(client.netchan.message, NetworkCommandType.svc_disconnect);
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -648,46 +641,47 @@ public class SV_MAIN implements JakeServer {
      * Reads packets from the network or loopback.
      */
     void SV_ReadPackets() {
+        while (true) {
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(
+                    NET.ip_sockets[NS_SERVER],
+                    NET.ip_channels[NS_SERVER],
+                    NET.loopbacks[NS_SERVER],
+                    true);
 
-        while (NET.GetPacket(Defines.NS_SERVER, Globals.net_from, Globals.net_message)) {
+            if (networkPacket == null)
+                break;
 
-            // check for connectionless packet (0xffffffff) first
-            if ((Globals.net_message.data[0] == -1)
-                    && (Globals.net_message.data[1] == -1)
-                    && (Globals.net_message.data[2] == -1)
-                    && (Globals.net_message.data[3] == -1)) {
-                SV_ConnectionlessPacket();
+            if (networkPacket.isConnectionless()) {
+                SV_ConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage);
                 continue;
             }
 
-            // read the qport out of the message so we can fix up
-            // stupid address translating routers
-            MSG.BeginReading(Globals.net_message);
-            MSG.ReadLong(Globals.net_message); // sequence number
-            MSG.ReadLong(Globals.net_message); // sequence number
-            int qport = MSG.ReadShort(Globals.net_message) & 0xffff;
-
             // check for packets from connected clients
+            // todo: get client by address (hashmap?)
             for (int i = 0; i < maxclients.value; i++) {
                 client_t cl = clients.get(i);
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
-                if (!Globals.net_from.CompareBaseAdr(cl.netchan.remote_address))
+                if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
                     continue;
-                if (cl.netchan.qport != qport)
+                if (cl.netchan.qport != networkPacket.qport)
                     continue;
-                if (cl.netchan.remote_address.port != Globals.net_from.port) {
+                if (cl.netchan.remote_address.port != networkPacket.from.port) {
                     Com.Printf("SV_ReadPackets: fixing up a translated port\n");
-                    cl.netchan.remote_address.port = Globals.net_from.port;
+                    cl.netchan.remote_address.port = networkPacket.from.port;
                 }
 
-                if (Netchan.Process(cl.netchan, Globals.net_message)) {
+                if (networkPacket.isValidForClient(cl.netchan)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
                         // todo: identify gameImports instance by client
                         // todo: use sv_main realtime
                         cl.lastmessage = gameImports.realtime; // don't timeout
-                        SV_ExecuteClientMessage(cl);
+                        Collection<ClientMessage> body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence);
+                        if (body == null)
+                            SV_DropClient(cl);
+                        else
+                            SV_ExecuteClientMessage(cl, body);
                     }
                 }
                 break;
@@ -702,7 +696,7 @@ public class SV_MAIN implements JakeServer {
      * The current net_message is parsed for the given client
      * ===================
      */
-    static void SV_ExecuteClientMessage(client_t cl) {
+    static void SV_ExecuteClientMessage(client_t cl, Collection<ClientMessage> clientMessages) {
 
         gameImports.sv_client = cl;
 
@@ -710,17 +704,7 @@ public class SV_MAIN implements JakeServer {
         boolean move_issued = false;
         int stringCmdCount = 0;
 
-        while (true) {
-            sizebuf_t buffer = Globals.net_message;
-
-            if (buffer.readcount > buffer.cursize) {
-                Com.Printf("SV_ReadClientMessage: bad read:\n");
-                Com.Printf(Lib.hexDump(buffer.data, 32, false));
-                SV_DropClient(cl);
-                return;
-            }
-
-            ClientMessage msg = ClientMessage.parseFromBuffer(buffer, cl.netchan.incoming_sequence);
+        for (ClientMessage msg : clientMessages) {
             if (msg instanceof EndMessage) {
                 break;
             } else if (msg instanceof StringCmdMessage) {

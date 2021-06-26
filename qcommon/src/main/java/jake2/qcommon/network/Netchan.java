@@ -255,8 +255,8 @@ public final class Netchan {
     }
 
     /**
-     * Netchan_Process is called when the current net_message is from remote_address modifies
-     * net_message so that it points to the packet payload.
+     * Netchan_Process is called when the current net_message is from remote_address.
+     * modifies net_message so that it points to the packet payload.
      */
     public static boolean Process(netchan_t chan, sizebuf_t msg) {
         // get sequence numbers

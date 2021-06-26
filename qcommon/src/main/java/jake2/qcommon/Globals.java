@@ -65,9 +65,6 @@ public class Globals extends Defines {
 	public static cvar_t developer;
 	public static cvar_t fixedtime;
 	public static cvar_t host_speeds;
-	public static cvar_t log_stats;
-	public static cvar_t logfile_active;
-	public static cvar_t nostdout;
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 
@@ -88,10 +85,6 @@ public class Globals extends Defines {
 
 	public static int time_before_game;
 	public static int time_after_game;
-	public static int time_before_ref;
-	public static int time_after_ref;
-
-	public static FileWriter log_stats_file = null;
 
 
 	// client/anorms.h
@@ -264,8 +257,7 @@ public class Globals extends Defines {
 	public static boolean userinfo_modified = false;
 
 	public static int sys_frame_time;
-	public static netadr_t net_from = new netadr_t();
-	
+
 	// logfile
 	public static RandomAccessFile logfile = null;
 	

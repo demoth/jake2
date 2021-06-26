@@ -238,11 +238,4 @@ public final class Sys extends Defines {
 	}
 
 
-    public static void SystemOutPrint(String msg) {
-        if (Globals.nostdout != null && Globals.nostdout.value != 0)
-            return;
-
-        System.out.print(msg);
-    }
-
 }

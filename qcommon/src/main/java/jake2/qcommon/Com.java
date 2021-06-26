@@ -330,51 +330,8 @@ public final class Com
 		Cmd.ExecuteFunction("console_print", msg);
 
 		// also echo to debugging console
-		Sys.SystemOutPrint(msg);
-
-		// logfile
-		if (Globals.logfile_active != null && Globals.logfile_active.value != 0)
-		{
-			String name;
-
-			if (Globals.logfile == null)
-			{
-				name= FS.getWriteDir() + "/qconsole.log";
-				if (Globals.logfile_active.value > 2)
-					try
-					{
-						Globals.logfile = new RandomAccessFile(name, "rw");
-						Globals.logfile.seek(Globals.logfile.length());
-					}
-					catch (Exception e)
-					{
-						// TODO: do quake2 error handling!
-						e.printStackTrace();
-					}
-				else
-					try
-					{
-						Globals.logfile= new RandomAccessFile(name, "rw");
-					}
-					catch (FileNotFoundException e1)
-					{
-						// TODO: do quake2 error handling!
-						e1.printStackTrace();
-					}
-			}
-			if (Globals.logfile != null)
-				try
-				{
-					Globals.logfile.writeChars(msg);
-				}
-				catch (IOException e)
-				{
-					// TODO: do quake2 error handling!
-					e.printStackTrace();
-				}
-			if (Globals.logfile_active.value > 1); // do nothing
-			// fflush (logfile);		// force it to save every time
-		}
+		// todo: use proper logging
+		System.out.print(msg);
 	}
 
 	public static void Println(String fmt)

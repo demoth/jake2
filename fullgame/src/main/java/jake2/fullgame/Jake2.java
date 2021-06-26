@@ -106,8 +106,6 @@ public final class Jake2 {
         }
         JakeServer serverMain = Init(c_args);
 
-        Globals.nostdout = Cvar.getInstance().Get("nostdout", "0", 0);
-
         int oldtime = Timer.Milliseconds();
         while (true) {
             // find time spending rendering last frame
@@ -116,8 +114,6 @@ public final class Jake2 {
 
             if (time > 0) {
                 try {
-
-                    debugLogStatsFile();
 
                     int adjustedTime = adjustTime(time);
 
@@ -175,11 +171,9 @@ public final class Jake2 {
             Cbuf.reconfigure(args, true); // reload default.cfg and config.cfg
 
             Globals.host_speeds= Cvar.getInstance().Get("host_speeds", "0", 0);
-            Globals.log_stats= Cvar.getInstance().Get("log_stats", "0", 0);
             Globals.developer= Cvar.getInstance().Get("developer", "0", Defines.CVAR_ARCHIVE);
             Globals.timescale= Cvar.getInstance().Get("timescale", "0", 0);
             Globals.fixedtime= Cvar.getInstance().Get("fixedtime", "0", 0);
-            Globals.logfile_active= Cvar.getInstance().Get("logfile", "0", 0);
             Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
             Globals.dedicated= Cvar.getInstance().Get("dedicated", "0", Defines.CVAR_NOSET);
             String version = Globals.VERSION + " " + CPUSTRING + " " + BUILDSTRING;
