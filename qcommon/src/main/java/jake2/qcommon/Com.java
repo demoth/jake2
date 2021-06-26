@@ -26,16 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.PrintfFormat;
 import jake2.qcommon.util.Vargs;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
-import static jake2.qcommon.Defines.RD_NONE;
 
 /**
  * Common print related functions including redirection
