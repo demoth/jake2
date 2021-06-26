@@ -33,7 +33,9 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.ClientConnectionlessCommand;
 import jake2.qcommon.network.messages.NetworkPacket;
+import jake2.qcommon.network.messages.ServerConnectionlessCommand;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.ServerDataMessage;
@@ -264,6 +266,8 @@ public final class CL {
      * Adds the current command line as a clc_stringcmd to the client message.
      * things like godmode, noclip, etc, are commands directed to the server, so
      * when they are typed in at the console, they will need to be forwarded.
+     *
+     * see jake2.server.SV_MAIN#SV_ExecuteUserCommand(jake2.server.client_t, java.lang.String)
      */
     private static Command ForwardToServer_f = (List<String> args) -> {
         if (ClientGlobals.cls.state != Defines.ca_connected
@@ -594,7 +598,7 @@ public final class CL {
         int port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "connect "
+        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, ClientConnectionlessCommand.connect.name() + " "
                 + Defines.PROTOCOL_VERSION + " " + port + " "
                 + ClientGlobals.cls.challenge + " \"" + Cvar.getInstance().Userinfo() + "\"\n");
     }
@@ -635,7 +639,7 @@ public final class CL {
 
         Com.Printf("Connecting to " + ClientGlobals.cls.servername + "...\n");
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "getchallenge\n");
+        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, ClientConnectionlessCommand.getchallenge + "\n");
     }
 
     /**
@@ -738,9 +742,11 @@ public final class CL {
         
         Com.Println(packet.from + ": " + c);
 
+        ServerConnectionlessCommand cmd = ServerConnectionlessCommand.fromString(c);
+
         // server connection
-        switch (c) {
-            case "client_connect":
+        switch (cmd) {
+            case client_connect:
                 if (ClientGlobals.cls.state == Defines.ca_connected) {
                     Com.Printf("Dup connect received.  Ignored.\n");
                     break;
@@ -751,12 +757,13 @@ public final class CL {
                 break;
 
             // server responding to a status broadcast
-            case "info":
+            case info:
                 ParseStatusMessage(packet.from, packet.connectionlessParameters);
                 break;
 
-            // remote command from gui front end
-            case "cmd":
+            // remote command from gui front end, don't confuse with
+            // todo: is it really used?
+            case cmd:
                 if (!packet.from.IsLocalAddress()) {
                     Com.Printf("Command packet from remote host.  Ignored.\n");
                     break;
@@ -765,28 +772,29 @@ public final class CL {
                 break;
 
             // print command from somewhere
-            case "print":
+            case print:
                 if (packet.connectionlessParameters.length() > 0)
                     Com.Printf(packet.connectionlessParameters);
                 break;
 
             // ping from somewhere
-            case "ping":
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, "ack");
+            case ping:
+                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, ClientConnectionlessCommand.ack.name());
                 break;
 
             // challenge from the server we are connecting to
-            case "challenge":
+            case challenge:
                 ClientGlobals.cls.challenge = Lib.atoi(args.get(1));
                 SendConnectPacket();
                 break;
 
             // echo request from server
-            case "echo":
+            // fixme: is it really used?
+            case echo:
                 Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, args.get(1));
                 break;
             default:
-                Com.Printf("Unknown command.\n");
+                Com.Printf("Unknown ServerConnectionlessCommand: " + c + '\n');
                 break;
         }
     }

@@ -32,7 +32,9 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.ClientConnectionlessCommand;
 import jake2.qcommon.network.messages.NetworkPacket;
+import jake2.qcommon.network.messages.ServerConnectionlessCommand;
 import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
@@ -146,70 +148,43 @@ public class SV_MAIN implements JakeServer {
     }
 
     /**
-     * Responds with all the info that qplug or qspy can see
-     * @param from
-     */
-    private void SVC_Status(netadr_t from) {
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "print\n" + SV_StatusString());
-    }
-
-    /**
-     *  SVC_Ack
-     * @param from
-     */
-    private static void SVC_Ack(netadr_t from) {
-        Com.Printf("Ping acknowledge from " + from + "\n");
-    }
-
-    /**
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    private void SVC_Info(List<String> args, netadr_t from) {
+    private String SVC_Info(List<String> args, netadr_t from) {
 
         if (maxclients.value == 1)
-            return; // ignore in single player
+            return null; // ignore in single player
 
         int version = args.size() < 2 ? 0 : Lib.atoi(args.get(1));
 
-        String string;
+        String info;
         if (version != Defines.PROTOCOL_VERSION)
-            string = SV_MAIN.hostname.string + ": wrong version\n";
+            info = SV_MAIN.hostname.string + ": wrong version\n";
         else {
             int players = 0;
             for (int i = 0; i < maxclients.value; i++)
                 if (clients.get(i).state == ClientStates.CS_CONNECTED || clients.get(i).state == ClientStates.CS_SPAWNED)
                     players++;
 
-            string = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
+            info = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
         }
 
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "info\n" + string);
+        return info;
     }
 
     /**
-     * SVC_Ping, Just responds with an acknowledgement.
-     * @param from
-     */
-    private static void SVC_Ping(netadr_t from) {
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "ack");
-    }
-
-    /** 
      * Returns a challenge number that can be used in a subsequent
      * client_connect command. We do this to prevent denial of service attacks
      * that flood the server with invalid connection IPs. With a challenge, they
      * must give a valid IP address.
-     * @param from
      */
-    private void SVC_GetChallenge(netadr_t from) {
+    private int SVC_GetChallenge(netadr_t from) {
+
+        int oldest = 0;
+        int oldestTime = 0x7fffffff;
+
         int i;
-        int oldest;
-        int oldestTime;
-
-        oldest = 0;
-        oldestTime = 0x7fffffff;
-
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
             if (from.CompareBaseAdr(challenges[i].adr))
                 break;
@@ -228,7 +203,7 @@ public class SV_MAIN implements JakeServer {
         }
 
         // send it back
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, from, "challenge " + challenges[i].challenge);
+        return challenges[i].challenge;
     }
 
     /**
@@ -241,7 +216,7 @@ public class SV_MAIN implements JakeServer {
         int version = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
 
         if (version != Defines.PROTOCOL_VERSION) {
-            Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nServer is version " + Globals.VERSION + "\n");
+            Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nServer is version " + Globals.VERSION + "\n");
             Com.DPrintf("    rejected connect from version " + version + "\n");
             return;
         }
@@ -256,7 +231,7 @@ public class SV_MAIN implements JakeServer {
         if (gameImports.sv.isDemo) {
             if (!adr.IsLocalAddress()) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
-                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nConnection refused.\n");
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nConnection refused.\n");
                 return;
             }
         }
@@ -268,12 +243,12 @@ public class SV_MAIN implements JakeServer {
                 if (adr.CompareBaseAdr(challenges[j].adr)) {
                     if (challenge == challenges[j].challenge)
                         break; // good
-                    Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nBad challenge.\n");
+                    Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nBad challenge.\n");
                     return;
                 }
             }
             if (j == Defines.MAX_CHALLENGES) {
-                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nNo challenge for address.\n");
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nNo challenge for address.\n");
                 return;
             }
         }
@@ -308,7 +283,7 @@ public class SV_MAIN implements JakeServer {
             }
         }
         if (index == -1) {
-            Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nServer is full.\n");
+            Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nServer is full.\n");
             Com.DPrintf("Rejected a connection.\n");
             return;
         }
@@ -340,9 +315,9 @@ public class SV_MAIN implements JakeServer {
         // userinfo
         if (!(gameImports.gameExports.ClientConnect(ent, userinfo))) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null) {
-                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\n" + Info.Info_ValueForKey(userinfo, "rejmsg") + "\nConnection refused.\n");
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\n" + Info.Info_ValueForKey(userinfo, "rejmsg") + "\nConnection refused.\n");
             } else {
-                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\nConnection refused.\n");
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.print + "\nConnection refused.\n");
             }
             Com.DPrintf("Game rejected a connection.\n");
             return;
@@ -353,7 +328,7 @@ public class SV_MAIN implements JakeServer {
         SV_UserinfoChanged(clients.get(i));
 
         // send the connect packet to the client
-        Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "client_connect");
+        Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, ServerConnectionlessCommand.client_connect.name());
 
         Netchan.Setup(Defines.NS_SERVER, clients.get(i).netchan, adr, qport);
 
@@ -417,40 +392,43 @@ public class SV_MAIN implements JakeServer {
         List<String> args = Cmd.TokenizeString(messageLine, false);
 
         if (args.isEmpty()) {
-            Com.Printf("Received empty packet!: " + messageLine);
+            Com.Printf("empty connectionless packet: " + messageLine);
             return;
         }
 
-        String cmd = args.get(0);
+        String c = args.get(0);
+        ClientConnectionlessCommand cmd = ClientConnectionlessCommand.fromString(c);
         
-        //for debugging purposes 
-        //Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
-        //Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
-
         switch (cmd) {
-            case "ping":
-                SVC_Ping(from);
+            case ping:
+                // SVC_Ping, Just responds with an acknowledgement.
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, from, ClientConnectionlessCommand.ack.name());
                 break;
-            case "ack":
-                SVC_Ack(from);
+            case ack:
+                //SVC_Ack
+                Com.Printf("Ping acknowledge from " + from + "\n");
                 break;
-            case "status":
-                SVC_Status(from);
+            case status:
+                // SVC_Status, Responds with all the info that qplug or qspy can see
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, from, ServerConnectionlessCommand.print + "\n" + SV_StatusString());
                 break;
-            case "info":
-                SVC_Info(args, from);
+            case info:
+                String info = SVC_Info(args, from);
+                if (info != null)
+                    Netchan.OutOfBandPrint(Defines.NS_SERVER, from, ServerConnectionlessCommand.info + "\n" + info);
                 break;
-            case "getchallenge":
-                SVC_GetChallenge(from);
+            case getchallenge:
+                int challenge = SVC_GetChallenge(from);
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, from, ServerConnectionlessCommand.challenge + " " + challenge);
                 break;
-            case "connect":
+            case connect:
                 SVC_DirectConnect(args, from);
                 break;
-            case "rcon":
+            case rcon:
                 SVC_RemoteCommand(args, gameImports, from);
                 break;
             default:
-                Com.Printf("bad connectionless packet from " + from + "\n");
+                Com.Printf("Unknown ClientConnectionlessCommand: " + c + '\n');
                 break;
         }
     }
@@ -942,8 +920,7 @@ public class SV_MAIN implements JakeServer {
                 if (i > 0)
                     Com.Printf("Sending heartbeat to "
                             + SV_MAIN.master_adr[i].toString() + "\n");
-                Netchan.OutOfBandPrint(Defines.NS_SERVER,
-                        SV_MAIN.master_adr[i], "shutdown");
+                Netchan.OutOfBandPrint(Defines.NS_SERVER, SV_MAIN.master_adr[i], "shutdown");
             }
     }
 

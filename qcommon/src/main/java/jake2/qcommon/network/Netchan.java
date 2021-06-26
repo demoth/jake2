@@ -114,8 +114,7 @@ public final class Netchan {
     /**
      * Netchan_OutOfBand. Sends an out-of-band datagram.
      */
-    public static void Netchan_OutOfBand(int net_socket, netadr_t adr,
-            int length, byte data[]) {
+    public static void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte data[]) {
 
         // write the packet header
         SZ.Init(send, send_buf, Defines.MAX_MSGLEN);
