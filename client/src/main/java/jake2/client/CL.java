@@ -33,9 +33,8 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.messages.ClientConnectionlessCommand;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.network.messages.NetworkPacket;
-import jake2.qcommon.network.messages.ServerConnectionlessCommand;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.ServerDataMessage;
@@ -598,8 +597,8 @@ public final class CL {
         int port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, ClientConnectionlessCommand.connect.name() + " "
-                + Defines.PROTOCOL_VERSION + " " + port + " "
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.connect,
+                " " + Defines.PROTOCOL_VERSION + " " + port + " "
                 + ClientGlobals.cls.challenge + " \"" + Cvar.getInstance().Userinfo() + "\"\n");
     }
 
@@ -639,7 +638,7 @@ public final class CL {
 
         Com.Printf("Connecting to " + ClientGlobals.cls.servername + "...\n");
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, ClientConnectionlessCommand.getchallenge + "\n");
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n");
     }
 
     /**
@@ -742,7 +741,7 @@ public final class CL {
         
         Com.Println(packet.from + ": " + c);
 
-        ServerConnectionlessCommand cmd = ServerConnectionlessCommand.fromString(c);
+        ConnectionlessCommand cmd = ConnectionlessCommand.fromString(c);
 
         // server connection
         switch (cmd) {
@@ -761,16 +760,6 @@ public final class CL {
                 ParseStatusMessage(packet.from, packet.connectionlessParameters);
                 break;
 
-            // remote command from gui front end, don't confuse with
-            // todo: is it really used?
-            case cmd:
-                if (!packet.from.IsLocalAddress()) {
-                    Com.Printf("Command packet from remote host.  Ignored.\n");
-                    break;
-                }
-                Cbuf.AddText(packet.connectionlessParameters + '\n');
-                break;
-
             // print command from somewhere
             case print:
                 if (packet.connectionlessParameters.length() > 0)
@@ -779,7 +768,7 @@ public final class CL {
 
             // ping from somewhere
             case ping:
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, ClientConnectionlessCommand.ack.name());
+                Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, packet.from, ConnectionlessCommand.ack, "");
                 break;
 
             // challenge from the server we are connecting to
@@ -788,11 +777,6 @@ public final class CL {
                 SendConnectPacket();
                 break;
 
-            // echo request from server
-            // fixme: is it really used?
-            case echo:
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, args.get(1));
-                break;
             default:
                 Com.Printf("Unknown ServerConnectionlessCommand: " + c + '\n');
                 break;

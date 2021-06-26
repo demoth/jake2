@@ -1,6 +1,10 @@
 package jake2.qcommon.network.messages;
 
-public enum ClientConnectionlessCommand {
+/**
+ * Also known as Out of band.
+ * Both server & client.
+ */
+public enum ConnectionlessCommand {
     connect,
     info,
     ping,
@@ -8,9 +12,12 @@ public enum ClientConnectionlessCommand {
     getchallenge,
     status,
     rcon,
+    client_connect,
+    challenge,
+    print,
     unknown;
 
-    public static ClientConnectionlessCommand fromString(String cmd) {
+    public static ConnectionlessCommand fromString(String cmd) {
         try {
             return valueOf(cmd);
         } catch (IllegalArgumentException e) {

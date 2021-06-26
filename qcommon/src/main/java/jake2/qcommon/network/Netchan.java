@@ -26,6 +26,7 @@ package jake2.qcommon.network;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 
@@ -110,24 +111,21 @@ public final class Netchan {
 
     private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
     private static final sizebuf_t send = new sizebuf_t();
-    
+
     /**
-     * Netchan_OutOfBand. Sends an out-of-band datagram.
+     * OutOfBandPrint
      */
-    public static void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte data[]) {
+    public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
+        String msg = cmd.name() + payload;
 
         // write the packet header
         SZ.Init(send, send_buf, Defines.MAX_MSGLEN);
 
-        MSG.WriteInt(send, -1); // -1 sequence means out of band
-        SZ.Write(send, data, length);
+        MSG.WriteInt(send, -1); // -1 sequence means connectionless (out of band)
+        SZ.Write(send, Lib.stringToBytes(msg), msg.length());
 
         // send the datagram
         NET.SendPacket(net_socket, send.cursize, send.data, adr);
-    }
-
-    public static void OutOfBandPrint(int net_socket, netadr_t adr, String s) {
-        Netchan_OutOfBand(net_socket, adr, s.length(), Lib.stringToBytes(s));
     }
 
     /**

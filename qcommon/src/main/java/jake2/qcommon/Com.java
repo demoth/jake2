@@ -59,35 +59,25 @@ public final class Com
 	}
 
 	public interface RD_Flusher {
-		void rd_flush(int target, StringBuilder buffer);
+		void rd_flush(StringBuilder buffer);
 	}
 
-	private static int rd_target;
-	private static StringBuilder rd_buffer;
-	private static int rd_buffersize;
+	private static final int rd_buffersize = Defines.SV_OUTPUTBUF_LENGTH;
+	private static final StringBuilder rd_buffer = new StringBuilder();
 	private static RD_Flusher rd_flusher;
 
-	public static void BeginRedirect(int target, int buffersize, RD_Flusher flush)
-	{
-		if (0 == target  || 0 == buffersize || null == flush)
+	public static void BeginRedirect(RD_Flusher flush) {
+		if (flush == null)
 			return;
 
-		rd_target= target;
-		rd_buffer = new StringBuilder();
-		rd_buffersize= buffersize;
-		rd_flusher= flush;
-
 		rd_buffer.setLength(0);
+		rd_flusher = flush;
 	}
 
-	public static void EndRedirect()
-	{
-		rd_flusher.rd_flush(rd_target, rd_buffer);
-
-		rd_target = RD_NONE;
-		rd_buffer= null;
-		rd_buffersize= 0;
-		rd_flusher= null;
+	public static void EndRedirect() {
+		rd_flusher.rd_flush(rd_buffer);
+		rd_buffer.setLength(0);
+		rd_flusher = null;
 	}
 
 	// Detect recursion during shutdown
@@ -316,11 +306,11 @@ public final class Com
 	public static void Printf(String fmt, Vargs vargs)
 	{
 		String msg= sprintf(_debugContext + fmt, vargs);
-		if (rd_target != 0)
+		if (rd_flusher != null)
 		{
 			if ((msg.length() + rd_buffer.length()) > (rd_buffersize - 1))
 			{
-				rd_flusher.rd_flush(rd_target, rd_buffer);
+				rd_flusher.rd_flush(rd_buffer);
 				rd_buffer.setLength(0);
 			}
 			rd_buffer.append(msg);

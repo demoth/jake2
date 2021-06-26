@@ -74,15 +74,10 @@ public class NetworkPacket {
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
-                    case "cmd":
                     case "print":
                         connectionlessParameters = MSG.ReadStringLine(buffer);
                         break;
                     default:
-                        // challenge
-                        // ping
-                        // cmd
-                        // client_connect
                         break;
                 }
 
