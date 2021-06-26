@@ -29,6 +29,7 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.filesystem.FS;
+import org.graalvm.polyglot.Context;
 
 import java.util.*;
 
@@ -130,6 +131,20 @@ public final class Cmd {
         Cmd.AddCommand("cmdlist", List_f);
         Cmd.AddCommand("alias", Alias_f);
         Cmd.AddCommand("wait", Wait_f);
+        Cmd.AddCommand("run", args -> {
+            String params = getArguments(args, 2);
+            if (args.size() < 3) {
+                Com.Printf("usage: run <js|R|ruby|python> \"script\"");
+            }
+            long start = System.currentTimeMillis();
+            String result;
+            try (Context context = Context.create()) {
+                result = context.eval(args.get(1), params).asString();
+            } catch (Exception e) {
+                result = e.getMessage();
+            }
+            Com.Printf("(" + (System.currentTimeMillis() - start) + "ms) " + result  + "\n");
+        });
         Cmd.AddCommand("error", Cmd::Error_f);
     }
 
