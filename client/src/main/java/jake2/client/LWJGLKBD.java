@@ -69,8 +69,9 @@ public class LWJGLKBD extends KBD {
 			
 			Do_Key_Event(XLateKey(key,ch), down);
 		}	
-		
-		generateRepeats();
+
+		// fixme: has a bug with repeating underscore character
+		// generateRepeats();
 		
 		if (IN.mouse_active)
 		{

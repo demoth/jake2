@@ -25,6 +25,7 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
 import jake2.qcommon.network.netadr_t;
@@ -32,23 +33,6 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 public class SV_SEND {
-	/*
-	=============================================================================
-	
-	Com_Printf redirection
-	
-	=============================================================================
-	*/
-
-	public static void SV_FlushRedirect(netadr_t from, int sv_redirected, byte[] outputbuf, GameImportsImpl gameImports) {
-		if (sv_redirected == Defines.RD_PACKET) {
-			String s = ("print\n" + Lib.CtoJava(outputbuf));
-			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, from, s.length(), Lib.stringToBytes(s));
-		}
-		else if (sv_redirected == Defines.RD_CLIENT) {
-			new PrintMessage(Defines.PRINT_HIGH, new String(outputbuf).trim()).writeTo(gameImports.sv_client.netchan.message);
-        }
-	}
 	/*
 	=============================================================================
 	
@@ -194,7 +178,6 @@ public class SV_SEND {
 	SV_SendClientDatagram
 	=======================
 	*/
-	// todo move to gameImports
 	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 

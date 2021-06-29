@@ -1033,9 +1033,6 @@ public class Defines {
 	public static final int MAX_CHALLENGES = 1024;
 
 	public final static int SV_OUTPUTBUF_LENGTH = (MAX_MSGLEN - 16);
-	public final static int RD_NONE = 0;
-	public final static int RD_CLIENT = 1;
-	public final static int RD_PACKET = 2;
 
 	public final static int RATE_MESSAGES = 10;
 

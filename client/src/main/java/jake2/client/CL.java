@@ -33,6 +33,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
@@ -264,6 +265,8 @@ public final class CL {
      * Adds the current command line as a clc_stringcmd to the client message.
      * things like godmode, noclip, etc, are commands directed to the server, so
      * when they are typed in at the console, they will need to be forwarded.
+     *
+     * see jake2.server.SV_MAIN#SV_ExecuteUserCommand(jake2.server.client_t, java.lang.String)
      */
     private static Command ForwardToServer_f = (List<String> args) -> {
         if (ClientGlobals.cls.state != Defines.ca_connected
@@ -344,18 +347,13 @@ public final class CL {
             return;
         }
 
-        StringBuilder message = new StringBuilder(1024);
-
-        // connection less packet
-        message.append('\u00ff');
-        message.append('\u00ff');
-        message.append('\u00ff');
-        message.append('\u00ff');
-
         // allow remote
+        // fixme: why?
         NET.Config(true);
 
-        message.append("rcon ");
+        // assemble password and arguments into a string and send
+        StringBuilder message = new StringBuilder(1024);
+        message.append(" ");
         message.append(ClientGlobals.rcon_client_password.string);
         message.append(" ");
 
@@ -364,9 +362,9 @@ public final class CL {
             message.append(" ");
         }
 
-        netadr_t to = new netadr_t();
+        final netadr_t to;
 
-        if (ClientGlobals.cls.state >= Defines.ca_connected) {
+        if (ClientGlobals.cls.state == Defines.ca_connected || ClientGlobals.cls.state == Defines.ca_active) {
             to = ClientGlobals.cls.netchan.remote_address;
         } else {
             if (ClientGlobals.rcon_address.string.length() == 0) {
@@ -375,9 +373,7 @@ public final class CL {
             }
             to = netadr_t.fromString(ClientGlobals.rcon_address.string, Defines.PORT_SERVER);
         }
-        message.append('\0');
-        String b = message.toString();
-        NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, to, ConnectionlessCommand.rcon, message.toString());
     };
 
     private static Command Disconnect_f = (List<String> args) -> Com.Error(Defines.ERR_DROP, "Disconnected from server");
@@ -594,8 +590,8 @@ public final class CL {
         int port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "connect "
-                + Defines.PROTOCOL_VERSION + " " + port + " "
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.connect,
+                " " + Defines.PROTOCOL_VERSION + " " + port + " "
                 + ClientGlobals.cls.challenge + " \"" + Cvar.getInstance().Userinfo() + "\"\n");
     }
 
@@ -635,7 +631,7 @@ public final class CL {
 
         Com.Printf("Connecting to " + ClientGlobals.cls.servername + "...\n");
 
-        Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "getchallenge\n");
+        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n");
     }
 
     /**
@@ -738,9 +734,11 @@ public final class CL {
         
         Com.Println(packet.from + ": " + c);
 
+        ConnectionlessCommand cmd = ConnectionlessCommand.fromString(c);
+
         // server connection
-        switch (c) {
-            case "client_connect":
+        switch (cmd) {
+            case client_connect:
                 if (ClientGlobals.cls.state == Defines.ca_connected) {
                     Com.Printf("Dup connect received.  Ignored.\n");
                     break;
@@ -751,42 +749,29 @@ public final class CL {
                 break;
 
             // server responding to a status broadcast
-            case "info":
+            case info:
                 ParseStatusMessage(packet.from, packet.connectionlessParameters);
                 break;
 
-            // remote command from gui front end
-            case "cmd":
-                if (!packet.from.IsLocalAddress()) {
-                    Com.Printf("Command packet from remote host.  Ignored.\n");
-                    break;
-                }
-                Cbuf.AddText(packet.connectionlessParameters + '\n');
-                break;
-
             // print command from somewhere
-            case "print":
+            case print:
                 if (packet.connectionlessParameters.length() > 0)
                     Com.Printf(packet.connectionlessParameters);
                 break;
 
             // ping from somewhere
-            case "ping":
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, "ack");
+            case ping:
+                Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, packet.from, ConnectionlessCommand.ack, "");
                 break;
 
             // challenge from the server we are connecting to
-            case "challenge":
+            case challenge:
                 ClientGlobals.cls.challenge = Lib.atoi(args.get(1));
                 SendConnectPacket();
                 break;
 
-            // echo request from server
-            case "echo":
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, packet.from, args.get(1));
-                break;
             default:
-                Com.Printf("Unknown command.\n");
+                Com.Printf("Unknown ServerConnectionlessCommand: " + c + '\n');
                 break;
         }
     }
