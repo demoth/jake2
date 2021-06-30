@@ -96,6 +96,7 @@ With accordance to the goals we can put a list of more concrete steps:
   * jake2 game engine suit (unreal like):
 full set of tools to support game development and creation of new games.
 3d editor, entitity editor, scripting, and so on
+  * utilize kotlin multiplatform support and create jake2 clients for various platforms (desktop, web, android, ios)
 
 3rd party components
 --------------------
