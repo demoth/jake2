@@ -26,6 +26,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Math3D;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class SV_ENTS {
 
     final GameImportsImpl gameImports;
@@ -38,8 +42,6 @@ public class SV_ENTS {
      */
 
     public final byte[] fatpvs; // 32767 is MAX_MAP_LEAFS
-    // stack variable
-    private final byte[] buf_data;
 
     private final int num_client_entities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
     private final entity_state_t[] client_entities; // [num_client_entities]
@@ -48,7 +50,6 @@ public class SV_ENTS {
 
     public SV_ENTS(GameImportsImpl gameImports, int clientEntitiesMax) {
         fatpvs = new byte[65536 / 8];
-        buf_data = new byte[32768];
         this.gameImports = gameImports;
 
         num_client_entities = clientEntitiesMax;
@@ -60,14 +61,6 @@ public class SV_ENTS {
         }
 
     }
-
-    /*
-     * =============================================================================
-     * 
-     * Encode a client frame onto the network channel
-     * 
-     * =============================================================================
-     */
 
     /**
      * SV_WritePlayerstateToClient
@@ -171,7 +164,8 @@ public class SV_ENTS {
     /**
      * Writes a frame to a client system.
      */
-    public void SV_WriteFrameToClient(client_t client) {
+    public Collection<ServerMessage> SV_WriteFrameToClient(client_t client) {
+        List<ServerMessage> result = new ArrayList<>();
         // this is the frame we are creating
         client_frame_t currentFrame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
         client_frame_t lastReceivedFrame;
@@ -192,23 +186,24 @@ public class SV_ENTS {
             lastReceivedFrameNum = client.lastReceivedFrame;
         }
 
-        new FrameHeaderMessage(
+        result.add(new FrameHeaderMessage(
                 gameImports.sv.framenum,
                 lastReceivedFrameNum,
                 client.surpressCount,
                 currentFrame.areabytes,
                 currentFrame.areabits
-        ).writeTo(gameImports.msg);
+        ));
 
         client.surpressCount = 0;
 
         // delta encode the playerstate
         PlayerInfoMessage playerInfoMsg = buildPlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : null, currentFrame.ps);
-        playerInfoMsg.writeTo(gameImports.msg);
+        result.add(playerInfoMsg);
 
         // delta encode the entities
         PacketEntitiesMessage packetEntities = buildPacketEntities(lastReceivedFrame, currentFrame);
-        packetEntities.writeTo(gameImports.msg);
+        result.add(packetEntities);
+        return result;
     }
 
     // SV_EmitPacketEntities

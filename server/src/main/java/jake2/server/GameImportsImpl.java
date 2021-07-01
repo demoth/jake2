@@ -78,8 +78,6 @@ public class GameImportsImpl implements GameImports {
     client_t sv_client; // current client
 
     final float[] origin_v = { 0, 0, 0 };
-    final sizebuf_t msg = new sizebuf_t();
-    final byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
 
     public GameImportsImpl(JakeServer serverMain) {
         this.serverMain = serverMain;
