@@ -2,8 +2,8 @@ package jake2.qcommon.network.messages.client;
 
 import jake2.qcommon.sizebuf_t;
 
-public class EndMessage extends ClientMessage {
-    protected EndMessage() {
+public class EndOfClientPacketMessage extends ClientMessage {
+    protected EndOfClientPacketMessage() {
         super(ClientMessageType.CLC_BAD);
     }
 

@@ -2,8 +2,8 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
 
-public class EndMessage extends ServerMessage {
-    public EndMessage() {
+public class EndOfServerPacketMessage extends ServerMessage {
+    public EndOfServerPacketMessage() {
         super(ServerMessageType.svc_end);
     }
 

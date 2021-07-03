@@ -23,4 +23,9 @@ public abstract class TEMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
 
     }
+
+    @Override
+    int getSize() {
+        throw new IllegalStateException("Not implemented");
+    }
 }

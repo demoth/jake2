@@ -132,7 +132,7 @@ public abstract class ServerMessage {
 
         final int cmd = MSG.ReadByte(buffer);
         if (cmd == -1)
-            return new EndMessage();
+            return new EndOfServerPacketMessage();
         ServerMessageType type = ServerMessageType.fromInt(cmd);
         final ServerMessage msg;
         // skip parsing of messages not yet migrated to the ServerMessage class

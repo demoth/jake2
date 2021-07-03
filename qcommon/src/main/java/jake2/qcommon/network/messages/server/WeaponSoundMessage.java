@@ -38,4 +38,12 @@ public class WeaponSoundMessage extends ServerMessage {
     int getSize() {
         return 4;
     }
+
+    @Override
+    public String toString() {
+        return "WeaponSoundMessage{" +
+                "entityIndex=" + entityIndex +
+                ", type=" + type +
+                '}';
+    }
 }

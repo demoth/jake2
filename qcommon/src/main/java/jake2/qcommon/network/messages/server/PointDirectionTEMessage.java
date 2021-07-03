@@ -51,4 +51,9 @@ public class PointDirectionTEMessage extends PointTEMessage {
         this.direction = new float[3];
         MSG.ReadDir(buffer, direction);
     }
+
+    @Override
+    int getSize() {
+        return super.getSize() + 1;
+    }
 }

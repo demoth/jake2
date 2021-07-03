@@ -229,4 +229,9 @@ public class PlayerInfoMessage extends ServerMessage {
             }
         }
     }
+
+    @Override
+    int getSize() {
+        return -1;
+    }
 }

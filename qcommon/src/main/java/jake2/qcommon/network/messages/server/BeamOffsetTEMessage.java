@@ -19,6 +19,14 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
         super(style);
     }
 
+    public BeamOffsetTEMessage(int style, int ownerIndex, float[] origin, float[] destination, float[] offset) {
+        this(style);
+        this.ownerIndex = ownerIndex;
+        this.origin = origin;
+        this.destination = destination;
+        this.offset = offset;
+    }
+
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
@@ -30,5 +38,10 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
         super.parse(buffer);
         offset = new float[3];
         MSG.ReadPos(buffer, offset);
+    }
+
+    @Override
+    int getSize() {
+        return super.getSize() + 6;
     }
 }

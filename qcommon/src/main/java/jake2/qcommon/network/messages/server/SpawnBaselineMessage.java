@@ -33,4 +33,9 @@ public class SpawnBaselineMessage extends ServerMessage {
         DeltaEntityHeader header = parseDeltaEntityHeader(buffer);
         entityState = parseEntityState(header.number, header.flags, buffer);
     }
+
+    @Override
+    int getSize() {
+        return -1;
+    }
 }

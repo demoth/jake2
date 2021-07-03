@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -52,5 +53,20 @@ public class SplashTEMessage extends TEMessage {
         direction = new float[3];
         MSG.ReadDir(buffer, direction);
         param = MSG.ReadByte(buffer);
+    }
+
+    @Override
+    int getSize() {
+        return 2 + 1 + 6 + 1 + 1 ;
+    }
+
+    @Override
+    public String toString() {
+        return "SplashTEMessage{" +
+                "count=" + count +
+                ", position=" + Arrays.toString(position) +
+                ", direction=" + Arrays.toString(direction) +
+                ", param=" + param +
+                '}';
     }
 }

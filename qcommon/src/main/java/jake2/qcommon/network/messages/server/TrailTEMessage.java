@@ -41,4 +41,9 @@ public class TrailTEMessage extends PointTEMessage {
         this.destination = new float[3];
         MSG.ReadPos(buffer, destination);
     }
+
+    @Override
+    int getSize() {
+        return super.getSize() + 6;
+    }
 }

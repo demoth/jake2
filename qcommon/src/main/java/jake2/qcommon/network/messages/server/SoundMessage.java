@@ -119,4 +119,9 @@ public class SoundMessage extends ServerMessage {
             origin = null;
 
     }
+
+    @Override
+    int getSize() {
+        return -1;
+    }
 }

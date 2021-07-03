@@ -679,7 +679,7 @@ public class SV_MAIN implements JakeServer {
         int stringCmdCount = 0;
 
         for (ClientMessage msg : clientMessages) {
-            if (msg instanceof EndMessage) {
+            if (msg instanceof EndOfClientPacketMessage) {
                 break;
             } else if (msg instanceof StringCmdMessage) {
                 StringCmdMessage m = (StringCmdMessage) msg;

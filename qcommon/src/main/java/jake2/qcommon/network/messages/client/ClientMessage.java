@@ -24,7 +24,7 @@ public abstract class ClientMessage {
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:
-                msg = new EndMessage();
+                msg = new EndOfClientPacketMessage();
                 break;
             case CLC_NOP:
                 // fixme: never sent by client directly

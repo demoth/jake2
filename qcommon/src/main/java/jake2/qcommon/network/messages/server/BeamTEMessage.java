@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -50,5 +51,19 @@ public class BeamTEMessage extends TEMessage {
         MSG.ReadPos(buffer, origin);
         destination = new float[3];
         MSG.ReadPos(buffer, destination);
+    }
+
+    @Override
+    int getSize() {
+        return 2 + 2 + 2 * 2 * 3;
+    }
+
+    @Override
+    public String toString() {
+        return "BeamTEMessage{" +
+                "ownerIndex=" + ownerIndex +
+                ", origin=" + Arrays.toString(origin) +
+                ", destination=" + Arrays.toString(destination) +
+                '}';
     }
 }
