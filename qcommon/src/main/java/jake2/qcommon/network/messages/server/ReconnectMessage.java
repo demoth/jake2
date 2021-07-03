@@ -16,4 +16,9 @@ public class ReconnectMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
 
     }
+
+    @Override
+    int getSize() {
+        return 1;
+    }
 }

@@ -24,4 +24,9 @@ public class LayoutMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
         this.layout = MSG.ReadString(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 1 + layout.length() + 1;
+    }
 }

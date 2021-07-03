@@ -28,4 +28,9 @@ public class MuzzleFlash2Message extends ServerMessage {
         this.entityIndex = MSG.ReadShort(buffer);
         this.flashType = MSG.ReadByte(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 4;
+    }
 }

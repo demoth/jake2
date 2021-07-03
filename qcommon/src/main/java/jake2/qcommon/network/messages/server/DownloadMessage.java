@@ -43,4 +43,12 @@ public class DownloadMessage extends ServerMessage {
             MSG.ReadData(buffer, data, size);
         }
     }
+
+    @Override
+    int getSize() {
+        if (data != null)
+            return 4 + data.length;
+        else
+            return 4;
+    }
 }

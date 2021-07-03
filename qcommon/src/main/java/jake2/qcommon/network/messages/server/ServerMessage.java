@@ -123,6 +123,11 @@ public abstract class ServerMessage {
 
     abstract void parse(sizebuf_t buffer);
 
+    /**
+     * @return size of the message in bytes
+     */
+    abstract int getSize();
+
     public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
 
         final int cmd = MSG.ReadByte(buffer);

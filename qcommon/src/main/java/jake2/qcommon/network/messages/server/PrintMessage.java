@@ -35,6 +35,11 @@ public class PrintMessage extends ServerMessage {
     }
 
     @Override
+    int getSize() {
+        return 2 + text.length() + 1;
+    }
+
+    @Override
     public String toString() {
         return "PrintMessage{" + level + "=" + text + '}';
     }

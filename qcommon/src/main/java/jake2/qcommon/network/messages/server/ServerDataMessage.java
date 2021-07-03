@@ -50,4 +50,9 @@ public class ServerDataMessage extends ServerMessage {
         this.playerNumber = MSG.ReadShort(buffer);
         this.levelString = MSG.ReadString(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 1 + 4 + 4 + 1 + gameName.length() + 1 + 2 + levelString.length() + 1;
+    }
 }

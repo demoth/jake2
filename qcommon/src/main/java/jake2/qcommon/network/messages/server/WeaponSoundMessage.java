@@ -33,4 +33,9 @@ public class WeaponSoundMessage extends ServerMessage {
         this.entityIndex = MSG.ReadShort(buffer);
         this.type = MSG.ReadByte(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 4;
+    }
 }

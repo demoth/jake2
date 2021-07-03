@@ -16,4 +16,9 @@ public class DisconnectMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
         // no other fields
     }
+
+    @Override
+    int getSize() {
+        return 1;
+    }
 }

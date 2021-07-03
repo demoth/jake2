@@ -59,6 +59,11 @@ public class FrameHeaderMessage extends ServerMessage {
     }
 
     @Override
+    int getSize() {
+        return 1 + 10 + areaBitsLength;
+    }
+
+    @Override
     public String toString() {
         return "FrameMessage{" +
                 "frameNumber=" + frameNumber +

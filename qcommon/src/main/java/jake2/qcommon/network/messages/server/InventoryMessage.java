@@ -36,4 +36,9 @@ public class InventoryMessage extends ServerMessage {
             this.inventory[i] = MSG.ReadShort(buffer);
         }
     }
+
+    @Override
+    int getSize() {
+        return 1 + 2 * Defines.MAX_ITEMS;
+    }
 }

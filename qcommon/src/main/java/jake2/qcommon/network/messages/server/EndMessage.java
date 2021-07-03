@@ -16,4 +16,9 @@ public class EndMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
 
     }
+
+    @Override
+    int getSize() {
+        return 1;
+    }
 }

@@ -28,6 +28,11 @@ public class StuffTextMessage extends ServerMessage {
     }
 
     @Override
+    int getSize() {
+        return 1 + text.length() + 1;
+    }
+
+    @Override
     public String toString() {
         return "StuffTextMessage{" + text + '}';
     }

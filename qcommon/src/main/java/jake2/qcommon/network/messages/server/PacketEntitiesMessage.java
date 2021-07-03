@@ -64,5 +64,10 @@ public class PacketEntitiesMessage extends ServerMessage {
             }
         }
     }
+
+    @Override
+    int getSize() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 }
 

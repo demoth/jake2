@@ -17,4 +17,9 @@ public class NopMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
 
     }
+
+    @Override
+    int getSize() {
+        return 1;
+    }
 }
