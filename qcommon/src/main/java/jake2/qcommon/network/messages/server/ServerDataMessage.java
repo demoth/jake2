@@ -55,4 +55,16 @@ public class ServerDataMessage extends ServerMessage {
     int getSize() {
         return 1 + 4 + 4 + 1 + gameName.length() + 1 + 2 + levelString.length() + 1;
     }
+
+    @Override
+    public String toString() {
+        return "ServerDataMessage{" +
+                "protocol=" + protocol +
+                ", spawnCount=" + spawnCount +
+                ", demo=" + demo +
+                ", gameName='" + gameName + '\'' +
+                ", playerNumber=" + playerNumber +
+                ", levelString='" + levelString + '\'' +
+                '}';
+    }
 }

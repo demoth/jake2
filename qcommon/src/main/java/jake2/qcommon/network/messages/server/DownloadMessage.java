@@ -51,4 +51,11 @@ public class DownloadMessage extends ServerMessage {
         else
             return 4;
     }
+
+    @Override
+    public String toString() {
+        return "DownloadMessage{" +
+                "percentage=" + percentage +
+                '}';
+    }
 }

@@ -4,6 +4,8 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
+
 /**
  * Inventory sent to client.
  * Holds information about how many specific items player holds.
@@ -40,5 +42,12 @@ public class InventoryMessage extends ServerMessage {
     @Override
     int getSize() {
         return 1 + 2 * Defines.MAX_ITEMS;
+    }
+
+    @Override
+    public String toString() {
+        return "InventoryMessage{" +
+                "inventory=" + Arrays.toString(inventory) +
+                '}';
     }
 }

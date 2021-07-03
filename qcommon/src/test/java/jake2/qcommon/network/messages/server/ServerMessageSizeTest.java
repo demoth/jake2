@@ -1,18 +1,19 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.SZ;
+import jake2.qcommon.edict_t;
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.sizebuf_t;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.Collection;
 
 import static jake2.qcommon.Defines.MAX_ITEMS;
-import static org.junit.Assert.*;
+import static jake2.qcommon.Defines.RF_BEAM;
+import static org.junit.Assert.assertEquals;
 
 /**
  * This test checks that size estimation for each server message class is correct.
@@ -53,7 +54,25 @@ public class ServerMessageSizeTest {
                 {new SplashTEMessage(4, 5, new float[3], new float[3], 6)},
                 {new BeamOffsetTEMessage(5, 8, new float[3], new float[3], new float[3])},
                 {new PointDirectionTEMessage(4, new float[3], new float[3])},
-                {new TrailTEMessage(4, new float[3], new float[3])}
+                {new TrailTEMessage(4, new float[3], new float[3])},
+                {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))},
+                {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)) {{
+                    origin = new float[]{1, 2, 3};
+                    number = 1000;
+                    angles = new float[]{4, 5, 6};
+                    skinnum = 2222;
+                    frame = 3333;
+                    effects = 4444;
+                    renderfx = RF_BEAM;
+                    solid = 4;
+                    event = 5;
+                    modelindex = 123;
+                    modelindex2 = 234;
+                    modelindex3 = 345;
+                    modelindex4 = 456;
+                    sound = 32;
+                    old_origin = new float[]{2, 3, 4};
+                }})}
         });
     }
 
@@ -63,22 +82,4 @@ public class ServerMessageSizeTest {
         message.writeTo(buffer);
         assertEquals(buffer.cursize, message.getSize());
     }
-
-    //
-//    @Test
-//    public void frameHeaderMesssageSize() {
-//        var msg = ;
-//        checkMessageSize(new InventoryMessage(new int[MAX_ITEMS]));
-//    }
-//
-//    @Test
-//    public void inventoryMesssageSize() {
-//        checkMessageSize();
-//    }
-//
-    private void checkMessageSize(ServerMessage msg) {
-        msg.writeTo(buffer);
-        assertEquals(buffer.cursize, msg.getSize());
-    }
-
 }

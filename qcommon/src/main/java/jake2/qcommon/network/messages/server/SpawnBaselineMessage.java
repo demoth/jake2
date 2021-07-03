@@ -13,6 +13,7 @@ import jake2.qcommon.sizebuf_t;
 public class SpawnBaselineMessage extends ServerMessage {
 
     public entity_state_t entityState;
+    private final entity_state_t base = new entity_state_t(null);;
 
     public SpawnBaselineMessage() {
         super(ServerMessageType.svc_spawnbaseline);
@@ -25,7 +26,8 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteDeltaEntity(new entity_state_t(null), entityState, buffer, true, true);
+
+        MSG.WriteDeltaEntity(base, entityState, buffer, true, true);
     }
 
     @Override
@@ -36,6 +38,13 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     int getSize() {
-        return -1;
+        return 1 + MSG.getDeltaSize(base, entityState, true);
+    }
+
+    @Override
+    public String toString() {
+        return "SpawnBaselineMessage{" +
+                "entityState.number=" + entityState.number +
+                "}";
     }
 }

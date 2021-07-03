@@ -148,197 +148,279 @@ public class MSG extends Globals {
      */
     public static void WriteDeltaEntity(entity_state_t from, entity_state_t to,
             sizebuf_t msg, boolean force, boolean newentity) {
-        int bits;
 
+        int flags = getFlags(from, to, newentity);
+
+        //
+        // write the message
+        //
+        if (flags == 0 && !force)
+            return; // nothing to send!
+
+        WriteByte(msg, flags & 255);
+
+        if ((flags & 0xff000000) != 0) {
+            WriteByte(msg, (flags >>> 8) & 255);
+            WriteByte(msg, (flags >>> 16) & 255);
+            WriteByte(msg, (flags >>> 24) & 255);
+        } else if ((flags & 0x00ff0000) != 0) {
+            WriteByte(msg, (flags >>> 8) & 255);
+            WriteByte(msg, (flags >>> 16) & 255);
+        } else if ((flags & 0x0000ff00) != 0) {
+            WriteByte(msg, (flags >>> 8) & 255);
+        }
+
+        //----------
+
+        if ((flags & U_NUMBER16) != 0)
+            WriteShort(msg, to.number);
+        else
+            WriteByte(msg, to.number);
+
+        if ((flags & U_MODEL) != 0)
+            WriteByte(msg, to.modelindex);
+        if ((flags & U_MODEL2) != 0)
+            WriteByte(msg, to.modelindex2);
+        if ((flags & U_MODEL3) != 0)
+            WriteByte(msg, to.modelindex3);
+        if ((flags & U_MODEL4) != 0)
+            WriteByte(msg, to.modelindex4);
+
+        if ((flags & U_FRAME8) != 0)
+            WriteByte(msg, to.frame);
+        if ((flags & U_FRAME16) != 0)
+            WriteShort(msg, to.frame);
+
+        if ((flags & U_SKIN8) != 0 && (flags & U_SKIN16) != 0) //used for laser
+                                                             // colors
+            WriteInt(msg, to.skinnum);
+        else if ((flags & U_SKIN8) != 0)
+            WriteByte(msg, to.skinnum);
+        else if ((flags & U_SKIN16) != 0)
+            WriteShort(msg, to.skinnum);
+
+        if ((flags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
+            WriteInt(msg, to.effects);
+        else if ((flags & U_EFFECTS8) != 0)
+            WriteByte(msg, to.effects);
+        else if ((flags & U_EFFECTS16) != 0)
+            WriteShort(msg, to.effects);
+
+        if ((flags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
+            WriteInt(msg, to.renderfx);
+        else if ((flags & U_RENDERFX8) != 0)
+            WriteByte(msg, to.renderfx);
+        else if ((flags & U_RENDERFX16) != 0)
+            WriteShort(msg, to.renderfx);
+
+        if ((flags & U_ORIGIN1) != 0)
+            WriteCoord(msg, to.origin[0]);
+        if ((flags & U_ORIGIN2) != 0)
+            WriteCoord(msg, to.origin[1]);
+        if ((flags & U_ORIGIN3) != 0)
+            WriteCoord(msg, to.origin[2]);
+
+        if ((flags & U_ANGLE1) != 0)
+            WriteAngle(msg, to.angles[0]);
+        if ((flags & U_ANGLE2) != 0)
+            WriteAngle(msg, to.angles[1]);
+        if ((flags & U_ANGLE3) != 0)
+            WriteAngle(msg, to.angles[2]);
+
+        if ((flags & U_OLDORIGIN) != 0) {
+            WriteCoord(msg, to.old_origin[0]);
+            WriteCoord(msg, to.old_origin[1]);
+            WriteCoord(msg, to.old_origin[2]);
+        }
+
+        if ((flags & U_SOUND) != 0)
+            WriteByte(msg, to.sound);
+        if ((flags & U_EVENT) != 0)
+            WriteByte(msg, to.event);
+        if ((flags & U_SOLID) != 0)
+            WriteShort(msg, to.solid);
+    }
+
+    private static int getFlags(entity_state_t from, entity_state_t to, boolean newentity) {
         if (0 == to.number)
             Com.Error(ERR_FATAL, "Unset entity number");
         if (to.number >= MAX_EDICTS)
             Com.Error(ERR_FATAL, "Entity number >= MAX_EDICTS");
 
         // send an update
-        bits = 0;
+        int flags = 0;
 
         if (to.number >= 256)
-            bits |= U_NUMBER16; // number8 is implicit otherwise
+            flags |= U_NUMBER16; // number8 is implicit otherwise
 
         if (to.origin[0] != from.origin[0])
-            bits |= U_ORIGIN1;
+            flags |= U_ORIGIN1;
         if (to.origin[1] != from.origin[1])
-            bits |= U_ORIGIN2;
+            flags |= U_ORIGIN2;
         if (to.origin[2] != from.origin[2])
-            bits |= U_ORIGIN3;
+            flags |= U_ORIGIN3;
 
         if (to.angles[0] != from.angles[0])
-            bits |= U_ANGLE1;
+            flags |= U_ANGLE1;
         if (to.angles[1] != from.angles[1])
-            bits |= U_ANGLE2;
+            flags |= U_ANGLE2;
         if (to.angles[2] != from.angles[2])
-            bits |= U_ANGLE3;
+            flags |= U_ANGLE3;
 
         if (to.skinnum != from.skinnum) {
             if (to.skinnum < 256)
-                bits |= U_SKIN8;
+                flags |= U_SKIN8;
             else if (to.skinnum < 0x10000)
-                bits |= U_SKIN16;
+                flags |= U_SKIN16;
             else
-                bits |= (U_SKIN8 | U_SKIN16);
+                flags |= (U_SKIN8 | U_SKIN16);
         }
 
         if (to.frame != from.frame) {
             if (to.frame < 256)
-                bits |= U_FRAME8;
+                flags |= U_FRAME8;
             else
-                bits |= U_FRAME16;
+                flags |= U_FRAME16;
         }
 
         if (to.effects != from.effects) {
             if (to.effects < 256)
-                bits |= U_EFFECTS8;
+                flags |= U_EFFECTS8;
             else if (to.effects < 0x8000)
-                bits |= U_EFFECTS16;
+                flags |= U_EFFECTS16;
             else
-                bits |= U_EFFECTS8 | U_EFFECTS16;
+                flags |= U_EFFECTS8 | U_EFFECTS16;
         }
 
         if (to.renderfx != from.renderfx) {
             if (to.renderfx < 256)
-                bits |= U_RENDERFX8;
+                flags |= U_RENDERFX8;
             else if (to.renderfx < 0x8000)
-                bits |= U_RENDERFX16;
+                flags |= U_RENDERFX16;
             else
-                bits |= U_RENDERFX8 | U_RENDERFX16;
+                flags |= U_RENDERFX8 | U_RENDERFX16;
         }
 
         if (to.solid != from.solid)
-            bits |= U_SOLID;
+            flags |= U_SOLID;
 
         // event is not delta compressed, just 0 compressed
         if (to.event != 0)
-            bits |= U_EVENT;
+            flags |= U_EVENT;
 
         if (to.modelindex != from.modelindex)
-            bits |= U_MODEL;
+            flags |= U_MODEL;
         if (to.modelindex2 != from.modelindex2)
-            bits |= U_MODEL2;
+            flags |= U_MODEL2;
         if (to.modelindex3 != from.modelindex3)
-            bits |= U_MODEL3;
+            flags |= U_MODEL3;
         if (to.modelindex4 != from.modelindex4)
-            bits |= U_MODEL4;
+            flags |= U_MODEL4;
 
         if (to.sound != from.sound)
-            bits |= U_SOUND;
+            flags |= U_SOUND;
 
         if (newentity || (to.renderfx & RF_BEAM) != 0)
-            bits |= U_OLDORIGIN;
-
-        //
-        // write the message
-        //
-        if (bits == 0 && !force)
-            return; // nothing to send!
+            flags |= U_OLDORIGIN;
 
         //----------
 
-        if ((bits & 0xff000000) != 0)
-            bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
-        else if ((bits & 0x00ff0000) != 0)
-            bits |= U_MOREBITS2 | U_MOREBITS1;
-        else if ((bits & 0x0000ff00) != 0)
-            bits |= U_MOREBITS1;
+        if ((flags & 0xff000000) != 0)
+            flags |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
+        else if ((flags & 0x00ff0000) != 0)
+            flags |= U_MOREBITS2 | U_MOREBITS1;
+        else if ((flags & 0x0000ff00) != 0)
+            flags |= U_MOREBITS1;
+        return flags;
+    }
 
-        WriteByte(msg, bits & 255);
+    public static int getDeltaSize(entity_state_t from, entity_state_t to, boolean newentity) {
+        int flags = getFlags(from, to, newentity);
+        if (flags == 0)
+            return 0;
 
-        if ((bits & 0xff000000) != 0) {
-            WriteByte(msg, (bits >>> 8) & 255);
-            WriteByte(msg, (bits >>> 16) & 255);
-            WriteByte(msg, (bits >>> 24) & 255);
-        } else if ((bits & 0x00ff0000) != 0) {
-            WriteByte(msg, (bits >>> 8) & 255);
-            WriteByte(msg, (bits >>> 16) & 255);
-        } else if ((bits & 0x0000ff00) != 0) {
-            WriteByte(msg, (bits >>> 8) & 255);
+        int result = 1;
+
+        if ((flags & 0xff000000) != 0) {
+            result += 3;
+        } else if ((flags & 0x00ff0000) != 0) {
+            result += 2;
+        } else if ((flags & 0x0000ff00) != 0) {
+            result += 1;
         }
 
         //----------
 
-        if ((bits & U_NUMBER16) != 0)
-            WriteShort(msg, to.number);
+        if ((flags & U_NUMBER16) != 0)
+            result += 2;
         else
-            WriteByte(msg, to.number);
+            result +=1;
 
-        if ((bits & U_MODEL) != 0)
-            WriteByte(msg, to.modelindex);
-        if ((bits & U_MODEL2) != 0)
-            WriteByte(msg, to.modelindex2);
-        if ((bits & U_MODEL3) != 0)
-            WriteByte(msg, to.modelindex3);
-        if ((bits & U_MODEL4) != 0)
-            WriteByte(msg, to.modelindex4);
+        if ((flags & U_MODEL) != 0)
+            result += 1;
+        if ((flags & U_MODEL2) != 0)
+            result += 1;
+        if ((flags & U_MODEL3) != 0)
+            result += 1;
+        if ((flags & U_MODEL4) != 0)
+            result += 1;
 
-        if ((bits & U_FRAME8) != 0)
-            WriteByte(msg, to.frame);
-        if ((bits & U_FRAME16) != 0)
-            WriteShort(msg, to.frame);
+        if ((flags & U_FRAME8) != 0)
+            result += 1;
+        if ((flags & U_FRAME16) != 0)
+            result += 2;
 
-        if ((bits & U_SKIN8) != 0 && (bits & U_SKIN16) != 0) //used for laser
-                                                             // colors
-            WriteInt(msg, to.skinnum);
-        else if ((bits & U_SKIN8) != 0)
-            WriteByte(msg, to.skinnum);
-        else if ((bits & U_SKIN16) != 0)
-            WriteShort(msg, to.skinnum);
+        if ((flags & U_SKIN8) != 0 && (flags & U_SKIN16) != 0) //used for laser
+            // colors
+            result += 4;
+        else if ((flags & U_SKIN8) != 0)
+            result += 1;
+        else if ((flags & U_SKIN16) != 0)
+            result += 2;
 
-        if ((bits & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
-            WriteInt(msg, to.effects);
-        else if ((bits & U_EFFECTS8) != 0)
-            WriteByte(msg, to.effects);
-        else if ((bits & U_EFFECTS16) != 0)
-            WriteShort(msg, to.effects);
+        if ((flags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
+            result += 4;
+        else if ((flags & U_EFFECTS8) != 0)
+            result += 1;
+        else if ((flags & U_EFFECTS16) != 0)
+            result += 2;
 
-        if ((bits & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
-            WriteInt(msg, to.renderfx);
-        else if ((bits & U_RENDERFX8) != 0)
-            WriteByte(msg, to.renderfx);
-        else if ((bits & U_RENDERFX16) != 0)
-            WriteShort(msg, to.renderfx);
+        if ((flags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
+            result += 4;
+        else if ((flags & U_RENDERFX8) != 0)
+            result += 1;
+        else if ((flags & U_RENDERFX16) != 0)
+            result += 2;
 
-        if ((bits & U_ORIGIN1) != 0)
-            WriteCoord(msg, to.origin[0]);
-        if ((bits & U_ORIGIN2) != 0)
-            WriteCoord(msg, to.origin[1]);
-        if ((bits & U_ORIGIN3) != 0)
-            WriteCoord(msg, to.origin[2]);
+        if ((flags & U_ORIGIN1) != 0)
+            result += 2;
+        if ((flags & U_ORIGIN2) != 0)
+            result += 2;
+        if ((flags & U_ORIGIN3) != 0)
+            result += 2;
 
-        if ((bits & U_ANGLE1) != 0)
-            WriteAngle(msg, to.angles[0]);
-        if ((bits & U_ANGLE2) != 0)
-            WriteAngle(msg, to.angles[1]);
-        if ((bits & U_ANGLE3) != 0)
-            WriteAngle(msg, to.angles[2]);
+        if ((flags & U_ANGLE1) != 0)
+            result += 1;
+        if ((flags & U_ANGLE2) != 0)
+            result += 1;
+        if ((flags & U_ANGLE3) != 0)
+            result += 1;
 
-        if ((bits & U_OLDORIGIN) != 0) {
-            WriteCoord(msg, to.old_origin[0]);
-            WriteCoord(msg, to.old_origin[1]);
-            WriteCoord(msg, to.old_origin[2]);
+        if ((flags & U_OLDORIGIN) != 0) {
+            result += 6;
         }
 
-        if ((bits & U_SOUND) != 0)
-            WriteByte(msg, to.sound);
-        if ((bits & U_EVENT) != 0)
-            WriteByte(msg, to.event);
-        if ((bits & U_SOLID) != 0)
-            WriteShort(msg, to.solid);
+        if ((flags & U_SOUND) != 0)
+            result += 1;
+        if ((flags & U_EVENT) != 0)
+            result += 1;
+        if ((flags & U_SOLID) != 0)
+            result += 2;
+
+        return result;
     }
 
     //============================================================
-
-    //
-    // reading functions
-    //
-
-    public static void BeginReading(sizebuf_t msg) {
-        msg.readcount = 0;
-    }
 
     // returns -1 if no more characters are available, but also [-128 , 127]
     public static int ReadChar(sizebuf_t msg_read) {

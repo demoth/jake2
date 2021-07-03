@@ -28,4 +28,11 @@ public abstract class TEMessage extends ServerMessage {
     int getSize() {
         throw new IllegalStateException("Not implemented");
     }
+
+    @Override
+    public String toString() {
+        return "TEMessage{" +
+                "style=" + style +
+                '}';
+    }
 }

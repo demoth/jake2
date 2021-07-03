@@ -33,4 +33,12 @@ public class MuzzleFlash2Message extends ServerMessage {
     int getSize() {
         return 4;
     }
+
+    @Override
+    public String toString() {
+        return "MuzzleFlash2Message{" +
+                "entityIndex=" + entityIndex +
+                ", flashType=" + flashType +
+                '}';
+    }
 }

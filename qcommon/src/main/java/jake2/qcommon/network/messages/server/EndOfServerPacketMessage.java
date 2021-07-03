@@ -21,4 +21,9 @@ public class EndOfServerPacketMessage extends ServerMessage {
     int getSize() {
         return 1;
     }
+
+    @Override
+    public String toString() {
+        return "End";
+    }
 }
