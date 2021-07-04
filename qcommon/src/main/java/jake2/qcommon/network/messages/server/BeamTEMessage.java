@@ -59,6 +59,11 @@ public class BeamTEMessage extends TEMessage {
     }
 
     @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
     public String toString() {
         return "BeamTEMessage{" +
                 "ownerIndex=" + ownerIndex +

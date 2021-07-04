@@ -59,6 +59,11 @@ public class PointDirectionTEMessage extends PointTEMessage {
     }
 
     @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
     public String toString() {
         return "PointDirectionTEMessage{" +
                 "direction=" + Arrays.toString(direction) +

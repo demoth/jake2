@@ -49,6 +49,11 @@ public class TrailTEMessage extends PointTEMessage {
     }
 
     @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
     public String toString() {
         return "TrailTEMessage{" +
                 "position=" + Arrays.toString(position) +

@@ -47,6 +47,11 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
     }
 
     @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
     public String toString() {
         return "BeamOffsetTEMessage{" +
                 "offset=" + Arrays.toString(offset) +

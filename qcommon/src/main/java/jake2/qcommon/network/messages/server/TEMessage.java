@@ -11,6 +11,7 @@ import java.util.Collection;
 public abstract class TEMessage extends ServerMessage {
     public TEMessage(int style) {
         super(ServerMessageType.svc_temp_entity);
+        validateStyle(style);
         this.style = style;
     }
 
@@ -27,19 +28,16 @@ public abstract class TEMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
-        throw new IllegalStateException("Not implemented");
-    }
-
-    @Override
     public String toString() {
         return "TEMessage{" +
                 "style=" + style +
                 '}';
     }
 
-    protected void validateStyle(int style, Collection<Integer> supported) {
-        if (!supported.contains(style)) {
+    abstract Collection<Integer> getSupportedStyles();
+
+    protected final void validateStyle(int style) {
+        if (!getSupportedStyles().contains(style)) {
             throw new IllegalArgumentException("Wrong style for temp entity: " + style + " for class: " + this.getClass().getSimpleName());
         }
     }

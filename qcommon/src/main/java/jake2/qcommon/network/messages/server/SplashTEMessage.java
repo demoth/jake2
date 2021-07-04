@@ -60,6 +60,11 @@ public class SplashTEMessage extends TEMessage {
     }
 
     @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
     public String toString() {
         return "SplashTEMessage{" +
                 "count=" + count +
