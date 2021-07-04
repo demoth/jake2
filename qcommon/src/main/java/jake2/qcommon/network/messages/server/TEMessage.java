@@ -3,6 +3,8 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Collection;
+
 /**
  * Temp entity
  */
@@ -12,7 +14,7 @@ public abstract class TEMessage extends ServerMessage {
         this.style = style;
     }
 
-    public final int style;
+    public int style;
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
@@ -21,7 +23,7 @@ public abstract class TEMessage extends ServerMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-
+        this.style = MSG.ReadByte(buffer);
     }
 
     @Override
@@ -34,5 +36,11 @@ public abstract class TEMessage extends ServerMessage {
         return "TEMessage{" +
                 "style=" + style +
                 '}';
+    }
+
+    protected void validateStyle(int style, Collection<Integer> supported) {
+        if (!supported.contains(style)) {
+            throw new IllegalArgumentException("Wrong style for temp entity: " + style + " for class: " + this.getClass().getSimpleName());
+        }
     }
 }

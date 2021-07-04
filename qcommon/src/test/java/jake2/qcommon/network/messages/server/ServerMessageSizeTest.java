@@ -8,8 +8,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static jake2.qcommon.Defines.MAX_ITEMS;
-import static jake2.qcommon.Defines.RF_BEAM;
+import static jake2.qcommon.Defines.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -29,8 +28,9 @@ public class ServerMessageSizeTest {
     }
 
     @Parameterized.Parameters(name = "{index}, {0}")
-    public static Collection<Object[]> primeNumbers() {
+    public static Collection<Object[]> createTestData() {
         return Arrays.asList(new Object[][]{
+                // ordinary messages
                 {new DownloadMessage(new byte[]{1, 2, 3}, 50)},
                 {new DownloadMessage()},
                 {new DisconnectMessage()},
@@ -47,12 +47,14 @@ public class ServerMessageSizeTest {
                 {new PrintCenterMessage("hello")},
                 {new PrintMessage(3, "hello")},
                 {new WeaponSoundMessage(1, 2)},
-                {new BeamTEMessage(1, 2, new float[3], new float[3])},
-                {new PointTEMessage(4, new float[3])},
-                {new SplashTEMessage(4, 5, new float[3], new float[3], 6)},
-                {new BeamOffsetTEMessage(5, 8, new float[3], new float[3], new float[3])},
-                {new PointDirectionTEMessage(4, new float[3], new float[3])},
-                {new TrailTEMessage(4, new float[3], new float[3])},
+                // Temp entities
+                {new PointTEMessage(TE_BOSSTPORT, new float[3])},
+                {new BeamTEMessage(TE_PARASITE_ATTACK, 2, new float[3], new float[3])},
+                {new SplashTEMessage(TE_LASER_SPARKS, 5, new float[3], new float[3], 6)},
+                {new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3])},
+                {new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[3])},
+                {new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])},
+                // delta compressed
                 {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))},
                 {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)) {{
                     origin = new float[]{1, 2, 3};
@@ -100,6 +102,10 @@ public class ServerMessageSizeTest {
     public void testMessageSize() {
         SZ.Init(buffer, data, SIZE);
         message.writeTo(buffer);
-        assertEquals(buffer.cursize, message.getSize());
+        assertEquals("Message size != buffer size", buffer.cursize, message.getSize());
+
+        ServerMessage parsed = ServerMessage.parseFromBuffer(buffer);
+        assertEquals("Buffer is not read fully", buffer.cursize, buffer.readcount);
+        //assertEquals(parsed, message);
     }
 }

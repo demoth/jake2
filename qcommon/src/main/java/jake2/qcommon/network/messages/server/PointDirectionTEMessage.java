@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -55,5 +56,14 @@ public class PointDirectionTEMessage extends PointTEMessage {
     @Override
     int getSize() {
         return super.getSize() + 1;
+    }
+
+    @Override
+    public String toString() {
+        return "PointDirectionTEMessage{" +
+                "direction=" + Arrays.toString(direction) +
+                ", position=" + Arrays.toString(position) +
+                ", style=" + style +
+                '}';
     }
 }

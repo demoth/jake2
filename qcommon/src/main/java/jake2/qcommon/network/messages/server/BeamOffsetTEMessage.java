@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -43,5 +44,16 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
     @Override
     int getSize() {
         return super.getSize() + 6;
+    }
+
+    @Override
+    public String toString() {
+        return "BeamOffsetTEMessage{" +
+                "offset=" + Arrays.toString(offset) +
+                ", ownerIndex=" + ownerIndex +
+                ", origin=" + Arrays.toString(origin) +
+                ", destination=" + Arrays.toString(destination) +
+                ", style=" + style +
+                '}';
     }
 }

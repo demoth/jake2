@@ -46,7 +46,6 @@ public class SplashTEMessage extends TEMessage {
 
     @Override
     void parse(sizebuf_t buffer) {
-        super.parse(buffer);
         count = MSG.ReadByte(buffer);
         position = new float[3];
         MSG.ReadPos(buffer, position);

@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -45,5 +46,14 @@ public class TrailTEMessage extends PointTEMessage {
     @Override
     int getSize() {
         return super.getSize() + 6;
+    }
+
+    @Override
+    public String toString() {
+        return "TrailTEMessage{" +
+                "position=" + Arrays.toString(position) +
+                ", style=" + style +
+                ", destination=" + Arrays.toString(destination) +
+                '}';
     }
 }
