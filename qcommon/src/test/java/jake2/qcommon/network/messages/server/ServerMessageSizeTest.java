@@ -1,9 +1,6 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.SZ;
-import jake2.qcommon.edict_t;
-import jake2.qcommon.entity_state_t;
-import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,6 +34,7 @@ public class ServerMessageSizeTest {
                 {new DownloadMessage(new byte[]{1, 2, 3}, 50)},
                 {new DownloadMessage()},
                 {new DisconnectMessage()},
+                {new ReconnectMessage()},
                 {new NopMessage()},
                 {new EndOfServerPacketMessage()},
                 {new LayoutMessage("layout")},
@@ -72,6 +70,28 @@ public class ServerMessageSizeTest {
                     modelindex4 = 456;
                     sound = 32;
                     old_origin = new float[]{2, 3, 4};
+                }})},
+                {new PlayerInfoMessage(new player_state_t(), new player_state_t() {{
+                    pmove = new pmove_state_t() {{
+                        origin = new short[]{0, 1, 2};
+                        velocity = new short[]{1, 1, 1};
+                        pm_type = 2;
+                        pm_time = 50;
+                        pm_flags = 1;
+                        gravity = 600;
+                        delta_angles = new short[]{3, 4, 5};
+                    }};
+                    kick_angles = new float[]{2, 2, 2};
+                    viewoffset = new float[]{1, 3, 5};
+                    viewangles = new float[]{2, 4, 6};
+                    blend = new float[]{1, 2, 3, 4};
+                    fov = 70;
+                    rdflags = 2;
+                    gunindex = 23;
+                    gunframe = 12;
+                    gunangles = new float[]{3, 2, 1};
+                    gunoffset = new float[]{6, 4, 2};
+                    stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
                 }})}
         });
     }

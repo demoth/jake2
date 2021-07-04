@@ -28,7 +28,10 @@ package jake2.client;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.network.messages.server.*;
+import jake2.qcommon.network.messages.server.EntityUpdate;
+import jake2.qcommon.network.messages.server.FrameHeaderMessage;
+import jake2.qcommon.network.messages.server.PacketEntitiesMessage;
+import jake2.qcommon.network.messages.server.PlayerInfoMessage;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -221,52 +224,51 @@ public class CL_ents {
 		//
 		// parse the pmove_state_t
 		//
-		if (msg.pmType != null)
-			state.pmove.pm_type = msg.pmType;
+		if ((msg.deltaFlags & Defines.PS_M_TYPE) != 0)
+			state.pmove.pm_type = msg.currentState.pmove.pm_type;
 
 		if (ClientGlobals.cl.attractloop)
 			state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
 
-		if (msg.pmOrigin != null)
-			state.pmove.origin = msg.pmOrigin;
-		if (msg.pmVelocity != null)
-			state.pmove.velocity = msg.pmVelocity;
-		if (msg.pmTime != null)
-			state.pmove.pm_time = msg.pmTime;
-		if (msg.pmFlags != null)
-			state.pmove.pm_flags = msg.pmFlags;
-		if (msg.pmGravity != null)
-			state.pmove.gravity = msg.pmGravity;
-		if (msg.pmDeltaAngles != null)
-			state.pmove.delta_angles = msg.pmDeltaAngles;
+		if ((msg.deltaFlags & Defines.PS_M_ORIGIN) != 0)
+			state.pmove.origin = msg.currentState.pmove.origin;
+		if ((msg.deltaFlags & Defines.PS_M_VELOCITY) != 0)
+			state.pmove.velocity = msg.currentState.pmove.velocity;
+		if ((msg.deltaFlags & Defines.PS_M_TIME) != 0)
+			state.pmove.pm_time = msg.currentState.pmove.pm_time;
+		if ((msg.deltaFlags & Defines.PS_M_FLAGS) != 0)
+			state.pmove.pm_flags = msg.currentState.pmove.pm_flags;
+		if ((msg.deltaFlags & Defines.PS_M_GRAVITY) != 0)
+			state.pmove.gravity = msg.currentState.pmove.gravity;
+		if ((msg.deltaFlags & Defines.PS_M_DELTA_ANGLES) != 0)
+			state.pmove.delta_angles = msg.currentState.pmove.delta_angles;
 		//
 		// parse the rest of the player_state_t
 		//
-		if (msg.viewOffset != null)
-			state.viewoffset = msg.viewOffset;
-		if (msg.viewAngles != null)
-			state.viewangles = msg.viewAngles;
-		if (msg.kickAngles != null)
-			state.kick_angles = msg.kickAngles;
-		if (msg.gunIndex != null)
-			state.gunindex = msg.gunIndex;
-		if (msg.gunFrame != null)
-			state.gunframe = msg.gunFrame;
-		if (msg.gunOffset != null)
-			state.gunoffset = msg.gunOffset;
-		if (msg.gunAngles != null)
-			state.gunangles = msg.gunAngles;
-		if (msg.blend != null)
-			state.blend = msg.blend;
-		if (msg.fov != null)
-			state.fov = msg.fov;
-		if (msg.rdFlags != null)
-			state.rdflags = msg.rdFlags;
+		if ((msg.deltaFlags & Defines.PS_VIEWOFFSET) != 0)
+			state.viewoffset = msg.currentState.viewoffset;
+		if ((msg.deltaFlags & Defines.PS_VIEWANGLES) != 0)
+			state.viewangles = msg.currentState.viewangles;
+		if ((msg.deltaFlags & Defines.PS_KICKANGLES) != 0)
+			state.kick_angles = msg.currentState.kick_angles;
+		if ((msg.deltaFlags & Defines.PS_WEAPONINDEX) != 0)
+			state.gunindex = msg.currentState.gunindex;
+		if ((msg.deltaFlags & Defines.PS_WEAPONFRAME) != 0) {
+			state.gunframe = msg.currentState.gunframe;
+			state.gunoffset = msg.currentState.gunoffset;
+			state.gunangles = msg.currentState.gunangles;
+		}
+		if ((msg.deltaFlags & Defines.PS_BLEND) != 0)
+			state.blend = msg.currentState.blend;
+		if ((msg.deltaFlags & Defines.PS_FOV) != 0)
+			state.fov = msg.currentState.fov;
+		if ((msg.deltaFlags & Defines.PS_RDFLAGS) != 0)
+			state.rdflags = msg.currentState.rdflags;
 
 		// copy only changed stats
 		for (int i = 0; i < Defines.MAX_STATS; i++) {
-			if ((msg.statsMask & (1 << i)) != 0) {
-				state.stats[i] = msg.stats[i];
+			if ((msg.statbits & (1 << i)) != 0) {
+				state.stats[i] = msg.currentState.stats[i];
 			}
 		}
 	}

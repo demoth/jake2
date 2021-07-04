@@ -149,193 +149,193 @@ public class MSG extends Globals {
     public static void WriteDeltaEntity(entity_state_t from, entity_state_t to,
             sizebuf_t msg, boolean force, boolean newentity) {
 
-        int flags = getFlags(from, to, newentity);
+        int deltaFlags = getDeltaFlags(from, to, newentity);
 
         //
         // write the message
         //
-        if (flags == 0 && !force)
+        if (deltaFlags == 0 && !force)
             return; // nothing to send!
 
-        WriteByte(msg, flags & 255);
+        WriteByte(msg, deltaFlags & 255);
 
-        if ((flags & 0xff000000) != 0) {
-            WriteByte(msg, (flags >>> 8) & 255);
-            WriteByte(msg, (flags >>> 16) & 255);
-            WriteByte(msg, (flags >>> 24) & 255);
-        } else if ((flags & 0x00ff0000) != 0) {
-            WriteByte(msg, (flags >>> 8) & 255);
-            WriteByte(msg, (flags >>> 16) & 255);
-        } else if ((flags & 0x0000ff00) != 0) {
-            WriteByte(msg, (flags >>> 8) & 255);
+        if ((deltaFlags & 0xff000000) != 0) {
+            WriteByte(msg, (deltaFlags >>> 8) & 255);
+            WriteByte(msg, (deltaFlags >>> 16) & 255);
+            WriteByte(msg, (deltaFlags >>> 24) & 255);
+        } else if ((deltaFlags & 0x00ff0000) != 0) {
+            WriteByte(msg, (deltaFlags >>> 8) & 255);
+            WriteByte(msg, (deltaFlags >>> 16) & 255);
+        } else if ((deltaFlags & 0x0000ff00) != 0) {
+            WriteByte(msg, (deltaFlags >>> 8) & 255);
         }
 
         //----------
 
-        if ((flags & U_NUMBER16) != 0)
+        if ((deltaFlags & U_NUMBER16) != 0)
             WriteShort(msg, to.number);
         else
             WriteByte(msg, to.number);
 
-        if ((flags & U_MODEL) != 0)
+        if ((deltaFlags & U_MODEL) != 0)
             WriteByte(msg, to.modelindex);
-        if ((flags & U_MODEL2) != 0)
+        if ((deltaFlags & U_MODEL2) != 0)
             WriteByte(msg, to.modelindex2);
-        if ((flags & U_MODEL3) != 0)
+        if ((deltaFlags & U_MODEL3) != 0)
             WriteByte(msg, to.modelindex3);
-        if ((flags & U_MODEL4) != 0)
+        if ((deltaFlags & U_MODEL4) != 0)
             WriteByte(msg, to.modelindex4);
 
-        if ((flags & U_FRAME8) != 0)
+        if ((deltaFlags & U_FRAME8) != 0)
             WriteByte(msg, to.frame);
-        if ((flags & U_FRAME16) != 0)
+        if ((deltaFlags & U_FRAME16) != 0)
             WriteShort(msg, to.frame);
 
-        if ((flags & U_SKIN8) != 0 && (flags & U_SKIN16) != 0) //used for laser
+        if ((deltaFlags & U_SKIN8) != 0 && (deltaFlags & U_SKIN16) != 0) //used for laser
                                                              // colors
             WriteInt(msg, to.skinnum);
-        else if ((flags & U_SKIN8) != 0)
+        else if ((deltaFlags & U_SKIN8) != 0)
             WriteByte(msg, to.skinnum);
-        else if ((flags & U_SKIN16) != 0)
+        else if ((deltaFlags & U_SKIN16) != 0)
             WriteShort(msg, to.skinnum);
 
-        if ((flags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
+        if ((deltaFlags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
             WriteInt(msg, to.effects);
-        else if ((flags & U_EFFECTS8) != 0)
+        else if ((deltaFlags & U_EFFECTS8) != 0)
             WriteByte(msg, to.effects);
-        else if ((flags & U_EFFECTS16) != 0)
+        else if ((deltaFlags & U_EFFECTS16) != 0)
             WriteShort(msg, to.effects);
 
-        if ((flags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
+        if ((deltaFlags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
             WriteInt(msg, to.renderfx);
-        else if ((flags & U_RENDERFX8) != 0)
+        else if ((deltaFlags & U_RENDERFX8) != 0)
             WriteByte(msg, to.renderfx);
-        else if ((flags & U_RENDERFX16) != 0)
+        else if ((deltaFlags & U_RENDERFX16) != 0)
             WriteShort(msg, to.renderfx);
 
-        if ((flags & U_ORIGIN1) != 0)
+        if ((deltaFlags & U_ORIGIN1) != 0)
             WriteCoord(msg, to.origin[0]);
-        if ((flags & U_ORIGIN2) != 0)
+        if ((deltaFlags & U_ORIGIN2) != 0)
             WriteCoord(msg, to.origin[1]);
-        if ((flags & U_ORIGIN3) != 0)
+        if ((deltaFlags & U_ORIGIN3) != 0)
             WriteCoord(msg, to.origin[2]);
 
-        if ((flags & U_ANGLE1) != 0)
+        if ((deltaFlags & U_ANGLE1) != 0)
             WriteAngle(msg, to.angles[0]);
-        if ((flags & U_ANGLE2) != 0)
+        if ((deltaFlags & U_ANGLE2) != 0)
             WriteAngle(msg, to.angles[1]);
-        if ((flags & U_ANGLE3) != 0)
+        if ((deltaFlags & U_ANGLE3) != 0)
             WriteAngle(msg, to.angles[2]);
 
-        if ((flags & U_OLDORIGIN) != 0) {
+        if ((deltaFlags & U_OLDORIGIN) != 0) {
             WriteCoord(msg, to.old_origin[0]);
             WriteCoord(msg, to.old_origin[1]);
             WriteCoord(msg, to.old_origin[2]);
         }
 
-        if ((flags & U_SOUND) != 0)
+        if ((deltaFlags & U_SOUND) != 0)
             WriteByte(msg, to.sound);
-        if ((flags & U_EVENT) != 0)
+        if ((deltaFlags & U_EVENT) != 0)
             WriteByte(msg, to.event);
-        if ((flags & U_SOLID) != 0)
+        if ((deltaFlags & U_SOLID) != 0)
             WriteShort(msg, to.solid);
     }
 
-    private static int getFlags(entity_state_t from, entity_state_t to, boolean newentity) {
+    private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {
         if (0 == to.number)
             Com.Error(ERR_FATAL, "Unset entity number");
         if (to.number >= MAX_EDICTS)
             Com.Error(ERR_FATAL, "Entity number >= MAX_EDICTS");
 
         // send an update
-        int flags = 0;
+        int deltaFlags = 0;
 
         if (to.number >= 256)
-            flags |= U_NUMBER16; // number8 is implicit otherwise
+            deltaFlags |= U_NUMBER16; // number8 is implicit otherwise
 
         if (to.origin[0] != from.origin[0])
-            flags |= U_ORIGIN1;
+            deltaFlags |= U_ORIGIN1;
         if (to.origin[1] != from.origin[1])
-            flags |= U_ORIGIN2;
+            deltaFlags |= U_ORIGIN2;
         if (to.origin[2] != from.origin[2])
-            flags |= U_ORIGIN3;
+            deltaFlags |= U_ORIGIN3;
 
         if (to.angles[0] != from.angles[0])
-            flags |= U_ANGLE1;
+            deltaFlags |= U_ANGLE1;
         if (to.angles[1] != from.angles[1])
-            flags |= U_ANGLE2;
+            deltaFlags |= U_ANGLE2;
         if (to.angles[2] != from.angles[2])
-            flags |= U_ANGLE3;
+            deltaFlags |= U_ANGLE3;
 
         if (to.skinnum != from.skinnum) {
             if (to.skinnum < 256)
-                flags |= U_SKIN8;
+                deltaFlags |= U_SKIN8;
             else if (to.skinnum < 0x10000)
-                flags |= U_SKIN16;
+                deltaFlags |= U_SKIN16;
             else
-                flags |= (U_SKIN8 | U_SKIN16);
+                deltaFlags |= (U_SKIN8 | U_SKIN16);
         }
 
         if (to.frame != from.frame) {
             if (to.frame < 256)
-                flags |= U_FRAME8;
+                deltaFlags |= U_FRAME8;
             else
-                flags |= U_FRAME16;
+                deltaFlags |= U_FRAME16;
         }
 
         if (to.effects != from.effects) {
             if (to.effects < 256)
-                flags |= U_EFFECTS8;
+                deltaFlags |= U_EFFECTS8;
             else if (to.effects < 0x8000)
-                flags |= U_EFFECTS16;
+                deltaFlags |= U_EFFECTS16;
             else
-                flags |= U_EFFECTS8 | U_EFFECTS16;
+                deltaFlags |= U_EFFECTS8 | U_EFFECTS16;
         }
 
         if (to.renderfx != from.renderfx) {
             if (to.renderfx < 256)
-                flags |= U_RENDERFX8;
+                deltaFlags |= U_RENDERFX8;
             else if (to.renderfx < 0x8000)
-                flags |= U_RENDERFX16;
+                deltaFlags |= U_RENDERFX16;
             else
-                flags |= U_RENDERFX8 | U_RENDERFX16;
+                deltaFlags |= U_RENDERFX8 | U_RENDERFX16;
         }
 
         if (to.solid != from.solid)
-            flags |= U_SOLID;
+            deltaFlags |= U_SOLID;
 
         // event is not delta compressed, just 0 compressed
         if (to.event != 0)
-            flags |= U_EVENT;
+            deltaFlags |= U_EVENT;
 
         if (to.modelindex != from.modelindex)
-            flags |= U_MODEL;
+            deltaFlags |= U_MODEL;
         if (to.modelindex2 != from.modelindex2)
-            flags |= U_MODEL2;
+            deltaFlags |= U_MODEL2;
         if (to.modelindex3 != from.modelindex3)
-            flags |= U_MODEL3;
+            deltaFlags |= U_MODEL3;
         if (to.modelindex4 != from.modelindex4)
-            flags |= U_MODEL4;
+            deltaFlags |= U_MODEL4;
 
         if (to.sound != from.sound)
-            flags |= U_SOUND;
+            deltaFlags |= U_SOUND;
 
         if (newentity || (to.renderfx & RF_BEAM) != 0)
-            flags |= U_OLDORIGIN;
+            deltaFlags |= U_OLDORIGIN;
 
         //----------
 
-        if ((flags & 0xff000000) != 0)
-            flags |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
-        else if ((flags & 0x00ff0000) != 0)
-            flags |= U_MOREBITS2 | U_MOREBITS1;
-        else if ((flags & 0x0000ff00) != 0)
-            flags |= U_MOREBITS1;
-        return flags;
+        if ((deltaFlags & 0xff000000) != 0)
+            deltaFlags |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
+        else if ((deltaFlags & 0x00ff0000) != 0)
+            deltaFlags |= U_MOREBITS2 | U_MOREBITS1;
+        else if ((deltaFlags & 0x0000ff00) != 0)
+            deltaFlags |= U_MOREBITS1;
+        return deltaFlags;
     }
 
     public static int getDeltaSize(entity_state_t from, entity_state_t to, boolean newentity) {
-        int flags = getFlags(from, to, newentity);
+        int flags = getDeltaFlags(from, to, newentity);
         if (flags == 0)
             return 0;
 
