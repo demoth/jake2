@@ -101,7 +101,11 @@ public class ServerMessageSizeTest {
                     gunangles = new float[]{3, 2, 1};
                     gunoffset = new float[]{6, 4, 2};
                     stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
-                }})}
+                }})},
+                {new PacketEntitiesMessage() {{
+                    updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
+                    //updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), new entity_state_t(new edict_t(1)), false, true));
+                }}}
         });
     }
 

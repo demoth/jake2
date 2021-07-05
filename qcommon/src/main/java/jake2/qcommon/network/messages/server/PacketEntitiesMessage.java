@@ -67,7 +67,49 @@ public class PacketEntitiesMessage extends ServerMessage {
 
     @Override
     int getSize() {
-        throw new UnsupportedOperationException("Not implemented");
+        return updates.stream().mapToInt(this::getUpdateSize).sum();
+    }
+
+    private int getUpdateSize(EntityUpdate value) {
+        if (value.header == null) {
+            // entity is changed
+            return 3 + MSG.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
+        } else {
+            // entity is removed
+            int result = 2;
+            if ((value.header.flags & 0x0000ff00) != 0)
+                result += 1;
+
+            if ((value.header.flags & Defines.U_NUMBER16) != 0)
+                result += 2;
+            else
+                result += 1;
+
+            result += 2;
+            return result;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PacketEntitiesMessage)) return false;
+
+        PacketEntitiesMessage that = (PacketEntitiesMessage) o;
+
+        return updates != null ? updates.equals(that.updates) : that.updates == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return updates != null ? updates.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "PacketEntitiesMessage{" +
+                "updates=" + updates +
+                '}';
     }
 }
 

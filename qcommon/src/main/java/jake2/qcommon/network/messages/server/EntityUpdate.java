@@ -43,4 +43,30 @@ public class EntityUpdate {
         this.force = false;
         this.isNewEntity = false;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EntityUpdate that = (EntityUpdate) o;
+
+        if (header != null ? !header.equals(that.header) : that.header != null) return false;
+        return newState != null ? newState.equals(that.newState) : that.newState == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = header != null ? header.hashCode() : 0;
+        result = 31 * result + (newState != null ? newState.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "EntityUpdate{" +
+                "header=" + header +
+                ", newState=" + newState +
+                '}';
+    }
 }
