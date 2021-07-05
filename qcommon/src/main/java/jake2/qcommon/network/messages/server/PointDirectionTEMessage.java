@@ -71,4 +71,22 @@ public class PointDirectionTEMessage extends PointTEMessage {
                 ", style=" + style +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PointDirectionTEMessage that = (PointDirectionTEMessage) o;
+
+        return Arrays.equals(direction, that.direction);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(direction);
+        return result;
+    }
 }

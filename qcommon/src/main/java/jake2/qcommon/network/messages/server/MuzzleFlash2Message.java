@@ -41,4 +41,22 @@ public class MuzzleFlash2Message extends ServerMessage {
                 ", flashType=" + flashType +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MuzzleFlash2Message that = (MuzzleFlash2Message) o;
+
+        if (entityIndex != that.entityIndex) return false;
+        return flashType == that.flashType;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = entityIndex;
+        result = 31 * result + flashType;
+        return result;
+    }
 }

@@ -337,4 +337,24 @@ public class PlayerInfoMessage extends ServerMessage {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "PlayerInfoMessage";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlayerInfoMessage that = (PlayerInfoMessage) o;
+
+        return currentState != null ? currentState.equals(that.currentState) : that.currentState == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return currentState != null ? currentState.hashCode() : 0;
+    }
 }

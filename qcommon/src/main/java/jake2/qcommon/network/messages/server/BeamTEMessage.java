@@ -71,4 +71,24 @@ public class BeamTEMessage extends TEMessage {
                 ", destination=" + Arrays.toString(destination) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BeamTEMessage that = (BeamTEMessage) o;
+
+        if (ownerIndex != that.ownerIndex) return false;
+        if (!Arrays.equals(origin, that.origin)) return false;
+        return Arrays.equals(destination, that.destination);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ownerIndex;
+        result = 31 * result + Arrays.hashCode(origin);
+        result = 31 * result + Arrays.hashCode(destination);
+        return result;
+    }
 }

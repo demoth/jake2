@@ -26,4 +26,12 @@ public class DisconnectMessage extends ServerMessage {
     public String toString() {
         return "DisconnectMessage";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else
+            return this.getClass() == obj.getClass();
+    }
 }

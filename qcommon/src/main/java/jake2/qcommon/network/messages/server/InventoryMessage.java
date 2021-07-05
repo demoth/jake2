@@ -50,4 +50,19 @@ public class InventoryMessage extends ServerMessage {
                 "inventory=" + Arrays.toString(inventory) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        InventoryMessage that = (InventoryMessage) o;
+
+        return Arrays.equals(inventory, that.inventory);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(inventory);
+    }
 }

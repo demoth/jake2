@@ -26,4 +26,13 @@ public class ReconnectMessage extends ServerMessage {
     public String toString() {
         return "ReconnectMessage";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else
+            return this.getClass() == obj.getClass();
+    }
+
 }

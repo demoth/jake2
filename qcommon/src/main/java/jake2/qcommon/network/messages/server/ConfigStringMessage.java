@@ -38,4 +38,22 @@ public class ConfigStringMessage extends ServerMessage {
     public String toString() {
         return "ConfigStringMessage{" + index + "=" + config + '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConfigStringMessage that = (ConfigStringMessage) o;
+
+        if (index != that.index) return false;
+        return config != null ? config.equals(that.config) : that.config == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = index;
+        result = 31 * result + (config != null ? config.hashCode() : 0);
+        return result;
+    }
 }

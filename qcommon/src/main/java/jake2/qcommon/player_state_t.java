@@ -22,11 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 
 /** 
  	Player_state_t is the information needed in addition to pmove_state_t
@@ -177,26 +177,59 @@ public class player_state_t {
 			f.writeShort(stats[n]);
 	}
 
-	/** Prints the player state. */
-	public void dump() {
-		pmove.dump();
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 
-		Lib.printv("viewangles", viewangles);
-		Lib.printv("viewoffset", viewoffset);
-		Lib.printv("kick_angles", kick_angles);
-		Lib.printv("gunangles", gunangles);
-		Lib.printv("gunoffset", gunoffset);
+		player_state_t that = (player_state_t) o;
 
-		Com.Println("gunindex: " + gunindex);
-		Com.Println("gunframe: " + gunframe);
+		if (gunindex != that.gunindex) return false;
+		if (gunframe != that.gunframe) return false;
+		if (Float.compare(that.fov, fov) != 0) return false;
+		if (rdflags != that.rdflags) return false;
+		if (pmove != null ? !pmove.equals(that.pmove) : that.pmove != null) return false;
+		if (!Arrays.equals(viewangles, that.viewangles)) return false;
+		if (!Arrays.equals(viewoffset, that.viewoffset)) return false;
+		if (!Arrays.equals(kick_angles, that.kick_angles)) return false;
+		if (!Arrays.equals(gunangles, that.gunangles)) return false;
+		if (!Arrays.equals(gunoffset, that.gunoffset)) return false;
+		if (!Arrays.equals(blend, that.blend)) return false;
+		return Arrays.equals(stats, that.stats);
+	}
 
-		Lib.printv("blend", blend);
+	@Override
+	public int hashCode() {
+		int result = pmove != null ? pmove.hashCode() : 0;
+		result = 31 * result + Arrays.hashCode(viewangles);
+		result = 31 * result + Arrays.hashCode(viewoffset);
+		result = 31 * result + Arrays.hashCode(kick_angles);
+		result = 31 * result + Arrays.hashCode(gunangles);
+		result = 31 * result + Arrays.hashCode(gunoffset);
+		result = 31 * result + gunindex;
+		result = 31 * result + gunframe;
+		result = 31 * result + Arrays.hashCode(blend);
+		result = 31 * result + (fov != +0.0f ? Float.floatToIntBits(fov) : 0);
+		result = 31 * result + rdflags;
+		result = 31 * result + Arrays.hashCode(stats);
+		return result;
+	}
 
-		Com.Println("fov: " + fov);
-
-		Com.Println("rdflags: " + rdflags);
-
-		for (int n= 0; n < Defines.MAX_STATS; n++)
-			System.out.println("stats[" + n + "]: " + stats[n]);
+	@Override
+	public String toString() {
+		return "player_state_t{" +
+				"pmove=" + pmove +
+				", viewangles=" + Arrays.toString(viewangles) +
+				", viewoffset=" + Arrays.toString(viewoffset) +
+				", kick_angles=" + Arrays.toString(kick_angles) +
+				", gunangles=" + Arrays.toString(gunangles) +
+				", gunoffset=" + Arrays.toString(gunoffset) +
+				", gunindex=" + gunindex +
+				", gunframe=" + gunframe +
+				", blend=" + Arrays.toString(blend) +
+				", fov=" + fov +
+				", rdflags=" + rdflags +
+				", stats=" + Arrays.toString(stats) +
+				'}';
 	}
 }

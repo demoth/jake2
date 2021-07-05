@@ -26,4 +26,13 @@ public class EndOfServerPacketMessage extends ServerMessage {
     public String toString() {
         return "End";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else
+            return this.getClass() == obj.getClass();
+    }
+
 }

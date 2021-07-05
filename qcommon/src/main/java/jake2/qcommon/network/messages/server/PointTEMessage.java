@@ -91,4 +91,19 @@ public class PointTEMessage extends TEMessage {
                 "position=" + Arrays.toString(position) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PointTEMessage that = (PointTEMessage) o;
+
+        return Arrays.equals(position, that.position);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(position);
+    }
 }

@@ -26,7 +26,6 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-
         MSG.WriteDeltaEntity(base, entityState, buffer, true, true);
     }
 
@@ -44,7 +43,22 @@ public class SpawnBaselineMessage extends ServerMessage {
     @Override
     public String toString() {
         return "SpawnBaselineMessage{" +
-                "entityState.number=" + entityState.number +
-                "}";
+                "entityState=" + entityState +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SpawnBaselineMessage that = (SpawnBaselineMessage) o;
+
+        return entityState != null ? entityState.equals(that.entityState) : that.entityState == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return entityState != null ? entityState.hashCode() : 0;
     }
 }

@@ -26,6 +26,7 @@ import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 
 public class pmove_state_t {
 	//	this structure needs to be communicated bit-accurate
@@ -133,23 +134,44 @@ public class pmove_state_t {
 		f.writeShort(delta_angles[2]);
 	}
 
-	public void dump() {
-		Com.Println("pm_type: " + pm_type);
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 
-		Com.Println("origin[0]: " + origin[0]);
-		Com.Println("origin[1]: " + origin[1]);
-		Com.Println("origin[2]: " + origin[2]);
+		pmove_state_t that = (pmove_state_t) o;
 
-		Com.Println("velocity[0]: " + velocity[0]);
-		Com.Println("velocity[1]: " + velocity[1]);
-		Com.Println("velocity[2]: " + velocity[2]);
+		if (pm_type != that.pm_type) return false;
+		if (pm_flags != that.pm_flags) return false;
+		if (pm_time != that.pm_time) return false;
+		if (gravity != that.gravity) return false;
+		if (!Arrays.equals(origin, that.origin)) return false;
+		if (!Arrays.equals(velocity, that.velocity)) return false;
+		return Arrays.equals(delta_angles, that.delta_angles);
+	}
 
-		Com.Println("pmflags: " + pm_flags);
-		Com.Println("pmtime: " + pm_time);
-		Com.Println("gravity: " + gravity);
+	@Override
+	public int hashCode() {
+		int result = pm_type;
+		result = 31 * result + Arrays.hashCode(origin);
+		result = 31 * result + Arrays.hashCode(velocity);
+		result = 31 * result + (int) pm_flags;
+		result = 31 * result + (int) pm_time;
+		result = 31 * result + (int) gravity;
+		result = 31 * result + Arrays.hashCode(delta_angles);
+		return result;
+	}
 
-		Com.Println("delta-angle[0]: " + delta_angles[0]);
-		Com.Println("delta-angle[1]: " + delta_angles[1]);
-		Com.Println("delta-angle[2]: " + delta_angles[2]);
+	@Override
+	public String toString() {
+		return "pmove_state_t{" +
+				"pm_type=" + pm_type +
+				", origin=" + Arrays.toString(origin) +
+				", velocity=" + Arrays.toString(velocity) +
+				", pm_flags=" + pm_flags +
+				", pm_time=" + pm_time +
+				", gravity=" + gravity +
+				", delta_angles=" + Arrays.toString(delta_angles) +
+				'}';
 	}
 }

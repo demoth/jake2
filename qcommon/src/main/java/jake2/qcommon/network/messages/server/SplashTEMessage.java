@@ -73,4 +73,26 @@ public class SplashTEMessage extends TEMessage {
                 ", param=" + param +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SplashTEMessage that = (SplashTEMessage) o;
+
+        if (count != that.count) return false;
+        if (param != that.param) return false;
+        if (!Arrays.equals(position, that.position)) return false;
+        return Arrays.equals(direction, that.direction);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = count;
+        result = 31 * result + Arrays.hashCode(position);
+        result = 31 * result + Arrays.hashCode(direction);
+        result = 31 * result + param;
+        return result;
+    }
 }

@@ -61,4 +61,22 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
                 ", style=" + style +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        BeamOffsetTEMessage that = (BeamOffsetTEMessage) o;
+
+        return Arrays.equals(offset, that.offset);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(offset);
+        return result;
+    }
 }

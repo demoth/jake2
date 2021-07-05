@@ -61,4 +61,22 @@ public class TrailTEMessage extends PointTEMessage {
                 ", destination=" + Arrays.toString(destination) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        TrailTEMessage that = (TrailTEMessage) o;
+
+        return Arrays.equals(destination, that.destination);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(destination);
+        return result;
+    }
 }

@@ -27,4 +27,13 @@ public class NopMessage extends ServerMessage {
     public String toString() {
         return "Nop";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else
+            return this.getClass() == obj.getClass();
+    }
+
 }

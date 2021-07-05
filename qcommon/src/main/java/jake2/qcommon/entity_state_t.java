@@ -26,6 +26,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * entity_state_t is the information conveyed from the server
@@ -221,5 +222,70 @@ public class entity_state_t implements Cloneable
 		solid = 0;
 		sound = 0;
 		event = 0;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		entity_state_t that = (entity_state_t) o;
+
+		if (number != that.number) return false;
+		if (modelindex != that.modelindex) return false;
+		if (modelindex2 != that.modelindex2) return false;
+		if (modelindex3 != that.modelindex3) return false;
+		if (modelindex4 != that.modelindex4) return false;
+		if (frame != that.frame) return false;
+		if (skinnum != that.skinnum) return false;
+		if (effects != that.effects) return false;
+		if (renderfx != that.renderfx) return false;
+		if (solid != that.solid) return false;
+		if (sound != that.sound) return false;
+		if (event != that.event) return false;
+		if (!Arrays.equals(origin, that.origin)) return false;
+		if (!Arrays.equals(angles, that.angles)) return false;
+		return Arrays.equals(old_origin, that.old_origin);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = number;
+		result = 31 * result + Arrays.hashCode(origin);
+		result = 31 * result + Arrays.hashCode(angles);
+		result = 31 * result + Arrays.hashCode(old_origin);
+		result = 31 * result + modelindex;
+		result = 31 * result + modelindex2;
+		result = 31 * result + modelindex3;
+		result = 31 * result + modelindex4;
+		result = 31 * result + frame;
+		result = 31 * result + skinnum;
+		result = 31 * result + effects;
+		result = 31 * result + renderfx;
+		result = 31 * result + solid;
+		result = 31 * result + sound;
+		result = 31 * result + event;
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "entity_state_t{" +
+				"number=" + number +
+				", origin=" + Arrays.toString(origin) +
+				", angles=" + Arrays.toString(angles) +
+				", old_origin=" + Arrays.toString(old_origin) +
+				", modelindex=" + modelindex +
+				", modelindex2=" + modelindex2 +
+				", modelindex3=" + modelindex3 +
+				", modelindex4=" + modelindex4 +
+				", frame=" + frame +
+				", skinnum=" + skinnum +
+				", effects=" + effects +
+				", renderfx=" + renderfx +
+				", solid=" + solid +
+				", sound=" + sound +
+				", event=" + event +
+				'}';
 	}
 }

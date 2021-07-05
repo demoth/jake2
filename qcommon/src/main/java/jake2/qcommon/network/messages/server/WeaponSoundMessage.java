@@ -46,4 +46,22 @@ public class WeaponSoundMessage extends ServerMessage {
                 ", type=" + type +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WeaponSoundMessage that = (WeaponSoundMessage) o;
+
+        if (entityIndex != that.entityIndex) return false;
+        return type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = entityIndex;
+        result = 31 * result + type;
+        return result;
+    }
 }
