@@ -340,13 +340,15 @@ public class PlayerInfoMessage extends ServerMessage {
 
     @Override
     public String toString() {
-        return "PlayerInfoMessage";
+        return "PlayerInfoMessage{" +
+                "currentState=" + currentState +
+                '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PlayerInfoMessage)) return false;
 
         PlayerInfoMessage that = (PlayerInfoMessage) o;
 

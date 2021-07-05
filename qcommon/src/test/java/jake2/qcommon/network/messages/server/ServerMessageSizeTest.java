@@ -9,7 +9,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static jake2.qcommon.Defines.RF_BEAM;
+import static jake2.qcommon.Defines.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,7 +31,6 @@ public class ServerMessageSizeTest {
     @Parameterized.Parameters(name = "{index}, {0}")
     public static Collection<Object[]> createTestData() {
         return Arrays.asList(new Object[][]{
-/*
                 // null/empty markers
                 {new NopMessage()},
                 {new EndOfServerPacketMessage()},
@@ -60,9 +59,9 @@ public class ServerMessageSizeTest {
                 // this direction is taken from: jake2.qcommon.Globals.bytedirs
                 {new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f})},
                 {new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])},
+                {new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})},
                 // delta compressed
                 {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))},
-*/
                 {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)) {{
                     origin = new float[]{1, 2, 3};
                     number = 1000;
@@ -93,8 +92,8 @@ public class ServerMessageSizeTest {
                     }};
                     kick_angles = new float[]{2, 2, 2};
                     viewoffset = new float[]{1, 3, 5};
-                    viewangles = new float[]{2, 4, 6};
-                    blend = new float[]{1, 2, 3, 4};
+                    viewangles = new float[]{1.9995117f, 3.9990234f, 5.998535f};
+                    blend = new float[]{0.09803922f, 0.2f, 0.29803923f, 0.4f};
                     fov = 70;
                     rdflags = 2;
                     gunindex = 23;

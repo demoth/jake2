@@ -180,7 +180,7 @@ public class player_state_t {
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (!(o instanceof player_state_t)) return false;
 
 		player_state_t that = (player_state_t) o;
 

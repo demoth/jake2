@@ -5,6 +5,8 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
+
 /**
  * Each entity can have eight independent sound sources, like voice,
  * weapon, feet, etc.
@@ -122,6 +124,65 @@ public class SoundMessage extends ServerMessage {
 
     @Override
     int getSize() {
-        return -1;
+        int result = 3;
+        if ((flags & Defines.SND_VOLUME) != 0)
+            result += 1;
+
+        if ((flags & Defines.SND_ATTENUATION) != 0)
+            result += 1;
+
+        if ((flags & Defines.SND_OFFSET) != 0)
+            result += 1;
+        if ((flags & Defines.SND_ENT) != 0) { // entity reletive
+            result += 2;
+        }
+        if ((flags & Defines.SND_POS) != 0) { // positioned in space
+            result += 6;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SoundMessage that = (SoundMessage) o;
+
+        if (flags != that.flags) return false;
+        if (soundIndex != that.soundIndex) return false;
+        if (Float.compare(that.volume, volume) != 0) return false;
+        if (Float.compare(that.attenuation, attenuation) != 0) return false;
+        if (Float.compare(that.timeOffset, timeOffset) != 0) return false;
+        if (sendchan != that.sendchan) return false;
+        if (entityIndex != that.entityIndex) return false;
+        return Arrays.equals(origin, that.origin);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = flags;
+        result = 31 * result + soundIndex;
+        result = 31 * result + (volume != +0.0f ? Float.floatToIntBits(volume) : 0);
+        result = 31 * result + (attenuation != +0.0f ? Float.floatToIntBits(attenuation) : 0);
+        result = 31 * result + (timeOffset != +0.0f ? Float.floatToIntBits(timeOffset) : 0);
+        result = 31 * result + sendchan;
+        result = 31 * result + Arrays.hashCode(origin);
+        result = 31 * result + entityIndex;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "SoundMessage{" +
+                "flags=" + flags +
+                ", soundIndex=" + soundIndex +
+                ", volume=" + volume +
+                ", attenuation=" + attenuation +
+                ", timeOffset=" + timeOffset +
+                ", sendchan=" + sendchan +
+                ", origin=" + Arrays.toString(origin) +
+                ", entityIndex=" + entityIndex +
+                '}';
     }
 }
