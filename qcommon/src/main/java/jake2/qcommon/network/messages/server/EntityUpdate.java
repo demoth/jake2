@@ -44,6 +44,9 @@ public class EntityUpdate {
         this.isNewEntity = false;
     }
 
+    /**
+     * Compare headers if they exist in both objects
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -51,15 +54,9 @@ public class EntityUpdate {
 
         EntityUpdate that = (EntityUpdate) o;
 
-        if (header != null ? !header.equals(that.header) : that.header != null) return false;
-        return newState != null ? newState.equals(that.newState) : that.newState == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = header != null ? header.hashCode() : 0;
-        result = 31 * result + (newState != null ? newState.hashCode() : 0);
-        return result;
+        if (header != null && that.header != null)
+            return header.equals(that.header);
+        else return newState != null ? newState.equals(that.newState) : that.newState == null;
     }
 
     @Override

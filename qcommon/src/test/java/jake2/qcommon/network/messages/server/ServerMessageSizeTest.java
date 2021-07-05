@@ -13,7 +13,12 @@ import static jake2.qcommon.Defines.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * This test checks that size estimation for each server message class is correct.
+ * This test checks that
+ * <ol>
+ * <li>size estimation for each server message class is correct</li>
+ * <li>size of the message is equal to the bytes in the buffer</li>
+ * <li>the message is the same during serialization/deserialization</li>
+ * </ol>
  * Validated by writing the message to the buffer and comparing the size.
  */
 @RunWith(Parameterized.class)
@@ -104,7 +109,10 @@ public class ServerMessageSizeTest {
                 }})},
                 {new PacketEntitiesMessage() {{
                     updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
-                    //updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), new entity_state_t(new edict_t(1)), false, true));
+                    updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), new entity_state_t(new edict_t(1)) {{
+                        modelindex = 3;
+                        origin = new float[]{2, 3, 4};
+                    }}, false, true));
                 }}}
         });
     }

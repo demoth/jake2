@@ -67,16 +67,16 @@ public class PacketEntitiesMessage extends ServerMessage {
 
     @Override
     int getSize() {
-        return updates.stream().mapToInt(this::getUpdateSize).sum();
+        return 1 + updates.stream().mapToInt(this::getUpdateSize).sum() + 2;
     }
 
     private int getUpdateSize(EntityUpdate value) {
         if (value.header == null) {
             // entity is changed
-            return 3 + MSG.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
+            return MSG.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
         } else {
             // entity is removed
-            int result = 2;
+            int result = 1;
             if ((value.header.flags & 0x0000ff00) != 0)
                 result += 1;
 
@@ -85,7 +85,6 @@ public class PacketEntitiesMessage extends ServerMessage {
             else
                 result += 1;
 
-            result += 2;
             return result;
         }
     }
