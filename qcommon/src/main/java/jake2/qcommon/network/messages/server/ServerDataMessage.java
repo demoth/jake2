@@ -50,4 +50,47 @@ public class ServerDataMessage extends ServerMessage {
         this.playerNumber = MSG.ReadShort(buffer);
         this.levelString = MSG.ReadString(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 1 + 4 + 4 + 1 + gameName.length() + 1 + 2 + levelString.length() + 1;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerDataMessage{" +
+                "protocol=" + protocol +
+                ", spawnCount=" + spawnCount +
+                ", demo=" + demo +
+                ", gameName='" + gameName + '\'' +
+                ", playerNumber=" + playerNumber +
+                ", levelString='" + levelString + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ServerDataMessage that = (ServerDataMessage) o;
+
+        if (protocol != that.protocol) return false;
+        if (spawnCount != that.spawnCount) return false;
+        if (demo != that.demo) return false;
+        if (playerNumber != that.playerNumber) return false;
+        if (gameName != null ? !gameName.equals(that.gameName) : that.gameName != null) return false;
+        return levelString != null ? levelString.equals(that.levelString) : that.levelString == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = protocol;
+        result = 31 * result + spawnCount;
+        result = 31 * result + (demo ? 1 : 0);
+        result = 31 * result + (gameName != null ? gameName.hashCode() : 0);
+        result = 31 * result + playerNumber;
+        result = 31 * result + (levelString != null ? levelString.hashCode() : 0);
+        return result;
+    }
 }

@@ -3,7 +3,8 @@ package jake2.qcommon.network.messages;
 import jake2.qcommon.*;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.messages.client.ClientMessage;
-import jake2.qcommon.network.messages.client.EndMessage;
+import jake2.qcommon.network.messages.client.EndOfClientPacketMessage;
+import jake2.qcommon.network.messages.server.EndOfServerPacketMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.network.netchan_t;
@@ -94,7 +95,7 @@ public class NetworkPacket {
         List<ServerMessage> result = new ArrayList<>();
         while (true) {
             ServerMessage msg = ServerMessage.parseFromBuffer(buffer);
-            if (msg instanceof jake2.qcommon.network.messages.server.EndMessage) {
+            if (msg instanceof EndOfServerPacketMessage) {
                 break;
             } else if (msg != null) {
                 result.add(msg);
@@ -111,7 +112,7 @@ public class NetworkPacket {
         List<ClientMessage> result = new ArrayList<>();
         while (true) {
             ClientMessage msg = ClientMessage.parseFromBuffer(buffer, incomingSequence);
-            if (msg == null || msg instanceof EndMessage) {
+            if (msg == null || msg instanceof EndOfClientPacketMessage) {
                 break;
             } else {
                 result.add(msg);

@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -50,5 +51,42 @@ public class PointDirectionTEMessage extends PointTEMessage {
         super.parse(buffer);
         this.direction = new float[3];
         MSG.ReadDir(buffer, direction);
+    }
+
+    @Override
+    int getSize() {
+        return super.getSize() + 1;
+    }
+
+    @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
+    public String toString() {
+        return "PointDirectionTEMessage{" +
+                "direction=" + Arrays.toString(direction) +
+                ", position=" + Arrays.toString(position) +
+                ", style=" + style +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PointDirectionTEMessage that = (PointDirectionTEMessage) o;
+
+        return Arrays.equals(direction, that.direction);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(direction);
+        return result;
     }
 }

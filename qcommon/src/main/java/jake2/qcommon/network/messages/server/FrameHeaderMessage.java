@@ -59,6 +59,11 @@ public class FrameHeaderMessage extends ServerMessage {
     }
 
     @Override
+    int getSize() {
+        return 1 + 10 + areaBitsLength;
+    }
+
+    @Override
     public String toString() {
         return "FrameMessage{" +
                 "frameNumber=" + frameNumber +
@@ -68,4 +73,25 @@ public class FrameHeaderMessage extends ServerMessage {
                 ", areaBits=" + Arrays.toString(areaBits) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FrameHeaderMessage that = (FrameHeaderMessage) o;
+
+        if (frameNumber != that.frameNumber) return false;
+        if (lastFrame != that.lastFrame) return false;
+        if (suppressCount != that.suppressCount) return false;
+        if (areaBitsLength != that.areaBitsLength) return false;
+
+        // due to custom equals implementation - didn't bother with hashcode
+        for (int i = 0; i < areaBitsLength; i++) {
+            if (areaBits[i] != that.areaBits[i])
+                return false;
+        }
+        return true;
+    }
+
 }

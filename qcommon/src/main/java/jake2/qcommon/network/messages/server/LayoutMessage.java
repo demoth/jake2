@@ -24,4 +24,31 @@ public class LayoutMessage extends ServerMessage {
     void parse(sizebuf_t buffer) {
         this.layout = MSG.ReadString(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 1 + layout.length() + 1;
+    }
+
+    @Override
+    public String toString() {
+        return "LayoutMessage{" +
+                "layout='" + layout + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LayoutMessage that = (LayoutMessage) o;
+
+        return layout != null ? layout.equals(that.layout) : that.layout == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return layout != null ? layout.hashCode() : 0;
+    }
 }

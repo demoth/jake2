@@ -26,6 +26,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.util.Math3D;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class SV_ENTS {
 
     final GameImportsImpl gameImports;
@@ -38,8 +42,6 @@ public class SV_ENTS {
      */
 
     public final byte[] fatpvs; // 32767 is MAX_MAP_LEAFS
-    // stack variable
-    private final byte[] buf_data;
 
     private final int num_client_entities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
     private final entity_state_t[] client_entities; // [num_client_entities]
@@ -48,7 +50,6 @@ public class SV_ENTS {
 
     public SV_ENTS(GameImportsImpl gameImports, int clientEntitiesMax) {
         fatpvs = new byte[65536 / 8];
-        buf_data = new byte[32768];
         this.gameImports = gameImports;
 
         num_client_entities = clientEntitiesMax;
@@ -61,14 +62,6 @@ public class SV_ENTS {
 
     }
 
-    /*
-     * =============================================================================
-     * 
-     * Encode a client frame onto the network channel
-     * 
-     * =============================================================================
-     */
-
     /**
      * SV_WritePlayerstateToClient
      * Writes the status of a player to a PlayerInfoMessage.
@@ -78,100 +71,38 @@ public class SV_ENTS {
     static PlayerInfoMessage buildPlayerInfoMessage(player_state_t lastFrameState, player_state_t currentPlayerState) {
         player_state_t ops = lastFrameState != null ? lastFrameState : new player_state_t();
 
-        // determine what needs to be sent
-        int messageFlags = 0;
 
-        if (currentPlayerState.pmove.pm_type != ops.pmove.pm_type)
-            messageFlags |= Defines.PS_M_TYPE;
+        return new PlayerInfoMessage(ops, currentPlayerState);
 
-        if (currentPlayerState.pmove.origin[0] != ops.pmove.origin[0]
-                || currentPlayerState.pmove.origin[1] != ops.pmove.origin[1]
-                || currentPlayerState.pmove.origin[2] != ops.pmove.origin[2])
-            messageFlags |= Defines.PS_M_ORIGIN;
-
-        if (currentPlayerState.pmove.velocity[0] != ops.pmove.velocity[0]
-                || currentPlayerState.pmove.velocity[1] != ops.pmove.velocity[1]
-                || currentPlayerState.pmove.velocity[2] != ops.pmove.velocity[2])
-            messageFlags |= Defines.PS_M_VELOCITY;
-
-        if (currentPlayerState.pmove.pm_time != ops.pmove.pm_time)
-            messageFlags |= Defines.PS_M_TIME;
-
-        if (currentPlayerState.pmove.pm_flags != ops.pmove.pm_flags)
-            messageFlags |= Defines.PS_M_FLAGS;
-
-        if (currentPlayerState.pmove.gravity != ops.pmove.gravity)
-            messageFlags |= Defines.PS_M_GRAVITY;
-
-        if (currentPlayerState.pmove.delta_angles[0] != ops.pmove.delta_angles[0]
-                || currentPlayerState.pmove.delta_angles[1] != ops.pmove.delta_angles[1]
-                || currentPlayerState.pmove.delta_angles[2] != ops.pmove.delta_angles[2])
-            messageFlags |= Defines.PS_M_DELTA_ANGLES;
-
-        if (currentPlayerState.viewoffset[0] != ops.viewoffset[0]
-                || currentPlayerState.viewoffset[1] != ops.viewoffset[1]
-                || currentPlayerState.viewoffset[2] != ops.viewoffset[2])
-            messageFlags |= Defines.PS_VIEWOFFSET;
-
-        if (currentPlayerState.viewangles[0] != ops.viewangles[0]
-                || currentPlayerState.viewangles[1] != ops.viewangles[1]
-                || currentPlayerState.viewangles[2] != ops.viewangles[2])
-            messageFlags |= Defines.PS_VIEWANGLES;
-
-        if (currentPlayerState.kick_angles[0] != ops.kick_angles[0]
-                || currentPlayerState.kick_angles[1] != ops.kick_angles[1]
-                || currentPlayerState.kick_angles[2] != ops.kick_angles[2])
-            messageFlags |= Defines.PS_KICKANGLES;
-
-        if (currentPlayerState.blend[0] != ops.blend[0] || currentPlayerState.blend[1] != ops.blend[1]
-                || currentPlayerState.blend[2] != ops.blend[2] || currentPlayerState.blend[3] != ops.blend[3])
-            messageFlags |= Defines.PS_BLEND;
-
-        if (currentPlayerState.fov != ops.fov)
-            messageFlags |= Defines.PS_FOV;
-
-        messageFlags |= Defines.PS_WEAPONINDEX;
-
-        if (currentPlayerState.gunframe != ops.gunframe)
-            messageFlags |= Defines.PS_WEAPONFRAME;
-
-        if (currentPlayerState.rdflags != ops.rdflags)
-            messageFlags |= Defines.PS_RDFLAGS;
-
-        // send stats
-        int statbits = 0;
-        for (int i = 0; i < Defines.MAX_STATS; i++)
-            if (currentPlayerState.stats[i] != ops.stats[i])
-                statbits |= 1 << i;
-
-        return new PlayerInfoMessage(
-                messageFlags,
-                currentPlayerState.pmove.pm_type,
-                currentPlayerState.pmove.origin,
-                currentPlayerState.pmove.velocity,
-                currentPlayerState.pmove.pm_time,
-                currentPlayerState.pmove.pm_flags,
-                currentPlayerState.pmove.gravity,
-                currentPlayerState.pmove.delta_angles,
-                currentPlayerState.viewoffset,
-                currentPlayerState.viewangles,
-                currentPlayerState.kick_angles,
-                currentPlayerState.gunindex,
-                currentPlayerState.gunframe,
-                currentPlayerState.gunoffset,
-                currentPlayerState.gunangles,
-                currentPlayerState.blend,
-                currentPlayerState.fov,
-                currentPlayerState.rdflags,
-                statbits,
-                currentPlayerState.stats
-        );
+//        return new PlayerInfoMessage(
+//                messageFlags,
+//                currentState.pmove.pm_type,
+//                currentState.pmove.origin,
+//                currentState.pmove.velocity,
+//                currentState.pmove.pm_time,
+//                currentState.pmove.pm_flags,
+//                currentState.pmove.gravity,
+//                currentState.pmove.delta_angles,
+//                currentState.viewoffset,
+//                currentState.viewangles,
+//                currentState.kick_angles,
+//                currentState.gunindex,
+//                currentState.gunframe,
+//                currentState.gunoffset,
+//                currentState.gunangles,
+//                currentState.blend,
+//                currentState.fov,
+//                currentState.rdflags,
+//                statbits,
+//                currentState.stats
+//        );
     }
 
     /**
      * Writes a frame to a client system.
      */
-    public void SV_WriteFrameToClient(client_t client) {
+    public Collection<ServerMessage> SV_WriteFrameToClient(client_t client) {
+        List<ServerMessage> result = new ArrayList<>();
         // this is the frame we are creating
         client_frame_t currentFrame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
         client_frame_t lastReceivedFrame;
@@ -192,23 +123,24 @@ public class SV_ENTS {
             lastReceivedFrameNum = client.lastReceivedFrame;
         }
 
-        new FrameHeaderMessage(
+        result.add(new FrameHeaderMessage(
                 gameImports.sv.framenum,
                 lastReceivedFrameNum,
                 client.surpressCount,
                 currentFrame.areabytes,
                 currentFrame.areabits
-        ).writeTo(gameImports.msg);
+        ));
 
         client.surpressCount = 0;
 
         // delta encode the playerstate
         PlayerInfoMessage playerInfoMsg = buildPlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : null, currentFrame.ps);
-        playerInfoMsg.writeTo(gameImports.msg);
+        result.add(playerInfoMsg);
 
         // delta encode the entities
         PacketEntitiesMessage packetEntities = buildPacketEntities(lastReceivedFrame, currentFrame);
-        packetEntities.writeTo(gameImports.msg);
+        result.add(packetEntities);
+        return result;
     }
 
     // SV_EmitPacketEntities

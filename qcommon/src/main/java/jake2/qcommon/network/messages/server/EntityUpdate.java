@@ -43,4 +43,27 @@ public class EntityUpdate {
         this.force = false;
         this.isNewEntity = false;
     }
+
+    /**
+     * Compare headers if they exist in both objects
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EntityUpdate that = (EntityUpdate) o;
+
+        if (header != null && that.header != null)
+            return header.equals(that.header);
+        else return newState != null ? newState.equals(that.newState) : that.newState == null;
+    }
+
+    @Override
+    public String toString() {
+        return "EntityUpdate{" +
+                "header=" + header +
+                ", newState=" + newState +
+                '}';
+    }
 }

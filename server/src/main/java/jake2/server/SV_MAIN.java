@@ -503,7 +503,6 @@ public class SV_MAIN implements JakeServer {
 
     void SV_SendClientMessages() {
 
-        int msglen = 0;
         server_t sv = gameImports.sv;
         // send a message to each connected client
         // todo send only to related clients
@@ -521,9 +520,10 @@ public class SV_MAIN implements JakeServer {
                 SV_DropClient(c);
             }
 
-            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC)
-                Netchan.Transmit(c.netchan, msglen, gameImports.msgbuf);
-            else if (c.state == ClientStates.CS_SPAWNED) {
+            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
+                // leftover from demo code
+                Netchan.Transmit(c.netchan, 0, NULLBYTE);
+            } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
                 if (SV_RateDrop(c))
                     continue;
@@ -679,7 +679,7 @@ public class SV_MAIN implements JakeServer {
         int stringCmdCount = 0;
 
         for (ClientMessage msg : clientMessages) {
-            if (msg instanceof EndMessage) {
+            if (msg instanceof EndOfClientPacketMessage) {
                 break;
             } else if (msg instanceof StringCmdMessage) {
                 StringCmdMessage m = (StringCmdMessage) msg;

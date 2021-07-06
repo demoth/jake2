@@ -4,6 +4,8 @@ import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
+
 /**
  * Transmits chunk of media (maps, skins, sounds, etc)
  */
@@ -42,5 +44,38 @@ public class DownloadMessage extends ServerMessage {
             data = new byte[size];
             MSG.ReadData(buffer, data, size);
         }
+    }
+
+    @Override
+    int getSize() {
+        if (data != null)
+            return 4 + data.length;
+        else
+            return 4;
+    }
+
+    @Override
+    public String toString() {
+        return "DownloadMessage{" +
+                "percentage=" + percentage +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DownloadMessage that = (DownloadMessage) o;
+
+        if (percentage != that.percentage) return false;
+        return Arrays.equals(data, that.data);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(data);
+        result = 31 * result + percentage;
+        return result;
     }
 }

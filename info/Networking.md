@@ -30,7 +30,7 @@ The following messages use delta compression:
  2. `PacketEntitiesMessage` (from server)
  3. `MoveMessage` (from client)
 
-The approach is the same for all of them - first identify what fields have changed (`flags`, like a bitmask), then sent only those fields.
+The approach is the same for all of them - first identify what fields have changed (`deltaFlags`, like a bitmask), then sent only those fields.
 
 ## Server Messages
 see package `jake2.qcommon.network.messages.server`

@@ -78,43 +78,43 @@ public class MoveMessage extends ClientMessage {
         //
         // send the movement message
         //
-        int bits = 0;
+        int deltaFlags = 0;
         if (cmd.angles[0] != from.angles[0])
-            bits |= Defines.CM_ANGLE1;
+            deltaFlags |= Defines.CM_ANGLE1;
         if (cmd.angles[1] != from.angles[1])
-            bits |= Defines.CM_ANGLE2;
+            deltaFlags |= Defines.CM_ANGLE2;
         if (cmd.angles[2] != from.angles[2])
-            bits |= Defines.CM_ANGLE3;
+            deltaFlags |= Defines.CM_ANGLE3;
         if (cmd.forwardmove != from.forwardmove)
-            bits |= Defines.CM_FORWARD;
+            deltaFlags |= Defines.CM_FORWARD;
         if (cmd.sidemove != from.sidemove)
-            bits |= Defines.CM_SIDE;
+            deltaFlags |= Defines.CM_SIDE;
         if (cmd.upmove != from.upmove)
-            bits |= Defines.CM_UP;
+            deltaFlags |= Defines.CM_UP;
         if (cmd.buttons != from.buttons)
-            bits |= Defines.CM_BUTTONS;
+            deltaFlags |= Defines.CM_BUTTONS;
         if (cmd.impulse != from.impulse)
-            bits |= Defines.CM_IMPULSE;
+            deltaFlags |= Defines.CM_IMPULSE;
 
-        MSG.WriteByte(buf, bits);
+        MSG.WriteByte(buf, deltaFlags);
 
-        if ((bits & Defines.CM_ANGLE1) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE1) != 0)
             MSG.WriteShort(buf, cmd.angles[0]);
-        if ((bits & Defines.CM_ANGLE2) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE2) != 0)
             MSG.WriteShort(buf, cmd.angles[1]);
-        if ((bits & Defines.CM_ANGLE3) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE3) != 0)
             MSG.WriteShort(buf, cmd.angles[2]);
 
-        if ((bits & Defines.CM_FORWARD) != 0)
+        if ((deltaFlags & Defines.CM_FORWARD) != 0)
             MSG.WriteShort(buf, cmd.forwardmove);
-        if ((bits & Defines.CM_SIDE) != 0)
+        if ((deltaFlags & Defines.CM_SIDE) != 0)
             MSG.WriteShort(buf, cmd.sidemove);
-        if ((bits & Defines.CM_UP) != 0)
+        if ((deltaFlags & Defines.CM_UP) != 0)
             MSG.WriteShort(buf, cmd.upmove);
 
-        if ((bits & Defines.CM_BUTTONS) != 0)
+        if ((deltaFlags & Defines.CM_BUTTONS) != 0)
             MSG.WriteByte(buf, cmd.buttons);
-        if ((bits & Defines.CM_IMPULSE) != 0)
+        if ((deltaFlags & Defines.CM_IMPULSE) != 0)
             MSG.WriteByte(buf, cmd.impulse);
 
         MSG.WriteByte(buf, cmd.msec);
@@ -123,29 +123,29 @@ public class MoveMessage extends ClientMessage {
 
     private static void readDeltaUserCommand(sizebuf_t buffer, usercmd_t from, usercmd_t move) {
         move.set(from);
-        int bits = MSG.ReadByte(buffer);
+        int deltaFlags = MSG.ReadByte(buffer);
 
         // read current angles
-        if ((bits & Defines.CM_ANGLE1) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE1) != 0)
             move.angles[0] = MSG.ReadShort(buffer);
-        if ((bits & Defines.CM_ANGLE2) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE2) != 0)
             move.angles[1] = MSG.ReadShort(buffer);
-        if ((bits & Defines.CM_ANGLE3) != 0)
+        if ((deltaFlags & Defines.CM_ANGLE3) != 0)
             move.angles[2] = MSG.ReadShort(buffer);
 
         // read movement
-        if ((bits & Defines.CM_FORWARD) != 0)
+        if ((deltaFlags & Defines.CM_FORWARD) != 0)
             move.forwardmove = MSG.ReadShort(buffer);
-        if ((bits & Defines.CM_SIDE) != 0)
+        if ((deltaFlags & Defines.CM_SIDE) != 0)
             move.sidemove = MSG.ReadShort(buffer);
-        if ((bits & Defines.CM_UP) != 0)
+        if ((deltaFlags & Defines.CM_UP) != 0)
             move.upmove = MSG.ReadShort(buffer);
 
         // read buttons
-        if ((bits & Defines.CM_BUTTONS) != 0)
+        if ((deltaFlags & Defines.CM_BUTTONS) != 0)
             move.buttons = (byte) MSG.ReadByte(buffer);
 
-        if ((bits & Defines.CM_IMPULSE) != 0)
+        if ((deltaFlags & Defines.CM_IMPULSE) != 0)
             move.impulse = (byte) MSG.ReadByte(buffer);
 
         // read time to run command

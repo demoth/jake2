@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.server;
 import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -72,5 +73,37 @@ public class PointTEMessage extends TEMessage {
     void parse(sizebuf_t buffer) {
         this.position = new float[3];
         MSG.ReadPos(buffer, position);
+    }
+
+    @Override
+    int getSize() {
+        return 8;
+    }
+
+    @Override
+    Collection<Integer> getSupportedStyles() {
+        return SUBTYPES;
+    }
+
+    @Override
+    public String toString() {
+        return "PointTEMessage{" +
+                "position=" + Arrays.toString(position) +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PointTEMessage that = (PointTEMessage) o;
+
+        return Arrays.equals(position, that.position);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(position);
     }
 }

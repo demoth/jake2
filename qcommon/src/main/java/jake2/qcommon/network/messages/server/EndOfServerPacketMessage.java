@@ -2,9 +2,9 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
 
-public class ReconnectMessage extends ServerMessage {
-    public ReconnectMessage() {
-        super(ServerMessageType.svc_reconnect);
+public class EndOfServerPacketMessage extends ServerMessage {
+    public EndOfServerPacketMessage() {
+        super(ServerMessageType.svc_end);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class ReconnectMessage extends ServerMessage {
 
     @Override
     public String toString() {
-        return "ReconnectMessage";
+        return "End";
     }
 
     @Override

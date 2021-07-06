@@ -35,7 +35,30 @@ public class PrintMessage extends ServerMessage {
     }
 
     @Override
+    int getSize() {
+        return 2 + text.length() + 1;
+    }
+
+    @Override
     public String toString() {
         return "PrintMessage{" + level + "=" + text + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PrintMessage that = (PrintMessage) o;
+
+        if (level != that.level) return false;
+        return text != null ? text.equals(that.text) : that.text == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = level;
+        result = 31 * result + (text != null ? text.hashCode() : 0);
+        return result;
     }
 }

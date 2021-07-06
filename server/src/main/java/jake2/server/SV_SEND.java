@@ -25,12 +25,12 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.network.messages.server.PrintMessage;
+import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
-import jake2.qcommon.network.netadr_t;
-import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+
+import java.util.Collection;
 
 public class SV_SEND {
 	/*
@@ -183,12 +183,18 @@ public class SV_SEND {
 
 		gameImports.sv_ents.SV_BuildClientFrame(client);
 
-		SZ.Init(gameImports.msg, gameImports.msgbuf, gameImports.msgbuf.length);
-		gameImports.msg.allowoverflow = true;
+		sizebuf_t msg = new sizebuf_t();
+		byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
+
+		SZ.Init(msg, msgbuf, msgbuf.length);
+		msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		gameImports.sv_ents.SV_WriteFrameToClient(client);
+		Collection<ServerMessage> frame = gameImports.sv_ents.SV_WriteFrameToClient(client);
+		for (ServerMessage serverMessage : frame) {
+			serverMessage.writeTo(msg);
+		}
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
@@ -197,19 +203,19 @@ public class SV_SEND {
 		if (client.datagram.overflowed)
 			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
 		else
-			SZ.Write(gameImports.msg, client.datagram.data, client.datagram.cursize);
+			SZ.Write(msg, client.datagram.data, client.datagram.cursize);
         client.datagram.clear();
 
-        if (gameImports.msg.overflowed) { // must have room left for the packet header
+        if (msg.overflowed) { // must have room left for the packet header
 			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-			gameImports.msg.clear();
+			msg.clear();
         }
 
 		// send the datagram
-		Netchan.Transmit(client.netchan, gameImports.msg.cursize, gameImports.msg.data);
+		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
 
 		// record the size for rate estimation
-		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = gameImports.msg.cursize;
+		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = msg.cursize;
 
 		return true;
 	}

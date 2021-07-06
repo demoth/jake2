@@ -33,4 +33,35 @@ public class WeaponSoundMessage extends ServerMessage {
         this.entityIndex = MSG.ReadShort(buffer);
         this.type = MSG.ReadByte(buffer);
     }
+
+    @Override
+    int getSize() {
+        return 4;
+    }
+
+    @Override
+    public String toString() {
+        return "WeaponSoundMessage{" +
+                "entityIndex=" + entityIndex +
+                ", type=" + type +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WeaponSoundMessage that = (WeaponSoundMessage) o;
+
+        if (entityIndex != that.entityIndex) return false;
+        return type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = entityIndex;
+        result = 31 * result + type;
+        return result;
+    }
 }
