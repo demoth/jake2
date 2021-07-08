@@ -1,17 +1,17 @@
-package jake2.qcommon.network.messages.server;
+package jake2.qcommon.network.messages;
 
 import jake2.qcommon.*;
-import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.client.*;
+import jake2.qcommon.network.messages.server.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
 import static org.junit.Assert.assertEquals;
@@ -32,49 +32,51 @@ public class NetworkMessageSizeTest {
     sizebuf_t buffer = new sizebuf_t();
     byte[] data = new byte[SIZE];
 
-    NetworkMessage message;
+    final NetworkMessage message;
+    final String testName;
 
-    public NetworkMessageSizeTest(NetworkMessage message) {
+    public NetworkMessageSizeTest(String testName, NetworkMessage message) {
+        this.testName = testName;
         this.message = message;
     }
 
-    @Parameterized.Parameters(name = "{index}, {0}")
+    @Parameterized.Parameters(name = "{index}, {0} {1}")
     public static Collection<Object[]> createTestData() {
 
         //////////////////
         // SERVER MESSAGES
         //////////////////
-        List<NetworkMessage> testMessages = new ArrayList<>();
+        List<Object[]> testMessages = new ArrayList<>();
         // null/empty markers
-        testMessages.add(new NopMessage());
-        testMessages.add(new EndOfServerPacketMessage());
+        testMessages.add(new Object[]{"server.NopMessage", new NopMessage()});
+        testMessages.add(new Object[]{"server.EndOfServerPacketMessage", new EndOfServerPacketMessage()});
         // ordinary messages
-        testMessages.add(new DownloadMessage(new byte[]{1, 2, 3}, 50));
-        testMessages.add(new DownloadMessage());
-        testMessages.add(new DisconnectMessage());
-        testMessages.add(new ReconnectMessage());
-        testMessages.add(new LayoutMessage("layout"));
-        testMessages.add(new ConfigStringMessage(4, "config"));
+        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, 50)});
+        testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage()});
+        testMessages.add(new Object[]{"server.DisconnectMessage", new DisconnectMessage()});
+        testMessages.add(new Object[]{"server.ReconnectMessage", new ReconnectMessage()});
+        testMessages.add(new Object[]{"server.LayoutMessage", new LayoutMessage("layout")});
+        testMessages.add(new Object[]{"server.ConfigStringMessage", new ConfigStringMessage(4, "config")});
         // expect only PROTOCOL_VERSION(34)
-        testMessages.add(new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6"));
-        testMessages.add(new StuffTextMessage("stuff"));
-        testMessages.add(new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1}));
-        testMessages.add(new InventoryMessage(new int[MAX_ITEMS]));
-        testMessages.add(new MuzzleFlash2Message(1, 2));
-        testMessages.add(new PrintCenterMessage("hello"));
-        testMessages.add(new PrintMessage(3, "hello"));
-        testMessages.add(new WeaponSoundMessage(1, 2));
+        testMessages.add(new Object[]{"server.ServerDataMessage", new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6")});
+        testMessages.add(new Object[]{"server.StuffTextMessage", new StuffTextMessage("stuff")});
+        testMessages.add(new Object[]{"server.FrameHeaderMessage", new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1})});
+        testMessages.add(new Object[]{"server.InventoryMessage", new InventoryMessage(new int[MAX_ITEMS])});
+        testMessages.add(new Object[]{"server.MuzzleFlash2Message", new MuzzleFlash2Message(1, 2)});
+        testMessages.add(new Object[]{"server.PrintCenterMessage", new PrintCenterMessage("hello")});
+        testMessages.add(new Object[]{"server.PrintMessage", new PrintMessage(3, "hello")});
+        testMessages.add(new Object[]{"server.WeaponSoundMessage", new WeaponSoundMessage(1, 2)});
         // Temp entities
-        testMessages.add(new PointTEMessage(TE_BOSSTPORT, new float[3]));
-        testMessages.add(new BeamTEMessage(TE_PARASITE_ATTACK, 2, new float[3], new float[3]));
+        testMessages.add(new Object[]{"server.PointTEMessage", new PointTEMessage(TE_BOSSTPORT, new float[3])});
+        testMessages.add(new Object[]{"server.BeamTEMessage", new BeamTEMessage(TE_PARASITE_ATTACK, 2, new float[3], new float[3])});
         // this direction is taken from: jake2.qcommon.Globals.bytedirs
-        testMessages.add(new SplashTEMessage(TE_LASER_SPARKS, 5, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}, 6));
-        testMessages.add(new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3]));
-        testMessages.add(new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}));
-        testMessages.add(new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3]));
-        testMessages.add(new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3}));
+        testMessages.add(new Object[]{"server.SplashTEMessage", new SplashTEMessage(TE_LASER_SPARKS, 5, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}, 6)});
+        testMessages.add(new Object[]{"server.BeamOffsetTEMessage", new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3])});
+        testMessages.add(new Object[]{"server.PointDirectionTEMessage", new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f})});
+        testMessages.add(new Object[]{"server.TrailTEMessage", new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])});
+        testMessages.add(new Object[]{"server.SoundMessage", new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})});
         // delta compressed
-        testMessages.add(new SpawnBaselineMessage(new entity_state_t(new edict_t(1))));
+        testMessages.add(new Object[]{"server.SpawnBaselineMessage.empty", new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))});
         entity_state_t entityState = new entity_state_t(new edict_t(1));
         {
             entityState.origin = new float[]{1, 2, 3};
@@ -94,7 +96,7 @@ public class NetworkMessageSizeTest {
             entityState.sound = 32;
             entityState.old_origin = new float[]{2, 3, 4};
         }
-        testMessages.add(new SpawnBaselineMessage(entityState));
+        testMessages.add(new Object[]{"server.SpawnBaselineMessage.full", new SpawnBaselineMessage(entityState)});
         player_state_t currentState = new player_state_t();
         {
             pmove_state_t pmove = new pmove_state_t();
@@ -120,7 +122,7 @@ public class NetworkMessageSizeTest {
             currentState.gunoffset = new float[]{6, 4, 2};
             currentState.stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
         }
-        testMessages.add(new PlayerInfoMessage(new player_state_t(), currentState));
+        testMessages.add(new Object[]{"server.PlayerInfoMessage", new PlayerInfoMessage(new player_state_t(), currentState)});
         PacketEntitiesMessage packetEntitiesMessage = new PacketEntitiesMessage();
         {
             packetEntitiesMessage.updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
@@ -131,25 +133,25 @@ public class NetworkMessageSizeTest {
             }
             packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), newState, false, true));
         }
-        testMessages.add(packetEntitiesMessage);
+        testMessages.add(new Object[]{"server.PacketEntitiesMessage", packetEntitiesMessage});
         //////////////////
         // CLIENT MESSAGES
         //////////////////
-        testMessages.add(new EndOfClientPacketMessage());
-        testMessages.add(new NoopMessage());
-        testMessages.add(new UserInfoMessage("test/user/info"));
-        testMessages.add(new StringCmdMessage("test command"));
+        testMessages.add(new Object[]{"client.EndOfClientPacketMessage", new EndOfClientPacketMessage()});
+        testMessages.add(new Object[]{"client.NoopMessage", new NoopMessage()});
+        testMessages.add(new Object[]{"client.UserInfoMessage", new UserInfoMessage("test/user/info")});
+        testMessages.add(new Object[]{"client.StringCmdMessage", new StringCmdMessage("test command")});
         // delta compressed
         // empty one
-        testMessages.add(new MoveMessage(false, 1, new usercmd_t(), new usercmd_t(), new usercmd_t(), 1));
+        testMessages.add(new Object[]{"client.MoveMessage.empty", new MoveMessage(false, 1, new usercmd_t(), new usercmd_t(), new usercmd_t(), 1)});
         // full blown
         usercmd_t oldestCmd = new usercmd_t((byte) 50, (byte) 5, new short[]{(short) 1, (short) 2, (short) 3}, (short) 10, (short) 20, (short) 30, (byte) 1, (byte) 3);
         usercmd_t oldCmd = new usercmd_t((byte) 100, (byte) 15, new short[]{(short) 4, (short) 5, (short) 6}, (short) 11, (short) 21, (short) 31, (byte) 5, (byte) 7);
         usercmd_t newCmd = new usercmd_t((byte) 150, (byte) 25, new short[]{(short) 8, (short) 9, (short) 0}, (short) 12, (short) 22, (short) 32, (byte) 9, (byte) 0);
-        testMessages.add(new MoveMessage(false, 1, oldestCmd, oldCmd, newCmd, 1));
+        testMessages.add(new Object[]{"client.MoveMessage.full", new MoveMessage(false, 1, oldestCmd, oldCmd, newCmd, 1)});
         // invalid one (currentSequence during serialization != currentSequence during deserialization)
-        testMessages.add(new MoveMessage(false, INVALID_FRAME_INDEX, oldestCmd, oldCmd, newCmd, 2));
-        return testMessages.stream().map(networkMessage -> new Object[]{networkMessage}).collect(Collectors.toList());
+        testMessages.add(new Object[]{"client.MoveMessage.invalid", new MoveMessage(false, INVALID_FRAME_INDEX, oldestCmd, oldCmd, newCmd, 2)});
+        return testMessages;
     }
 
     @Before
@@ -165,9 +167,6 @@ public class NetworkMessageSizeTest {
 
     @Test
     public void testBufferFullyRead() {
-        SZ.Init(buffer, data, SIZE);
-        message.writeTo(buffer);
-
         if (message instanceof ServerMessage)
             ServerMessage.parseFromBuffer(buffer);
         else { //if (message instanceof ClientMessage)
@@ -197,6 +196,19 @@ public class NetworkMessageSizeTest {
         // client move message crc validation
         if (parsed instanceof MoveMessage) {
             assertEquals((((MoveMessage) parsed).lastReceivedFrame != INVALID_FRAME_INDEX), ((MoveMessage) parsed).valid);
+        }
+    }
+
+    @Test
+    public void testQuakeNetworkProtocol34Compatibility() {
+        try (InputStream inputStream = getClass().getResourceAsStream(testName)) {
+            final byte[] quake34data = inputStream.readAllBytes();
+            assertEquals("Message size is different from quake34 protocol", quake34data.length, buffer.cursize);
+            for (int i = 0; i < quake34data.length; i++) {
+                assertEquals("Message size is different from quake34 protocol at position: " + i, quake34data[i], buffer.data[i]);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
