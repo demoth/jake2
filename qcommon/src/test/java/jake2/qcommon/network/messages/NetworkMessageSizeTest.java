@@ -19,9 +19,10 @@ import static org.junit.Assert.assertEquals;
 /**
  * This test checks that
  * <ol>
- * <li>size estimation for each server message class is correct</li>
- * <li>size of the message is equal to the bytes in the buffer</li>
- * <li>the message is the same during serialization/deserialization</li>
+ * <li>size estimation for each server/client message class is correct</li>
+ * <li>size of the message is equal to the bytes written to the buffer when the message is serialized</li>
+ * <li>the message stays the same (by equals) during serialization/deserialization</li>
+ * <li>quake 34 protocol compatibility test - the message is the same as expected (compared with binary file)</li>
  * </ol>
  * Validated by writing the message to the buffer and comparing the size.
  */
