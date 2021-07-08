@@ -12,8 +12,10 @@ public class MoveMessage extends ClientMessage {
     public usercmd_t oldestCmd;
     public usercmd_t oldCmd;
     public usercmd_t newCmd;
-    private final int currentSequence;
+    public final int currentSequence;
     public boolean valid;
+
+    private final usercmd_t nullCmd = new usercmd_t();
 
     protected MoveMessage(int currentSequence) {
         super(ClientMessageType.CLC_MOVE);
@@ -41,7 +43,7 @@ public class MoveMessage extends ClientMessage {
 
         // send this and the previous cmds in the message, so
         // if the last packet was dropped, it can be recovered
-        writeDeltaUserCommand(buffer, new usercmd_t(), oldestCmd);
+        writeDeltaUserCommand(buffer, nullCmd, oldestCmd);
         writeDeltaUserCommand(buffer, oldestCmd, oldCmd);
         writeDeltaUserCommand(buffer, oldCmd, newCmd);
         buffer.data[checksumIndex] = CRC.BlockSequenceCRCByte(buffer.data,
@@ -78,23 +80,7 @@ public class MoveMessage extends ClientMessage {
         //
         // send the movement message
         //
-        int deltaFlags = 0;
-        if (cmd.angles[0] != from.angles[0])
-            deltaFlags |= Defines.CM_ANGLE1;
-        if (cmd.angles[1] != from.angles[1])
-            deltaFlags |= Defines.CM_ANGLE2;
-        if (cmd.angles[2] != from.angles[2])
-            deltaFlags |= Defines.CM_ANGLE3;
-        if (cmd.forwardmove != from.forwardmove)
-            deltaFlags |= Defines.CM_FORWARD;
-        if (cmd.sidemove != from.sidemove)
-            deltaFlags |= Defines.CM_SIDE;
-        if (cmd.upmove != from.upmove)
-            deltaFlags |= Defines.CM_UP;
-        if (cmd.buttons != from.buttons)
-            deltaFlags |= Defines.CM_BUTTONS;
-        if (cmd.impulse != from.impulse)
-            deltaFlags |= Defines.CM_IMPULSE;
+        int deltaFlags = getDeltaFlags(from, cmd);
 
         MSG.WriteByte(buf, deltaFlags);
 
@@ -119,6 +105,27 @@ public class MoveMessage extends ClientMessage {
 
         MSG.WriteByte(buf, cmd.msec);
         MSG.WriteByte(buf, cmd.lightlevel);
+    }
+
+    private static int getDeltaFlags(usercmd_t from, usercmd_t cmd) {
+        int deltaFlags = 0;
+        if (cmd.angles[0] != from.angles[0])
+            deltaFlags |= Defines.CM_ANGLE1;
+        if (cmd.angles[1] != from.angles[1])
+            deltaFlags |= Defines.CM_ANGLE2;
+        if (cmd.angles[2] != from.angles[2])
+            deltaFlags |= Defines.CM_ANGLE3;
+        if (cmd.forwardmove != from.forwardmove)
+            deltaFlags |= Defines.CM_FORWARD;
+        if (cmd.sidemove != from.sidemove)
+            deltaFlags |= Defines.CM_SIDE;
+        if (cmd.upmove != from.upmove)
+            deltaFlags |= Defines.CM_UP;
+        if (cmd.buttons != from.buttons)
+            deltaFlags |= Defines.CM_BUTTONS;
+        if (cmd.impulse != from.impulse)
+            deltaFlags |= Defines.CM_IMPULSE;
+        return deltaFlags;
     }
 
     private static void readDeltaUserCommand(sizebuf_t buffer, usercmd_t from, usercmd_t move) {
@@ -157,7 +164,69 @@ public class MoveMessage extends ClientMessage {
     }
 
     @Override
+    public String toString() {
+        return "MoveMessage{" +
+                "lastReceivedFrame=" + lastReceivedFrame +
+                ", oldestCmd=" + oldestCmd +
+                ", oldCmd=" + oldCmd +
+                ", newCmd=" + newCmd +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MoveMessage that = (MoveMessage) o;
+
+        if (lastReceivedFrame != that.lastReceivedFrame) return false;
+        if (oldestCmd != null ? !oldestCmd.equals(that.oldestCmd) : that.oldestCmd != null) return false;
+        if (oldCmd != null ? !oldCmd.equals(that.oldCmd) : that.oldCmd != null) return false;
+        return newCmd != null ? newCmd.equals(that.newCmd) : that.newCmd == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = lastReceivedFrame;
+        result = 31 * result + (oldestCmd != null ? oldestCmd.hashCode() : 0);
+        result = 31 * result + (oldCmd != null ? oldCmd.hashCode() : 0);
+        result = 31 * result + (newCmd != null ? newCmd.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public int getSize() {
-        return 0;
+        int result = 6;
+        int deltaFlagsOldest = getDeltaFlags(nullCmd, oldestCmd);
+        int deltaFlagsOld = getDeltaFlags(oldestCmd, oldCmd);
+        int deltaFlagsNew = getDeltaFlags(oldCmd, newCmd);
+        return result + getDeltaSize(deltaFlagsOldest) + getDeltaSize(deltaFlagsOld) + getDeltaSize(deltaFlagsNew);
+    }
+
+    private int getDeltaSize(int deltaFlags) {
+        int result = 1;
+
+        if ((deltaFlags & Defines.CM_ANGLE1) != 0)
+            result += 2;
+        if ((deltaFlags & Defines.CM_ANGLE2) != 0)
+            result += 2;
+        if ((deltaFlags & Defines.CM_ANGLE3) != 0)
+            result += 2;
+
+        if ((deltaFlags & Defines.CM_FORWARD) != 0)
+            result += 2;
+        if ((deltaFlags & Defines.CM_SIDE) != 0)
+            result += 2;
+        if ((deltaFlags & Defines.CM_UP) != 0)
+            result += 2;
+
+        if ((deltaFlags & Defines.CM_BUTTONS) != 0)
+            result += 1;
+        if ((deltaFlags & Defines.CM_IMPULSE) != 0)
+            result += 1;
+
+        return 2 + result;
     }
 }
+

@@ -2,6 +2,7 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.network.messages.NetworkMessage;
+import jake2.qcommon.network.messages.client.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,20 +26,24 @@ import static org.junit.Assert.assertEquals;
  * Validated by writing the message to the buffer and comparing the size.
  */
 @RunWith(Parameterized.class)
-public class ServerMessageSizeTest {
+public class NetworkMessageSizeTest {
+    private static final int INVALID_FRAME_INDEX = 99;
     private static final int SIZE = 1024;
     sizebuf_t buffer = new sizebuf_t();
     byte[] data = new byte[SIZE];
 
-    ServerMessage message;
+    NetworkMessage message;
 
-    public ServerMessageSizeTest(ServerMessage message) {
+    public NetworkMessageSizeTest(NetworkMessage message) {
         this.message = message;
     }
 
     @Parameterized.Parameters(name = "{index}, {0}")
     public static Collection<Object[]> createTestData() {
 
+        //////////////////
+        // SERVER MESSAGES
+        //////////////////
         List<NetworkMessage> testMessages = new ArrayList<>();
         // null/empty markers
         testMessages.add(new NopMessage());
@@ -127,7 +132,23 @@ public class ServerMessageSizeTest {
             packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), newState, false, true));
         }
         testMessages.add(packetEntitiesMessage);
-
+        //////////////////
+        // CLIENT MESSAGES
+        //////////////////
+        testMessages.add(new EndOfClientPacketMessage());
+        testMessages.add(new NoopMessage());
+        testMessages.add(new UserInfoMessage("test/user/info"));
+        testMessages.add(new StringCmdMessage("test command"));
+        // delta compressed
+        // empty one
+        testMessages.add(new MoveMessage(false, 1, new usercmd_t(), new usercmd_t(), new usercmd_t(), 1));
+        // full blown
+        usercmd_t oldestCmd = new usercmd_t((byte) 50, (byte) 5, new short[]{(short) 1, (short) 2, (short) 3}, (short) 10, (short) 20, (short) 30, (byte) 1, (byte) 3);
+        usercmd_t oldCmd = new usercmd_t((byte) 100, (byte) 15, new short[]{(short) 4, (short) 5, (short) 6}, (short) 11, (short) 21, (short) 31, (byte) 5, (byte) 7);
+        usercmd_t newCmd = new usercmd_t((byte) 150, (byte) 25, new short[]{(short) 8, (short) 9, (short) 0}, (short) 12, (short) 22, (short) 32, (byte) 9, (byte) 0);
+        testMessages.add(new MoveMessage(false, 1, oldestCmd, oldCmd, newCmd, 1));
+        // invalid one (currentSequence during serialization != currentSequence during deserialization)
+        testMessages.add(new MoveMessage(false, INVALID_FRAME_INDEX, oldestCmd, oldCmd, newCmd, 2));
         return testMessages.stream().map(networkMessage -> new Object[]{networkMessage}).collect(Collectors.toList());
     }
 
@@ -147,18 +168,35 @@ public class ServerMessageSizeTest {
         SZ.Init(buffer, data, SIZE);
         message.writeTo(buffer);
 
-        ServerMessage.parseFromBuffer(buffer);
+        if (message instanceof ServerMessage)
+            ServerMessage.parseFromBuffer(buffer);
+        else { //if (message instanceof ClientMessage)
+            ClientMessage.parseFromBuffer(buffer, 1);
+        }
         assertEquals("Buffer is not read fully", buffer.cursize, buffer.readcount);
     }
 
     @Test
     public void testSerializationDeserializationEquality() {
-        ServerMessage parsed = ServerMessage.parseFromBuffer(buffer);
+        final NetworkMessage parsed;
+
+        if (message instanceof ServerMessage)
+            parsed = ServerMessage.parseFromBuffer(buffer);
+        else
+            parsed = ClientMessage.parseFromBuffer(buffer, 1);
+
         if (message instanceof NopMessage
-                || message instanceof EndOfServerPacketMessage) {
+                || message instanceof EndOfServerPacketMessage
+                || message instanceof EndOfClientPacketMessage
+                || message instanceof NoopMessage) {
             System.err.println("Skipping test for " + message.getClass());
         } else {
             assertEquals("Message is different after serialization/deserialization", message, parsed);
+        }
+
+        // client move message crc validation
+        if (parsed instanceof MoveMessage) {
+            assertEquals((((MoveMessage) parsed).lastReceivedFrame != INVALID_FRAME_INDEX), ((MoveMessage) parsed).valid);
         }
     }
 

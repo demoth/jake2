@@ -3,7 +3,7 @@ package jake2.qcommon.network.messages.client;
 import jake2.qcommon.sizebuf_t;
 
 public class NoopMessage extends ClientMessage {
-    protected NoopMessage() {
+    public NoopMessage() {
         super(ClientMessageType.CLC_NOP);
     }
 

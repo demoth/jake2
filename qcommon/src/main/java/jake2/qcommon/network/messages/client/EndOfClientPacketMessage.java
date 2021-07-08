@@ -3,7 +3,7 @@ package jake2.qcommon.network.messages.client;
 import jake2.qcommon.sizebuf_t;
 
 public class EndOfClientPacketMessage extends ClientMessage {
-    protected EndOfClientPacketMessage() {
+    public EndOfClientPacketMessage() {
         super(ClientMessageType.CLC_BAD);
     }
 
