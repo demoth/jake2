@@ -32,7 +32,7 @@ public class InventoryMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.inventory = new int[Defines.MAX_ITEMS];
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
             this.inventory[i] = MSG.ReadShort(buffer);
@@ -40,7 +40,7 @@ public class InventoryMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + 2 * Defines.MAX_ITEMS;
     }
 

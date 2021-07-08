@@ -35,14 +35,14 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         super.parse(buffer);
         offset = new float[3];
         MSG.ReadPos(buffer, offset);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return super.getSize() + 6;
     }
 

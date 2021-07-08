@@ -24,13 +24,13 @@ public class ConfigStringMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.index = MSG.ReadShort(buffer);
         this.config = MSG.ReadString(buffer);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + 2 + config.length() + 1;
     }
 

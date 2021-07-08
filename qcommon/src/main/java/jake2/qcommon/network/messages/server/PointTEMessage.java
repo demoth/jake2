@@ -70,13 +70,13 @@ public class PointTEMessage extends TEMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.position = new float[3];
         MSG.ReadPos(buffer, position);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 8;
     }
 

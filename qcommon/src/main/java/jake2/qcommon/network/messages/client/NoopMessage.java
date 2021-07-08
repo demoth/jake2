@@ -13,7 +13,17 @@ public class NoopMessage extends ClientMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
 
+    }
+
+    @Override
+    public int getSize() {
+        return 1;
+    }
+
+    @Override
+    public String toString() {
+        return "NoopMessage{}";
     }
 }

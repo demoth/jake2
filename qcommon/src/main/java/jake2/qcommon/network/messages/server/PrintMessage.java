@@ -35,7 +35,7 @@ public class PrintMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 2 + text.length() + 1;
     }
 

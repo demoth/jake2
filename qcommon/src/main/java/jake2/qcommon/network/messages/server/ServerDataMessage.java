@@ -42,7 +42,7 @@ public class ServerDataMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.protocol = MSG.ReadLong(buffer);
         this.spawnCount = MSG.ReadLong(buffer);
         this.demo = MSG.ReadByte(buffer) != 0;
@@ -52,7 +52,7 @@ public class ServerDataMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + 4 + 4 + 1 + gameName.length() + 1 + 2 + levelString.length() + 1;
     }
 

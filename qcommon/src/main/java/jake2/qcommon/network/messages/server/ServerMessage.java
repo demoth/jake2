@@ -1,11 +1,12 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.messages.NetworkMessage;
 
 /**
  * Common parent for all messages sent from server to client.
  */
-public abstract class ServerMessage {
+public abstract class ServerMessage implements NetworkMessage {
     public ServerMessageType type;
 
     public ServerMessage(ServerMessageType type) {
@@ -120,13 +121,6 @@ public abstract class ServerMessage {
     }
 
     protected abstract void writeProperties(sizebuf_t buffer);
-
-    abstract void parse(sizebuf_t buffer);
-
-    /**
-     * @return size of the message in bytes
-     */
-    abstract int getSize();
 
     public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
 

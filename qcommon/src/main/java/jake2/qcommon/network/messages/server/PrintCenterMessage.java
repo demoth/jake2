@@ -25,12 +25,12 @@ public class PrintCenterMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.text = MSG.ReadString(buffer);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + text.length() + 1;
     }
 

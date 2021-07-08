@@ -42,7 +42,7 @@ public class PacketEntitiesMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         while (true) {
             DeltaEntityHeader header = ServerMessage.parseDeltaEntityHeader(buffer);
             // end of packetentities
@@ -66,7 +66,7 @@ public class PacketEntitiesMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + updates.stream().mapToInt(this::getUpdateSize).sum() + 2;
     }
 

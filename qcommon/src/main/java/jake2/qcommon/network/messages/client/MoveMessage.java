@@ -52,7 +52,7 @@ public class MoveMessage extends ClientMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         checksumIndex = buffer.readcount;
         int checksum = MSG.ReadByte(buffer);
         lastReceivedFrame = MSG.ReadLong(buffer);
@@ -154,5 +154,10 @@ public class MoveMessage extends ClientMessage {
         // read the light level
         move.lightlevel = (byte) MSG.ReadByte(buffer);
 
+    }
+
+    @Override
+    public int getSize() {
+        return 0;
     }
 }

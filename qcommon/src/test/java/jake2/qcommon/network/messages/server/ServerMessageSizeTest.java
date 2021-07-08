@@ -1,13 +1,16 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.messages.NetworkMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
 import static org.junit.Assert.assertEquals;
@@ -35,86 +38,97 @@ public class ServerMessageSizeTest {
 
     @Parameterized.Parameters(name = "{index}, {0}")
     public static Collection<Object[]> createTestData() {
-        return Arrays.asList(new Object[][]{
-                // null/empty markers
-                {new NopMessage()},
-                {new EndOfServerPacketMessage()},
-                // ordinary messages
-                {new DownloadMessage(new byte[]{1, 2, 3}, 50)},
-                {new DownloadMessage()},
-                {new DisconnectMessage()},
-                {new ReconnectMessage()},
-                {new LayoutMessage("layout")},
-                {new ConfigStringMessage(4, "config")},
-                // expect only PROTOCOL_VERSION(34)
-                {new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6")},
-                {new StuffTextMessage("stuff")},
-                {new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1})},
-                {new InventoryMessage(new int[MAX_ITEMS])},
-                {new MuzzleFlash2Message(1, 2)},
-                {new PrintCenterMessage("hello")},
-                {new PrintMessage(3, "hello")},
-                {new WeaponSoundMessage(1, 2)},
-                // Temp entities
-                {new PointTEMessage(TE_BOSSTPORT, new float[3])},
-                {new BeamTEMessage(TE_PARASITE_ATTACK, 2, new float[3], new float[3])},
-                // this direction is taken from: jake2.qcommon.Globals.bytedirs
-                {new SplashTEMessage(TE_LASER_SPARKS, 5, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}, 6)},
-                {new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3])},
-                // this direction is taken from: jake2.qcommon.Globals.bytedirs
-                {new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f})},
-                {new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])},
-                {new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})},
-                // delta compressed
-                {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))},
-                {new SpawnBaselineMessage(new entity_state_t(new edict_t(1)) {{
-                    origin = new float[]{1, 2, 3};
-                    number = 1000;
-                    // used these values due to rounding during serialization
-                    angles = new float[]{0.0f, 2.8125f, 1.40625f};
-                    skinnum = 2222;
-                    frame = 3333;
-                    effects = 4444;
-                    renderfx = RF_BEAM;
-                    solid = 4;
-                    event = 5;
-                    modelindex = 123;
-                    modelindex2 = 234;
-                    modelindex3 = 113;
-                    modelindex4 = 87;
-                    sound = 32;
-                    old_origin = new float[]{2, 3, 4};
-                }})},
-                {new PlayerInfoMessage(new player_state_t(), new player_state_t() {{
-                    pmove = new pmove_state_t() {{
-                        origin = new short[]{0, 1, 2};
-                        velocity = new short[]{1, 1, 1};
-                        pm_type = 2;
-                        pm_time = 50;
-                        pm_flags = 1;
-                        gravity = 600;
-                        delta_angles = new short[]{3, 4, 5};
-                    }};
-                    kick_angles = new float[]{2, 2, 2};
-                    viewoffset = new float[]{1, 3, 5};
-                    viewangles = new float[]{1.9995117f, 3.9990234f, 5.998535f};
-                    blend = new float[]{0.09803922f, 0.2f, 0.29803923f, 0.4f};
-                    fov = 70;
-                    rdflags = 2;
-                    gunindex = 23;
-                    gunframe = 12;
-                    gunangles = new float[]{3, 2, 1};
-                    gunoffset = new float[]{6, 4, 2};
-                    stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
-                }})},
-                {new PacketEntitiesMessage() {{
-                    updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
-                    updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), new entity_state_t(new edict_t(1)) {{
-                        modelindex = 3;
-                        origin = new float[]{2, 3, 4};
-                    }}, false, true));
-                }}}
-        });
+
+        List<NetworkMessage> testMessages = new ArrayList<>();
+        // null/empty markers
+        testMessages.add(new NopMessage());
+        testMessages.add(new EndOfServerPacketMessage());
+        // ordinary messages
+        testMessages.add(new DownloadMessage(new byte[]{1, 2, 3}, 50));
+        testMessages.add(new DownloadMessage());
+        testMessages.add(new DisconnectMessage());
+        testMessages.add(new ReconnectMessage());
+        testMessages.add(new LayoutMessage("layout"));
+        testMessages.add(new ConfigStringMessage(4, "config"));
+        // expect only PROTOCOL_VERSION(34)
+        testMessages.add(new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6"));
+        testMessages.add(new StuffTextMessage("stuff"));
+        testMessages.add(new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1}));
+        testMessages.add(new InventoryMessage(new int[MAX_ITEMS]));
+        testMessages.add(new MuzzleFlash2Message(1, 2));
+        testMessages.add(new PrintCenterMessage("hello"));
+        testMessages.add(new PrintMessage(3, "hello"));
+        testMessages.add(new WeaponSoundMessage(1, 2));
+        // Temp entities
+        testMessages.add(new PointTEMessage(TE_BOSSTPORT, new float[3]));
+        testMessages.add(new BeamTEMessage(TE_PARASITE_ATTACK, 2, new float[3], new float[3]));
+        // this direction is taken from: jake2.qcommon.Globals.bytedirs
+        testMessages.add(new SplashTEMessage(TE_LASER_SPARKS, 5, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}, 6));
+        testMessages.add(new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3]));
+        testMessages.add(new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f}));
+        testMessages.add(new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3]));
+        testMessages.add(new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3}));
+        // delta compressed
+        testMessages.add(new SpawnBaselineMessage(new entity_state_t(new edict_t(1))));
+        entity_state_t entityState = new entity_state_t(new edict_t(1));
+        {
+            entityState.origin = new float[]{1, 2, 3};
+            entityState.number = 1000;
+            // used these values due to rounding during serialization
+            entityState.angles = new float[]{0.0f, 2.8125f, 1.40625f};
+            entityState.skinnum = 2222;
+            entityState.frame = 3333;
+            entityState.effects = 4444;
+            entityState.renderfx = RF_BEAM;
+            entityState.solid = 4;
+            entityState.event = 5;
+            entityState.modelindex = 123;
+            entityState.modelindex2 = 234;
+            entityState.modelindex3 = 113;
+            entityState.modelindex4 = 87;
+            entityState.sound = 32;
+            entityState.old_origin = new float[]{2, 3, 4};
+        }
+        testMessages.add(new SpawnBaselineMessage(entityState));
+        player_state_t currentState = new player_state_t();
+        {
+            pmove_state_t pmove = new pmove_state_t();
+            {
+                pmove.origin = new short[]{0, 1, 2};
+                pmove.velocity = new short[]{1, 1, 1};
+                pmove.pm_type = 2;
+                pmove.pm_time = 50;
+                pmove.pm_flags = 1;
+                pmove.gravity = 600;
+                pmove.delta_angles = new short[]{3, 4, 5};
+            }
+            currentState.pmove = pmove;
+            currentState.kick_angles = new float[]{2, 2, 2};
+            currentState.viewoffset = new float[]{1, 3, 5};
+            currentState.viewangles = new float[]{1.9995117f, 3.9990234f, 5.998535f};
+            currentState.blend = new float[]{0.09803922f, 0.2f, 0.29803923f, 0.4f};
+            currentState.fov = 70;
+            currentState.rdflags = 2;
+            currentState.gunindex = 23;
+            currentState.gunframe = 12;
+            currentState.gunangles = new float[]{3, 2, 1};
+            currentState.gunoffset = new float[]{6, 4, 2};
+            currentState.stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
+        }
+        testMessages.add(new PlayerInfoMessage(new player_state_t(), currentState));
+        PacketEntitiesMessage packetEntitiesMessage = new PacketEntitiesMessage();
+        {
+            packetEntitiesMessage.updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
+            entity_state_t newState = new entity_state_t(new edict_t(1));
+            {
+                newState.modelindex = 3;
+                newState.origin = new float[]{2, 3, 4};
+            }
+            packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), newState, false, true));
+        }
+        testMessages.add(packetEntitiesMessage);
+
+        return testMessages.stream().map(networkMessage -> new Object[]{networkMessage}).collect(Collectors.toList());
     }
 
     @Before
@@ -147,4 +161,5 @@ public class ServerMessageSizeTest {
             assertEquals("Message is different after serialization/deserialization", message, parsed);
         }
     }
+
 }

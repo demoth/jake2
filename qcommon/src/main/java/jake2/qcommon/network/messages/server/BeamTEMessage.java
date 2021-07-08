@@ -45,7 +45,7 @@ public class BeamTEMessage extends TEMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         ownerIndex = MSG.ReadShort(buffer);
         origin = new float[3];
         MSG.ReadPos(buffer, origin);
@@ -54,7 +54,7 @@ public class BeamTEMessage extends TEMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 2 + 2 + 2 * 2 * 3;
     }
 

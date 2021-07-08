@@ -46,7 +46,7 @@ public class FrameHeaderMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         frameNumber = MSG.ReadLong(buffer);
         lastFrame = MSG.ReadLong(buffer);
         // BIG HACK to let old demos continue to work
@@ -59,7 +59,7 @@ public class FrameHeaderMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + 10 + areaBitsLength;
     }
 
