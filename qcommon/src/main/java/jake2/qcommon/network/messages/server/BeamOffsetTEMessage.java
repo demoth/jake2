@@ -30,14 +30,14 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        sizebuf_t.WritePos(buffer, offset);
+        buffer.writePos(offset);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         super.parse(buffer);
         offset = new float[3];
-        sizebuf_t.ReadPos(buffer, offset);
+        buffer.readPos(offset);
     }
 
     @Override

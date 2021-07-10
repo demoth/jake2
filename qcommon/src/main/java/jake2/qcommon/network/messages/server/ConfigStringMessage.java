@@ -18,14 +18,14 @@ public class ConfigStringMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        buffer.WriteShort(index);
-        sizebuf_t.WriteString(buffer, config);
+        buffer.writeShort(index);
+        buffer.writeString(config);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.index = sizebuf_t.ReadShort(buffer);
-        this.config = sizebuf_t.ReadString(buffer);
+        this.index = buffer.readShort();
+        this.config = buffer.readString();
     }
 
     @Override

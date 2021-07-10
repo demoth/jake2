@@ -25,7 +25,7 @@ public class InventoryMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            buffer.WriteShort(inventory[i]);
+            buffer.writeShort(inventory[i]);
         }
 
     }
@@ -34,7 +34,7 @@ public class InventoryMessage extends ServerMessage {
     public void parse(sizebuf_t buffer) {
         this.inventory = new int[Defines.MAX_ITEMS];
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            this.inventory[i] = sizebuf_t.ReadShort(buffer);
+            this.inventory[i] = buffer.readShort();
         }
     }
 

@@ -333,7 +333,7 @@ public class SV_MAIN implements JakeServer {
 
         clients.get(i).state = ClientStates.CS_CONNECTED;
 
-        SZ.Init(clients.get(i).datagram, clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
+        clients.get(i).datagram.init(clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
         
         clients.get(i).datagram.allowoverflow = true;
         clients.get(i).lastmessage = gameImports.realtime; // don't timeout
@@ -1316,7 +1316,7 @@ goes to map jail.bsp.
             PMove.pm_airaccelerate = 0;
         }
 
-        SZ.Init(gameImports.sv.multicast, gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
+        gameImports.sv.multicast.init(gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
 
 
         // question: if we spawn a new server - all existing clients will receive the 'reconnect'

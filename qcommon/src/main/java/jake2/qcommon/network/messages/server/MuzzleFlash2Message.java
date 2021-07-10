@@ -18,14 +18,14 @@ public class MuzzleFlash2Message extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        buffer.WriteShort(entityIndex);
-        sizebuf_t.WriteByte(buffer, (byte) flashType);
+        buffer.writeShort(entityIndex);
+        buffer.writeByte((byte) flashType);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.entityIndex = sizebuf_t.ReadShort(buffer);
-        this.flashType = sizebuf_t.ReadByte(buffer);
+        this.entityIndex = buffer.readShort();
+        this.flashType = buffer.readByte();
     }
 
     @Override

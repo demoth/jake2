@@ -65,13 +65,13 @@ public class PointTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        sizebuf_t.WritePos(buffer, position);
+        buffer.writePos(position);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         this.position = new float[3];
-        sizebuf_t.ReadPos(buffer, position);
+        buffer.readPos(position);
     }
 
     @Override

@@ -521,16 +521,16 @@ public class CL_tent {
      * ================= CL_ParseLightning =================
      */
     @Deprecated
-    static int ParseLightning(model_t model, sizebuf_t net_message) {
+    static int ParseLightning(model_t model, sizebuf_t buffer) {
         int srcEnt, destEnt;
         beam_t[] b;
         int i;
 
-        srcEnt = sizebuf_t.ReadShort(net_message);
-        destEnt = sizebuf_t.ReadShort(net_message);
+        srcEnt = buffer.readShort();
+        destEnt = buffer.readShort();
 
-        sizebuf_t.ReadPos(net_message, start);
-        sizebuf_t.ReadPos(net_message, end);
+        buffer.readPos(start);
+        buffer.readPos(end);
 
         //	   override any beam with the same source AND destination entities
         b = cl_beams;

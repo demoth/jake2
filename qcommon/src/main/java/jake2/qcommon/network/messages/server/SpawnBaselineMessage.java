@@ -1,6 +1,6 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
+import jake2.qcommon.DeltaUtils;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.sizebuf_t;
 
@@ -26,7 +26,7 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteDeltaEntity(base, entityState, buffer, true, true);
+        DeltaUtils.WriteDeltaEntity(base, entityState, buffer, true, true);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     public int getSize() {
-        return 1 + MSG.getDeltaSize(base, entityState, true);
+        return 1 + DeltaUtils.getDeltaSize(base, entityState, true);
     }
 
     @Override

@@ -23,10 +23,13 @@
  */
 package jake2.qcommon.network;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 
@@ -110,7 +113,7 @@ public final class Netchan {
     }
 
     private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
-    private static final sizebuf_t send = new sizebuf_t();
+    private static final sizebuf_t buffer = new sizebuf_t();
 
     /**
      * OutOfBandPrint
@@ -119,13 +122,13 @@ public final class Netchan {
         String msg = cmd.name() + payload;
 
         // write the packet header
-        SZ.Init(send, send_buf, Defines.MAX_MSGLEN);
+        buffer.init(send_buf, Defines.MAX_MSGLEN);
 
-        sizebuf_t.WriteInt(send, -1); // -1 sequence means connectionless (out of band)
-        SZ.Write(send, Lib.stringToBytes(msg), msg.length());
+        buffer.writeInt(-1); // -1 sequence means connectionless (out of band)
+        buffer.writeBytes(Lib.stringToBytes(msg), msg.length());
 
         // send the datagram
-        NET.SendPacket(net_socket, send.cursize, send.data, adr);
+        NET.SendPacket(net_socket, buffer.cursize, buffer.data, adr);
     }
 
     /**
@@ -140,7 +143,7 @@ public final class Netchan {
         chan.incoming_sequence = 0;
         chan.outgoing_sequence = 1;
 
-        SZ.Init(chan.message, chan.message_buf, chan.message_buf.length);
+        chan.message.init(chan.message_buf, chan.message_buf.length);
         chan.message.allowoverflow = true;
     }
 
@@ -195,7 +198,7 @@ public final class Netchan {
         }
 
         // write the packet header
-        SZ.Init(send, send_buf, send_buf.length);
+        buffer.init(send_buf, send_buf.length);
 
         int sequence = (chan.outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
         int sequenceAck = (chan.incoming_sequence & ~(1 << 31)) | (chan.incoming_reliable_sequence << 31);
@@ -203,39 +206,39 @@ public final class Netchan {
         chan.outgoing_sequence++;
         chan.last_sent = (int) Globals.curtime;
 
-        sizebuf_t.WriteInt(send, sequence);
-        sizebuf_t.WriteInt(send, sequenceAck);
+        buffer.writeInt(sequence);
+        buffer.writeInt(sequenceAck);
 
         // send the qport if we are a client
         if (chan.sock == Defines.NS_CLIENT)
-            send.WriteShort((int) qport.value);
+            buffer.writeShort((int) qport.value);
 
         // copy the reliable message to the packet first
         if (send_reliable != 0) {
-            SZ.Write(send, chan.reliable_buf, chan.reliable_length);
+            buffer.writeBytes(chan.reliable_buf, chan.reliable_length);
             chan.last_reliable_sequence = chan.outgoing_sequence;
         }
 
         // add the unreliable part if space is available
-        if (send.maxsize - send.cursize >= length)
-            SZ.Write(send, data, length);
+        if (buffer.maxsize - buffer.cursize >= length)
+            buffer.writeBytes(data, length);
         else
             Com.Printf("Netchan_Transmit: dumped unreliable\n");
 
         // send the datagram
-        NET.SendPacket(chan.sock, send.cursize, send.data, chan.remote_address);
+        NET.SendPacket(chan.sock, buffer.cursize, buffer.data, chan.remote_address);
 
         if (showpackets.value != 0) {
             if (send_reliable != 0)
                 Com.Printf(
-                        "send " + send.cursize + " : s="
+                        "send " + buffer.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " reliable="
                                 + chan.reliable_sequence + " ack="
                                 + chan.incoming_sequence + " rack="
                                 + chan.incoming_reliable_sequence + "\n");
             else
                 Com.Printf(
-                        "send " + send.cursize + " : s="
+                        "send " + buffer.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " ack="
                                 + chan.incoming_sequence + " rack="
                                 + chan.incoming_reliable_sequence + "\n");

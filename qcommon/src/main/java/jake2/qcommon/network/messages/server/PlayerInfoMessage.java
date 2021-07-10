@@ -91,176 +91,176 @@ public class PlayerInfoMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         computeDeltaFlags();
-        buffer.WriteShort(deltaFlags);
+        buffer.writeShort(deltaFlags);
 
         // write the pmove_state_t
         if ((deltaFlags & Defines.PS_M_TYPE) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) currentState.pmove.pm_type);
+            buffer.writeByte((byte) currentState.pmove.pm_type);
 
         if ((deltaFlags & Defines.PS_M_ORIGIN) != 0) {
-            buffer.WriteShort(currentState.pmove.origin[0]);
-            buffer.WriteShort(currentState.pmove.origin[1]);
-            buffer.WriteShort(currentState.pmove.origin[2]);
+            buffer.writeShort(currentState.pmove.origin[0]);
+            buffer.writeShort(currentState.pmove.origin[1]);
+            buffer.writeShort(currentState.pmove.origin[2]);
         }
 
         if ((deltaFlags & Defines.PS_M_VELOCITY) != 0) {
-            buffer.WriteShort(currentState.pmove.velocity[0]);
-            buffer.WriteShort(currentState.pmove.velocity[1]);
-            buffer.WriteShort(currentState.pmove.velocity[2]);
+            buffer.writeShort(currentState.pmove.velocity[0]);
+            buffer.writeShort(currentState.pmove.velocity[1]);
+            buffer.writeShort(currentState.pmove.velocity[2]);
         }
 
         if ((deltaFlags & Defines.PS_M_TIME) != 0)
-            sizebuf_t.WriteByte(buffer, currentState.pmove.pm_time);
+            buffer.writeByte(currentState.pmove.pm_time);
 
         if ((deltaFlags & Defines.PS_M_FLAGS) != 0)
-            sizebuf_t.WriteByte(buffer, currentState.pmove.pm_flags);
+            buffer.writeByte(currentState.pmove.pm_flags);
 
         if ((deltaFlags & Defines.PS_M_GRAVITY) != 0)
-            buffer.WriteShort(currentState.pmove.gravity);
+            buffer.writeShort(currentState.pmove.gravity);
 
         if ((deltaFlags & Defines.PS_M_DELTA_ANGLES) != 0) {
-            buffer.WriteShort(currentState.pmove.delta_angles[0]);
-            buffer.WriteShort(currentState.pmove.delta_angles[1]);
-            buffer.WriteShort(currentState.pmove.delta_angles[2]);
+            buffer.writeShort(currentState.pmove.delta_angles[0]);
+            buffer.writeShort(currentState.pmove.delta_angles[1]);
+            buffer.writeShort(currentState.pmove.delta_angles[2]);
         }
 
         // write the rest of the player_state_t
         if ((deltaFlags & Defines.PS_VIEWOFFSET) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.viewoffset[0] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.viewoffset[1] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.viewoffset[2] * 4));
+            buffer.writeByte((byte) (currentState.viewoffset[0] * 4));
+            buffer.writeByte((byte) (currentState.viewoffset[1] * 4));
+            buffer.writeByte((byte) (currentState.viewoffset[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_VIEWANGLES) != 0) {
-            sizebuf_t.WriteAngle16(buffer, currentState.viewangles[0]);
-            sizebuf_t.WriteAngle16(buffer, currentState.viewangles[1]);
-            sizebuf_t.WriteAngle16(buffer, currentState.viewangles[2]);
+            buffer.writeAngleShort(currentState.viewangles[0]);
+            buffer.writeAngleShort(currentState.viewangles[1]);
+            buffer.writeAngleShort(currentState.viewangles[2]);
         }
 
         if ((deltaFlags & Defines.PS_KICKANGLES) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.kick_angles[0] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.kick_angles[1] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.kick_angles[2] * 4));
+            buffer.writeByte((byte) (currentState.kick_angles[0] * 4));
+            buffer.writeByte((byte) (currentState.kick_angles[1] * 4));
+            buffer.writeByte((byte) (currentState.kick_angles[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_WEAPONINDEX) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) currentState.gunindex);
+            buffer.writeByte((byte) currentState.gunindex);
         }
 
         if ((deltaFlags & Defines.PS_WEAPONFRAME) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) currentState.gunframe);
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunoffset[0] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunoffset[1] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunoffset[2] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunangles[0] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunangles[1] * 4));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.gunangles[2] * 4));
+            buffer.writeByte((byte) currentState.gunframe);
+            buffer.writeByte((byte) (currentState.gunoffset[0] * 4));
+            buffer.writeByte((byte) (currentState.gunoffset[1] * 4));
+            buffer.writeByte((byte) (currentState.gunoffset[2] * 4));
+            buffer.writeByte((byte) (currentState.gunangles[0] * 4));
+            buffer.writeByte((byte) (currentState.gunangles[1] * 4));
+            buffer.writeByte((byte) (currentState.gunangles[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_BLEND) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.blend[0] * 255));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.blend[1] * 255));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.blend[2] * 255));
-            sizebuf_t.WriteByte(buffer, (byte) (currentState.blend[3] * 255));
+            buffer.writeByte((byte) (currentState.blend[0] * 255));
+            buffer.writeByte((byte) (currentState.blend[1] * 255));
+            buffer.writeByte((byte) (currentState.blend[2] * 255));
+            buffer.writeByte((byte) (currentState.blend[3] * 255));
         }
         if ((deltaFlags & Defines.PS_FOV) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) currentState.fov);
+            buffer.writeByte((byte) currentState.fov);
 
         if ((deltaFlags & Defines.PS_RDFLAGS) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) currentState.rdflags);
+            buffer.writeByte((byte) currentState.rdflags);
 
-        sizebuf_t.WriteInt(buffer, statbits);
+        buffer.writeInt(statbits);
         for (int i = 0; i < Defines.MAX_STATS; i++) {
             if ((statbits & (1 << i)) != 0)
-                buffer.WriteShort(currentState.stats[i]);
+                buffer.writeShort(currentState.stats[i]);
         }
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.deltaFlags = sizebuf_t.ReadShort(buffer);
+        this.deltaFlags = buffer.readShort();
         this.currentState = new player_state_t();
         if ((deltaFlags & Defines.PS_M_TYPE) != 0) {
-            this.currentState.pmove.pm_type = sizebuf_t.ReadByte(buffer);
+            this.currentState.pmove.pm_type = buffer.readByte();
         }
         if ((deltaFlags & Defines.PS_M_ORIGIN) != 0) {
             this.currentState.pmove.origin = new short[3];
-            this.currentState.pmove.origin[0] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.origin[1] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.origin[2] = sizebuf_t.ReadShort(buffer);
+            this.currentState.pmove.origin[0] = buffer.readShort();
+            this.currentState.pmove.origin[1] = buffer.readShort();
+            this.currentState.pmove.origin[2] = buffer.readShort();
         }
         if ((deltaFlags & Defines.PS_M_VELOCITY) != 0) {
             this.currentState.pmove.velocity = new short[3];
-            this.currentState.pmove.velocity[0] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.velocity[1] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.velocity[2] = sizebuf_t.ReadShort(buffer);
+            this.currentState.pmove.velocity[0] = buffer.readShort();
+            this.currentState.pmove.velocity[1] = buffer.readShort();
+            this.currentState.pmove.velocity[2] = buffer.readShort();
         }
         if ((deltaFlags & Defines.PS_M_TIME) != 0) {
-            this.currentState.pmove.pm_time = (byte) sizebuf_t.ReadByte(buffer);
+            this.currentState.pmove.pm_time = (byte) buffer.readByte();
         }
         if ((deltaFlags & Defines.PS_M_FLAGS) != 0) {
-            this.currentState.pmove.pm_flags = (byte) sizebuf_t.ReadByte(buffer);
+            this.currentState.pmove.pm_flags = (byte) buffer.readByte();
         }
         if ((deltaFlags & Defines.PS_M_GRAVITY) != 0) {
-            this.currentState.pmove.gravity = sizebuf_t.ReadShort(buffer);
+            this.currentState.pmove.gravity = buffer.readShort();
         }
         if ((deltaFlags & Defines.PS_M_DELTA_ANGLES) != 0) {
             this.currentState.pmove.delta_angles = new short[3];
-            this.currentState.pmove.delta_angles[0] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.delta_angles[1] = sizebuf_t.ReadShort(buffer);
-            this.currentState.pmove.delta_angles[2] = sizebuf_t.ReadShort(buffer);
+            this.currentState.pmove.delta_angles[0] = buffer.readShort();
+            this.currentState.pmove.delta_angles[1] = buffer.readShort();
+            this.currentState.pmove.delta_angles[2] = buffer.readShort();
         }
         if ((deltaFlags & Defines.PS_VIEWOFFSET) != 0) {
             this.currentState.viewoffset = new float[3];
-            this.currentState.viewoffset[0] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.viewoffset[1] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.viewoffset[2] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
+            this.currentState.viewoffset[0] = buffer.readSignedByte() * 0.25f;
+            this.currentState.viewoffset[1] = buffer.readSignedByte() * 0.25f;
+            this.currentState.viewoffset[2] = buffer.readSignedByte() * 0.25f;
         }
         if ((deltaFlags & Defines.PS_VIEWANGLES) != 0) {
             this.currentState.viewangles = new float[3];
-            this.currentState.viewangles[0] = sizebuf_t.ReadAngleShort(buffer);
-            this.currentState.viewangles[1] = sizebuf_t.ReadAngleShort(buffer);
-            this.currentState.viewangles[2] = sizebuf_t.ReadAngleShort(buffer);
+            this.currentState.viewangles[0] = buffer.readAngleShort();
+            this.currentState.viewangles[1] = buffer.readAngleShort();
+            this.currentState.viewangles[2] = buffer.readAngleShort();
         }
         if ((deltaFlags & Defines.PS_KICKANGLES) != 0) {
             this.currentState.kick_angles = new float[3];
-            this.currentState.kick_angles[0] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.kick_angles[1] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.kick_angles[2] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
+            this.currentState.kick_angles[0] = buffer.readSignedByte() * 0.25f;
+            this.currentState.kick_angles[1] = buffer.readSignedByte() * 0.25f;
+            this.currentState.kick_angles[2] = buffer.readSignedByte() * 0.25f;
         }
         if ((deltaFlags & Defines.PS_WEAPONINDEX) != 0) {
-            this.currentState.gunindex = sizebuf_t.ReadByte(buffer);
+            this.currentState.gunindex = buffer.readByte();
         }
         if ((deltaFlags & Defines.PS_WEAPONFRAME) != 0) {
-            this.currentState.gunframe = sizebuf_t.ReadByte(buffer);
+            this.currentState.gunframe = buffer.readByte();
             this.currentState.gunoffset = new float[3];
-            this.currentState.gunoffset[0] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.gunoffset[1] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.gunoffset[2] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
+            this.currentState.gunoffset[0] = buffer.readSignedByte() * 0.25f;
+            this.currentState.gunoffset[1] = buffer.readSignedByte() * 0.25f;
+            this.currentState.gunoffset[2] = buffer.readSignedByte() * 0.25f;
             this.currentState.gunangles = new float[3];
-            this.currentState.gunangles[0] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.gunangles[1] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
-            this.currentState.gunangles[2] = sizebuf_t.ReadSignedByte(buffer) * 0.25f;
+            this.currentState.gunangles[0] = buffer.readSignedByte() * 0.25f;
+            this.currentState.gunangles[1] = buffer.readSignedByte() * 0.25f;
+            this.currentState.gunangles[2] = buffer.readSignedByte() * 0.25f;
         }
         if ((deltaFlags & Defines.PS_BLEND) != 0) {
             this.currentState.blend = new float[4];
-            this.currentState.blend[0] = sizebuf_t.ReadByte(buffer) / 255.0f;
-            this.currentState.blend[1] = sizebuf_t.ReadByte(buffer) / 255.0f;
-            this.currentState.blend[2] = sizebuf_t.ReadByte(buffer) / 255.0f;
-            this.currentState.blend[3] = sizebuf_t.ReadByte(buffer) / 255.0f;
+            this.currentState.blend[0] = buffer.readByte() / 255.0f;
+            this.currentState.blend[1] = buffer.readByte() / 255.0f;
+            this.currentState.blend[2] = buffer.readByte() / 255.0f;
+            this.currentState.blend[3] = buffer.readByte() / 255.0f;
         }
         if ((deltaFlags & Defines.PS_FOV) != 0) {
-            this.currentState.fov = (float) sizebuf_t.ReadByte(buffer);
+            this.currentState.fov = (float) buffer.readByte();
         }
         if ((deltaFlags & Defines.PS_RDFLAGS) != 0) {
-            this.currentState.rdflags = sizebuf_t.ReadByte(buffer);
+            this.currentState.rdflags = buffer.readByte();
         }
         // parse stats
-        statbits = sizebuf_t.ReadInt(buffer);
+        statbits = buffer.readInt();
         this.currentState.stats = new short[Defines.MAX_STATS];
         for (int i = 0; i < Defines.MAX_STATS; i++) {
             if ((statbits & (1 << i)) != 0) {
-                this.currentState.stats[i] = sizebuf_t.ReadShort(buffer);
+                this.currentState.stats[i] = buffer.readShort();
             }
         }
     }

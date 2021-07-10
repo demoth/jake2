@@ -71,15 +71,15 @@ public class NetworkPacket {
     }
 
     public void parseHeader() {
-        sequence = sizebuf_t.ReadInt(buffer);
+        sequence = buffer.readInt();
 
         if (isConnectionless()) {
-            connectionlessMessage = sizebuf_t.ReadString(buffer);
+            connectionlessMessage = buffer.readString();
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
                     case "print":
-                        connectionlessParameters = sizebuf_t.ReadString(buffer);
+                        connectionlessParameters = buffer.readString();
                         break;
                     default:
                         break;
@@ -87,10 +87,10 @@ public class NetworkPacket {
 
             }
         } else {
-            sequenceAck = sizebuf_t.ReadInt(buffer);
+            sequenceAck = buffer.readInt();
 
             if (fromClient)
-                qport = sizebuf_t.ReadShort(buffer) & 0xffff;
+                qport = buffer.readShort() & 0xffff;
         }
     }
 

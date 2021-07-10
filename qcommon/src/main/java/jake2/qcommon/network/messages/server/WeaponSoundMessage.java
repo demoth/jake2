@@ -23,14 +23,14 @@ public class WeaponSoundMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        buffer.WriteShort(entityIndex);
-        sizebuf_t.WriteByte(buffer, (byte) type);
+        buffer.writeShort(entityIndex);
+        buffer.writeByte((byte) type);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.entityIndex = sizebuf_t.ReadShort(buffer);
-        this.type = sizebuf_t.ReadByte(buffer);
+        this.entityIndex = buffer.readShort();
+        this.type = buffer.readByte();
     }
 
     @Override

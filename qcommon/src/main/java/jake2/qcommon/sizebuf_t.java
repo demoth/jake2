@@ -29,6 +29,7 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * sizebuf_t
@@ -41,160 +42,132 @@ public final class sizebuf_t {
     public int cursize = 0;
     public int readcount = 0;
 
-    public static void WriteByte(sizebuf_t sb, byte c) {
-        sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
-    }
+    /**
+     * Ask for the pointer using sizebuf_t.cursize (RST)
+     */
+    private int GetSpace(int length) {
+        int oldsize;
 
-    public void WriteShort(int c) {
-        int i = SZ.GetSpace(this, 2);
-        data[i++] = (byte) (c & 0xff);
-        data[i] = (byte) (c >>> 8 & 0xFF);
-    }
+        if (cursize + length > maxsize) {
+            if (!allowoverflow)
+                Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: overflow without allowoverflow set");
 
-    //ok.
-    public static void WriteInt(sizebuf_t sb, int c) {
-        int i = SZ.GetSpace(sb, 4);
-        sb.data[i++] = (byte) (c & 0xff);
-        sb.data[i++] = (byte) (c >>> 8 & 0xff);
-        sb.data[i++] = (byte) (c >>> 16 & 0xff);
-        sb.data[i] = (byte) (c >>> 24 & 0xff);
-    }
+            if (length > maxsize)
+                Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: " + length + " is > full buffer size");
 
-    //ok.
-    public static void WriteFloat(sizebuf_t sb, float f) {
-        WriteInt(sb, Float.floatToIntBits(f));
-    }
-
-    // had a bug, now its ok.
-    public static void WriteString(sizebuf_t sb, String s) {
-        String x = s;
-
-        if (s == null)
-            x = "";
-
-        SZ.Write(sb, Lib.stringToBytes(x));
-        WriteByte(sb, (byte) 0);
-    }
-
-    public static void WriteCoord(sizebuf_t sb, float f) {
-        sb.WriteShort((int) (f * 8));
-    }
-
-    public static void WritePos(sizebuf_t sb, float[] pos) {
-        assert pos.length == 3 : "vec3_t bug";
-        sb.WriteShort((int) (pos[0] * 8));
-        sb.WriteShort((int) (pos[1] * 8));
-        sb.WriteShort((int) (pos[2] * 8));
-    }
-
-    public static void WriteAngle(sizebuf_t sb, float f) {
-        WriteByte(sb, (byte) ((int) (f * 256 / 360) & 255));
-    }
-
-    public static void WriteAngle16(sizebuf_t sb, float f) {
-        sb.WriteShort(Math3D.ANGLE2SHORT(f));
-    }
-
-    //should be ok.
-    public static void WriteDir(sizebuf_t sb, float[] dir) {
-        int i, best;
-        float d, bestd;
-
-        if (dir == null) {
-            WriteByte(sb, (byte) 0);
-            return;
+            Com.Printf("SZ_GetSpace: overflow\n");
+            clear();
+            overflowed = true;
         }
 
-        bestd = 0;
-        best = 0;
-        for (i = 0; i < Defines.NUMVERTEXNORMALS; i++) {
-            d = Math3D.DotProduct(dir, Globals.bytedirs[i]);
-            if (d > bestd) {
-                bestd = d;
-                best = i;
-            }
-        }
-        WriteByte(sb, (byte) best);
+        oldsize = cursize;
+        cursize += length;
+
+        return oldsize;
     }
 
-    //should be ok.
-    public static void ReadDir(sizebuf_t sb, float[] dir) {
-        int b;
+    public void init(byte[] data, int length) {
+        // TODO check this. cwei
+        readcount = 0;
+        this.data = data;
+        maxsize = length;
+        cursize = 0;
+        allowoverflow = overflowed = false;
+    }
 
-        b = ReadByte(sb);
-        if (b >= Defines.NUMVERTEXNORMALS)
-            Com.Error(Defines.ERR_DROP, "MSF_ReadDir: out of range");
-        Math3D.VectorCopy(Globals.bytedirs[b], dir);
+    public void writeByte(byte c) {
+        data[GetSpace(1)] = (byte) (c & 0xFF);
+    }
+
+    // fixme: should return byte type
+    public int readByte() {
+        int c;
+
+        if (readcount + 1 > cursize)
+            c = -1;
+        else
+            c = data[readcount] & 0xff;
+
+        readcount++;
+        return c;
     }
 
     // legitimate signed byte [-128 , 127]
     // returns -1 if no more characters are available
-    public static byte ReadSignedByte(sizebuf_t msg_read) {
+    public byte readSignedByte() {
         byte c;
 
-        if (msg_read.readcount + 1 > msg_read.cursize)
+        if (readcount + 1 > cursize)
             c = (byte) -1;
         else
-            c = msg_read.data[msg_read.readcount];
-        msg_read.readcount++;
+            c = data[readcount];
+        readcount++;
         return c;
     }
 
-    public static int ReadByte(sizebuf_t msg_read) {
-        int c;
-
-        if (msg_read.readcount + 1 > msg_read.cursize)
-            c = -1;
-        else
-            c = msg_read.data[msg_read.readcount] & 0xff;
-
-        msg_read.readcount++;
-        return c;
+    public void writeShort(int c) {
+        int i = GetSpace(2);
+        data[i++] = (byte) (c & 0xff);
+        data[i] = (byte) (c >>> 8 & 0xFF);
     }
 
-    public static short ReadShort(sizebuf_t msg_read) {
+    public short readShort() {
         final short c;
-
-        if (msg_read.readcount + 2 > msg_read.cursize)
+        if (readcount + 2 > cursize)
             c = -1;
         else
-            c = (short) ((msg_read.data[msg_read.readcount] & 0xff) + (msg_read.data[msg_read.readcount + 1] << 8));
-
-        msg_read.readcount += 2;
+            c = (short) ((readByte() & 0xff) + (readByte() << 8));
 
         return c;
     }
 
-    public static int ReadInt(sizebuf_t msg_read) {
+    public void writeInt(int c) {
+        int i = GetSpace(4);
+        data[i++] = (byte) (c & 0xff);
+        data[i++] = (byte) (c >>> 8 & 0xff);
+        data[i++] = (byte) (c >>> 16 & 0xff);
+        data[i] = (byte) (c >>> 24 & 0xff);
+    }
+
+    public int readInt() {
         final int c;
 
-        if (msg_read.readcount + 4 > msg_read.cursize) {
+        if (readcount + 4 > cursize) {
             Com.Printf("buffer underrun in ReadInt!");
             c = -1;
-        }
-
-        else
-            c = msg_read.data[msg_read.readcount] & 0xff
-                    | (msg_read.data[msg_read.readcount + 1] & 0xff) << 8
-                    | (msg_read.data[msg_read.readcount + 2] & 0xff) << 16
-                    | (msg_read.data[msg_read.readcount + 3] & 0xff) << 24;
-
-        msg_read.readcount += 4;
+        } else
+            c = readByte() & 0xff
+                    | (readByte() & 0xff) << 8
+                    | (readByte() & 0xff) << 16
+                    | (readByte() & 0xff) << 24;
 
         return c;
     }
 
-    public static float ReadFloat(sizebuf_t msg_read) {
-        return Float.intBitsToFloat(ReadInt(msg_read));
+    public void writeFloat(float f) {
+        writeInt(Float.floatToIntBits(f));
     }
 
-    public static String ReadString(sizebuf_t msg_read) {
+    public float readFloat() {
+        return Float.intBitsToFloat(readInt());
+    }
+
+    public void writeString(String s) {
+        final String x = Objects.requireNonNullElse(s, "");
+        writeBytes(Lib.stringToBytes(x));
+        writeByte((byte) 0);
+    }
+
+    /**
+     * Read at most 2048 single byte characters
+     */
+    public String readString() {
         // 2k read buffer.
         byte[] readbuf = new byte[2048];
         byte c;
         int l = 0;
         do {
-            c = (byte) ReadByte(msg_read);
+            c = (byte) readByte();
             if (c == -1 || c == 0)
                 break;
 
@@ -205,28 +178,101 @@ public final class sizebuf_t {
         return new String(readbuf, 0, l);
     }
 
-    public static float ReadCoord(sizebuf_t msg_read) {
-        return ReadShort(msg_read) * (1.0f / 8);
+    public void writeCoord(float f) {
+        writeShort((int) (f * 8));
     }
 
-    public static void ReadPos(sizebuf_t msg_read, float pos[]) {
-        assert pos.length == 3 : "vec3_t bug";
-        pos[0] = ReadShort(msg_read) * (1.0f / 8);
-        pos[1] = ReadShort(msg_read) * (1.0f / 8);
-        pos[2] = ReadShort(msg_read) * (1.0f / 8);
+    public float readCoord() {
+        return readShort() * (1.0f / 8);
     }
 
-    public static float ReadAngleByte(sizebuf_t msg_read) {
-        return ReadSignedByte(msg_read) * (180f / 128);
+    public void writePos(float[] pos) {
+        writeShort((int) (pos[0] * 8));
+        writeShort((int) (pos[1] * 8));
+        writeShort((int) (pos[2] * 8));
     }
 
-    public static float ReadAngleShort(sizebuf_t msg_read) {
-        return Math3D.SHORT2ANGLE(ReadShort(msg_read));
+    public void readPos(float[] pos) {
+        pos[0] = readShort() * (1.0f / 8);
+        pos[1] = readShort() * (1.0f / 8);
+        pos[2] = readShort() * (1.0f / 8);
     }
 
-    public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
+    /**
+     * @param f degrees, (-180, 180) mapped into one byte
+     */
+    public void writeAngleByte(float f) {
+        writeByte((byte) ((int) (f * 256 / 360) & 255));
+    }
+
+    /**
+     * @return degrees, (-180, 180) mapped from one byte
+     */
+    public float readAngleByte() {
+        return readSignedByte() * (180f / 128);
+    }
+
+    /**
+     * @param f degrees, (-180, 180) mapped into two bytes
+     */
+    public void writeAngleShort(float f) {
+        writeShort(Math3D.ANGLE2SHORT(f));
+    }
+
+    /**
+     * @return degrees, (-180, 180) mapped from two bytes
+     */
+    public float readAngleShort() {
+        return Math3D.SHORT2ANGLE(readShort());
+    }
+
+    public void writeDir(float[] dir) {
+
+        if (dir == null) {
+            writeByte((byte) 0);
+            return;
+        }
+
+        float bestd = 0;
+        int best = 0;
+        for (int i = 0; i < Defines.NUMVERTEXNORMALS; i++) {
+            float d = Math3D.DotProduct(dir, Globals.bytedirs[i]);
+            if (d > bestd) {
+                bestd = d;
+                best = i;
+            }
+        }
+        writeByte((byte) best);
+    }
+
+    public float[] readDir() {
+        float[] dir = new float[3];
+        int b = readByte();
+        if (b >= Defines.NUMVERTEXNORMALS)
+            Com.Error(Defines.ERR_DROP, "MSF_ReadDir: out of range");
+        Math3D.VectorCopy(Globals.bytedirs[b], dir);
+        return dir;
+    }
+
+    /**
+     * Read 'len' bytes into 'data'
+     */
+    public void readData(byte[] data, int len) {
         for (int i = 0; i < len; i++)
-            data[i] = (byte) ReadByte(msg_read);
+            data[i] = (byte) readByte();
+    }
+
+    public void writeBytes(byte[] data, int length) {
+        System.arraycopy(data, 0, this.data, GetSpace(length), length);
+    }
+
+    public void writeBytes(byte[] data, int offset, int length) {
+        System.arraycopy(data, offset, this.data, GetSpace(length), length);
+    }
+
+    public void writeBytes(byte[] data) {
+        int length = data.length;
+        System.arraycopy(data, 0, this.data, GetSpace(length), length);
     }
 
     public void clear() {

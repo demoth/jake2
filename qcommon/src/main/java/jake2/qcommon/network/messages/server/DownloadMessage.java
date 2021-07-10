@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.SZ;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -28,22 +27,22 @@ public class DownloadMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         if (data != null) {
-            buffer.WriteShort(data.length);
-            sizebuf_t.WriteByte(buffer, percentage);
-            SZ.Write(buffer, data, data.length);
+            buffer.writeShort(data.length);
+            buffer.writeByte(percentage);
+            buffer.writeBytes(data, data.length);
         } else {
-            buffer.WriteShort(-1);
-            sizebuf_t.WriteByte(buffer, (byte) 0);
+            buffer.writeShort(-1);
+            buffer.writeByte((byte) 0);
         }
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        int size = sizebuf_t.ReadShort(buffer);
-        percentage = (byte) sizebuf_t.ReadByte(buffer);
+        int size = buffer.readShort();
+        percentage = (byte) buffer.readByte();
         if (size != -1) {
             data = new byte[size];
-            sizebuf_t.ReadData(buffer, data, size);
+            buffer.readData(data, size);
         }
     }
 

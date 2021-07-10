@@ -22,12 +22,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
+import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Collection;
@@ -186,7 +189,7 @@ public class SV_SEND {
 		sizebuf_t msg = new sizebuf_t();
 		byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
 
-		SZ.Init(msg, msgbuf, msgbuf.length);
+		msg.init(msgbuf, msgbuf.length);
 		msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
@@ -203,7 +206,7 @@ public class SV_SEND {
 		if (client.datagram.overflowed)
 			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
 		else
-			SZ.Write(msg, client.datagram.data, client.datagram.cursize);
+			msg.writeBytes(client.datagram.data, client.datagram.cursize);
         client.datagram.clear();
 
         if (msg.overflowed) { // must have room left for the packet header

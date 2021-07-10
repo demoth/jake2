@@ -19,12 +19,12 @@ public class StuffTextMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteString(buffer, text);
+        buffer.writeString(text);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.text = sizebuf_t.ReadString(buffer);
+        this.text = buffer.readString();
     }
 
     @Override

@@ -33,12 +33,12 @@ public class StringCmdMessage extends ClientMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteString(buffer, command);
+        buffer.writeString(command);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.command = sizebuf_t.ReadString(buffer);
+        this.command = buffer.readString();
     }
 
     @Override

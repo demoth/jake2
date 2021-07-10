@@ -18,12 +18,12 @@ public abstract class TEMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteByte(buffer, (byte) style);
+        buffer.writeByte((byte) style);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.style = sizebuf_t.ReadByte(buffer);
+        this.style = buffer.readByte();
     }
 
     @Override

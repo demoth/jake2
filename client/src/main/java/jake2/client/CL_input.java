@@ -455,7 +455,7 @@ public class CL_input {
 		usercmd_t latestCmd = ClientGlobals.cl.cmds[latestCmdIndex];
 
 		// write MoveMessage to its own buffer
-		SZ.Init(buf, data, data.length);
+		buf.init(data, data.length);
 
 		new MoveMessage(
 				noCompress,

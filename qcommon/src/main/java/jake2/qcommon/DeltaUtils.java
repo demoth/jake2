@@ -22,7 +22,9 @@
 // $Id: MSG.java,v 1.8 2005-12-18 22:10:02 cawe Exp $
 package jake2.qcommon;
 
-public class MSG extends Globals {
+import static jake2.qcommon.Defines.*;
+
+public class DeltaUtils {
 
     /*
      * ================== WriteDeltaEntity
@@ -41,88 +43,88 @@ public class MSG extends Globals {
         if (deltaFlags == 0 && !force)
             return; // nothing to send!
 
-        sizebuf_t.WriteByte(buffer, (byte) (deltaFlags & 255));
+        buffer.writeByte((byte) (deltaFlags & 255));
 
         if ((deltaFlags & 0xff000000) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 16 & 255));
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 24 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 16 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 24 & 255));
         } else if ((deltaFlags & 0x00ff0000) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 16 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 16 & 255));
         } else if ((deltaFlags & 0x0000ff00) != 0) {
-            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
+            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
         }
 
         //----------
 
         if ((deltaFlags & U_NUMBER16) != 0)
-            buffer.WriteShort(to.number);
+            buffer.writeShort(to.number);
         else
-            sizebuf_t.WriteByte(buffer, (byte) to.number);
+            buffer.writeByte((byte) to.number);
 
         if ((deltaFlags & U_MODEL) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.modelindex);
+            buffer.writeByte((byte) to.modelindex);
         if ((deltaFlags & U_MODEL2) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.modelindex2);
+            buffer.writeByte((byte) to.modelindex2);
         if ((deltaFlags & U_MODEL3) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.modelindex3);
+            buffer.writeByte((byte) to.modelindex3);
         if ((deltaFlags & U_MODEL4) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.modelindex4);
+            buffer.writeByte((byte) to.modelindex4);
 
         if ((deltaFlags & U_FRAME8) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.frame);
+            buffer.writeByte((byte) to.frame);
         if ((deltaFlags & U_FRAME16) != 0)
-            buffer.WriteShort(to.frame);
+            buffer.writeShort(to.frame);
 
         if ((deltaFlags & U_SKIN8) != 0 && (deltaFlags & U_SKIN16) != 0) //used for laser
                                                              // colors
-            sizebuf_t.WriteInt(buffer, to.skinnum);
+            buffer.writeInt(to.skinnum);
         else if ((deltaFlags & U_SKIN8) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.skinnum);
+            buffer.writeByte((byte) to.skinnum);
         else if ((deltaFlags & U_SKIN16) != 0)
-            buffer.WriteShort(to.skinnum);
+            buffer.writeShort(to.skinnum);
 
         if ((deltaFlags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
-            sizebuf_t.WriteInt(buffer, to.effects);
+            buffer.writeInt(to.effects);
         else if ((deltaFlags & U_EFFECTS8) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.effects);
+            buffer.writeByte((byte) to.effects);
         else if ((deltaFlags & U_EFFECTS16) != 0)
-            buffer.WriteShort(to.effects);
+            buffer.writeShort(to.effects);
 
         if ((deltaFlags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
-            sizebuf_t.WriteInt(buffer, to.renderfx);
+            buffer.writeInt(to.renderfx);
         else if ((deltaFlags & U_RENDERFX8) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.renderfx);
+            buffer.writeByte((byte) to.renderfx);
         else if ((deltaFlags & U_RENDERFX16) != 0)
-            buffer.WriteShort(to.renderfx);
+            buffer.writeShort(to.renderfx);
 
         if ((deltaFlags & U_ORIGIN1) != 0)
-            sizebuf_t.WriteCoord(buffer, to.origin[0]);
+            buffer.writeCoord(to.origin[0]);
         if ((deltaFlags & U_ORIGIN2) != 0)
-            sizebuf_t.WriteCoord(buffer, to.origin[1]);
+            buffer.writeCoord(to.origin[1]);
         if ((deltaFlags & U_ORIGIN3) != 0)
-            sizebuf_t.WriteCoord(buffer, to.origin[2]);
+            buffer.writeCoord(to.origin[2]);
 
         if ((deltaFlags & U_ANGLE1) != 0)
-            sizebuf_t.WriteAngle(buffer, to.angles[0]);
+            buffer.writeAngleByte(to.angles[0]);
         if ((deltaFlags & U_ANGLE2) != 0)
-            sizebuf_t.WriteAngle(buffer, to.angles[1]);
+            buffer.writeAngleByte(to.angles[1]);
         if ((deltaFlags & U_ANGLE3) != 0)
-            sizebuf_t.WriteAngle(buffer, to.angles[2]);
+            buffer.writeAngleByte(to.angles[2]);
 
         if ((deltaFlags & U_OLDORIGIN) != 0) {
-            sizebuf_t.WriteCoord(buffer, to.old_origin[0]);
-            sizebuf_t.WriteCoord(buffer, to.old_origin[1]);
-            sizebuf_t.WriteCoord(buffer, to.old_origin[2]);
+            buffer.writeCoord(to.old_origin[0]);
+            buffer.writeCoord(to.old_origin[1]);
+            buffer.writeCoord(to.old_origin[2]);
         }
 
         if ((deltaFlags & U_SOUND) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.sound);
+            buffer.writeByte((byte) to.sound);
         if ((deltaFlags & U_EVENT) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) to.event);
+            buffer.writeByte((byte) to.event);
         if ((deltaFlags & U_SOLID) != 0)
-            buffer.WriteShort(to.solid);
+            buffer.writeShort(to.solid);
     }
 
     private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {

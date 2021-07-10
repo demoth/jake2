@@ -37,20 +37,19 @@ public class SplashTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        sizebuf_t.WriteByte(buffer, (byte) count);
-        sizebuf_t.WritePos(buffer, position);
-        sizebuf_t.WriteDir(buffer, direction);
-        sizebuf_t.WriteByte(buffer, (byte) param);
+        buffer.writeByte((byte) count);
+        buffer.writePos(position);
+        buffer.writeDir(direction);
+        buffer.writeByte((byte) param);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        count = sizebuf_t.ReadByte(buffer);
+        count = buffer.readByte();
         position = new float[3];
-        sizebuf_t.ReadPos(buffer, position);
-        direction = new float[3];
-        sizebuf_t.ReadDir(buffer, direction);
-        param = sizebuf_t.ReadByte(buffer);
+        buffer.readPos(position);
+        direction = buffer.readDir();
+        param = buffer.readByte();
     }
 
     @Override

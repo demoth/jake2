@@ -32,14 +32,14 @@ public class TrailTEMessage extends PointTEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        sizebuf_t.WritePos(buffer, destination);
+        buffer.writePos(destination);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         super.parse(buffer);
         this.destination = new float[3];
-        sizebuf_t.ReadPos(buffer, destination);
+        buffer.readPos(destination);
     }
 
     @Override

@@ -42,14 +42,14 @@ public class PointDirectionTEMessage extends PointTEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        sizebuf_t.WriteDir(buffer, direction);
+        buffer.writeDir(direction);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         super.parse(buffer);
-        this.direction = new float[3];
-        sizebuf_t.ReadDir(buffer, direction);
+        this.direction = buffer.readDir();
+
     }
 
     @Override

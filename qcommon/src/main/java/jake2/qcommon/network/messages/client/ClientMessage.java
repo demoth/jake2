@@ -11,14 +11,14 @@ public abstract class ClientMessage implements NetworkMessage {
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        sizebuf_t.WriteByte(buffer, type.value);
+        buffer.writeByte(type.value);
         writeProperties(buffer);
     }
 
     protected abstract void writeProperties(sizebuf_t buffer);
 
     public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
-        ClientMessageType type = ClientMessageType.fromByte((byte) sizebuf_t.ReadByte(buffer));
+        ClientMessageType type = ClientMessageType.fromByte((byte) buffer.readByte());
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:

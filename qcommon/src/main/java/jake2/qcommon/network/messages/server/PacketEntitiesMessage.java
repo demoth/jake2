@@ -22,23 +22,23 @@ public class PacketEntitiesMessage extends ServerMessage {
             // During serialization we don't have a header for entity state changes
             if (u.header == null) {
                 // entity is changed
-                MSG.WriteDeltaEntity(u.oldState, u.newState, buffer, u.force, u.isNewEntity);
+                DeltaUtils.WriteDeltaEntity(u.oldState, u.newState, buffer, u.force, u.isNewEntity);
             } else {
                 // entity is removed
-                sizebuf_t.WriteByte(buffer, (byte) (u.header.flags & 255));
+                buffer.writeByte((byte) (u.header.flags & 255));
 
                 if ((u.header.flags & 0x0000ff00) != 0)
-                    sizebuf_t.WriteByte(buffer, (byte) (u.header.flags >> 8 & 255));
+                    buffer.writeByte((byte) (u.header.flags >> 8 & 255));
 
                 if ((u.header.flags & Defines.U_NUMBER16) != 0)
-                    buffer.WriteShort(u.header.number);
+                    buffer.writeShort(u.header.number);
                 else
-                    sizebuf_t.WriteByte(buffer, (byte) u.header.number);
+                    buffer.writeByte((byte) u.header.number);
 
             }
         }
         // end of packetentities
-        buffer.WriteShort(0);
+        buffer.writeShort(0);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class PacketEntitiesMessage extends ServerMessage {
     private int getUpdateSize(EntityUpdate value) {
         if (value.header == null) {
             // entity is changed
-            return MSG.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
+            return DeltaUtils.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
         } else {
             // entity is removed
             int result = 1;

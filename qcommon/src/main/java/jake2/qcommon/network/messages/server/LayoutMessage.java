@@ -16,12 +16,12 @@ public class LayoutMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteString(buffer, layout);
+        buffer.writeString(layout);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.layout = sizebuf_t.ReadString(buffer);
+        this.layout = buffer.readString();
     }
 
     @Override

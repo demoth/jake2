@@ -17,12 +17,12 @@ public class UserInfoMessage extends ClientMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteString(buffer, userInfo);
+        buffer.writeString(userInfo);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.userInfo = sizebuf_t.ReadString(buffer);
+        this.userInfo = buffer.readString();
     }
 
     @Override

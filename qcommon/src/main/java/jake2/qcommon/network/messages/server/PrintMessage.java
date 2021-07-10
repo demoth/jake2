@@ -22,15 +22,15 @@ public class PrintMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteByte(buffer, (byte) level);
-        sizebuf_t.WriteString(buffer, text);
+        buffer.writeByte((byte) level);
+        buffer.writeString(text);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.level = sizebuf_t.ReadByte(buffer);
-        this.text = sizebuf_t.ReadString(buffer);
+        this.level = buffer.readByte();
+        this.text = buffer.readString();
     }
 
     @Override

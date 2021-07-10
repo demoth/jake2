@@ -38,18 +38,18 @@ public class BeamTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        buffer.WriteShort(ownerIndex);
-        sizebuf_t.WritePos(buffer, origin);
-        sizebuf_t.WritePos(buffer, destination);
+        buffer.writeShort(ownerIndex);
+        buffer.writePos(origin);
+        buffer.writePos(destination);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        ownerIndex = sizebuf_t.ReadShort(buffer);
+        ownerIndex = buffer.readShort();
         origin = new float[3];
-        sizebuf_t.ReadPos(buffer, origin);
+        buffer.readPos(origin);
         destination = new float[3];
-        sizebuf_t.ReadPos(buffer, destination);
+        buffer.readPos(destination);
     }
 
     @Override

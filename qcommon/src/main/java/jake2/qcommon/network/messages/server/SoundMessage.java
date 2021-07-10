@@ -58,48 +58,48 @@ public class SoundMessage extends ServerMessage {
     // todo: sync read & write logic (make flags private)
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        sizebuf_t.WriteByte(buffer, (byte) flags);
-        sizebuf_t.WriteByte(buffer, (byte) soundIndex);
+        buffer.writeByte((byte) flags);
+        buffer.writeByte((byte) soundIndex);
 
         if ((flags & Defines.SND_VOLUME) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) (volume * 255));
+            buffer.writeByte((byte) (volume * 255));
 
         if ((flags & Defines.SND_ATTENUATION) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) (attenuation * 64));
+            buffer.writeByte((byte) (attenuation * 64));
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            sizebuf_t.WriteByte(buffer, (byte) (timeOffset * 1000));
+            buffer.writeByte((byte) (timeOffset * 1000));
 
         if ((flags & Defines.SND_ENT) != 0)
-            buffer.WriteShort(sendchan);
+            buffer.writeShort(sendchan);
 
         if ((flags & Defines.SND_POS) != 0)
-            sizebuf_t.WritePos(buffer, origin);
+            buffer.writePos(origin);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.flags = sizebuf_t.ReadByte(buffer);
-        this.soundIndex = sizebuf_t.ReadByte(buffer);
+        this.flags = buffer.readByte();
+        this.soundIndex = buffer.readByte();
 
         if ((flags & Defines.SND_VOLUME) != 0)
-            volume = sizebuf_t.ReadByte(buffer) / 255.0f;
+            volume = buffer.readByte() / 255.0f;
         else
             volume = Defines.DEFAULT_SOUND_PACKET_VOLUME;
 
         if ((flags & Defines.SND_ATTENUATION) != 0)
-            attenuation = sizebuf_t.ReadByte(buffer) / 64.0f;
+            attenuation = buffer.readByte() / 64.0f;
         else
             attenuation = Defines.DEFAULT_SOUND_PACKET_ATTENUATION;
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            timeOffset = sizebuf_t.ReadByte(buffer) / 1000.0f;
+            timeOffset = buffer.readByte() / 1000.0f;
         else
             timeOffset = 0;
 
         if ((flags & Defines.SND_ENT) != 0) { // entity reletive
-            sendchan = sizebuf_t.ReadShort(buffer);
+            sendchan = buffer.readShort();
             entityIndex = sendchan >> 3;
             if (entityIndex > Defines.MAX_EDICTS)
                 Com.Error(Defines.ERR_DROP, "CL_ParseStartSoundPacket: ent = " + entityIndex);
@@ -112,7 +112,7 @@ public class SoundMessage extends ServerMessage {
 
         if ((flags & Defines.SND_POS) != 0) { // positioned in space
             float[] pos_v = new float[3];
-            sizebuf_t.ReadPos(buffer, pos_v);
+            buffer.readPos(pos_v);
             // is ok. sound driver copies
             origin = pos_v;
         } else
