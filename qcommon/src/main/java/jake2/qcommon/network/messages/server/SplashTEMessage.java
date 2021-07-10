@@ -38,10 +38,10 @@ public class SplashTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        MSG.WriteByte(buffer, count);
+        MSG.WriteByte(buffer, (byte) count);
         MSG.WritePos(buffer, position);
         MSG.WriteDir(buffer, direction);
-        MSG.WriteByte(buffer, param);
+        MSG.WriteByte(buffer, (byte) param);
     }
 
     @Override

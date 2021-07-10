@@ -19,7 +19,7 @@ public abstract class TEMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, style);
+        MSG.WriteByte(buffer, (byte) style);
     }
 
     @Override

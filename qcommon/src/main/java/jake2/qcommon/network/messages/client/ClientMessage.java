@@ -19,7 +19,7 @@ public abstract class ClientMessage implements NetworkMessage {
     protected abstract void writeProperties(sizebuf_t buffer);
 
     public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
-        ClientMessageType type = ClientMessageType.fromInt(MSG.ReadByte(buffer));
+        ClientMessageType type = ClientMessageType.fromByte((byte) MSG.ReadByte(buffer));
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:

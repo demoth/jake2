@@ -25,7 +25,7 @@ public class WeaponSoundMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteShort(buffer, entityIndex);
-        MSG.WriteByte(buffer, type);
+        MSG.WriteByte(buffer, (byte) type);
     }
 
     @Override

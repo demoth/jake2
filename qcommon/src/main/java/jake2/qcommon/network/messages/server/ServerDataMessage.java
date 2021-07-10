@@ -33,8 +33,9 @@ public class ServerDataMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteInt(buffer, Defines.PROTOCOL_VERSION);
-        MSG.WriteLong(buffer, spawnCount);
-        MSG.WriteByte(buffer, demo ? 1 : 0);
+        MSG.WriteInt(buffer, spawnCount);
+        float c = demo ? 1 : 0;
+        MSG.WriteByte(buffer, (byte) c);
         MSG.WriteString(buffer, gameName);
         MSG.WriteShort(buffer, playerNumber);
         MSG.WriteString(buffer, levelString);
@@ -43,8 +44,8 @@ public class ServerDataMessage extends ServerMessage {
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.protocol = MSG.ReadLong(buffer);
-        this.spawnCount = MSG.ReadLong(buffer);
+        this.protocol = MSG.ReadInt(buffer);
+        this.spawnCount = MSG.ReadInt(buffer);
         this.demo = MSG.ReadByte(buffer) != 0;
         this.gameName = MSG.ReadString(buffer);
         this.playerNumber = MSG.ReadShort(buffer);

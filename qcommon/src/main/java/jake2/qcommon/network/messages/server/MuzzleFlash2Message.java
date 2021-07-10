@@ -20,7 +20,7 @@ public class MuzzleFlash2Message extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         MSG.WriteShort(buffer, entityIndex);
-        MSG.WriteByte(buffer, flashType);
+        MSG.WriteByte(buffer, (byte) flashType);
     }
 
     @Override

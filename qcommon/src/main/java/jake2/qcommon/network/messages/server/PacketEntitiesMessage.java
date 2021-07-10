@@ -25,15 +25,15 @@ public class PacketEntitiesMessage extends ServerMessage {
                 MSG.WriteDeltaEntity(u.oldState, u.newState, buffer, u.force, u.isNewEntity);
             } else {
                 // entity is removed
-                MSG.WriteByte(buffer, u.header.flags & 255);
+                MSG.WriteByte(buffer, (byte) (u.header.flags & 255));
 
                 if ((u.header.flags & 0x0000ff00) != 0)
-                    MSG.WriteByte(buffer, (u.header.flags >> 8) & 255);
+                    MSG.WriteByte(buffer, (byte) (u.header.flags >> 8 & 255));
 
                 if ((u.header.flags & Defines.U_NUMBER16) != 0)
                     MSG.WriteShort(buffer, u.header.number);
                 else
-                    MSG.WriteByte(buffer, u.header.number);
+                    MSG.WriteByte(buffer, (byte) u.header.number);
 
             }
         }

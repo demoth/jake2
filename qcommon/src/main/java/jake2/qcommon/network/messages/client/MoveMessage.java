@@ -34,11 +34,12 @@ public class MoveMessage extends ClientMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         checksumIndex = buffer.cursize;
-        MSG.WriteByte(buffer, 0); // later we update with right value
+        // later we update with right value
+        MSG.WriteByte(buffer, (byte) 0);
         if (noCompress) {
-            MSG.WriteLong(buffer, 0);
+            MSG.WriteInt(buffer, 0);
         } else {
-            MSG.WriteLong(buffer, lastReceivedFrame);
+            MSG.WriteInt(buffer, lastReceivedFrame);
         }
 
         // send this and the previous cmds in the message, so
@@ -57,7 +58,7 @@ public class MoveMessage extends ClientMessage {
     public void parse(sizebuf_t buffer) {
         checksumIndex = buffer.readcount;
         int checksum = MSG.ReadByte(buffer);
-        lastReceivedFrame = MSG.ReadLong(buffer);
+        lastReceivedFrame = MSG.ReadInt(buffer);
         this.oldestCmd = new usercmd_t();
         this.oldCmd = new usercmd_t();
         this.newCmd = new usercmd_t();
@@ -82,7 +83,7 @@ public class MoveMessage extends ClientMessage {
         //
         int deltaFlags = getDeltaFlags(from, cmd);
 
-        MSG.WriteByte(buf, deltaFlags);
+        MSG.WriteByte(buf, (byte) deltaFlags);
 
         if ((deltaFlags & Defines.CM_ANGLE1) != 0)
             MSG.WriteShort(buf, cmd.angles[0]);

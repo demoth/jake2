@@ -627,7 +627,7 @@ public class CL_tent {
                 s[i].color = r & 0xff;
                 s[i].magnitude = MSG.ReadShort(net_message);
                 s[i].endtime = ClientGlobals.cl.time
-                        + MSG.ReadLong(net_message);
+                        + MSG.ReadInt(net_message);
                 s[i].think = new cl_sustain_t.ThinkAdapter() {
                     void think(cl_sustain_t self) {
                         CL_newfx.ParticleSteamEffect2(self);
@@ -643,7 +643,7 @@ public class CL_tent {
                 MSG.ReadDir(net_message, dir);
                 r = MSG.ReadByte(net_message);
                 magnitude = MSG.ReadShort(net_message);
-                magnitude = MSG.ReadLong(net_message); // really
+                magnitude = MSG.ReadInt(net_message); // really
                                                                // interval
             }
         } else // instant

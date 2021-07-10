@@ -59,17 +59,17 @@ public class SoundMessage extends ServerMessage {
     // todo: sync read & write logic (make flags private)
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, flags);
-        MSG.WriteByte(buffer, soundIndex);
+        MSG.WriteByte(buffer, (byte) flags);
+        MSG.WriteByte(buffer, (byte) soundIndex);
 
         if ((flags & Defines.SND_VOLUME) != 0)
-            MSG.WriteByte(buffer, volume * 255);
+            MSG.WriteByte(buffer, (byte) (volume * 255));
 
         if ((flags & Defines.SND_ATTENUATION) != 0)
-            MSG.WriteByte(buffer, attenuation * 64);
+            MSG.WriteByte(buffer, (byte) (attenuation * 64));
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            MSG.WriteByte(buffer, timeOffset * 1000);
+            MSG.WriteByte(buffer, (byte) (timeOffset * 1000));
 
         if ((flags & Defines.SND_ENT) != 0)
             MSG.WriteShort(buffer, sendchan);

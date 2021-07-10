@@ -52,7 +52,7 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.NopMessage", new NopMessage()});
         testMessages.add(new Object[]{"server.EndOfServerPacketMessage", new EndOfServerPacketMessage()});
         // ordinary messages
-        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, 50)});
+        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, (byte) 50)});
         testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage()});
         testMessages.add(new Object[]{"server.DisconnectMessage", new DisconnectMessage()});
         testMessages.add(new Object[]{"server.ReconnectMessage", new ReconnectMessage()});

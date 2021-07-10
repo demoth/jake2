@@ -240,7 +240,7 @@ class SV_USER {
         int size = gameImports.sv_client.downloadsize;
         if (size == 0)
             size = 1;
-        int percent = gameImports.sv_client.downloadcount * 100 / size;
+        byte percent = (byte) (gameImports.sv_client.downloadcount * 100 / size);
 
         byte[] data = new byte[packet];
         System.arraycopy(gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, data, 0, packet);

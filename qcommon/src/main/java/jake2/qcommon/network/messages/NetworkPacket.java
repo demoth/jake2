@@ -68,15 +68,15 @@ public class NetworkPacket {
     }
 
     public void parseHeader() {
-        sequence = MSG.ReadLong(buffer);
+        sequence = MSG.ReadInt(buffer);
 
         if (isConnectionless()) {
-            connectionlessMessage = MSG.ReadStringLine(buffer);
+            connectionlessMessage = MSG.ReadString(buffer);
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
                     case "print":
-                        connectionlessParameters = MSG.ReadStringLine(buffer);
+                        connectionlessParameters = MSG.ReadString(buffer);
                         break;
                     default:
                         break;
@@ -84,7 +84,7 @@ public class NetworkPacket {
 
             }
         } else {
-            sequenceAck = MSG.ReadLong(buffer);
+            sequenceAck = MSG.ReadInt(buffer);
 
             if (fromClient)
                 qport = MSG.ReadShort(buffer) & 0xffff;

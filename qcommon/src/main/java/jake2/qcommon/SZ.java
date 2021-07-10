@@ -25,8 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import jake2.qcommon.util.Lib;
-
 /**
  * SZ
  */
@@ -80,26 +78,4 @@ public final class SZ {
 		System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
 	}
 
-	// 
-	public static void Print(sizebuf_t buf, String data) {
-	    Com.dprintln("SZ.print():<" + data + ">" );
-		int length = data.length();
-		byte str[] = Lib.stringToBytes(data);
-	
-		if (buf.cursize != 0) {
-	
-			if (buf.data[buf.cursize - 1] != 0) {
-				//memcpy( SZ_GetSpace(buf, len), data, len); // no trailing 0
-				System.arraycopy(str, 0, buf.data, GetSpace(buf, length+1), length);
-			} else {
-				System.arraycopy(str, 0, buf.data, GetSpace(buf, length)-1, length);
-				//memcpy(SZ_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0
-			}
-		} else
-			// first print.
-			System.arraycopy(str, 0, buf.data, GetSpace(buf, length), length);
-		//memcpy(SZ_GetSpace(buf, len), data, len);
-		
-		buf.data[buf.cursize - 1]=0;
-	}
 }

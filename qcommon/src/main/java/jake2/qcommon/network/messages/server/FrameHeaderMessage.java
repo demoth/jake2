@@ -38,17 +38,19 @@ public class FrameHeaderMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteLong(buffer, frameNumber);
-        MSG.WriteLong(buffer, lastFrame); // what we are delta'ing from
-        MSG.WriteByte(buffer, suppressCount); // rate dropped packets
-        MSG.WriteByte(buffer, areaBitsLength);
+        MSG.WriteInt(buffer, frameNumber);
+        // what we are delta'ing from
+        MSG.WriteInt(buffer, lastFrame);
+        // rate dropped packets
+        MSG.WriteByte(buffer, (byte) suppressCount);
+        MSG.WriteByte(buffer, (byte) areaBitsLength);
         SZ.Write(buffer, areaBits, areaBitsLength);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        frameNumber = MSG.ReadLong(buffer);
-        lastFrame = MSG.ReadLong(buffer);
+        frameNumber = MSG.ReadInt(buffer);
+        lastFrame = MSG.ReadInt(buffer);
         // BIG HACK to let old demos continue to work
         // if (ClientGlobals.cls.serverProtocol != 26)
         // fixme: do not read otherwise?

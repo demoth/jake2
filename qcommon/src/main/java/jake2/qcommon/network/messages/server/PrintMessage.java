@@ -23,7 +23,7 @@ public class PrintMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, level);
+        MSG.WriteByte(buffer, (byte) level);
         MSG.WriteString(buffer, text);
 
     }

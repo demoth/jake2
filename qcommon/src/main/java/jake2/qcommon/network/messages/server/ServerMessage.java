@@ -65,21 +65,21 @@ public abstract class ServerMessage implements NetworkMessage {
 
         // used for laser colors
         if ((flags & Defines.U_SKIN8) != 0 && (flags & Defines.U_SKIN16) != 0)
-            to.skinnum = MSG.ReadLong(buffer);
+            to.skinnum = MSG.ReadInt(buffer);
         else if ((flags & Defines.U_SKIN8) != 0)
             to.skinnum = MSG.ReadByte(buffer);
         else if ((flags & Defines.U_SKIN16) != 0)
             to.skinnum = MSG.ReadShort(buffer);
 
         if ((flags & (Defines.U_EFFECTS8 | Defines.U_EFFECTS16)) == (Defines.U_EFFECTS8 | Defines.U_EFFECTS16))
-            to.effects = MSG.ReadLong(buffer);
+            to.effects = MSG.ReadInt(buffer);
         else if ((flags & Defines.U_EFFECTS8) != 0)
             to.effects = MSG.ReadByte(buffer);
         else if ((flags & Defines.U_EFFECTS16) != 0)
             to.effects = MSG.ReadShort(buffer);
 
         if ((flags & (Defines.U_RENDERFX8 | Defines.U_RENDERFX16)) == (Defines.U_RENDERFX8 | Defines.U_RENDERFX16))
-            to.renderfx = MSG.ReadLong(buffer);
+            to.renderfx = MSG.ReadInt(buffer);
         else if ((flags & Defines.U_RENDERFX8) != 0)
             to.renderfx = MSG.ReadByte(buffer);
         else if ((flags & Defines.U_RENDERFX16) != 0)
@@ -116,7 +116,7 @@ public abstract class ServerMessage implements NetworkMessage {
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, type.type);
+        MSG.WriteByte(buffer, (byte) type.type);
         writeProperties(buffer);
     }
 

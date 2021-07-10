@@ -96,7 +96,7 @@ public class PlayerInfoMessage extends ServerMessage {
 
         // write the pmove_state_t
         if ((deltaFlags & Defines.PS_M_TYPE) != 0)
-            MSG.WriteByte(buffer, currentState.pmove.pm_type);
+            MSG.WriteByte(buffer, (byte) currentState.pmove.pm_type);
 
         if ((deltaFlags & Defines.PS_M_ORIGIN) != 0) {
             MSG.WriteShort(buffer, currentState.pmove.origin[0]);
@@ -127,9 +127,9 @@ public class PlayerInfoMessage extends ServerMessage {
 
         // write the rest of the player_state_t
         if ((deltaFlags & Defines.PS_VIEWOFFSET) != 0) {
-            MSG.WriteChar(buffer, currentState.viewoffset[0] * 4);
-            MSG.WriteChar(buffer, currentState.viewoffset[1] * 4);
-            MSG.WriteChar(buffer, currentState.viewoffset[2] * 4);
+            MSG.WriteByte(buffer, (byte) (currentState.viewoffset[0] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.viewoffset[1] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.viewoffset[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_VIEWANGLES) != 0) {
@@ -139,38 +139,38 @@ public class PlayerInfoMessage extends ServerMessage {
         }
 
         if ((deltaFlags & Defines.PS_KICKANGLES) != 0) {
-            MSG.WriteChar(buffer, currentState.kick_angles[0] * 4);
-            MSG.WriteChar(buffer, currentState.kick_angles[1] * 4);
-            MSG.WriteChar(buffer, currentState.kick_angles[2] * 4);
+            MSG.WriteByte(buffer, (byte) (currentState.kick_angles[0] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.kick_angles[1] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.kick_angles[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_WEAPONINDEX) != 0) {
-            MSG.WriteByte(buffer, currentState.gunindex);
+            MSG.WriteByte(buffer, (byte) currentState.gunindex);
         }
 
         if ((deltaFlags & Defines.PS_WEAPONFRAME) != 0) {
-            MSG.WriteByte(buffer, currentState.gunframe);
-            MSG.WriteChar(buffer, currentState.gunoffset[0] * 4);
-            MSG.WriteChar(buffer, currentState.gunoffset[1] * 4);
-            MSG.WriteChar(buffer, currentState.gunoffset[2] * 4);
-            MSG.WriteChar(buffer, currentState.gunangles[0] * 4);
-            MSG.WriteChar(buffer, currentState.gunangles[1] * 4);
-            MSG.WriteChar(buffer, currentState.gunangles[2] * 4);
+            MSG.WriteByte(buffer, (byte) currentState.gunframe);
+            MSG.WriteByte(buffer, (byte) (currentState.gunoffset[0] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.gunoffset[1] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.gunoffset[2] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.gunangles[0] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.gunangles[1] * 4));
+            MSG.WriteByte(buffer, (byte) (currentState.gunangles[2] * 4));
         }
 
         if ((deltaFlags & Defines.PS_BLEND) != 0) {
-            MSG.WriteByte(buffer, currentState.blend[0] * 255);
-            MSG.WriteByte(buffer, currentState.blend[1] * 255);
-            MSG.WriteByte(buffer, currentState.blend[2] * 255);
-            MSG.WriteByte(buffer, currentState.blend[3] * 255);
+            MSG.WriteByte(buffer, (byte) (currentState.blend[0] * 255));
+            MSG.WriteByte(buffer, (byte) (currentState.blend[1] * 255));
+            MSG.WriteByte(buffer, (byte) (currentState.blend[2] * 255));
+            MSG.WriteByte(buffer, (byte) (currentState.blend[3] * 255));
         }
         if ((deltaFlags & Defines.PS_FOV) != 0)
-            MSG.WriteByte(buffer, currentState.fov);
+            MSG.WriteByte(buffer, (byte) currentState.fov);
 
         if ((deltaFlags & Defines.PS_RDFLAGS) != 0)
-            MSG.WriteByte(buffer, currentState.rdflags);
+            MSG.WriteByte(buffer, (byte) currentState.rdflags);
 
-        MSG.WriteLong(buffer, statbits);
+        MSG.WriteInt(buffer, statbits);
         for (int i = 0; i < Defines.MAX_STATS; i++) {
             if ((statbits & (1 << i)) != 0)
                 MSG.WriteShort(buffer, currentState.stats[i]);
@@ -257,7 +257,7 @@ public class PlayerInfoMessage extends ServerMessage {
             this.currentState.rdflags = MSG.ReadByte(buffer);
         }
         // parse stats
-        statbits = MSG.ReadLong(buffer);
+        statbits = MSG.ReadInt(buffer);
         this.currentState.stats = new short[Defines.MAX_STATS];
         for (int i = 0; i < Defines.MAX_STATS; i++) {
             if ((statbits & (1 << i)) != 0) {

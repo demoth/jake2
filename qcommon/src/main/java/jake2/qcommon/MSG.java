@@ -27,44 +27,23 @@ import jake2.qcommon.util.Math3D;
 
 public class MSG extends Globals {
 
-    //
-    // writing functions
-    //
-
-    //ok.
-    public static void WriteChar(sizebuf_t sb, float c) {
-
-        WriteByte(sb, (int) c);
-    }
-
-    //ok.
-    public static void WriteByte(sizebuf_t sb, int c) {
+    public static void WriteByte(sizebuf_t sb, byte c) {
         sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
-    }
-
-    //ok.
-    public static void WriteByte(sizebuf_t sb, float c) {
-        WriteByte(sb, (int) c);
     }
 
     public static void WriteShort(sizebuf_t sb, int c) {
         int i = SZ.GetSpace(sb, 2);
         sb.data[i++] = (byte) (c & 0xff);
-        sb.data[i] = (byte) ((c >>> 8) & 0xFF);
+        sb.data[i] = (byte) (c >>> 8 & 0xFF);
     }
 
     //ok.
     public static void WriteInt(sizebuf_t sb, int c) {
         int i = SZ.GetSpace(sb, 4);
-        sb.data[i++] = (byte) ((c & 0xff));
-        sb.data[i++] = (byte) ((c >>> 8) & 0xff);
-        sb.data[i++] = (byte) ((c >>> 16) & 0xff);
-        sb.data[i++] = (byte) ((c >>> 24) & 0xff);
-    }
-
-    //ok.
-    public static void WriteLong(sizebuf_t sb, int c) {
-        WriteInt(sb, c);
+        sb.data[i++] = (byte) (c & 0xff);
+        sb.data[i++] = (byte) (c >>> 8 & 0xff);
+        sb.data[i++] = (byte) (c >>> 16 & 0xff);
+        sb.data[i++] = (byte) (c >>> 24 & 0xff);
     }
 
     //ok.
@@ -80,13 +59,7 @@ public class MSG extends Globals {
             x = "";
 
         SZ.Write(sb, Lib.stringToBytes(x));
-        WriteByte(sb, 0);
-        //Com.dprintln("MSG.WriteString:" + s.replace('\0', '@'));
-    }
-
-    //ok.
-    public static void WriteString(sizebuf_t sb, byte s[]) {
-        WriteString(sb, new String(s).trim());
+        WriteByte(sb, (byte) 0);
     }
 
     public static void WriteCoord(sizebuf_t sb, float f) {
@@ -94,14 +67,14 @@ public class MSG extends Globals {
     }
 
     public static void WritePos(sizebuf_t sb, float[] pos) {
-        assert (pos.length == 3) : "vec3_t bug";
+        assert pos.length == 3 : "vec3_t bug";
         WriteShort(sb, (int) (pos[0] * 8));
         WriteShort(sb, (int) (pos[1] * 8));
         WriteShort(sb, (int) (pos[2] * 8));
     }
 
     public static void WriteAngle(sizebuf_t sb, float f) {
-        WriteByte(sb, (int) (f * 256 / 360) & 255);
+        WriteByte(sb, (byte) ((int) (f * 256 / 360) & 255));
     }
 
     public static void WriteAngle16(sizebuf_t sb, float f) {
@@ -114,7 +87,7 @@ public class MSG extends Globals {
         float d, bestd;
 
         if (dir == null) {
-            WriteByte(sb, 0);
+            WriteByte(sb, (byte) 0);
             return;
         }
 
@@ -127,7 +100,7 @@ public class MSG extends Globals {
                 best = i;
             }
         }
-        WriteByte(sb, best);
+        WriteByte(sb, (byte) best);
     }
 
     //should be ok.
@@ -157,17 +130,17 @@ public class MSG extends Globals {
         if (deltaFlags == 0 && !force)
             return; // nothing to send!
 
-        WriteByte(msg, deltaFlags & 255);
+        WriteByte(msg, (byte) (deltaFlags & 255));
 
         if ((deltaFlags & 0xff000000) != 0) {
-            WriteByte(msg, (deltaFlags >>> 8) & 255);
-            WriteByte(msg, (deltaFlags >>> 16) & 255);
-            WriteByte(msg, (deltaFlags >>> 24) & 255);
+            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
+            WriteByte(msg, (byte) (deltaFlags >>> 16 & 255));
+            WriteByte(msg, (byte) (deltaFlags >>> 24 & 255));
         } else if ((deltaFlags & 0x00ff0000) != 0) {
-            WriteByte(msg, (deltaFlags >>> 8) & 255);
-            WriteByte(msg, (deltaFlags >>> 16) & 255);
+            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
+            WriteByte(msg, (byte) (deltaFlags >>> 16 & 255));
         } else if ((deltaFlags & 0x0000ff00) != 0) {
-            WriteByte(msg, (deltaFlags >>> 8) & 255);
+            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
         }
 
         //----------
@@ -175,19 +148,19 @@ public class MSG extends Globals {
         if ((deltaFlags & U_NUMBER16) != 0)
             WriteShort(msg, to.number);
         else
-            WriteByte(msg, to.number);
+            WriteByte(msg, (byte) to.number);
 
         if ((deltaFlags & U_MODEL) != 0)
-            WriteByte(msg, to.modelindex);
+            WriteByte(msg, (byte) to.modelindex);
         if ((deltaFlags & U_MODEL2) != 0)
-            WriteByte(msg, to.modelindex2);
+            WriteByte(msg, (byte) to.modelindex2);
         if ((deltaFlags & U_MODEL3) != 0)
-            WriteByte(msg, to.modelindex3);
+            WriteByte(msg, (byte) to.modelindex3);
         if ((deltaFlags & U_MODEL4) != 0)
-            WriteByte(msg, to.modelindex4);
+            WriteByte(msg, (byte) to.modelindex4);
 
         if ((deltaFlags & U_FRAME8) != 0)
-            WriteByte(msg, to.frame);
+            WriteByte(msg, (byte) to.frame);
         if ((deltaFlags & U_FRAME16) != 0)
             WriteShort(msg, to.frame);
 
@@ -195,21 +168,21 @@ public class MSG extends Globals {
                                                              // colors
             WriteInt(msg, to.skinnum);
         else if ((deltaFlags & U_SKIN8) != 0)
-            WriteByte(msg, to.skinnum);
+            WriteByte(msg, (byte) to.skinnum);
         else if ((deltaFlags & U_SKIN16) != 0)
             WriteShort(msg, to.skinnum);
 
         if ((deltaFlags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
             WriteInt(msg, to.effects);
         else if ((deltaFlags & U_EFFECTS8) != 0)
-            WriteByte(msg, to.effects);
+            WriteByte(msg, (byte) to.effects);
         else if ((deltaFlags & U_EFFECTS16) != 0)
             WriteShort(msg, to.effects);
 
         if ((deltaFlags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
             WriteInt(msg, to.renderfx);
         else if ((deltaFlags & U_RENDERFX8) != 0)
-            WriteByte(msg, to.renderfx);
+            WriteByte(msg, (byte) to.renderfx);
         else if ((deltaFlags & U_RENDERFX16) != 0)
             WriteShort(msg, to.renderfx);
 
@@ -234,9 +207,9 @@ public class MSG extends Globals {
         }
 
         if ((deltaFlags & U_SOUND) != 0)
-            WriteByte(msg, to.sound);
+            WriteByte(msg, (byte) to.sound);
         if ((deltaFlags & U_EVENT) != 0)
-            WriteByte(msg, to.event);
+            WriteByte(msg, (byte) to.event);
         if ((deltaFlags & U_SOLID) != 0)
             WriteShort(msg, to.solid);
     }
@@ -273,7 +246,7 @@ public class MSG extends Globals {
             else if (to.skinnum < 0x10000)
                 deltaFlags |= U_SKIN16;
             else
-                deltaFlags |= (U_SKIN8 | U_SKIN16);
+                deltaFlags |= U_SKIN8 | U_SKIN16;
         }
 
         if (to.frame != from.frame) {
@@ -461,19 +434,19 @@ public class MSG extends Globals {
         return (short) c;
     }
 
-    public static int ReadLong(sizebuf_t msg_read) {
+    public static int ReadInt(sizebuf_t msg_read) {
         int c;
 
         if (msg_read.readcount + 4 > msg_read.cursize) {
-            Com.Printf("buffer underrun in ReadLong!");
+            Com.Printf("buffer underrun in ReadInt!");
             c = -1;
         }
 
         else
-            c = (msg_read.data[msg_read.readcount] & 0xff)
-                    | ((msg_read.data[msg_read.readcount + 1] & 0xff) << 8)
-                    | ((msg_read.data[msg_read.readcount + 2] & 0xff) << 16)
-                    | ((msg_read.data[msg_read.readcount + 3] & 0xff) << 24);
+            c = msg_read.data[msg_read.readcount] & 0xff
+                    | (msg_read.data[msg_read.readcount + 1] & 0xff) << 8
+                    | (msg_read.data[msg_read.readcount + 2] & 0xff) << 16
+                    | (msg_read.data[msg_read.readcount + 3] & 0xff) << 24;
 
         msg_read.readcount += 4;
 
@@ -481,15 +454,13 @@ public class MSG extends Globals {
     }
 
     public static float ReadFloat(sizebuf_t msg_read) {
-        int n = ReadLong(msg_read);
+        int n = ReadInt(msg_read);
         return Float.intBitsToFloat(n);
     }
 
-    // 2k read buffer.
-    public static byte readbuf[] = new byte[2048];
-
     public static String ReadString(sizebuf_t msg_read) {
-
+        // 2k read buffer.
+        byte[] readbuf = new byte[2048];
         byte c;
         int l = 0;
         do {
@@ -500,29 +471,8 @@ public class MSG extends Globals {
             readbuf[l] = c;
             l++;
         } while (l < 2047);
-        
-        String ret = new String(readbuf, 0, l);
-        // Com.dprintln("MSG.ReadString:[" + ret + "]");
-        return ret;
-    }
 
-    public static String ReadStringLine(sizebuf_t msg_read) {
-
-        int l;
-        byte c;
-
-        l = 0;
-        do {
-            c = (byte) ReadChar(msg_read);
-            if (c == -1 || c == 0 || c == 0x0a)
-                break;
-            readbuf[l] = c;
-            l++;
-        } while (l < 2047);
-        
-        String ret = new String(readbuf, 0, l).trim();
-        Com.dprintln("MSG.ReadStringLine:[" + ret.replace('\0', '@') + "]");
-        return ret;
+        return new String(readbuf, 0, l);
     }
 
     public static float ReadCoord(sizebuf_t msg_read) {
@@ -530,7 +480,7 @@ public class MSG extends Globals {
     }
 
     public static void ReadPos(sizebuf_t msg_read, float pos[]) {
-        assert (pos.length == 3) : "vec3_t bug";
+        assert pos.length == 3 : "vec3_t bug";
         pos[0] = ReadShort(msg_read) * (1.0f / 8);
         pos[1] = ReadShort(msg_read) * (1.0f / 8);
         pos[2] = ReadShort(msg_read) * (1.0f / 8);
