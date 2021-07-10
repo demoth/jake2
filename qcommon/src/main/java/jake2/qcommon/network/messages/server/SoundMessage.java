@@ -80,7 +80,7 @@ public class SoundMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.flags = MSG.ReadByte(buffer);
         this.soundIndex = MSG.ReadByte(buffer);
 
@@ -123,7 +123,7 @@ public class SoundMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         int result = 3;
         if ((flags & Defines.SND_VOLUME) != 0)
             result += 1;

@@ -23,7 +23,7 @@ public abstract class TEMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.style = MSG.ReadByte(buffer);
     }
 

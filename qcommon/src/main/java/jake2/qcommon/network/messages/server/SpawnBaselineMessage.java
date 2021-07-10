@@ -30,13 +30,13 @@ public class SpawnBaselineMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         DeltaEntityHeader header = parseDeltaEntityHeader(buffer);
         entityState = parseEntityState(header.number, header.flags, buffer);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1 + MSG.getDeltaSize(base, entityState, true);
     }
 

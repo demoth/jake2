@@ -29,13 +29,13 @@ public class WeaponSoundMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.entityIndex = MSG.ReadShort(buffer);
         this.type = MSG.ReadByte(buffer);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 4;
     }
 

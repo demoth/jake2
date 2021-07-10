@@ -37,7 +37,7 @@ public class DownloadMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         int size = MSG.ReadShort(buffer);
         percentage = MSG.ReadByte(buffer);
         if (size != -1) {
@@ -47,7 +47,7 @@ public class DownloadMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         if (data != null)
             return 4 + data.length;
         else

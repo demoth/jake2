@@ -45,3 +45,27 @@ see jake2.server.ClientStates
 The following diagram illustrates client/server communication when client connectos to server.
 Starting from typing connect 'someaddress' and until client becomes connected and receives the updates from the server. 
 ![Connection initialization](./connection.svg)
+
+# Further improvements - TODO
+
+Api improvements
+
+Network package should expose only message classes and couple of source/sink classes/interfaces for them.
+Nothing else is relevant and should be hidden with package private visibility.
+
+Example of the network api:
+
+    // holding the network connection state, manages reliability, checksums, etc
+    class <T> NetworkConnection {
+        // called multiple times per frame by client/server modules
+        void sendConnectionLessPacket(...) 
+
+        // called multiple times per frame by client/server/game modules, adds the message to the pending queue
+        void write(T) 
+
+        // called once every frame, packs all pending messages into packet and transmits over the network
+        void flush() 
+
+        // called every frame, unpacks the packet of incoming messages and validates
+        Collection<T> receive()
+    }

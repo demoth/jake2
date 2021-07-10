@@ -22,8 +22,13 @@ public class UserInfoMessage extends ClientMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.userInfo = MSG.ReadString(buffer);
+    }
+
+    @Override
+    public int getSize() {
+        return 1 + userInfo.length() + 1;
     }
 
     @Override
@@ -32,5 +37,17 @@ public class UserInfoMessage extends ClientMessage {
         if (o == null || getClass() != o.getClass()) return false;
         UserInfoMessage that = (UserInfoMessage) o;
         return userInfo.equals(that.userInfo);
+    }
+
+    @Override
+    public int hashCode() {
+        return userInfo != null ? userInfo.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "UserInfoMessage{" +
+                "userInfo='" + userInfo + '\'' +
+                '}';
     }
 }

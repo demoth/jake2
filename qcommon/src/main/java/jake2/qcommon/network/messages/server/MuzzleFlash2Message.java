@@ -24,13 +24,13 @@ public class MuzzleFlash2Message extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.entityIndex = MSG.ReadShort(buffer);
         this.flashType = MSG.ReadByte(buffer);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 4;
     }
 

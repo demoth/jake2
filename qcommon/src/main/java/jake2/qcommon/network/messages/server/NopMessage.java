@@ -14,12 +14,12 @@ public class NopMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
 
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1;
     }
 

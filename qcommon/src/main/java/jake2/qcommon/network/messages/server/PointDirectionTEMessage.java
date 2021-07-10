@@ -47,14 +47,14 @@ public class PointDirectionTEMessage extends PointTEMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         super.parse(buffer);
         this.direction = new float[3];
         MSG.ReadDir(buffer, direction);
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return super.getSize() + 1;
     }
 

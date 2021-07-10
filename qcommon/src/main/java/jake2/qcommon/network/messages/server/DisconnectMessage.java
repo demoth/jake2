@@ -13,12 +13,12 @@ public class DisconnectMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         // no other fields
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         return 1;
     }
 

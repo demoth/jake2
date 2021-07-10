@@ -38,8 +38,13 @@ public class StringCmdMessage extends ClientMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.command = MSG.ReadString(buffer);
+    }
+
+    @Override
+    public int getSize() {
+        return 1 + command.length() + 1;
     }
 
     @Override
@@ -48,5 +53,17 @@ public class StringCmdMessage extends ClientMessage {
         if (o == null || getClass() != o.getClass()) return false;
         StringCmdMessage that = (StringCmdMessage) o;
         return command.equals(that.command);
+    }
+
+    @Override
+    public int hashCode() {
+        return command != null ? command.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "StringCmdMessage{" +
+                "command='" + command + '\'' +
+                '}';
     }
 }

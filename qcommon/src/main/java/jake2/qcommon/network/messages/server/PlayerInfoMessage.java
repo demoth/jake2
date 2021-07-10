@@ -178,7 +178,7 @@ public class PlayerInfoMessage extends ServerMessage {
     }
 
     @Override
-    void parse(sizebuf_t buffer) {
+    public void parse(sizebuf_t buffer) {
         this.deltaFlags = MSG.ReadShort(buffer);
         this.currentState = new player_state_t();
         if ((deltaFlags & Defines.PS_M_TYPE) != 0) {
@@ -267,7 +267,7 @@ public class PlayerInfoMessage extends ServerMessage {
     }
 
     @Override
-    int getSize() {
+    public int getSize() {
         computeDeltaFlags();
         int result = 3;
 
