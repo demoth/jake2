@@ -22,96 +22,7 @@
 // $Id: MSG.java,v 1.8 2005-12-18 22:10:02 cawe Exp $
 package jake2.qcommon;
 
-import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Math3D;
-
 public class MSG extends Globals {
-
-    public static void WriteByte(sizebuf_t sb, byte c) {
-        sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
-    }
-
-    public static void WriteShort(sizebuf_t sb, int c) {
-        int i = SZ.GetSpace(sb, 2);
-        sb.data[i++] = (byte) (c & 0xff);
-        sb.data[i] = (byte) (c >>> 8 & 0xFF);
-    }
-
-    //ok.
-    public static void WriteInt(sizebuf_t sb, int c) {
-        int i = SZ.GetSpace(sb, 4);
-        sb.data[i++] = (byte) (c & 0xff);
-        sb.data[i++] = (byte) (c >>> 8 & 0xff);
-        sb.data[i++] = (byte) (c >>> 16 & 0xff);
-        sb.data[i++] = (byte) (c >>> 24 & 0xff);
-    }
-
-    //ok.
-    public static void WriteFloat(sizebuf_t sb, float f) {
-        WriteInt(sb, Float.floatToIntBits(f));
-    }
-
-    // had a bug, now its ok.
-    public static void WriteString(sizebuf_t sb, String s) {
-        String x = s;
-
-        if (s == null)
-            x = "";
-
-        SZ.Write(sb, Lib.stringToBytes(x));
-        WriteByte(sb, (byte) 0);
-    }
-
-    public static void WriteCoord(sizebuf_t sb, float f) {
-        WriteShort(sb, (int) (f * 8));
-    }
-
-    public static void WritePos(sizebuf_t sb, float[] pos) {
-        assert pos.length == 3 : "vec3_t bug";
-        WriteShort(sb, (int) (pos[0] * 8));
-        WriteShort(sb, (int) (pos[1] * 8));
-        WriteShort(sb, (int) (pos[2] * 8));
-    }
-
-    public static void WriteAngle(sizebuf_t sb, float f) {
-        WriteByte(sb, (byte) ((int) (f * 256 / 360) & 255));
-    }
-
-    public static void WriteAngle16(sizebuf_t sb, float f) {
-        WriteShort(sb, Math3D.ANGLE2SHORT(f));
-    }
-
-    //should be ok.
-    public static void WriteDir(sizebuf_t sb, float[] dir) {
-        int i, best;
-        float d, bestd;
-
-        if (dir == null) {
-            WriteByte(sb, (byte) 0);
-            return;
-        }
-
-        bestd = 0;
-        best = 0;
-        for (i = 0; i < NUMVERTEXNORMALS; i++) {
-            d = Math3D.DotProduct(dir, bytedirs[i]);
-            if (d > bestd) {
-                bestd = d;
-                best = i;
-            }
-        }
-        WriteByte(sb, (byte) best);
-    }
-
-    //should be ok.
-    public static void ReadDir(sizebuf_t sb, float[] dir) {
-        int b;
-
-        b = ReadByte(sb);
-        if (b >= NUMVERTEXNORMALS)
-            Com.Error(ERR_DROP, "MSF_ReadDir: out of range");
-        Math3D.VectorCopy(bytedirs[b], dir);
-    }
 
     /*
      * ================== WriteDeltaEntity
@@ -120,7 +31,7 @@ public class MSG extends Globals {
      * or a previous packet_entity ==================
      */
     public static void WriteDeltaEntity(entity_state_t from, entity_state_t to,
-            sizebuf_t msg, boolean force, boolean newentity) {
+            sizebuf_t buffer, boolean force, boolean newentity) {
 
         int deltaFlags = getDeltaFlags(from, to, newentity);
 
@@ -130,88 +41,88 @@ public class MSG extends Globals {
         if (deltaFlags == 0 && !force)
             return; // nothing to send!
 
-        WriteByte(msg, (byte) (deltaFlags & 255));
+        sizebuf_t.WriteByte(buffer, (byte) (deltaFlags & 255));
 
         if ((deltaFlags & 0xff000000) != 0) {
-            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
-            WriteByte(msg, (byte) (deltaFlags >>> 16 & 255));
-            WriteByte(msg, (byte) (deltaFlags >>> 24 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 16 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 24 & 255));
         } else if ((deltaFlags & 0x00ff0000) != 0) {
-            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
-            WriteByte(msg, (byte) (deltaFlags >>> 16 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 16 & 255));
         } else if ((deltaFlags & 0x0000ff00) != 0) {
-            WriteByte(msg, (byte) (deltaFlags >>> 8 & 255));
+            sizebuf_t.WriteByte(buffer, (byte) (deltaFlags >>> 8 & 255));
         }
 
         //----------
 
         if ((deltaFlags & U_NUMBER16) != 0)
-            WriteShort(msg, to.number);
+            buffer.WriteShort(to.number);
         else
-            WriteByte(msg, (byte) to.number);
+            sizebuf_t.WriteByte(buffer, (byte) to.number);
 
         if ((deltaFlags & U_MODEL) != 0)
-            WriteByte(msg, (byte) to.modelindex);
+            sizebuf_t.WriteByte(buffer, (byte) to.modelindex);
         if ((deltaFlags & U_MODEL2) != 0)
-            WriteByte(msg, (byte) to.modelindex2);
+            sizebuf_t.WriteByte(buffer, (byte) to.modelindex2);
         if ((deltaFlags & U_MODEL3) != 0)
-            WriteByte(msg, (byte) to.modelindex3);
+            sizebuf_t.WriteByte(buffer, (byte) to.modelindex3);
         if ((deltaFlags & U_MODEL4) != 0)
-            WriteByte(msg, (byte) to.modelindex4);
+            sizebuf_t.WriteByte(buffer, (byte) to.modelindex4);
 
         if ((deltaFlags & U_FRAME8) != 0)
-            WriteByte(msg, (byte) to.frame);
+            sizebuf_t.WriteByte(buffer, (byte) to.frame);
         if ((deltaFlags & U_FRAME16) != 0)
-            WriteShort(msg, to.frame);
+            buffer.WriteShort(to.frame);
 
         if ((deltaFlags & U_SKIN8) != 0 && (deltaFlags & U_SKIN16) != 0) //used for laser
                                                              // colors
-            WriteInt(msg, to.skinnum);
+            sizebuf_t.WriteInt(buffer, to.skinnum);
         else if ((deltaFlags & U_SKIN8) != 0)
-            WriteByte(msg, (byte) to.skinnum);
+            sizebuf_t.WriteByte(buffer, (byte) to.skinnum);
         else if ((deltaFlags & U_SKIN16) != 0)
-            WriteShort(msg, to.skinnum);
+            buffer.WriteShort(to.skinnum);
 
         if ((deltaFlags & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
-            WriteInt(msg, to.effects);
+            sizebuf_t.WriteInt(buffer, to.effects);
         else if ((deltaFlags & U_EFFECTS8) != 0)
-            WriteByte(msg, (byte) to.effects);
+            sizebuf_t.WriteByte(buffer, (byte) to.effects);
         else if ((deltaFlags & U_EFFECTS16) != 0)
-            WriteShort(msg, to.effects);
+            buffer.WriteShort(to.effects);
 
         if ((deltaFlags & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
-            WriteInt(msg, to.renderfx);
+            sizebuf_t.WriteInt(buffer, to.renderfx);
         else if ((deltaFlags & U_RENDERFX8) != 0)
-            WriteByte(msg, (byte) to.renderfx);
+            sizebuf_t.WriteByte(buffer, (byte) to.renderfx);
         else if ((deltaFlags & U_RENDERFX16) != 0)
-            WriteShort(msg, to.renderfx);
+            buffer.WriteShort(to.renderfx);
 
         if ((deltaFlags & U_ORIGIN1) != 0)
-            WriteCoord(msg, to.origin[0]);
+            sizebuf_t.WriteCoord(buffer, to.origin[0]);
         if ((deltaFlags & U_ORIGIN2) != 0)
-            WriteCoord(msg, to.origin[1]);
+            sizebuf_t.WriteCoord(buffer, to.origin[1]);
         if ((deltaFlags & U_ORIGIN3) != 0)
-            WriteCoord(msg, to.origin[2]);
+            sizebuf_t.WriteCoord(buffer, to.origin[2]);
 
         if ((deltaFlags & U_ANGLE1) != 0)
-            WriteAngle(msg, to.angles[0]);
+            sizebuf_t.WriteAngle(buffer, to.angles[0]);
         if ((deltaFlags & U_ANGLE2) != 0)
-            WriteAngle(msg, to.angles[1]);
+            sizebuf_t.WriteAngle(buffer, to.angles[1]);
         if ((deltaFlags & U_ANGLE3) != 0)
-            WriteAngle(msg, to.angles[2]);
+            sizebuf_t.WriteAngle(buffer, to.angles[2]);
 
         if ((deltaFlags & U_OLDORIGIN) != 0) {
-            WriteCoord(msg, to.old_origin[0]);
-            WriteCoord(msg, to.old_origin[1]);
-            WriteCoord(msg, to.old_origin[2]);
+            sizebuf_t.WriteCoord(buffer, to.old_origin[0]);
+            sizebuf_t.WriteCoord(buffer, to.old_origin[1]);
+            sizebuf_t.WriteCoord(buffer, to.old_origin[2]);
         }
 
         if ((deltaFlags & U_SOUND) != 0)
-            WriteByte(msg, (byte) to.sound);
+            sizebuf_t.WriteByte(buffer, (byte) to.sound);
         if ((deltaFlags & U_EVENT) != 0)
-            WriteByte(msg, (byte) to.event);
+            sizebuf_t.WriteByte(buffer, (byte) to.event);
         if ((deltaFlags & U_SOLID) != 0)
-            WriteShort(msg, to.solid);
+            buffer.WriteShort(to.solid);
     }
 
     private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {
@@ -395,108 +306,4 @@ public class MSG extends Globals {
 
     //============================================================
 
-    // returns -1 if no more characters are available, but also [-128 , 127]
-    public static int ReadChar(sizebuf_t msg_read) {
-        int c;
-
-        if (msg_read.readcount + 1 > msg_read.cursize)
-            c = -1;
-        else
-            c = msg_read.data[msg_read.readcount];
-        msg_read.readcount++;
-        // kickangles bugfix (rst)
-        return c;
-    }
-
-    public static int ReadByte(sizebuf_t msg_read) {
-        int c;
-
-        if (msg_read.readcount + 1 > msg_read.cursize)
-            c = -1;
-        else
-            c = msg_read.data[msg_read.readcount] & 0xff;
-        
-        msg_read.readcount++;
-
-        return c;
-    }
-
-    public static short ReadShort(sizebuf_t msg_read) {
-        int c;
-
-        if (msg_read.readcount + 2 > msg_read.cursize)
-            c = -1;
-        else
-            c = (short) ((msg_read.data[msg_read.readcount] & 0xff) + (msg_read.data[msg_read.readcount + 1] << 8));
-
-        msg_read.readcount += 2;
-
-        return (short) c;
-    }
-
-    public static int ReadInt(sizebuf_t msg_read) {
-        int c;
-
-        if (msg_read.readcount + 4 > msg_read.cursize) {
-            Com.Printf("buffer underrun in ReadInt!");
-            c = -1;
-        }
-
-        else
-            c = msg_read.data[msg_read.readcount] & 0xff
-                    | (msg_read.data[msg_read.readcount + 1] & 0xff) << 8
-                    | (msg_read.data[msg_read.readcount + 2] & 0xff) << 16
-                    | (msg_read.data[msg_read.readcount + 3] & 0xff) << 24;
-
-        msg_read.readcount += 4;
-
-        return c;
-    }
-
-    public static float ReadFloat(sizebuf_t msg_read) {
-        int n = ReadInt(msg_read);
-        return Float.intBitsToFloat(n);
-    }
-
-    public static String ReadString(sizebuf_t msg_read) {
-        // 2k read buffer.
-        byte[] readbuf = new byte[2048];
-        byte c;
-        int l = 0;
-        do {
-            c = (byte) ReadByte(msg_read);
-            if (c == -1 || c == 0)
-                break;
-
-            readbuf[l] = c;
-            l++;
-        } while (l < 2047);
-
-        return new String(readbuf, 0, l);
-    }
-
-    public static float ReadCoord(sizebuf_t msg_read) {
-        return ReadShort(msg_read) * (1.0f / 8);
-    }
-
-    public static void ReadPos(sizebuf_t msg_read, float pos[]) {
-        assert pos.length == 3 : "vec3_t bug";
-        pos[0] = ReadShort(msg_read) * (1.0f / 8);
-        pos[1] = ReadShort(msg_read) * (1.0f / 8);
-        pos[2] = ReadShort(msg_read) * (1.0f / 8);
-    }
-
-    public static float ReadAngle(sizebuf_t msg_read) {
-        return ReadChar(msg_read) * (360.0f / 256);
-    }
-
-    public static float ReadAngle16(sizebuf_t msg_read) {
-        return Math3D.SHORT2ANGLE(ReadShort(msg_read));
-    }
-
-    public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
-        for (int i = 0; i < len; i++)
-            data[i] = (byte) ReadByte(msg_read);
-    }    
-            
 }

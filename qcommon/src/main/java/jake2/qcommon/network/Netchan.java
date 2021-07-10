@@ -121,7 +121,7 @@ public final class Netchan {
         // write the packet header
         SZ.Init(send, send_buf, Defines.MAX_MSGLEN);
 
-        MSG.WriteInt(send, -1); // -1 sequence means connectionless (out of band)
+        sizebuf_t.WriteInt(send, -1); // -1 sequence means connectionless (out of band)
         SZ.Write(send, Lib.stringToBytes(msg), msg.length());
 
         // send the datagram
@@ -203,12 +203,12 @@ public final class Netchan {
         chan.outgoing_sequence++;
         chan.last_sent = (int) Globals.curtime;
 
-        MSG.WriteInt(send, sequence);
-        MSG.WriteInt(send, sequenceAck);
+        sizebuf_t.WriteInt(send, sequence);
+        sizebuf_t.WriteInt(send, sequenceAck);
 
         // send the qport if we are a client
         if (chan.sock == Defines.NS_CLIENT)
-            MSG.WriteShort(send, (int) qport.value);
+            send.WriteShort((int) qport.value);
 
         // copy the reliable message to the packet first
         if (send_reliable != 0) {

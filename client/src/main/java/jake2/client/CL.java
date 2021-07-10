@@ -246,7 +246,7 @@ public final class CL {
                     buf.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, (byte) ServerMessageType.svc_spawnbaseline.type);
+                sizebuf_t.WriteByte(buf, (byte) ServerMessageType.svc_spawnbaseline.type);
                 MSG.WriteDeltaEntity(nullstate,
                         ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }

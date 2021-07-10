@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.sizebuf_t;
 
@@ -8,6 +7,8 @@ import java.util.Arrays;
 
 /**
  * Transmits chunk of media (maps, skins, sounds, etc)
+ *
+ * Fixme: Warning: data.length is limited by signed short (32k)
  */
 public class DownloadMessage extends ServerMessage {
 
@@ -27,22 +28,22 @@ public class DownloadMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         if (data != null) {
-            MSG.WriteShort(buffer, data.length);
-            MSG.WriteByte(buffer, percentage);
+            buffer.WriteShort(data.length);
+            sizebuf_t.WriteByte(buffer, percentage);
             SZ.Write(buffer, data, data.length);
         } else {
-            MSG.WriteShort(buffer, -1);
-            MSG.WriteByte(buffer, (byte) 0);
+            buffer.WriteShort(-1);
+            sizebuf_t.WriteByte(buffer, (byte) 0);
         }
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        int size = MSG.ReadShort(buffer);
-        percentage = (byte) MSG.ReadByte(buffer);
+        int size = sizebuf_t.ReadShort(buffer);
+        percentage = (byte) sizebuf_t.ReadByte(buffer);
         if (size != -1) {
             data = new byte[size];
-            MSG.ReadData(buffer, data, size);
+            sizebuf_t.ReadData(buffer, data, size);
         }
     }
 

@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 /**
@@ -20,12 +19,12 @@ public class StuffTextMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteString(buffer, text);
+        sizebuf_t.WriteString(buffer, text);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.text = MSG.ReadString(buffer);
+        this.text = sizebuf_t.ReadString(buffer);
     }
 
     @Override

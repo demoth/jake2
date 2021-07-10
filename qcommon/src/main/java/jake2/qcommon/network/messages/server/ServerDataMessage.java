@@ -1,7 +1,6 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 /**
@@ -32,24 +31,24 @@ public class ServerDataMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteInt(buffer, Defines.PROTOCOL_VERSION);
-        MSG.WriteInt(buffer, spawnCount);
+        sizebuf_t.WriteInt(buffer, Defines.PROTOCOL_VERSION);
+        sizebuf_t.WriteInt(buffer, spawnCount);
         float c = demo ? 1 : 0;
-        MSG.WriteByte(buffer, (byte) c);
-        MSG.WriteString(buffer, gameName);
-        MSG.WriteShort(buffer, playerNumber);
-        MSG.WriteString(buffer, levelString);
+        sizebuf_t.WriteByte(buffer, (byte) c);
+        sizebuf_t.WriteString(buffer, gameName);
+        buffer.WriteShort(playerNumber);
+        sizebuf_t.WriteString(buffer, levelString);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.protocol = MSG.ReadInt(buffer);
-        this.spawnCount = MSG.ReadInt(buffer);
-        this.demo = MSG.ReadByte(buffer) != 0;
-        this.gameName = MSG.ReadString(buffer);
-        this.playerNumber = MSG.ReadShort(buffer);
-        this.levelString = MSG.ReadString(buffer);
+        this.protocol = sizebuf_t.ReadInt(buffer);
+        this.spawnCount = sizebuf_t.ReadInt(buffer);
+        this.demo = sizebuf_t.ReadByte(buffer) != 0;
+        this.gameName = sizebuf_t.ReadString(buffer);
+        this.playerNumber = sizebuf_t.ReadShort(buffer);
+        this.levelString = sizebuf_t.ReadString(buffer);
     }
 
     @Override

@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static jake2.qcommon.Defines.MAX_MSGLEN;
-import static jake2.qcommon.MSG.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -28,125 +27,125 @@ public class TestMSG {
     @Test
     public void testIntegers() {
 
-        WriteInt(buf, 0x80000000);
-        assertEquals(0x80000000, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, 0x80000000);
+        assertEquals(0x80000000, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, 0x12345678);
-        assertEquals(0x12345678, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, 0x12345678);
+        assertEquals(0x12345678, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, 0x7fffffff);
-        assertEquals(0x7fffffff, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, 0x7fffffff);
+        assertEquals(0x7fffffff, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, 0xffffffff);
-        assertEquals(0xffffffff, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, 0xffffffff);
+        assertEquals(0xffffffff, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, Integer.MAX_VALUE);
-        assertEquals(Integer.MAX_VALUE, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, Integer.MAX_VALUE);
+        assertEquals(Integer.MAX_VALUE, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, Integer.MIN_VALUE);
-        assertEquals(Integer.MIN_VALUE, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, Integer.MIN_VALUE);
+        assertEquals(Integer.MIN_VALUE, sizebuf_t.ReadInt(buf));
 
-        WriteInt(buf, 0);
-        assertEquals(0, ReadInt(buf));
+        sizebuf_t.WriteInt(buf, 0);
+        assertEquals(0, sizebuf_t.ReadInt(buf));
 
         // underrun
-        assertEquals(-1, ReadInt(buf));
+        assertEquals(-1, sizebuf_t.ReadInt(buf));
     }
 
     @Test
     public void testBytes() {
-        WriteByte(buf, (byte) 1);
-        assertEquals((byte) 1, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) 1);
+        assertEquals((byte) 1, (byte) sizebuf_t.ReadByte(buf));
 
-        WriteByte(buf, (byte) 200); // -56
-        assertEquals((byte) 200, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) -1);
+        assertEquals((byte) -1, (byte) sizebuf_t.ReadByte(buf));
 
-        WriteByte(buf, (byte) -200); // 56
-        assertEquals((byte) -200, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) 200); // -56
+        assertEquals((byte) 200, (byte) sizebuf_t.ReadByte(buf));
 
-        WriteByte(buf, (byte) -100);
-        assertEquals((byte) -100, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) -200); // 56
+        assertEquals((byte) -200, (byte) sizebuf_t.ReadByte(buf));
 
-        WriteByte(buf, (byte) 0xff); // -1
-        assertEquals((byte) 0xff, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) -100);
+        assertEquals((byte) -100, (byte) sizebuf_t.ReadByte(buf));
 
+        sizebuf_t.WriteByte(buf, (byte) 0xff); // -1
+        assertEquals((byte) 0xff, (byte) sizebuf_t.ReadByte(buf));
 
-        // fixme
-        WriteByte(buf, (byte) -128); // -128
-        assertEquals((byte) -128, (byte) ReadByte(buf));
+        sizebuf_t.WriteByte(buf, (byte) -128);
+        assertEquals((byte) -128, (byte) sizebuf_t.ReadByte(buf));
 
+        sizebuf_t.WriteByte(buf, Byte.MIN_VALUE);
+        assertEquals(Byte.MIN_VALUE, sizebuf_t.ReadSignedByte(buf));
 
-        WriteByte(buf, Byte.MIN_VALUE);
-        assertEquals(Byte.MIN_VALUE, ReadChar(buf));
+        sizebuf_t.WriteByte(buf, Byte.MAX_VALUE);
+        assertEquals(Byte.MAX_VALUE, sizebuf_t.ReadSignedByte(buf));
 
-        WriteByte(buf, Byte.MAX_VALUE);
-        assertEquals(Byte.MAX_VALUE, ReadChar(buf));
+        sizebuf_t.WriteByte(buf, Byte.MIN_VALUE);
+        assertEquals(Byte.MIN_VALUE, sizebuf_t.ReadSignedByte(buf));
 
-        WriteByte(buf, Byte.MIN_VALUE);
-        assertEquals(Byte.MIN_VALUE, (byte) ReadChar(buf));
-
-        WriteByte(buf, Byte.MAX_VALUE);
-        assertEquals(Byte.MAX_VALUE, (byte) ReadChar(buf));
+        sizebuf_t.WriteByte(buf, Byte.MAX_VALUE);
+        assertEquals(Byte.MAX_VALUE, sizebuf_t.ReadSignedByte(buf));
 
         // underrun
-        assertEquals(-1, ReadByte(buf));
+        assertEquals(-1, sizebuf_t.ReadByte(buf));
     }
 
 
     @Test
     public void testShort() {
-        WriteShort(buf, 1);
-        assertEquals(1, ReadShort(buf));
+        buf.WriteShort(1);
+        assertEquals(1, sizebuf_t.ReadShort(buf));
 
-        WriteShort(buf, (short) 0x00ff);
-        assertEquals((short) 0x00ff, ReadShort(buf));
+        buf.WriteShort((short) 0x00ff);
+        assertEquals((short) 0x00ff, sizebuf_t.ReadShort(buf));
 
-        WriteShort(buf, (short) 0xffff);
-        assertEquals((short) 0xffff, ReadShort(buf));
+        buf.WriteShort((short) 0xffff);
+        assertEquals((short) 0xffff, sizebuf_t.ReadShort(buf));
 
-        WriteShort(buf, (short) 0xff00);
-        assertEquals((short) 0xff00, ReadShort(buf));
+        buf.WriteShort((short) 0xff00);
+        assertEquals((short) 0xff00, sizebuf_t.ReadShort(buf));
 
 
-        WriteShort(buf, Short.MIN_VALUE);
-        assertEquals(Short.MIN_VALUE, ReadShort(buf));
+        buf.WriteShort(Short.MIN_VALUE);
+        assertEquals(Short.MIN_VALUE, sizebuf_t.ReadShort(buf));
 
-        WriteShort(buf, Short.MAX_VALUE);
-        assertEquals(Short.MAX_VALUE, ReadShort(buf));
+        buf.WriteShort(Short.MAX_VALUE);
+        assertEquals(Short.MAX_VALUE, sizebuf_t.ReadShort(buf));
 
 
         // underrun
-        assertEquals(-1, ReadShort(buf));
+        assertEquals(-1, sizebuf_t.ReadShort(buf));
     }
 
     @Test
     public void testFloat() {
-        WriteFloat(buf, 1f);
-        assertEquals(1f, ReadFloat(buf), 0.00001);
+        sizebuf_t.WriteFloat(buf, 1f);
+        assertEquals(1f, sizebuf_t.ReadFloat(buf), 0.00001);
 
-        WriteFloat(buf, Float.MIN_VALUE);
-        assertEquals(Float.MIN_VALUE, ReadFloat(buf), 0.00001);
+        sizebuf_t.WriteFloat(buf, Float.MIN_VALUE);
+        assertEquals(Float.MIN_VALUE, sizebuf_t.ReadFloat(buf), 0.00001);
 
-        WriteFloat(buf, Short.MAX_VALUE);
-        assertEquals(Short.MAX_VALUE, ReadFloat(buf), 0.00001);
+        sizebuf_t.WriteFloat(buf, Short.MAX_VALUE);
+        assertEquals(Short.MAX_VALUE, sizebuf_t.ReadFloat(buf), 0.00001);
 
         // underrun
-        assertEquals(Float.NaN, ReadFloat(buf), 0.00001);
+        assertEquals(Float.NaN, sizebuf_t.ReadFloat(buf), 0.00001);
     }
 
     @Test
     public void testStrings() {
 
-        MSG.WriteString(buf, "test value");
-        assertEquals("test value", ReadString(buf));
+        sizebuf_t.WriteString(buf, "test value");
+        assertEquals("test value", sizebuf_t.ReadString(buf));
 
-        MSG.WriteString(buf, "test\nvalue\n");
-        assertEquals("test\nvalue\n", ReadString(buf));
+        sizebuf_t.WriteString(buf, "test\nvalue\n");
+        assertEquals("test\nvalue\n", sizebuf_t.ReadString(buf));
 
-        MSG.WriteString(buf, null);
-        assertEquals("", ReadString(buf));
+        sizebuf_t.WriteString(buf, null);
+        assertEquals("", sizebuf_t.ReadString(buf));
 
         // underrun
-        assertEquals("", ReadString(buf));
+        assertEquals("", sizebuf_t.ReadString(buf));
     }
 }

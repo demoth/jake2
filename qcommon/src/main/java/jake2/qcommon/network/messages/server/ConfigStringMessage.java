@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 public class ConfigStringMessage extends ServerMessage {
@@ -19,14 +18,14 @@ public class ConfigStringMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteShort(buffer, index);
-        MSG.WriteString(buffer, config);
+        buffer.WriteShort(index);
+        sizebuf_t.WriteString(buffer, config);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.index = MSG.ReadShort(buffer);
-        this.config = MSG.ReadString(buffer);
+        this.index = sizebuf_t.ReadShort(buffer);
+        this.config = sizebuf_t.ReadString(buffer);
     }
 
     @Override

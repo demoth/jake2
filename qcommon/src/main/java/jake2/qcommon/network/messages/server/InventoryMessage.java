@@ -1,7 +1,6 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -26,7 +25,7 @@ public class InventoryMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            MSG.WriteShort(buffer, inventory[i]);
+            buffer.WriteShort(inventory[i]);
         }
 
     }
@@ -35,7 +34,7 @@ public class InventoryMessage extends ServerMessage {
     public void parse(sizebuf_t buffer) {
         this.inventory = new int[Defines.MAX_ITEMS];
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            this.inventory[i] = MSG.ReadShort(buffer);
+            this.inventory[i] = sizebuf_t.ReadShort(buffer);
         }
     }
 

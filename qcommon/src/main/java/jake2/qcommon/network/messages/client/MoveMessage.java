@@ -1,7 +1,6 @@
 package jake2.qcommon.network.messages.client;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.usercmd_t;
 
@@ -35,11 +34,11 @@ public class MoveMessage extends ClientMessage {
     protected void writeProperties(sizebuf_t buffer) {
         checksumIndex = buffer.cursize;
         // later we update with right value
-        MSG.WriteByte(buffer, (byte) 0);
+        sizebuf_t.WriteByte(buffer, (byte) 0);
         if (noCompress) {
-            MSG.WriteInt(buffer, 0);
+            sizebuf_t.WriteInt(buffer, 0);
         } else {
-            MSG.WriteInt(buffer, lastReceivedFrame);
+            sizebuf_t.WriteInt(buffer, lastReceivedFrame);
         }
 
         // send this and the previous cmds in the message, so
@@ -57,8 +56,8 @@ public class MoveMessage extends ClientMessage {
     @Override
     public void parse(sizebuf_t buffer) {
         checksumIndex = buffer.readcount;
-        int checksum = MSG.ReadByte(buffer);
-        lastReceivedFrame = MSG.ReadInt(buffer);
+        int checksum = sizebuf_t.ReadByte(buffer);
+        lastReceivedFrame = sizebuf_t.ReadInt(buffer);
         this.oldestCmd = new usercmd_t();
         this.oldCmd = new usercmd_t();
         this.newCmd = new usercmd_t();
@@ -76,36 +75,36 @@ public class MoveMessage extends ClientMessage {
         valid = (calculatedChecksum & 0xff) == checksum;
     }
 
-    private static void writeDeltaUserCommand(sizebuf_t buf, usercmd_t from, usercmd_t cmd) {
+    private static void writeDeltaUserCommand(sizebuf_t buffer, usercmd_t from, usercmd_t cmd) {
 
         //
         // send the movement message
         //
         int deltaFlags = getDeltaFlags(from, cmd);
 
-        MSG.WriteByte(buf, (byte) deltaFlags);
+        sizebuf_t.WriteByte(buffer, (byte) deltaFlags);
 
         if ((deltaFlags & Defines.CM_ANGLE1) != 0)
-            MSG.WriteShort(buf, cmd.angles[0]);
+            buffer.WriteShort(cmd.angles[0]);
         if ((deltaFlags & Defines.CM_ANGLE2) != 0)
-            MSG.WriteShort(buf, cmd.angles[1]);
+            buffer.WriteShort(cmd.angles[1]);
         if ((deltaFlags & Defines.CM_ANGLE3) != 0)
-            MSG.WriteShort(buf, cmd.angles[2]);
+            buffer.WriteShort(cmd.angles[2]);
 
         if ((deltaFlags & Defines.CM_FORWARD) != 0)
-            MSG.WriteShort(buf, cmd.forwardmove);
+            buffer.WriteShort(cmd.forwardmove);
         if ((deltaFlags & Defines.CM_SIDE) != 0)
-            MSG.WriteShort(buf, cmd.sidemove);
+            buffer.WriteShort(cmd.sidemove);
         if ((deltaFlags & Defines.CM_UP) != 0)
-            MSG.WriteShort(buf, cmd.upmove);
+            buffer.WriteShort(cmd.upmove);
 
         if ((deltaFlags & Defines.CM_BUTTONS) != 0)
-            MSG.WriteByte(buf, cmd.buttons);
+            sizebuf_t.WriteByte(buffer, cmd.buttons);
         if ((deltaFlags & Defines.CM_IMPULSE) != 0)
-            MSG.WriteByte(buf, cmd.impulse);
+            sizebuf_t.WriteByte(buffer, cmd.impulse);
 
-        MSG.WriteByte(buf, cmd.msec);
-        MSG.WriteByte(buf, cmd.lightlevel);
+        sizebuf_t.WriteByte(buffer, cmd.msec);
+        sizebuf_t.WriteByte(buffer, cmd.lightlevel);
     }
 
     private static int getDeltaFlags(usercmd_t from, usercmd_t cmd) {
@@ -131,36 +130,36 @@ public class MoveMessage extends ClientMessage {
 
     private static void readDeltaUserCommand(sizebuf_t buffer, usercmd_t from, usercmd_t move) {
         move.set(from);
-        int deltaFlags = MSG.ReadByte(buffer);
+        int deltaFlags = sizebuf_t.ReadByte(buffer);
 
         // read current angles
         if ((deltaFlags & Defines.CM_ANGLE1) != 0)
-            move.angles[0] = MSG.ReadShort(buffer);
+            move.angles[0] = sizebuf_t.ReadShort(buffer);
         if ((deltaFlags & Defines.CM_ANGLE2) != 0)
-            move.angles[1] = MSG.ReadShort(buffer);
+            move.angles[1] = sizebuf_t.ReadShort(buffer);
         if ((deltaFlags & Defines.CM_ANGLE3) != 0)
-            move.angles[2] = MSG.ReadShort(buffer);
+            move.angles[2] = sizebuf_t.ReadShort(buffer);
 
         // read movement
         if ((deltaFlags & Defines.CM_FORWARD) != 0)
-            move.forwardmove = MSG.ReadShort(buffer);
+            move.forwardmove = sizebuf_t.ReadShort(buffer);
         if ((deltaFlags & Defines.CM_SIDE) != 0)
-            move.sidemove = MSG.ReadShort(buffer);
+            move.sidemove = sizebuf_t.ReadShort(buffer);
         if ((deltaFlags & Defines.CM_UP) != 0)
-            move.upmove = MSG.ReadShort(buffer);
+            move.upmove = sizebuf_t.ReadShort(buffer);
 
         // read buttons
         if ((deltaFlags & Defines.CM_BUTTONS) != 0)
-            move.buttons = (byte) MSG.ReadByte(buffer);
+            move.buttons = (byte) sizebuf_t.ReadByte(buffer);
 
         if ((deltaFlags & Defines.CM_IMPULSE) != 0)
-            move.impulse = (byte) MSG.ReadByte(buffer);
+            move.impulse = (byte) sizebuf_t.ReadByte(buffer);
 
         // read time to run command
-        move.msec = (byte) MSG.ReadByte(buffer);
+        move.msec = (byte) sizebuf_t.ReadByte(buffer);
 
         // read the light level
-        move.lightlevel = (byte) MSG.ReadByte(buffer);
+        move.lightlevel = (byte) sizebuf_t.ReadByte(buffer);
 
     }
 

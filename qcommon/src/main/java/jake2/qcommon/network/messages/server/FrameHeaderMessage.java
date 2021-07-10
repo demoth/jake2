@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.sizebuf_t;
 
@@ -38,26 +37,26 @@ public class FrameHeaderMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteInt(buffer, frameNumber);
+        sizebuf_t.WriteInt(buffer, frameNumber);
         // what we are delta'ing from
-        MSG.WriteInt(buffer, lastFrame);
+        sizebuf_t.WriteInt(buffer, lastFrame);
         // rate dropped packets
-        MSG.WriteByte(buffer, (byte) suppressCount);
-        MSG.WriteByte(buffer, (byte) areaBitsLength);
+        sizebuf_t.WriteByte(buffer, (byte) suppressCount);
+        sizebuf_t.WriteByte(buffer, (byte) areaBitsLength);
         SZ.Write(buffer, areaBits, areaBitsLength);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        frameNumber = MSG.ReadInt(buffer);
-        lastFrame = MSG.ReadInt(buffer);
+        frameNumber = sizebuf_t.ReadInt(buffer);
+        lastFrame = sizebuf_t.ReadInt(buffer);
         // BIG HACK to let old demos continue to work
         // if (ClientGlobals.cls.serverProtocol != 26)
         // fixme: do not read otherwise?
-        suppressCount = MSG.ReadByte(buffer);
-        areaBitsLength = MSG.ReadByte(buffer);
+        suppressCount = sizebuf_t.ReadByte(buffer);
+        areaBitsLength = sizebuf_t.ReadByte(buffer);
         areaBits = new byte[MAX_MAP_AREAS / 8];
-        MSG.ReadData(buffer, areaBits, areaBitsLength);
+        sizebuf_t.ReadData(buffer, areaBits, areaBitsLength);
     }
 
     @Override

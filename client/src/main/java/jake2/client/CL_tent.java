@@ -526,11 +526,11 @@ public class CL_tent {
         beam_t[] b;
         int i;
 
-        srcEnt = MSG.ReadShort(net_message);
-        destEnt = MSG.ReadShort(net_message);
+        srcEnt = sizebuf_t.ReadShort(net_message);
+        destEnt = sizebuf_t.ReadShort(net_message);
 
-        MSG.ReadPos(net_message, start);
-        MSG.ReadPos(net_message, end);
+        sizebuf_t.ReadPos(net_message, start);
+        sizebuf_t.ReadPos(net_message, end);
 
         //	   override any beam with the same source AND destination entities
         b = cl_beams;
@@ -590,11 +590,13 @@ public class CL_tent {
         }
     }
 
+    //	  =============
+    //	  ROGUE
+    /*
     // stack variable
     private static final float[] pos = new float[3];
     private static final float[] dir = new float[3];
-    //	  =============
-    //	  ROGUE
+
     @Deprecated
     static void ParseSteam(sizebuf_t net_message) {
         int id, i;
@@ -728,7 +730,7 @@ public class CL_tent {
             MSG.ReadPos(net_message, pos);
         }
     }
-
+    */
     //	  ROGUE
     //	  =============
 
