@@ -26,9 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.network.netadr_t;
 
-import java.io.FileWriter;
 import java.io.RandomAccessFile;
 import java.util.Random;
 
@@ -68,20 +66,6 @@ public class Globals extends Defines {
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 
-
-	public static sizebuf_t net_message = new sizebuf_t();
-
-	/*
-	=============================================================================
-	
-							COMMAND BUFFER
-	
-	=============================================================================
-	*/
-
-	//=============================================================================
-
-	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
 
 	public static int time_before_game;
 	public static int time_after_game;

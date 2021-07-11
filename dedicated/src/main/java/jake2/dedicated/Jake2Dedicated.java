@@ -8,7 +8,6 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.longjmpException;
-import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
@@ -18,7 +17,8 @@ import jake2.server.SV_MAIN;
 import java.util.Arrays;
 import java.util.List;
 
-import static jake2.qcommon.MainCommon.*;
+import static jake2.qcommon.MainCommon.adjustTime;
+import static jake2.qcommon.MainCommon.debugLogTraces;
 
 public class Jake2Dedicated {
 
@@ -69,7 +69,6 @@ public class Jake2Dedicated {
             Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
             Cvar.getInstance().Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
-            NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
             serverMain = new SV_MAIN();	//ok

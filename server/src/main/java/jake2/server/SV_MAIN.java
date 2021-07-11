@@ -904,23 +904,24 @@ public class SV_MAIN implements JakeServer {
      */
     private void SV_FinalMessage(String message, boolean reconnect) {
 
-        Globals.net_message.clear();
-        new PrintMessage(Defines.PRINT_HIGH, message).writeTo(Globals.net_message);
+        sizebuf_t buffer = new sizebuf_t();
+        buffer.init(new byte[MAX_MSGLEN], MAX_MSGLEN);
+        new PrintMessage(Defines.PRINT_HIGH, message).writeTo(buffer);
 
         if (reconnect)
-            new ReconnectMessage().writeTo(Globals.net_message);
+            new ReconnectMessage().writeTo(buffer);
         else
-            new DisconnectMessage().writeTo(Globals.net_message);
+            new DisconnectMessage().writeTo(buffer);
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, buffer.cursize, buffer.data);
         }
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, buffer.cursize, buffer.data);
         }
     }
 

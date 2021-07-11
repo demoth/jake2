@@ -147,28 +147,6 @@ public final class Netchan {
         chan.message.allowoverflow = true;
     }
 
-    /**
-     * Netchan_CanReliable. Returns true if the last reliable message has acked.
-     */
-    public static boolean Netchan_CanReliable(netchan_t chan) {
-        if (chan.reliable_length != 0)
-            return false; // waiting for ack
-        return true;
-    }
-
-    
-    public static boolean Netchan_NeedReliable(netchan_t chan) {
-        // if the remote side dropped the last reliable message, resend it
-        boolean send_reliable = chan.incoming_acknowledged > chan.last_reliable_sequence
-                && chan.incoming_reliable_acknowledged != chan.reliable_sequence;
-
-        // if the reliable transmit buffer is empty, copy the current message out
-        if (0 == chan.reliable_length && chan.message.cursize != 0) {
-            send_reliable = true;
-        }
-
-        return send_reliable;
-    }
 
     /**
      * Netchan_Transmit tries to send an unreliable message to a connection, 
@@ -187,7 +165,7 @@ public final class Netchan {
             return;
         }
 
-        int send_reliable = Netchan_NeedReliable(chan) ? 1 : 0;
+        int send_reliable = chan.needReliable() ? 1 : 0;
 
         if (chan.reliable_length == 0 && chan.message.cursize != 0) {
             System.arraycopy(chan.message_buf, 0, chan.reliable_buf, 0,

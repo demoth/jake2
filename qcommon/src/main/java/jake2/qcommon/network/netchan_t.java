@@ -69,8 +69,28 @@ public class netchan_t {
     public int reliable_length;
 
     public byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unpcked
-                                                                    // reliable
-                                                                    // message
+
+    /**
+     * Netchan_CanReliable. Returns true if the last reliable message has acked.
+     */
+    public boolean canReliable() {
+        return reliable_length == 0; // waiting for ack
+    }
+
+    /**
+     * Netchan_NeedReliable
+     */
+    public boolean needReliable() {
+        // if the remote side dropped the last reliable message, resend it
+        boolean send_reliable = incoming_acknowledged > last_reliable_sequence && incoming_reliable_acknowledged != reliable_sequence;
+
+        // if the reliable transmit buffer is empty, copy the current message out
+        if (reliable_length == 0 && message.cursize != 0) {
+            send_reliable = true;
+        }
+
+        return send_reliable;
+    }
 
     //ok.
     public void clear() {

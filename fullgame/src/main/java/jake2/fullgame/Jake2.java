@@ -36,7 +36,6 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.longjmpException;
-import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
@@ -46,7 +45,8 @@ import jake2.server.SV_MAIN;
 import java.util.Arrays;
 import java.util.List;
 
-import static jake2.qcommon.MainCommon.*;
+import static jake2.qcommon.MainCommon.adjustTime;
+import static jake2.qcommon.MainCommon.debugLogTraces;
 
 /**
  * Jake2 is the main class of Quake2 for Java.
@@ -179,8 +179,6 @@ public final class Jake2 {
             String version = Globals.VERSION + " " + CPUSTRING + " " + BUILDSTRING;
             Cvar.getInstance().Get("version", version, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
-
-            NET.Init();	//ok
             Netchan.Netchan_Init();	//ok
 
             result = new SV_MAIN(); //SV_MAIN.SV_Init();	//ok

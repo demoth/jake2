@@ -560,6 +560,7 @@ public final class CL {
      * 
      * Dumps the current net message, prefixed by the length
      */
+    /*
     static void WriteDemoMessage() {
         int swlen;
 
@@ -573,7 +574,7 @@ public final class CL {
         }
 
     }
-
+    */
     /**
      * SendConnectPacket
      * 
@@ -1577,9 +1578,6 @@ public final class CL {
         V.Init();
         Cmd.AddCommand("cl_drop", args -> CL.Drop());
         Cmd.AddCommand("cl_shutdown", args -> CL.Shutdown());
-
-        Globals.net_message.data = Globals.net_message_buffer;
-        Globals.net_message.maxsize = Globals.net_message_buffer.length;
 
         Menu.Init();
 
