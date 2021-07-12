@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -39,18 +38,18 @@ public class BeamTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        MSG.WriteShort(buffer, ownerIndex);
-        MSG.WritePos(buffer, origin);
-        MSG.WritePos(buffer, destination);
+        buffer.writeShort(ownerIndex);
+        buffer.writePos(origin);
+        buffer.writePos(destination);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        ownerIndex = MSG.ReadShort(buffer);
+        ownerIndex = buffer.readShort();
         origin = new float[3];
-        MSG.ReadPos(buffer, origin);
+        buffer.readPos(origin);
         destination = new float[3];
-        MSG.ReadPos(buffer, destination);
+        buffer.readPos(destination);
     }
 
     @Override

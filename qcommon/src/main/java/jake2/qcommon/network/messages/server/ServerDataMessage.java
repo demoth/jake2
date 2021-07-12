@@ -1,14 +1,13 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 /**
  * Generic server information, sent as a response to {@link jake2.qcommon.network.messages.client.StringCmdMessage.NEW} client command
  */
 public class ServerDataMessage extends ServerMessage {
-    public int protocol; //fixme: write as int, read as long
+    public int protocol;
     public int spawnCount;
     public boolean demo;
     public String gameName;
@@ -32,23 +31,24 @@ public class ServerDataMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteInt(buffer, Defines.PROTOCOL_VERSION);
-        MSG.WriteLong(buffer, spawnCount);
-        MSG.WriteByte(buffer, demo ? 1 : 0);
-        MSG.WriteString(buffer, gameName);
-        MSG.WriteShort(buffer, playerNumber);
-        MSG.WriteString(buffer, levelString);
+        buffer.writeInt(Defines.PROTOCOL_VERSION);
+        buffer.writeInt(spawnCount);
+        float c = demo ? 1 : 0;
+        buffer.writeByte((byte) c);
+        buffer.writeString(gameName);
+        buffer.writeShort(playerNumber);
+        buffer.writeString(levelString);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.protocol = MSG.ReadLong(buffer);
-        this.spawnCount = MSG.ReadLong(buffer);
-        this.demo = MSG.ReadByte(buffer) != 0;
-        this.gameName = MSG.ReadString(buffer);
-        this.playerNumber = MSG.ReadShort(buffer);
-        this.levelString = MSG.ReadString(buffer);
+        this.protocol = buffer.readInt();
+        this.spawnCount = buffer.readInt();
+        this.demo = buffer.readByte() != 0;
+        this.gameName = buffer.readString();
+        this.playerNumber = buffer.readShort();
+        this.levelString = buffer.readString();
     }
 
     @Override

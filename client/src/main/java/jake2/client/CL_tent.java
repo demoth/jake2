@@ -521,16 +521,16 @@ public class CL_tent {
      * ================= CL_ParseLightning =================
      */
     @Deprecated
-    static int ParseLightning(model_t model, sizebuf_t net_message) {
+    static int ParseLightning(model_t model, sizebuf_t buffer) {
         int srcEnt, destEnt;
         beam_t[] b;
         int i;
 
-        srcEnt = MSG.ReadShort(net_message);
-        destEnt = MSG.ReadShort(net_message);
+        srcEnt = buffer.readShort();
+        destEnt = buffer.readShort();
 
-        MSG.ReadPos(net_message, start);
-        MSG.ReadPos(net_message, end);
+        buffer.readPos(start);
+        buffer.readPos(end);
 
         //	   override any beam with the same source AND destination entities
         b = cl_beams;
@@ -590,11 +590,13 @@ public class CL_tent {
         }
     }
 
+    //	  =============
+    //	  ROGUE
+    /*
     // stack variable
     private static final float[] pos = new float[3];
     private static final float[] dir = new float[3];
-    //	  =============
-    //	  ROGUE
+
     @Deprecated
     static void ParseSteam(sizebuf_t net_message) {
         int id, i;
@@ -627,7 +629,7 @@ public class CL_tent {
                 s[i].color = r & 0xff;
                 s[i].magnitude = MSG.ReadShort(net_message);
                 s[i].endtime = ClientGlobals.cl.time
-                        + MSG.ReadLong(net_message);
+                        + MSG.ReadInt(net_message);
                 s[i].think = new cl_sustain_t.ThinkAdapter() {
                     void think(cl_sustain_t self) {
                         CL_newfx.ParticleSteamEffect2(self);
@@ -643,7 +645,7 @@ public class CL_tent {
                 MSG.ReadDir(net_message, dir);
                 r = MSG.ReadByte(net_message);
                 magnitude = MSG.ReadShort(net_message);
-                magnitude = MSG.ReadLong(net_message); // really
+                magnitude = MSG.ReadInt(net_message); // really
                                                                // interval
             }
         } else // instant
@@ -728,7 +730,7 @@ public class CL_tent {
             MSG.ReadPos(net_message, pos);
         }
     }
-
+    */
     //	  ROGUE
     //	  =============
 

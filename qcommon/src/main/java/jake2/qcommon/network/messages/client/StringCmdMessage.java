@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.client;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 /**
@@ -34,12 +33,12 @@ public class StringCmdMessage extends ClientMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteString(buffer, command);
+        buffer.writeString(command);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.command = MSG.ReadString(buffer);
+        this.command = buffer.readString();
     }
 
     @Override

@@ -22,7 +22,9 @@
  */
 package jake2.qcommon.network;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.NetworkPacket;
@@ -219,7 +221,7 @@ public final class NET {
      * Init
      */
     public static void Init() {
-        SZ.Init(Globals.net_message, Globals.net_message_buffer, Globals.net_message_buffer.length);
+        Globals.net_message.init(Globals.net_message_buffer, Globals.net_message_buffer.length);
     }
 
     /*

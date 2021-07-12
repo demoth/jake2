@@ -1,7 +1,10 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.network.messages.NetworkMessage;
+import jake2.qcommon.sizebuf_t;
 
 /**
  * Common parent for all messages sent from server to client.
@@ -19,25 +22,25 @@ public abstract class ServerMessage implements NetworkMessage {
      * Returns the entity number (index) and the header flags
      */
     protected static DeltaEntityHeader parseDeltaEntityHeader(sizebuf_t buffer) {
-        int flags = MSG.ReadByte(buffer);
+        int flags = buffer.readByte();
         if ((flags & Defines.U_MOREBITS1) != 0) {
-            int b = MSG.ReadByte(buffer);
+            int b = buffer.readByte();
             flags |= b << 8;
         }
         if ((flags & Defines.U_MOREBITS2) != 0) {
-            int b = MSG.ReadByte(buffer);
+            int b = buffer.readByte();
             flags |= b << 16;
         }
         if ((flags & Defines.U_MOREBITS3) != 0) {
-            int b = MSG.ReadByte(buffer);
+            int b = buffer.readByte();
             flags |= b << 24;
         }
 
         int number;
         if ((flags & Defines.U_NUMBER16) != 0)
-            number = MSG.ReadShort(buffer);
+            number = buffer.readShort();
         else
-            number = MSG.ReadByte(buffer);
+            number = buffer.readByte();
 
         return new DeltaEntityHeader(flags, number);
     }
@@ -50,73 +53,73 @@ public abstract class ServerMessage implements NetworkMessage {
         to.number = number;
 
         if ((flags & Defines.U_MODEL) != 0)
-            to.modelindex = MSG.ReadByte(buffer);
+            to.modelindex = buffer.readByte();
         if ((flags & Defines.U_MODEL2) != 0)
-            to.modelindex2 = MSG.ReadByte(buffer);
+            to.modelindex2 = buffer.readByte();
         if ((flags & Defines.U_MODEL3) != 0)
-            to.modelindex3 = MSG.ReadByte(buffer);
+            to.modelindex3 = buffer.readByte();
         if ((flags & Defines.U_MODEL4) != 0)
-            to.modelindex4 = MSG.ReadByte(buffer);
+            to.modelindex4 = buffer.readByte();
 
         if ((flags & Defines.U_FRAME8) != 0)
-            to.frame = MSG.ReadByte(buffer);
+            to.frame = buffer.readByte();
         if ((flags & Defines.U_FRAME16) != 0)
-            to.frame = MSG.ReadShort(buffer);
+            to.frame = buffer.readShort();
 
         // used for laser colors
         if ((flags & Defines.U_SKIN8) != 0 && (flags & Defines.U_SKIN16) != 0)
-            to.skinnum = MSG.ReadLong(buffer);
+            to.skinnum = buffer.readInt();
         else if ((flags & Defines.U_SKIN8) != 0)
-            to.skinnum = MSG.ReadByte(buffer);
+            to.skinnum = buffer.readByte();
         else if ((flags & Defines.U_SKIN16) != 0)
-            to.skinnum = MSG.ReadShort(buffer);
+            to.skinnum = buffer.readShort();
 
         if ((flags & (Defines.U_EFFECTS8 | Defines.U_EFFECTS16)) == (Defines.U_EFFECTS8 | Defines.U_EFFECTS16))
-            to.effects = MSG.ReadLong(buffer);
+            to.effects = buffer.readInt();
         else if ((flags & Defines.U_EFFECTS8) != 0)
-            to.effects = MSG.ReadByte(buffer);
+            to.effects = buffer.readByte();
         else if ((flags & Defines.U_EFFECTS16) != 0)
-            to.effects = MSG.ReadShort(buffer);
+            to.effects = buffer.readShort();
 
         if ((flags & (Defines.U_RENDERFX8 | Defines.U_RENDERFX16)) == (Defines.U_RENDERFX8 | Defines.U_RENDERFX16))
-            to.renderfx = MSG.ReadLong(buffer);
+            to.renderfx = buffer.readInt();
         else if ((flags & Defines.U_RENDERFX8) != 0)
-            to.renderfx = MSG.ReadByte(buffer);
+            to.renderfx = buffer.readByte();
         else if ((flags & Defines.U_RENDERFX16) != 0)
-            to.renderfx = MSG.ReadShort(buffer);
+            to.renderfx = buffer.readShort();
 
         if ((flags & Defines.U_ORIGIN1) != 0)
-            to.origin[0] = MSG.ReadCoord(buffer);
+            to.origin[0] = buffer.readCoord();
         if ((flags & Defines.U_ORIGIN2) != 0)
-            to.origin[1] = MSG.ReadCoord(buffer);
+            to.origin[1] = buffer.readCoord();
         if ((flags & Defines.U_ORIGIN3) != 0)
-            to.origin[2] = MSG.ReadCoord(buffer);
+            to.origin[2] = buffer.readCoord();
 
         if ((flags & Defines.U_ANGLE1) != 0)
-            to.angles[0] = MSG.ReadAngle(buffer);
+            to.angles[0] = buffer.readAngleByte();
         if ((flags & Defines.U_ANGLE2) != 0)
-            to.angles[1] = MSG.ReadAngle(buffer);
+            to.angles[1] = buffer.readAngleByte();
         if ((flags & Defines.U_ANGLE3) != 0)
-            to.angles[2] = MSG.ReadAngle(buffer);
+            to.angles[2] = buffer.readAngleByte();
 
         if ((flags & Defines.U_OLDORIGIN) != 0)
-            MSG.ReadPos(buffer, to.old_origin);
+            buffer.readPos(to.old_origin);
 
         if ((flags & Defines.U_SOUND) != 0)
-            to.sound = MSG.ReadByte(buffer);
+            to.sound = buffer.readByte();
 
         if ((flags & Defines.U_EVENT) != 0)
-            to.event = MSG.ReadByte(buffer);
+            to.event = buffer.readByte();
         else
             to.event = 0;
 
         if ((flags & Defines.U_SOLID) != 0)
-            to.solid = MSG.ReadShort(buffer);
+            to.solid = buffer.readShort();
         return to;
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, type.type);
+        buffer.writeByte((byte) type.type);
         writeProperties(buffer);
     }
 
@@ -124,7 +127,7 @@ public abstract class ServerMessage implements NetworkMessage {
 
     public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
 
-        final int cmd = MSG.ReadByte(buffer);
+        final int cmd = buffer.readByte();
         if (cmd == -1)
             return new EndOfServerPacketMessage();
         ServerMessageType type = ServerMessageType.fromInt(cmd);
@@ -188,7 +191,7 @@ public abstract class ServerMessage implements NetworkMessage {
                 msg = new DownloadMessage();
                 break;
             case svc_temp_entity:
-                int subtype = MSG.ReadByte(buffer);
+                int subtype = buffer.readByte();
                 if (PointTEMessage.SUBTYPES.contains(subtype)) {
                     msg = new PointTEMessage(subtype);
                 } else if (BeamTEMessage.SUBTYPES.contains(subtype)) {

@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 public class MuzzleFlash2Message extends ServerMessage {
@@ -19,14 +18,14 @@ public class MuzzleFlash2Message extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteShort(buffer, entityIndex);
-        MSG.WriteByte(buffer, flashType);
+        buffer.writeShort(entityIndex);
+        buffer.writeByte((byte) flashType);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.entityIndex = MSG.ReadShort(buffer);
-        this.flashType = MSG.ReadByte(buffer);
+        this.entityIndex = buffer.readShort();
+        this.flashType = buffer.readByte();
     }
 
     @Override

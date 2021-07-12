@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 /**
@@ -23,15 +22,15 @@ public class PrintMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, level);
-        MSG.WriteString(buffer, text);
+        buffer.writeByte((byte) level);
+        buffer.writeString(text);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.level = MSG.ReadByte(buffer);
-        this.text = MSG.ReadString(buffer);
+        this.level = buffer.readByte();
+        this.text = buffer.readString();
     }
 
     @Override

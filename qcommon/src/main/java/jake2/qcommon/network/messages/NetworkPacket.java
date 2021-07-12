@@ -1,6 +1,8 @@
 package jake2.qcommon.network.messages;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndOfClientPacketMessage;
@@ -8,6 +10,7 @@ import jake2.qcommon.network.messages.server.EndOfServerPacketMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.network.netchan_t;
+import jake2.qcommon.sizebuf_t;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,15 +71,15 @@ public class NetworkPacket {
     }
 
     public void parseHeader() {
-        sequence = MSG.ReadLong(buffer);
+        sequence = buffer.readInt();
 
         if (isConnectionless()) {
-            connectionlessMessage = MSG.ReadStringLine(buffer);
+            connectionlessMessage = buffer.readString();
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
                     case "print":
-                        connectionlessParameters = MSG.ReadStringLine(buffer);
+                        connectionlessParameters = buffer.readString();
                         break;
                     default:
                         break;
@@ -84,10 +87,10 @@ public class NetworkPacket {
 
             }
         } else {
-            sequenceAck = MSG.ReadLong(buffer);
+            sequenceAck = buffer.readInt();
 
             if (fromClient)
-                qport = MSG.ReadShort(buffer) & 0xffff;
+                qport = buffer.readShort() & 0xffff;
         }
     }
 

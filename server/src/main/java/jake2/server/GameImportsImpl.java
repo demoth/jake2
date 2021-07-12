@@ -748,9 +748,9 @@ public class GameImportsImpl implements GameImports {
             }
 
             if (reliable)
-                SZ.Write(client.netchan.message, sv.multicast.data, sv.multicast.cursize);
+                client.netchan.message.writeBytes(sv.multicast.data, sv.multicast.cursize);
             else
-                SZ.Write(client.datagram, sv.multicast.data, sv.multicast.cursize);
+                client.datagram.writeBytes(sv.multicast.data, sv.multicast.cursize);
         }
 
         sv.multicast.clear();

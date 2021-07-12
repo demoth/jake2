@@ -580,14 +580,12 @@ public class Defines {
 	public final static int CS_NAME = 0;
 	public final static int CS_CDTRACK = 1;
 	public final static int CS_SKY = 2;
-	public final static int CS_SKYAXIS = 3; // %f %f %f format 
+	public final static int CS_SKYAXIS = 3; // %f %f %f format
 	public final static int CS_SKYROTATE = 4;
-	public final static int CS_STATUSBAR = 5; // display program string 
-
-	public final static int CS_AIRACCEL = 29; // air acceleration control 
+	public final static int CS_STATUSBAR = 5; // display program string
+	public final static int CS_AIRACCEL = 29; // air acceleration control
 	public final static int CS_MAXCLIENTS = 30;
-	public final static int CS_MAPCHECKSUM = 31; // for catching cheater maps 
-
+	public final static int CS_MAPCHECKSUM = 31; // for catching cheater maps
 	public final static int CS_MODELS = 32;
 	public final static int CS_SOUNDS = (CS_MODELS + MAX_MODELS);
 	public final static int CS_IMAGES = (CS_SOUNDS + MAX_SOUNDS);

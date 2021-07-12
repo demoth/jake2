@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Collection;
@@ -19,12 +18,12 @@ public abstract class TEMessage extends ServerMessage {
 
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, style);
+        buffer.writeByte((byte) style);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.style = MSG.ReadByte(buffer);
+        this.style = buffer.readByte();
     }
 
     @Override

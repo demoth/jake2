@@ -29,7 +29,7 @@ import jake2.qcommon.cplane_t;
 
 public class Math3D {
 
-	static final float shortratio = 360.0f / 65536.0f;
+	static final float shortratio = 180.0f / Short.MAX_VALUE;
 	static final float piratio = (float) (Math.PI / 360.0);
 	public static void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0] = a[0] - b[0];

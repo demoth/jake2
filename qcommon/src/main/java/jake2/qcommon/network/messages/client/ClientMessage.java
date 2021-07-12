@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.client;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
 
@@ -12,14 +11,14 @@ public abstract class ClientMessage implements NetworkMessage {
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, type.value);
+        buffer.writeByte(type.value);
         writeProperties(buffer);
     }
 
     protected abstract void writeProperties(sizebuf_t buffer);
 
     public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
-        ClientMessageType type = ClientMessageType.fromInt(MSG.ReadByte(buffer));
+        ClientMessageType type = ClientMessageType.fromByte((byte) buffer.readByte());
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:

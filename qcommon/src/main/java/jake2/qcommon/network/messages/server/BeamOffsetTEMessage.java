@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -31,14 +30,14 @@ public class BeamOffsetTEMessage extends BeamTEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        MSG.WritePos(buffer, offset);
+        buffer.writePos(offset);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         super.parse(buffer);
         offset = new float[3];
-        MSG.ReadPos(buffer, offset);
+        buffer.readPos(offset);
     }
 
     @Override

@@ -4,11 +4,15 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.*;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,7 +56,7 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.NopMessage", new NopMessage()});
         testMessages.add(new Object[]{"server.EndOfServerPacketMessage", new EndOfServerPacketMessage()});
         // ordinary messages
-        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, 50)});
+        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, (byte) 50)});
         testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage()});
         testMessages.add(new Object[]{"server.DisconnectMessage", new DisconnectMessage()});
         testMessages.add(new Object[]{"server.ReconnectMessage", new ReconnectMessage()});
@@ -113,7 +117,7 @@ public class NetworkMessageSizeTest {
             currentState.pmove = pmove;
             currentState.kick_angles = new float[]{2, 2, 2};
             currentState.viewoffset = new float[]{1, 3, 5};
-            currentState.viewangles = new float[]{1.9995117f, 3.9990234f, 5.998535f};
+            currentState.viewangles = new float[]{49.994812f, 99.99512f, 149.99542f};
             currentState.blend = new float[]{0.09803922f, 0.2f, 0.29803923f, 0.4f};
             currentState.fov = 70;
             currentState.rdflags = 2;
@@ -157,7 +161,7 @@ public class NetworkMessageSizeTest {
 
     @Before
     public void writeMessage() {
-        SZ.Init(buffer, data, SIZE);
+        buffer.init(data, SIZE);
         message.writeTo(buffer);
     }
 
@@ -206,10 +210,23 @@ public class NetworkMessageSizeTest {
             final byte[] quake34data = inputStream.readAllBytes();
             assertEquals("Message size is different from quake34 protocol", quake34data.length, buffer.cursize);
             for (int i = 0; i < quake34data.length; i++) {
-                assertEquals("Message size is different from quake34 protocol at position: " + i, quake34data[i], buffer.data[i]);
+                assertEquals("Message data is different from quake34 protocol at position: " + i, quake34data[i], buffer.data[i]);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Enable to save binary message files
+     */
+    @Test
+    @Ignore
+    public void saveBinaryMessage() {
+        try (OutputStream out = new FileOutputStream(testName)) {
+            out.write(buffer.data, 0, buffer.cursize);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

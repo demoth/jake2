@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -38,20 +37,19 @@ public class SplashTEMessage extends TEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        MSG.WriteByte(buffer, count);
-        MSG.WritePos(buffer, position);
-        MSG.WriteDir(buffer, direction);
-        MSG.WriteByte(buffer, param);
+        buffer.writeByte((byte) count);
+        buffer.writePos(position);
+        buffer.writeDir(direction);
+        buffer.writeByte((byte) param);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        count = MSG.ReadByte(buffer);
+        count = buffer.readByte();
         position = new float[3];
-        MSG.ReadPos(buffer, position);
-        direction = new float[3];
-        MSG.ReadDir(buffer, direction);
-        param = MSG.ReadByte(buffer);
+        buffer.readPos(position);
+        direction = buffer.readDir();
+        param = buffer.readByte();
     }
 
     @Override

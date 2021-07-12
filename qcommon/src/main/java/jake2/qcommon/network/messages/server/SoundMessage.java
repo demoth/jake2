@@ -2,7 +2,6 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -59,48 +58,48 @@ public class SoundMessage extends ServerMessage {
     // todo: sync read & write logic (make flags private)
     @Override
     protected void writeProperties(sizebuf_t buffer) {
-        MSG.WriteByte(buffer, flags);
-        MSG.WriteByte(buffer, soundIndex);
+        buffer.writeByte((byte) flags);
+        buffer.writeByte((byte) soundIndex);
 
         if ((flags & Defines.SND_VOLUME) != 0)
-            MSG.WriteByte(buffer, volume * 255);
+            buffer.writeByte((byte) (volume * 255));
 
         if ((flags & Defines.SND_ATTENUATION) != 0)
-            MSG.WriteByte(buffer, attenuation * 64);
+            buffer.writeByte((byte) (attenuation * 64));
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            MSG.WriteByte(buffer, timeOffset * 1000);
+            buffer.writeByte((byte) (timeOffset * 1000));
 
         if ((flags & Defines.SND_ENT) != 0)
-            MSG.WriteShort(buffer, sendchan);
+            buffer.writeShort(sendchan);
 
         if ((flags & Defines.SND_POS) != 0)
-            MSG.WritePos(buffer, origin);
+            buffer.writePos(origin);
 
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
-        this.flags = MSG.ReadByte(buffer);
-        this.soundIndex = MSG.ReadByte(buffer);
+        this.flags = buffer.readByte();
+        this.soundIndex = buffer.readByte();
 
         if ((flags & Defines.SND_VOLUME) != 0)
-            volume = MSG.ReadByte(buffer) / 255.0f;
+            volume = buffer.readByte() / 255.0f;
         else
             volume = Defines.DEFAULT_SOUND_PACKET_VOLUME;
 
         if ((flags & Defines.SND_ATTENUATION) != 0)
-            attenuation = MSG.ReadByte(buffer) / 64.0f;
+            attenuation = buffer.readByte() / 64.0f;
         else
             attenuation = Defines.DEFAULT_SOUND_PACKET_ATTENUATION;
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            timeOffset = MSG.ReadByte(buffer) / 1000.0f;
+            timeOffset = buffer.readByte() / 1000.0f;
         else
             timeOffset = 0;
 
         if ((flags & Defines.SND_ENT) != 0) { // entity reletive
-            sendchan = MSG.ReadShort(buffer);
+            sendchan = buffer.readShort();
             entityIndex = sendchan >> 3;
             if (entityIndex > Defines.MAX_EDICTS)
                 Com.Error(Defines.ERR_DROP, "CL_ParseStartSoundPacket: ent = " + entityIndex);
@@ -113,7 +112,7 @@ public class SoundMessage extends ServerMessage {
 
         if ((flags & Defines.SND_POS) != 0) { // positioned in space
             float[] pos_v = new float[3];
-            MSG.ReadPos(buffer, pos_v);
+            buffer.readPos(pos_v);
             // is ok. sound driver copies
             origin = pos_v;
         } else

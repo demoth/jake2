@@ -166,8 +166,7 @@ public final class CL {
     private static Command Record_f = (List<String> args) -> {
         try {
             byte[] buf_data = new byte[Defines.MAX_MSGLEN];
-            sizebuf_t buf = new sizebuf_t();
-            int i;
+            sizebuf_t buffer = new sizebuf_t();
             entity_state_t ent;
 
             if (args.size() != 2) {
@@ -206,7 +205,7 @@ public final class CL {
             //
             // write out messages to hold the startup information
             //
-            SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
+            buffer.init(buf_data, Defines.MAX_MSGLEN);
 
             // send the serverdata
             new ServerDataMessage(Defines.PROTOCOL_VERSION,
@@ -217,18 +216,19 @@ public final class CL {
                     ClientGlobals.cl.configstrings[Defines.CS_NAME]);
 
             // configstrings
+            short i;
             for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
                 if (ClientGlobals.cl.configstrings[i].length() > 0) {
-                    if (buf.cursize + ClientGlobals.cl.configstrings[i].length()
-                            + 32 > buf.maxsize) {
+                    if (buffer.cursize + ClientGlobals.cl.configstrings[i].length()
+                            + 32 > buffer.maxsize) {
                         // write it out
-                        ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+                        ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buffer.cursize));
                         ClientGlobals.cls.demofile
-                                .write(buf.data, 0, buf.cursize);
-                        buf.cursize = 0;
+                                .write(buffer.data, 0, buffer.cursize);
+                        buffer.cursize = 0;
                     }
 
-                    new ConfigStringMessage(i, ClientGlobals.cl.configstrings[i]).writeTo(buf);
+                    new ConfigStringMessage(i, ClientGlobals.cl.configstrings[i]).writeTo(buffer);
                 }
 
             }
@@ -240,21 +240,21 @@ public final class CL {
                 if (ent.modelindex == 0)
                     continue;
 
-                if (buf.cursize + 64 > buf.maxsize) { // write it out
-                    ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                    ClientGlobals.cls.demofile.write(buf.data, 0, buf.cursize);
-                    buf.cursize = 0;
+                if (buffer.cursize + 64 > buffer.maxsize) { // write it out
+                    ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buffer.cursize));
+                    ClientGlobals.cls.demofile.write(buffer.data, 0, buffer.cursize);
+                    buffer.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, ServerMessageType.svc_spawnbaseline.type);
-                MSG.WriteDeltaEntity(nullstate,
-                        ClientGlobals.cl_entities[i].baseline, buf, true, true);
+                buffer.writeByte((byte) ServerMessageType.svc_spawnbaseline.type);
+                DeltaUtils.WriteDeltaEntity(nullstate,
+                        ClientGlobals.cl_entities[i].baseline, buffer, true, true);
             }
-            new StuffTextMessage(StringCmdMessage.PRECACHE).writeTo(buf);
+            new StuffTextMessage(StringCmdMessage.PRECACHE).writeTo(buffer);
 
             // write it to the demo file
-            ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-            ClientGlobals.cls.demofile.write(buf.data, 0, buf.cursize);
+            ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buffer.cursize));
+            ClientGlobals.cls.demofile.write(buffer.data, 0, buffer.cursize);
             // the rest of the demo file will be individual frames
 
         } catch (IOException e) {
@@ -693,7 +693,7 @@ public final class CL {
 
         byte[] data = new byte[128];
         sizebuf_t buf = new sizebuf_t();
-        SZ.Init(buf, data, data.length);
+        buf.init(data, data.length);
         new StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf);
 
         // fixme: was sending it 3 times

@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.MSG;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.Arrays;
@@ -43,14 +42,14 @@ public class PointDirectionTEMessage extends PointTEMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         super.writeProperties(buffer);
-        MSG.WriteDir(buffer, direction);
+        buffer.writeDir(direction);
     }
 
     @Override
     public void parse(sizebuf_t buffer) {
         super.parse(buffer);
-        this.direction = new float[3];
-        MSG.ReadDir(buffer, direction);
+        this.direction = buffer.readDir();
+
     }
 
     @Override
