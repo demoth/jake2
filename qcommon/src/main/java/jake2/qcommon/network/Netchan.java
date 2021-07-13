@@ -29,9 +29,12 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
+
+import java.util.Collection;
 
 /**
  * Netchan
@@ -158,13 +161,12 @@ public final class Netchan {
      * A 0 length will still generate a packet and deal with the reliable
      * messages.
      */
-    public static void Transmit(netchan_t chan, int length, byte[] unreliableData) {
+    public static void Transmit(netchan_t chan, Collection<NetworkMessage> unreliable) {
 
         // check for message overflow
         if (chan.reliable.overflowed) {
             chan.fatal_error = true;
-            Com.Printf(chan.remote_address.toString()
-                    + ":Outgoing message overflow\n");
+            Com.Printf(chan.remote_address.toString() + ":Outgoing message overflow\n");
             return;
         }
 
@@ -199,11 +201,15 @@ public final class Netchan {
             chan.last_reliable_sequence = chan.outgoing_sequence;
         }
 
-        // add the unreliable part if space is available
-        if (packet.maxsize - packet.cursize >= length)
-            packet.writeBytes(unreliableData, length);
-        else
-            Com.Printf("Netchan_Transmit: dumped unreliable\n");
+        if (unreliable != null) {
+            // add the unreliable part if space is available
+            int length = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            if (packet.maxsize - packet.cursize >= length) {
+                unreliable.forEach(msg -> msg.writeTo(packet));
+            } else {
+                Com.Printf("Netchan_Transmit: dumped unreliable\n");
+            }
+        }
 
         // send the datagram
         NET.SendPacket(chan.sock, packet.cursize, packet.data, chan.remote_address);

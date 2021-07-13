@@ -27,12 +27,12 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
-import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
-import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.util.Math3D;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class SV_SEND {
@@ -184,39 +184,22 @@ public class SV_SEND {
 	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		gameImports.sv_ents.SV_BuildClientFrame(client);
 
-		sizebuf_t unrealiableBuffer = new sizebuf_t();
-		byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
-
-		unrealiableBuffer.init(msgbuf, msgbuf.length);
-		unrealiableBuffer.allowoverflow = true;
-
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		Collection<ServerMessage> frame = gameImports.sv_ents.SV_WriteFrameToClient(client);
-		for (ServerMessage serverMessage : frame) {
-			serverMessage.writeTo(unrealiableBuffer);
-		}
+		Collection<NetworkMessage> unreliable = new ArrayList<>();
+		unreliable.addAll(gameImports.sv_ents.SV_WriteFrameToClient(client));
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
-		// it is necessary for this to be after the WriteEntities
+		// it is necessary for this to be after the SV_WriteFrameToClient
 		// so that entity references will be current
-		if (client.unreliable.overflowed)
-			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
-		else
-			unrealiableBuffer.writeBytes(client.unreliable.data, client.unreliable.cursize);
-        client.unreliable.clear();
-
-        if (unrealiableBuffer.overflowed) { // must have room left for the packet header
-			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-			unrealiableBuffer.clear();
-        }
-
+		unreliable.addAll(client.unreliable);
+		client.unreliable.clear();
 		// send the datagram
-		Netchan.Transmit(client.netchan, unrealiableBuffer.cursize, unrealiableBuffer.data);
+		Netchan.Transmit(client.netchan, unreliable);
 
 		// record the size for rate estimation
-		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unrealiableBuffer.cursize;
+		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
 
 		return true;
 	}

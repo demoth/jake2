@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.util.Math3D;
 
@@ -43,21 +44,21 @@ public class SV_GAME {
      * 
      * Sends the contents of the mutlicast buffer to a single client.
      */
-    public void PF_Unicast(int p, boolean reliable) {
+    public void PF_Unicast(int p, boolean reliable, NetworkMessage msg) {
 
         if (p < 1 || p > gameImports.serverMain.getClients().size())
             return;
 
         client_t client = gameImports.serverMain.getClients().get(p - 1);
 
-        if (reliable)
-            client.netchan.reliable.writeBytes(gameImports.sv.multicast.data,
-                    gameImports.sv.multicast.cursize);
-        else
-            client.unreliable.writeBytes(gameImports.sv.multicast.data,
-                    gameImports.sv.multicast.cursize);
+        if (reliable) {
+            msg.writeTo(gameImports.sv.multicast);
+            client.netchan.reliable.writeBytes(gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
+            gameImports.sv.multicast.clear();
 
-        gameImports.sv.multicast.clear();
+        } else
+            client.unreliable.add(msg);
+
     }
 
     /**

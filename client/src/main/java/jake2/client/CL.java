@@ -698,7 +698,7 @@ public final class CL {
         new StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf);
 
         // fixme: was sending it 3 times
-        Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
+        Netchan.Transmit(ClientGlobals.cls.netchan, List.of(new StringCmdMessage(StringCmdMessage.DISCONNECT)));
 
 
         ClearState();

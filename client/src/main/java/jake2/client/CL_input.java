@@ -421,7 +421,7 @@ public class CL_input {
 
 		if (ClientGlobals.cls.state == Defines.ca_connected) {
 			if (ClientGlobals.cls.netchan.reliable.cursize != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
-				Netchan.Transmit(ClientGlobals.cls.netchan, 0, new byte[0]);
+				Netchan.Transmit(ClientGlobals.cls.netchan, null);
 			return;
 		}
 
@@ -454,21 +454,16 @@ public class CL_input {
 		int latestCmdIndex = ClientGlobals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
 		usercmd_t latestCmd = ClientGlobals.cl.cmds[latestCmdIndex];
 
-		// write MoveMessage to its own buffer
-		buf.init(data, data.length);
-
-		new MoveMessage(
+		//
+		// deliver the message
+		//
+		Netchan.Transmit(ClientGlobals.cls.netchan, List.of(new MoveMessage(
 				noCompress,
 				ClientGlobals.cl.frame.serverframe,
 				oldestCmd,
 				oldCmd,
 				latestCmd,
 				ClientGlobals.cls.netchan.outgoing_sequence
-		).writeTo(buf);
-
-		//
-		// deliver the message
-		//
-		Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
+		)));
 	}
 }
