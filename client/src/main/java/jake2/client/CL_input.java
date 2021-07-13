@@ -420,7 +420,7 @@ public class CL_input {
 			return;
 
 		if (ClientGlobals.cls.state == Defines.ca_connected) {
-			if (ClientGlobals.cls.netchan.message.cursize != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
+			if (ClientGlobals.cls.netchan.reliable.cursize != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
 				Netchan.Transmit(ClientGlobals.cls.netchan, 0, new byte[0]);
 			return;
 		}
@@ -429,7 +429,7 @@ public class CL_input {
 		if (Globals.userinfo_modified) {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
-			new UserInfoMessage(Cvar.getInstance().Userinfo()).writeTo(ClientGlobals.cls.netchan.message);
+			new UserInfoMessage(Cvar.getInstance().Userinfo()).writeTo(ClientGlobals.cls.netchan.reliable);
 		}
 
 

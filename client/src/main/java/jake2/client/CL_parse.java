@@ -130,10 +130,10 @@ public class CL_parse {
 
             // give the server an offset to start the download
             Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.reliable);
         } else {
             Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.reliable);
         }
 
         ClientGlobals.cls.downloadnumber++;
@@ -211,7 +211,7 @@ public class CL_parse {
             // request next block
             //	   change display routines by zoid
             ClientGlobals.cls.downloadpercent = percent;
-            new StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD).writeTo(ClientGlobals.cls.netchan.reliable);
         } else {
             try {
                 ClientGlobals.cls.download.close();

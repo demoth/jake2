@@ -277,7 +277,7 @@ public final class CL {
 
         // don't forward the first argument
         if (args.size() > 1) {
-            new StringCmdMessage(getArguments(args)).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(getArguments(args)).writeTo(ClientGlobals.cls.netchan.reliable);
         }
     };
 
@@ -413,7 +413,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
+            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.reliable);
             return;
         }
 
@@ -538,7 +538,7 @@ public final class CL {
         ClientGlobals.cls.downloadtempname = Com
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
-        new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+        new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.reliable);
         ClientGlobals.cls.downloadnumber++;
     };
 
@@ -651,7 +651,7 @@ public final class CL {
             ClientGlobals.cl_entities[i] = new centity_t();
         }
 
-        ClientGlobals.cls.netchan.message.clear();
+        ClientGlobals.cls.netchan.reliable.clear();
     }
 
     /**
@@ -745,7 +745,7 @@ public final class CL {
                     break;
                 }
                 Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan, packet.from, ClientGlobals.cls.quakePort);
-                new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
+                new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.reliable);
                 ClientGlobals.cls.state = Defines.ca_connected;
                 break;
 
@@ -1170,7 +1170,7 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.message);
+        new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.reliable);
     }
 
     /**

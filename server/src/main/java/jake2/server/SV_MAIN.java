@@ -333,9 +333,9 @@ public class SV_MAIN implements JakeServer {
 
         clients.get(i).state = ClientStates.CS_CONNECTED;
 
-        clients.get(i).datagram.init(clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
+        clients.get(i).unreliable.init(clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
         
-        clients.get(i).datagram.allowoverflow = true;
+        clients.get(i).unreliable.allowoverflow = true;
         clients.get(i).lastmessage = gameImports.realtime; // don't timeout
         clients.get(i).lastconnect = gameImports.realtime;
         Com.DPrintf("new client added.\n");
@@ -513,9 +513,9 @@ public class SV_MAIN implements JakeServer {
                 continue;
             // if the reliable message overflowed,
             // drop the client
-            if (c.netchan.message.overflowed) {
-                c.netchan.message.clear();
-                c.datagram.clear();
+            if (c.netchan.reliable.overflowed) {
+                c.netchan.reliable.clear();
+                c.unreliable.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
                 SV_DropClient(c);
             }
@@ -532,7 +532,7 @@ public class SV_MAIN implements JakeServer {
             }
             else {
                 // just update reliable	if needed
-                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                if (c.netchan.reliable.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
                     Netchan.Transmit(c.netchan, 0, NULLBYTE);
             }
         }
@@ -545,7 +545,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        new DisconnectMessage().writeTo(client.netchan.message);
+        new DisconnectMessage().writeTo(client.netchan.reliable);
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -578,7 +578,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            new PrintMessage(level, s).writeTo(cl.netchan.message);
+            new PrintMessage(level, s).writeTo(cl.netchan.reliable);
         }
     }
 

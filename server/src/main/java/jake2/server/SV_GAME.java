@@ -51,10 +51,10 @@ public class SV_GAME {
         client_t client = gameImports.serverMain.getClients().get(p - 1);
 
         if (reliable)
-            client.netchan.message.writeBytes(gameImports.sv.multicast.data,
+            client.netchan.reliable.writeBytes(gameImports.sv.multicast.data,
                     gameImports.sv.multicast.cursize);
         else
-            client.datagram.writeBytes(gameImports.sv.multicast.data,
+            client.unreliable.writeBytes(gameImports.sv.multicast.data,
                     gameImports.sv.multicast.cursize);
 
         gameImports.sv.multicast.clear();

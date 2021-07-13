@@ -58,10 +58,10 @@ public class netchan_t {
     public int last_reliable_sequence; // sequence number of last send
 
     //	   reliable staging and holding areas
-    public sizebuf_t message = new sizebuf_t(); // writing buffer to send to
+    public sizebuf_t reliable = new sizebuf_t(); // writing buffer to send to
                                                 // server
 
-    public byte message_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // leave
+    public byte reliable_data[] = new byte[Defines.MAX_MSGLEN - 16]; // leave
                                                                    // space for
                                                                    // header
 
@@ -85,7 +85,7 @@ public class netchan_t {
         boolean send_reliable = incoming_acknowledged > last_reliable_sequence && incoming_reliable_acknowledged != reliable_sequence;
 
         // if the reliable transmit buffer is empty, copy the current message out
-        if (reliable_length == 0 && message.cursize != 0) {
+        if (reliable_length == 0 && reliable.cursize != 0) {
             send_reliable = true;
         }
 
@@ -97,9 +97,9 @@ public class netchan_t {
         sock = dropped = last_received = last_sent = 0;
         remote_address = new netadr_t();
         qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = incoming_reliable_sequence = outgoing_sequence = reliable_sequence = last_reliable_sequence = 0;
-        message = new sizebuf_t();
+        reliable = new sizebuf_t();
 
-        message_buf = new byte[Defines.MAX_MSGLEN - 16];
+        reliable_data = new byte[Defines.MAX_MSGLEN - 16];
 
         reliable_length = 0;
         reliable_buf = new byte[Defines.MAX_MSGLEN - 16];
