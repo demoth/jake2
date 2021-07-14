@@ -511,7 +511,8 @@ public class SV_MAIN implements JakeServer {
                 continue;
             // if the reliable message overflowed,
             // drop the client
-            if (c.netchan.reliable.overflowed) {
+            int pendingReliableSize = c.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
                 c.netchan.reliable.clear();
                 c.unreliable.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
@@ -530,7 +531,7 @@ public class SV_MAIN implements JakeServer {
             }
             else {
                 // just update reliable	if needed
-                if (c.netchan.reliable.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                if (c.netchan.reliable.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
                     Netchan.Transmit(c.netchan, null);
             }
         }
@@ -543,7 +544,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        new DisconnectMessage().writeTo(client.netchan.reliable);
+        client.netchan.reliable.add(new DisconnectMessage());
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -576,7 +577,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            new PrintMessage(level, s).writeTo(cl.netchan.reliable);
+            cl.netchan.reliable.add(new PrintMessage(level, s));
         }
     }
 
@@ -1313,9 +1314,6 @@ goes to map jail.bsp.
             gameImports.sv.configstrings[CS_AIRACCEL] = "0";
             PMove.pm_airaccelerate = 0;
         }
-
-        gameImports.sv.multicast.init(gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
-
 
         // question: if we spawn a new server - all existing clients will receive the 'reconnect'
         // then why update state and lastframe?

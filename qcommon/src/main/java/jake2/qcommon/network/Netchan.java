@@ -108,28 +108,26 @@ public final class Netchan {
      * 
      */
     public static void Netchan_Init() {
-        long port;
 
         // pick a port value that should be nice and random
-        port = Timer.Milliseconds() & 0xffff;
+        long port = Timer.Milliseconds() & 0xffff;
 
         showpackets = Cvar.getInstance().Get("showpackets", "0", 0);
         showdrop = Cvar.getInstance().Get("showdrop", "0", 0);
         qport = Cvar.getInstance().Get("qport", "" + port, Defines.CVAR_NOSET);
     }
 
-    private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
-    private static final sizebuf_t packet = new sizebuf_t();
-
     /**
-     * OutOfBandPrint
+     * Out Of Band
      */
     public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
         String msg = cmd.name() + payload;
 
-        // write the packet header
+        sizebuf_t packet = new sizebuf_t();
+        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
         packet.init(send_buf, Defines.MAX_MSGLEN);
 
+        // write the packet header
         packet.writeInt(-1); // -1 sequence means connectionless (out of band)
         packet.writeBytes(Lib.stringToBytes(msg), msg.length());
 
@@ -148,9 +146,6 @@ public final class Netchan {
         chan.last_received = Globals.curtime;
         chan.incoming_sequence = 0;
         chan.outgoing_sequence = 1;
-
-        chan.reliable.init(chan.reliable_data, chan.reliable_data.length);
-        chan.reliable.allowoverflow = true;
     }
 
 
@@ -164,7 +159,8 @@ public final class Netchan {
     public static void Transmit(netchan_t chan, Collection<NetworkMessage> unreliable) {
 
         // check for message overflow
-        if (chan.reliable.overflowed) {
+        int pendingReliableSize = chan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+        if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
             chan.fatal_error = true;
             Com.Printf(chan.remote_address.toString() + ":Outgoing message overflow\n");
             return;
@@ -172,13 +168,21 @@ public final class Netchan {
 
         int send_reliable = chan.needReliable() ? 1 : 0;
 
-        if (chan.reliable_length == 0 && chan.reliable.cursize != 0) {
-            System.arraycopy(chan.reliable_data, 0, chan.reliable_buf, 0, chan.reliable.cursize);
-            chan.reliable_length = chan.reliable.cursize;
-            chan.reliable.cursize = 0;
+        if (chan.reliable_length == 0 && chan.reliable.size() != 0) {
+            // wrap chan.reliable_buf array in a buffer
+            final sizebuf_t reliableDataBuffer = new sizebuf_t();
+            reliableDataBuffer.data = chan.reliable_buf;
+            reliableDataBuffer.maxsize = Defines.MAX_MSGLEN - 16;
+            reliableDataBuffer.allowoverflow = true;
+
+            chan.reliable.forEach(networkMessage -> networkMessage.writeTo(reliableDataBuffer));
+            chan.reliable_length = pendingReliableSize;
+            chan.reliable.clear();
             chan.reliable_sequence ^= 1;
         }
 
+        sizebuf_t packet = new sizebuf_t();
+        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
         packet.init(send_buf, send_buf.length);
 
         // write the packet header

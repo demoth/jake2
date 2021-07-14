@@ -54,7 +54,7 @@ public class SV_SEND {
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
 
 		if (level >= cl.messagelevel) {
-			new PrintMessage(level, s).writeTo(cl.netchan.reliable);
+			cl.netchan.reliable.add(new PrintMessage(level, s));
 		}
 	}
 

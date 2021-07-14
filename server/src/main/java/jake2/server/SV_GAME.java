@@ -52,10 +52,7 @@ public class SV_GAME {
         client_t client = gameImports.serverMain.getClients().get(p - 1);
 
         if (reliable) {
-            msg.writeTo(gameImports.sv.multicast);
-            client.netchan.reliable.writeBytes(gameImports.sv.multicast.data, gameImports.sv.multicast.cursize);
-            gameImports.sv.multicast.clear();
-
+            client.netchan.reliable.add(msg);
         } else
             client.unreliable.add(msg);
 
@@ -135,10 +132,9 @@ public class SV_GAME {
         // change the string in sv
         gameImports.sv.configstrings[index] = val;
 
-        if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
-                                                      // everyone
-            gameImports.sv.multicast.clear();
-            gameImports.multicastMessage(Globals.vec3_origin, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
+        if (gameImports.sv.state != ServerStates.SS_LOADING) {
+            // send the update to everyone
+            gameImports.multicastMessage(null, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
         }
     }
 

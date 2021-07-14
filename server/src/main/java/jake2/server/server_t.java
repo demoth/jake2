@@ -22,7 +22,10 @@
 // $Id: server_t.java,v 1.2 2004-09-22 19:22:12 salomo Exp $
 package jake2.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.ServerStates;
+import jake2.qcommon.cmodel_t;
+import jake2.qcommon.entity_state_t;
 
 class server_t {
 
@@ -53,11 +56,4 @@ class server_t {
     String[] configstrings = new String[Defines.MAX_CONFIGSTRINGS];
 
     entity_state_t[] baselines = new entity_state_t[Defines.MAX_EDICTS];
-
-    // the multicast buffer is used to send a message to a set of clients
-    // it is only used to marshall data until SV_Multicast is called
-    sizebuf_t multicast = new sizebuf_t();
-
-    byte[] multicast_buf = new byte[Defines.MAX_MSGLEN];
-
 }
