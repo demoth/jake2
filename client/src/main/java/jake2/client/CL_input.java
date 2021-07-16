@@ -29,7 +29,6 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.messages.client.MoveMessage;
 import jake2.qcommon.network.messages.client.UserInfoMessage;
 import jake2.qcommon.util.Lib;
@@ -421,7 +420,7 @@ public class CL_input {
 
 		if (ClientGlobals.cls.state == Defines.ca_connected) {
 			if (ClientGlobals.cls.netchan.reliable.size() != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
-				Netchan.Transmit(ClientGlobals.cls.netchan, null);
+				ClientGlobals.cls.netchan.Transmit(null);
 			return;
 		}
 
@@ -457,7 +456,7 @@ public class CL_input {
 		//
 		// deliver the message
 		//
-		Netchan.Transmit(ClientGlobals.cls.netchan, List.of(new MoveMessage(
+		ClientGlobals.cls.netchan.Transmit(List.of(new MoveMessage(
 				noCompress,
 				ClientGlobals.cl.frame.serverframe,
 				oldestCmd,

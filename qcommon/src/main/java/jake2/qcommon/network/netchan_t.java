@@ -22,8 +22,11 @@
 // $Id: netchan_t.java,v 1.2 2004-09-22 19:22:09 salomo Exp $
 package jake2.qcommon.network;
 
+import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.network.messages.NetworkMessage;
+import jake2.qcommon.sizebuf_t;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,6 +74,76 @@ public class netchan_t {
     public int reliable_length;
 
     public byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unpcked
+
+    /**
+     * Netchan_Transmit tries to send an unreliable message to a connection,
+     * and handles the transmition / retransmition of the reliable messages.
+     *
+     * A 0 length will still generate a packet and deal with the reliable
+     * messages.
+     */
+    public void Transmit(Collection<NetworkMessage> unreliable) {
+
+        // check for message overflow
+        int pendingReliableSize = reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+        if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
+            fatal_error = true;
+            Com.Printf(remote_address.toString() + ":Outgoing message overflow\n");
+            return;
+        }
+
+        int send_reliable = needReliable() ? 1 : 0;
+
+        if (reliable_length == 0 && reliable.size() != 0) {
+            // wrap reliable_buf array in a buffer
+            final sizebuf_t reliableDataBuffer = new sizebuf_t();
+            reliableDataBuffer.data = reliable_buf;
+            reliableDataBuffer.maxsize = Defines.MAX_MSGLEN - 16;
+            reliableDataBuffer.allowoverflow = true;
+
+            reliable.forEach(networkMessage -> networkMessage.writeTo(reliableDataBuffer));
+            reliable_length = pendingReliableSize;
+            reliable.clear();
+            reliable_sequence ^= 1;
+        }
+
+        sizebuf_t packet = new sizebuf_t();
+        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
+        packet.init(send_buf, send_buf.length);
+
+        // write the packet header
+        int sequence = (outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
+        int sequenceAck = (incoming_sequence & ~(1 << 31)) | (incoming_reliable_sequence << 31);
+
+        outgoing_sequence++;
+        last_sent = (int) Globals.curtime;
+
+        packet.writeInt(sequence);
+        packet.writeInt(sequenceAck);
+
+        // send the qport if we are a client
+        if (sock == Defines.NS_CLIENT)
+            packet.writeShort((int) Netchan.qport.value);
+
+        // copy the reliable message to the packet first
+        if (send_reliable != 0) {
+            packet.writeBytes(reliable_buf, reliable_length);
+            last_reliable_sequence = outgoing_sequence;
+        }
+
+        if (unreliable != null) {
+            // add the unreliable part if space is available
+            int length = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            if (packet.maxsize - packet.cursize >= length) {
+                unreliable.forEach(msg -> msg.writeTo(packet));
+            } else {
+                Com.Printf("Netchan_Transmit: dumped unreliable\n");
+            }
+        }
+
+        // send the datagram
+        NET.SendPacket(sock, packet.cursize, packet.data, remote_address);
+    }
 
     /**
      * Netchan_CanReliable. Returns true if the last reliable message has acked.

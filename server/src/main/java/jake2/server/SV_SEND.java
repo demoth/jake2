@@ -26,7 +26,6 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
@@ -196,7 +195,7 @@ public class SV_SEND {
 		unreliable.addAll(client.unreliable);
 		client.unreliable.clear();
 		// send the datagram
-		Netchan.Transmit(client.netchan, unreliable);
+		client.netchan.Transmit(unreliable);
 
 		// record the size for rate estimation
 		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();

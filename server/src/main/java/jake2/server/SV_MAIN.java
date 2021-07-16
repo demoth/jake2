@@ -521,7 +521,7 @@ public class SV_MAIN implements JakeServer {
 
             if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
                 // leftover from demo code
-                Netchan.Transmit(c.netchan, null);
+                c.netchan.Transmit(null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
                 if (SV_RateDrop(c))
@@ -532,7 +532,7 @@ public class SV_MAIN implements JakeServer {
             else {
                 // just update reliable	if needed
                 if (c.netchan.reliable.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-                    Netchan.Transmit(c.netchan, null);
+                    c.netchan.Transmit(null);
             }
         }
     }
@@ -915,11 +915,11 @@ public class SV_MAIN implements JakeServer {
         // stagger the packets to crutch operating system limited buffers
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, msgs);
+                cl.netchan.Transmit(msgs);
         }
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, msgs);
+                cl.netchan.Transmit(msgs);
         }
     }
 
