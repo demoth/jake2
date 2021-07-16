@@ -60,9 +60,11 @@ public class netchan_t {
 
     public int last_reliable_sequence; // sequence number of last send
 
-    // reliable staging and holding areas
-    // writing buffer to send to server
-    // max size: Defines.MAX_MSGLEN - 16: leave space for header
+    /**
+     * Reliable staging and holding areas, writing buffer to send to server.
+     * Overall size of the messages in bytes should not exceed Defines.MAX_MSGLEN - 16 (some space for header is reserved), otherwise connection will be closed.
+     * See @{link jake2.qcommon.network.Netchan#Transmit}
+     */
     public Collection<NetworkMessage> reliable = new ArrayList<>();
 
     //	   message is copied to this buffer when it is first transfered
