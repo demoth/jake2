@@ -22,8 +22,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.netchan_t;
+import jake2.qcommon.usercmd_t;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Server side representation of client.
@@ -65,10 +71,9 @@ public class client_t {
 
 	int messagelevel; // for filtering printed messages
 
-	// The datagram is written to by sound calls, prints, temp ents, etc.
+	// This collection (the datagram) is written to by sound calls, prints, temp ents, etc.
 	// It can be harmlessly overflowed.
-	sizebuf_t datagram = new sizebuf_t();
-	byte datagram_buf[] = new byte[Defines.MAX_MSGLEN];
+	Collection<NetworkMessage> unreliable = new ArrayList<>();
 
 	client_frame_t frames[] = new client_frame_t[Defines.UPDATE_BACKUP]; // updates can be delta'd from here
 

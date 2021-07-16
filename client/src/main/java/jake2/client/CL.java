@@ -277,7 +277,7 @@ public final class CL {
 
         // don't forward the first argument
         if (args.size() > 1) {
-            new StringCmdMessage(getArguments(args)).writeTo(ClientGlobals.cls.netchan.message);
+            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(getArguments(args)));
         }
     };
 
@@ -413,7 +413,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
+            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEW));
             return;
         }
 
@@ -538,7 +538,7 @@ public final class CL {
         ClientGlobals.cls.downloadtempname = Com
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
-        new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+        ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname));
         ClientGlobals.cls.downloadnumber++;
     };
 
@@ -560,6 +560,7 @@ public final class CL {
      * 
      * Dumps the current net message, prefixed by the length
      */
+    /*
     static void WriteDemoMessage() {
         int swlen;
 
@@ -573,7 +574,7 @@ public final class CL {
         }
 
     }
-
+    */
     /**
      * SendConnectPacket
      * 
@@ -650,7 +651,7 @@ public final class CL {
             ClientGlobals.cl_entities[i] = new centity_t();
         }
 
-        ClientGlobals.cls.netchan.message.clear();
+        ClientGlobals.cls.netchan.reliable.clear();
     }
 
     /**
@@ -697,7 +698,7 @@ public final class CL {
         new StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf);
 
         // fixme: was sending it 3 times
-        Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
+        Netchan.Transmit(ClientGlobals.cls.netchan, List.of(new StringCmdMessage(StringCmdMessage.DISCONNECT)));
 
 
         ClearState();
@@ -744,7 +745,7 @@ public final class CL {
                     break;
                 }
                 Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan, packet.from, ClientGlobals.cls.quakePort);
-                new StringCmdMessage(StringCmdMessage.NEW).writeTo(ClientGlobals.cls.netchan.message);
+                ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEW));
                 ClientGlobals.cls.state = Defines.ca_connected;
                 break;
 
@@ -1169,7 +1170,7 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n").writeTo(ClientGlobals.cls.netchan.message);
+        ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n"));
     }
 
     /**
@@ -1577,9 +1578,6 @@ public final class CL {
         V.Init();
         Cmd.AddCommand("cl_drop", args -> CL.Drop());
         Cmd.AddCommand("cl_shutdown", args -> CL.Shutdown());
-
-        Globals.net_message.data = Globals.net_message_buffer;
-        Globals.net_message.maxsize = Globals.net_message_buffer.length;
 
         Menu.Init();
 

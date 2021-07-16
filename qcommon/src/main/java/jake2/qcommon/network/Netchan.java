@@ -29,9 +29,12 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
+
+import java.util.Collection;
 
 /**
  * Netchan
@@ -39,10 +42,13 @@ import jake2.qcommon.util.Lib;
 public final class Netchan {
 
     /*
-     * 
-     * packet header ------------- 31 sequence 1 does this message contains a
-     * reliable payload 31 acknowledge sequence 1 acknowledge receipt of
-     * even/odd message 16 qport
+     * packet header
+     * -------------
+     * 31 sequence
+     * 1 does this message contains a reliable payload
+     * 31 acknowledge sequence
+     * 1 acknowledge receipt of * even/odd message
+     * 16 qport
      * 
      * The remote connection never knows if it missed a reliable message, the
      * local side detects that it has been dropped by seeing a sequence
@@ -55,7 +61,7 @@ public final class Netchan {
      * to get there.
      * 
      * if the sequence number is -1, the packet should be handled without a
-     * netcon
+     * netcon (Connectionless/out-of-band packet)
      * 
      * The reliable message can be added to at any time by doing MSG_Write*
      * (&netchan.message, <data>).
@@ -102,33 +108,31 @@ public final class Netchan {
      * 
      */
     public static void Netchan_Init() {
-        long port;
 
         // pick a port value that should be nice and random
-        port = Timer.Milliseconds() & 0xffff;
+        long port = Timer.Milliseconds() & 0xffff;
 
         showpackets = Cvar.getInstance().Get("showpackets", "0", 0);
         showdrop = Cvar.getInstance().Get("showdrop", "0", 0);
         qport = Cvar.getInstance().Get("qport", "" + port, Defines.CVAR_NOSET);
     }
 
-    private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
-    private static final sizebuf_t buffer = new sizebuf_t();
-
     /**
-     * OutOfBandPrint
+     * Out Of Band
      */
     public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
         String msg = cmd.name() + payload;
 
-        // write the packet header
-        buffer.init(send_buf, Defines.MAX_MSGLEN);
+        sizebuf_t packet = new sizebuf_t();
+        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
+        packet.init(send_buf, Defines.MAX_MSGLEN);
 
-        buffer.writeInt(-1); // -1 sequence means connectionless (out of band)
-        buffer.writeBytes(Lib.stringToBytes(msg), msg.length());
+        // write the packet header
+        packet.writeInt(-1); // -1 sequence means connectionless (out of band)
+        packet.writeBytes(Lib.stringToBytes(msg), msg.length());
 
         // send the datagram
-        NET.SendPacket(net_socket, buffer.cursize, buffer.data, adr);
+        NET.SendPacket(net_socket, packet.cursize, packet.data, adr);
     }
 
     /**
@@ -142,33 +146,8 @@ public final class Netchan {
         chan.last_received = Globals.curtime;
         chan.incoming_sequence = 0;
         chan.outgoing_sequence = 1;
-
-        chan.message.init(chan.message_buf, chan.message_buf.length);
-        chan.message.allowoverflow = true;
     }
 
-    /**
-     * Netchan_CanReliable. Returns true if the last reliable message has acked.
-     */
-    public static boolean Netchan_CanReliable(netchan_t chan) {
-        if (chan.reliable_length != 0)
-            return false; // waiting for ack
-        return true;
-    }
-
-    
-    public static boolean Netchan_NeedReliable(netchan_t chan) {
-        // if the remote side dropped the last reliable message, resend it
-        boolean send_reliable = chan.incoming_acknowledged > chan.last_reliable_sequence
-                && chan.incoming_reliable_acknowledged != chan.reliable_sequence;
-
-        // if the reliable transmit buffer is empty, copy the current message out
-        if (0 == chan.reliable_length && chan.message.cursize != 0) {
-            send_reliable = true;
-        }
-
-        return send_reliable;
-    }
 
     /**
      * Netchan_Transmit tries to send an unreliable message to a connection, 
@@ -177,68 +156,79 @@ public final class Netchan {
      * A 0 length will still generate a packet and deal with the reliable
      * messages.
      */
-    public static void Transmit(netchan_t chan, int length, byte data[]) {
+    public static void Transmit(netchan_t chan, Collection<NetworkMessage> unreliable) {
 
         // check for message overflow
-        if (chan.message.overflowed) {
+        int pendingReliableSize = chan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+        if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
             chan.fatal_error = true;
-            Com.Printf(chan.remote_address.toString()
-                    + ":Outgoing message overflow\n");
+            Com.Printf(chan.remote_address.toString() + ":Outgoing message overflow\n");
             return;
         }
 
-        int send_reliable = Netchan_NeedReliable(chan) ? 1 : 0;
+        int send_reliable = chan.needReliable() ? 1 : 0;
 
-        if (chan.reliable_length == 0 && chan.message.cursize != 0) {
-            System.arraycopy(chan.message_buf, 0, chan.reliable_buf, 0,
-                    chan.message.cursize);
-            chan.reliable_length = chan.message.cursize;
-            chan.message.cursize = 0;
+        if (chan.reliable_length == 0 && chan.reliable.size() != 0) {
+            // wrap chan.reliable_buf array in a buffer
+            final sizebuf_t reliableDataBuffer = new sizebuf_t();
+            reliableDataBuffer.data = chan.reliable_buf;
+            reliableDataBuffer.maxsize = Defines.MAX_MSGLEN - 16;
+            reliableDataBuffer.allowoverflow = true;
+
+            chan.reliable.forEach(networkMessage -> networkMessage.writeTo(reliableDataBuffer));
+            chan.reliable_length = pendingReliableSize;
+            chan.reliable.clear();
             chan.reliable_sequence ^= 1;
         }
 
-        // write the packet header
-        buffer.init(send_buf, send_buf.length);
+        sizebuf_t packet = new sizebuf_t();
+        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
+        packet.init(send_buf, send_buf.length);
 
+        // write the packet header
         int sequence = (chan.outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
         int sequenceAck = (chan.incoming_sequence & ~(1 << 31)) | (chan.incoming_reliable_sequence << 31);
 
         chan.outgoing_sequence++;
         chan.last_sent = (int) Globals.curtime;
 
-        buffer.writeInt(sequence);
-        buffer.writeInt(sequenceAck);
+        packet.writeInt(sequence);
+        packet.writeInt(sequenceAck);
 
         // send the qport if we are a client
         if (chan.sock == Defines.NS_CLIENT)
-            buffer.writeShort((int) qport.value);
+            packet.writeShort((int) qport.value);
 
         // copy the reliable message to the packet first
         if (send_reliable != 0) {
-            buffer.writeBytes(chan.reliable_buf, chan.reliable_length);
+            packet.writeBytes(chan.reliable_buf, chan.reliable_length);
             chan.last_reliable_sequence = chan.outgoing_sequence;
         }
 
-        // add the unreliable part if space is available
-        if (buffer.maxsize - buffer.cursize >= length)
-            buffer.writeBytes(data, length);
-        else
-            Com.Printf("Netchan_Transmit: dumped unreliable\n");
+        if (unreliable != null) {
+            // add the unreliable part if space is available
+            int length = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            if (packet.maxsize - packet.cursize >= length) {
+                unreliable.forEach(msg -> msg.writeTo(packet));
+            } else {
+                Com.Printf("Netchan_Transmit: dumped unreliable\n");
+            }
+        }
 
         // send the datagram
-        NET.SendPacket(chan.sock, buffer.cursize, buffer.data, chan.remote_address);
+        NET.SendPacket(chan.sock, packet.cursize, packet.data, chan.remote_address);
 
         if (showpackets.value != 0) {
             if (send_reliable != 0)
                 Com.Printf(
-                        "send " + buffer.cursize + " : s="
+                        "send " + packet.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " reliable="
                                 + chan.reliable_sequence + " ack="
                                 + chan.incoming_sequence + " rack="
                                 + chan.incoming_reliable_sequence + "\n");
             else
                 Com.Printf(
-                        "send " + buffer.cursize + " : s="
+                        "send " + packet.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " ack="
                                 + chan.incoming_sequence + " rack="
                                 + chan.incoming_reliable_sequence + "\n");

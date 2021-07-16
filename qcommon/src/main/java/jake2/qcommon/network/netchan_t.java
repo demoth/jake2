@@ -23,7 +23,10 @@
 package jake2.qcommon.network;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.messages.NetworkMessage;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class netchan_t {
 
@@ -57,29 +60,46 @@ public class netchan_t {
 
     public int last_reliable_sequence; // sequence number of last send
 
-    //	   reliable staging and holding areas
-    public sizebuf_t message = new sizebuf_t(); // writing buffer to send to
-                                                // server
-
-    public byte message_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // leave
-                                                                   // space for
-                                                                   // header
+    /**
+     * Reliable staging and holding areas, writing buffer to send to server.
+     * Overall size of the messages in bytes should not exceed Defines.MAX_MSGLEN - 16 (some space for header is reserved), otherwise connection will be closed.
+     * See @{link jake2.qcommon.network.Netchan#Transmit}
+     */
+    public Collection<NetworkMessage> reliable = new ArrayList<>();
 
     //	   message is copied to this buffer when it is first transfered
     public int reliable_length;
 
     public byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unpcked
-                                                                    // reliable
-                                                                    // message
+
+    /**
+     * Netchan_CanReliable. Returns true if the last reliable message has acked.
+     */
+    public boolean canReliable() {
+        return reliable_length == 0; // waiting for ack
+    }
+
+    /**
+     * Netchan_NeedReliable
+     */
+    public boolean needReliable() {
+        // if the remote side dropped the last reliable message, resend it
+        boolean send_reliable = incoming_acknowledged > last_reliable_sequence && incoming_reliable_acknowledged != reliable_sequence;
+
+        // if the reliable transmit buffer is empty, copy the current message out
+        if (reliable_length == 0 && reliable.size() != 0) {
+            send_reliable = true;
+        }
+
+        return send_reliable;
+    }
 
     //ok.
     public void clear() {
         sock = dropped = last_received = last_sent = 0;
         remote_address = new netadr_t();
         qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = incoming_reliable_sequence = outgoing_sequence = reliable_sequence = last_reliable_sequence = 0;
-        message = new sizebuf_t();
-
-        message_buf = new byte[Defines.MAX_MSGLEN - 16];
+        reliable.clear();
 
         reliable_length = 0;
         reliable_buf = new byte[Defines.MAX_MSGLEN - 16];

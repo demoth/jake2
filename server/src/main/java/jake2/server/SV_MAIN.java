@@ -33,6 +33,7 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
@@ -333,9 +334,6 @@ public class SV_MAIN implements JakeServer {
 
         clients.get(i).state = ClientStates.CS_CONNECTED;
 
-        clients.get(i).datagram.init(clients.get(i).datagram_buf, clients.get(i).datagram_buf.length);
-        
-        clients.get(i).datagram.allowoverflow = true;
         clients.get(i).lastmessage = gameImports.realtime; // don't timeout
         clients.get(i).lastconnect = gameImports.realtime;
         Com.DPrintf("new client added.\n");
@@ -513,16 +511,17 @@ public class SV_MAIN implements JakeServer {
                 continue;
             // if the reliable message overflowed,
             // drop the client
-            if (c.netchan.message.overflowed) {
-                c.netchan.message.clear();
-                c.datagram.clear();
+            int pendingReliableSize = c.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
+                c.netchan.reliable.clear();
+                c.unreliable.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
                 SV_DropClient(c);
             }
 
             if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
                 // leftover from demo code
-                Netchan.Transmit(c.netchan, 0, NULLBYTE);
+                Netchan.Transmit(c.netchan, null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
                 if (SV_RateDrop(c))
@@ -532,8 +531,8 @@ public class SV_MAIN implements JakeServer {
             }
             else {
                 // just update reliable	if needed
-                if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-                    Netchan.Transmit(c.netchan, 0, NULLBYTE);
+                if (c.netchan.reliable.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    Netchan.Transmit(c.netchan, null);
             }
         }
     }
@@ -545,7 +544,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        new DisconnectMessage().writeTo(client.netchan.message);
+        client.netchan.reliable.add(new DisconnectMessage());
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -578,7 +577,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            new PrintMessage(level, s).writeTo(cl.netchan.message);
+            cl.netchan.reliable.add(new PrintMessage(level, s));
         }
     }
 
@@ -904,23 +903,23 @@ public class SV_MAIN implements JakeServer {
      */
     private void SV_FinalMessage(String message, boolean reconnect) {
 
-        Globals.net_message.clear();
-        new PrintMessage(Defines.PRINT_HIGH, message).writeTo(Globals.net_message);
+        Collection<NetworkMessage> msgs = new ArrayList<>();
+        msgs.add(new PrintMessage(Defines.PRINT_HIGH, message));
 
         if (reconnect)
-            new ReconnectMessage().writeTo(Globals.net_message);
+            msgs.add(new ReconnectMessage());
         else
-            new DisconnectMessage().writeTo(Globals.net_message);
+            msgs.add(new DisconnectMessage());
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, msgs);
         }
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, Globals.net_message.cursize, Globals.net_message.data);
+                Netchan.Transmit(cl.netchan, msgs);
         }
     }
 
@@ -1315,9 +1314,6 @@ goes to map jail.bsp.
             gameImports.sv.configstrings[CS_AIRACCEL] = "0";
             PMove.pm_airaccelerate = 0;
         }
-
-        gameImports.sv.multicast.init(gameImports.sv.multicast_buf, gameImports.sv.multicast_buf.length);
-
 
         // question: if we spawn a new server - all existing clients will receive the 'reconnect'
         // then why update state and lastframe?

@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.util.Math3D;
 
@@ -43,21 +44,18 @@ public class SV_GAME {
      * 
      * Sends the contents of the mutlicast buffer to a single client.
      */
-    public void PF_Unicast(int p, boolean reliable) {
+    public void PF_Unicast(int p, boolean reliable, NetworkMessage msg) {
 
         if (p < 1 || p > gameImports.serverMain.getClients().size())
             return;
 
         client_t client = gameImports.serverMain.getClients().get(p - 1);
 
-        if (reliable)
-            client.netchan.message.writeBytes(gameImports.sv.multicast.data,
-                    gameImports.sv.multicast.cursize);
-        else
-            client.datagram.writeBytes(gameImports.sv.multicast.data,
-                    gameImports.sv.multicast.cursize);
+        if (reliable) {
+            client.netchan.reliable.add(msg);
+        } else
+            client.unreliable.add(msg);
 
-        gameImports.sv.multicast.clear();
     }
 
     /**
@@ -134,10 +132,9 @@ public class SV_GAME {
         // change the string in sv
         gameImports.sv.configstrings[index] = val;
 
-        if (gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
-                                                      // everyone
-            gameImports.sv.multicast.clear();
-            gameImports.multicastMessage(Globals.vec3_origin, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
+        if (gameImports.sv.state != ServerStates.SS_LOADING) {
+            // send the update to everyone
+            gameImports.multicastMessage(null, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
         }
     }
 

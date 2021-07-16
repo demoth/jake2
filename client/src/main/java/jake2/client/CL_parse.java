@@ -25,7 +25,10 @@ package jake2.client;
 
 import jake2.client.render.model_t;
 import jake2.client.sound.S;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
@@ -127,10 +130,10 @@ public class CL_parse {
 
             // give the server an offset to start the download
             Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname + " " + len).writeTo(ClientGlobals.cls.netchan.message);
+            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname + " " + len));
         } else {
             Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
-            new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname).writeTo(ClientGlobals.cls.netchan.message);
+            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname));
         }
 
         ClientGlobals.cls.downloadnumber++;
@@ -208,7 +211,7 @@ public class CL_parse {
             // request next block
             //	   change display routines by zoid
             ClientGlobals.cls.downloadpercent = percent;
-            new StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD).writeTo(ClientGlobals.cls.netchan.message);
+            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD));
         } else {
             try {
                 ClientGlobals.cls.download.close();
@@ -520,12 +523,6 @@ public class CL_parse {
                 soundMsg.attenuation,
                 soundMsg.timeOffset);
     }
-
-    public static void SHOWNET(String s) {
-        if (ClientGlobals.cl_shownet.value >= 2)
-            Com.Printf(Globals.net_message.readcount - 1 + ":" + s + "\n");
-    }
-
 
     static frame_t old;
 

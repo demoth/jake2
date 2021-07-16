@@ -217,13 +217,6 @@ public final class NET {
         }
     }
 
-    /**
-     * Init
-     */
-    public static void Init() {
-        Globals.net_message.init(Globals.net_message_buffer, Globals.net_message_buffer.length);
-    }
-
     /*
      * Socket
      */

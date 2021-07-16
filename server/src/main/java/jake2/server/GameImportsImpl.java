@@ -31,6 +31,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.PrintCenterMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
@@ -144,8 +145,7 @@ public class GameImportsImpl implements GameImports {
         if (n < 1 || n > sv_game.gameImports.serverMain.getClients().size())
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
-        new PrintCenterMessage(s).writeTo(sv.multicast);
-        sv_game.PF_Unicast(ent.index, true);
+        sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
     }
 
     @Override
@@ -252,15 +252,6 @@ public class GameImportsImpl implements GameImports {
     @Override
     public void Pmove(pmove_t pmove) {
         PMove.Pmove(pmove);
-    }
-
-    /*
-     player movement code common with client prediction
-     network messaging
-    */
-    @Override
-    public void multicast(float[] origin, MulticastTypes to) {
-        SV_Multicast(origin, to);
     }
 
     /**
@@ -587,8 +578,7 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        new StuffTextMessage(s).writeTo(sv.multicast);
-        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
+        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, new StuffTextMessage(s));
     }
 
     void SV_WriteLevelFile() {
@@ -678,7 +668,7 @@ public class GameImportsImpl implements GameImports {
      * MULTICAST_PVS	send to clients potentially visible from org
      * MULTICAST_PHS	send to clients potentially hearable from org
      */
-    private void SV_Multicast(float[] origin, MulticastTypes to) {
+    private void SV_Multicast(float[] origin, MulticastTypes to, NetworkMessage msg) {
         byte mask[];
         int leafnum, cluster;
         int j;
@@ -747,24 +737,21 @@ public class GameImportsImpl implements GameImports {
                     continue;
             }
 
-            if (reliable)
-                client.netchan.message.writeBytes(sv.multicast.data, sv.multicast.cursize);
-            else
-                client.datagram.writeBytes(sv.multicast.data, sv.multicast.cursize);
+            if (reliable) {
+                client.netchan.reliable.add(msg);
+            } else
+                client.unreliable.add(msg);
         }
 
-        sv.multicast.clear();
     }
 
     @Override
     public void multicastMessage(float[] origin, ServerMessage msg, MulticastTypes to) {
-        msg.writeTo(sv.multicast);
-        SV_Multicast(origin, to);
+        SV_Multicast(origin, to, msg);
     }
 
     @Override
     public void unicastMessage(int index, ServerMessage msg, boolean reliable) {
-        msg.writeTo(sv.multicast);
-        sv_game.PF_Unicast(index, reliable);
+        sv_game.PF_Unicast(index, reliable, msg);
     }
 }

@@ -69,12 +69,6 @@ public interface GameImports {
 
     void Pmove(pmove_t pmove);
 
-    /*
-             player movement code common with client prediction
-             network messaging
-            */
-    void multicast(float[] origin, MulticastTypes to);
-
     /* console variable interaction */
     cvar_t cvar(String var_name, String value, int flags);
 

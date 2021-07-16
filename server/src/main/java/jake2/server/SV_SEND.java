@@ -27,12 +27,12 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
-import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
-import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.util.Math3D;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class SV_SEND {
@@ -54,7 +54,7 @@ public class SV_SEND {
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
 
 		if (level >= cl.messagelevel) {
-			new PrintMessage(level, s).writeTo(cl.netchan.message);
+			cl.netchan.reliable.add(new PrintMessage(level, s));
 		}
 	}
 
@@ -182,43 +182,24 @@ public class SV_SEND {
 	=======================
 	*/
 	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
-		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
-
 		gameImports.sv_ents.SV_BuildClientFrame(client);
-
-		sizebuf_t msg = new sizebuf_t();
-		byte[] msgbuf = new byte[Defines.MAX_MSGLEN];
-
-		msg.init(msgbuf, msgbuf.length);
-		msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		Collection<ServerMessage> frame = gameImports.sv_ents.SV_WriteFrameToClient(client);
-		for (ServerMessage serverMessage : frame) {
-			serverMessage.writeTo(msg);
-		}
+		Collection<NetworkMessage> unreliable = new ArrayList<>();
+		unreliable.addAll(gameImports.sv_ents.SV_WriteFrameToClient(client));
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
-		// it is necessary for this to be after the WriteEntities
+		// it is necessary for this to be after the SV_WriteFrameToClient
 		// so that entity references will be current
-		if (client.datagram.overflowed)
-			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
-		else
-			msg.writeBytes(client.datagram.data, client.datagram.cursize);
-        client.datagram.clear();
-
-        if (msg.overflowed) { // must have room left for the packet header
-			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-			msg.clear();
-        }
-
+		unreliable.addAll(client.unreliable);
+		client.unreliable.clear();
 		// send the datagram
-		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
+		Netchan.Transmit(client.netchan, unreliable);
 
 		// record the size for rate estimation
-		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = msg.cursize;
+		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
 
 		return true;
 	}
