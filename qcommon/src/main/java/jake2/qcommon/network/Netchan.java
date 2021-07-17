@@ -24,7 +24,6 @@
 package jake2.qcommon.network;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
@@ -40,10 +39,10 @@ public final class Netchan {
     /*
      * packet header
      * -------------
-     * 31 sequence
      * 1 does this message contains a reliable payload
-     * 31 acknowledge sequence
+     * 31 sequence
      * 1 acknowledge receipt of * even/odd message
+     * 31 acknowledge sequence
      * 16 qport
      * 
      * The remote connection never knows if it missed a reliable message, the
@@ -127,19 +126,6 @@ public final class Netchan {
 
         // send the datagram
         NET.SendPacket(net_socket, packet.cursize, packet.data, adr);
-    }
-
-    /**
-     * Netchan_Setup is alled to open a channel to a remote system.
-     */
-    public static void Setup(int sock, netchan_t chan, netadr_t adr, int qport) {
-        chan.clear();
-        chan.sock = sock;
-        chan.remote_address.set(adr);
-        chan.qport = qport;
-        chan.last_received = Globals.curtime;
-        chan.incoming_sequence = 0;
-        chan.outgoing_sequence = 1;
     }
 
 

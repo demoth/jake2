@@ -740,7 +740,7 @@ public final class CL {
                     Com.Printf("Dup connect received.  Ignored.\n");
                     break;
                 }
-                Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan, packet.from, ClientGlobals.cls.quakePort);
+                ClientGlobals.cls.netchan.setup(Defines.NS_CLIENT, packet.from, ClientGlobals.cls.quakePort);
                 ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.NEW));
                 ClientGlobals.cls.state = Defines.ca_connected;
                 break;

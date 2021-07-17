@@ -330,7 +330,7 @@ public class SV_MAIN implements JakeServer {
 
         Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.client_connect, "");
 
-        Netchan.Setup(Defines.NS_SERVER, clients.get(i).netchan, adr, qport);
+        clients.get(i).netchan.setup(Defines.NS_SERVER, adr, qport);
 
         clients.get(i).state = ClientStates.CS_CONNECTED;
 

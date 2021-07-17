@@ -56,11 +56,12 @@ public class netchan_t {
 
     public int incoming_reliable_acknowledged; // single bit
 
-    public int incoming_reliable_sequence; // single bit, maintained local
+    // single bit, maintained locally, switched every time a reliable message is received.
+    public int reliable_received_flag;
+    // single bit, maintained locally, switched every time a reliable message is sent
+    public int reliable_sent_flag;
 
     public int outgoing_sequence;
-
-    public int reliable_sequence; // single bit
 
     public int last_reliable_sequence; // sequence number of last send
 
@@ -74,12 +75,25 @@ public class netchan_t {
     //	   message is copied to this buffer when it is first transfered
     public sizebuf_t reliableUnacknowledged = new sizebuf_t(Defines.MAX_MSGLEN - 16);
 
+    /**
+     * Netchan_Setup is called to open a channel to a remote system.
+     */
+    public void setup(int sock, netadr_t adr, int qport) {
+        clear();
+        this.sock = sock;
+        remote_address.set(adr);
+        this.qport = qport;
+        last_received = Globals.curtime;
+        incoming_sequence = 0;
+        outgoing_sequence = 1;
+    }
+
     // Netchan.Process
     public boolean accept(NetworkPacket packet) {
+        // unpack sequences and flags
         // achtung unsigned int
-        int reliable_message = packet.sequence >>> 31;
-        int reliable_ack = packet.sequenceAck >>> 31;
-
+        boolean containsReliable = (packet.sequence >>> 31) != 0;
+        int reliable_ack = packet.sequenceAck >>> 31; // single bit
         packet.sequence &= ~(1 << 31);
         packet.sequenceAck &= ~(1 << 31);
 
@@ -99,7 +113,7 @@ public class netchan_t {
         // if the current outgoing reliable message has been acknowledged
         // clear the buffer to make way for the next
         //
-        if (reliable_ack == reliable_sequence)
+        if (reliable_ack == reliable_sent_flag)
             reliableUnacknowledged.clear(); // it has been received
 
         //
@@ -109,8 +123,8 @@ public class netchan_t {
         incoming_sequence = packet.sequence;
         incoming_acknowledged = packet.sequenceAck;
         incoming_reliable_acknowledged = reliable_ack;
-        if (reliable_message != 0) {
-            incoming_reliable_sequence ^= 1;
+        if (containsReliable) {
+            reliable_received_flag ^= 1;
         }
 
         //
@@ -143,22 +157,23 @@ public class netchan_t {
             return;
         }
 
+        // single bit
         int send_reliable = needReliable() ? 1 : 0;
 
-        // If the last reliable message was acknowledged by the client (NetworkPacket.isValidForClient),
+        // If the last reliable message was acknowledged by the client (jake2.qcommon.network.netchan_t.accept),
         // send next portion of pending reliable messages (if there is something to send).
         // Otherwise, the contents of the reliableUnacknowledged will be retransmitted
         if (reliableUnacknowledged.cursize == 0 && reliablePending.size() != 0) {
             reliablePending.forEach(networkMessage -> networkMessage.writeTo(reliableUnacknowledged));
             reliablePending.clear();
-            reliable_sequence ^= 1;
+            reliable_sent_flag ^= 1;
         }
 
         sizebuf_t packet = new sizebuf_t(Defines.MAX_MSGLEN);
 
         // write the packet header
         int sequence = (outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
-        int sequenceAck = (incoming_sequence & ~(1 << 31)) | (incoming_reliable_sequence << 31);
+        int sequenceAck = (incoming_sequence & ~(1 << 31)) | (reliable_received_flag << 31);
 
         outgoing_sequence++;
         last_sent = (int) Globals.curtime;
@@ -189,6 +204,11 @@ public class netchan_t {
 
         // send the datagram
         NET.SendPacket(sock, packet.cursize, packet.data, remote_address);
+
+        if (Netchan.showpackets.value != 0) {
+            Com.Printf(String.format("Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d \n", sock == 0 ? "client" : "server", outgoing_sequence - 1, incoming_sequence, send_reliable, reliable_received_flag));
+        }
+
     }
 
     /**
@@ -203,7 +223,7 @@ public class netchan_t {
      */
     public boolean needReliable() {
         // if the remote side dropped the last reliable message, resend it
-        boolean send_reliable = incoming_acknowledged > last_reliable_sequence && incoming_reliable_acknowledged != reliable_sequence;
+        boolean send_reliable = incoming_acknowledged > last_reliable_sequence && incoming_reliable_acknowledged != reliable_sent_flag;
 
         // if the reliable transmit buffer is empty, copy the current message out
         if (reliableUnacknowledged.cursize == 0 && reliablePending.size() != 0) {
@@ -217,7 +237,7 @@ public class netchan_t {
     public void clear() {
         sock = dropped = last_received = last_sent = 0;
         remote_address = new netadr_t();
-        qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = incoming_reliable_sequence = outgoing_sequence = reliable_sequence = last_reliable_sequence = 0;
+        qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = reliable_received_flag = outgoing_sequence = reliable_sent_flag = last_reliable_sequence = 0;
         reliablePending.clear();
         reliableUnacknowledged.clear();
     }
