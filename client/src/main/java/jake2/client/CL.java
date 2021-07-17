@@ -165,8 +165,6 @@ public final class CL {
      */
     private static Command Record_f = (List<String> args) -> {
         try {
-            byte[] buf_data = new byte[Defines.MAX_MSGLEN];
-            sizebuf_t buffer = new sizebuf_t();
             entity_state_t ent;
 
             if (args.size() != 2) {
@@ -205,7 +203,7 @@ public final class CL {
             //
             // write out messages to hold the startup information
             //
-            buffer.init(buf_data, Defines.MAX_MSGLEN);
+            sizebuf_t buffer = new sizebuf_t(Defines.MAX_MSGLEN);
 
             // send the serverdata
             new ServerDataMessage(Defines.PROTOCOL_VERSION,
@@ -277,7 +275,7 @@ public final class CL {
 
         // don't forward the first argument
         if (args.size() > 1) {
-            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(getArguments(args)));
+            ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(getArguments(args)));
         }
     };
 
@@ -413,7 +411,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEW));
+            ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.NEW));
             return;
         }
 
@@ -538,7 +536,7 @@ public final class CL {
         ClientGlobals.cls.downloadtempname = Com
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
-        ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname));
+        ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.DOWNLOAD + " " + ClientGlobals.cls.downloadname));
         ClientGlobals.cls.downloadnumber++;
     };
 
@@ -651,7 +649,7 @@ public final class CL {
             ClientGlobals.cl_entities[i] = new centity_t();
         }
 
-        ClientGlobals.cls.netchan.reliable.clear();
+        ClientGlobals.cls.netchan.reliablePending.clear();
     }
 
     /**
@@ -692,13 +690,11 @@ public final class CL {
 
         // send a disconnect message to the server
 
-        byte[] data = new byte[128];
-        sizebuf_t buf = new sizebuf_t();
-        buf.init(data, data.length);
+        sizebuf_t buf = new sizebuf_t(128);
         new StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf);
 
         // fixme: was sending it 3 times
-        ClientGlobals.cls.netchan.Transmit(List.of(new StringCmdMessage(StringCmdMessage.DISCONNECT)));
+        ClientGlobals.cls.netchan.transmit(List.of(new StringCmdMessage(StringCmdMessage.DISCONNECT)));
 
 
         ClearState();
@@ -745,7 +741,7 @@ public final class CL {
                     break;
                 }
                 Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan, packet.from, ClientGlobals.cls.quakePort);
-                ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEW));
+                ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.NEW));
                 ClientGlobals.cls.state = Defines.ca_connected;
                 break;
 
@@ -808,7 +804,7 @@ public final class CL {
                 Com.DPrintf(networkPacket.from + ":sequenced packet without connection\n");
                 continue;
             }
-            if (networkPacket.isValidForClient(ClientGlobals.cls.netchan)) {
+            if (ClientGlobals.cls.netchan.accept(networkPacket)) {
                 CL_parse.ParseServerMessage(networkPacket.parseBodyFromServer());
             } //else wasn't accepted for some reason
         }
@@ -1170,7 +1166,7 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        ClientGlobals.cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n"));
+        ClientGlobals.cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.BEGIN + " " + CL.precache_spawncount + "\n"));
     }
 
     /**

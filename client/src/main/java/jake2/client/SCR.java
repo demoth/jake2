@@ -1478,7 +1478,7 @@ public final class SCR extends Globals {
      */
     static void nextServerCommand() {
         // tell the server to advance to the next map / cinematic
-        cls.netchan.reliable.add(new StringCmdMessage(StringCmdMessage.NEXT_SERVER + " " + ClientGlobals.cl.servercount + '\n'));
+        cls.netchan.reliablePending.add(new StringCmdMessage(StringCmdMessage.NEXT_SERVER + " " + ClientGlobals.cl.servercount + '\n'));
     }
 
     // ==========================================================================

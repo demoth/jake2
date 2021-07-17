@@ -511,9 +511,9 @@ public class SV_MAIN implements JakeServer {
                 continue;
             // if the reliable message overflowed,
             // drop the client
-            int pendingReliableSize = c.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            int pendingReliableSize = c.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
-                c.netchan.reliable.clear();
+                c.netchan.reliablePending.clear();
                 c.unreliable.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
                 SV_DropClient(c);
@@ -521,7 +521,7 @@ public class SV_MAIN implements JakeServer {
 
             if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
                 // leftover from demo code
-                c.netchan.Transmit(null);
+                c.netchan.transmit(null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
                 if (SV_RateDrop(c))
@@ -531,8 +531,8 @@ public class SV_MAIN implements JakeServer {
             }
             else {
                 // just update reliable	if needed
-                if (c.netchan.reliable.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-                    c.netchan.Transmit(null);
+                if (c.netchan.reliablePending.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    c.netchan.transmit(null);
             }
         }
     }
@@ -544,7 +544,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        client.netchan.reliable.add(new DisconnectMessage());
+        client.netchan.reliablePending.add(new DisconnectMessage());
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -577,7 +577,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            cl.netchan.reliable.add(new PrintMessage(level, s));
+            cl.netchan.reliablePending.add(new PrintMessage(level, s));
         }
     }
 
@@ -644,7 +644,7 @@ public class SV_MAIN implements JakeServer {
                     cl.netchan.remote_address.port = networkPacket.from.port;
                 }
 
-                if (networkPacket.isValidForClient(cl.netchan)) {
+                if (cl.netchan.accept(networkPacket)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
                         // todo: identify gameImports instance by client
@@ -915,11 +915,11 @@ public class SV_MAIN implements JakeServer {
         // stagger the packets to crutch operating system limited buffers
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                cl.netchan.Transmit(msgs);
+                cl.netchan.transmit(msgs);
         }
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                cl.netchan.Transmit(msgs);
+                cl.netchan.transmit(msgs);
         }
     }
 

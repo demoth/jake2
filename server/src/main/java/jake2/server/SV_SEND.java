@@ -53,7 +53,7 @@ public class SV_SEND {
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
 
 		if (level >= cl.messagelevel) {
-			cl.netchan.reliable.add(new PrintMessage(level, s));
+			cl.netchan.reliablePending.add(new PrintMessage(level, s));
 		}
 	}
 
@@ -195,7 +195,7 @@ public class SV_SEND {
 		unreliable.addAll(client.unreliable);
 		client.unreliable.clear();
 		// send the datagram
-		client.netchan.Transmit(unreliable);
+		client.netchan.transmit(unreliable);
 
 		// record the size for rate estimation
 		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();

@@ -25,12 +25,15 @@
  */
 package jake2.client;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.client.MoveMessage;
 import jake2.qcommon.network.messages.client.UserInfoMessage;
+import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -394,9 +397,6 @@ public class CL_input {
 		cl_nodelta = Cvar.getInstance().Get("cl_nodelta", "0", 0);
 	}
 
-	private static final sizebuf_t buf = new sizebuf_t();
-	private static final byte[] data = new byte[128];
-	private static final usercmd_t nullcmd = new usercmd_t();
 	/*
 	 * ================= CL_SendCmd =================
 	 */
@@ -419,8 +419,8 @@ public class CL_input {
 			return;
 
 		if (ClientGlobals.cls.state == Defines.ca_connected) {
-			if (ClientGlobals.cls.netchan.reliable.size() != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
-				ClientGlobals.cls.netchan.Transmit(null);
+			if (ClientGlobals.cls.netchan.reliablePending.size() != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
+				ClientGlobals.cls.netchan.transmit(null);
 			return;
 		}
 
@@ -428,7 +428,7 @@ public class CL_input {
 		if (Globals.userinfo_modified) {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
-			ClientGlobals.cls.netchan.reliable.add(new UserInfoMessage(Cvar.getInstance().Userinfo()));
+			ClientGlobals.cls.netchan.reliablePending.add(new UserInfoMessage(Cvar.getInstance().Userinfo()));
 		}
 
 
@@ -456,7 +456,7 @@ public class CL_input {
 		//
 		// deliver the message
 		//
-		ClientGlobals.cls.netchan.Transmit(List.of(new MoveMessage(
+		ClientGlobals.cls.netchan.transmit(List.of(new MoveMessage(
 				noCompress,
 				ClientGlobals.cl.frame.serverframe,
 				oldestCmd,

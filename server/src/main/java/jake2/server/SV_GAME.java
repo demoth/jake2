@@ -52,7 +52,7 @@ public class SV_GAME {
         client_t client = gameImports.serverMain.getClients().get(p - 1);
 
         if (reliable) {
-            client.netchan.reliable.add(msg);
+            client.netchan.reliablePending.add(msg);
         } else
             client.unreliable.add(msg);
 

@@ -738,7 +738,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             if (reliable) {
-                client.netchan.reliable.add(msg);
+                client.netchan.reliablePending.add(msg);
             } else
                 client.unreliable.add(msg);
         }

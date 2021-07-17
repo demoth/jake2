@@ -97,7 +97,7 @@ class SV_USER {
             playernum = gameImports.sv_client.edict.index - 1;
 
 
-        gameImports.sv_client.netchan.reliable.add(
+        gameImports.sv_client.netchan.reliablePending.add(
                 new ServerDataMessage(
                         Defines.PROTOCOL_VERSION,
                         gameImports.spawncount,
@@ -117,7 +117,7 @@ class SV_USER {
             gameImports.sv_client.lastcmd = new usercmd_t();
 
             // begin fetching configstrings
-            gameImports.sv_client.netchan.reliable.add(new StuffTextMessage(String.format("cmd %s %d 0", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount)));
+            gameImports.sv_client.netchan.reliablePending.add(new StuffTextMessage(String.format("cmd %s %d 0", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount)));
         }
     }
 
@@ -144,12 +144,12 @@ class SV_USER {
         int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
         // write a packet full of data
-        int currentReliableSize = gameImports.sv_client.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+        int currentReliableSize = gameImports.sv_client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.sv.configstrings[start] != null && gameImports.sv.configstrings[start].length() != 0) {
                 final ConfigStringMessage config = new ConfigStringMessage(start, gameImports.sv.configstrings[start]);
                 currentReliableSize += config.getSize();
-                gameImports.sv_client.netchan.reliable.add(config);
+                gameImports.sv_client.netchan.reliablePending.add(config);
             }
             start++;
         }
@@ -162,7 +162,7 @@ class SV_USER {
         } else {
             nextCmd = String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start);
         }
-        gameImports.sv_client.netchan.reliable.add(new StuffTextMessage(nextCmd));
+        gameImports.sv_client.netchan.reliablePending.add(new StuffTextMessage(nextCmd));
     }
 
     /*
@@ -192,13 +192,13 @@ class SV_USER {
         entity_state_t nullstate = new entity_state_t(null);
 
         // write a packet full of data
-        int currentReliableSize = gameImports.sv_client.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+        int currentReliableSize = gameImports.sv_client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             entity_state_t base = gameImports.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 final SpawnBaselineMessage spawn = new SpawnBaselineMessage(base);
                 currentReliableSize += spawn.getSize();
-                gameImports.sv_client.netchan.reliable.add(spawn);
+                gameImports.sv_client.netchan.reliablePending.add(spawn);
             }
             start++;
         }
@@ -212,7 +212,7 @@ class SV_USER {
             // continue from where we finished
             nextCmd = String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start);
         }
-        gameImports.sv_client.netchan.reliable.add(new StuffTextMessage(nextCmd));
+        gameImports.sv_client.netchan.reliablePending.add(new StuffTextMessage(nextCmd));
     }
 
     /*
@@ -259,7 +259,7 @@ class SV_USER {
 
         byte[] data = new byte[packet];
         System.arraycopy(gameImports.sv_client.download, gameImports.sv_client.downloadcount - packet, data, 0, packet);
-        gameImports.sv_client.netchan.reliable.add(new DownloadMessage(data, percent));
+        gameImports.sv_client.netchan.reliablePending.add(new DownloadMessage(data, percent));
 
         if (gameImports.sv_client.downloadcount == gameImports.sv_client.downloadsize) {
             gameImports.sv_client.download = null;
@@ -302,7 +302,7 @@ class SV_USER {
                                               // path
 
             // refuse
-            gameImports.sv_client.netchan.reliable.add(new DownloadMessage());
+            gameImports.sv_client.netchan.reliablePending.add(new DownloadMessage());
             return;
         }
 
@@ -327,7 +327,7 @@ class SV_USER {
             }
 
             // refuse
-            gameImports.sv_client.netchan.reliable.add(new DownloadMessage());
+            gameImports.sv_client.netchan.reliablePending.add(new DownloadMessage());
             return;
         }
 

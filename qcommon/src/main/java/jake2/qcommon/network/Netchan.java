@@ -119,9 +119,7 @@ public final class Netchan {
     public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
         String msg = cmd.name() + payload;
 
-        sizebuf_t packet = new sizebuf_t();
-        byte[] send_buf = new byte[Defines.MAX_MSGLEN];
-        packet.init(send_buf, Defines.MAX_MSGLEN);
+        sizebuf_t packet = new sizebuf_t(Defines.MAX_MSGLEN);
 
         // write the packet header
         packet.writeInt(-1); // -1 sequence means connectionless (out of band)
