@@ -180,7 +180,7 @@ public class SV_SEND {
 	SV_SendClientDatagram
 	=======================
 	*/
-	public static boolean SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
+	public static void SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
 		gameImports.sv_ents.SV_BuildClientFrame(client);
 
 		// send over all the relevant entity_state_t
@@ -199,8 +199,6 @@ public class SV_SEND {
 
 		// record the size for rate estimation
 		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
-
-		return true;
 	}
 
 }
