@@ -42,6 +42,14 @@ public final class sizebuf_t {
     public int cursize = 0;
     public int readcount = 0;
 
+    public sizebuf_t() {
+    }
+
+    public sizebuf_t(int length) {
+        this.data = new byte[length];
+        this.maxsize = length;
+    }
+
     /**
      * Ask for the pointer using sizebuf_t.cursize (RST)
      */

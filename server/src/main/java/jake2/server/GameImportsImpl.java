@@ -76,8 +76,6 @@ public class GameImportsImpl implements GameImports {
 
     SV_GAME sv_game;
 
-    client_t sv_client; // current client
-
     final float[] origin_v = { 0, 0, 0 };
 
     public GameImportsImpl(JakeServer serverMain) {
@@ -357,16 +355,16 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("Usage: kick <userid>\n");
             return;
         }
-
-        if (!SV_SetPlayer(args))
+        client_t client = SV_SetPlayer(args);
+        if (client == null)
             return;
 
-        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, sv_client.name + " was kicked\n");
+        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n");
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
-        SV_SEND.SV_ClientPrintf(sv_client, Defines.PRINT_HIGH, "You were kicked from the game\n");
-        SV_MAIN.SV_DropClient(sv_client);
-        sv_client.lastmessage = realtime; // min case there is a funny zombie
+        SV_SEND.SV_ClientPrintf(client, Defines.PRINT_HIGH, "You were kicked from the game\n");
+        SV_MAIN.SV_DropClient(client);
+        client.lastmessage = realtime; // min case there is a funny zombie
     }
     /*
     ================
@@ -478,13 +476,13 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("Usage: info <userid>\n");
             return;
         }
-
-        if (!SV_SetPlayer(args))
+        client_t client = SV_SetPlayer(args);
+        if (client == null)
             return;
 
         Com.Printf("userinfo\n");
         Com.Printf("--------\n");
-        Info.Print(sv_client.userinfo);
+        Info.Print(client.userinfo);
 
     }
 
@@ -505,10 +503,10 @@ public class GameImportsImpl implements GameImports {
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
      */
-    private boolean SV_SetPlayer(List<String> args) {
+    private client_t SV_SetPlayer(List<String> args) {
 
         if (args.size() < 2)
-            return false;
+            return null;
 
         String idOrName = args.get(1);
 
@@ -518,15 +516,15 @@ public class GameImportsImpl implements GameImports {
             int id = Lib.atoi(idOrName);
             if (id < 0 || id >= serverMain.getClients().size()) {
                 Com.Printf("Bad client slot: " + id + "\n");
-                return false;
+                return null;
             }
 
-            sv_client = serverMain.getClients().get(id);
-            if (ClientStates.CS_FREE == sv_client.state) {
+            final client_t result = serverMain.getClients().get(id);
+            if (ClientStates.CS_FREE == result.state) {
                 Com.Printf("Client " + id + " is not active\n");
-                return false;
+                return null;
             }
-            return true;
+            return result;
         }
 
         // check for a name match
@@ -534,13 +532,12 @@ public class GameImportsImpl implements GameImports {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
-                sv_client = cl;
-                return true;
+                return cl;
             }
         }
 
         Com.Printf("Userid " + idOrName + " is not on the server\n");
-        return false;
+        return null;
     }
 
     /**
@@ -738,7 +735,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             if (reliable) {
-                client.netchan.reliable.add(msg);
+                client.netchan.reliablePending.add(msg);
             } else
                 client.unreliable.add(msg);
         }
