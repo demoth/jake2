@@ -138,11 +138,6 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void centerprintf(edict_t ent, String s) {
-
-        int n = ent.index;
-        if (n < 1 || n > sv_game.gameImports.serverMain.getClients().size())
-            return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
-
         sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
     }
 

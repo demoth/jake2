@@ -297,9 +297,9 @@ public class SV_MAIN implements JakeServer {
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        edict_t ent = gameImports.gameExports.getEdict(i + 1);
         final client_t client = clients.get(i);
-        client.edict = ent;
+        edict_t ent = gameImports.gameExports.getEdict(i + 1);
+        client.edict = ent; // fixme: why? isn't it already set?
         
         // save challenge for checksumming
         client.challenge = challenge;
@@ -498,8 +498,7 @@ public class SV_MAIN implements JakeServer {
         server_t sv = gameImports.sv;
         // send a message to each connected client
         // todo send only to related clients
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t c = clients.get(i);
+        for (client_t c: clients) {
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
@@ -565,8 +564,7 @@ public class SV_MAIN implements JakeServer {
         }
 
         // todo: send only to related clients
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
@@ -623,8 +621,7 @@ public class SV_MAIN implements JakeServer {
 
             // check for packets from connected clients
             // todo: get client by address (hashmap?)
-            for (int i = 0; i < maxclients.value; i++) {
-                client_t cl = clients.get(i);
+            for (client_t cl: clients) {
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
@@ -820,8 +817,7 @@ public class SV_MAIN implements JakeServer {
         int droppoint = (int) (gameImports.realtime - 1000 * SV_MAIN.timeout.value);
         int zombiepoint = (int) (gameImports.realtime - 1000 * SV_MAIN.zombietime.value);
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             // message times may be wrong across a changelevel
             if (cl.lastmessage > gameImports.realtime)
                 cl.lastmessage = gameImports.realtime;
@@ -844,8 +840,7 @@ public class SV_MAIN implements JakeServer {
      */
     void SV_CalcPings() {
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -876,8 +871,7 @@ public class SV_MAIN implements JakeServer {
         if ((gameImports.sv.framenum & 15) != 0)
             return;
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -1207,25 +1201,26 @@ goes to map jail.bsp.
             SV_WipeSavegame("current");
         }
         else { // save the map just exited
-            // todo: init gameImports in a proper place
             if (gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
                 // at spawn points instead of occupying body shells
-                boolean[] savedInuse = new boolean[(int) maxclients.value];
-                for (int i = 0; i < maxclients.value; i++) {
-                    client_t cl = clients.get(i);
+                // todo: only relevant to this gameImports clients
+                boolean[] savedInuse = new boolean[clients.size()];
+                int i = 0;
+                for (client_t cl: clients) {
                     savedInuse[i] = cl.edict.inuse;
                     cl.edict.inuse = false;
+                    i++;
                 }
 
                 gameImports.SV_WriteLevelFile();
 
                 // we must restore these for clients to transfer over correctly
-                for (int i = 0; i < maxclients.value; i++) {
-                    client_t cl = clients.get(i);
+                i = 0;
+                for (client_t cl: clients) {
                     cl.edict.inuse = savedInuse[i];
-
+                    i++;
                 }
             }
         }
@@ -1309,7 +1304,7 @@ goes to map jail.bsp.
         // then why update state and lastframe?
 
         // leave slots at start for clients only
-        for (client_t cl: gameImports.serverMain.getClients()) {
+        for (client_t cl: clients) {
             // needs to reconnect
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;

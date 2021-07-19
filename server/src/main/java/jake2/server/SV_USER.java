@@ -90,11 +90,11 @@ class SV_USER {
         // send the serverdata
         // send full levelname
 
-        final int playernum;
+        final int clientIndex;
         if (gameImports.sv.state == ServerStates.SS_CINEMATIC || gameImports.sv.state == ServerStates.SS_PIC)
-            playernum = -1;
+            clientIndex = -1;
         else
-            playernum = client.edict.index - 1;
+            clientIndex = client.edict.index - 1;
 
 
         client.netchan.reliablePending.add(
@@ -103,7 +103,7 @@ class SV_USER {
                         gameImports.spawncount,
                         gameImports.sv.isDemo,
                         gamedir,
-                        playernum,
+                        clientIndex,
                         gameImports.sv.configstrings[Defines.CS_NAME]
                 ));
         //
@@ -111,8 +111,8 @@ class SV_USER {
         // 
         if (gameImports.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
-            edict_t ent = gameImports.gameExports.getEdict(playernum + 1);
-            ent.s.number = playernum + 1;
+            edict_t ent = gameImports.gameExports.getEdict(clientIndex + 1);
+            ent.s.number = clientIndex + 1;
             client.edict = ent;
             client.lastcmd = new usercmd_t();
 
