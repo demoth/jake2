@@ -345,8 +345,9 @@ public final class Cmd {
     }
 
     public static void ExecuteFunction(String name, String... args) {
-        if (cmd_functions.containsKey(name))
+        if (cmd_functions.containsKey(name)) {
             cmd_functions.get(name).function.execute(Arrays.asList(args));
+        }
     }
 
     public static void ExecuteFunction(String name, List<String> args) {

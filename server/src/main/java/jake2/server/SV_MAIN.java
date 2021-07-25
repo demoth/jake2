@@ -970,6 +970,10 @@ public class SV_MAIN implements JakeServer {
      * Only called at quake2.exe startup, not for each game
      */
     public SV_MAIN() {
+
+        // long gone
+        SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
+
         for (int n = 0; n < Defines.MAX_CHALLENGES; n++) {
             challenges[n] = new challenge_t();
         }
@@ -1047,9 +1051,9 @@ public class SV_MAIN implements JakeServer {
      *
      * A brand new game has been started.
      */
-    GameImportsImpl createGameInstance() {
+    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo) {
 
-        GameImportsImpl gameImports = new GameImportsImpl(this);
+        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo);
         gameImports.gameExports = createGameModInstance(gameImports);
         // why? should have default values already
         // fixme should not recreate all the clients
@@ -1256,10 +1260,8 @@ goes to map jail.bsp.
             boolean multiplayer = initializeServerCvars();
             // init network stuff
             NET.Config(multiplayer);
-            // long gone
-            SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
 
-            gameImports = createGameInstance(); // the game is just starting
+            gameImports = createGameInstance(changeMapInfo); // the game is just starting
         }
 
         if (changeMapInfo.isLoadgame) {
@@ -1375,7 +1377,6 @@ For development work
 ==================
 */
     void SV_Map_f(List<String> args) {
-        String mapName;
         //char expanded[MAX_QPATH];
         if (args.size() < 2) {
             Com.Printf("usage: map <map_name>\n");
@@ -1383,7 +1384,7 @@ For development work
         }
 
         // if not a pcx, demo, or cinematic, check to make sure the level exists
-        mapName = args.get(1);
+        String mapName = args.get(1);
         if (!mapName.contains(".")) {
             String mapPath = "maps/" + mapName + ".bsp";
             if (FS.LoadFile(mapPath) == null) {

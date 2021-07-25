@@ -450,7 +450,6 @@ public class CL_parse {
      * ================ CL_ParseConfigString ================
      */
     public static void ParseConfigString(ConfigStringMessage configMsg) {
-        Com.Printf("Received " + configMsg + "\n");
         if (configMsg.index < 0 || configMsg.index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring > MAX_CONFIGSTRINGS");
 

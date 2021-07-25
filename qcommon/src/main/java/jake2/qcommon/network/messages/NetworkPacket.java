@@ -5,8 +5,8 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndOfClientPacketMessage;
-import jake2.qcommon.network.messages.server.EndOfServerPacketMessage;
-import jake2.qcommon.network.messages.server.ServerMessage;
+import jake2.qcommon.network.messages.client.MoveMessage;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sizebuf_t;
 
@@ -73,6 +73,7 @@ public class NetworkPacket {
 
         if (isConnectionless()) {
             connectionlessMessage = buffer.readString();
+            Com.Printf("Network: Received " + (fromClient ? "client" : "server") + " connectionless: " + connectionlessMessage + "\n");
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
@@ -99,6 +100,9 @@ public class NetworkPacket {
             if (msg instanceof EndOfServerPacketMessage) {
                 break;
             } else if (msg != null) {
+                if (!(msg instanceof FrameHeaderMessage) && !(msg instanceof PlayerInfoMessage) && !(msg instanceof PacketEntitiesMessage)) {
+                    Com.Printf("Network: Received server msg: " + msg + "\n");
+                }
                 result.add(msg);
             }
             if (buffer.readcount > buffer.cursize) {
@@ -116,6 +120,9 @@ public class NetworkPacket {
             if (msg == null || msg instanceof EndOfClientPacketMessage) {
                 break;
             } else {
+                if (!(msg instanceof MoveMessage)) {
+                    Com.Printf("Network: Received client msg: " + msg + "\n");
+                }
                 result.add(msg);
             }
 

@@ -78,7 +78,7 @@ public class GameImportsImpl implements GameImports {
 
     final float[] origin_v = { 0, 0, 0 };
 
-    public GameImportsImpl(JakeServer serverMain) {
+    public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
         this.serverMain = serverMain;
 
         spawncount = Lib.rand();
