@@ -63,7 +63,6 @@ public class SV_MAIN implements JakeServer {
     }
 
     private static final int MAX_STRINGCMDS = 8;
-    private static final byte[] NULLBYTE = {0};
 
     public static GameImportsImpl gameImports;
 
@@ -274,7 +273,6 @@ public class SV_MAIN implements JakeServer {
         }
 
         // find a client slot
-        //newcl = null;
         int index = -1;
         for (int i = 0; i < maxclients.value; i++) {
             client_t cl = clients.get(i);
@@ -294,21 +292,17 @@ public class SV_MAIN implements JakeServer {
     /**
      * Initializes player structures after successfull connection.
      */
-    private void gotnewcl(int i, int challenge, String userinfo,
-                                 netadr_t adr, int qport) {
+    private void gotnewcl(int i, int challenge, String userinfo, netadr_t adr, int qport) {
         // build a new connection
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        gameImports.sv_client = clients.get(i);
-        
-        int edictnum = i + 1;
-        
-        edict_t ent = gameImports.gameExports.getEdict(edictnum);
-        clients.get(i).edict = ent;
+        edict_t ent = gameImports.gameExports.getEdict(i + 1);
+        final client_t client = clients.get(i);
+        client.edict = ent;
         
         // save challenge for checksumming
-        clients.get(i).challenge = challenge;
+        client.challenge = challenge;
         
         
 
@@ -325,17 +319,17 @@ public class SV_MAIN implements JakeServer {
         }
 
         // parse some info from the info strings
-        clients.get(i).userinfo = userinfo;
-        SV_UserinfoChanged(clients.get(i));
+        client.userinfo = userinfo;
+        SV_UserinfoChanged(client);
 
         Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.client_connect, "");
 
-        Netchan.Setup(Defines.NS_SERVER, clients.get(i).netchan, adr, qport);
+        client.netchan.setup(Defines.NS_SERVER, adr, qport);
 
-        clients.get(i).state = ClientStates.CS_CONNECTED;
+        client.state = ClientStates.CS_CONNECTED;
 
-        clients.get(i).lastmessage = gameImports.realtime; // don't timeout
-        clients.get(i).lastconnect = gameImports.realtime;
+        client.lastmessage = gameImports.realtime; // don't timeout
+        client.lastconnect = gameImports.realtime;
         Com.DPrintf("new client added.\n");
     }
 
@@ -511,9 +505,9 @@ public class SV_MAIN implements JakeServer {
                 continue;
             // if the reliable message overflowed,
             // drop the client
-            int pendingReliableSize = c.netchan.reliable.stream().mapToInt(NetworkMessage::getSize).sum();
+            int pendingReliableSize = c.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
-                c.netchan.reliable.clear();
+                c.netchan.reliablePending.clear();
                 c.unreliable.clear();
                 SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
                 SV_DropClient(c);
@@ -521,7 +515,7 @@ public class SV_MAIN implements JakeServer {
 
             if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
                 // leftover from demo code
-                Netchan.Transmit(c.netchan, null);
+                c.netchan.transmit(null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
                 if (SV_RateDrop(c))
@@ -531,8 +525,8 @@ public class SV_MAIN implements JakeServer {
             }
             else {
                 // just update reliable	if needed
-                if (c.netchan.reliable.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-                    Netchan.Transmit(c.netchan, null);
+                if (c.netchan.reliablePending.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
+                    c.netchan.transmit(null);
             }
         }
     }
@@ -544,7 +538,7 @@ public class SV_MAIN implements JakeServer {
      */
     static void SV_DropClient(client_t client) {
         // add the disconnect
-        client.netchan.reliable.add(new DisconnectMessage());
+        client.netchan.reliablePending.add(new DisconnectMessage());
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -577,7 +571,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            cl.netchan.reliable.add(new PrintMessage(level, s));
+            cl.netchan.reliablePending.add(new PrintMessage(level, s));
         }
     }
 
@@ -588,16 +582,14 @@ public class SV_MAIN implements JakeServer {
      * bandwidth estimation and should not be sent another packet
      */
     static boolean SV_RateDrop(client_t c) {
-        int total;
-        int i;
 
         // never drop over the loopback
         if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
             return false;
 
-        total = 0;
+        int total = 0;
 
-        for (i = 0; i < Defines.RATE_MESSAGES; i++) {
+        for (int i = 0; i < Defines.RATE_MESSAGES; i++) {
             total += c.message_size[i];
         }
 
@@ -644,7 +636,7 @@ public class SV_MAIN implements JakeServer {
                     cl.netchan.remote_address.port = networkPacket.from.port;
                 }
 
-                if (networkPacket.isValidForClient(cl.netchan)) {
+                if (cl.netchan.accept(networkPacket)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
                         // todo: identify gameImports instance by client
@@ -670,8 +662,6 @@ public class SV_MAIN implements JakeServer {
      * ===================
      */
     static void SV_ExecuteClientMessage(client_t cl, Collection<ClientMessage> clientMessages) {
-
-        gameImports.sv_client = cl;
 
         // only allow one move command
         boolean move_issued = false;
@@ -808,7 +798,7 @@ public class SV_MAIN implements JakeServer {
             return;
 
         if (userCommands.containsKey(args.get(0))) {
-            userCommands.get(args.get(0)).execute(args, gameImports);
+            userCommands.get(args.get(0)).execute(args, gameImports, cl);
             return;
         }
 
@@ -915,11 +905,11 @@ public class SV_MAIN implements JakeServer {
         // stagger the packets to crutch operating system limited buffers
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, msgs);
+                cl.netchan.transmit(msgs);
         }
         for (client_t cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
-                Netchan.Transmit(cl.netchan, msgs);
+                cl.netchan.transmit(msgs);
         }
     }
 
