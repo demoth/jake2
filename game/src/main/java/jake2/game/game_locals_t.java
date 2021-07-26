@@ -39,11 +39,12 @@ public class game_locals_t {
 
     public String helpmessage2 = "";
 
-    public int helpchanged; // flash F1 icon if non 0, play sound
+    /**
+     * flash F1 icon if non 0, play sound, and increment only if 1, 2, or 3
+     */
+    public int helpchanged;
 
-    // and increment only if 1, 2, or 3
-
-    public gclient_t clients[] = new gclient_t[Defines.MAX_CLIENTS];
+    public gclient_t[] clients = new gclient_t[Defines.MAX_CLIENTS];
 
     // can't store spawnpoint in level, because
     // it would get overwritten by the savegame restore

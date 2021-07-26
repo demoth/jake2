@@ -1324,13 +1324,6 @@ public class GameSpawn {
         if (gameExports.gameCvars.skill.value != skill_level)
             gameExports.gameImports.cvar_forceset("skill", "" + skill_level);
 
-        PlayerClient.SaveClientData(gameExports);
-
-        gameExports.level = new level_locals_t();
-        for (int n = 0; n < gameExports.game.maxentities; n++) {
-            gameExports.g_edicts[n] = new SubgameEntity(n);
-        }
-
         gameExports.level.mapname = mapname;
         gameExports.game.spawnpoint = spawnpoint;
 

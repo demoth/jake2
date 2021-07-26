@@ -88,6 +88,13 @@ public class GameImportsImpl implements GameImports {
 
         // create local server state
         sv = new server_t();
+        sv.loadgame = changeMapInfo.isLoadgame;
+        sv.isDemo = changeMapInfo.isDemo;
+        sv.name = changeMapInfo.mapName;
+        sv.time = 1000;
+
+        // archive server state to be used in savegame
+        mapcmd = changeMapInfo.levelString;
 
         world = new SV_WORLD();
         cm = new CM();
