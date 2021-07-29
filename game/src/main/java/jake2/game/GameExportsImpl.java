@@ -211,7 +211,7 @@ public class GameExportsImpl implements GameExports {
      * in the edict structure, so it needs to be mirrored out to the client
      * structure before all the edicts are wiped.
      *
-     * Restored in PlayerClient#FetchClientEntData() when the client
+     * Restored in PlayerClient#FetchClientEntData() when the client reconnects
      */
     @Override
     public void SaveClientData() {
