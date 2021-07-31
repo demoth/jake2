@@ -27,15 +27,28 @@ import jake2.qcommon.ServerStates;
 import jake2.qcommon.cmodel_t;
 import jake2.qcommon.entity_state_t;
 
+import static jake2.qcommon.Defines.CS_NAME;
+
 class server_t {
 
-    server_t() {
+    server_t(ChangeMapInfo changeMapInfo) {
         models = new cmodel_t[Defines.MAX_MODELS];
-        for (int n = 0; n < Defines.MAX_MODELS; n++)
+        for (int n = 0; n < Defines.MAX_MODELS; n++) {
             models[n] = new cmodel_t();
+        }
 
-        for (int n = 0; n < Defines.MAX_EDICTS; n++)
+        for (int n = 0; n < Defines.MAX_EDICTS; n++) {
             baselines[n] = new entity_state_t(null);
+        }
+
+        loadgame = changeMapInfo.isLoadgame;
+        isDemo = changeMapInfo.isDemo;
+        name = changeMapInfo.mapName;
+        time = 1000;
+        state = ServerStates.SS_LOADING;
+        // save name for levels that don't set message
+        configstrings[CS_NAME] = changeMapInfo.mapName;
+
     }
 
     ServerStates state = ServerStates.SS_DEAD; // precache commands are only valid during load

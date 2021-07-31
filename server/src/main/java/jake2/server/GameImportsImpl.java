@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
+import static jake2.qcommon.Defines.CS_MODELS;
 import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.server.SV_CCMDS.SV_CopySaveGame;
 
@@ -80,31 +82,85 @@ public class GameImportsImpl implements GameImports {
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
         this.serverMain = serverMain;
+        SV_InitOperatorCommands();
 
         spawncount = Lib.rand();
 
-
-        // heartbeats will always be sent to the id master
-
-        // create local server state
-        sv = new server_t();
-        sv.loadgame = changeMapInfo.isLoadgame;
-        sv.isDemo = changeMapInfo.isDemo;
-        sv.name = changeMapInfo.mapName;
-        sv.time = 1000;
-
-        // archive server state to be used in savegame
-        mapcmd = changeMapInfo.levelString;
+        localCvars = new Cvar();
 
         world = new SV_WORLD();
+
         cm = new CM();
         sv_ents = new SV_ENTS(this, serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64);
 
         sv_game = new SV_GAME(this);
 
-        SV_InitOperatorCommands();
+        // heartbeats will always be sent to the id master
 
-        localCvars = new Cvar();
+        // create local server state
+        sv = new server_t(changeMapInfo);
+
+        int[] iw = { 0 };
+        if (changeMapInfo.state == ServerStates.SS_GAME) {
+            sv.configstrings[CS_MODELS + 1] = "maps/" + changeMapInfo.mapName + ".bsp";
+            sv.models[1] = cm.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, iw);
+        } else {
+            sv.models[1] = cm.CM_LoadMap("", false, iw); // no real map
+        }
+        sv.configstrings[CS_MAPCHECKSUM] = "" + iw[0];
+
+        for (int i = 1; i < cm.CM_NumInlineModels(); i++) {
+            sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
+
+            // copy references
+            sv.models[i + 1] = cm.InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
+        }
+
+
+
+        // archive server state to be used in savegame
+        mapcmd = changeMapInfo.levelString;
+
+
+        if (changeMapInfo.isLoadgame) {
+            SV_Read_Latched_Vars();
+        }
+
+        // clear physics interaction links
+        SV_WORLD.SV_ClearWorld(this);
+    }
+
+    /**
+     * 	SV_ReadServerFile
+     *
+     * 	todo - move read game locals to another function
+     */
+    void SV_Read_Latched_Vars() {
+        try {
+
+            Com.DPrintf("SV_ReadServerFile()\n");
+
+            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "r");
+
+            // read all CVAR_LATCH cvars
+            // these will be things like coop, skill, deathmatch, etc
+            while (true) {
+                String name = f.readString();
+                if (name == null)
+                    break;
+                String value = f.readString();
+
+                Com.DPrintf("Set " + name + " = " + value + "\n");
+                Cvar.getInstance().ForceSet(name, value);
+            }
+
+            f.close();
+
+            // read game state
+            this.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv");
+        } catch (Exception e) {
+            Com.Printf("Couldn't read file " + e.getMessage() + "\n");
+        }
     }
 
     /**

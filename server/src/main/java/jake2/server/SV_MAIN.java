@@ -51,7 +51,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static jake2.qcommon.Defines.*;
-import static jake2.server.SV_CCMDS.*;
+import static jake2.server.SV_CCMDS.SV_CopySaveGame;
+import static jake2.server.SV_CCMDS.SV_WipeSavegame;
 import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
@@ -1220,28 +1221,9 @@ goes to map jail.bsp.
 
         gameImports = createGameInstance(changeMapInfo);
 
-        if (changeMapInfo.isLoadgame) {
-            SV_Read_Latched_Vars(gameImports);
-        }
-
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
-        gameImports.sv.state = ServerStates.SS_LOADING;
-
-        // save name for levels that don't set message
-        gameImports.sv.configstrings[CS_NAME] = changeMapInfo.mapName;
-
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            gameImports.sv.configstrings[CS_AIRACCEL] = "" + sv_airaccelerate.value;
-            PMove.pm_airaccelerate = sv_airaccelerate.value;
-        } else {
-            gameImports.sv.configstrings[CS_AIRACCEL] = "0";
-            PMove.pm_airaccelerate = 0;
-        }
-
-        // question: if we spawn a new server - all existing clients will receive the 'reconnect'
-        // then why update state and lastframe?
 
         // leave slots at start for clients only
         for (client_t cl: clients) {
@@ -1251,60 +1233,45 @@ goes to map jail.bsp.
             cl.lastReceivedFrame = -1;
         }
 
-        int[] iw = { 0 };
-
-        if (changeMapInfo.state == ServerStates.SS_GAME) {
-            gameImports.sv.configstrings[CS_MODELS + 1] = "maps/" + changeMapInfo.mapName + ".bsp";
-            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap(gameImports.sv.configstrings[CS_MODELS + 1], false, iw);
-        } else {
-            gameImports.sv.models[1] = gameImports.cm.CM_LoadMap("", false, iw); // no real map
-        }
-        gameImports.sv.configstrings[CS_MAPCHECKSUM] = "" + iw[0];
-
         gameImports.SV_BroadcastCommand("changing");
         SV_SendClientMessages();
 
-        // clear physics interaction links
-
-        SV_WORLD.SV_ClearWorld(gameImports);
-
-        for (int i = 1; i < gameImports.cm.CM_NumInlineModels(); i++) {
-            gameImports.sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
-
-            // copy references
-            gameImports.sv.models[i + 1] = gameImports.cm.InlineModel(gameImports.sv.configstrings[CS_MODELS + 1 + i]);
-        }
-
-
-        // spawn the rest of the entities on the map
 
         // precache and static commands can be issued during
         // map initialization
-        gameImports.sv.state = ServerStates.SS_LOADING;
-        Globals.server_state = gameImports.sv.state;
-
-        // load and spawn all other entities
-        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
+        Globals.server_state = gameImports.sv.state; // LOADING
 
         if (oldGame != null) {
             // copy persistent data between instances.
             // after a 'map' command the persistent state will be empty
-            gameImports.gameExports.fromPrevious(oldGame);
+            gameImports.gameExports.fromPrevious(oldGame, changeMapInfo.spawnPoint);
         }
 
-        // run two frames to allow everything to settle
-        gameImports.gameExports.G_RunFrame();
-        gameImports.gameExports.G_RunFrame();
+
+        // spawn fresh entities
+        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
+
+        if (gameImports.sv_game.isPreviousLevel(gameImports.sv)) {
+            // fixme: need to spawn all entities and then remove them,
+            //  because otherwise precaching will not work properly - configstrings will not match.
+            SV_WORLD.SV_ClearWorld(gameImports);
+
+            // loads a stored game, runs 100 frames afterwards
+            gameImports.sv_game.restorePreviousGame(gameImports.sv);
+        } else {
+            // run two frames to allow everything to settle
+            gameImports.gameExports.G_RunFrame();
+            gameImports.gameExports.G_RunFrame();
+
+        }
+        // create a baseline for more efficient communications
+        gameImports.sv_game.SV_CreateBaseline();
+
 
         // all precaches are complete
         gameImports.sv.state = changeMapInfo.state;
         Globals.server_state = gameImports.sv.state;
 
-        // create a baseline for more efficient communications
-        gameImports.sv_game.SV_CreateBaseline();
-
-        // check for a savegame
-        gameImports.sv_game.SV_CheckForSavegame(gameImports.sv);
 
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
