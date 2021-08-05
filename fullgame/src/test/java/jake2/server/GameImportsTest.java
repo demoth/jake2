@@ -23,7 +23,7 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance();
+        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
 
         testInstance.SV_RunGameFrame();
 
@@ -63,7 +63,7 @@ public class GameImportsTest {
 
     @Test
     public void shutDownEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance();
+        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
 
         Cbuf.AddText("sv_shutdown");
         testInstance.SV_RunGameFrame();

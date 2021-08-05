@@ -94,4 +94,13 @@ public interface GameExports {
     edict_t getEdict(int index);
 
     int getNumEdicts();
+
+    /**
+     * Persist whatever is required from the previous instance.
+     * @param oldGame
+     */
+    void fromPrevious(GameExports oldGame);
+
+    void SaveClientData();
+
 }

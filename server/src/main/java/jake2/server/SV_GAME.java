@@ -44,12 +44,12 @@ public class SV_GAME {
      * 
      * Sends the contents of the mutlicast buffer to a single client.
      */
-    public void PF_Unicast(int p, boolean reliable, NetworkMessage msg) {
+    public void PF_Unicast(int index, boolean reliable, NetworkMessage msg) {
 
-        if (p < 1 || p > gameImports.serverMain.getClients().size())
+        if (index < 1 || index > gameImports.serverMain.getClients().size())
             return;
 
-        client_t client = gameImports.serverMain.getClients().get(p - 1);
+        client_t client = gameImports.serverMain.getClients().get(index - 1);
 
         if (reliable) {
             client.netchan.reliablePending.add(msg);

@@ -72,7 +72,7 @@ public class SV_MAIN implements JakeServer {
     // prevent invalid IPs from connecting
     private final challenge_t[] challenges = new challenge_t[Defines.MAX_CHALLENGES]; // to
 
-    private List<client_t> clients; // [maxclients->value];
+    private List<client_t> clients = new ArrayList<>(); // [maxclients->value];
 
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
@@ -128,8 +128,7 @@ public class SV_MAIN implements JakeServer {
 
         String status = Cvar.getInstance().Serverinfo() + "\n";
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) {
                 String player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
 
@@ -152,7 +151,7 @@ public class SV_MAIN implements JakeServer {
      */
     private String SVC_Info(List<String> args, netadr_t from) {
 
-        if (maxclients.value == 1)
+        if (clients.size() == 1)
             return null; // ignore in single player
 
         int version = args.size() < 2 ? 0 : Lib.atoi(args.get(1));
@@ -162,11 +161,11 @@ public class SV_MAIN implements JakeServer {
             info = SV_MAIN.hostname.string + ": wrong version\n";
         else {
             int players = 0;
-            for (int i = 0; i < maxclients.value; i++)
-                if (clients.get(i).state == ClientStates.CS_CONNECTED || clients.get(i).state == ClientStates.CS_SPAWNED)
+            for (client_t cl: clients)
+                if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
-            info = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + (int) maxclients.value + "\n";
+            info = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + clients.size() + "\n";
         }
 
         return info;
@@ -254,9 +253,8 @@ public class SV_MAIN implements JakeServer {
         }
 
         // if there is already a slot for this ip, reuse it
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
-
+        int i = 0;
+        for (client_t cl: clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
@@ -270,16 +268,18 @@ public class SV_MAIN implements JakeServer {
                 gotnewcl(i, challenge, userinfo, adr, qport);
                 return;
             }
+            i++;
         }
 
         // find a client slot
         int index = -1;
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        i = 0;
+        for (client_t cl: clients) {
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
             }
+            i++;
         }
         if (index == -1) {
             Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.print, "\nServer is full.\n");
@@ -297,9 +297,9 @@ public class SV_MAIN implements JakeServer {
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        edict_t ent = gameImports.gameExports.getEdict(i + 1);
         final client_t client = clients.get(i);
-        client.edict = ent;
+        edict_t ent = gameImports.gameExports.getEdict(i + 1);
+        client.edict = ent; // fixme: why? isn't it already set?
         
         // save challenge for checksumming
         client.challenge = challenge;
@@ -498,8 +498,7 @@ public class SV_MAIN implements JakeServer {
         server_t sv = gameImports.sv;
         // send a message to each connected client
         // todo send only to related clients
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t c = clients.get(i);
+        for (client_t c: clients) {
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
@@ -565,8 +564,7 @@ public class SV_MAIN implements JakeServer {
         }
 
         // todo: send only to related clients
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
@@ -623,8 +621,7 @@ public class SV_MAIN implements JakeServer {
 
             // check for packets from connected clients
             // todo: get client by address (hashmap?)
-            for (int i = 0; i < maxclients.value; i++) {
-                client_t cl = clients.get(i);
+            for (client_t cl: clients) {
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
@@ -820,8 +817,7 @@ public class SV_MAIN implements JakeServer {
         int droppoint = (int) (gameImports.realtime - 1000 * SV_MAIN.timeout.value);
         int zombiepoint = (int) (gameImports.realtime - 1000 * SV_MAIN.zombietime.value);
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             // message times may be wrong across a changelevel
             if (cl.lastmessage > gameImports.realtime)
                 cl.lastmessage = gameImports.realtime;
@@ -844,8 +840,7 @@ public class SV_MAIN implements JakeServer {
      */
     void SV_CalcPings() {
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -876,8 +871,7 @@ public class SV_MAIN implements JakeServer {
         if ((gameImports.sv.framenum & 15) != 0)
             return;
 
-        for (int i = 0; i < maxclients.value; i++) {
-            client_t cl = clients.get(i);
+        for (client_t cl: clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -923,51 +917,27 @@ public class SV_MAIN implements JakeServer {
             return;
 
         // todo: identify if we need to send the final message (clients is always != null)
-        if (clients != null)
+        if (!clients.isEmpty())
             SV_FinalMessage(finalmsg, reconnect);
 
         Com.Printf("==== ShutdownGame ====\n");
 
         gameImports = null;
         Globals.server_state = ServerStates.SS_DEAD;
-
-/*
-        // free current level
-        if (SV_INIT.gameImports.sv != null && SV_INIT.gameImports.sv.demofile != null)
-            try {
-                SV_INIT.gameImports.sv.demofile.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        SV_INIT.gameImports.sv = new server_t();
-
-        Globals.server_state = SV_INIT.gameImports.sv.state;
-
-        if (SV_INIT.gameImports.svs.demofile != null)
-            try {
-                SV_INIT.gameImports.svs.demofile.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-
-        SV_INIT.gameImports.svs = new server_static_t();
-*/
     }
-    // fixme: update only related clients
 
     /**
      * Resets the clients, use when maxclients.value is changed
      */
-    void resetClients(GameExports gameExports) {
-        // Clear all clients
-        final int max = (int) maxclients.value;
-        clients = new ArrayList<>(max);
+    void resetClients() {
+        SV_FinalMessage("Server restarted", true);
+        final int max = (int) Cvar.getInstance().VariableValue("maxclients");
 
+        // Clear all clients
+        clients = new ArrayList<>(max);
         for (int i = 0; i < max; i++) {
             client_t cl = new client_t();
             cl.lastcmd = new usercmd_t();
-            cl.edict = gameExports.getEdict(i + 1);
             clients.add(cl);
         }
     }
@@ -976,21 +946,15 @@ public class SV_MAIN implements JakeServer {
      * Only called at quake2.exe startup, not for each game
      */
     public SV_MAIN() {
+
+        // long gone
+        SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
+
         for (int n = 0; n < Defines.MAX_CHALLENGES; n++) {
             challenges[n] = new challenge_t();
         }
 
-        maxclients = Cvar.getInstance().GetForceFlags("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-
-        // Clear all clients
-        final int max = (int) maxclients.value;
-        clients = new ArrayList<>(max);
-
-        for (int n = 0; n < max; n++) {
-            client_t cl = new client_t();
-            cl.lastcmd = new usercmd_t();
-            clients.add(cl);
-        }
+        resetClients();
 
         // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
         Cmd.AddCommand("map", this::SV_Map_f);
@@ -1053,13 +1017,9 @@ public class SV_MAIN implements JakeServer {
      *
      * A brand new game has been started.
      */
-    GameImportsImpl createGameInstance() {
-
-        GameImportsImpl gameImports = new GameImportsImpl(this);
+    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo) {
+        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo);
         gameImports.gameExports = createGameModInstance(gameImports);
-        // why? should have default values already
-        // fixme should not recreate all the clients
-        resetClients(gameImports.gameExports);
         return gameImports;
     }
 
@@ -1207,25 +1167,30 @@ goes to map jail.bsp.
             SV_WipeSavegame("current");
         }
         else { // save the map just exited
-            // todo: init gameImports in a proper place
             if (gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
                 // at spawn points instead of occupying body shells
-                boolean[] savedInuse = new boolean[(int) maxclients.value];
-                for (int i = 0; i < maxclients.value; i++) {
-                    client_t cl = clients.get(i);
-                    savedInuse[i] = cl.edict.inuse;
-                    cl.edict.inuse = false;
+                // todo: only relevant to this gameImports clients
+                boolean[] savedInuse = new boolean[clients.size()];
+                int i = 0;
+                for (client_t cl: clients) {
+                    if (cl.edict != null) { // free client slots will have null values
+                        savedInuse[i] = cl.edict.inuse;
+                        cl.edict.inuse = false;
+                    }
+                    i++;
                 }
 
                 gameImports.SV_WriteLevelFile();
 
                 // we must restore these for clients to transfer over correctly
-                for (int i = 0; i < maxclients.value; i++) {
-                    client_t cl = clients.get(i);
-                    cl.edict.inuse = savedInuse[i];
-
+                i = 0;
+                for (client_t cl: clients) {
+                    if (cl.edict != null) { // free client slots will have null values
+                        cl.edict.inuse = savedInuse[i];
+                    }
+                    i++;
                 }
             }
         }
@@ -1244,28 +1209,16 @@ goes to map jail.bsp.
      * SV_Map
      */
     void spawnServerInstance(ChangeMapInfo changeMapInfo) {
-        Globals.server_state = ServerStates.SS_DEAD; //todo check if this is needed
+        Globals.server_state = ServerStates.SS_DEAD; //fixme: used by the client code
 
-        if (gameImports == null || gameImports.sv == null || gameImports.sv.state == ServerStates.SS_DEAD && !gameImports.sv.loadgame) {
-
-            if (gameImports != null) {
-                // cause any connected clients to reconnect
-                SV_Shutdown("Server restarted\n", true);
-            } else {
-                // make sure the client is down
-                Cmd.ExecuteFunction("loading");
-                Cmd.ExecuteFunction("cl_drop");
-            }
-
-
-            boolean multiplayer = initializeServerCvars();
-            // init network stuff
-            NET.Config(multiplayer);
-            // long gone
-            SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
-
-            gameImports = createGameInstance(); // the game is just starting
+        GameExports oldGame = null;
+        if (gameImports != null) {
+            // store some entity data into gclient_t struct, will be restored in the next game
+            oldGame = gameImports.gameExports;
+            oldGame.SaveClientData();
         }
+
+        gameImports = createGameInstance(changeMapInfo);
 
         if (changeMapInfo.isLoadgame) {
             SV_Read_Latched_Vars(gameImports);
@@ -1274,25 +1227,7 @@ goes to map jail.bsp.
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
-        gameImports.SV_BroadcastCommand("changing");
-        SV_SendClientMessages();
-
-        Com.Printf("------- Server Initialization -------\n");
-
-        // any partially connected client will be restarted
-        gameImports.spawncount++;
-        gameImports.realtime = 0;
-        // archive server state to be used in savegame
-        gameImports.mapcmd = changeMapInfo.levelString;
-
-
-        // wipe the entire per-level structure
-        gameImports.sv = new server_t();
-
-        gameImports.sv.loadgame = changeMapInfo.isLoadgame;
-        gameImports.sv.isDemo = changeMapInfo.isDemo;
-        gameImports.sv.name = changeMapInfo.mapName;
-        gameImports.sv.time = 1000;
+        gameImports.sv.state = ServerStates.SS_LOADING;
 
         // save name for levels that don't set message
         gameImports.sv.configstrings[CS_NAME] = changeMapInfo.mapName;
@@ -1309,7 +1244,7 @@ goes to map jail.bsp.
         // then why update state and lastframe?
 
         // leave slots at start for clients only
-        for (client_t cl: gameImports.serverMain.getClients()) {
+        for (client_t cl: clients) {
             // needs to reconnect
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;
@@ -1325,6 +1260,9 @@ goes to map jail.bsp.
             gameImports.sv.models[1] = gameImports.cm.CM_LoadMap("", false, iw); // no real map
         }
         gameImports.sv.configstrings[CS_MAPCHECKSUM] = "" + iw[0];
+
+        gameImports.SV_BroadcastCommand("changing");
+        SV_SendClientMessages();
 
         // clear physics interaction links
 
@@ -1348,6 +1286,12 @@ goes to map jail.bsp.
         // load and spawn all other entities
         gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
 
+        if (oldGame != null) {
+            // copy persistent data between instances.
+            // after a 'map' command the persistent state will be empty
+            gameImports.gameExports.fromPrevious(oldGame);
+        }
+
         // run two frames to allow everything to settle
         gameImports.gameExports.G_RunFrame();
         gameImports.gameExports.G_RunFrame();
@@ -1368,7 +1312,7 @@ goes to map jail.bsp.
         if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
 
-        gameImports.SV_BroadcastCommand("reconnect");
+        gameImports.SV_BroadcastCommand("reconnect"); // doesn't really reconnect but rather issues 'NEW' command
     }
 
     /*
@@ -1380,7 +1324,6 @@ For development work
 ==================
 */
     void SV_Map_f(List<String> args) {
-        String mapName;
         //char expanded[MAX_QPATH];
         if (args.size() < 2) {
             Com.Printf("usage: map <map_name>\n");
@@ -1388,7 +1331,7 @@ For development work
         }
 
         // if not a pcx, demo, or cinematic, check to make sure the level exists
-        mapName = args.get(1);
+        String mapName = args.get(1);
         if (!mapName.contains(".")) {
             String mapPath = "maps/" + mapName + ".bsp";
             if (FS.LoadFile(mapPath) == null) {
@@ -1401,6 +1344,11 @@ For development work
             SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
         SV_WipeSavegame("current");
+
+        // init mode & maxclients cvar
+        boolean multiplayer = initializeServerCvars();
+        NET.Config(multiplayer);
+        resetClients();
         SV_GameMap_f(args);
     }
 

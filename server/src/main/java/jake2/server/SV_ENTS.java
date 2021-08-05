@@ -43,7 +43,7 @@ public class SV_ENTS {
 
     public final byte[] fatpvs; // 32767 is MAX_MAP_LEAFS
 
-    private final int num_client_entities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
+    private final int maxClientEntities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
     private final entity_state_t[] client_entities; // [num_client_entities]
     private int next_client_entities; // next client_entity to use
 
@@ -52,10 +52,10 @@ public class SV_ENTS {
         fatpvs = new byte[65536 / 8];
         this.gameImports = gameImports;
 
-        num_client_entities = clientEntitiesMax;
+        maxClientEntities = clientEntitiesMax;
 
         // Clear all client entity states
-        client_entities = new entity_state_t[num_client_entities];
+        client_entities = new entity_state_t[maxClientEntities];
         for (int n = 0; n < client_entities.length; n++) {
             client_entities[n] = new entity_state_t(null);
         }
@@ -166,7 +166,7 @@ public class SV_ENTS {
                 // does not exist in the frame
                 newnum = 9999;
             } else {
-                newState = client_entities[(currentFrame.first_entity + newindex) % this.num_client_entities];
+                newState = client_entities[(currentFrame.first_entity + newindex) % this.maxClientEntities];
                 newnum = newState.number;
             }
             final int oldnum;
@@ -174,18 +174,18 @@ public class SV_ENTS {
                 // does not exist in the frame
                 oldnum = 9999;
             else {
-                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % this.num_client_entities];
+                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % this.maxClientEntities];
                 oldnum = oldState.number;
             }
 
             if (newnum == oldnum) {
-                // delta update from old position
+                // delta update from old position.
                 // because the force parm is false, this will not result
-                // in any bytes being emited if the entity has not changed at
-                // all note that players are always 'newentities', this updates
-                // their oldorigin always
-                // and prevents warping
-                result.updates.add(new EntityUpdate(oldState, newState, false, newState.number <= gameImports.serverMain.getClients().size()));
+                // in any bytes being emited if the entity has not changed at all.
+                // Note: players are always 'newentities', this updates
+                // their oldorigin always  and prevents warping
+                final boolean isPlayer = newState.number <= gameImports.serverMain.getClients().size();
+                result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
                 oldindex++;
                 newindex++;
             } else if (newnum < oldnum) {
@@ -362,7 +362,7 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = next_client_entities % num_client_entities;
+            int ix = next_client_entities % maxClientEntities;
             entity_state_t state = client_entities[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");

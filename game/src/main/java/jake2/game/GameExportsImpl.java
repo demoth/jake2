@@ -154,11 +154,10 @@ public class GameExportsImpl implements GameExports {
 
     /**
      * entity with index = 0 is always the worldspawn.
-     * entities with indices 1..maxclients are the players
-     * then go other stuff
+     * entities with indices 1..maxclients are the players,
+     * then goes other stuff
      */
-    // todo: make consistent with maxentities cvar
-    public SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
+    public SubgameEntity[] g_edicts;
     int num_edicts;
 
     /////////////////////////////////////
@@ -196,6 +195,8 @@ public class GameExportsImpl implements GameExports {
         gameCvars = new GameCvars(imports);
 
         CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+
+        // fixme: should be already set in SV_MAIN
         CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
 
         for (int n = 0; n < Defines.MAX_EDICTS; n++) {
@@ -203,6 +204,32 @@ public class GameExportsImpl implements GameExports {
         }
 
         playerTrail = new PlayerTrail(this);
+    }
+
+    /**
+     * Some information that should be persistent, like health, is still stored
+     * in the edict structure, so it needs to be mirrored out to the client
+     * structure before all the edicts are wiped.
+     *
+     * Restored in PlayerClient#FetchClientEntData() when the client reconnects
+     */
+    @Override
+    public void SaveClientData() {
+
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity ent = g_edicts[1 + i];
+            if (!ent.inuse)
+                continue;
+
+            game.clients[i].pers.health = ent.health;
+            game.clients[i].pers.max_health = ent.max_health;
+            game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
+
+            if (gameCvars.coop.value != 0) {
+                gclient_t client = ent.getClient();
+                game.clients[i].pers.score = client.resp.score;
+            }
+        }
     }
 
     // create the entities array and fill it with empty entities
@@ -990,6 +1017,7 @@ public class GameExportsImpl implements GameExports {
      * Exits a level.
      */
     private void exitLevel() {
+        Com.Printf("exiting to " + level.changemap + "\n");
         gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
 
         // todo: remove as not necessary, new game instance will be created anyway
@@ -1488,7 +1516,7 @@ public class GameExportsImpl implements GameExports {
         try {
 
             if (!autosave)
-                PlayerClient.SaveClientData(this);
+                SaveClientData();
 
             QuakeFile f = new QuakeFile(filename, "rw");
 
@@ -1648,6 +1676,23 @@ public class GameExportsImpl implements GameExports {
     @Override
     public int getNumEdicts() {
         return num_edicts;
+    }
+
+    @Override
+    public void fromPrevious(GameExports oldGame) {
+        GameExportsImpl oldGameImpl = (GameExportsImpl) oldGame;
+        // assert both client arrays are of the same size
+        for (int i = 0; i < oldGameImpl.game.clients.length && i < game.clients.length; i++) {
+            game.clients[i].pers.set(oldGameImpl.game.clients[i].pers);
+        }
+
+        game.serverflags = oldGameImpl.game.serverflags;
+        game.helpchanged = oldGameImpl.game.helpchanged;
+        game.helpmessage1 = oldGameImpl.game.helpmessage1;
+        game.helpmessage2 = oldGameImpl.game.helpmessage2;
+        game.autosaved = oldGameImpl.game.autosaved;
+        // spawnpoint
+
     }
 
 }

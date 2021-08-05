@@ -528,31 +528,6 @@ public class PlayerClient {
         client.resp.coop_respawn.set(client.pers);
     }
 
-    /**
-     * Some information that should be persistant, like health, is still stored
-     * in the edict structure, so it needs to be mirrored out to the client
-     * structure before all the edicts are wiped.
-     * @param gameExports
-     */
-    public static void SaveClientData(GameExportsImpl gameExports) {
-
-        for (int i = 0; i < gameExports.game.maxclients; i++) {
-            SubgameEntity ent = gameExports.g_edicts[1 + i];
-            if (!ent.inuse)
-                continue;
-
-            gameExports.game.clients[i].pers.health = ent.health;
-            gameExports.game.clients[i].pers.max_health = ent.max_health;
-            gameExports.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
-                    | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
-
-            if (gameExports.gameCvars.coop.value != 0) {
-                gclient_t client = ent.getClient();
-                gameExports.game.clients[i].pers.score = client.resp.score;
-            }
-        }
-    }
-
     public static void FetchClientEntData(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         ent.health = client.pers.health;

@@ -78,7 +78,7 @@ public class GameImportsImpl implements GameImports {
 
     final float[] origin_v = { 0, 0, 0 };
 
-    public GameImportsImpl(JakeServer serverMain) {
+    public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
         this.serverMain = serverMain;
 
         spawncount = Lib.rand();
@@ -88,6 +88,13 @@ public class GameImportsImpl implements GameImports {
 
         // create local server state
         sv = new server_t();
+        sv.loadgame = changeMapInfo.isLoadgame;
+        sv.isDemo = changeMapInfo.isDemo;
+        sv.name = changeMapInfo.mapName;
+        sv.time = 1000;
+
+        // archive server state to be used in savegame
+        mapcmd = changeMapInfo.levelString;
 
         world = new SV_WORLD();
         cm = new CM();
@@ -138,11 +145,6 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void centerprintf(edict_t ent, String s) {
-
-        int n = ent.index;
-        if (n < 1 || n > sv_game.gameImports.serverMain.getClients().size())
-            return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
-
         sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
     }
 
