@@ -73,7 +73,7 @@ public class NetworkPacket {
 
         if (isConnectionless()) {
             connectionlessMessage = buffer.readString();
-            Com.Printf("Network: Received " + (fromClient ? "client" : "server") + " connectionless: " + connectionlessMessage + "\n");
+            Com.Printf("Network: Received from " + (fromClient ? "client" : "server") + " connectionless: " + connectionlessMessage + "\n");
             if (!fromClient) {
                 switch (connectionlessMessage) {
                     case "info":
