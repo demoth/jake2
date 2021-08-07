@@ -75,6 +75,10 @@ public class SV_MAIN implements JakeServer {
 
     private List<client_t> clients = new ArrayList<>(); // [maxclients->value];
 
+    private long realtime = 0;
+    private long frameNum = 0;
+    private long fixedtime = 1000;
+
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
             master_adr[i] = new netadr_t();
@@ -448,6 +452,7 @@ public class SV_MAIN implements JakeServer {
             return;
 
         serverInstance.realtime += msec;
+        realtime += msec;
 
         // keep the random time dependent
         Lib.rand();
@@ -458,20 +463,24 @@ public class SV_MAIN implements JakeServer {
         // get packets from clients
         SV_ReadPackets();
 
-        //if (Game.g_edicts[1] !=null)
-        //	Com.p("player at:" + Lib.vtofsbeaty(Game.g_edicts[1].s.origin ));
-
-        // move autonomous things around if enough time has passed
-        if (0 == SV_MAIN.sv_timedemo.value && serverInstance.realtime < serverInstance.sv.time) {
+        // identify if we need to update the game or it's too early (sleep or skip this update).
+        // fixedtime - the time of the next scheduled game update.
+        int delay = serverInstance.sv.fixedtime - serverInstance.realtime;
+        if (delay > 0) {
             // never let the time get too far off
-            if (serverInstance.sv.time - serverInstance.realtime > 100) {
+            if (delay > 100) { // how is it even possible?
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv lowclamp\n");
-                serverInstance.realtime = serverInstance.sv.time - 100;
+                serverInstance.realtime = serverInstance.sv.fixedtime - 100;
+                delay = 100;
             }
-            NET.Sleep(serverInstance.sv.time - serverInstance.realtime);
+            NET.Sleep(delay);
             return;
         }
+        // move autonomous things around if enough time has passed
+
+        frameNum++;
+        fixedtime = 100 * frameNum;
 
         // update ping based on the last known frame from all clients
         SV_CalcPings();

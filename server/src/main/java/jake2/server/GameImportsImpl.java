@@ -608,17 +608,17 @@ public class GameImportsImpl implements GameImports {
         // compression can get confused when a client
         // has the "current" frame
         sv.framenum++;
-        sv.time = sv.framenum * 100;
+        sv.fixedtime = sv.framenum * 100;
 
         // don't run if paused
         if (SV_MAIN.sv_paused == null || 1 != SV_MAIN.sv_paused.value || serverMain.getClients().size() > 1) {
             gameExports.G_RunFrame();
 
             // never get more than one tic behind
-            if (sv.time < realtime) {
+            if (sv.fixedtime < realtime) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv highclamp\n");
-                realtime = sv.time;
+                realtime = sv.fixedtime;
             }
         }
 

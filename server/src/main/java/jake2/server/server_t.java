@@ -44,7 +44,7 @@ class server_t {
         loadgame = changeMapInfo.isLoadgame;
         isDemo = changeMapInfo.isDemo;
         name = changeMapInfo.mapName;
-        time = 1000;
+        fixedtime = 1000;
         state = ServerStates.SS_LOADING;
         // save name for levels that don't set message
         configstrings[CS_NAME] = changeMapInfo.mapName;
@@ -58,7 +58,7 @@ class server_t {
 
     boolean loadgame; // client begins should reuse existing entity
 
-    int time; // always sv.framenum * 100 msec
+    int fixedtime; // always sv.framenum * 100 msec
 
     int framenum;
 
