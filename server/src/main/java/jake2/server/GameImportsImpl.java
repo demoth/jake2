@@ -601,25 +601,19 @@ public class GameImportsImpl implements GameImports {
     /**
      * SV_RunGameFrame.
      */
-    void SV_RunGameFrame() {
+    void SV_RunGameFrame(long fixedtime) {
 
         // we always need to bump framenum, even if we
         // don't run the world, otherwise the delta
         // compression can get confused when a client
         // has the "current" frame
         sv.framenum++;
-        sv.fixedtime = sv.framenum * 100;
 
-        // don't run if paused
-        if (SV_MAIN.sv_paused == null || 1 != SV_MAIN.sv_paused.value || serverMain.getClients().size() > 1) {
-            gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
 
-            // never get more than one tic behind
-            if (sv.fixedtime < realtime) {
-                if (SV_MAIN.sv_showclamp.value != 0)
-                    Com.Printf("sv highclamp\n");
-                realtime = sv.fixedtime;
-            }
+        // never get more than one tic behind
+        if (fixedtime < realtime) {
+            realtime = (int) fixedtime;
         }
 
     }

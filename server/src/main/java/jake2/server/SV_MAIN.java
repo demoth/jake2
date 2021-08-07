@@ -465,16 +465,14 @@ public class SV_MAIN implements JakeServer {
 
         // identify if we need to update the game or it's too early (sleep or skip this update).
         // fixedtime - the time of the next scheduled game update.
-        int delay = serverInstance.sv.fixedtime - serverInstance.realtime;
+        long delay = fixedtime - realtime;
         if (delay > 0) {
             // never let the time get too far off
             if (delay > 100) { // how is it even possible?
-                if (SV_MAIN.sv_showclamp.value != 0)
-                    Com.Printf("sv lowclamp\n");
-                serverInstance.realtime = serverInstance.sv.fixedtime - 100;
+                serverInstance.realtime = (int) (fixedtime - 100);
                 delay = 100;
             }
-            NET.Sleep(delay);
+            NET.Sleep((int) delay);
             return;
         }
         // move autonomous things around if enough time has passed
@@ -489,7 +487,7 @@ public class SV_MAIN implements JakeServer {
         SV_GiveMsec();
 
         // let everything in the world think and move
-        serverInstance.SV_RunGameFrame();
+        serverInstance.SV_RunGameFrame(fixedtime);
 
         // send messages back to the clients that had packets read this frame
         SV_SendClientMessages();
@@ -877,8 +875,8 @@ public class SV_MAIN implements JakeServer {
      * their command moves. If they exceed it, assume cheating.
      */
     void SV_GiveMsec() {
-        // todo: base on sv_main state, not on gameImports.sv.framenum
-        if ((gameImports.sv.framenum & 15) != 0)
+        // why *1111
+        if ((frameNum & 15) != 0)
             return;
 
         for (client_t cl: clients) {

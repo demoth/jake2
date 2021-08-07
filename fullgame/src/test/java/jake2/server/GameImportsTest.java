@@ -25,7 +25,7 @@ public class GameImportsTest {
     public void runEmptyInstance() {
         GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
 
-        testInstance.SV_RunGameFrame();
+        testInstance.SV_RunGameFrame(100);
 
         Assert.assertEquals(1, testInstance.sv.framenum);
     }
@@ -66,7 +66,7 @@ public class GameImportsTest {
         GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
 
         Cbuf.AddText("sv_shutdown");
-        testInstance.SV_RunGameFrame();
+        testInstance.SV_RunGameFrame(100);
 
         Assert.assertEquals(ServerStates.SS_DEAD, testInstance.sv.state);
     }
