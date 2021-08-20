@@ -609,6 +609,10 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         sv.framenum++;
 
+        if (SV_MAIN.sv_paused != null && 1 == SV_MAIN.sv_paused.value && serverMain.getClients().size() <= 1) {
+            return;
+        }
+
         gameExports.G_RunFrame();
 
         // never get more than one tic behind
