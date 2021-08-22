@@ -70,7 +70,7 @@ public class SV_MAIN implements JakeServer {
     @Override
     public List<client_t> getClientsForInstance(final String gameName) {
         if (!games.containsKey(gameName)) {
-            //throw new IllegalStateException("Game " + gameName + " not found!");
+            // happens during the game instance creation, while the instance has random name
             Com.Printf("Game " + gameName + " is not found!\n");
         }
         // nullify unrelated clients
@@ -519,7 +519,6 @@ public class SV_MAIN implements JakeServer {
     void SV_SendClientMessages() {
 
         // send a message to each connected client
-        // todo send only to related clients
         for (client_t c : clients) {
 
             if (c.state == ClientStates.CS_FREE)
@@ -1208,7 +1207,6 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             clientIndex = 0;
 
         Com.DPrintf("SV_GameMap(" + mapName + ")\n");
-        var gameImports = games.get("default");
 
         FS.CreatePath(FS.getWriteDir() + "/save/current/");
 
@@ -1216,8 +1214,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         if (mapName.charAt(0) == '*') {
             // wipe all the *.sav files
             SV_WipeSavegame("current");
-        }
-        else { // save the map just exited
+        } else { // save the map just exited
+            // note: only applicable to the default instance (subject to change in future)
+            var gameImports = games.get("default");
             if (gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
@@ -1225,7 +1224,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
                 // todo: only relevant to this gameImports clients
                 boolean[] savedInuse = new boolean[clients.size()];
                 int i = 0;
-                for (client_t cl: clients) {
+                for (client_t cl : clients) {
                     if (cl.edict != null) { // free client slots will have null values
                         savedInuse[i] = cl.edict.inuse;
                         cl.edict.inuse = false;
@@ -1253,23 +1252,30 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             // start up the next map
             game.name = "default";
             games.put(game.name, game);
+            for (client_t cl : clients) {
+                cl.gameName = "default";
+            }
 
         } else {
-            throw new RuntimeException("Nyet");
-//            // continuing a game, next level
-//
-//            final client_t cl = clients.get(clientIndex - 1);
-//            GameImportsImpl previousGame = games.get(cl.gameName);
-//            previousGame.gameExports.ClientDisconnect(cl.edict);
-//            games.put(game.name, game);
-//
-//            cl.gameName = game.name;
+            // preview of the multi instance mode
+            final client_t cl = clients.get(clientIndex - 1);
+            GameImportsImpl previousGame = games.get(cl.gameName);
+            previousGame.gameExports.ClientDisconnect(cl.edict);
+            games.put(game.name, game);
+            cl.gameName = game.name;
         }
 
         // copy off the level to the autosave slot
         if (0 == Globals.dedicated.value) {
             game.SV_WriteServerFile(true);
             SV_CopySaveGame("current", "save0");
+        }
+
+        // multi instance preview:
+        // when playing the regular flow, multi instances are not requried
+        if (clientIndex == 0) {
+            games.clear();
+            games.put("default", game);
         }
     }
 
@@ -1280,7 +1286,12 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         Globals.server_state = ServerStates.SS_DEAD; //fixme: used by the client code
 
         GameExports oldGame = null;
-        GameImportsImpl gameImports = games.get("default");
+        GameImportsImpl gameImports;
+
+        if (clientIndex != 0)
+            gameImports = games.get(clients.get(clientIndex - 1).gameName);
+        else
+            gameImports = games.get("default");
 
         if (gameImports != null) { //todo
             // store some entity data into gclient_t struct, will be restored in the next game
@@ -1308,6 +1319,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             final client_t cl = clients.get(clientIndex - 1);
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;
+            cl.lastReceivedFrame = -1;
             gameImports.unicastMessage(clientIndex, new StuffTextMessage("changing"), true);
         }
 
