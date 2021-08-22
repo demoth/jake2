@@ -261,22 +261,8 @@ public class SV_GAME {
 
     /**
      * SV_CheckForSavegame.
-     * @param sv
      */
-    void SV_CheckForSavegame(server_t sv) {
-
-        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
-            return;
-
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
-            return;
-
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
-
-        if (!new File(name).exists())
-            return;
-
-        SV_WORLD.SV_ClearWorld(gameImports);
+    void restorePreviousGame(server_t sv) {
 
         // get configstrings and areaportals
         // then read game enitites
@@ -284,21 +270,25 @@ public class SV_GAME {
 
         if (!sv.loadgame) {
             // coming back to a level after being in a different
-            // level, so run it for ten seconds
+            // level, so run it for 100 frames
 
-            // rlava2 was sending too many lightstyles, and overflowing the
-            // reliable data. temporarily changing the server state to loading
-            // prevents these from being passed down.
-            ServerStates previousState; // PGM
-
-            previousState = sv.state; // PGM
-            sv.state = ServerStates.SS_LOADING; // PGM
-            for (int i = 0; i < 100; i++)
+            // assert sv.state == LOADING, otherwise, updates from 100 frames may overflow the reliable channel
+            for (int i = 0; i < 100; i++) {
                 gameImports.gameExports.G_RunFrame();
-
-            sv.state = previousState; // PGM
+            }
         }
     }
 
+    boolean isPreviousLevel(server_t sv) {
+        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
+            return false;
 
+        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
+            return false;
+
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
+
+        return new File(name).exists();
+
+    }
 }

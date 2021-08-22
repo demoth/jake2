@@ -98,8 +98,9 @@ public interface GameExports {
     /**
      * Persist whatever is required from the previous instance.
      * @param oldGame
+     * @param spawnPoint
      */
-    void fromPrevious(GameExports oldGame);
+    void fromPrevious(GameExports oldGame, String spawnPoint);
 
     void SaveClientData();
 

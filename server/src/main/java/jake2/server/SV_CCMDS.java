@@ -25,7 +25,6 @@ package jake2.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.sys.Sys;
@@ -199,12 +198,11 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 	}
-	/*
-	==============
-	SV_ReadLevelFile
-	
-	==============
-	*/
+
+	/**
+	 * SV_ReadLevelFile
+	 * Read: config strings, portal state, read level_locals and entities
+	 */
 	static void SV_ReadLevelFile(String saveName, GameImportsImpl gameImports) {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
@@ -230,38 +228,6 @@ public class SV_CCMDS {
 	}
 
 
-	/**
-	 * 	SV_ReadServerFile
-	 *
-	 * 	todo - move read game locals to another function
-	 */
-	static void SV_Read_Latched_Vars(GameImportsImpl gameImports) {
-		try {
-
-			Com.DPrintf("SV_ReadServerFile()\n");
-
-			QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "r");
-
-			// read all CVAR_LATCH cvars
-			// these will be things like coop, skill, deathmatch, etc
-			while (true) {
-				String name = f.readString();
-				if (name == null)
-					break;
-				String value = f.readString();
-
-				Com.DPrintf("Set " + name + " = " + value + "\n");
-				Cvar.getInstance().ForceSet(name, value);
-			}
-
-			f.close();
-
-			// read game state
-			gameImports.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv");
-		} catch (Exception e) {
-			Com.Printf("Couldn't read file " + e.getMessage() + "\n");
-		}
-	}
 	//=========================================================
 
 	/** Print the memory used by the java vm. */

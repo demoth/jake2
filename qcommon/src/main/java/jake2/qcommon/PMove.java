@@ -62,6 +62,17 @@ public class PMove {
 
     public static float pm_accelerate = 10;
 
+    /*
+     was initialized in spawnServerInstance:
+         if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
+            gameImports.sv.configstrings[CS_AIRACCEL] = "" + sv_airaccelerate.value;
+            PMove.pm_airaccelerate = sv_airaccelerate.value;
+        } else {
+            gameImports.sv.configstrings[CS_AIRACCEL] = "0";
+            PMove.pm_airaccelerate = 0;
+        }
+
+     */
     public static float pm_airaccelerate = 0;
 
     public static float pm_wateraccelerate = 10;

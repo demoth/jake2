@@ -1679,7 +1679,7 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void fromPrevious(GameExports oldGame) {
+    public void fromPrevious(GameExports oldGame, String spawnPoint) {
         GameExportsImpl oldGameImpl = (GameExportsImpl) oldGame;
         // assert both client arrays are of the same size
         for (int i = 0; i < oldGameImpl.game.clients.length && i < game.clients.length; i++) {
@@ -1691,8 +1691,6 @@ public class GameExportsImpl implements GameExports {
         game.helpmessage1 = oldGameImpl.game.helpmessage1;
         game.helpmessage2 = oldGameImpl.game.helpmessage2;
         game.autosaved = oldGameImpl.game.autosaved;
-        // spawnpoint
-
+        //game.spawnpoint = spawnPoint;
     }
-
 }
