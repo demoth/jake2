@@ -34,8 +34,8 @@ public class GameImportsTest {
     public void runGame() {
 
         final SV_MAIN sv_main = new SV_MAIN();
-        sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false));
-        final GameExports gameExports = sv_main.gameImports.gameExports;
+        GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        final GameExports gameExports = game.gameExports;
         SubgameEntity gunner = null;
         SubgameEntity soldier = null;
         for (int i = 1; i < gameExports.getNumEdicts(); i++) {

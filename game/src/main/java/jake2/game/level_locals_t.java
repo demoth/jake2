@@ -33,27 +33,27 @@ public class level_locals_t
 	//	this structure is cleared as each map is entered
 	//	it is read/written to the level.sav file for savegames
 	//
-	public int framenum;
-	public float time;
+    public int framenum;
+    public float time;
 
-	public String level_name= ""; // the descriptive name (Outer Base, etc)
-	public String mapname= ""; // the server name (base1, etc)
-	public String nextmap= ""; // go here when fraglimit is hit
+    public String level_name = ""; // the descriptive name (Outer Base, etc)
+    public String mapname = ""; // the server name (base1, etc)
+    public String nextmap = ""; // go here when fraglimit is hit
 
-	// intermission state
-	public float intermissiontime; // time the intermission was started
-	public String changemap;
-	public boolean exitintermission;
-	public float[] intermission_origin= { 0, 0, 0 };
-	public float[] intermission_angle= { 0, 0, 0 };
+    // intermission state
+    public float intermissiontime; // time the intermission was started
+    public String changemap;
+    public boolean exitintermission;
+    public float[] intermission_origin = {0, 0, 0};
+    public float[] intermission_angle = {0, 0, 0};
 
-	public SubgameEntity sight_client; // changed once each frame for coop games
+    public SubgameEntity sight_client; // changed once each frame for coop games
 
-	public SubgameEntity sight_entity;
-	public int sight_entity_framenum;
-	
-	public SubgameEntity sound_entity;
-	public int sound_entity_framenum;
+    public SubgameEntity sight_entity;
+    public int sight_entity_framenum;
+
+    public SubgameEntity sound_entity;
+    public int sound_entity_framenum;
 	
 	public SubgameEntity sound2_entity;
 	public int sound2_entity_framenum;

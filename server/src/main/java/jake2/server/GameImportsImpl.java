@@ -55,12 +55,15 @@ import static jake2.server.SV_CCMDS.SV_CopySaveGame;
 */
 public class GameImportsImpl implements GameImports {
 
+    String name;
     final JakeServer serverMain;
     public GameExports gameExports;
 
     // local (instance) server state
     public server_t sv;
+
     public int realtime; // always increasing, no clamping, etc
+    // todo: remove
     public int spawncount; // incremented each server start
 
     // hack for finishing game in coop mode
@@ -82,7 +85,7 @@ public class GameImportsImpl implements GameImports {
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
         this.serverMain = serverMain;
-        SV_InitOperatorCommands();
+        this.name = "jake2_" + SV_MAIN.gameCounter++;
 
         spawncount = Lib.rand();
 
@@ -127,7 +130,11 @@ public class GameImportsImpl implements GameImports {
         }
 
         // clear physics interaction links
+        // Q: is it required? the instance was just created
         SV_WORLD.SV_ClearWorld(this);
+
+        SV_InitOperatorCommands();
+
     }
 
     /**
@@ -186,7 +193,7 @@ public class GameImportsImpl implements GameImports {
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {
-        serverMain.SV_BroadcastPrintf(printlevel, s);
+        serverMain.SV_BroadcastPrintf(printlevel, s, name);
     }
 
     @Override
@@ -417,7 +424,7 @@ public class GameImportsImpl implements GameImports {
         if (client == null)
             return;
 
-        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n");
+        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName);
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         SV_SEND.SV_ClientPrintf(client, Defines.PRINT_HIGH, "You were kicked from the game\n");
@@ -631,7 +638,11 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R, new StuffTextMessage(s));
+        for (client_t client : serverMain.getClients()) {
+            if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
+                continue;
+            client.netchan.reliablePending.add(new StuffTextMessage(s));
+        }
     }
 
     void SV_WriteLevelFile() {
@@ -763,14 +774,15 @@ public class GameImportsImpl implements GameImports {
                 mask = cm.CM_ClusterPVS(cluster);
                 break;
 
-            default :
+            default:
                 mask = null;
                 Com.Error(Defines.ERR_FATAL, "SV_Multicast: bad to:" + to + "\n");
         }
 
         // send the data to all relevent clients
-        for (client_t client: serverMain.getClients()) {
-
+        for (client_t client : serverMain.getClientsForInstance(name)) {
+            if (client == null)
+                continue;
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
             if (client.state != ClientStates.CS_SPAWNED && !reliable)

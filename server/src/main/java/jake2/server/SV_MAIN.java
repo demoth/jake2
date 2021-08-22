@@ -39,6 +39,7 @@ import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.DisconnectMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.network.messages.server.ReconnectMessage;
+import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
 
@@ -46,9 +47,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
 import static jake2.server.SV_CCMDS.SV_CopySaveGame;
@@ -65,9 +65,22 @@ public class SV_MAIN implements JakeServer {
 
     private static final int MAX_STRINGCMDS = 8;
 
-    public static GameImportsImpl gameImports;
+    public static Map<String, GameImportsImpl> games = new HashMap<>();
 
-    /** Addess of group servers.*/
+    @Override
+    public List<client_t> getClientsForInstance(final String gameName) {
+        if (!games.containsKey(gameName)) {
+            //throw new IllegalStateException("Game " + gameName + " not found!");
+            Com.Printf("Game " + gameName + " is not found!\n");
+        }
+        // nullify unrelated clients
+        return clients.stream().map(c -> c.gameName != null && c.gameName.equals(gameName) ? c : null).collect(Collectors.toList());
+    }
+
+
+    /**
+     * Addess of group servers.
+     */
     static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
 
     // prevent invalid IPs from connecting
@@ -76,8 +89,9 @@ public class SV_MAIN implements JakeServer {
     private List<client_t> clients = new ArrayList<>(); // [maxclients->value];
 
     private long realtime = 0;
-    private long frameNum = 0;
-    private long fixedtime = 1000;
+    private int frameNum = 0;
+    private int fixedtime = 1000;
+    public static int gameCounter = 0;
 
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
@@ -113,18 +127,11 @@ public class SV_MAIN implements JakeServer {
 
     static cvar_t hostname;
 
-    static cvar_t maxclients;
-
     static cvar_t public_server; // should heartbeats be sent
 
     static cvar_t sv_reconnect_limit; // minimum seconds between connect
                                              // messages
 
-    /* ==============================================================================
-     * 
-     * CONNECTIONLESS COMMANDS
-     * 
-     * ==============================================================================*/
 
     /**
      * Builds the string that is sent as heartbeats and status replies.
@@ -170,7 +177,7 @@ public class SV_MAIN implements JakeServer {
                 if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
-            info = SV_MAIN.hostname.string + " " + gameImports.sv.name + " " + players + "/" + clients.size() + "\n";
+            info = SV_MAIN.hostname.string + " " + games.get("default").sv.name + " " + players + "/" + clients.size() + "\n";
         }
 
         return info;
@@ -232,6 +239,8 @@ public class SV_MAIN implements JakeServer {
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString());
 
+
+/*
         if (gameImports.sv.isDemo) {
             if (!adr.IsLocalAddress()) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
@@ -239,6 +248,8 @@ public class SV_MAIN implements JakeServer {
                 return;
             }
         }
+*/
+
 
         // see if the challenge is valid
         int j;
@@ -264,7 +275,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!adr.IsLocalAddress() && (gameImports.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (SV_MAIN.sv_reconnect_limit.value * 1000)) {
                     Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n");
                     return;
                 }
@@ -303,13 +314,14 @@ public class SV_MAIN implements JakeServer {
         // this is the only place a client_t is ever initialized
 
         final client_t client = clients.get(i);
+        GameImportsImpl gameImports = games.get("default");
+        client.gameName = "default";
+
         edict_t ent = gameImports.gameExports.getEdict(i + 1);
         client.edict = ent; // fixme: why? isn't it already set?
-        
+
         // save challenge for checksumming
         client.challenge = challenge;
-        
-        
 
         // get the game a chance to reject this connection or modify the
         // userinfo
@@ -443,16 +455,15 @@ public class SV_MAIN implements JakeServer {
      * SV_Frame.
      */
     public void update(long msec) {
-        Globals.time_before_game = Globals.time_after_game = 0;
-
         // if server is not active, do nothing
         // like when connected to another server
-        final GameImportsImpl serverInstance = gameImports;
-        if (serverInstance == null)
+        if (games.isEmpty())
             return;
 
-        serverInstance.realtime += msec;
         realtime += msec;
+        for (GameImportsImpl game: games.values()) {
+            game.realtime += msec;
+        }
 
         // keep the random time dependent
         Lib.rand();
@@ -469,7 +480,8 @@ public class SV_MAIN implements JakeServer {
         if (delay > 0) {
             // never let the time get too far off
             if (delay > 100) { // how is it even possible?
-                serverInstance.realtime = (int) (fixedtime - 100);
+                for (GameImportsImpl game: games.values())
+                    game.realtime = (int) (fixedtime - 100);
                 delay = 100;
             }
             NET.Sleep((int) delay);
@@ -487,7 +499,9 @@ public class SV_MAIN implements JakeServer {
         SV_GiveMsec();
 
         // let everything in the world think and move
-        serverInstance.SV_RunGameFrame(fixedtime);
+        for (GameImportsImpl game : games.values()) {
+            game.SV_RunGameFrame(fixedtime);
+        }
 
         // send messages back to the clients that had packets read this frame
         SV_SendClientMessages();
@@ -497,30 +511,32 @@ public class SV_MAIN implements JakeServer {
         //Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
-        clearEntityStateEvents(serverInstance.gameExports);
-
+        for (GameImportsImpl game : games.values()) {
+            clearEntityStateEvents(game.gameExports);
+        }
     }
 
     void SV_SendClientMessages() {
 
-        server_t sv = gameImports.sv;
         // send a message to each connected client
         // todo send only to related clients
-        for (client_t c: clients) {
+        for (client_t c : clients) {
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
+
+            GameImportsImpl game = games.get(c.gameName);
             // if the reliable message overflowed,
             // drop the client
             int pendingReliableSize = c.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
                 c.netchan.reliablePending.clear();
                 c.unreliable.clear();
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName);
                 SV_DropClient(c);
             }
 
-            if (sv.state == ServerStates.SS_CINEMATIC || sv.state == ServerStates.SS_DEMO || sv.state == ServerStates.SS_PIC) {
+            if (game.sv.state == ServerStates.SS_CINEMATIC || game.sv.state == ServerStates.SS_DEMO || game.sv.state == ServerStates.SS_PIC) {
                 // leftover from demo code
                 c.netchan.transmit(null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
@@ -528,9 +544,8 @@ public class SV_MAIN implements JakeServer {
                 if (SV_RateDrop(c))
                     continue;
 
-                SV_SendClientDatagram(c, gameImports);
-            }
-            else {
+                SV_SendClientDatagram(c, game);
+            } else {
                 // just update reliable	if needed
                 if (c.netchan.reliablePending.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
                     c.netchan.transmit(null);
@@ -550,7 +565,7 @@ public class SV_MAIN implements JakeServer {
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
             // this will remove the body, among other things
-            gameImports.gameExports.ClientDisconnect(client.edict);
+            games.get(client.gameName).gameExports.ClientDisconnect(client.edict);
         }
 
         if (client.download != null) {
@@ -564,20 +579,19 @@ public class SV_MAIN implements JakeServer {
     /**
      * Sends text to all active clients
      */
-    public void SV_BroadcastPrintf(int level, String s) {
+    public void SV_BroadcastPrintf(int level, String message, String gameName) {
 
         // echo to console
         if (Globals.dedicated.value != 0) {
-            Com.Printf(s);
+            Com.Printf(message);
         }
 
-        // todo: send only to related clients
-        for (client_t cl: clients) {
-            if (level < cl.messagelevel)
+        for (client_t cl: getClientsForInstance(gameName)) {
+            if (cl == null || level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
-            cl.netchan.reliablePending.add(new PrintMessage(level, s));
+            cl.netchan.reliablePending.add(new PrintMessage(level, message));
         }
     }
 
@@ -587,7 +601,7 @@ public class SV_MAIN implements JakeServer {
      * Returns true if the client is over its current
      * bandwidth estimation and should not be sent another packet
      */
-    static boolean SV_RateDrop(client_t c) {
+    boolean SV_RateDrop(client_t c) {
 
         // never drop over the loopback
         if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
@@ -601,7 +615,7 @@ public class SV_MAIN implements JakeServer {
 
         if (total > c.rate) {
             c.surpressCount++;
-            c.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = 0;
+            c.message_size[frameNum % Defines.RATE_MESSAGES] = 0;
             return true;
         }
 
@@ -627,7 +641,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             }
 
-            // check for packets from connected clients
+            // Match incoming packet with the existing client.
             // todo: get client by address (hashmap?)
             for (client_t cl: clients) {
                 if (cl.state == ClientStates.CS_FREE)
@@ -644,9 +658,7 @@ public class SV_MAIN implements JakeServer {
                 if (cl.netchan.accept(networkPacket)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
-                        // todo: identify gameImports instance by client
-                        // todo: use sv_main realtime
-                        cl.lastmessage = gameImports.realtime; // don't timeout
+                        cl.lastmessage = games.get(cl.gameName).realtime; // don't timeout
                         Collection<ClientMessage> body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence);
                         if (body == null)
                             SV_DropClient(cl);
@@ -671,6 +683,7 @@ public class SV_MAIN implements JakeServer {
         // only allow one move command
         boolean move_issued = false;
         int stringCmdCount = 0;
+
 
         for (ClientMessage msg : clientMessages) {
             if (msg instanceof EndOfClientPacketMessage) {
@@ -700,7 +713,8 @@ public class SV_MAIN implements JakeServer {
                 if (lastReceivedFrame != cl.lastReceivedFrame) {
                     cl.lastReceivedFrame = lastReceivedFrame;
                     if (cl.lastReceivedFrame > 0) {
-                        cl.frame_latency[cl.lastReceivedFrame & (Defines.LATENCY_COUNTS - 1)] = gameImports.realtime - cl.frames[cl.lastReceivedFrame & Defines.UPDATE_MASK].senttime;
+                        final int framaLatency = games.get(cl.gameName).realtime - cl.frames[cl.lastReceivedFrame & UPDATE_MASK].senttime;
+                        cl.frame_latency[cl.lastReceivedFrame & (Defines.LATENCY_COUNTS - 1)] = framaLatency;
                     }
                 }
 
@@ -755,7 +769,7 @@ public class SV_MAIN implements JakeServer {
             return;
         }
 
-        gameImports.gameExports.ClientThink(cl.edict, cmd);
+        games.get(cl.gameName).gameExports.ClientThink(cl.edict, cmd);
     }
 
     /**
@@ -763,9 +777,8 @@ public class SV_MAIN implements JakeServer {
      * freindly form.
      */
     static void SV_UserinfoChanged(client_t cl) {
-
         // call prog code to allow overrides
-        gameImports.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
+        games.get(cl.gameName).gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
         // name for C code
         cl.name = Info.Info_ValueForKey(cl.userinfo, "name");
@@ -794,21 +807,22 @@ public class SV_MAIN implements JakeServer {
 
     }
 
-    private static void SV_ExecuteUserCommand(client_t cl, String s) {
+    private static void SV_ExecuteUserCommand(client_t cl, String command) {
 
-        Com.dprintln("SV_ExecuteUserCommand:" + s );
+        Com.dprintln("SV_ExecuteUserCommand:" + command );
 
-        List<String> args = Cmd.TokenizeString(s, true);
+        List<String> args = Cmd.TokenizeString(command, true);
         if (args.isEmpty())
             return;
 
+        final GameImportsImpl game = games.get(cl.gameName);
         if (userCommands.containsKey(args.get(0))) {
-            userCommands.get(args.get(0)).execute(args, gameImports, cl);
+            userCommands.get(args.get(0)).execute(args, game, cl);
             return;
         }
 
-        if (gameImports.sv.state == ServerStates.SS_GAME)
-            gameImports.gameExports.ClientCommand(cl.edict, args);
+        if (game.sv.state == ServerStates.SS_GAME)
+            game.gameExports.ClientCommand(cl.edict, args);
     }
 
     /**
@@ -821,22 +835,25 @@ public class SV_MAIN implements JakeServer {
      * necessary.
      */
     void SV_CheckTimeouts() {
-        // todo move use SV_MAIN realtime
-        int droppoint = (int) (gameImports.realtime - 1000 * SV_MAIN.timeout.value);
-        int zombiepoint = (int) (gameImports.realtime - 1000 * SV_MAIN.zombietime.value);
 
-        for (client_t cl: clients) {
+        for (client_t cl : clients) {
+            if (cl.state == ClientStates.CS_FREE)
+                continue;
+
+            final GameImportsImpl game = games.get(cl.gameName);
+            int droppoint = (int) (game.realtime - 1000 * SV_MAIN.timeout.value);
+            int zombiepoint = (int) (game.realtime - 1000 * SV_MAIN.zombietime.value);
+
             // message times may be wrong across a changelevel
-            if (cl.lastmessage > gameImports.realtime)
-                cl.lastmessage = gameImports.realtime;
+            if (cl.lastmessage > game.realtime)
+                cl.lastmessage = game.realtime;
 
             if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
                 cl.state = ClientStates.CS_FREE; // can now be reused
                 continue;
             }
             if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) && cl.lastmessage < droppoint) {
-                // todo identify gameImports instance by client
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name + " timed out\n");
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name + " timed out\n", cl.gameName);
                 SV_DropClient(cl);
                 cl.state = ClientStates.CS_FREE; // don't bother with zombie state
             }
@@ -883,6 +900,9 @@ public class SV_MAIN implements JakeServer {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
+            if ((games.get(cl.gameName).sv.framenum & 15) != 0)
+                continue;
+
             cl.commandMsec = 1800; // 1600 + some slop
         }
     }
@@ -921,7 +941,7 @@ public class SV_MAIN implements JakeServer {
      */
     @Override
     public void SV_Shutdown(String finalmsg, boolean reconnect) {
-        if (gameImports == null)
+        if (games.isEmpty())
             return;
 
         // todo: identify if we need to send the final message (clients is always != null)
@@ -930,7 +950,7 @@ public class SV_MAIN implements JakeServer {
 
         Com.Printf("==== ShutdownGame ====\n");
 
-        gameImports = null;
+        games.clear();
         Globals.server_state = ServerStates.SS_DEAD;
     }
 
@@ -985,11 +1005,24 @@ public class SV_MAIN implements JakeServer {
                 Com.Error(ERR_DROP, "Could not read maps.lst");
                 return;
             }
-            for (String line : new String(bytes).split("\n")){
+            for (String line : new String(bytes).split("\n")) {
                 Com.Printf(PRINT_ALL, line.trim() + "\n");
             }
         });
         Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
+        Cmd.AddCommand("games", args -> {
+            for (GameImportsImpl game : games.values()) {
+                Com.Printf(game.name + " - " + game.mapcmd + "\n");
+            }
+            Com.Printf("Total " + games.size() + " games\n");
+        });
+        Cmd.AddCommand("spamgames", args -> {
+            int total = Integer.parseInt(args.get(1));
+            for (int i = 0; i < total; i++) {
+                SV_GameMap_f(List.of("gamemap", "base1", "1"));
+            }
+        });
+
 
         Cvar.getInstance().Get("rcon_password", "", 0);
         Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
@@ -1121,7 +1154,7 @@ public class SV_MAIN implements JakeServer {
         final String mapCommand = SV_ReadMapCommand();
 
         // go to the map
-        spawnServerInstance(new ChangeMapInfo(mapCommand, false, true));
+        spawnServerInstance(new ChangeMapInfo(mapCommand, false, true), 0);
     }
 
     private String SV_ReadMapCommand() {
@@ -1156,16 +1189,26 @@ Example:
 Clears the archived maps, plays the inter.cin cinematic, then
 goes to map jail.bsp.
 ==================
+
+Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
     void SV_GameMap_f(List<String> args) {
 
-        if (args.size() != 2) {
-            Com.Printf("USAGE: gamemap <map>\n");
+        if (args.size() < 2) {
+            Com.Printf("USAGE: gamemap <map>\n <client>");
             return;
         }
 
         String mapName = args.get(1);
+
+        final int clientIndex;
+        if (args.size() > 2)
+            clientIndex = Integer.parseInt(args.get(2));
+        else
+            clientIndex = 0;
+
         Com.DPrintf("SV_GameMap(" + mapName + ")\n");
+        var gameImports = games.get("default");
 
         FS.CreatePath(FS.getWriteDir() + "/save/current/");
 
@@ -1203,12 +1246,29 @@ goes to map jail.bsp.
             }
         }
 
-        // start up the next map
-        spawnServerInstance(new ChangeMapInfo(mapName, false, false));
+        final GameImportsImpl game = spawnServerInstance(new ChangeMapInfo(mapName, false, false), clientIndex);
+
+        if (clientIndex == 0) {
+            // server just started, `map` cmd was used
+            // start up the next map
+            game.name = "default";
+            games.put(game.name, game);
+
+        } else {
+            throw new RuntimeException("Nyet");
+//            // continuing a game, next level
+//
+//            final client_t cl = clients.get(clientIndex - 1);
+//            GameImportsImpl previousGame = games.get(cl.gameName);
+//            previousGame.gameExports.ClientDisconnect(cl.edict);
+//            games.put(game.name, game);
+//
+//            cl.gameName = game.name;
+        }
 
         // copy off the level to the autosave slot
         if (0 == Globals.dedicated.value) {
-            SV_MAIN.gameImports.SV_WriteServerFile(true);
+            game.SV_WriteServerFile(true);
             SV_CopySaveGame("current", "save0");
         }
     }
@@ -1216,11 +1276,13 @@ goes to map jail.bsp.
     /**
      * SV_Map
      */
-    void spawnServerInstance(ChangeMapInfo changeMapInfo) {
+    GameImportsImpl spawnServerInstance(ChangeMapInfo changeMapInfo, int clientIndex) {
         Globals.server_state = ServerStates.SS_DEAD; //fixme: used by the client code
 
         GameExports oldGame = null;
-        if (gameImports != null) {
+        GameImportsImpl gameImports = games.get("default");
+
+        if (gameImports != null) { //todo
             // store some entity data into gclient_t struct, will be restored in the next game
             oldGame = gameImports.gameExports;
             oldGame.SaveClientData();
@@ -1232,15 +1294,23 @@ goes to map jail.bsp.
 
         Cmd.ExecuteFunction("loading"); // for local system
 
-        // leave slots at start for clients only
-        for (client_t cl: clients) {
-            // needs to reconnect
+        if (clientIndex == 0) {
+            // leave slots at start for clients only
+            for (client_t cl : clients) { //todo
+                // needs to reconnect
+                if (cl.state == ClientStates.CS_SPAWNED)
+                    cl.state = ClientStates.CS_CONNECTED;
+                cl.lastReceivedFrame = -1;
+            }
+            gameImports.SV_BroadcastCommand("changing");
+
+        } else {
+            final client_t cl = clients.get(clientIndex - 1);
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;
-            cl.lastReceivedFrame = -1;
+            gameImports.unicastMessage(clientIndex, new StuffTextMessage("changing"), true);
         }
 
-        gameImports.SV_BroadcastCommand("changing");
         SV_SendClientMessages();
 
 
@@ -1286,7 +1356,12 @@ goes to map jail.bsp.
         if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
 
-        gameImports.SV_BroadcastCommand("reconnect"); // doesn't really reconnect but rather issues 'NEW' command
+        if (clientIndex == 0) {
+            gameImports.SV_BroadcastCommand("reconnect"); // doesn't really reconnect but rather issues 'NEW' command
+        } else {
+            gameImports.unicastMessage(clientIndex, new StuffTextMessage("reconnect"), true);
+        }
+        return gameImports;
     }
 
     /*
@@ -1296,6 +1371,8 @@ SV_Map_f
 Goes directly to a given map without any savegame archiving.
 For development work
 ==================
+
+Resets server to host a given map, moves all clients to it (via reconnect)
 */
     void SV_Map_f(List<String> args) {
         //char expanded[MAX_QPATH];
@@ -1313,9 +1390,10 @@ For development work
                 return;
             }
         }
+        var game = games.get("default");
 
-        if (SV_MAIN.gameImports != null)
-            SV_MAIN.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+        if (game != null)
+            game.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
         SV_WipeSavegame("current");
 

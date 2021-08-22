@@ -40,7 +40,8 @@ public class DownloadMessage extends ServerMessage {
     public void parse(sizebuf_t buffer) {
         int size = buffer.readShort();
         percentage = (byte) buffer.readByte();
-        if (size != -1) {
+        // fixme: signed or unsigned?
+        if (size != -1 && size != -32640) {
             data = new byte[size];
             buffer.readData(data, size);
         }

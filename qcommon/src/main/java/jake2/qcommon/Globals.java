@@ -67,10 +67,6 @@ public class Globals extends Defines {
 	public static cvar_t timescale;
 
 
-	public static int time_before_game;
-	public static int time_after_game;
-
-
 	// client/anorms.h
 	public static final float bytedirs[][] = { /**
 								*/

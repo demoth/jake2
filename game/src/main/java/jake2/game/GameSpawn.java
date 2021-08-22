@@ -1327,6 +1327,7 @@ public class GameSpawn {
         gameExports.level.mapname = mapname;
         gameExports.game.spawnpoint = spawnpoint;
 
+        // todo:
         // set client fields on player ents
         for (i = 0; i < gameExports.game.maxclients; i++)
             gameExports.g_edicts[i + 1].setClient(gameExports.game.clients[i]);

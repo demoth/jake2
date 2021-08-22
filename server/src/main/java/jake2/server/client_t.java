@@ -49,6 +49,8 @@ public class client_t {
 
 	String userinfo = "";
 
+	String gameName;
+
 	// for delta compression
 	int lastReceivedFrame;
 	usercmd_t lastcmd = new usercmd_t(); // for filling in big drops
