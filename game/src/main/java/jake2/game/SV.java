@@ -771,10 +771,9 @@ final class SV {
      * stairs, but if the move isn't possible, no move is done, false is
      * returned, and pr_global_struct.trace_normal is set to the normal of the
      * blocking wall.
+     * <p>
+     * FIXME: since we need to test end position contents here, can we avoid doing it again later in catagorize position?
      */
-    
-    // FIXME: since we need to test end position contents here, can we avoid
-    // doing it again later in catagorize position?
     static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink, GameExportsImpl gameExports) {
         float dz;
         float[] oldorg = { 0, 0, 0 };

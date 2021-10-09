@@ -1447,7 +1447,7 @@ public class M_Soldier {
 
             self.monsterinfo.stand.think(self, gameExports);
 
-            GameAI.walkmonster_start.think(self, gameExports);
+            GameAI.walkmonster_start(self, gameExports);
             return true;
         }
     };

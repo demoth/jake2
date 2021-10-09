@@ -174,23 +174,23 @@ public class PlayerClient {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
-                SubgameEntity spot = GameUtil.G_Spawn(gameExports);
+                SubgameEntity spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 - 64;
                 spot.s.origin[1] = -164;
                 spot.s.origin[2] = 80;
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
-    
-                spot = GameUtil.G_Spawn(gameExports);
+
+                spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 64;
                 spot.s.origin[1] = -164;
                 spot.s.origin[2] = 80;
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
-    
-                spot = GameUtil.G_Spawn(gameExports);
+
+                spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 128;
                 spot.s.origin[1] = -164;
@@ -760,7 +760,7 @@ public class PlayerClient {
 
         gameExports.level.body_que = 0;
         for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
-            SubgameEntity ent = GameUtil.G_Spawn(gameExports);
+            SubgameEntity ent = gameExports.G_Spawn();
             ent.classname = "bodyque";
         }
     }

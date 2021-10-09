@@ -684,7 +684,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.maxs, 32, 32, -16);
         gameExports.gameImports.linkentity(ent);
 
-        SubgameEntity trig = GameUtil.G_Spawn(gameExports);
+        SubgameEntity trig = gameExports.G_Spawn();
         trig.touch = teleporter_touch;
         trig.solid = Defines.SOLID_TRIGGER;
         trig.target = ent.target;
@@ -727,7 +727,7 @@ public class GameMisc {
         float[] origin = { 0, 0, 0 };
         float[] size = { 0, 0, 0 };
 
-        SubgameEntity gib = GameUtil.G_Spawn(gameExports);
+        SubgameEntity gib = gameExports.G_Spawn();
     
         Math3D.VectorScale(self.size, 0.5f, size);
         Math3D.VectorAdd(self.absmin, size, origin);
@@ -854,7 +854,7 @@ public class GameMisc {
                             float[] origin, GameExportsImpl gameExports) {
         float[] v = { 0, 0, 0 };
 
-        SubgameEntity chunk = GameUtil.G_Spawn(gameExports);
+        SubgameEntity chunk = gameExports.G_Spawn();
         Math3D.VectorCopy(origin, chunk.s.origin);
         gameExports.gameImports.setmodel(chunk, modelname);
         v[0] = 100 * Lib.crandom();
@@ -1575,11 +1575,17 @@ public class GameMisc {
         }
     };
 
+    /**
+     * Rotates the bomb to imitate the drag of the tail
+     */
     private static EntThinkAdapter misc_viper_bomb_prethink = new EntThinkAdapter() {
-        public String getID() { return "misc_viper_bomb_prethink";}
+        public String getID() {
+            return "misc_viper_bomb_prethink";
+        }
+
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            float[] v = { 0, 0, 0 };
+            float[] v = {0, 0, 0};
             float diff;
 
             self.groundentity = null;

@@ -683,7 +683,7 @@ public class GameWeapon {
 
         Math3D.VectorNormalize(dir);
 
-        SubgameEntity bolt = GameUtil.G_Spawn(gameExports);
+        SubgameEntity bolt = gameExports.G_Spawn();
         bolt.svflags = Defines.SVF_DEADMONSTER;
         // yes, I know it looks weird that projectiles are deadmonsters
         // what this means is that when prediction is used against the object
@@ -734,7 +734,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = GameUtil.G_Spawn(gameExports);
+        SubgameEntity grenade = gameExports.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -770,7 +770,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = GameUtil.G_Spawn(gameExports);
+        SubgameEntity grenade = gameExports.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -812,7 +812,7 @@ public class GameWeapon {
     public static void fire_rocket(SubgameEntity self, float[] start, float[] dir,
                                    int damage, int speed, float damage_radius, int radius_damage, GameExportsImpl gameExports) {
 
-        SubgameEntity rocket = GameUtil.G_Spawn(gameExports);
+        SubgameEntity rocket = gameExports.G_Spawn();
         Math3D.VectorCopy(start, rocket.s.origin);
         Math3D.VectorCopy(dir, rocket.movedir);
         Math3D.vectoangles(dir, rocket.s.angles);
@@ -903,7 +903,7 @@ public class GameWeapon {
     public static void fire_bfg(SubgameEntity self, float[] start, float[] dir,
                                 int damage, int speed, float damage_radius, GameExportsImpl gameExports) {
 
-        SubgameEntity bfg = GameUtil.G_Spawn(gameExports);
+        SubgameEntity bfg = gameExports.G_Spawn();
         Math3D.VectorCopy(start, bfg.s.origin);
         Math3D.VectorCopy(dir, bfg.movedir);
         Math3D.vectoangles(dir, bfg.s.angles);

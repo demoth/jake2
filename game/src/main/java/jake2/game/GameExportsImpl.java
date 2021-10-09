@@ -69,10 +69,10 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.SuperAdapter",
                     "jake2.game.monsters.M_Actor",
                     "jake2.game.monsters.M_Berserk",
-                    "jake2.game.monsters.M_Boss2",
-                    "jake2.game.monsters.M_Boss3",
-                    "jake2.game.monsters.M_Boss31",
-                    "jake2.game.monsters.M_Boss32",
+                    "jake2.game.monsters.M_Hornet",
+                    "jake2.game.monsters.M_Makron_Idle",
+                    "jake2.game.monsters.M_Makron_Jorg",
+                    "jake2.game.monsters.M_Makron",
                     "jake2.game.monsters.M_Brain",
                     "jake2.game.monsters.M_Chick",
                     "jake2.qcommon.M_Flash",
@@ -207,10 +207,40 @@ public class GameExportsImpl implements GameExports {
     }
 
     /**
+     * Either finds a free edict, or allocates a new one. Try to avoid reusing
+     * an entity that was recently freed, because it can cause the client to
+     * think the entity morphed into something else instead of being removed and
+     * recreated, which can cause interpolated angles and bad trails.
+     */
+    public SubgameEntity G_Spawn() {
+        SubgameEntity e;
+        int i;
+        for (i = this.game.maxclients + 1; i < this.num_edicts; i++) {
+            e = this.g_edicts[i];
+            // the first couple seconds of server time can involve a lot of
+            // freeing and allocating, so relax the replacement policy
+            if (!e.inuse
+                    && (e.freetime < 2 || this.level.time - e.freetime > 0.5)) {
+                e = this.g_edicts[i] = new SubgameEntity(i);
+                GameUtil.G_InitEdict(e, i);
+                return e;
+            }
+        }
+
+        if (i == this.game.maxentities)
+            this.gameImports.error("ED_Alloc: no free edicts");
+
+        e = this.g_edicts[i] = new SubgameEntity(i);
+        this.num_edicts++;
+        GameUtil.G_InitEdict(e, i);
+        return e;
+    }
+
+    /**
      * Some information that should be persistent, like health, is still stored
      * in the edict structure, so it needs to be mirrored out to the client
      * structure before all the edicts are wiped.
-     *
+     * <p>
      * Restored in PlayerClient#FetchClientEntData() when the client reconnects
      */
     @Override
@@ -367,7 +397,7 @@ public class GameExportsImpl implements GameExports {
         SubgameEntity it_ent;
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
             it = GameItems.FindItem("Power Shield", this);
-            it_ent = GameUtil.G_Spawn(this);
+            it_ent = this.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -385,7 +415,7 @@ public class GameExportsImpl implements GameExports {
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
 
-                it_ent = GameUtil.G_Spawn(this);
+                it_ent = this.G_Spawn();
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -435,7 +465,7 @@ public class GameExportsImpl implements GameExports {
             else
                 client.pers.inventory[index] += it.quantity;
         } else {
-            it_ent = GameUtil.G_Spawn(this);
+            it_ent = this.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -1335,7 +1365,7 @@ public class GameExportsImpl implements GameExports {
      * Returns the created target changelevel.
      */
     private SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent = GameUtil.G_Spawn(this);
+        SubgameEntity ent = this.G_Spawn();
         ent.classname = "target_changelevel";
         level.nextmap = map;
         ent.map = map;

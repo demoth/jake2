@@ -28,10 +28,14 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.util.Math3D;
 
-public class M_Boss3 {
+// Boss3
+public class M_Makron_Idle {
 
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
-    	public String getID() { return "Use_Boss3"; }
+        public String getID() {
+            return "Use_Boss3";
+        }
+
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin), MulticastTypes.MULTICAST_PVS);
             GameUtil.G_FreeEdict(ent, gameExports);
@@ -41,8 +45,8 @@ public class M_Boss3 {
     static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
     	public String getID() { return "Think_Boss3Stand"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            if (ent.s.frame == M_Boss32.FRAME_stand260)
-                ent.s.frame = M_Boss32.FRAME_stand201;
+            if (ent.s.frame == M_Makron.FRAME_stand260)
+                ent.s.frame = M_Makron.FRAME_stand201;
             else
                 ent.s.frame++;
             ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
@@ -66,7 +70,7 @@ public class M_Boss3 {
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/boss3/rider/tris.md2";
         self.s.modelindex = gameExports.gameImports.modelindex(self.model);
-        self.s.frame = M_Boss32.FRAME_stand201;
+        self.s.frame = M_Makron.FRAME_stand201;
 
         gameExports.gameImports.soundindex("misc/bigtele.wav");
 

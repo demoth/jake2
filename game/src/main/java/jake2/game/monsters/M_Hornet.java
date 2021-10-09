@@ -29,7 +29,8 @@ import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-public class M_Boss2 {
+// Boss2 or Flying Boss or Guardian
+public class M_Hornet {
 
     public final static int FRAME_stand30 = 0;
 

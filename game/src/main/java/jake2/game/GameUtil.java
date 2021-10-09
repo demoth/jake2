@@ -55,7 +55,7 @@ public class GameUtil {
         SubgameEntity t;
         if (ent.delay != 0) {
             // create a temp object to fire at a later time
-            t = G_Spawn(gameExports);
+            t = gameExports.G_Spawn();
             t.classname = "DelayedUse";
             t.nextthink = gameExports.level.time + ent.delay;
             t.think = Think_Delay;
@@ -132,38 +132,6 @@ public class GameUtil {
         e.s = new entity_state_t(e);
         e.s.number = i;
         e.index = i;
-    }
-
-    /**
-     * Either finds a free edict, or allocates a new one. Try to avoid reusing
-     * an entity that was recently freed, because it can cause the client to
-     * think the entity morphed into something else instead of being removed and
-     * recreated, which can cause interpolated angles and bad trails.
-     * @param gameExports
-     */
-    public static SubgameEntity G_Spawn(GameExportsImpl gameExports) {
-        int i;
-        SubgameEntity e;
-
-        for (i = (int) gameExports.game.maxclients + 1; i < gameExports.num_edicts; i++) {
-            e = gameExports.g_edicts[i];
-            // the first couple seconds of server time can involve a lot of
-            // freeing and allocating, so relax the replacement policy
-            if (!e.inuse
-                    && (e.freetime < 2 || gameExports.level.time - e.freetime > 0.5)) {
-                e = gameExports.g_edicts[i] = new SubgameEntity(i);
-                G_InitEdict(e, i);
-                return e;
-            }
-        }
-
-        if (i == gameExports.game.maxentities)
-            gameExports.gameImports.error("ED_Alloc: no free edicts");
-
-        e = gameExports.g_edicts[i] = new SubgameEntity(i);
-        gameExports.num_edicts++;
-        G_InitEdict(e, i);
-        return e;
     }
 
     /**

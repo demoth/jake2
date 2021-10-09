@@ -1452,15 +1452,15 @@ public class PlayerWeapon {
 
         SubgameEntity noise;
         if (who.mynoise == null) {
-            noise = GameUtil.G_Spawn(gameExports);
+            noise = gameExports.G_Spawn();
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);
             noise.setOwner(who);
             noise.svflags = Defines.SVF_NOCLIENT;
             who.mynoise = noise;
-    
-            noise = GameUtil.G_Spawn(gameExports);
+
+            noise = gameExports.G_Spawn();
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);

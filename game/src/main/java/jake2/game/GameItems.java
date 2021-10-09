@@ -870,7 +870,7 @@ public class GameItems {
         float[] right = { 0, 0, 0 };
         float[] offset = { 0, 0, 0 };
 
-        SubgameEntity dropped = GameUtil.G_Spawn(gameExports);
+        SubgameEntity dropped = gameExports.G_Spawn();
     
         dropped.classname = item.classname;
         dropped.item = item;

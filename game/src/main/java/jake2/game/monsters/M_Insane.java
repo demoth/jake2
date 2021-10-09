@@ -1293,7 +1293,7 @@ public class M_Insane {
             self.flags |= GameDefines.FL_NO_KNOCKBACK;
             GameAI.flymonster_start.think(self, gameExports);
         } else {
-            GameAI.walkmonster_start.think(self, gameExports);
+            GameAI.walkmonster_start(self, gameExports);
             self.s.skinnum = Lib.rand() % 3;
         }
     }

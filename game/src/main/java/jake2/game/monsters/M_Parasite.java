@@ -834,7 +834,7 @@ public class M_Parasite {
             self.monsterinfo.currentmove = parasite_move_stand;
             self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start.think(self, gameExports);
+            GameAI.walkmonster_start(self, gameExports);
 
             return true;
         }

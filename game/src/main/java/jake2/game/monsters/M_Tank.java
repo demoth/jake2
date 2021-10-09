@@ -1522,7 +1522,7 @@ public class M_Tank {
             self.monsterinfo.currentmove = tank_move_stand;
             self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start.think(self, gameExports);
+            GameAI.walkmonster_start(self, gameExports);
 
             if (self.classname.compareTo("monster_tank_commander") == 0)
                 self.s.skinnum = 2;

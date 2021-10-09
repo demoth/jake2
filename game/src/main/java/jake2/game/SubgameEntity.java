@@ -92,6 +92,7 @@ public class SubgameEntity extends edict_t {
 
     public float yaw_speed;
 
+    // degrees
     public float ideal_yaw;
 
     public float nextthink;

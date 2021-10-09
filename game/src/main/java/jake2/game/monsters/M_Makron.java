@@ -27,7 +27,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-public class M_Boss32 {
+public class M_Makron {
 
     public final static int FRAME_attak101 = 0;
 
@@ -1726,7 +1726,7 @@ public class M_Boss32 {
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
-            tempent = GameUtil.G_Spawn(gameExports);
+            tempent = gameExports.G_Spawn();
             Math3D.VectorCopy(self.s.origin, tempent.s.origin);
             Math3D.VectorCopy(self.s.angles, tempent.s.angles);
             tempent.s.origin[1] -= 84;
@@ -1920,7 +1920,7 @@ public class M_Boss32 {
     static EntThinkAdapter MakronToss = new EntThinkAdapter() {
     	public String getID() { return "MakronToss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent = GameUtil.G_Spawn(gameExports);
+            SubgameEntity ent = gameExports.G_Spawn();
             ent.nextthink = gameExports.level.time + 0.8f;
             ent.think = MakronSpawn;
             ent.target = self.target;
@@ -1992,6 +1992,6 @@ public class M_Boss32 {
         self.monsterinfo.currentmove = makron_move_sight;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self, gameExports);
+        GameAI.walkmonster_start(self, gameExports);
     }
 }

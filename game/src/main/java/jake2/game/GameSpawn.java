@@ -33,8 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static jake2.game.GameUtil.G_Spawn;
-
 public class GameSpawn {
 
     private static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
@@ -1132,7 +1130,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss2.SP_monster_boss2(ent, gameExports);
+                M_Hornet.SP_monster_boss2(ent, gameExports);
                 return true;
             }
         });
@@ -1142,7 +1140,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss3.SP_monster_boss3_stand(ent, gameExports);
+                M_Makron_Idle.SP_monster_boss3_stand(ent, gameExports);
                 return true;
             }
         });
@@ -1152,7 +1150,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss31.SP_monster_jorg(ent, gameExports);
+                M_Makron_Jorg.SP_monster_jorg(ent, gameExports);
                 return true;
             }
         });
@@ -1349,7 +1347,7 @@ public class GameSpawn {
             if (ent == null)
                 ent = gameExports.g_edicts[0];
             else
-                ent = G_Spawn(gameExports);
+                ent = gameExports.G_Spawn();
 
             ED_ParseEdict(ph, ent, gameExports);
             gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
@@ -1465,7 +1463,7 @@ public class GameSpawn {
         gitem_t gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
-            SubgameEntity newThing = G_Spawn(gameExports);
+            SubgameEntity newThing = gameExports.G_Spawn();
 
             float[] offset = {0,0,0};
             float[] forward = { 0, 0, 0 };
