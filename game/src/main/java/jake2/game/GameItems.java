@@ -34,20 +34,31 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 
 public class GameItems {
 
     static gitem_armor_t jacketarmor_info = new gitem_armor_t(25, 50,
-    .30f, .00f, GameDefines.ARMOR_JACKET);
+            .30f, .00f);
     static gitem_armor_t combatarmor_info = new gitem_armor_t(50, 100,
-    .60f, .30f, GameDefines.ARMOR_COMBAT);
+            .60f, .30f);
     static gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200,
-    .80f, .60f, GameDefines.ARMOR_BODY);
+            .80f, .60f);
+
+    public static final Map<String, gitem_armor_t> TYPES = Map.of(
+            "jacket", jacketarmor_info,
+            "combat", combatarmor_info,
+            "body", bodyarmor_info
+    );
+
 
     private static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
-        public String getID() { return "do_respawn";}
+        public String getID() {
+            return "do_respawn";
+        }
+
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (ent.team != null) {
                 SubgameEntity master;

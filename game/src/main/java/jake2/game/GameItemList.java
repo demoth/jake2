@@ -26,6 +26,15 @@ package jake2.game;
 
 import jake2.game.items.gitem_t;
 import jake2.qcommon.Defines;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 public class GameItemList {
@@ -756,5 +765,25 @@ public class GameItemList {
                         /* precache */
                         "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav", index++)
         };
+    }
+
+    public GameItemList(String tableName) {
+
+        try (InputStream in = GameItemList.class.getResourceAsStream(tableName)) {
+            final CSVFormat format = CSVFormat.DEFAULT.builder()
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setTrim(true).build();
+            CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
+            AtomicInteger index = new AtomicInteger();
+
+            final List<gitem_t> itemList = source.stream()
+                    .map(strings -> gitem_t.readFromCsv(strings, index.getAndIncrement()))
+                    .collect(Collectors.toList());
+
+            itemlist = itemList.toArray(new gitem_t[]{});
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

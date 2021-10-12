@@ -89,11 +89,21 @@ public abstract class SuperAdapter {
 		return getFromID(id);
 	}
 
-	/** Returns the Adapter-ID. */
+	/**
+	 * Returns the Adapter-ID.
+	 */
 	public abstract String getID();
 
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " '" + getID() + "'";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof SuperAdapter) {
+			SuperAdapter other = (SuperAdapter) obj;
+			return this.getID().equals(other.getID());
+		} else return false;
 	}
 }

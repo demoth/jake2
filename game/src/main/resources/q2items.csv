@@ -1,2 +1,4 @@
-classname      ,pickup      ,use,drop,weaponthink,pickup_sound     ,world_model                     ,world_model_flags,view_model,icon       ,pickup_name,count_width,quantity,ammo,flags,weapmodel,armor_info,tag,precaches
-item_armor_body,pickup_armor,   ,    ,           ,misc/ar1_pkup.wav,models/items/armor/body/tris.md2,1                ,          ,i_bodyarmor,Body Armor ,3          ,0       ,    ,4    ,0        ,body_armor,3  ,         ,
+classname        ,pickup      ,use,drop,weaponthink,pickup_sound     ,world_model                       ,world_model_flags,view_model,icon         ,pickup_name ,count_width,quantity,ammo,flags,weapmodel,armor_info,tag,precaches
+item_armor_body  ,pickup_armor,   ,    ,           ,misc/ar1_pkup.wav,models/items/armor/body/tris.md2  ,1                ,          ,i_bodyarmor  ,Body Armor  ,3          ,0       ,    ,4    ,0        ,body      ,3  ,         ,
+item_armor_combat,pickup_armor,   ,    ,           ,misc/ar1_pkup.wav,models/items/armor/combat/tris.md2,1                ,          ,i_combatarmor,Combat Armor,3          ,0       ,    ,4    ,0        ,combat    ,2  ,         ,
+item_armor_jacket,pickup_armor,   ,    ,           ,misc/ar1_pkup.wav,models/items/armor/jacket/tris.md2,1                ,          ,i_jacketarmor,Jacket Armor,3          ,0       ,    ,4    ,0        ,jacket    ,1  ,         ,
