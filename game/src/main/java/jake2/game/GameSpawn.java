@@ -22,6 +22,7 @@
 
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
@@ -1410,7 +1411,7 @@ public class GameSpawn {
             gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
             return;
         } // check item spawn functions
-        for (int i = 1; i < gameExports.game.num_items; i++) {
+        for (int i = 0; i < gameExports.game.num_items; i++) {
 
             gitem_t item = gameExports.items.itemlist[i];
 

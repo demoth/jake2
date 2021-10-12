@@ -50,8 +50,10 @@ public abstract class SuperAdapter {
 	/** Adapter repository. */
 	private static final Map<String, SuperAdapter> adapters = new HashMap<>();
 
-	/** Returns the adapter from the repository given by its ID. */
-	private static SuperAdapter getFromID(String key) {
+	/**
+	 * Returns the adapter from the repository given by its ID.
+	 */
+	public static SuperAdapter getFromID(String key) {
 		return adapters.get(key);
 	}
 

@@ -22,10 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.player_state_t;
 import jake2.qcommon.pmove_state_t;
-import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 

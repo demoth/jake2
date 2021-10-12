@@ -1,0 +1,2 @@
+classname      ,pickup      ,use,drop,weaponthink,pickup_sound     ,world_model                     ,world_model_flags,view_model,icon       ,pickup_name,count_width,quantity,ammo,flags,weapmodel,armor_info,tag,precaches
+item_armor_body,pickup_armor,   ,    ,           ,misc/ar1_pkup.wav,models/items/armor/body/tris.md2,1                ,          ,i_bodyarmor,Body Armor ,3          ,0       ,    ,4    ,0        ,body_armor,3  ,         ,

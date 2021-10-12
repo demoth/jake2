@@ -1,5 +1,6 @@
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
@@ -187,7 +188,7 @@ public class GameExportsImpl implements GameExports {
         game.helpmessage1 = "";
         game.helpmessage2 = "";
         items = new GameItemList();
-        game.num_items = items.itemlist.length - 1;
+        game.num_items = items.itemlist.length;
 
         level = new level_locals_t();
 
@@ -352,7 +353,7 @@ public class GameExportsImpl implements GameExports {
         int i;
         gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 1; i < game.num_items; i++) {
+            for (i = 0; i < game.num_items; i++) {
                 it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
@@ -365,7 +366,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 1; i < game.num_items; i++) {
+            for (i = 0; i < game.num_items; i++) {
                 it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
@@ -378,7 +379,6 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
-            gitem_armor_t info;
 
             it = GameItems.FindItem("Jacket Armor", this);
             client.pers.inventory[it.index] = 0;
@@ -387,8 +387,7 @@ public class GameExportsImpl implements GameExports {
             client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Body Armor", this);
-            info = (gitem_armor_t) it.info;
-            client.pers.inventory[it.index] = info.max_count;
+            client.pers.inventory[it.index] = it.info.max_count;
 
             if (!give_all)
                 return;
@@ -410,7 +409,7 @@ public class GameExportsImpl implements GameExports {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
 
-            for (i = 1; i < game.num_items; i++) {
+            for (i = 0; i < game.num_items; i++) {
                 it = items.itemlist[i];
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
@@ -430,7 +429,7 @@ public class GameExportsImpl implements GameExports {
 
 
         if (give_all) {
-            for (i = 1; i < game.num_items; i++) {
+            for (i = 0; i < game.num_items; i++) {
                 it = items.itemlist[i];
                 if (it.pickup != null)
                     continue;

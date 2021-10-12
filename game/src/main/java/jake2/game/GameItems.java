@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 
+import jake2.game.items.gitem_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
@@ -447,38 +448,36 @@ public class GameItems {
     static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
         public String getID() { return "pickup_armor";}
         public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
-            int old_armor_index;
             gitem_armor_t oldinfo;
-            gitem_armor_t newinfo;
             int newcount;
             float salvage;
             float salvagecount;
-    
+
             // get info on new armor
-            newinfo = (gitem_armor_t) ent.item.info;
-    
-            old_armor_index = ArmorIndex(other, gameExports);
-    
+            gitem_armor_t newinfo = ent.item.info;
+
+            int old_armor_index = ArmorIndex(other, gameExports);
+
             // handle armor shards specially
             gclient_t client = other.getClient();
             if (ent.item.tag == GameDefines.ARMOR_SHARD) {
-                if (0 == old_armor_index)
+                if (-1 == old_armor_index)
                     client.pers.inventory[gameExports.jacket_armor_index] = 2;
                 else
                     client.pers.inventory[old_armor_index] += 2;
             }
-    
+
             // if player has no armor, just use it
-            else if (0 == old_armor_index) {
+            else if (-1 == old_armor_index) {
                 client.pers.inventory[ent.item.index] = newinfo.base_count;
             }
-    
+
             // use the better armor
             else {
                 // get info on old armor
                 if (old_armor_index == gameExports.jacket_armor_index)
                     oldinfo = jacketarmor_info;
-    
+
                 else if (old_armor_index == gameExports.combat_armor_index)
                     oldinfo = combatarmor_info;
     
@@ -814,7 +813,7 @@ public class GameItems {
      * =============== GetItemByIndex ===============
      */
     static gitem_t GetItemByIndex(int index, GameExportsImpl gameExports) {
-        if (index == 0 || index >= gameExports.game.num_items)
+        if (index < 0 || index >= gameExports.game.num_items)
             return null;
     
         return gameExports.items.itemlist[index];
@@ -826,10 +825,10 @@ public class GameItems {
      * ===============
      */
     static gitem_t FindItemByClassname(String classname, GameExportsImpl gameExports) {
-    
-        for (int i = 1; i < gameExports.game.num_items; i++) {
+
+        for (int i = 0; i < gameExports.game.num_items; i++) {
             gitem_t it = gameExports.items.itemlist[i];
-    
+
             if (it.classname == null)
                 continue;
             if (it.classname.equalsIgnoreCase(classname))
@@ -844,9 +843,9 @@ public class GameItems {
      */
     //geht.
     static gitem_t FindItem(String pickup_name, GameExportsImpl gameExports) {
-        for (int i = 1; i < gameExports.game.num_items; i++) {
+        for (int i = 0; i < gameExports.game.num_items; i++) {
             gitem_t it = gameExports.items.itemlist[i];
-    
+
             if (it.pickup_name == null)
                 continue;
             if (it.pickup_name.equalsIgnoreCase(pickup_name))
@@ -934,7 +933,7 @@ public class GameItems {
     static int ArmorIndex(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
-            return 0;
+            return -1;
     
         if (client.pers.inventory[gameExports.jacket_armor_index] > 0)
             return gameExports.jacket_armor_index;
@@ -944,8 +943,8 @@ public class GameItems {
     
         if (client.pers.inventory[gameExports.body_armor_index] > 0)
             return gameExports.body_armor_index;
-    
-        return 0;
+
+        return -1;
     }
 
     static boolean Add_Ammo(SubgameEntity ent, gitem_t item, int count) {
@@ -991,7 +990,7 @@ public class GameItems {
      */
     static void SetItemNames(GameExportsImpl gameExports) {
 
-        for (int i = 1; i < gameExports.game.num_items; i++) {
+        for (int i = 0; i < gameExports.game.num_items; i++) {
             gitem_t it = gameExports.items.itemlist[i];
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
@@ -1004,27 +1003,25 @@ public class GameItems {
     }
 
     static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
-        int i, index;
-        gitem_t it;
 
         gclient_t cl = ent.getClient();
-    
+
         if (cl.chase_target != null) {
             GameChase.ChaseNext(ent, gameExports);
             return;
         }
-    
+
         // scan for the next valid one
-        for (i = 1; i <= Defines.MAX_ITEMS; i++) {
-            index = (cl.pers.selected_item + i) % Defines.MAX_ITEMS;
+        for (int i = 1; i <= cl.pers.inventory.length; i++) {
+            int index = (cl.pers.selected_item + i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = gameExports.items.itemlist[index];
+            gitem_t it = gameExports.items.itemlist[index];
             if (it.use == null)
                 continue;
             if (0 == (it.flags & itflags))
                 continue;
-    
+
             cl.pers.selected_item = index;
             return;
         }
@@ -1033,28 +1030,25 @@ public class GameItems {
     }
 
     static void SelectPrevItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
-        int i, index;
-        gitem_t it;
 
         gclient_t cl = ent.getClient();
-    
+
         if (cl.chase_target != null) {
             GameChase.ChasePrev(ent, gameExports);
             return;
         }
-    
+
         // scan for the next valid one
-        for (i = 1; i <= Defines.MAX_ITEMS; i++) {
-            index = (cl.pers.selected_item + Defines.MAX_ITEMS - i)
-                    % Defines.MAX_ITEMS;
+        for (int i = 1; i <= cl.pers.inventory.length; i++) {
+            int index = (cl.pers.selected_item + cl.pers.inventory.length - i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = gameExports.items.itemlist[index];
+            gitem_t it = gameExports.items.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & itflags))
                 continue;
-    
+
             cl.pers.selected_item = index;
             return;
         }

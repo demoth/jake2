@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public abstract class ItemUseAdapter  extends SuperAdapter {
+import jake2.game.items.gitem_t;
+
+public abstract class ItemUseAdapter extends SuperAdapter {
 	public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
 	}
 }

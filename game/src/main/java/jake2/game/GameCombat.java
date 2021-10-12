@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
@@ -230,36 +231,34 @@ public class GameCombat {
                                   int damage, int te_sparks, int dflags, GameExportsImpl gameExports) {
         gclient_t client;
         int save;
-        int index;
-        gitem_t armor;
-    
+
         if (damage == 0)
             return 0;
-    
+
         client = ent.getClient();
-    
+
         if (client == null)
             return 0;
-    
+
         if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
             return 0;
-    
-        index = GameItems.ArmorIndex(ent, gameExports);
-    
-        if (index == 0)
+
+        int index = GameItems.ArmorIndex(ent, gameExports);
+
+        if (index == -1)
             return 0;
-    
-        armor = GameItems.GetItemByIndex(index, gameExports);
-        gitem_armor_t garmor = (gitem_armor_t) armor.info;
-    
+
+        gitem_t armor = GameItems.GetItemByIndex(index, gameExports);
+        gitem_armor_t garmor = armor.info;
+
         if (0 != (dflags & Defines.DAMAGE_ENERGY))
             save = (int) Math.ceil(garmor.energy_protection * damage);
         else
             save = (int) Math.ceil(garmor.normal_protection * damage);
-    
+
         if (save >= client.pers.inventory[index])
             save = client.pers.inventory[index];
-    
+
         if (save == 0)
             return 0;
     

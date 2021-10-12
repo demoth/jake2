@@ -22,6 +22,7 @@
 
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;

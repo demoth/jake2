@@ -1,5 +1,6 @@
 package jake2.game;
 
+import jake2.game.items.gitem_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.filesystem.QuakeFile;
