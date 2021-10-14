@@ -24,6 +24,11 @@ package jake2.game.items;
 import jake2.game.*;
 import org.apache.commons.csv.CSVRecord;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import static jake2.game.GameDefines.*;
+
 public class gitem_t {
 
     public int index;
@@ -34,18 +39,34 @@ public class gitem_t {
     public EntThinkAdapter weaponthink;
     public String pickup_sound;
     public String world_model;
-    public int world_model_flags;
+    public int world_model_flags; // usually Defines.EF_ROTATE, but can be EF_GIB
     public String view_model;
     public String icon;     // client side info
     public String pickup_name; // for printing on pickup
     public int count_width; // number of digits to display by icon
     public int quantity; // for ammo how much, for weapons how much is used per shot
-    public String ammo; // for weapons
+    public String ammo; // for weapons, pickup_name of the ammo item
     public int flags; // IT_* flags
     public int weapmodel; // weapon model index (for weapons)
     public gitem_armor_t info;
-    public int tag;
+    @Deprecated
+    public int tag;// todo: get rid of this field
     public String precaches; // string of all models, sounds, and images this item will
+
+    private static final Set<Integer> TAGS = new HashSet<>() {{
+        add(AMMO_BULLETS);
+        add(AMMO_SHELLS);
+        add(AMMO_ROCKETS);
+        add(AMMO_GRENADES);
+        add(AMMO_CELLS);
+        add(AMMO_SLUGS);
+
+        add(ARMOR_NONE);
+        add(ARMOR_JACKET);
+        add(ARMOR_COMBAT);
+        add(ARMOR_BODY);
+        add(ARMOR_SHARD);
+    }};
 
     public gitem_t(String classname, EntInteractAdapter pickup,
                    ItemUseAdapter use, ItemDropAdapter drop,
@@ -73,8 +94,14 @@ public class gitem_t {
         this.info = info;
         this.tag = tag;
         this.precaches = precaches;
-
         this.index = index;
+
+        validate();
+    }
+
+    private void validate() {
+        if (!TAGS.contains(tag))
+            throw new IllegalStateException("Wrong tag value: " + tag);
     }
 
     @Override
@@ -103,9 +130,10 @@ public class gitem_t {
                 '}';
     }
 
+    // todo: parse flag values properly
     public static gitem_t readFromCsv(CSVRecord params, int index) {
         return new gitem_t(
-                params.get("classname"),
+                params.get("classname").isBlank() ? null : params.get("classname"),
                 (EntInteractAdapter) SuperAdapter.getFromID(params.get("pickup")),
                 (ItemUseAdapter) SuperAdapter.getFromID(params.get("use")),
                 (ItemDropAdapter) SuperAdapter.getFromID(params.get("drop")),
@@ -126,10 +154,6 @@ public class gitem_t {
                 params.get("precaches"),
                 index
         );
-    }
-
-    private static int readFlags(String flags) {
-        return 0; //todo
     }
 
     @Override

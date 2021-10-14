@@ -187,7 +187,7 @@ public class GameExportsImpl implements GameExports {
         game = new game_locals_t();
         game.helpmessage1 = "";
         game.helpmessage2 = "";
-        items = new GameItemList();
+        items = new GameItemList("/items.csv");
         game.num_items = items.itemlist.length;
 
         level = new level_locals_t();
