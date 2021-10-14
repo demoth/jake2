@@ -111,7 +111,7 @@ public class gitem_t {
                 (ItemDropAdapter) SuperAdapter.getFromID(params.get("drop")),
                 (EntThinkAdapter) SuperAdapter.getFromID(params.get("weaponthink")),
                 params.get("pickup_sound"),
-                params.get("world_model"),
+                params.get("world_model").isBlank() ? null : params.get("world_model"),
                 Integer.parseInt(params.get("world_model_flags")), //todo
                 params.get("view_model").isBlank() ? null : params.get("view_model"),
                 params.get("icon"),
