@@ -255,7 +255,7 @@ public class GameItemList {
                         null,
                         0,
                         /* precache */
-                        "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav", index++),
+                        "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav weapons/chngnd1a.wav", index++),
 
                 /*
                  * QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -283,7 +283,7 @@ public class GameItemList {
                         null,
                         GameDefines.AMMO_GRENADES,
                         /* precache */
-                        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav ", index++),
+                        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav", index++),
 
                 /*
                  * QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
