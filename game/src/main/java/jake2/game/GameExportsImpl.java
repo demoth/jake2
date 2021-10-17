@@ -1,7 +1,6 @@
 package jake2.game;
 
 import jake2.game.items.GameItem;
-import jake2.game.items.GameItemList;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;

@@ -1,0 +1,794 @@
+/*
+Copyright (C) 1997-2001 Id Software, Inc.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+*/
+
+// Created on 20.11.2005 by RST.
+// $Id: GameItemList.java,v 1.2 2006-01-21 21:53:32 salomo Exp $
+
+package jake2.game;
+
+
+import jake2.game.items.GameItem;
+import jake2.qcommon.Defines;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+
+public class GameItemList {
+
+    public final GameItem[] itemlist;
+
+    /**
+     * Initialize the items list using a csv table from the classpath (absolute)
+     *
+     * @param tableName - classpath resource to the item csv table
+     */
+    public GameItemList(String tableName) {
+
+        try (InputStream in = GameItemList.class.getResourceAsStream(tableName)) {
+            final CSVFormat format = CSVFormat.DEFAULT.builder()
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setTrim(true).build();
+            CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
+            AtomicInteger index = new AtomicInteger();
+
+            final List<GameItem> itemList = source.stream()
+                    .map(strings -> GameItem.readFromCsv(strings, index.getAndIncrement()))
+                    .collect(Collectors.toList());
+
+            itemlist = itemList.toArray(new GameItem[]{});
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public GameItemList() {
+        int index = 0;
+        itemlist = new GameItem[]{
+
+                //
+                // ARMOR
+                //
+                new GameItem(
+
+                        /**
+                         * QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16)
+                         */
+
+                        "item_armor_body", GameItems.Pickup_Armor, null, null, null,
+                        "misc/ar1_pkup.wav", "models/items/armor/body/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_bodyarmor",
+                        /* pickup */
+                        "Body Armor",
+                        /* width */
+                        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.bodyarmor_info,
+                        GameDefines.ARMOR_BODY,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_armor_combat (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_armor_combat", GameItems.Pickup_Armor, null, null, null,
+                        "misc/ar1_pkup.wav", "models/items/armor/combat/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_combatarmor",
+                        /* pickup */
+                        "Combat Armor",
+                        /* width */
+                        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.combatarmor_info,
+                        GameDefines.ARMOR_COMBAT,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_armor_jacket (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_armor_jacket", GameItems.Pickup_Armor, null, null, null,
+                        "misc/ar1_pkup.wav", "models/items/armor/jacket/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_jacketarmor",
+                        /* pickup */
+                        "Jacket Armor",
+                        /* width */
+                        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.jacketarmor_info,
+                        GameDefines.ARMOR_JACKET,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_armor_shard (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_armor_shard", GameItems.Pickup_Armor, null, null, null,
+                        "misc/ar2_pkup.wav", "models/items/armor/shard/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_jacketarmor",
+                        /* pickup */
+                        "Armor Shard",
+                        /* width */
+                        3, 0, null, GameDefines.IT_ARMOR, 0, null, GameDefines.ARMOR_SHARD,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_power_screen (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_power_screen", GameItems.Pickup_PowerArmor, GameItems.Use_PowerArmor,
+                        GameItems.Drop_PowerArmor, null, "misc/ar3_pkup.wav",
+                        "models/items/armor/screen/tris.md2", Defines.EF_ROTATE,
+                        null,
+                        /* icon */
+                        "i_powerscreen",
+                        /* pickup */
+                        "Power Screen",
+                        /* width */
+                        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_power_shield (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_power_shield", GameItems.Pickup_PowerArmor, GameItems.Use_PowerArmor,
+                        GameItems.Drop_PowerArmor, null, "misc/ar3_pkup.wav",
+                        "models/items/armor/shield/tris.md2", Defines.EF_ROTATE,
+                        null,
+                        /* icon */
+                        "i_powershield",
+                        /* pickup */
+                        "Power Shield",
+                        /* width */
+                        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
+                        /* precache */
+                        "misc/power2.wav misc/power1.wav", index++),
+
+                //
+                // WEAPONS
+                //
+
+                /*
+                 * weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16) always owned,
+                 * never in the world
+                 */
+                new GameItem("weapon_blaster", null, PlayerWeapon.Use_Weapon, null,
+                        PlayerWeapon.Weapon_Blaster, "misc/w_pkup.wav", null, 0,
+                        "models/weapons/v_blast/tris.md2",
+                        /* icon */
+                        "w_blaster",
+                        /* pickup */
+                        "Blaster", 0, 0, null, GameDefines.IT_WEAPON
+                        | GameDefines.IT_STAY_COOP, GameDefines.WEAP_BLASTER, null,
+                        0,
+                        /* precache */
+                        "weapons/blastf1a.wav misc/lasfly.wav", index++),
+
+                /*
+                 * QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("weapon_shotgun", PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon, PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_Shotgun, "misc/w_pkup.wav",
+                        "models/weapons/g_shotg/tris.md2", Defines.EF_ROTATE,
+                        "models/weapons/v_shotg/tris.md2",
+                        /* icon */
+                        "w_shotgun",
+                        /* pickup */
+                        "Shotgun", 0, 1, "Shells", GameDefines.IT_WEAPON
+                        | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SHOTGUN, null,
+                        0,
+                        /* precache */
+                        "weapons/shotgf1b.wav weapons/shotgr1b.wav", index++),
+
+                /*
+                 * QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("weapon_supershotgun", PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon, PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_SuperShotgun, "misc/w_pkup.wav",
+                        "models/weapons/g_shotg2/tris.md2", Defines.EF_ROTATE,
+                        "models/weapons/v_shotg2/tris.md2",
+                        /* icon */
+                        "w_sshotgun",
+                        /* pickup */
+                        "Super Shotgun", 0, 2, "Shells", GameDefines.IT_WEAPON
+                        | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SUPERSHOTGUN,
+                        null, 0,
+                        /* precache */
+                        "weapons/sshotf1b.wav", index++),
+
+                /*
+                 * QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_machinegun",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_Machinegun,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_machn/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_machn/tris.md2",
+                        /* icon */
+                        "w_machinegun",
+                        /* pickup */
+                        "Machinegun",
+                        0,
+                        1,
+                        "Bullets",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_MACHINEGUN,
+                        null,
+                        0,
+                        /* precache */
+                        "weapons/machgf1b.wav weapons/machgf2b.wav weapons/machgf3b.wav weapons/machgf4b.wav weapons/machgf5b.wav", index++),
+
+                /*
+                 * QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_chaingun",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_Chaingun,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_chain/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_chain/tris.md2",
+                        /* icon */
+                        "w_chaingun",
+                        /* pickup */
+                        "Chaingun",
+                        0,
+                        1,
+                        "Bullets",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_CHAINGUN,
+                        null,
+                        0,
+                        /* precache */
+                        "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav weapons/chngnd1a.wav", index++),
+
+                /*
+                 * QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "ammo_grenades",
+                        GameItems.Pickup_Ammo,
+                        PlayerWeapon.Use_Weapon,
+                        GameItems.Drop_Ammo,
+                        PlayerWeapon.Weapon_Grenade,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/grenades/medium/tris.md2",
+                        0,
+                        "models/weapons/v_handgr/tris.md2",
+                        /* icon */
+                        "a_grenades",
+                        /* pickup */
+                        "Grenades",
+                        /* width */
+                        3,
+                        5,
+                        "grenades",
+                        GameDefines.IT_AMMO | GameDefines.IT_WEAPON,
+                        GameDefines.WEAP_GRENADES,
+                        null,
+                        GameDefines.AMMO_GRENADES,
+                        /* precache */
+                        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav", index++),
+
+                /*
+                 * QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_grenadelauncher",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_GrenadeLauncher,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_launch/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_launch/tris.md2",
+                        /* icon */
+                        "w_glauncher",
+                        /* pickup */
+                        "Grenade Launcher",
+                        0,
+                        1,
+                        "Grenades",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_GRENADELAUNCHER,
+                        null,
+                        0,
+                        /* precache */
+                        "models/objects/grenade/tris.md2 weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav", index++),
+
+                /*
+                 * QUAKED weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_rocketlauncher",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_RocketLauncher,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_rocket/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_rocket/tris.md2",
+                        /* icon */
+                        "w_rlauncher",
+                        /* pickup */
+                        "Rocket Launcher",
+                        0,
+                        1,
+                        "Rockets",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_ROCKETLAUNCHER,
+                        null,
+                        0,
+                        /* precache */
+                        "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2", index++),
+
+                /*
+                 * QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_hyperblaster",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_HyperBlaster,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_hyperb/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_hyperb/tris.md2",
+                        /* icon */
+                        "w_hyperblaster",
+                        /* pickup */
+                        "HyperBlaster",
+                        0,
+                        1,
+                        "Cells",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_HYPERBLASTER,
+                        null,
+                        0,
+                        /* precache */
+                        "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav", index++),
+
+                /*
+                 * QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("weapon_railgun", PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon, PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_Railgun, "misc/w_pkup.wav",
+                        "models/weapons/g_rail/tris.md2", Defines.EF_ROTATE,
+                        "models/weapons/v_rail/tris.md2",
+                        /* icon */
+                        "w_railgun",
+                        /* pickup */
+                        "Railgun", 0, 1, "Slugs", GameDefines.IT_WEAPON
+                        | GameDefines.IT_STAY_COOP, GameDefines.WEAP_RAILGUN, null,
+                        0,
+                        /* precache */
+                        "weapons/rg_hum.wav", index++),
+
+                /*
+                 * QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem(
+                        "weapon_bfg",
+                        PlayerWeapon.Pickup_Weapon,
+                        PlayerWeapon.Use_Weapon,
+                        PlayerWeapon.Drop_Weapon,
+                        PlayerWeapon.Weapon_BFG,
+                        "misc/w_pkup.wav",
+                        "models/weapons/g_bfg/tris.md2",
+                        Defines.EF_ROTATE,
+                        "models/weapons/v_bfg/tris.md2",
+                        /* icon */
+                        "w_bfg",
+                        /* pickup */
+                        "BFG10K",
+                        0,
+                        50,
+                        "Cells",
+                        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+                        GameDefines.WEAP_BFG,
+                        null,
+                        0,
+                        /* precache */
+                        "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav", index++),
+
+                //
+                // AMMO ITEMS
+                //
+
+                /*
+                 * QUAKED ammo_shells (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("ammo_shells", GameItems.Pickup_Ammo, null, GameItems.Drop_Ammo, null,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/shells/medium/tris.md2", 0, null,
+                        /* icon */
+                        "a_shells",
+                        /* pickup */
+                        "Shells",
+                        /* width */
+                        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SHELLS,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED ammo_bullets (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("ammo_bullets", GameItems.Pickup_Ammo, null, GameItems.Drop_Ammo, null,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/bullets/medium/tris.md2", 0, null,
+                        /* icon */
+                        "a_bullets",
+                        /* pickup */
+                        "Bullets",
+                        /* width */
+                        3, 50, null, GameDefines.IT_AMMO, 0, null,
+                        GameDefines.AMMO_BULLETS,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED ammo_cells (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("ammo_cells", GameItems.Pickup_Ammo, null, GameItems.Drop_Ammo, null,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/cells/medium/tris.md2", 0, null,
+                        /* icon */
+                        "a_cells",
+                        /* pickup */
+                        "Cells",
+                        /* width */
+                        3, 50, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_CELLS,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED ammo_rockets (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("ammo_rockets", GameItems.Pickup_Ammo, null, GameItems.Drop_Ammo, null,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/rockets/medium/tris.md2", 0, null,
+                        /* icon */
+                        "a_rockets",
+                        /* pickup */
+                        "Rockets",
+                        /* width */
+                        3, 5, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_ROCKETS,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED ammo_slugs (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("ammo_slugs", GameItems.Pickup_Ammo, null, GameItems.Drop_Ammo, null,
+                        "misc/am_pkup.wav",
+                        "models/items/ammo/slugs/medium/tris.md2", 0, null,
+                        /* icon */
+                        "a_slugs",
+                        /* pickup */
+                        "Slugs",
+                        /* width */
+                        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SLUGS,
+                        /* precache */
+                        "", index++),
+
+                //
+                // POWERUP ITEMS
+                //
+                /*
+                 * QUAKED item_quad (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_quad", GameItems.Pickup_Powerup, GameItems.Use_Quad,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/quaddama/tris.md2", Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_quad",
+                        /* pickup */
+                        "Quad Damage",
+                        /* width */
+                        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
+                        /* precache */
+                        "items/damage.wav items/damage2.wav items/damage3.wav", index++),
+
+                /*
+                 * QUAKED item_invulnerability (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_invulnerability", GameItems.Pickup_Powerup,
+                        GameItems.Use_Invulnerability, GameItems.Drop_General, null,
+                        "items/pkup.wav", "models/items/invulner/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_invulnerability",
+                        /* pickup */
+                        "Invulnerability",
+                        /* width */
+                        2, 300, null, GameDefines.IT_POWERUP, 0, null, 0,
+                        /* precache */
+                        "items/protect.wav items/protect2.wav items/protect4.wav", index++),
+
+                /*
+                 * QUAKED item_silencer (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_silencer", GameItems.Pickup_Powerup, GameItems.Use_Silencer,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/silencer/tris.md2", Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_silencer",
+                        /* pickup */
+                        "Silencer",
+                        /* width */
+                        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_breather (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_breather", GameItems.Pickup_Powerup, GameItems.Use_Breather,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/breather/tris.md2", Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_rebreather",
+                        /* pickup */
+                        "Rebreather",
+                        /* width */
+                        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
+                        null, 0,
+                        /* precache */
+                        "items/airout.wav", index++),
+
+                /*
+                 * QUAKED item_enviro (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_enviro", GameItems.Pickup_Powerup, GameItems.Use_Envirosuit,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/enviro/tris.md2", Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_envirosuit",
+                        /* pickup */
+                        "Environment Suit",
+                        /* width */
+                        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
+                        null, 0,
+                        /* precache */
+                        "items/airout.wav", index++),
+
+                /*
+                 * QUAKED item_ancient_head (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 * Special item that gives +2 to maximum health
+                 */
+                new GameItem("item_ancient_head", GameItems.Pickup_AncientHead, null, null,
+                        null, "items/pkup.wav", "models/items/c_head/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_fixme",
+                        /* pickup */
+                        "Ancient Head",
+                        /* width */
+                        2, 60, null, 0, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) gives
+                 * +1 to maximum health
+                 */
+                new GameItem("item_adrenaline", GameItems.Pickup_Adrenaline, null, null, null,
+                        "items/pkup.wav", "models/items/adrenal/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_adrenaline",
+                        /* pickup */
+                        "Adrenaline",
+                        /* width */
+                        2, 60, null, 0, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_bandolier (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_bandolier", GameItems.Pickup_Bandolier, null, null, null,
+                        "items/pkup.wav", "models/items/band/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "p_bandolier",
+                        /* pickup */
+                        "Bandolier",
+                        /* width */
+                        2, 60, null, 0, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED item_pack (.3 .3 1) (-16 -16 -16) (16 16 16)
+                 */
+                new GameItem("item_pack", GameItems.Pickup_Pack, null, null, null,
+                        "items/pkup.wav", "models/items/pack/tris.md2",
+                        Defines.EF_ROTATE, null,
+                        /* icon */
+                        "i_pack",
+                        /* pickup */
+                        "Ammo Pack",
+                        /* width */
+                        2, 180, null, 0, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                //
+                // KEYS
+                //
+                /*
+                 * QUAKED key_data_cd (0 .5 .8) (-16 -16 -16) (16 16 16) key for
+                 * computer centers
+                 */
+                new GameItem("key_data_cd", GameItems.Pickup_Key, null, GameItems.Drop_General,
+                        null, "items/pkup.wav",
+                        "models/items/keys/data_cd/tris.md2", Defines.EF_ROTATE,
+                        null, "k_datacd", "Data CD", 2, 0, null,
+                        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_power_cube (0 .5 .8) (-16 -16 -16) (16 16 16)
+                 * TRIGGER_SPAWN NO_TOUCH warehouse circuits
+                 */
+                new GameItem("key_power_cube", GameItems.Pickup_Key, null,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/keys/power/tris.md2", Defines.EF_ROTATE,
+                        null, "k_powercube", "Power Cube", 2, 0, null,
+                        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_pyramid (0 .5 .8) (-16 -16 -16) (16 16 16) key for the
+                 * entrance of jail3
+                 */
+                new GameItem("key_pyramid", GameItems.Pickup_Key, null, GameItems.Drop_General,
+                        null, "items/pkup.wav",
+                        "models/items/keys/pyramid/tris.md2", Defines.EF_ROTATE,
+                        null, "k_pyramid", "Pyramid Key", 2, 0, null,
+                        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_data_spinner (0 .5 .8) (-16 -16 -16) (16 16 16) key
+                 * for the city computer
+                 */
+                new GameItem("key_data_spinner", GameItems.Pickup_Key, null,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/keys/spinner/tris.md2", Defines.EF_ROTATE,
+                        null, "k_dataspin", "Data Spinner", 2, 0, null,
+                        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_pass (0 .5 .8) (-16 -16 -16) (16 16 16) security pass
+                 * for the security level
+                 */
+                new GameItem("key_pass", GameItems.Pickup_Key, null, GameItems.Drop_General,
+                        null, "items/pkup.wav", "models/items/keys/pass/tris.md2",
+                        Defines.EF_ROTATE, null, "k_security", "Security Pass", 2,
+                        0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_blue_key (0 .5 .8) (-16 -16 -16) (16 16 16) normal
+                 * door key - blue
+                 */
+                new GameItem("key_blue_key", GameItems.Pickup_Key, null,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/keys/key/tris.md2", Defines.EF_ROTATE, null,
+                        "k_bluekey", "Blue Key", 2, 0, null, GameDefines.IT_STAY_COOP
+                        | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_red_key (0 .5 .8) (-16 -16 -16) (16 16 16) normal door
+                 * key - red
+                 */
+                new GameItem("key_red_key", GameItems.Pickup_Key, null, GameItems.Drop_General,
+                        null, "items/pkup.wav",
+                        "models/items/keys/red_key/tris.md2", Defines.EF_ROTATE,
+                        null, "k_redkey", "Red Key", 2, 0, null,
+                        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_commander_head (0 .5 .8) (-16 -16 -16) (16 16 16) tank
+                 * commander's head
+                 */
+                new GameItem("key_commander_head", GameItems.Pickup_Key, null,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/monsters/commandr/head/tris.md2", Defines.EF_GIB,
+                        null,
+                        /* icon */
+                        "k_comhead",
+                        /* pickup */
+                        "Commander's Head",
+                        /* width */
+                        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
+                        0,
+                        /* precache */
+                        "", index++),
+
+                /*
+                 * QUAKED key_airstrike_target (0 .5 .8) (-16 -16 -16) (16 16 16)
+                 * tank commander's head
+                 */
+                new GameItem("key_airstrike_target", GameItems.Pickup_Key, null,
+                        GameItems.Drop_General, null, "items/pkup.wav",
+                        "models/items/keys/target/tris.md2", Defines.EF_ROTATE,
+                        null,
+                        /* icon */
+                        "i_airstrike",
+                        /* pickup */
+                        "Airstrike Marker",
+                        /* width */
+                        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
+                        0,
+                        /* precache */
+                        "", index++),
+                new GameItem(null, GameItems.Pickup_Health, null, null, null,
+                        "items/pkup.wav", null, 0, null,
+                        /* icon */
+                        "i_health",
+                        /* pickup */
+                        "Health",
+                        /* width */
+                        3, 0, null, 0, 0, null, 0,
+                        /* precache */
+                        "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav", index++)
+        };
+    }
+
+
+}

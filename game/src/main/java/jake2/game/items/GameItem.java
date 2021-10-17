@@ -24,10 +24,7 @@ package jake2.game.items;
 import jake2.game.*;
 import org.apache.commons.csv.CSVRecord;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static jake2.game.GameDefines.*;
 import static jake2.qcommon.Defines.*;
@@ -58,6 +55,15 @@ public class GameItem {
     @Deprecated
     public int tag;// todo: get rid of this field
     public String precaches; // string of all models, sounds, and images this item will
+
+    private static final Map<String, Integer> ITEM_TYPE_MAP = Map.of(
+            "IT_WEAPON", IT_WEAPON,
+            "IT_AMMO", IT_AMMO,
+            "IT_ARMOR", IT_ARMOR,
+            "IT_STAY_COOP", IT_STAY_COOP,
+            "IT_KEY", IT_KEY,
+            "IT_POWERUP", IT_POWERUP
+    );
 
     private static final Map<String, Integer> EFFECTS_MAP = createEffectsMap();
 
@@ -94,7 +100,7 @@ public class GameItem {
         result.put("EF_TAGTRAIL", EF_TAGTRAIL);
         result.put("EF_HALF_DAMAGE", EF_HALF_DAMAGE);
         result.put("EF_TRACKERTRAIL", EF_TRACKERTRAIL);
-        return result;
+        return Collections.unmodifiableMap(result);
     }
 
     private static final Set<Integer> TAGS = new HashSet<>() {{
@@ -223,7 +229,7 @@ public class GameItem {
                 Integer.parseInt(params.get("count_width")),
                 Integer.parseInt(params.get("quantity")),
                 params.get("ammo").isBlank() ? null : params.get("ammo"),
-                Integer.parseInt(params.get("flags")), // todo
+                parseFlags(params.get("flags"), ITEM_TYPE_MAP),
                 Integer.parseInt(params.get("weapmodel")),
                 GameItems.TYPES.get(params.get("armor_info")), //todo
                 Integer.parseInt(params.get("tag")), //todo
