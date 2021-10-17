@@ -22,7 +22,7 @@
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
@@ -1413,7 +1413,7 @@ public class GameSpawn {
         } // check item spawn functions
         for (int i = 0; i < gameExports.game.num_items; i++) {
 
-            gitem_t item = gameExports.items.itemlist[i];
+            GameItem item = gameExports.items.itemlist[i];
 
             if (item == null)
                 gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);
@@ -1461,7 +1461,7 @@ public class GameSpawn {
         gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
-        gitem_t gitem_t = GameItems.FindItemByClassname(className, gameExports);
+        GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
             SubgameEntity newThing = gameExports.G_Spawn();

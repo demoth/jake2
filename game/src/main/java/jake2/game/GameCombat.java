@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
@@ -248,7 +248,7 @@ public class GameCombat {
         if (index == -1)
             return 0;
 
-        gitem_t armor = GameItems.GetItemByIndex(index, gameExports);
+        GameItem armor = GameItems.GetItemByIndex(index, gameExports);
         gitem_armor_t garmor = armor.info;
 
         if (0 != (dflags & Defines.DAMAGE_ENERGY))

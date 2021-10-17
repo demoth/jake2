@@ -22,7 +22,7 @@
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.messages.server.LayoutMessage;
@@ -289,7 +289,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = 0;
             client.getPlayerState().stats[Defines.STAT_AMMO] = 0;
         } else {
-            gitem_t ammo = gameExports.items.itemlist[client.ammo_index];
+            GameItem ammo = gameExports.items.itemlist[client.ammo_index];
             client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) gameExports.gameImports.imageindex(ammo.icon);
             client.getPlayerState().stats[Defines.STAT_AMMO] = (short) client.pers.inventory[client.ammo_index];
         }
@@ -318,7 +318,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports.imageindex("i_powershield");
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) cells;
         } else if (index != -1) {
-            gitem_t armor = GameItems.GetItemByIndex(index, gameExports);
+            GameItem armor = GameItems.GetItemByIndex(index, gameExports);
             client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports.imageindex(armor.icon);
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) client.pers.inventory[index];
         } else {

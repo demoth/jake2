@@ -22,7 +22,7 @@
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
@@ -708,9 +708,9 @@ public class PlayerWeapon {
     public static ItemUseAdapter Use_Weapon = new ItemUseAdapter() {
     	public String getID() { return "Use_Weapon"; }
 
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int ammo_index;
-            gitem_t ammo_item;
+            GameItem ammo_item;
 
             // see if we're already using it
             gclient_t client = ent.getClient();
@@ -750,8 +750,11 @@ public class PlayerWeapon {
      */
 
     public static ItemDropAdapter Drop_Weapon = new ItemDropAdapter() {
-    	public String getID() { return "Drop_Weapon"; }
-        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "Drop_Weapon";
+        }
+
+        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
 
             if (0 != ((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_WEAPONS_STAY))
@@ -991,7 +994,7 @@ public class PlayerWeapon {
     	public String getID() { return "Pickup_Weapon"; }
         public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             int index;
-            gitem_t ammo;
+            GameItem ammo;
 
             index = ent.item.index;
 

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.player_state_t;
@@ -61,7 +61,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	boolean weapon_thunk;
 
-	gitem_t newweapon;
+    GameItem newweapon;
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick

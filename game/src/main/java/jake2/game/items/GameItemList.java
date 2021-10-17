@@ -21,10 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 20.11.2005 by RST.
 // $Id: GameItemList.java,v 1.2 2006-01-21 21:53:32 salomo Exp $
 
-package jake2.game;
+package jake2.game.items;
 
 
-import jake2.game.items.gitem_t;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class GameItemList {
 
-    public final gitem_t[] itemlist;
+    public final GameItem[] itemlist;
 
     /**
      * Initialize the items list using a csv table from the classpath (absolute)
@@ -55,11 +54,11 @@ public class GameItemList {
             CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
             AtomicInteger index = new AtomicInteger();
 
-            final List<gitem_t> itemList = source.stream()
-                    .map(strings -> gitem_t.readFromCsv(strings, index.getAndIncrement()))
+            final List<GameItem> itemList = source.stream()
+                    .map(strings -> GameItem.readFromCsv(strings, index.getAndIncrement()))
                     .collect(Collectors.toList());
 
-            itemlist = itemList.toArray(new gitem_t[]{});
+            itemlist = itemList.toArray(new GameItem[]{});
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

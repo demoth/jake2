@@ -1,6 +1,7 @@
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
+import jake2.game.items.GameItemList;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
@@ -351,7 +352,7 @@ public class GameExportsImpl implements GameExports {
 
         gclient_t client = ent.getClient();
         int i;
-        gitem_t it;
+        GameItem it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
             for (i = 0; i < game.num_items; i++) {
                 it = items.itemlist[i];
@@ -553,7 +554,7 @@ public class GameExportsImpl implements GameExports {
     private void Use_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName, this);
+        GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -580,7 +581,7 @@ public class GameExportsImpl implements GameExports {
     private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName, this);
+        GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -624,7 +625,7 @@ public class GameExportsImpl implements GameExports {
      * Cmd_InvUse_f.
      */
     private void InvUse_f(SubgameEntity ent) {
-        gitem_t it;
+        GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
 
@@ -660,7 +661,7 @@ public class GameExportsImpl implements GameExports {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            gitem_t it = items.itemlist[index];
+            GameItem it = items.itemlist[index];
             if (it.use == null)
                 continue;
 
@@ -678,7 +679,7 @@ public class GameExportsImpl implements GameExports {
     private void WeapNext_f(SubgameEntity ent) {
         gclient_t cl;
         int i, index;
-        gitem_t it;
+        GameItem it;
         int selected_weapon;
 
         cl = ent.getClient();
@@ -722,7 +723,7 @@ public class GameExportsImpl implements GameExports {
         index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
-        gitem_t it = items.itemlist[index];
+        GameItem it = items.itemlist[index];
         if (null == it.use)
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -734,7 +735,7 @@ public class GameExportsImpl implements GameExports {
      * Cmd_InvDrop_f
      */
     private void InvDrop_f(SubgameEntity ent) {
-        gitem_t it;
+        GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
 

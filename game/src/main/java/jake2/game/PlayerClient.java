@@ -22,7 +22,7 @@
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
@@ -493,7 +493,7 @@ public class PlayerClient {
      * is called after each death and level change in deathmatch. 
      */
     public static void InitClientPersistant(gclient_t client, GameExportsImpl gameExports) {
-        gitem_t item;
+        GameItem item;
 
         client.pers = new client_persistant_t();
 
@@ -1488,7 +1488,7 @@ public class PlayerClient {
             return;
 
         gclient_t client = self.getClient();
-        gitem_t item = client.pers.weapon;
+        GameItem item = client.pers.weapon;
         if (0 == client.pers.inventory[client.ammo_index])
             item = null;
         if (item != null && ("Blaster".equals(item.pickup_name)))

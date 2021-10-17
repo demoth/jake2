@@ -23,9 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 
 public abstract class ItemDropAdapter extends SuperAdapter {
-	public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
-	}
+    public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    }
 }

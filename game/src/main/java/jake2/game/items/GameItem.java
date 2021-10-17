@@ -24,12 +24,18 @@ package jake2.game.items;
 import jake2.game.*;
 import org.apache.commons.csv.CSVRecord;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static jake2.game.GameDefines.*;
+import static jake2.qcommon.Defines.*;
 
-public class gitem_t {
+/**
+ * gitem_t
+ */
+public class GameItem {
 
     public int index;
     public String classname; // spawning name
@@ -53,6 +59,44 @@ public class gitem_t {
     public int tag;// todo: get rid of this field
     public String precaches; // string of all models, sounds, and images this item will
 
+    private static final Map<String, Integer> EFFECTS_MAP = createEffectsMap();
+
+    private static Map<String, Integer> createEffectsMap() {
+        final HashMap<String, Integer> result = new HashMap<>();
+        result.put("EF_ROTATE", EF_ROTATE);
+        result.put("EF_GIB", EF_GIB);
+        result.put("EF_BLASTER", EF_BLASTER);
+        result.put("EF_ROCKET", EF_ROCKET);
+        result.put("EF_GRENADE", EF_GRENADE);
+        result.put("EF_HYPERBLASTER", EF_HYPERBLASTER);
+        result.put("EF_BFG", EF_BFG);
+        result.put("EF_COLOR_SHELL", EF_COLOR_SHELL);
+        result.put("EF_POWERSCREEN", EF_POWERSCREEN);
+        result.put("EF_ANIM01", EF_ANIM01);
+        result.put("EF_ANIM23", EF_ANIM23);
+        result.put("EF_ANIM_ALL", EF_ANIM_ALL);
+        result.put("EF_ANIM_ALLFAST", EF_ANIM_ALLFAST);
+        result.put("EF_FLIES", EF_FLIES);
+        result.put("EF_QUAD", EF_QUAD);
+        result.put("EF_PENT", EF_PENT);
+        result.put("EF_TELEPORTER", EF_TELEPORTER);
+        result.put("EF_FLAG1", EF_FLAG1);
+        result.put("EF_FLAG2", EF_FLAG2);
+        result.put("EF_IONRIPPER", EF_IONRIPPER);
+        result.put("EF_GREENGIB", EF_GREENGIB);
+        result.put("EF_BLUEHYPERBLASTER", EF_BLUEHYPERBLASTER);
+        result.put("EF_SPINNINGLIGHTS", EF_SPINNINGLIGHTS);
+        result.put("EF_PLASMA", EF_PLASMA);
+        result.put("EF_TRAP", EF_TRAP);
+        result.put("EF_TRACKER", EF_TRACKER);
+        result.put("EF_DOUBLE", EF_DOUBLE);
+        result.put("EF_SPHERETRANS", EF_SPHERETRANS);
+        result.put("EF_TAGTRAIL", EF_TAGTRAIL);
+        result.put("EF_HALF_DAMAGE", EF_HALF_DAMAGE);
+        result.put("EF_TRACKERTRAIL", EF_TRACKERTRAIL);
+        return result;
+    }
+
     private static final Set<Integer> TAGS = new HashSet<>() {{
         add(AMMO_BULLETS);
         add(AMMO_SHELLS);
@@ -68,13 +112,13 @@ public class gitem_t {
         add(ARMOR_SHARD);
     }};
 
-    public gitem_t(String classname, EntInteractAdapter pickup,
-                   ItemUseAdapter use, ItemDropAdapter drop,
-                   EntThinkAdapter weaponthink, String pickup_sound,
-                   String world_model, int world_model_flags, String view_model,
-                   String icon, String pickup_name, int count_width, int quantity,
-                   String ammo, int flags, int weapmodel, gitem_armor_t info, int tag,
-                   String precaches, int index) {
+    public GameItem(String classname, EntInteractAdapter pickup,
+                    ItemUseAdapter use, ItemDropAdapter drop,
+                    EntThinkAdapter weaponthink, String pickup_sound,
+                    String world_model, int world_model_flags, String view_model,
+                    String icon, String pickup_name, int count_width, int quantity,
+                    String ammo, int flags, int weapmodel, gitem_armor_t info, int tag,
+                    String precaches, int index) {
         this.classname = classname;
         this.pickup = pickup;
         this.use = use;
@@ -104,6 +148,38 @@ public class gitem_t {
             throw new IllegalStateException("Wrong tag value: " + tag);
     }
 
+    /**
+     * Translate a bit flag expression like `EF_ROTATE|EF_QUAD` into integer
+     *
+     * @param input - input expression
+     * @param dict
+     * @return
+     */
+    static int parseFlags(String input, Map<String, Integer> dict) {
+        if (input == null || input.isBlank())
+            return 0;
+
+        if (dict == null || dict.isEmpty())
+            throw new IllegalArgumentException("dict cannot be empty");
+
+        if (input.contains("|")) {
+            int result = 0;
+            String[] tags = input.split("\\|");
+            for (String tag : tags) {
+                if (!dict.containsKey(tag)) {
+                    throw new IllegalArgumentException("Unknown flag: " + tag + " in input: " + input);
+                }
+                result |= dict.get(tag);
+            }
+            return result;
+        } else {
+            if (!dict.containsKey(input)) {
+                throw new IllegalArgumentException("Unknown flag " + input);
+            }
+            return dict.get(input);
+        }
+    }
+
     @Override
     public String toString() {
         return "gitem_t{" +
@@ -131,8 +207,8 @@ public class gitem_t {
     }
 
     // todo: parse flag values properly
-    public static gitem_t readFromCsv(CSVRecord params, int index) {
-        return new gitem_t(
+    public static GameItem readFromCsv(CSVRecord params, int index) {
+        return new GameItem(
                 params.get("classname").isBlank() ? null : params.get("classname"),
                 (EntInteractAdapter) SuperAdapter.getFromID(params.get("pickup")),
                 (ItemUseAdapter) SuperAdapter.getFromID(params.get("use")),
@@ -140,7 +216,7 @@ public class gitem_t {
                 (EntThinkAdapter) SuperAdapter.getFromID(params.get("weaponthink")),
                 params.get("pickup_sound"),
                 params.get("world_model").isBlank() ? null : params.get("world_model"),
-                Integer.parseInt(params.get("world_model_flags")), //todo
+                parseFlags(params.get("world_model_flags"), EFFECTS_MAP), //todo
                 params.get("view_model").isBlank() ? null : params.get("view_model"),
                 params.get("icon"),
                 params.get("pickup_name"),
@@ -161,7 +237,7 @@ public class gitem_t {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        gitem_t gitem_t = (gitem_t) o;
+        GameItem gitem_t = (GameItem) o;
 
         if (index != gitem_t.index) return false;
         if (world_model_flags != gitem_t.world_model_flags) return false;

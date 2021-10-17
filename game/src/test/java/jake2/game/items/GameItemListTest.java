@@ -1,4 +1,4 @@
-package jake2.game;
+package jake2.game.items;
 
 import org.junit.Test;
 

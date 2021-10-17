@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 
-import jake2.game.items.gitem_t;
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
@@ -90,8 +90,8 @@ public class GameItems {
     static EntInteractAdapter Pickup_Pack = new EntInteractAdapter() {
         public String getID() { return "pickup_pack";}
         public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
-    
-            gitem_t item;
+
+            GameItem item;
             int index;
 
             client_persistant_t clPers = (other.getClient()).pers;
@@ -314,14 +314,17 @@ public class GameItems {
         }
     };
     static ItemUseAdapter Use_Quad = new ItemUseAdapter() {
-        public String getID() { return "use_quad";}    
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_quad";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int timeout;
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
-    
+
             if (gameExports.quad_drop_timeout_hack != 0) {
                 timeout = gameExports.quad_drop_timeout_hack;
                 gameExports.quad_drop_timeout_hack = 0;
@@ -340,29 +343,35 @@ public class GameItems {
     };
     
     static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
-        public String getID() { return "use_invulnerability";}
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_invulnerability";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
-    
+
             if (client.invincible_framenum > gameExports.level.framenum)
                 client.invincible_framenum += 300;
             else
                 client.invincible_framenum = gameExports.level.framenum + 300;
-    
+
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
     static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
-        public String getID() { return "use_breather";}
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_breather";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-    
+
             GameUtil.ValidateSelectedItem(ent, gameExports);
-    
+
             if (client.breather_framenum > gameExports.level.framenum)
                 client.breather_framenum += 300;
             else
@@ -373,30 +382,36 @@ public class GameItems {
         }
     };
     static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
-        public String getID() { return "use_envirosuit";}
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_envirosuit";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
-    
+
             if (client.enviro_framenum > gameExports.level.framenum)
                 client.enviro_framenum += 300;
             else
                 client.enviro_framenum = gameExports.level.framenum + 300;
-    
+
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
     static ItemUseAdapter Use_Silencer = new ItemUseAdapter() {
-        public String getID() { return "use_silencer";}
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_silencer";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
             client.silencer_shots += 30;
-    
+
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
@@ -623,7 +638,7 @@ public class GameItems {
     static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
         public String getID() { return "pickup_bandolier";}
         public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
-            gitem_t item;
+            GameItem item;
             int index;
 
             gclient_t client = other.getClient();
@@ -661,8 +676,11 @@ public class GameItems {
         }
     };
     static ItemDropAdapter Drop_Ammo = new ItemDropAdapter() {
-        public String getID() { return "drop_ammo";}
-        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "drop_ammo";
+        }
+
+        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
 
             index = item.index;
@@ -688,8 +706,11 @@ public class GameItems {
         }
     };
     static ItemDropAdapter Drop_General = new ItemDropAdapter() {
-        public String getID() { return "drop_general";}
-        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "drop_general";
+        }
+
+        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             Drop_Item(ent, item, gameExports);
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
@@ -698,8 +719,11 @@ public class GameItems {
     };
     
     static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
-        public String getID() { return "drop_powerarmor";}
-        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "drop_powerarmor";
+        }
+
+        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[item.index] == 1))
@@ -776,15 +800,18 @@ public class GameItems {
         }
     };
     static ItemUseAdapter Use_PowerArmor = new ItemUseAdapter() {
-        public String getID() { return "use_powerarmor";}
-        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+        public String getID() {
+            return "use_powerarmor";
+        }
+
+        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
-    
+
             if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
                 gameExports.gameImports
                         .sound(ent, Defines.CHAN_AUTO, gameExports.gameImports
-                                .soundindex("misc/power2.wav"), 1,
+                                        .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             } else {
                 index = FindItem("cells", gameExports).index;
@@ -823,22 +850,22 @@ public class GameItems {
     /*
      * =============== GetItemByIndex ===============
      */
-    static gitem_t GetItemByIndex(int index, GameExportsImpl gameExports) {
+    static GameItem GetItemByIndex(int index, GameExportsImpl gameExports) {
         if (index < 0 || index >= gameExports.game.num_items)
             return null;
-    
+
         return gameExports.items.itemlist[index];
     }
 
     /*
      * =============== FindItemByClassname
-     * 
+     *
      * ===============
      */
-    static gitem_t FindItemByClassname(String classname, GameExportsImpl gameExports) {
+    static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
 
         for (int i = 0; i < gameExports.game.num_items; i++) {
-            gitem_t it = gameExports.items.itemlist[i];
+            GameItem it = gameExports.items.itemlist[i];
 
             if (it.classname == null)
                 continue;
@@ -853,9 +880,9 @@ public class GameItems {
      * =============== FindItem ===============
      */
     //geht.
-    static gitem_t FindItem(String pickup_name, GameExportsImpl gameExports) {
+    static GameItem FindItem(String pickup_name, GameExportsImpl gameExports) {
         for (int i = 0; i < gameExports.game.num_items; i++) {
-            gitem_t it = gameExports.items.itemlist[i];
+            GameItem it = gameExports.items.itemlist[i];
 
             if (it.pickup_name == null)
                 continue;
@@ -875,13 +902,13 @@ public class GameItems {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static SubgameEntity Drop_Item(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
-        float[] forward = { 0, 0, 0 };
-        float[] right = { 0, 0, 0 };
-        float[] offset = { 0, 0, 0 };
+    static SubgameEntity Drop_Item(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        float[] forward = {0, 0, 0};
+        float[] right = {0, 0, 0};
+        float[] offset = {0, 0, 0};
 
         SubgameEntity dropped = gameExports.G_Spawn();
-    
+
         dropped.classname = item.classname;
         dropped.item = item;
         dropped.spawnflags = GameDefines.DROPPED_ITEM;
@@ -958,14 +985,14 @@ public class GameItems {
         return -1;
     }
 
-    static boolean Add_Ammo(SubgameEntity ent, gitem_t item, int count) {
+    static boolean Add_Ammo(SubgameEntity ent, GameItem item, int count) {
         int index;
         int max;
 
         gclient_t client = ent.getClient();
         if (client == null)
             return false;
-    
+
         if (item.tag == GameDefines.AMMO_BULLETS)
             max = client.pers.max_bullets;
         else if (item.tag == GameDefines.AMMO_SHELLS)
@@ -1002,7 +1029,7 @@ public class GameItems {
     static void SetItemNames(GameExportsImpl gameExports) {
 
         for (int i = 0; i < gameExports.game.num_items; i++) {
-            gitem_t it = gameExports.items.itemlist[i];
+            GameItem it = gameExports.items.itemlist[i];
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
@@ -1027,7 +1054,7 @@ public class GameItems {
             int index = (cl.pers.selected_item + i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            gitem_t it = gameExports.items.itemlist[index];
+            GameItem it = gameExports.items.itemlist[index];
             if (it.use == null)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1054,7 +1081,7 @@ public class GameItems {
             int index = (cl.pers.selected_item + cl.pers.inventory.length - i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            gitem_t it = gameExports.items.itemlist[index];
+            GameItem it = gameExports.items.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1078,14 +1105,14 @@ public class GameItems {
      *
      * This will be called for each item spawned in a level, and for each item in each client's inventory.
      */
-    static void PrecacheItem(gitem_t it, GameExportsImpl gameExports) {
+    static void PrecacheItem(GameItem it, GameExportsImpl gameExports) {
 
         if (it == null)
             return;
-    
+
         if (it.pickup_sound != null)
             gameExports.gameImports.soundindex(it.pickup_sound);
-    
+
         if (it.world_model != null)
             gameExports.gameImports.modelindex(it.world_model);
     
@@ -1097,7 +1124,7 @@ public class GameItems {
     
         // parse everything for its ammo
         if (it.ammo != null && it.ammo.length() != 0) {
-            gitem_t ammo = FindItem(it.ammo, gameExports);
+            GameItem ammo = FindItem(it.ammo, gameExports);
             if (ammo != it)
                 PrecacheItem(ammo, gameExports);
         }
@@ -1133,13 +1160,13 @@ public class GameItems {
 
     /**
      * Sets the clipping size and plants the object on the floor.
-     * 
+     * <p>
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet.
      */
-    static void SpawnItem(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
+    static void SpawnItem(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
         PrecacheItem(item, gameExports);
-    
+
         if (ent.spawnflags != 0) {
             if (!"key_power_cube".equals(ent.classname)) {
                 ent.spawnflags = 0;
@@ -1354,16 +1381,20 @@ public class GameItems {
         SelectNextItem(ent, -1, gameExports);
     }
 
-    /** Writes an item reference. */
-    static void writeItem(QuakeFile f, gitem_t item) throws IOException {
+    /**
+     * Writes an item reference.
+     */
+    static void writeItem(QuakeFile f, GameItem item) throws IOException {
         if (item == null)
             f.writeInt(-1);
         else
             f.writeInt(item.index);
     }
 
-    /** Reads the item index and returns the game item. */
-    static gitem_t readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
+    /**
+     * Reads the item index and returns the game item.
+     */
+    static GameItem readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
         int ndx = f.readInt();
         if (ndx == -1)
             return null;
