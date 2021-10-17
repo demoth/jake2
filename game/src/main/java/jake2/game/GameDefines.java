@@ -47,14 +47,6 @@ public interface GameDefines {
     int WEAP_RAILGUN = 10;
     int WEAP_BFG = 11;
 
-    //	 armor types
-    // todo enum
-    int ARMOR_NONE = 0;
-    int ARMOR_JACKET = 1;
-    int ARMOR_COMBAT = 2;
-    int ARMOR_BODY = 3;
-    int ARMOR_SHARD = 4;
-
     //	 power armor types
     // todo enum
     int POWER_ARMOR_NONE = 0;

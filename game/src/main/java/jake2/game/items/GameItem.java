@@ -24,7 +24,9 @@ package jake2.game.items;
 import jake2.game.*;
 import org.apache.commons.csv.CSVRecord;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static jake2.game.GameDefines.*;
 import static jake2.qcommon.Defines.*;
@@ -52,8 +54,6 @@ public class GameItem {
     public int flags; // IT_* flags
     public int weapmodel; // weapon model index (for weapons)
     public gitem_armor_t info;
-    @Deprecated
-    public int tag;// todo: get rid of this field
     public String precaches; // string of all models, sounds, and images this item will
 
     private static final Map<String, Integer> ITEM_TYPE_MAP = Map.of(
@@ -103,27 +103,12 @@ public class GameItem {
         return Collections.unmodifiableMap(result);
     }
 
-    private static final Set<Integer> TAGS = new HashSet<>() {{
-        add(AMMO_BULLETS);
-        add(AMMO_SHELLS);
-        add(AMMO_ROCKETS);
-        add(AMMO_GRENADES);
-        add(AMMO_CELLS);
-        add(AMMO_SLUGS);
-
-        add(ARMOR_NONE);
-        add(ARMOR_JACKET);
-        add(ARMOR_COMBAT);
-        add(ARMOR_BODY);
-        add(ARMOR_SHARD);
-    }};
-
     public GameItem(String classname, EntInteractAdapter pickup,
                     ItemUseAdapter use, ItemDropAdapter drop,
                     EntThinkAdapter weaponthink, String pickup_sound,
                     String world_model, int world_model_flags, String view_model,
                     String icon, String pickup_name, int count_width, int quantity,
-                    String ammo, int flags, int weapmodel, gitem_armor_t info, int tag,
+                    String ammo, int flags, int weapmodel, gitem_armor_t info,
                     String precaches, int index) {
         this.classname = classname;
         this.pickup = pickup;
@@ -142,16 +127,8 @@ public class GameItem {
         this.flags = flags;
         this.weapmodel = weapmodel;
         this.info = info;
-        this.tag = tag;
         this.precaches = precaches;
         this.index = index;
-
-        validate();
-    }
-
-    private void validate() {
-        if (!TAGS.contains(tag))
-            throw new IllegalStateException("Wrong tag value: " + tag);
     }
 
     /**
@@ -207,7 +184,6 @@ public class GameItem {
                 ", flags=" + flags +
                 ", weapmodel=" + weapmodel +
                 ", info=" + info +
-                ", tag=" + tag +
                 ", precaches='" + precaches + '\'' +
                 '}';
     }
@@ -232,7 +208,6 @@ public class GameItem {
                 parseFlags(params.get("flags"), ITEM_TYPE_MAP),
                 Integer.parseInt(params.get("weapmodel")),
                 GameItems.TYPES.get(params.get("armor_info")), //todo
-                Integer.parseInt(params.get("tag")), //todo
                 params.get("precaches"),
                 index
         );
@@ -251,7 +226,6 @@ public class GameItem {
         if (quantity != gitem_t.quantity) return false;
         if (flags != gitem_t.flags) return false;
         if (weapmodel != gitem_t.weapmodel) return false;
-        if (tag != gitem_t.tag) return false;
         if (classname != null ? !classname.equals(gitem_t.classname) : gitem_t.classname != null) return false;
         if (pickup != null ? !pickup.equals(gitem_t.pickup) : gitem_t.pickup != null) return false;
         if (use != null ? !use.equals(gitem_t.use) : gitem_t.use != null) return false;
@@ -288,7 +262,6 @@ public class GameItem {
         result = 31 * result + flags;
         result = 31 * result + weapmodel;
         result = 31 * result + (info != null ? info.hashCode() : 0);
-        result = 31 * result + tag;
         result = 31 * result + (precaches != null ? precaches.hashCode() : 0);
         return result;
     }

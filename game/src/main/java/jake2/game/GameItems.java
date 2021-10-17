@@ -486,7 +486,7 @@ public class GameItems {
 
             // handle armor shards specially
             gclient_t client = other.getClient();
-            if (ent.item.tag == GameDefines.ARMOR_SHARD) {
+            if ("item_armor_shard".equals(ent.item.classname)) {
                 if (-1 == old_armor_index)
                     client.pers.inventory[gameExports.jacket_armor_index] = 2;
                 else
@@ -692,8 +692,8 @@ public class GameItems {
                 dropped.count = client.pers.inventory[index];
     
             if (client.pers.weapon != null
-                    && client.pers.weapon.tag == GameDefines.AMMO_GRENADES
-                    && item.tag == GameDefines.AMMO_GRENADES
+                    && client.pers.weapon.classname.equals("ammo_grenades")
+                    && item.classname.equals("ammo_grenades")
                     && client.pers.inventory[index] - dropped.count <= 0) {
                 gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
@@ -993,17 +993,17 @@ public class GameItems {
         if (client == null)
             return false;
 
-        if (item.tag == GameDefines.AMMO_BULLETS)
+        if ("ammo_bullets".equals(item.classname))
             max = client.pers.max_bullets;
-        else if (item.tag == GameDefines.AMMO_SHELLS)
+        else if ("ammo_shells".equals(item.classname))
             max = client.pers.max_shells;
-        else if (item.tag == GameDefines.AMMO_ROCKETS)
+        else if ("ammo_rockets".equals(item.classname))
             max = client.pers.max_rockets;
-        else if (item.tag == GameDefines.AMMO_GRENADES)
+        else if ("ammo_grenades".equals(item.classname))
             max = client.pers.max_grenades;
-        else if (item.tag == GameDefines.AMMO_CELLS)
+        else if (item.classname.equals("ammo_cells"))
             max = client.pers.max_cells;
-        else if (item.tag == GameDefines.AMMO_SLUGS)
+        else if (item.classname.equals("ammo_slugs"))
             max = client.pers.max_slugs;
         else
             return false;

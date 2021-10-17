@@ -53,6 +53,9 @@ public class gclient_t implements jake2.qcommon.GameClient {
 	boolean showhelp;
 	private boolean showhelpicon;
 
+	/**
+	 * Item index for the selected weapon
+	 */
 	int ammo_index;
 
 	int buttons;
@@ -61,7 +64,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	boolean weapon_thunk;
 
-    GameItem newweapon;
+	GameItem newweapon;
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
