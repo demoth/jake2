@@ -32,10 +32,17 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 public class GameItems {
@@ -1383,5 +1390,28 @@ public class GameItems {
             return null;
         else
             return gameExports.items.get(index);
+    }
+
+    /**
+     * Initialize the items list using a csv table from the classpath (absolute)
+     *
+     * @param tableName - classpath resource to the item csv table
+     */
+    public static List<GameItem> createGameItemList(String tableName) {
+
+        try (InputStream in = GameItems.class.getResourceAsStream(tableName)) {
+            final CSVFormat format = CSVFormat.DEFAULT.builder()
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setTrim(true).build();
+            CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
+            AtomicInteger index = new AtomicInteger();
+
+            return source.stream()
+                    .map(strings -> GameItem.readFromCsv(strings, index.getAndIncrement()))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

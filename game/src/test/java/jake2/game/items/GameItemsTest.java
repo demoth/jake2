@@ -1,12 +1,13 @@
 package jake2.game.items;
 
+import jake2.game.GameItems;
 import org.junit.Test;
 
-public class GameItemListTest {
+public class GameItemsTest {
 
     @Test
     public void testLoadFromCsv() {
-        var items = GameItemList.createGameItemList("/items.csv");
+        var items = GameItems.createGameItemList("/items.csv");
         items.forEach(System.out::println);
     }
 }

@@ -19,8 +19,8 @@ import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClass;
+import static jake2.game.GameItems.createGameItemList;
 import static jake2.game.PlayerClient.*;
-import static jake2.game.items.GameItemList.createGameItemList;
 import static java.util.Comparator.comparingInt;
 
 /**
