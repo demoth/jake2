@@ -108,10 +108,10 @@ public class PlayerHud {
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (int n = 0; n < gameExports.items.itemlist.length; n++) {
+                    for (int n = 0; n < gameExports.items.size(); n++) {
                         // null pointer exception fixed. (RST) 
-                        if (gameExports.items.itemlist[n] != null)
-                            if ((gameExports.items.itemlist[n].flags & GameDefines.IT_KEY) != 0) {
+                        if (gameExports.items.get(n) != null)
+                            if ((gameExports.items.get(n).flags & GameDefines.IT_KEY) != 0) {
                                 gclient_t otherClient = client.getClient();
                                 otherClient.pers.inventory[n] = 0;
                             }
@@ -289,7 +289,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = 0;
             client.getPlayerState().stats[Defines.STAT_AMMO] = 0;
         } else {
-            GameItem ammo = gameExports.items.itemlist[client.ammo_index];
+            GameItem ammo = gameExports.items.get(client.ammo_index);
             client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) gameExports.gameImports.imageindex(ammo.icon);
             client.getPlayerState().stats[Defines.STAT_AMMO] = (short) client.pers.inventory[client.ammo_index];
         }
@@ -362,7 +362,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = 0;
         else
             client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = (short) gameExports.gameImports
-                    .imageindex(gameExports.items.itemlist[client.pers.selected_item].icon);
+                    .imageindex(gameExports.items.get(client.pers.selected_item).icon);
 
         client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) client.pers.selected_item;
 

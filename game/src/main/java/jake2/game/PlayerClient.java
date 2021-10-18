@@ -73,9 +73,9 @@ public class PlayerClient {
                 // clear inventory
                 // this is kind of ugly, but it's how we want to handle keys in
                 // coop
-                for (n = 0; n < gameExports.game.num_items; n++) {
+                for (n = 0; n < gameExports.items.size(); n++) {
                     if (gameExports.gameCvars.coop.value != 0
-                            && (gameExports.items.itemlist[n].flags & GameDefines.IT_KEY) != 0)
+                            && (gameExports.items.get(n).flags & GameDefines.IT_KEY) != 0)
                         client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
                     client.pers.inventory[n] = 0;
                 }

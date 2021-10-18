@@ -37,14 +37,12 @@ import java.util.stream.Collectors;
 
 public class GameItemList {
 
-    public final GameItem[] itemlist;
-
     /**
      * Initialize the items list using a csv table from the classpath (absolute)
      *
      * @param tableName - classpath resource to the item csv table
      */
-    public GameItemList(String tableName) {
+    public static List<GameItem> createGameItemList(String tableName) {
 
         try (InputStream in = GameItemList.class.getResourceAsStream(tableName)) {
             final CSVFormat format = CSVFormat.DEFAULT.builder()
@@ -54,11 +52,9 @@ public class GameItemList {
             CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
             AtomicInteger index = new AtomicInteger();
 
-            final List<GameItem> itemList = source.stream()
+            return source.stream()
                     .map(strings -> GameItem.readFromCsv(strings, index.getAndIncrement()))
                     .collect(Collectors.toList());
-
-            itemlist = itemList.toArray(new GameItem[]{});
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

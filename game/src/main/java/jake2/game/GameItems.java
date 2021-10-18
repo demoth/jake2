@@ -851,10 +851,10 @@ public class GameItems {
      * =============== GetItemByIndex ===============
      */
     static GameItem GetItemByIndex(int index, GameExportsImpl gameExports) {
-        if (index < 0 || index >= gameExports.game.num_items)
+        if (index < 0 || index >= gameExports.items.size())
             return null;
 
-        return gameExports.items.itemlist[index];
+        return gameExports.items.get(index);
     }
 
     /*
@@ -864,15 +864,15 @@ public class GameItems {
      */
     static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
 
-        for (int i = 0; i < gameExports.game.num_items; i++) {
-            GameItem it = gameExports.items.itemlist[i];
+        for (int i = 0; i < gameExports.items.size(); i++) {
+            GameItem it = gameExports.items.get(i);
 
             if (it.classname == null)
                 continue;
             if (it.classname.equalsIgnoreCase(classname))
                 return it;
         }
-    
+
         return null;
     }
 
@@ -881,8 +881,8 @@ public class GameItems {
      */
     //geht.
     static GameItem FindItem(String pickup_name, GameExportsImpl gameExports) {
-        for (int i = 0; i < gameExports.game.num_items; i++) {
-            GameItem it = gameExports.items.itemlist[i];
+        for (int i = 0; i < gameExports.items.size(); i++) {
+            GameItem it = gameExports.items.get(i);
 
             if (it.pickup_name == null)
                 continue;
@@ -1028,8 +1028,8 @@ public class GameItems {
      */
     static void SetItemNames(GameExportsImpl gameExports) {
 
-        for (int i = 0; i < gameExports.game.num_items; i++) {
-            GameItem it = gameExports.items.itemlist[i];
+        for (int i = 0; i < gameExports.items.size(); i++) {
+            GameItem it = gameExports.items.get(i);
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
@@ -1054,7 +1054,7 @@ public class GameItems {
             int index = (cl.pers.selected_item + i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            GameItem it = gameExports.items.itemlist[index];
+            GameItem it = gameExports.items.get(index);
             if (it.use == null)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1081,7 +1081,7 @@ public class GameItems {
             int index = (cl.pers.selected_item + cl.pers.inventory.length - i) % cl.pers.inventory.length;
             if (0 == cl.pers.inventory[index])
                 continue;
-            GameItem it = gameExports.items.itemlist[index];
+            GameItem it = gameExports.items.get(index);
             if (null == it.use)
                 continue;
             if (0 == (it.flags & itflags))
@@ -1395,10 +1395,10 @@ public class GameItems {
      * Reads the item index and returns the game item.
      */
     static GameItem readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
-        int ndx = f.readInt();
-        if (ndx == -1)
+        int index = f.readInt();
+        if (index == -1)
             return null;
         else
-            return gameExports.items.itemlist[ndx];
+            return gameExports.items.get(index);
     }
 }

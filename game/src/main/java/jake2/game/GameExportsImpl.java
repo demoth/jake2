@@ -1,7 +1,6 @@
 package jake2.game;
 
 import jake2.game.items.GameItem;
-import jake2.game.items.GameItemList;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
@@ -21,6 +20,7 @@ import java.util.StringTokenizer;
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClass;
 import static jake2.game.PlayerClient.*;
+import static jake2.game.items.GameItemList.createGameItemList;
 import static java.util.Comparator.comparingInt;
 
 /**
@@ -135,7 +135,7 @@ public class GameExportsImpl implements GameExports {
     float enemy_yaw;
 
     // Game Items related
-    GameItemList items;
+    List<GameItem> items;
     // todo: move to appropriate places
     int quad_drop_timeout_hack;
     boolean is_quad;
@@ -188,8 +188,7 @@ public class GameExportsImpl implements GameExports {
         game = new game_locals_t();
         game.helpmessage1 = "";
         game.helpmessage2 = "";
-        items = new GameItemList("/items.csv");
-        game.num_items = items.itemlist.length;
+        items = createGameItemList("/items.csv");
 
         level = new level_locals_t();
 
@@ -354,8 +353,8 @@ public class GameExportsImpl implements GameExports {
         int i;
         GameItem it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 0; i < game.num_items; i++) {
-                it = items.itemlist[i];
+            for (i = 0; i < items.size(); i++) {
+                it = items.get(i);
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -367,8 +366,8 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 0; i < game.num_items; i++) {
-                it = items.itemlist[i];
+            for (i = 0; i < items.size(); i++) {
+                it = items.get(i);
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_AMMO))
@@ -410,8 +409,8 @@ public class GameExportsImpl implements GameExports {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
 
-            for (i = 0; i < game.num_items; i++) {
-                it = items.itemlist[i];
+            for (i = 0; i < items.size(); i++) {
+                it = items.get(i);
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
 
@@ -430,8 +429,8 @@ public class GameExportsImpl implements GameExports {
 
 
         if (give_all) {
-            for (i = 0; i < game.num_items; i++) {
-                it = items.itemlist[i];
+            for (i = 0; i < items.size(); i++) {
+                it = items.get(i);
                 if (it.pickup != null)
                     continue;
                 if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
@@ -635,7 +634,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = items.itemlist[client.pers.selected_item];
+        it = items.get(client.pers.selected_item);
         if (it.use == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
@@ -661,7 +660,7 @@ public class GameExportsImpl implements GameExports {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            GameItem it = items.itemlist[index];
+            GameItem it = items.get(index);
             if (it.use == null)
                 continue;
 
@@ -698,7 +697,7 @@ public class GameExportsImpl implements GameExports {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = items.itemlist[index];
+            it = items.get(index);
             if (null == it.use)
                 continue;
             if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -723,7 +722,7 @@ public class GameExportsImpl implements GameExports {
         index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
-        GameItem it = items.itemlist[index];
+        GameItem it = items.get(index);
         if (null == it.use)
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -745,7 +744,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = items.itemlist[client.pers.selected_item];
+        it = items.get(client.pers.selected_item);
         if (it.drop == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;

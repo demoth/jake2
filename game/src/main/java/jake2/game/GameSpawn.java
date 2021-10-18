@@ -1411,9 +1411,9 @@ public class GameSpawn {
             gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
             return;
         } // check item spawn functions
-        for (int i = 0; i < gameExports.game.num_items; i++) {
+        for (int i = 0; i < gameExports.items.size(); i++) {
 
-            GameItem item = gameExports.items.itemlist[i];
+            GameItem item = gameExports.items.get(i);
 
             if (item == null)
                 gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);
