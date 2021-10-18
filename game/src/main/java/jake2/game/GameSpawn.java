@@ -1410,22 +1410,18 @@ public class GameSpawn {
         if (null == ent.classname) {
             gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
             return;
-        } // check item spawn functions
-        for (int i = 0; i < gameExports.items.size(); i++) {
+        }
 
-            GameItem item = gameExports.items.get(i);
+        // check item spawn functions
+        var item = gameExports.items.stream()
+                .filter(it -> ent.classname.equals(it.classname))
+                .findFirst();
+        if (item.isPresent()) {
+            GameItems.SpawnItem(ent, item.get(), gameExports);
+            return;
+        }
 
-            if (item == null)
-                gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);
-
-            if (item.classname == null)
-                continue;
-            if (item.classname.equalsIgnoreCase(ent.classname)) { // found it
-                GameItems.SpawnItem(ent, item, gameExports);
-                return;
-            }
-        } // check normal spawn functions
-
+        // check normal spawn functions
         EntThinkAdapter spawn = spawns.get(ent.classname.toLowerCase());
         if (spawn != null) {
             spawn.think(ent, gameExports);

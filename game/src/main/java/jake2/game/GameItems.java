@@ -805,7 +805,6 @@ public class GameItems {
         }
 
         public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
-            int index;
 
             if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
@@ -814,9 +813,9 @@ public class GameItems {
                                         .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             } else {
-                index = FindItem("cells", gameExports).index;
+                    GameItem cells = FindItem("cells", gameExports);
                 gclient_t client = ent.getClient();
-                if (0 == client.pers.inventory[index]) {
+                if (cells == null || 0 == client.pers.inventory[cells.index]) {
                     gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                             "No cells for power armor.\n");
                     return;
@@ -863,34 +862,19 @@ public class GameItems {
      * ===============
      */
     static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
-
-        for (int i = 0; i < gameExports.items.size(); i++) {
-            GameItem it = gameExports.items.get(i);
-
-            if (it.classname == null)
-                continue;
-            if (it.classname.equalsIgnoreCase(classname))
-                return it;
-        }
-
-        return null;
+        return gameExports.items.stream()
+                .filter(it -> classname.equalsIgnoreCase(it.classname))
+                .findFirst()
+                .orElse(null);
     }
 
-    /*
-     * =============== FindItem ===============
-     */
-    //geht.
     static GameItem FindItem(String pickup_name, GameExportsImpl gameExports) {
-        for (int i = 0; i < gameExports.items.size(); i++) {
-            GameItem it = gameExports.items.get(i);
-
-            if (it.pickup_name == null)
-                continue;
-            if (it.pickup_name.equalsIgnoreCase(pickup_name))
-                return it;
-        }
-        gameExports.gameImports.dprintf("Item not found:" + pickup_name + "\n");
-        return null;
+        var found = gameExports.items.stream()
+                .filter(it -> pickup_name.equalsIgnoreCase(it.pickup_name))
+                .findFirst();
+        if (found.isEmpty())
+            gameExports.gameImports.dprintf("Item not found:" + pickup_name + "\n");
+        return found.orElse(null);
     }
 
     static void SetRespawn(SubgameEntity ent, float delay, GameExportsImpl gameExports) {
@@ -1028,9 +1012,8 @@ public class GameItems {
      */
     static void SetItemNames(GameExportsImpl gameExports) {
 
-        for (int i = 0; i < gameExports.items.size(); i++) {
-            GameItem it = gameExports.items.get(i);
-            gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
+        for (GameItem it : gameExports.items) {
+            gameExports.gameImports.configstring(Defines.CS_ITEMS + it.index, it.pickup_name);
         }
 
         gameExports.jacket_armor_index = FindItem("Jacket Armor", gameExports).index;

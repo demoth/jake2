@@ -88,10 +88,8 @@ public class PlayerHud {
         gameExports.game.autosaved = false;
 
         // respawn any dead clients
-        int i;
-        SubgameEntity client;
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            client = gameExports.g_edicts[1 + i];
+        for (int i = 0; i < gameExports.game.maxclients; i++) {
+            SubgameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             if (client.health <= 0)
@@ -101,27 +99,23 @@ public class PlayerHud {
         gameExports.level.intermissiontime = gameExports.level.time;
         gameExports.level.changemap = targ.map;
 
-        if (gameExports.level.changemap.indexOf('*') > -1) {
+        // if we exit current unit in coop (only in coop because in single player all keys should have been already used)
+        if (gameExports.level.changemap.contains("*")) {
             if (gameExports.gameCvars.coop.value != 0) {
-                for (i = 0; i < gameExports.game.maxclients; i++) {
-                    client = gameExports.g_edicts[1 + i];
+                for (int i = 0; i < gameExports.game.maxclients; i++) {
+                    final SubgameEntity client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (int n = 0; n < gameExports.items.size(); n++) {
-                        // null pointer exception fixed. (RST) 
-                        if (gameExports.items.get(n) != null)
-                            if ((gameExports.items.get(n).flags & GameDefines.IT_KEY) != 0) {
-                                gclient_t otherClient = client.getClient();
-                                otherClient.pers.inventory[n] = 0;
-                            }
-                    }
+                    gameExports.items.stream()
+                            .filter(it -> (it.flags & GameDefines.IT_KEY) != 0)
+                            .forEach(it -> client.getClient().pers.inventory[it.index] = 0);
                 }
             }
         } else {
             if (0 == gameExports.gameCvars.deathmatch.value) {
-                gameExports.level.exitintermission = true; // go immediately to the
-                                                        // next level
+                // go immediately to the next level
+                gameExports.level.exitintermission = true;
                 return;
             }
         }
@@ -139,7 +133,7 @@ public class PlayerHud {
                 ent = GameBase.G_FindEdict(null, GameBase.findByClass,
                         "info_player_deathmatch", gameExports);
         } else { // chose one of four spots
-            i = Lib.rand() & 3;
+            int i = Lib.rand() & 3;
             EdictIterator es = null;
 
             while (i-- > 0) {
@@ -156,8 +150,8 @@ public class PlayerHud {
         Math3D.VectorCopy(ent.s.angles, gameExports.level.intermission_angle);
 
         // move all clients to the intermission point
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            client = gameExports.g_edicts[1 + i];
+        for (int i = 0; i < gameExports.game.maxclients; i++) {
+            SubgameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             MoveClientToIntermission(client, gameExports);

@@ -350,53 +350,48 @@ public class GameExportsImpl implements GameExports {
         }
 
         gclient_t client = ent.getClient();
-        int i;
-        GameItem it;
-        if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 0; i < items.size(); i++) {
-                it = items.get(i);
-                if (null == it.pickup)
-                    continue;
-                if (0 == (it.flags & GameDefines.IT_WEAPON))
-                    continue;
-                client.pers.inventory[i] += 1;
-            }
+        if (give_all || "weapons".equals(name)) {
+            // fixme: why pickup is checked but not used?
+            items.stream()
+                    .filter(it -> (it.flags & GameDefines.IT_WEAPON) != 0 && it.pickup != null)
+                    .forEach(it -> client.pers.inventory[it.index]++);
+
             if (!give_all)
                 return;
         }
 
-        if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 0; i < items.size(); i++) {
-                it = items.get(i);
-                if (null == it.pickup)
-                    continue;
-                if (0 == (it.flags & GameDefines.IT_AMMO))
-                    continue;
-                GameItems.Add_Ammo(ent, it, 1000);
-            }
+        if (give_all || "ammo".equals(name)) {
+            // fixme: why pickup is checked but not used?
+            items.stream()
+                    .filter(it -> (it.flags & GameDefines.IT_AMMO) != 0 && it.pickup != null)
+                    .forEach(it -> GameItems.Add_Ammo(ent, it, 1000));
+
             if (!give_all)
                 return;
         }
 
-        if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
 
-            it = GameItems.FindItem("Jacket Armor", this);
-            client.pers.inventory[it.index] = 0;
+        if (give_all || "armor".equals(name)) {
+
+            GameItem it = GameItems.FindItem("Jacket Armor", this);
+            if (it != null)
+                client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Combat Armor", this);
-            client.pers.inventory[it.index] = 0;
+            if (it != null)
+                client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Body Armor", this);
-            client.pers.inventory[it.index] = it.info.max_count;
+            if (it != null)
+                client.pers.inventory[it.index] = it.info.max_count;
 
             if (!give_all)
                 return;
         }
 
-        SubgameEntity it_ent;
-        if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameItems.FindItem("Power Shield", this);
-            it_ent = this.G_Spawn();
+        if (give_all || "Power Shield".equalsIgnoreCase(name)) {
+            GameItem it = GameItems.FindItem("Power Shield", this);
+            SubgameEntity it_ent = G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -407,43 +402,37 @@ public class GameExportsImpl implements GameExports {
                 return;
         }
 
-        if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
+        if (give_all || "items".equals(name)) {
 
-            for (i = 0; i < items.size(); i++) {
-                it = items.get(i);
-                if (0 == (it.flags & GameDefines.IT_POWERUP))
-                    continue;
-
-                it_ent = this.G_Spawn();
+            items.stream().filter(it -> (it.flags & GameDefines.IT_POWERUP) != 0).forEach(it -> {
+                SubgameEntity it_ent = G_Spawn();
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
                     GameUtil.G_FreeEdict(it_ent, this);
 
-            }
-
+            });
             if (!give_all)
                 return;
         }
 
 
         if (give_all) {
-            for (i = 0; i < items.size(); i++) {
-                it = items.get(i);
-                if (it.pickup != null)
-                    continue;
-                if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
-                    continue;
-                client.pers.inventory[i] = 1;
-            }
+            // everything else except weapons, armor and ammo and has no pickup
+            items.stream()
+                    .filter(it -> it.pickup == null
+                            && ((it.flags & GameDefines.IT_ARMOR) == 0)
+                            && ((it.flags & GameDefines.IT_WEAPON) == 0)
+                            && ((it.flags & GameDefines.IT_AMMO) == 0))
+                    .forEach(it -> client.pers.inventory[it.index]++);
             return;
         }
 
-        it = GameItems.FindItem(name, this);
+        GameItem it = GameItems.FindItem(name, this);
         if (it == null) {
-            name = args.get(1);
-            it = GameItems.FindItem(name, this);
+            // try to find by the 2nd word, like `give cells 55`
+            it = GameItems.FindItem(args.get(1), this);
             if (it == null) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -455,16 +444,14 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        int index = it.index;
-
-        // set particular amount of ammo: give cells 53
+        // set (not add) a particular amount of ammo: give cells 53
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
-                client.pers.inventory[index] = Lib.atoi(args.get(2));
+                client.pers.inventory[it.index] = Lib.atoi(args.get(2));
             else
-                client.pers.inventory[index] += it.quantity;
+                client.pers.inventory[it.index] += it.quantity;
         } else {
-            it_ent = this.G_Spawn();
+            SubgameEntity it_ent = this.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
