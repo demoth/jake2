@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.filesystem.QuakeFile;
 
@@ -77,12 +78,12 @@ public class client_persistant_t {
 	public int max_rockets;
 	public int max_grenades;
 	public int max_cells;
-	public int max_slugs;
-	//pointer
-	gitem_t weapon;
-	//pointer
-	gitem_t lastweapon;
-	int power_cubes; // used for tracking the cubes in coop games
+    public int max_slugs;
+    //pointer
+    GameItem weapon;
+    //pointer
+    GameItem lastweapon;
+    int power_cubes; // used for tracking the cubes in coop games
 	int score; // for calculating total unit score in coop games
 	int game_helpchanged;
 	int helpchanged;

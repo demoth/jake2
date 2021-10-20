@@ -298,16 +298,10 @@ public class GameAI {
         }
     };
 
-    public static EntThinkAdapter walkmonster_start = new EntThinkAdapter() {
-        public String getID() { return "walkmonster_start";} 
-        
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            self.think = walkmonster_start_go;
-            Monster.monster_start(self, gameExports);
-            return true;
-        }
-    };
+    public static void walkmonster_start(SubgameEntity self, GameExportsImpl gameExports) {
+        self.think = walkmonster_start_go;
+        Monster.monster_start(self, gameExports);
+    }
 
     public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
         public String getID() { return "flymonster_start_go";}
@@ -424,7 +418,6 @@ public class GameAI {
      * Used for standing around and looking for players Distance is for slight
      * position adjustments needed by the animations. 
      */
-
     public static AIAdapter ai_stand = new AIAdapter() {
         public String getID() { return "ai_stand";}
         public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
@@ -559,7 +552,7 @@ public class GameAI {
             }
 
             SubgameEntity save = self.goalentity;
-            SubgameEntity tempgoal = GameUtil.G_Spawn(gameExports);
+            SubgameEntity tempgoal = gameExports.G_Spawn();
             self.goalentity = tempgoal;
 
             boolean new1 = false;

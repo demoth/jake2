@@ -121,10 +121,10 @@ public class Monster {
     }
 
     // ============================================================================
-    public static boolean monster_start(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void monster_start(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self, gameExports);
-            return false;
+            return;
         }
 
         if ((self.spawnflags & 4) != 0
@@ -169,7 +169,6 @@ public class Monster {
                     + (Lib.rand() % (self.monsterinfo.currentmove.lastframe
                             - self.monsterinfo.currentmove.firstframe + 1));
 
-        return true;
     }
 
     public static void monster_start_go(SubgameEntity self, GameExportsImpl gameExports) {

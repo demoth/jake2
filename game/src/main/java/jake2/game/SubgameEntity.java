@@ -1,5 +1,6 @@
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.filesystem.QuakeFile;
@@ -92,6 +93,7 @@ public class SubgameEntity extends edict_t {
 
     public float yaw_speed;
 
+    // degrees
     public float ideal_yaw;
 
     public float nextthink;
@@ -186,7 +188,7 @@ public class SubgameEntity extends edict_t {
     /** also used as areaportal number. */
     public int style;
 
-    public gitem_t item; // for bonus items
+    public GameItem item; // for bonus items
 
     /** common integrated data blocks. */
     public moveinfo_t moveinfo = new moveinfo_t();

@@ -197,7 +197,7 @@ class GameFunc {
         //
         //	   middle trigger
         //	
-        SubgameEntity trigger = GameUtil.G_Spawn(gameExports);
+        SubgameEntity trigger = gameExports.G_Spawn();
         trigger.touch = Touch_Plat_Center;
         trigger.movetype = GameDefines.MOVETYPE_NONE;
         trigger.solid = Defines.SOLID_TRIGGER;
@@ -1290,7 +1290,7 @@ class GameFunc {
             maxs[0] += 60;
             maxs[1] += 60;
 
-            other = GameUtil.G_Spawn(gameExports);
+            other = gameExports.G_Spawn();
             Math3D.VectorCopy(mins, other.mins);
             Math3D.VectorCopy(maxs, other.maxs);
             other.setOwner(ent);

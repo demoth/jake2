@@ -166,17 +166,17 @@ public class Defines {
 	public final static int EF_BLASTER = 0x00000008; // redlight + trail 
 	public final static int EF_ROCKET = 0x00000010; // redlight + trail 
 	public final static int EF_GRENADE = 0x00000020;
-	public final static int EF_HYPERBLASTER = 0x00000040;
-	public final static int EF_BFG = 0x00000080;
+	public final static int EF_HYPERBLASTER = 0x00000040; // light
+	public final static int EF_BFG = 0x00000080; // transparent
 	public final static int EF_COLOR_SHELL = 0x00000100;
-	public final static int EF_POWERSCREEN = 0x00000200;
+	public final static int EF_POWERSCREEN = 0x00000200; // green flat scree
 	public final static int EF_ANIM01 = 0x00000400; // automatically cycle between frames 0 and 1 at 2 hz 
 	public final static int EF_ANIM23 = 0x00000800; // automatically cycle between frames 2 and 3 at 2 hz 
 	public final static int EF_ANIM_ALL = 0x00001000; // automatically cycle through all frames at 2hz 
 	public final static int EF_ANIM_ALLFAST = 0x00002000; // automatically cycle through all frames at 10hz 
 	public final static int EF_FLIES = 0x00004000;
-	public final static int EF_QUAD = 0x00008000;
-	public final static int EF_PENT = 0x00010000;
+	public final static int EF_QUAD = 0x00008000; // blue shell
+	public final static int EF_PENT = 0x00010000; // red shell
 	public final static int EF_TELEPORTER = 0x00020000; // particle fountain 
 	public final static int EF_FLAG1 = 0x00040000;
 	public final static int EF_FLAG2 = 0x00080000;
@@ -186,14 +186,14 @@ public class Defines {
 	public final static int EF_BLUEHYPERBLASTER = 0x00400000;
 	public final static int EF_SPINNINGLIGHTS = 0x00800000;
 	public final static int EF_PLASMA = 0x01000000;
-	public final static int EF_TRAP = 0x02000000;
+	public final static int EF_TRAP = 0x02000000; // particle fountain
 
 	//ROGUE
-	public final static int EF_TRACKER = 0x04000000;
-	public final static int EF_DOUBLE = 0x08000000;
-	public final static int EF_SPHERETRANS = 0x10000000;
+	public final static int EF_TRACKER = 0x04000000; // blinking red
+	public final static int EF_DOUBLE = 0x08000000; // yellow shell
+	public final static int EF_SPHERETRANS = 0x10000000; // transparent
 	public final static int EF_TAGTRAIL = 0x20000000;
-	public final static int EF_HALF_DAMAGE = 0x40000000;
+	public final static int EF_HALF_DAMAGE = 0x40000000; // grey shell
 	public final static int EF_TRACKERTRAIL = 0x80000000;
 	//ROGUE
 

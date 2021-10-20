@@ -184,6 +184,7 @@ public final class M {
     public static void M_MoveToGoal(SubgameEntity ent, float dist, GameExportsImpl gameExports) {
         SubgameEntity goal = ent.goalentity;
 
+        // if we are (helplessly) falling and cannot fly -> return
         if (ent.groundentity == null
                 && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
             return;
@@ -193,28 +194,32 @@ public final class M {
             return;
 
         //	   bump around...
-        if ((Lib.rand() & 3) == 1
-                || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist, gameExports)) {
+        if ((Lib.rand() & 3) == 1 || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist, gameExports)) {
             if (ent.inuse)
                 SV.SV_NewChaseDir(ent, goal, dist, gameExports);
         }
     }
 
-    /** 
+    /**
      * M_walkmove.
+     *
+     * @param yaw  - where the entitiy is looking at (in degrees)
+     * @param dist - distance to travel during this frame
      */
     public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
-        float[] move = { 0, 0, 0 };
 
+        // if we are falling (or swimming) and cannot fly (swim) -> return
         if ((ent.groundentity == null)
                 && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
             return false;
 
-        yaw = (float) (yaw * Math.PI * 2 / 360);
+        float yaw_radian = (float) (yaw * Math.PI * 2 / 360);
 
-        move[0] = (float) Math.cos(yaw) * dist;
-        move[1] = (float) Math.sin(yaw) * dist;
-        move[2] = 0;
+        float[] move = {
+                (float) Math.cos(yaw_radian) * dist,
+                (float) Math.sin(yaw_radian) * dist,
+                0
+        };
 
         return SV.SV_movestep(ent, move, true, gameExports);
     }

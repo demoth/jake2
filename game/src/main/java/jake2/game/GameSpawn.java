@@ -22,6 +22,7 @@
 
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
@@ -32,8 +33,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static jake2.game.GameUtil.G_Spawn;
 
 public class GameSpawn {
 
@@ -1132,7 +1131,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss2.SP_monster_boss2(ent, gameExports);
+                M_Hornet.SP_monster_boss2(ent, gameExports);
                 return true;
             }
         });
@@ -1142,7 +1141,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss3.SP_monster_boss3_stand(ent, gameExports);
+                M_Makron_Idle.SP_monster_boss3_stand(ent, gameExports);
                 return true;
             }
         });
@@ -1152,7 +1151,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Boss31.SP_monster_jorg(ent, gameExports);
+                M_Makron_Jorg.SP_monster_jorg(ent, gameExports);
                 return true;
             }
         });
@@ -1349,7 +1348,7 @@ public class GameSpawn {
             if (ent == null)
                 ent = gameExports.g_edicts[0];
             else
-                ent = G_Spawn(gameExports);
+                ent = gameExports.G_Spawn();
 
             ED_ParseEdict(ph, ent, gameExports);
             gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
@@ -1411,22 +1410,18 @@ public class GameSpawn {
         if (null == ent.classname) {
             gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
             return;
-        } // check item spawn functions
-        for (int i = 1; i < gameExports.game.num_items; i++) {
+        }
 
-            gitem_t item = gameExports.items.itemlist[i];
+        // check item spawn functions
+        var item = gameExports.items.stream()
+                .filter(it -> ent.classname.equals(it.classname))
+                .findFirst();
+        if (item.isPresent()) {
+            GameItems.SpawnItem(ent, item.get(), gameExports);
+            return;
+        }
 
-            if (item == null)
-                gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);
-
-            if (item.classname == null)
-                continue;
-            if (item.classname.equalsIgnoreCase(ent.classname)) { // found it
-                GameItems.SpawnItem(ent, item, gameExports);
-                return;
-            }
-        } // check normal spawn functions
-
+        // check normal spawn functions
         EntThinkAdapter spawn = spawns.get(ent.classname.toLowerCase());
         if (spawn != null) {
             spawn.think(ent, gameExports);
@@ -1462,10 +1457,10 @@ public class GameSpawn {
         gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
-        gitem_t gitem_t = GameItems.FindItemByClassname(className, gameExports);
+        GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
-            SubgameEntity newThing = G_Spawn(gameExports);
+            SubgameEntity newThing = gameExports.G_Spawn();
 
             float[] offset = {0,0,0};
             float[] forward = { 0, 0, 0 };

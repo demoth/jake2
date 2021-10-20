@@ -22,6 +22,7 @@
 
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.messages.server.LayoutMessage;
@@ -87,10 +88,8 @@ public class PlayerHud {
         gameExports.game.autosaved = false;
 
         // respawn any dead clients
-        int i;
-        SubgameEntity client;
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            client = gameExports.g_edicts[1 + i];
+        for (int i = 0; i < gameExports.game.maxclients; i++) {
+            SubgameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             if (client.health <= 0)
@@ -100,27 +99,23 @@ public class PlayerHud {
         gameExports.level.intermissiontime = gameExports.level.time;
         gameExports.level.changemap = targ.map;
 
-        if (gameExports.level.changemap.indexOf('*') > -1) {
+        // if we exit current unit in coop (only in coop because in single player all keys should have been already used)
+        if (gameExports.level.changemap.contains("*")) {
             if (gameExports.gameCvars.coop.value != 0) {
-                for (i = 0; i < gameExports.game.maxclients; i++) {
-                    client = gameExports.g_edicts[1 + i];
+                for (int i = 0; i < gameExports.game.maxclients; i++) {
+                    final SubgameEntity client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (int n = 1; n < gameExports.items.itemlist.length; n++) {
-                        // null pointer exception fixed. (RST) 
-                        if (gameExports.items.itemlist[n] != null)
-                            if ((gameExports.items.itemlist[n].flags & GameDefines.IT_KEY) != 0) {
-                                gclient_t otherClient = client.getClient();
-                                otherClient.pers.inventory[n] = 0;
-                            }
-                    }
+                    gameExports.items.stream()
+                            .filter(it -> (it.flags & GameDefines.IT_KEY) != 0)
+                            .forEach(it -> client.getClient().pers.inventory[it.index] = 0);
                 }
             }
         } else {
             if (0 == gameExports.gameCvars.deathmatch.value) {
-                gameExports.level.exitintermission = true; // go immediately to the
-                                                        // next level
+                // go immediately to the next level
+                gameExports.level.exitintermission = true;
                 return;
             }
         }
@@ -138,7 +133,7 @@ public class PlayerHud {
                 ent = GameBase.G_FindEdict(null, GameBase.findByClass,
                         "info_player_deathmatch", gameExports);
         } else { // chose one of four spots
-            i = Lib.rand() & 3;
+            int i = Lib.rand() & 3;
             EdictIterator es = null;
 
             while (i-- > 0) {
@@ -155,8 +150,8 @@ public class PlayerHud {
         Math3D.VectorCopy(ent.s.angles, gameExports.level.intermission_angle);
 
         // move all clients to the intermission point
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            client = gameExports.g_edicts[1 + i];
+        for (int i = 0; i < gameExports.game.maxclients; i++) {
+            SubgameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             MoveClientToIntermission(client, gameExports);
@@ -267,8 +262,7 @@ public class PlayerHud {
      * ===============
      */
     public static void G_SetStats(SubgameEntity ent, GameExportsImpl gameExports) {
-        gitem_t item;
-        int index, cells = 0;
+        int cells = 0;
         int power_armor_type;
 
         //
@@ -289,9 +283,8 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = 0;
             client.getPlayerState().stats[Defines.STAT_AMMO] = 0;
         } else {
-            item = gameExports.items.itemlist[client.ammo_index];
-            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) gameExports.gameImports
-                    .imageindex(item.icon);
+            GameItem ammo = gameExports.items.get(client.ammo_index);
+            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) gameExports.gameImports.imageindex(ammo.icon);
             client.getPlayerState().stats[Defines.STAT_AMMO] = (short) client.pers.inventory[client.ammo_index];
         }
 
@@ -306,30 +299,21 @@ public class PlayerHud {
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
                 gameExports.gameImports
                         .sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
-                                .soundindex("misc/power2.wav"), 1,
+                                        .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 power_armor_type = 0;
                 ;
             }
         }
 
-        index = GameItems.ArmorIndex(ent, gameExports);
-        if (power_armor_type != 0
-                && (0 == index || 0 != (gameExports.level.framenum & 8))) { // flash
-                                                                         // between
-                                                                         // power
-                                                                         // armor
-                                                                         // and
-                                                                         // other
-                                                                         // armor
-                                                                         // icon
-            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports
-                    .imageindex("i_powershield");
+        int index = GameItems.ArmorIndex(ent, gameExports);
+        // flash between power armor and other armor icon
+        if (power_armor_type != 0 && (-1 == index || 0 != (gameExports.level.framenum & 8))) {
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports.imageindex("i_powershield");
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) cells;
-        } else if (index != 0) {
-            item = GameItems.GetItemByIndex(index, gameExports);
-            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports
-                    .imageindex(item.icon);
+        } else if (index != -1) {
+            GameItem armor = GameItems.GetItemByIndex(index, gameExports);
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) gameExports.gameImports.imageindex(armor.icon);
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) client.pers.inventory[index];
         } else {
             client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = 0;
@@ -348,20 +332,16 @@ public class PlayerHud {
         // timers
         //
         if (client.quad_framenum > gameExports.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports
-                    .imageindex("p_quad");
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports.imageindex("p_quad");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.quad_framenum - gameExports.level.framenum) / 10);
         } else if (client.invincible_framenum > gameExports.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports
-                    .imageindex("p_invulnerability");
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports.imageindex("p_invulnerability");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.invincible_framenum - gameExports.level.framenum) / 10);
         } else if (client.enviro_framenum > gameExports.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports
-                    .imageindex("p_envirosuit");
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports.imageindex("p_envirosuit");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.enviro_framenum - gameExports.level.framenum) / 10);
         } else if (client.breather_framenum > gameExports.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports
-                    .imageindex("p_rebreather");
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) gameExports.gameImports.imageindex("p_rebreather");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.breather_framenum - gameExports.level.framenum) / 10);
         } else {
             client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = 0;
@@ -376,7 +356,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = 0;
         else
             client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = (short) gameExports.gameImports
-                    .imageindex(gameExports.items.itemlist[client.pers.selected_item].icon);
+                    .imageindex(gameExports.items.get(client.pers.selected_item).icon);
 
         client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) client.pers.selected_item;
 
@@ -407,14 +387,10 @@ public class PlayerHud {
         //
         // help icon / current weapon if not shown
         //
-        if (client.pers.helpchanged != 0
-                && (gameExports.level.framenum & 8) != 0)
-            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) gameExports.gameImports
-                    .imageindex("i_help");
-        else if ((client.pers.hand == Defines.CENTER_HANDED || client.getPlayerState().fov > 91)
-                && client.pers.weapon != null)
-            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) gameExports.gameImports
-                    .imageindex(client.pers.weapon.icon);
+        if (client.pers.helpchanged != 0 && (gameExports.level.framenum & 8) != 0)
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) gameExports.gameImports.imageindex("i_help");
+        else if ((client.pers.hand == Defines.CENTER_HANDED || client.getPlayerState().fov > 91) && client.pers.weapon != null)
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) gameExports.gameImports.imageindex(client.pers.weapon.icon);
         else
             client.getPlayerState().stats[Defines.STAT_HELPICON] = 0;
 

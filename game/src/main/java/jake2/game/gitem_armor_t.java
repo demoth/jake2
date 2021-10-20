@@ -26,21 +26,50 @@ package jake2.game;
 public class gitem_armor_t {
 	
 	public gitem_armor_t(
-		int base_count,
-		int max_count,
-		float normal_protection,
-		float energy_protection,
-		int armor) {
-		this.base_count= base_count;
-		this.max_count= max_count;
-		this.normal_protection= normal_protection;
-		this.energy_protection= energy_protection;
-		this.armor= armor;
+			int base_count,
+			int max_count,
+			float normal_protection,
+			float energy_protection) {
+		this.base_count = base_count;
+		this.max_count = max_count;
+		this.normal_protection = normal_protection;
+		this.energy_protection = energy_protection;
 	}
 
 	int base_count;
 	int max_count;
 	float normal_protection;
 	float energy_protection;
-	int armor;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		gitem_armor_t that = (gitem_armor_t) o;
+
+		if (base_count != that.base_count) return false;
+		if (max_count != that.max_count) return false;
+		if (Float.compare(that.normal_protection, normal_protection) != 0) return false;
+		return Float.compare(that.energy_protection, energy_protection) == 0;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = base_count;
+		result = 31 * result + max_count;
+		result = 31 * result + (normal_protection != +0.0f ? Float.floatToIntBits(normal_protection) : 0);
+		result = 31 * result + (energy_protection != +0.0f ? Float.floatToIntBits(energy_protection) : 0);
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "gitem_armor_t{" +
+				"base_count=" + base_count +
+				", max_count=" + max_count +
+				", normal_protection=" + normal_protection +
+				", energy_protection=" + energy_protection +
+				'}';
+	}
 }

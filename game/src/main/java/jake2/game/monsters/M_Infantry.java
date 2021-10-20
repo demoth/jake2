@@ -1081,6 +1081,6 @@ public class M_Infantry {
         self.monsterinfo.currentmove = infantry_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self, gameExports);
+        GameAI.walkmonster_start(self, gameExports);
     }
 }

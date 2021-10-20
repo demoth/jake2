@@ -29,7 +29,7 @@ import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-public class M_Boss31 {
+public class M_Makron_Jorg {
 
     public final static int FRAME_attak101 = 0;
 
@@ -1088,7 +1088,7 @@ public class M_Boss31 {
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
-            new mframe_t(GameAI.ai_move, 0, M_Boss32.MakronToss),
+            new mframe_t(GameAI.ai_move, 0, M_Makron.MakronToss),
             new mframe_t(GameAI.ai_move, 0, M_Supertank.BossExplode) // 50
     };
 
@@ -1171,7 +1171,7 @@ public class M_Boss31 {
         sound_firegun = gameExports.gameImports.soundindex("boss3/xfire.wav");
         sound_death_hit = gameExports.gameImports.soundindex("boss3/d_hit.wav");
 
-        M_Boss32.MakronPrecache(gameExports);
+        M_Makron.MakronPrecache(gameExports);
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
@@ -1202,6 +1202,6 @@ public class M_Boss31 {
         self.monsterinfo.currentmove = jorg_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self, gameExports);
+        GameAI.walkmonster_start(self, gameExports);
     }
 }

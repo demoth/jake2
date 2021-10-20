@@ -67,7 +67,7 @@ public class PlayerTrail {
             return;
 
         for (int n = 0; n < TRAIL_LENGTH; n++) {
-            trail[n] = GameUtil.G_Spawn(this.gameExports);
+            trail[n] = this.gameExports.G_Spawn();
             trail[n].classname = "player_trail";
         }
 

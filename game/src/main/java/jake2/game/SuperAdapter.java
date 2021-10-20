@@ -50,8 +50,10 @@ public abstract class SuperAdapter {
 	/** Adapter repository. */
 	private static final Map<String, SuperAdapter> adapters = new HashMap<>();
 
-	/** Returns the adapter from the repository given by its ID. */
-	private static SuperAdapter getFromID(String key) {
+	/**
+	 * Returns the adapter from the repository given by its ID.
+	 */
+	public static SuperAdapter getFromID(String key) {
 		return adapters.get(key);
 	}
 
@@ -87,11 +89,21 @@ public abstract class SuperAdapter {
 		return getFromID(id);
 	}
 
-	/** Returns the Adapter-ID. */
+	/**
+	 * Returns the Adapter-ID.
+	 */
 	public abstract String getID();
 
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " '" + getID() + "'";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof SuperAdapter) {
+			SuperAdapter other = (SuperAdapter) obj;
+			return this.getID().equals(other.getID());
+		} else return false;
 	}
 }

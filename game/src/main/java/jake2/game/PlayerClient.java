@@ -22,6 +22,7 @@
 
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
@@ -38,8 +39,7 @@ public class PlayerClient {
     	public String getID() { return "player_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
-            int n;
-    
+
             Math3D.VectorClear(self.avelocity);
     
             self.takedamage = Defines.DAMAGE_YES;
@@ -58,7 +58,7 @@ public class PlayerClient {
     
             // self.solid = SOLID_NOT;
             self.svflags |= Defines.SVF_DEADMONSTER;
-    
+
             if (self.deadflag == 0) {
                 client.respawn_time = gameExports.level.time + 1.0f;
                 PlayerClient.LookAtKiller(self, inflictor, attacker, gameExports.g_edicts[0]);
@@ -68,16 +68,17 @@ public class PlayerClient {
                 if (gameExports.gameCvars.deathmatch.value != 0) {
                     gameExports.Help_f(self); // show scores
                 }
-    
+
                 // clear inventory
-                // this is kind of ugly, but it's how we want to handle keys in
-                // coop
-                for (n = 0; n < gameExports.game.num_items; n++) {
-                    if (gameExports.gameCvars.coop.value != 0
-                            && (gameExports.items.itemlist[n].flags & GameDefines.IT_KEY) != 0)
-                        client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
-                    client.pers.inventory[n] = 0;
-                }
+                gameExports.items.forEach(it -> {
+                    if (gameExports.gameCvars.coop.value != 0) {
+                        if ((gameExports.items.get(it.index).flags & GameDefines.IT_KEY) != 0) {
+                            // this is kind of ugly, but it's how we want to handle keys in coop
+                            client.resp.coop_respawn.inventory[it.index] = client.pers.inventory[it.index];
+                        }
+                    }
+                    client.pers.inventory[it.index] = 0;
+                });
             }
     
             // remove powerups
@@ -92,7 +93,7 @@ public class PlayerClient {
                         .sound(self, Defines.CHAN_BODY, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
-                for (n = 0; n < 4; n++)
+                for (int n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
                             damage, GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowClientHead(self, damage, gameExports);
@@ -174,23 +175,23 @@ public class PlayerClient {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
-                SubgameEntity spot = GameUtil.G_Spawn(gameExports);
+                SubgameEntity spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 - 64;
                 spot.s.origin[1] = -164;
                 spot.s.origin[2] = 80;
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
-    
-                spot = GameUtil.G_Spawn(gameExports);
+
+                spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 64;
                 spot.s.origin[1] = -164;
                 spot.s.origin[2] = 80;
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
-    
-                spot = GameUtil.G_Spawn(gameExports);
+
+                spot = gameExports.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 128;
                 spot.s.origin[1] = -164;
@@ -492,7 +493,7 @@ public class PlayerClient {
      * is called after each death and level change in deathmatch. 
      */
     public static void InitClientPersistant(gclient_t client, GameExportsImpl gameExports) {
-        gitem_t item;
+        GameItem item;
 
         client.pers = new client_persistant_t();
 
@@ -760,7 +761,7 @@ public class PlayerClient {
 
         gameExports.level.body_que = 0;
         for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
-            SubgameEntity ent = GameUtil.G_Spawn(gameExports);
+            SubgameEntity ent = gameExports.G_Spawn();
             ent.classname = "bodyque";
         }
     }
@@ -1487,7 +1488,7 @@ public class PlayerClient {
             return;
 
         gclient_t client = self.getClient();
-        gitem_t item = client.pers.weapon;
+        GameItem item = client.pers.weapon;
         if (0 == client.pers.inventory[client.ammo_index])
             item = null;
         if (item != null && ("Blaster".equals(item.pickup_name)))

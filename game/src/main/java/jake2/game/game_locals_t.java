@@ -58,9 +58,6 @@ public class game_locals_t {
     // cross level triggers
     public int serverflags;
 
-    // items
-    public int num_items;
-
     public boolean autosaved;
 
     /** Reads the game locals from a file. */
@@ -77,7 +74,8 @@ public class game_locals_t {
         maxclients = f.readInt();
         maxentities = f.readInt();
         serverflags = f.readInt();
-        num_items = f.readInt();
+        /*num_items = */
+        f.readInt();
         autosaved = f.readInt() != 0;
     }
 
@@ -95,7 +93,7 @@ public class game_locals_t {
         f.writeInt(maxclients);
         f.writeInt(maxentities);
         f.writeInt(serverflags);
-        f.writeInt(num_items);
+        //f.writeInt(num_items);
         f.writeInt(autosaved ? 1 : 0);
     }
 }

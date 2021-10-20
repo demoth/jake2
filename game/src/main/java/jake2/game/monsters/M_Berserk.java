@@ -987,6 +987,6 @@ public class M_Berserk {
 
         gameExports.gameImports.linkentity(self);
 
-        GameAI.walkmonster_start.think(self, gameExports);
+        GameAI.walkmonster_start(self, gameExports);
     }
 }

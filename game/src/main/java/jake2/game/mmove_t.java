@@ -33,6 +33,7 @@ public class mmove_t {
 		this.firstframe= firstframe;
 		this.lastframe= lastframe;
 		this.frame= frame;
+		// assert frame.length == lastframe - firstframe + 1;
 		this.endfunc= endfunc;
 	}
 

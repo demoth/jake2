@@ -487,7 +487,7 @@ class GameTarget {
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
-            ent = GameUtil.G_Spawn(gameExports);
+            ent = gameExports.G_Spawn();
             ent.classname = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);
             Math3D.VectorCopy(self.s.angles, ent.s.angles);

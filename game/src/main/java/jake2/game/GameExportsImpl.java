@@ -1,5 +1,6 @@
 package jake2.game;
 
+import jake2.game.items.GameItem;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
@@ -18,6 +19,7 @@ import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClass;
+import static jake2.game.GameItems.createGameItemList;
 import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
 
@@ -69,10 +71,10 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.SuperAdapter",
                     "jake2.game.monsters.M_Actor",
                     "jake2.game.monsters.M_Berserk",
-                    "jake2.game.monsters.M_Boss2",
-                    "jake2.game.monsters.M_Boss3",
-                    "jake2.game.monsters.M_Boss31",
-                    "jake2.game.monsters.M_Boss32",
+                    "jake2.game.monsters.M_Hornet",
+                    "jake2.game.monsters.M_Makron_Idle",
+                    "jake2.game.monsters.M_Makron_Jorg",
+                    "jake2.game.monsters.M_Makron",
                     "jake2.game.monsters.M_Brain",
                     "jake2.game.monsters.M_Chick",
                     "jake2.qcommon.M_Flash",
@@ -133,7 +135,7 @@ public class GameExportsImpl implements GameExports {
     float enemy_yaw;
 
     // Game Items related
-    GameItemList items;
+    List<GameItem> items;
     // todo: move to appropriate places
     int quad_drop_timeout_hack;
     boolean is_quad;
@@ -186,8 +188,7 @@ public class GameExportsImpl implements GameExports {
         game = new game_locals_t();
         game.helpmessage1 = "";
         game.helpmessage2 = "";
-        items = new GameItemList();
-        game.num_items = items.itemlist.length - 1;
+        items = createGameItemList("/items.csv");
 
         level = new level_locals_t();
 
@@ -207,10 +208,40 @@ public class GameExportsImpl implements GameExports {
     }
 
     /**
+     * Either finds a free edict, or allocates a new one. Try to avoid reusing
+     * an entity that was recently freed, because it can cause the client to
+     * think the entity morphed into something else instead of being removed and
+     * recreated, which can cause interpolated angles and bad trails.
+     */
+    public SubgameEntity G_Spawn() {
+        SubgameEntity e;
+        int i;
+        for (i = this.game.maxclients + 1; i < this.num_edicts; i++) {
+            e = this.g_edicts[i];
+            // the first couple seconds of server time can involve a lot of
+            // freeing and allocating, so relax the replacement policy
+            if (!e.inuse
+                    && (e.freetime < 2 || this.level.time - e.freetime > 0.5)) {
+                e = this.g_edicts[i] = new SubgameEntity(i);
+                GameUtil.G_InitEdict(e, i);
+                return e;
+            }
+        }
+
+        if (i == this.game.maxentities)
+            this.gameImports.error("ED_Alloc: no free edicts");
+
+        e = this.g_edicts[i] = new SubgameEntity(i);
+        this.num_edicts++;
+        GameUtil.G_InitEdict(e, i);
+        return e;
+    }
+
+    /**
      * Some information that should be persistent, like health, is still stored
      * in the edict structure, so it needs to be mirrored out to the client
      * structure before all the edicts are wiped.
-     *
+     * <p>
      * Restored in PlayerClient#FetchClientEntData() when the client reconnects
      */
     @Override
@@ -319,55 +350,48 @@ public class GameExportsImpl implements GameExports {
         }
 
         gclient_t client = ent.getClient();
-        int i;
-        gitem_t it;
-        if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 1; i < game.num_items; i++) {
-                it = items.itemlist[i];
-                if (null == it.pickup)
-                    continue;
-                if (0 == (it.flags & GameDefines.IT_WEAPON))
-                    continue;
-                client.pers.inventory[i] += 1;
-            }
+        if (give_all || "weapons".equals(name)) {
+            // fixme: why pickup is checked but not used?
+            items.stream()
+                    .filter(it -> (it.flags & GameDefines.IT_WEAPON) != 0 && it.pickup != null)
+                    .forEach(it -> client.pers.inventory[it.index]++);
+
             if (!give_all)
                 return;
         }
 
-        if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 1; i < game.num_items; i++) {
-                it = items.itemlist[i];
-                if (null == it.pickup)
-                    continue;
-                if (0 == (it.flags & GameDefines.IT_AMMO))
-                    continue;
-                GameItems.Add_Ammo(ent, it, 1000);
-            }
+        if (give_all || "ammo".equals(name)) {
+            // fixme: why pickup is checked but not used?
+            items.stream()
+                    .filter(it -> (it.flags & GameDefines.IT_AMMO) != 0 && it.pickup != null)
+                    .forEach(it -> GameItems.Add_Ammo(ent, it, 1000));
+
             if (!give_all)
                 return;
         }
 
-        if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
-            gitem_armor_t info;
 
-            it = GameItems.FindItem("Jacket Armor", this);
-            client.pers.inventory[it.index] = 0;
+        if (give_all || "armor".equals(name)) {
+
+            GameItem it = GameItems.FindItem("Jacket Armor", this);
+            if (it != null)
+                client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Combat Armor", this);
-            client.pers.inventory[it.index] = 0;
+            if (it != null)
+                client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Body Armor", this);
-            info = (gitem_armor_t) it.info;
-            client.pers.inventory[it.index] = info.max_count;
+            if (it != null)
+                client.pers.inventory[it.index] = it.info.max_count;
 
             if (!give_all)
                 return;
         }
 
-        SubgameEntity it_ent;
-        if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameItems.FindItem("Power Shield", this);
-            it_ent = GameUtil.G_Spawn(this);
+        if (give_all || "Power Shield".equalsIgnoreCase(name)) {
+            GameItem it = GameItems.FindItem("Power Shield", this);
+            SubgameEntity it_ent = G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -378,43 +402,37 @@ public class GameExportsImpl implements GameExports {
                 return;
         }
 
-        if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
+        if (give_all || "items".equals(name)) {
 
-            for (i = 1; i < game.num_items; i++) {
-                it = items.itemlist[i];
-                if (0 == (it.flags & GameDefines.IT_POWERUP))
-                    continue;
-
-                it_ent = GameUtil.G_Spawn(this);
+            items.stream().filter(it -> (it.flags & GameDefines.IT_POWERUP) != 0).forEach(it -> {
+                SubgameEntity it_ent = G_Spawn();
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
                     GameUtil.G_FreeEdict(it_ent, this);
 
-            }
-
+            });
             if (!give_all)
                 return;
         }
 
 
         if (give_all) {
-            for (i = 1; i < game.num_items; i++) {
-                it = items.itemlist[i];
-                if (it.pickup != null)
-                    continue;
-                if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
-                    continue;
-                client.pers.inventory[i] = 1;
-            }
+            // everything else except weapons, armor and ammo and has no pickup
+            items.stream()
+                    .filter(it -> it.pickup == null
+                            && ((it.flags & GameDefines.IT_ARMOR) == 0)
+                            && ((it.flags & GameDefines.IT_WEAPON) == 0)
+                            && ((it.flags & GameDefines.IT_AMMO) == 0))
+                    .forEach(it -> client.pers.inventory[it.index]++);
             return;
         }
 
-        it = GameItems.FindItem(name, this);
+        GameItem it = GameItems.FindItem(name, this);
         if (it == null) {
-            name = args.get(1);
-            it = GameItems.FindItem(name, this);
+            // try to find by the 2nd word, like `give cells 55`
+            it = GameItems.FindItem(args.get(1), this);
             if (it == null) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -426,16 +444,14 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        int index = it.index;
-
-        // set particular amount of ammo: give cells 53
+        // set (not add) a particular amount of ammo: give cells 53
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
-                client.pers.inventory[index] = Lib.atoi(args.get(2));
+                client.pers.inventory[it.index] = Lib.atoi(args.get(2));
             else
-                client.pers.inventory[index] += it.quantity;
+                client.pers.inventory[it.index] += it.quantity;
         } else {
-            it_ent = GameUtil.G_Spawn(this);
+            SubgameEntity it_ent = this.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -524,7 +540,7 @@ public class GameExportsImpl implements GameExports {
     private void Use_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName, this);
+        GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -551,7 +567,7 @@ public class GameExportsImpl implements GameExports {
     private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName, this);
+        GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -595,7 +611,7 @@ public class GameExportsImpl implements GameExports {
      * Cmd_InvUse_f.
      */
     private void InvUse_f(SubgameEntity ent) {
-        gitem_t it;
+        GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
 
@@ -605,7 +621,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = items.itemlist[client.pers.selected_item];
+        it = items.get(client.pers.selected_item);
         if (it.use == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
@@ -631,7 +647,7 @@ public class GameExportsImpl implements GameExports {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            gitem_t it = items.itemlist[index];
+            GameItem it = items.get(index);
             if (it.use == null)
                 continue;
 
@@ -649,7 +665,7 @@ public class GameExportsImpl implements GameExports {
     private void WeapNext_f(SubgameEntity ent) {
         gclient_t cl;
         int i, index;
-        gitem_t it;
+        GameItem it;
         int selected_weapon;
 
         cl = ent.getClient();
@@ -668,7 +684,7 @@ public class GameExportsImpl implements GameExports {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = items.itemlist[index];
+            it = items.get(index);
             if (null == it.use)
                 continue;
             if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -693,7 +709,7 @@ public class GameExportsImpl implements GameExports {
         index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
-        gitem_t it = items.itemlist[index];
+        GameItem it = items.get(index);
         if (null == it.use)
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -705,7 +721,7 @@ public class GameExportsImpl implements GameExports {
      * Cmd_InvDrop_f
      */
     private void InvDrop_f(SubgameEntity ent) {
-        gitem_t it;
+        GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
 
@@ -715,7 +731,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = items.itemlist[client.pers.selected_item];
+        it = items.get(client.pers.selected_item);
         if (it.drop == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;
@@ -1335,7 +1351,7 @@ public class GameExportsImpl implements GameExports {
      * Returns the created target changelevel.
      */
     private SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent = GameUtil.G_Spawn(this);
+        SubgameEntity ent = this.G_Spawn();
         ent.classname = "target_changelevel";
         level.nextmap = map;
         ent.map = map;

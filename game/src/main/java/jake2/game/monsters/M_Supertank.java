@@ -1199,7 +1199,7 @@ public class M_Supertank {
             self.monsterinfo.currentmove = supertank_move_stand;
             self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start.think(self, gameExports);
+            GameAI.walkmonster_start(self, gameExports);
             return true;
         }
     };
