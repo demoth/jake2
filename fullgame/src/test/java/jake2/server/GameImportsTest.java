@@ -3,8 +3,6 @@ package jake2.server;
 import jake2.game.SubgameEntity;
 import jake2.game.monsters.M_Gunner;
 import jake2.qcommon.GameExports;
-import jake2.qcommon.ServerStates;
-import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import org.junit.Assert;
@@ -23,7 +21,7 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
+        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("testbox", false, false));
 
         testInstance.SV_RunGameFrame(100);
 
@@ -52,22 +50,12 @@ public class GameImportsTest {
         gunner.goalentity = soldier;
         gunner.monsterinfo.currentmove = M_Gunner.gunner_move_run;
         for (int i = 0; i < 100; i++) {
-            sv_main.update(100);
+            gameExports.G_RunFrame();
             if (soldier.health <= 0) {
                 System.out.println("soldier killed on frame: " + i);
                 return;
             }
         }
         Assert.fail("Soldier was not killed");
-    }
-
-    @Test
-    public void shutDownEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("test.bsp", false, false));
-
-        Cbuf.AddText("sv_shutdown");
-        testInstance.SV_RunGameFrame(100);
-
-        Assert.assertEquals(ServerStates.SS_DEAD, testInstance.sv.state);
     }
 }

@@ -52,6 +52,7 @@ task("copyNatives") {
     doLast {
         copy {
             val platforms = listOf("windows", "linux", "osx")
+            duplicatesStrategy = DuplicatesStrategy.WARN
             platforms.forEach { pl ->
                 val nativeLibs = configurations["runtimeClasspath"].resolvedConfiguration.resolvedArtifacts.filter {
                     it.classifier == "natives-$pl"
