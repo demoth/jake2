@@ -1,4 +1,4 @@
-#Quake 2 Networking Communication Protocol
+# Quake 2 Networking Communication Protocol
 
 ## NetworkPacket
 
@@ -48,7 +48,7 @@ Starting from typing connect 'someaddress' and until client becomes connected an
 
 # Further improvements - TODO
 
-Api improvements
+### Api improvements
 
 Network package should expose only message classes and couple of source/sink classes/interfaces for them.
 Nothing else is relevant and should be hidden with package private visibility.

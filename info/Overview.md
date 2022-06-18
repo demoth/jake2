@@ -1,4 +1,4 @@
-#Jake2 overview
+# Jake2 overview
 
 The project consists of several modules:
 
@@ -14,7 +14,7 @@ In addition to that there are several auxiliary modules:
   * `dedicated` - **executable** for the dedicated server - contains `server` and `game` modules.
   * `fullgame` - **executable** with all the modules (except `dedicated`), with single/multiplayer modes
   * `maptools` - set of tools (WIP) for map -> bsp pipeline
-  
+
 # Module `game`
 
 Game module handles all the gameplay code like movement, monsters behavior, weapons code, triggers etc.
@@ -22,18 +22,21 @@ Game module handles all the gameplay code like movement, monsters behavior, weap
 This was a usual place for modders to start in the original quake version.
 The famous mission pack and mods are actually the `game` + resources.
 
-All game entities (`SubgameEntity.java`) are created, updated and removed in this module. 
+All game entities (`SubgameEntity.java`) are created, updated and removed in this module.
+
+The `game` and `server` modules are interacting via the `GameImports` and `GameExports` interfaces.
 
 # Module `server`
 
 Server manages:
- * connected clients - array of client states
- * bsp model - provide collisions functions to the `game` module
- * networking code - sends/receives updates
+
+* connected clients - array of client states
+* bsp model - provide collisions functions to the `game` module
+* networking code - sends/receives updates
 
 # Notable patterns
 
-Some of the patterns observed in the project. Not necessarily bad.
+Some patterns observed in the project. Not necessarily bad.
 
 ## State management
 
@@ -54,8 +57,8 @@ Thus, a debris gib, a monster and an ammo clip will have the same class.
 ## Behavior serialization
 
 During entity serialization (when the game is saved) along with the field values the behavior should be saved.
-To achieve that, so called adapters(`EntUseAdapter`, `EntTouchAdapter`, etc) are used. 
-These are "named" functions - an interface with String ID (see jake2.game.SuperAdapter).
+To achieve that, so called adapters(`EntUseAdapter`, `EntTouchAdapter`, etc) are used.
+These are "named" functions - an interface with String ID (see `jake2.game.SuperAdapter`).
 When such property is serialized - the Id is written to the file.
 During deserialization the id is read from the file and corresponding adapter is looked up in the registry.
 This requires the registry to be build beforehand and kept consistent between save/load.
