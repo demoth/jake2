@@ -1,6 +1,6 @@
 plugins {
 //    kotlin("jvm") version "1.4.0" apply false
-    id("org.jetbrains.kotlin.jvm") version "1.4.0"
+    id("org.jetbrains.kotlin.jvm") version "1.7.0"
 
 }
 
@@ -8,7 +8,7 @@ plugins {
 allprojects {
 
     group = "org.bytonic"
-    version = "1.1.0"
+    version = "1.1.1"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
@@ -18,7 +18,6 @@ allprojects {
 //    }
 
     repositories {
-        jcenter()
         mavenCentral()
         gradlePluginPortal()
     }

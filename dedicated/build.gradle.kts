@@ -10,5 +10,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "jake2.dedicated.Jake2Dedicated"
+    mainClass.set("jake2.dedicated.Jake2Dedicated")
 }

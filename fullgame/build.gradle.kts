@@ -3,8 +3,7 @@ plugins {
 }
 
 application {
-    mainClassName = "jake2.fullgame.Jake2"
-
+    mainClass.set("jake2.fullgame.Jake2")
     // added to start script
     applicationDefaultJvmArgs = listOf("-Djava.library.path=..")
 
