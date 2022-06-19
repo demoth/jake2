@@ -18,12 +18,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 11.11.2003 by RST.
-// $Id: AIAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// Created on 08.11.2003 by RST.
+// $Id: ItemUseAdapter.java,v 1.2 2005-11-20 22:18:33 salomo Exp $
 
-package jake2.game;
+package jake2.game.adapters;
 
-public abstract class AIAdapter extends SuperAdapter
-{
-	public abstract void ai(SubgameEntity self, float dist, GameExportsImpl gameExports);
+import jake2.game.GameExportsImpl;
+import jake2.game.SubgameEntity;
+import jake2.game.items.GameItem;
+
+public abstract class ItemUseAdapter extends SuperAdapter {
+    public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    }
 }

@@ -19,11 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntUseAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: EntDieAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
 
-package jake2.game;
+package jake2.game.adapters;
 
-public abstract class EntUseAdapter extends SuperAdapter
+import jake2.game.GameExportsImpl;
+import jake2.game.SubgameEntity;
+
+public abstract class EntDieAdapter extends SuperAdapter
 {
-	public abstract void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports);
+	public abstract void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker, int damage, float[] point, GameExportsImpl gameExports);
 }

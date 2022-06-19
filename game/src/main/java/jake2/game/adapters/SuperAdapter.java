@@ -20,8 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 09.01.2004 by RST.
 
-package jake2.game;
+package jake2.game.adapters;
 
+import jake2.game.SubgameEntity;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
@@ -29,10 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * There are many fields in the edict class. Some of them represent state - like 'health', 'damage' etc,
+ * There are many fields in the {@link SubgameEntity} class. Some of them represent state - like 'health', 'damage' etc,
  * other represent behaviour - like 'think', 'touch', 'use' etc.
  * In c version these were function pointers.
- *
+ * <p/>
  * The purpose of all Adapter registration is to store and restore such behavioural edict fields.
  */
 public abstract class SuperAdapter {
@@ -58,7 +59,7 @@ public abstract class SuperAdapter {
 	}
 
     /** Writes the Adapter-ID to the file. */
-    static void writeAdapter(QuakeFile f, SuperAdapter a) throws IOException {
+    public static void writeAdapter(QuakeFile f, SuperAdapter a) throws IOException {
         f.writeInt(3988);
         if (a == null)
             f.writeString(null);
@@ -73,7 +74,7 @@ public abstract class SuperAdapter {
     }
 
 	/** Reads the adapter id and returns the adapter. */
-	static SuperAdapter readAdapter(QuakeFile f) throws IOException {
+	public static SuperAdapter readAdapter(QuakeFile f) throws IOException {
 		if (f.readInt() != 3988) {
 			// replace with log
 			// Com.DPrintf("wrong read position: readadapter 3988 \n");

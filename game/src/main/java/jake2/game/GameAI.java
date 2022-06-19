@@ -24,6 +24,8 @@
 
 package jake2.game;
 
+import jake2.game.adapters.AIAdapter;
+import jake2.game.adapters.EntThinkAdapter;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.trace_t;

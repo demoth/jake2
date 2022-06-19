@@ -19,12 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntBlockedAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: EntInteractAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
 
-package jake2.game;
+package jake2.game.adapters;
 
-public abstract class EntBlockedAdapter extends SuperAdapter
+import jake2.game.GameExportsImpl;
+import jake2.game.SubgameEntity;
+
+public abstract class EntInteractAdapter extends SuperAdapter
 {
-	// move to moveinfo?
-	public abstract void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports);
+	public abstract boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports);
 }

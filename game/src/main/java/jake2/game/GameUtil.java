@@ -24,6 +24,8 @@
 
 package jake2.game;
 
+import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;

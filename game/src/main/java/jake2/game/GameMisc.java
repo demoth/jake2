@@ -22,6 +22,10 @@
 // $Id: GameMisc.java,v 1.7 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
+import jake2.game.adapters.EntDieAdapter;
+import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.adapters.EntTouchAdapter;
+import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;

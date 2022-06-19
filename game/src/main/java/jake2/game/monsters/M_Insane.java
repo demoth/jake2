@@ -23,6 +23,9 @@
 package jake2.game.monsters;
 
 import jake2.game.*;
+import jake2.game.adapters.EntDieAdapter;
+import jake2.game.adapters.EntPainAdapter;
+import jake2.game.adapters.EntThinkAdapter;
 import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;

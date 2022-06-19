@@ -19,14 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntTouchAdapter.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: ItemDropAdapter.java,v 1.2 2005-11-20 22:18:33 salomo Exp $
 
-package jake2.game;
+package jake2.game.adapters;
 
-import jake2.qcommon.cplane_t;
-import jake2.qcommon.csurface_t;
+import jake2.game.GameExportsImpl;
+import jake2.game.SubgameEntity;
+import jake2.game.items.GameItem;
 
-public abstract class EntTouchAdapter extends SuperAdapter
-{
-	public abstract void touch(SubgameEntity self, SubgameEntity other, cplane_t plane, csurface_t surf, GameExportsImpl gameExports);
+public abstract class ItemDropAdapter extends SuperAdapter {
+    public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    }
 }

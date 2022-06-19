@@ -25,6 +25,7 @@
 package jake2.game.monsters;
 
 import jake2.game.*;
+import jake2.game.adapters.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
 import jake2.qcommon.util.Lib;

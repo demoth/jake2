@@ -23,6 +23,8 @@
 package jake2.game.monsters;
 
 import jake2.game.*;
+import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;

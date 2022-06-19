@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.game.adapters.AIAdapter;
+import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.adapters.SuperAdapter;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;

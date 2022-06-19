@@ -23,6 +23,7 @@
 package jake2.game.monsters;
 
 import jake2.game.*;
+import jake2.game.adapters.*;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;

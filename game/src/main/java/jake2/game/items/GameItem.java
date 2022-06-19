@@ -22,6 +22,7 @@
 package jake2.game.items;
 
 import jake2.game.*;
+import jake2.game.adapters.*;
 import org.apache.commons.csv.CSVRecord;
 
 import java.util.Collections;
