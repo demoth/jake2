@@ -998,7 +998,7 @@ public class SV_MAIN implements JakeServer {
             SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
         });
 
-        Cmd.AddCommand("maplist", (List<String> args) -> {
+        Cmd.AddCommand("listmaps", (List<String> args) -> {
             byte[] bytes = FS.LoadFile("maps.lst");
             if (bytes == null) {
                 Com.Error(ERR_DROP, "Could not read maps.lst");
