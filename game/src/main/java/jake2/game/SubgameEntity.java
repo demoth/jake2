@@ -201,6 +201,8 @@ public class SubgameEntity extends edict_t {
 
     public monsterinfo_t monsterinfo = new monsterinfo_t();
 
+    public ExtraSpawnProperties st = new ExtraSpawnProperties();
+
 
     // todo: replace with a constructor call?
     void G_InitEdict(int i) {
@@ -210,176 +212,146 @@ public class SubgameEntity extends edict_t {
         //e.s.number= e - g_edicts;
         s = new entity_state_t(this);
         s.number = i;
+        st = new ExtraSpawnProperties();
         index = i;
     }
 
     public boolean setField(String key, String value) {
-        if (key.equals("classname")) {
-            classname = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+        switch (key) {
+            case "classname":
+                classname = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("model")) {
-            model = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "model":
+                model = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("spawnflags")) {
-            spawnflags = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "spawnflags":
+                spawnflags = Lib.atoi(value);
+                return true;
 
-        if (key.equals("speed")) {
-            speed = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "speed":
+                speed = Lib.atof(value);
+                return true;
 
-        if (key.equals("accel")) {
-            accel = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "accel":
+                accel = Lib.atof(value);
+                return true;
 
-        if (key.equals("decel")) {
-            decel = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "decel":
+                decel = Lib.atof(value);
+                return true;
 
-        if (key.equals("target")) {
-            target = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "target":
+                target = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("targetname")) {
-            targetname = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "targetname":
+                targetname = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("pathtarget")) {
-            pathtarget = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "pathtarget":
+                pathtarget = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("deathtarget")) {
-            deathtarget = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
-        if (key.equals("killtarget")) {
-            killtarget = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "deathtarget":
+                deathtarget = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("combattarget")) {
-            combattarget = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "killtarget":
+                killtarget = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("message")) {
-            message = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "combattarget":
+                combattarget = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("team")) {
-            team = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "message":
+                message = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("wait")) {
-            wait = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "team":
+                team = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("delay")) {
-            delay = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "wait":
+                wait = Lib.atof(value);
+                return true;
 
-        if (key.equals("random")) {
-            random = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "delay":
+                delay = Lib.atof(value);
+                return true;
 
-        if (key.equals("move_origin")) {
-            move_origin = Lib.atov(value);
-            return true;
-        } // F_VECTOR),
+            case "random":
+                random = Lib.atof(value);
+                return true;
 
-        if (key.equals("move_angles")) {
-            move_angles = Lib.atov(value);
-            return true;
-        } // F_VECTOR),
+            case "move_origin":
+                move_origin = Lib.atov(value);
+                return true;
 
-        if (key.equals("style")) {
-            style = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "move_angles":
+                move_angles = Lib.atov(value);
+                return true;
 
-        if (key.equals("count")) {
-            count = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "style":
+                style = Lib.atoi(value);
+                return true;
 
-        if (key.equals("health")) {
-            health = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "count":
+                count = Lib.atoi(value);
+                return true;
 
-        if (key.equals("sounds")) {
-            sounds = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "health":
+                health = Lib.atoi(value);
+                return true;
 
-        if (key.equals("light")) {
-            return true;
-        } // F_IGNORE),
+            case "sounds":
+                sounds = Lib.atoi(value);
+                return true;
 
-        if (key.equals("dmg")) {
-            dmg = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "light":
+                return true;
 
-        if (key.equals("mass")) {
-            mass = Lib.atoi(value);
-            return true;
-        } // F_INT),
+            case "dmg":
+                dmg = Lib.atoi(value);
+                return true;
 
-        if (key.equals("volume")) {
-            volume = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "mass":
+                mass = Lib.atoi(value);
+                return true;
 
-        if (key.equals("attenuation")) {
-            attenuation = Lib.atof(value);
-            return true;
-        } // F_FLOAT),
+            case "volume":
+                volume = Lib.atof(value);
+                return true;
 
-        if (key.equals("map")) {
-            map = Lib.ED_NewString(value);
-            return true;
-        } // F_LSTRING),
+            case "attenuation":
+                attenuation = Lib.atof(value);
+                return true;
 
-        if (key.equals("origin")) {
-            s.origin = Lib.atov(value);
-            return true;
-        } // F_VECTOR),
+            case "map":
+                map = Lib.decodeBackslash(value);
+                return true;
 
-        if (key.equals("angles")) {
-            s.angles = Lib.atov(value);
-            return true;
-        } // F_VECTOR),
+            case "origin":
+                s.origin = Lib.atov(value);
+                return true;
 
-        if (key.equals("angle")) {
-            s.angles = new float[] { 0, Lib.atof(value), 0 };
-            return true;
-        } // F_ANGLEHACK),
+            case "angles":
+                s.angles = Lib.atov(value);
+                return true;
 
-        if (key.equals("item")) {
-            // this field is set to spawn_temp
-            // so this line is never reachable
-            // todo log error
-            return false;
-        } // F_ITEM)
+            case "angle":
+                s.angles = new float[]{0, Lib.atof(value), 0};
+                return true;
 
-        return false;
+            default:
+                //  if (key.equals("item")) {
+                //      this field is set to spawn_temp
+                //      so this line is never reachable
+                //      todo log error
+                return false;
+        }
     }
 
     /** Writes the entity to the file. */

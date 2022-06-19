@@ -41,15 +41,15 @@ class GameTarget {
         //char buffer[MAX_QPATH];
         String buffer;
 
-        if (gameExports.st.noise == null) {
+        if (ent.st.noise == null) {
             gameExports.gameImports.dprintf("target_speaker with no noise set at "
                     + Lib.vtos(ent.s.origin) + "\n");
             return;
         }
-        if (gameExports.st.noise.indexOf(".wav") < 0)
-            buffer = "" + gameExports.st.noise + ".wav";
+        if (!ent.st.noise.contains(".wav"))
+            buffer = "" + ent.st.noise + ".wav";
         else
-            buffer = gameExports.st.noise;
+            buffer = ent.st.noise;
 
         ent.noise_index = gameExports.gameImports.soundindex(buffer);
 
@@ -99,9 +99,9 @@ class GameTarget {
         }
 
         ent.use = use_target_secret;
-        if (gameExports.st.noise == null)
-            gameExports.st.noise = "misc/secret.wav";
-        ent.noise_index = gameExports.gameImports.soundindex(gameExports.st.noise);
+        if (ent.st.noise == null)
+            ent.st.noise = "misc/secret.wav";
+        ent.noise_index = gameExports.gameImports.soundindex(ent.st.noise);
         ent.svflags = Defines.SVF_NOCLIENT;
         gameExports.level.total_secrets++;
         // map bug hack
@@ -118,9 +118,9 @@ class GameTarget {
         }
 
         ent.use = use_target_goal;
-        if (gameExports.st.noise == null)
-            gameExports.st.noise = "misc/secret.wav";
-        ent.noise_index = gameExports.gameImports.soundindex(gameExports.st.noise);
+        if (ent.st.noise == null)
+            ent.st.noise = "misc/secret.wav";
+        ent.noise_index = gameExports.gameImports.soundindex(ent.st.noise);
         ent.svflags = Defines.SVF_NOCLIENT;
         gameExports.level.total_goals++;
     }

@@ -234,22 +234,22 @@ public class GameSpawn {
             // set configstrings for items
             GameItems.SetItemNames(gameExports);
 
-            if (gameExports.st.nextmap != null)
-                gameExports.level.nextmap = gameExports.st.nextmap;
+            if (ent.st.nextmap != null)
+                gameExports.level.nextmap = ent.st.nextmap;
             // make some data visible to the server
             if (ent.message != null && ent.message.length() > 0) {
                 gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
                 gameExports.level.level_name = ent.message;
             } else
                 gameExports.level.level_name = gameExports.level.mapname;
-            if (gameExports.st.sky != null && gameExports.st.sky.length() > 0)
-                gameExports.gameImports.configstring(Defines.CS_SKY, gameExports.st.sky);
+            if (ent.st.sky != null && ent.st.sky.length() > 0)
+                gameExports.gameImports.configstring(Defines.CS_SKY, ent.st.sky);
             else
                 gameExports.gameImports.configstring(Defines.CS_SKY, "unit1_");
             gameExports.gameImports.configstring(Defines.CS_SKYROTATE, ""
-                    + gameExports.st.skyrotate);
+                    + ent.st.skyrotate);
             gameExports.gameImports.configstring(Defines.CS_SKYAXIS, Lib
-                    .vtos(gameExports.st.skyaxis));
+                    .vtos(ent.st.skyaxis));
             gameExports.gameImports.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
             gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (gameExports.game.maxclients));
@@ -264,10 +264,10 @@ public class GameSpawn {
             gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
             gameExports.gameImports.imageindex("help");
             gameExports.gameImports.imageindex("field_3");
-            if ("".equals(gameExports.st.gravity))
+            if ("".equals(ent.st.gravity))
                 gameExports.gameImports.cvar_set("sv_gravity", "800");
             else
-                gameExports.gameImports.cvar_set("sv_gravity", gameExports.st.gravity);
+                gameExports.gameImports.cvar_set("sv_gravity", ent.st.gravity);
 
             // standing in lava / slime
             gameExports.gameImports.soundindex("player/fry.wav");
@@ -1205,10 +1205,7 @@ public class GameSpawn {
      * Takes a key/value pair and sets the binary values in an edict.
      */
     private static void ED_ParseField(String key, String value, SubgameEntity ent, GameExportsImpl gameExports) {
-
-        if (key.equals("nextmap"))
-            gameExports.gameImports.dprintf("nextmap: " + value + "\n");
-        if (!gameExports.st.set(key, value))
+        if (!ent.st.set(key, value))
             if (!ent.setField(key, value))
                 gameExports.gameImports.dprintf("??? The key [" + key + "] is not a field\n");
 
@@ -1226,7 +1223,6 @@ public class GameSpawn {
         String com_token;
         boolean init = false;
 
-        gameExports.st = new spawn_temp_t();
         while (true) {
 
             // parse key
@@ -1314,13 +1310,9 @@ public class GameSpawn {
     static void SpawnEntities(String mapname, String entities, String spawnpoint, GameExportsImpl gameExports) {
 
         gameExports.gameImports.dprintf("SpawnEntities(), mapname=" + mapname);
-        SubgameEntity ent;
-        int inhibit;
-        String com_token;
         int i;
-        float skill_level;
         //skill.value =2.0f;
-        skill_level = (float) Math.floor(gameExports.gameCvars.skill.value);
+        float skill_level = (float) Math.floor(gameExports.gameCvars.skill.value);
 
         if (skill_level < 0)
             skill_level = 0;
@@ -1337,14 +1329,14 @@ public class GameSpawn {
         for (i = 0; i < gameExports.game.maxclients; i++)
             gameExports.g_edicts[i + 1].setClient(gameExports.game.clients[i]);
 
-        ent = null;
-        inhibit = 0;
+        SubgameEntity ent = null;
+        int inhibit = 0;
 
         Com.ParseHelp ph = new Com.ParseHelp(entities);
 
         while (true) { // parse the opening brace
 
-            com_token = Com.Parse(ph);
+            String com_token = Com.Parse(ph);
             if (ph.isEof())
                 break;
             if (!com_token.startsWith("{"))
@@ -1431,6 +1423,7 @@ public class GameSpawn {
         EntThinkAdapter spawn = spawns.get(ent.classname.toLowerCase());
         if (spawn != null) {
             spawn.think(ent, gameExports);
+            ent.st = null;
         } else {
             gameExports.gameImports.dprintf(ent.classname + " doesn't have a spawn function\n");
         }

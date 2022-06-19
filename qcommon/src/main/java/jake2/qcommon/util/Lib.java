@@ -378,11 +378,12 @@ public class Lib {
 
     /**
      * ED_NewString.
+	 * Replace two character sequences (\n and \\) into 1 special symbol
      */
-    public static String ED_NewString(String string) {
+    public static String decodeBackslash(String string) {
 
         int l = string.length();
-        StringBuffer newb = new StringBuffer(l);
+        StringBuilder newb = new StringBuilder(l);
 
         for (int i = 0; i < l; i++) {
             char c = string.charAt(i);
@@ -391,11 +392,10 @@ public class Lib {
                 if (c == 'n')
                     newb.append('\n');
                 else
-                    newb.append('\\');
+                    newb.append('\\'); // any special symbol other that \n is decoded into single slash: \
             } else
                 newb.append(c);
         }
-
         return newb.toString();
     }
 }

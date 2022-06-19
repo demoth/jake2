@@ -212,7 +212,7 @@ class GameFunc {
         tmax[1] = ent.maxs[1] - 25;
         tmax[2] = ent.maxs[2] + 8;
 
-        tmin[2] = tmax[2] - (ent.pos1[2] - ent.pos2[2] + gameExports.st.lip);
+        tmin[2] = tmax[2] - (ent.pos1[2] - ent.pos2[2] + ent.st.lip);
 
         if ((ent.spawnflags & PLAT_LOW_TRIGGER) != 0)
             tmax[2] = tmin[2] + 8;
@@ -278,16 +278,16 @@ class GameFunc {
         if (ent.dmg == 0)
             ent.dmg = 2;
 
-        if (gameExports.st.lip == 0)
-            gameExports.st.lip = 8;
+        if (ent.st.lip == 0)
+            ent.st.lip = 8;
 
         // pos1 is the top position, pos2 is the bottom
         Math3D.VectorCopy(ent.s.origin, ent.pos1);
         Math3D.VectorCopy(ent.s.origin, ent.pos2);
-        if (gameExports.st.height != 0)
-            ent.pos2[2] -= gameExports.st.height;
+        if (ent.st.height != 0)
+            ent.pos2[2] -= ent.st.height;
         else
-            ent.pos2[2] -= (ent.maxs[2] - ent.mins[2]) - gameExports.st.lip;
+            ent.pos2[2] -= (ent.maxs[2] - ent.mins[2]) - ent.st.lip;
 
         ent.use = Use_Plat;
 
@@ -416,7 +416,7 @@ class GameFunc {
         abs_movedir[2] = Math.abs(self.movedir[2]);
         self.moveinfo.distance = abs_movedir[0] * self.size[0] + abs_movedir[1]
                 * self.size[1] + abs_movedir[2] * self.size[2]
-                - gameExports.st.lip;
+                - self.st.lip;
         Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir,
                 self.pos2);
 
@@ -480,9 +480,9 @@ class GameFunc {
         self.solid = Defines.SOLID_BSP;
         gameExports.gameImports.setmodel(self, self.model);
 
-        if (gameExports.st.noise != null)
+        if (self.st.noise != null)
             self.moveinfo.sound_middle = gameExports.gameImports
-                    .soundindex(gameExports.st.noise);
+                    .soundindex(self.st.noise);
 
         if (0 == self.speed)
             self.speed = 100;
@@ -520,7 +520,7 @@ class GameFunc {
         }
 
         if ((self.spawnflags & 1) != 0) {
-            self.nextthink = gameExports.level.time + 1.0f + gameExports.st.pausetime
+            self.nextthink = gameExports.level.time + 1.0f + self.st.pausetime
                     + self.delay + self.wait + Lib.crandom() * self.random;
             self.activator = self;
         }
@@ -1075,15 +1075,15 @@ class GameFunc {
 
             if (0 == ent.wait)
                 ent.wait = 3;
-            if (0 == gameExports.st.lip)
-                gameExports.st.lip = 4;
+            if (0 == ent.st.lip)
+                ent.st.lip = 4;
 
             Math3D.VectorCopy(ent.s.origin, ent.pos1);
             abs_movedir[0] = (float) Math.abs(ent.movedir[0]);
             abs_movedir[1] = (float) Math.abs(ent.movedir[1]);
             abs_movedir[2] = (float) Math.abs(ent.movedir[2]);
             dist = abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1]
-                    + abs_movedir[2] * ent.size[2] - gameExports.st.lip;
+                    + abs_movedir[2] * ent.size[2] - ent.st.lip;
             Math3D.VectorMA(ent.pos1, dist, ent.movedir, ent.pos2);
 
             ent.use = button_use;
@@ -1429,8 +1429,8 @@ class GameFunc {
 
             if (0 == ent.wait)
                 ent.wait = 3;
-            if (0 == gameExports.st.lip)
-                gameExports.st.lip = 8;
+            if (0 == ent.st.lip)
+                ent.st.lip = 8;
             if (0 == ent.dmg)
                 ent.dmg = 2;
 
@@ -1441,7 +1441,7 @@ class GameFunc {
             abs_movedir[2] = Math.abs(ent.movedir[2]);
             ent.moveinfo.distance = abs_movedir[0] * ent.size[0]
                     + abs_movedir[1] * ent.size[1] + abs_movedir[2]
-                    * ent.size[2] - gameExports.st.lip;
+                    * ent.size[2] - ent.st.lip;
 
             Math3D.VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir,
                     ent.pos2);
@@ -1542,16 +1542,16 @@ class GameFunc {
             if ((ent.spawnflags & DOOR_REVERSE) != 0)
                 Math3D.VectorNegate(ent.movedir, ent.movedir);
 
-            if (0 == gameExports.st.distance) {
+            if (0 == ent.st.distance) {
                 gameExports.gameImports.dprintf(ent.classname + " at "
                         + Lib.vtos(ent.s.origin) + " with no distance set\n");
-                gameExports.st.distance = 90;
+                ent.st.distance = 90;
             }
 
             Math3D.VectorCopy(ent.s.angles, ent.pos1);
-            Math3D.VectorMA(ent.s.angles, gameExports.st.distance, ent.movedir,
+            Math3D.VectorMA(ent.s.angles, ent.st.distance, ent.movedir,
                     ent.pos2);
-            ent.moveinfo.distance = gameExports.st.distance;
+            ent.moveinfo.distance = ent.st.distance;
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
