@@ -1468,7 +1468,7 @@ public class M_Tank {
     	public String getID(){ return "SP_monster_tank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return true;
             }
 

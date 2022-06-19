@@ -682,7 +682,7 @@ public class GameAI {
 
             M.M_MoveToGoal(self, dist, gameExports);
 
-            GameUtil.G_FreeEdict(tempgoal, gameExports);
+            gameExports.freeEntity(tempgoal);
 
             if (self != null)
                 self.goalentity = save;

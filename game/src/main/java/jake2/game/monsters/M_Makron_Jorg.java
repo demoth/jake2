@@ -1152,7 +1152,7 @@ public class M_Makron_Jorg {
      */
     public static void SP_monster_jorg(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

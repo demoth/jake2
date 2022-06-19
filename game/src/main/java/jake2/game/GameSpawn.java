@@ -26,6 +26,7 @@ import jake2.game.items.GameItem;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1218,13 +1219,11 @@ public class GameSpawn {
      * Parses an edict out of the given string, returning the new position ed
      * should be a properly initialized empty edict.
      */
-
     private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent, GameExportsImpl gameExports) {
 
-        boolean init;
         String keyname;
         String com_token;
-        init = false;
+        boolean init = false;
 
         gameExports.st = new spawn_temp_t();
         while (true) {
@@ -1259,9 +1258,15 @@ public class GameSpawn {
         }
 
         if (!init) {
-            GameUtil.G_ClearEdict(ent, gameExports);
+            G_ClearEdict(ent, gameExports);
         }
     }
+
+    private static void G_ClearEdict(edict_t ent, GameExportsImpl gameExports) {
+        gameExports.g_edicts[ent.index] = new SubgameEntity(ent.index);
+    }
+
+
 
     /**
      * G_FindTeams
@@ -1367,7 +1372,7 @@ public class GameSpawn {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
                         gameExports.gameImports.dprintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent, gameExports);
+                        gameExports.freeEntity(ent);
                         inhibit++;
                         continue;
                     }
@@ -1381,7 +1386,7 @@ public class GameSpawn {
                                     || (((gameExports.gameCvars.skill.value == 2) || (gameExports.gameCvars.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
                         gameExports.gameImports.dprintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent, gameExports);
+                        gameExports.freeEntity(ent);
                         inhibit++;
 
                         continue;

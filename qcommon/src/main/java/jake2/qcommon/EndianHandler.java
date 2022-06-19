@@ -1,7 +1,7 @@
 /*
  * AbstractEndianHandler.java
  * Copyright (C) 2003
- * 
+ *
  * $Id: EndianHandler.java,v 1.2 2004-07-08 15:58:43 hzi Exp $
  */
 /*
@@ -25,52 +25,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-public abstract class EndianHandler
-{
-	private static final int mask = 0xFF;
+public class EndianHandler {
+    private static final int mask = 0xFF;
 
-	abstract public float BigFloat(float f);
-	abstract public short BigShort(short s);
-	abstract public int BigLong(int i);
-	abstract public float LittleFloat(float f);
-	abstract public short LittleShort(short s);
-	abstract public int LittleLong(int i);
+    public static int swapInt(int i) {
 
-	public static float swapFloat(float f)
-	{
-		int i = Float.floatToRawIntBits(f);
-		i = swapInt(i);
-		f = Float.intBitsToFloat(i);
+        int a = i & mask;
+        i >>>= 8;
 
-		return f;
-	}
+        a <<= 24;
 
-	public static int swapInt(int i)
-	{
+        int b = i & mask;
 
-		int a = i & mask;
-		i >>>= 8;
+        i >>>= 8;
+        b <<= 16;
 
-		a <<= 24;
+        int c = i & mask;
+        i >>>= 8;
+        c <<= 8;
 
-		int b = i & mask;
+        return i | c | b | a;
+    }
 
-		i >>>= 8;
-		b <<= 16;
-
-		int c = i & mask;
-		i >>>= 8;
-		c <<= 8;
-
-		return i | c | b | a;
-	}
-
-	public static short swapShort(short s)
-	{
-		int a = s & mask;
-		a <<= 8;
-		int b = (s >>> 8) & mask;
-
-		return (short) (b | a);
-	}
 }

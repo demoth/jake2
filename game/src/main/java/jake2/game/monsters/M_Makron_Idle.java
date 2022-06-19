@@ -38,7 +38,7 @@ public class M_Makron_Idle {
 
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin), MulticastTypes.MULTICAST_PVS);
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
         }
     };
 
@@ -62,7 +62,7 @@ public class M_Makron_Idle {
      */
     public static void SP_monster_boss3_stand(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

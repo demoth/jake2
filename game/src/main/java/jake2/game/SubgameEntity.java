@@ -3,6 +3,7 @@ package jake2.game;
 import jake2.game.items.GameItem;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
 
@@ -48,6 +49,10 @@ public class SubgameEntity extends edict_t {
 
     public String classname = "";
 
+    /**
+     * a bit mask, containing various flags depending on the entity class (usually set in the map editor).
+     * Can define different monster behavior,
+      */
     public int spawnflags;
 
     public float timestamp;
@@ -194,6 +199,18 @@ public class SubgameEntity extends edict_t {
     public moveinfo_t moveinfo = new moveinfo_t();
 
     public monsterinfo_t monsterinfo = new monsterinfo_t();
+
+
+    // todo: replace with a constructor call?
+    void G_InitEdict(int i) {
+        inuse = true;
+        classname = "noclass";
+        gravity = 1.0f;
+        //e.s.number= e - g_edicts;
+        s = new entity_state_t(this);
+        s.number = i;
+        index = i;
+    }
 
     public boolean setField(String key, String value) {
         if (key.equals("classname")) {

@@ -145,7 +145,7 @@ public class PlayerClient {
             EdictIterator es = null;
     
             while (true) {
-                es = GameBase.G_Find(es, GameBase.findByClass,
+                es = GameBase.G_Find(es, GameBase.findByClassName,
                         "info_player_start", gameExports);
     
                 if (es == null)
@@ -248,7 +248,7 @@ public class PlayerClient {
      */
     public static void SP_info_player_deathmatch(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == gameExports.gameCvars.deathmatch.value) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
         GameMisc.SP_misc_teleporter_dest.think(self, gameExports);
@@ -261,7 +261,7 @@ public class PlayerClient {
 
     public static void SP_info_player_coop(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == gameExports.gameCvars.coop.value) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -522,13 +522,6 @@ public class PlayerClient {
         client.pers.connected = true;
     }
 
-    public static void InitClientResp(gclient_t client, GameExportsImpl gameExports) {
-        //memset(& client.resp, 0, sizeof(client.resp));
-        client.resp.clear(); //  ok.
-        client.resp.enterframe = gameExports.level.framenum;
-        client.resp.coop_respawn.set(client.pers);
-    }
-
     public static void FetchClientEntData(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         ent.health = client.pers.health;
@@ -585,7 +578,7 @@ public class PlayerClient {
 
         EdictIterator es = null;
 
-        while ((es = GameBase.G_Find(es, GameBase.findByClass,
+        while ((es = GameBase.G_Find(es, GameBase.findByClassName,
                 "info_player_deathmatch", gameExports)) != null) {
             spot = es.o;
             count++;
@@ -612,7 +605,7 @@ public class PlayerClient {
         spot = null;
         es = null;
         do {
-            es = GameBase.G_Find(es, GameBase.findByClass,
+            es = GameBase.G_Find(es, GameBase.findByClassName,
                     "info_player_deathmatch", gameExports);
             
             if (es == null) 
@@ -637,7 +630,7 @@ public class PlayerClient {
         float bestdistance = 0;
 
         EdictIterator es = null;
-        while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_deathmatch", gameExports)) != null) {
+        while ((es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_deathmatch", gameExports)) != null) {
             spot = es.o;
             float bestplayerdistance = PlayersRangeFromSpot(spot, gameExports);
 
@@ -653,7 +646,7 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass, "info_player_deathmatch", gameExports);
+        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClassName, "info_player_deathmatch", gameExports);
         if (edit == null)
             return null;
         
@@ -683,7 +676,7 @@ public class PlayerClient {
         // assume there are four coop spots at each spawnpoint
         while (true) {
 
-            es = GameBase.G_Find(es, GameBase.findByClass, "info_player_coop", gameExports);
+            es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_coop", gameExports);
                     
             if (es == null)
                 return null;
@@ -720,7 +713,7 @@ public class PlayerClient {
         EdictIterator es = null;
         // find a single player start spot
         if (null == spot) {
-            while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start", gameExports)) != null) {
+            while ((es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_start", gameExports)) != null) {
                 spot = es.o;
 
                 if (gameExports.game.spawnpoint.length() == 0
@@ -739,7 +732,7 @@ public class PlayerClient {
                 if (gameExports.game.spawnpoint.length() == 0) {
                     // there wasn't a spawnpoint without a
                     // target, so use any
-                    es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start", gameExports);
+                    es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_start", gameExports);
                     
                     if (es != null)
                         spot = es.o;
@@ -993,10 +986,10 @@ public class PlayerClient {
      * everything out before starting them.
      */
     public static void ClientBeginDeathmatch(SubgameEntity ent, GameExportsImpl gameExports) {
-        GameUtil.G_InitEdict(ent, ent.index);
+        ent.G_InitEdict(ent.index);
 
         gclient_t client = ent.getClient();
-        InitClientResp(client, gameExports);
+        client.InitClientResp(gameExports);
 
         // locate ent at a spawn point
         PutClientInServer(ent, gameExports);
@@ -1040,9 +1033,9 @@ public class PlayerClient {
             // a spawn point will completely reinitialize the entity
             // except for the persistant data that was initialized at
             // ClientConnect() time
-            GameUtil.G_InitEdict(ent, ent.index);
+            ent.G_InitEdict(ent.index);
             ent.classname = "player";
-            InitClientResp(client, gameExports);
+            client.InitClientResp(gameExports);
             PutClientInServer(ent, gameExports);
         }
 
@@ -1170,7 +1163,7 @@ public class PlayerClient {
         gclient_t client = ent.getClient();
         if (!ent.inuse) {
             // clear the respawning variables
-            InitClientResp(client, gameExports);
+            client.InitClientResp(gameExports);
             if (!gameExports.game.autosaved || null == client.pers.weapon)
                 InitClientPersistant(client, gameExports);
         }

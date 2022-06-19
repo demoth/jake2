@@ -1035,7 +1035,7 @@ public class M_Infantry {
      */
     public static void SP_monster_infantry(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

@@ -130,7 +130,7 @@ public class GameTurret {
 
     public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -315,7 +315,7 @@ public class GameTurret {
                 self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
                 Math3D.VectorSubtract(self.target_ent.s.origin, self.s.origin,
                         self.move_origin);
-                GameUtil.G_FreeEdict(self.target_ent, gameExports);
+                gameExports.freeEntity(self.target_ent);
             }
 
             self.teammaster.dmg = self.dmg;

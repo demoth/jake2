@@ -71,10 +71,11 @@ public class GameBase {
      * 
      * Searches beginning at the edict after from, or the beginning if null null
      * will be returned if the end of the list is reached.
-     * 
+     *
+     * @param name - either className or targetName
      */
     static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
-                                String s, GameExportsImpl gameExports) {
+                                String name, GameExportsImpl gameExports) {
 
         if (from == null)
             from = new EdictIterator(0);
@@ -90,7 +91,7 @@ public class GameBase {
             if (!from.o.inuse)
                 continue;
 
-            if (eff.matches(from.o, s))
+            if (eff.matches(from.o, name))
                 return from;
         }
 
@@ -160,7 +161,7 @@ public class GameBase {
 
         EdictIterator es = null;
 
-        while ((es = G_Find(es, findByTarget, targetname, gameExports)) != null) {
+        while ((es = G_Find(es, findByTargetName, targetname, gameExports)) != null) {
             choice[num_choices++] = es.o;
             if (num_choices == MAXCHOICES)
                 break;
@@ -224,17 +225,11 @@ public class GameBase {
     static final int STEPSIZE = 18;
 
 
-    static EdictFindFilter findByTarget = new EdictFindFilter() {
-        public boolean matches(SubgameEntity e, String s) {
-            if (e.targetname == null)
-                return false;
-            return e.targetname.equalsIgnoreCase(s);
-        }
+    static final EdictFindFilter findByTargetName = (e, targetName) -> {
+        if (e.targetname == null)
+            return false;
+        return e.targetname.equalsIgnoreCase(targetName);
     };
 
-    static EdictFindFilter findByClass = new EdictFindFilter() {
-        public boolean matches(SubgameEntity e, String s) {
-            return e.classname.equalsIgnoreCase(s);
-        }
-    };
+    static final EdictFindFilter findByClassName = (e, className) -> e.classname.equalsIgnoreCase(className);
 }

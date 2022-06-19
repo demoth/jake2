@@ -331,7 +331,7 @@ class GameFunc {
         EdictIterator edit = null;
 
         while ((edit = GameBase
-                .G_Find(edit, GameBase.findByTarget, self.target, gameExports)) != null) {
+                .G_Find(edit, GameBase.findByTargetName, self.target, gameExports)) != null) {
             SubgameEntity t = edit.o;
             if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
                 gameExports.gameImports.SetAreaPortalState(t.style, open);

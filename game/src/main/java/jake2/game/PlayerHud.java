@@ -123,21 +123,21 @@ public class PlayerHud {
         gameExports.level.exitintermission = false;
 
         // find an intermission spot
-        edict_t ent = GameBase.G_FindEdict(null, GameBase.findByClass,
+        edict_t ent = GameBase.G_FindEdict(null, GameBase.findByClassName,
                 "info_player_intermission", gameExports);
         if (ent == null) { // the map creator forgot to put in an intermission
                            // point...
-            ent = GameBase.G_FindEdict(null, GameBase.findByClass,
+            ent = GameBase.G_FindEdict(null, GameBase.findByClassName,
                     "info_player_start", gameExports);
             if (ent == null)
-                ent = GameBase.G_FindEdict(null, GameBase.findByClass,
+                ent = GameBase.G_FindEdict(null, GameBase.findByClassName,
                         "info_player_deathmatch", gameExports);
         } else { // chose one of four spots
             int i = Lib.rand() & 3;
             EdictIterator es = null;
 
             while (i-- > 0) {
-                es = GameBase.G_Find(es, GameBase.findByClass,
+                es = GameBase.G_Find(es, GameBase.findByClassName,
                         "info_player_intermission", gameExports);
 
                 if (es == null) // wrap around the list

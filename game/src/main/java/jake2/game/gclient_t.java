@@ -125,7 +125,14 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	private int index;
 
-	/** Clears the game client structure. */
+    public void InitClientResp(GameExportsImpl gameExports) {
+        //memset(& client.resp, 0, sizeof(client.resp));
+        this.resp.clear(); //  ok.
+        this.resp.enterframe = gameExports.level.framenum;
+        this.resp.coop_respawn.set(this.pers);
+    }
+
+    /** Clears the game client structure. */
 	public void clear()
 	{
 		setPing(0);

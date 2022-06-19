@@ -1460,7 +1460,7 @@ public class M_Soldier {
     	public String getID(){ return "SP_monster_soldier_light"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return true;
             }
 
@@ -1488,7 +1488,7 @@ public class M_Soldier {
     	public String getID(){ return "SP_monster_soldier"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return true;
             }
 
@@ -1513,7 +1513,7 @@ public class M_Soldier {
     	public String getID(){ return "SP_monster_soldier_ss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return true;
             }
 

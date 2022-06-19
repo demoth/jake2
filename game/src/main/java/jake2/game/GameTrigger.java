@@ -22,10 +22,7 @@
 
 package jake2.game;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.cplane_t;
-import jake2.qcommon.csurface_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -216,7 +213,7 @@ class GameTrigger {
         if (gameExports.st.gravity == null) {
             gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -464,7 +461,7 @@ class GameTrigger {
                 }
             }
             if ((self.spawnflags & PUSH_ONCE) != 0)
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
         }
     };
 

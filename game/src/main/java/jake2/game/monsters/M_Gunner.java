@@ -1058,7 +1058,7 @@ public class M_Gunner {
      */
     public static void SP_monster_gunner(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

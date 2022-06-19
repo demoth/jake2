@@ -45,7 +45,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return;
             }
     
@@ -79,7 +79,7 @@ public class GameWeapon {
                 gameExports.gameImports.multicastMessage(self.s.origin, new PointDirectionTEMessage(Defines.TE_BLASTER, self.s.origin, dir), MulticastTypes.MULTICAST_PVS);
             }
     
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
         }
     };
     
@@ -138,7 +138,7 @@ public class GameWeapon {
             }
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(style, origin), MulticastTypes.MULTICAST_PHS);
     
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return true;
         }
     };
@@ -150,7 +150,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && 0 != (surf.flags & Defines.SURF_SKY)) {
-                GameUtil.G_FreeEdict(ent, gameExports);
+                gameExports.freeEntity(ent);
                 return;
             }
     
@@ -193,7 +193,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(ent, gameExports);
+                gameExports.freeEntity(ent);
                 return;
             }
     
@@ -234,7 +234,7 @@ public class GameWeapon {
                 style = Defines.TE_ROCKET_EXPLOSION;
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(style, origin), MulticastTypes.MULTICAST_PHS);
     
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
         }
     };
     /*
@@ -300,7 +300,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return;
             }
     

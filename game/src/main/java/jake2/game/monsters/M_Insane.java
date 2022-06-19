@@ -1232,7 +1232,7 @@ public class M_Insane {
         //	 static int skin = 0; //@@
 
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

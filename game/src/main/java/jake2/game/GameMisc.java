@@ -37,7 +37,7 @@ public class GameMisc {
         if (self.targetname == null) {
             gameExports.gameImports.dprintf("path_corner with no targetname at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -51,7 +51,7 @@ public class GameMisc {
 
     static void SP_point_combat(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
         self.solid = Defines.SOLID_TRIGGER;
@@ -82,7 +82,7 @@ public class GameMisc {
      * for spotlights, etc.
      */
     static void SP_info_null(SubgameEntity self, GameExportsImpl gameExports) {
-        GameUtil.G_FreeEdict(self, gameExports);
+        gameExports.freeEntity(self);
     };
 
     /*
@@ -97,7 +97,7 @@ public class GameMisc {
     static void SP_light(SubgameEntity self, GameExportsImpl gameExports) {
         // no targeted lights in deathmatch, because they cause global messages
         if (null == self.targetname || gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -187,7 +187,7 @@ public class GameMisc {
 
     static void SP_func_explosive(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -225,7 +225,7 @@ public class GameMisc {
 
     static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -347,7 +347,7 @@ public class GameMisc {
 
     static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -385,7 +385,7 @@ public class GameMisc {
         if (null == ent.target) {
             gameExports.gameImports.dprintf("misc_viper without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -444,7 +444,7 @@ public class GameMisc {
         if (null == ent.target) {
             gameExports.gameImports.dprintf(ent.classname + " without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -635,14 +635,14 @@ public class GameMisc {
         if (self.target == null) {
             gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
         if ((self.spawnflags & 2) != 0 && (0 == self.count)) {
             gameExports.gameImports.dprintf(self.classname + " with no count at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -670,7 +670,7 @@ public class GameMisc {
 
         if (ent.target == null) {
             gameExports.gameImports.dprintf("teleporter without a target.\n");
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -713,12 +713,12 @@ public class GameMisc {
 
     public static void BecomeExplosion1(SubgameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PVS);
-        GameUtil.G_FreeEdict(self, gameExports);
+        gameExports.freeEntity(self);
     }
 
     private static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin), MulticastTypes.MULTICAST_PVS);
-        GameUtil.G_FreeEdict(self, gameExports);
+        gameExports.freeEntity(self);
     }
 
     public static void ThrowGib(SubgameEntity self, String gibname, int damage, int type, GameExportsImpl gameExports) {
@@ -1223,7 +1223,7 @@ public class GameMisc {
             if (self.dmg != 0)
                 BecomeExplosion1(self, gameExports);
             else
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
         }
     };
 
@@ -1395,7 +1395,7 @@ public class GameMisc {
              * gi.WritePosition (ent.s.origin); gi.multicast (ent.s.origin,
              * MULTICAST_PVS);
              */
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
         }
     };
 
@@ -1621,7 +1621,7 @@ public class GameMisc {
 
             EdictIterator es = null;
 
-            es = GameBase.G_Find(es, GameBase.findByClass, "misc_viper", gameExports);
+            es = GameBase.G_Find(es, GameBase.findByClassName, "misc_viper", gameExports);
             if (es != null)
                 viper = es.o;
 
@@ -1725,7 +1725,7 @@ public class GameMisc {
 
                 EdictIterator es = null;
 
-                es = GameBase.G_Find(es, GameBase.findByTarget, self.target, gameExports);
+                es = GameBase.G_Find(es, GameBase.findByTargetName, self.target, gameExports);
                 if (es != null)
                     self.enemy = es.o;
                 if (self.enemy == null)
@@ -1813,7 +1813,7 @@ public class GameMisc {
                 return;
 
             EdictIterator es = null;
-            dest = GameBase.G_Find(null, GameBase.findByTarget, self.target, gameExports).o;
+            dest = GameBase.G_Find(null, GameBase.findByTargetName, self.target, gameExports).o;
 
             if (dest == null) {
                 gameExports.gameImports.dprintf("Couldn't find destination\n");
@@ -1920,7 +1920,7 @@ public class GameMisc {
         public String getID() { return "gib_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
         }
     };
 
@@ -1931,7 +1931,7 @@ public class GameMisc {
         public String getID() { return "debris_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
         }
     };
 }

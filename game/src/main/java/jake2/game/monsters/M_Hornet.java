@@ -1036,7 +1036,7 @@ public class M_Hornet {
      */
     public static void SP_monster_boss2(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 

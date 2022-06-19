@@ -22,13 +22,10 @@
 // $Id: GameTarget.java,v 1.8 2006-01-21 21:53:31 salomo Exp $
 package jake2.game;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.network.messages.server.SplashTEMessage;
-import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -80,14 +77,14 @@ class GameTarget {
      */
     static void SP_target_help(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
         if (ent.message == null) {
             gameExports.gameImports.dprintf(ent.classname + " with no message at "
                     + Lib.vtos(ent.s.origin) + "\n");
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
         ent.use = Use_Target_Help;
@@ -95,7 +92,7 @@ class GameTarget {
 
     static void SP_target_secret(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -114,7 +111,7 @@ class GameTarget {
 
     static void SP_target_goal(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -135,7 +132,7 @@ class GameTarget {
         if (ent.map == null) {
             gameExports.gameImports.dprintf("target_changelevel with no map at "
                     + Lib.vtos(ent.s.origin) + "\n");
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return;
         }
 
@@ -221,19 +218,19 @@ class GameTarget {
                 || self.message.charAt(0) == self.message.charAt(1)) {
             gameExports.gameImports.dprintf("target_lightramp has bad ramp ("
                     + self.message + ") at " + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
         if (self.target == null) {
             gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -340,7 +337,7 @@ class GameTarget {
             gameExports.level.found_secrets++;
 
             GameUtil.G_UseTargets(ent, activator, gameExports);
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
         }
     };
     
@@ -360,7 +357,7 @@ class GameTarget {
                 gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
 
             GameUtil.G_UseTargets(ent, activator, gameExports);
-            GameUtil.G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
         }
     };
 
@@ -540,7 +537,7 @@ class GameTarget {
     	public String getID() { return "trigger_crosslevel_trigger_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             gameExports.game.serverflags |= self.spawnflags;
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
         }
     };
 
@@ -559,7 +556,7 @@ class GameTarget {
             if (self.spawnflags == (gameExports.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
                 GameUtil.G_UseTargets(self, self, gameExports);
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
             }
             return true;
         }
@@ -679,7 +676,7 @@ class GameTarget {
 
             if (null == self.enemy) {
                 if (self.target != null) {
-                    EdictIterator edit = GameBase.G_Find(null, GameBase.findByTarget,
+                    EdictIterator edit = GameBase.G_Find(null, GameBase.findByTargetName,
                             self.target, gameExports);
                     if (edit == null)
                         gameExports.gameImports.dprintf(self.classname + " at "
@@ -748,7 +745,7 @@ class GameTarget {
 
                 while (true) {
                     es = GameBase
-                            .G_Find(es, GameBase.findByTarget, self.target, gameExports);
+                            .G_Find(es, GameBase.findByTargetName, self.target, gameExports);
                     
                     if (es == null)
                         break;
@@ -770,7 +767,7 @@ class GameTarget {
                     gameExports.gameImports.dprintf(self.classname + " target "
                             + self.target + " not found at "
                             + Lib.vtos(self.s.origin) + "\n");
-                    GameUtil.G_FreeEdict(self, gameExports);
+                    gameExports.freeEntity(self);
                     return;
                 }
             }

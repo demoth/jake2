@@ -25,10 +25,6 @@ package jake2.game;
 
 /** Helps for filtering the iteration over the gedicts[] array, see GFind(). RST.*/
 
-public class EdictFindFilter
-{
-	boolean matches(SubgameEntity e, String s)
-	{
-		return false;
-	};
+public interface EdictFindFilter {
+	boolean matches(SubgameEntity e, String s);
 }

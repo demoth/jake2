@@ -123,7 +123,7 @@ public class Monster {
     // ============================================================================
     public static void monster_start(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
 
@@ -197,7 +197,7 @@ public class Monster {
 
             EdictIterator edit = null;
 
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
+            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName,
                     self.target, gameExports)) != null) {
                 SubgameEntity target = edit.o;
                 if ("point_combat".equals(target.classname)) {
@@ -219,7 +219,7 @@ public class Monster {
         if (self.combattarget != null) {
 
             EdictIterator edit = null;
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
+            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName,
                     self.combattarget, gameExports)) != null) {
                 SubgameEntity target = edit.o;
 

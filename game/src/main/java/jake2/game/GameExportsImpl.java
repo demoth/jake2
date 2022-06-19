@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.G_Find;
-import static jake2.game.GameBase.findByClass;
+import static jake2.game.GameBase.findByClassName;
 import static jake2.game.GameItems.createGameItemList;
 import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
@@ -93,9 +93,7 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.monsters.M_Soldier",
                     "jake2.game.monsters.M_Supertank",
                     "jake2.game.monsters.M_Tank",
-                    "jake2.game.GameItems",
-                    // DANGER! init as last, when all adatpers are != null
-                    "jake2.game.GameItemList"
+                    "jake2.game.GameItems"
             };
 
     /////////////////////////////////////
@@ -177,7 +175,7 @@ public class GameExportsImpl implements GameExports {
             try {
                 Class.forName(className);
             } catch (Exception e) {
-                gameImports.dprintf("error loading class: " + e.getMessage());
+                gameImports.dprintf("error loading class: " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
         }
 
@@ -208,6 +206,25 @@ public class GameExportsImpl implements GameExports {
     }
 
     /**
+     * G_FreeEdict
+     * Marks the edict as free
+     */
+    public void freeEntity(SubgameEntity ed) {
+        gameImports.unlinkentity(ed); // unlink from world
+
+        //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
+        if (ed.index <= (game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
+            // gi.dprintf("tried to free special edict\n");
+            return;
+        }
+
+        g_edicts[ed.index] = new SubgameEntity(ed.index);
+        ed.classname = "freed";
+        ed.freetime = level.time;
+        ed.inuse = false;
+    }
+
+    /**
      * Either finds a free edict, or allocates a new one. Try to avoid reusing
      * an entity that was recently freed, because it can cause the client to
      * think the entity morphed into something else instead of being removed and
@@ -223,7 +240,7 @@ public class GameExportsImpl implements GameExports {
             if (!e.inuse
                     && (e.freetime < 2 || this.level.time - e.freetime > 0.5)) {
                 e = this.g_edicts[i] = new SubgameEntity(i);
-                GameUtil.G_InitEdict(e, i);
+                e.G_InitEdict(i);
                 return e;
             }
         }
@@ -232,8 +249,8 @@ public class GameExportsImpl implements GameExports {
             this.gameImports.error("ED_Alloc: no free edicts");
 
         e = this.g_edicts[i] = new SubgameEntity(i);
+        e.G_InitEdict(i);
         this.num_edicts++;
-        GameUtil.G_InitEdict(e, i);
         return e;
     }
 
@@ -396,7 +413,7 @@ public class GameExportsImpl implements GameExports {
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent, this);
+                freeEntity(it_ent);
 
             if (!give_all)
                 return;
@@ -410,7 +427,7 @@ public class GameExportsImpl implements GameExports {
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
-                    GameUtil.G_FreeEdict(it_ent, this);
+                    freeEntity(it_ent);
 
             });
             if (!give_all)
@@ -456,7 +473,7 @@ public class GameExportsImpl implements GameExports {
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent, this);
+                freeEntity(it_ent);
         }
     }
 
@@ -1313,7 +1330,7 @@ public class GameExportsImpl implements GameExports {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
         else { // search for a changelevel
             EdictIterator edit = null;
-            edit = G_Find(edit, findByClass, "target_changelevel", this);
+            edit = G_Find(edit, findByClassName, "target_changelevel", this);
             if (edit == null) { // the map designer didn't include a
                 // change level,
                 // so create a fake ent that goes back to the same level

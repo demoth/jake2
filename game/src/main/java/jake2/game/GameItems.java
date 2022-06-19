@@ -25,11 +25,8 @@ package jake2.game;
 
 
 import jake2.game.items.GameItem;
-import jake2.qcommon.Defines;
-import jake2.qcommon.cplane_t;
-import jake2.qcommon.csurface_t;
+import jake2.qcommon.*;
 import jake2.qcommon.filesystem.QuakeFile;
-import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import org.apache.commons.csv.CSVFormat;
@@ -184,7 +181,7 @@ public class GameItems {
                     && (gameExports.gameCvars.deathmatch.value != 0))
                 SetRespawn(self, 20, gameExports);
             else
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
 
             return false;
         }
@@ -295,7 +292,7 @@ public class GameItems {
                 if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                     ent.flags &= ~GameDefines.FL_RESPAWN;
                 else
-                    GameUtil.G_FreeEdict(ent, gameExports);
+                    gameExports.freeEntity(ent);
             }
         }
     };
@@ -704,7 +701,7 @@ public class GameItems {
                     && client.pers.inventory[index] - dropped.count <= 0) {
                 gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
-                GameUtil.G_FreeEdict(dropped, gameExports);
+                gameExports.freeEntity(dropped);
                 return;
             }
     
@@ -770,7 +767,7 @@ public class GameItems {
             if (tr.startsolid) {
                 gameExports.gameImports.dprintf("droptofloor: " + ent.classname
                         + " startsolid at " + Lib.vtos(ent.s.origin) + "\n");
-                GameUtil.G_FreeEdict(ent, gameExports);
+                gameExports.freeEntity(ent);
                 return true;
             }
     
@@ -1171,13 +1168,13 @@ public class GameItems {
             if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
-                    GameUtil.G_FreeEdict(ent, gameExports);
+                    gameExports.freeEntity(ent);
                     return;
                 }
             }
             if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
                 if (item.pickup == Pickup_Powerup) {
-                    GameUtil.G_FreeEdict(ent, gameExports);
+                    gameExports.freeEntity(ent);
                     return;
                 }
             }
@@ -1185,14 +1182,14 @@ public class GameItems {
                 if (item.pickup == Pickup_Health
                         || item.pickup == Pickup_Adrenaline
                         || item.pickup == Pickup_AncientHead) {
-                    GameUtil.G_FreeEdict(ent, gameExports);
+                    gameExports.freeEntity(ent);
                     return;
                 }
             }
             if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
-                    GameUtil.G_FreeEdict(ent, gameExports);
+                    gameExports.freeEntity(ent);
                     return;
                 }
             }
@@ -1227,7 +1224,7 @@ public class GameItems {
     static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
         }
     
         self.model = "models/items/healing/medium/tris.md2";
@@ -1242,7 +1239,7 @@ public class GameItems {
     static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
     
@@ -1259,7 +1256,7 @@ public class GameItems {
     static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
     
@@ -1275,7 +1272,7 @@ public class GameItems {
     static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self, gameExports);
+            gameExports.freeEntity(self);
             return;
         }
     
@@ -1358,7 +1355,7 @@ public class GameItems {
             if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                 ent.flags &= ~GameDefines.FL_RESPAWN;
             else
-                GameUtil.G_FreeEdict(ent, gameExports);
+                gameExports.freeEntity(ent);
         }
     }
 

@@ -50,7 +50,7 @@ class server_t {
 
     }
 
-    ServerStates state = ServerStates.SS_DEAD; // precache commands are only valid during load
+    ServerStates state;
 
     boolean isDemo; // running cinematics and demos for the local system
                          // only

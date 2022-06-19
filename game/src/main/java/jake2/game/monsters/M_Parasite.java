@@ -792,7 +792,7 @@ public class M_Parasite {
     	public String getID(){ return "SP_monster_parasite"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return true;
             }
 

@@ -1009,7 +1009,7 @@ public class M_Mutant {
     	public String getID(){ return "SP_monster_mutant"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self, gameExports);
+                gameExports.freeEntity(self);
                 return false;
             }
 

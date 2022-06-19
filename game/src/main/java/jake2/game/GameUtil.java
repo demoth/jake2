@@ -31,7 +31,7 @@ import jake2.qcommon.util.Math3D;
 public class GameUtil {
 
     /**
-     * Use the targets.
+     * Use the targets. (target and killtarget)
      * 
      * The global "activator" should be set to the entity that initiated the
      * firing.
@@ -44,7 +44,6 @@ public class GameUtil {
      * Search for (string)targetname in all entities that match
      * (string)self.target and call their .use function
      */
-
     public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator, GameExportsImpl gameExports) {
 
         if (ent.classname == null) {
@@ -85,23 +84,20 @@ public class GameUtil {
         EdictIterator edit = null;
 
         if (ent.killtarget != null) {
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    ent.killtarget, gameExports)) != null) {
+            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName, ent.killtarget, gameExports)) != null) {
                 t = edit.o;
-                G_FreeEdict(t, gameExports);
+                gameExports.freeEntity(t);
                 if (!ent.inuse) {
-                    gameExports.gameImports
-                            .dprintf("entity was removed while using killtargets\n");
+                    gameExports.gameImports.dprintf("entity was removed while using killtargets\n");
                     return;
                 }
             }
         }
 
-        // fire targets
+        // fire (use) targets
         if (ent.target != null) {
             edit = null;
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    ent.target, gameExports)) != null) {
+            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName, ent.target, gameExports)) != null) {
                 t = edit.o;
                 // doors fire area portals in a specific way
                 if (Lib.Q_stricmp("func_areaportal", t.classname) == 0
@@ -110,7 +106,7 @@ public class GameUtil {
                     continue;
 
                 if (t == ent) {
-                    gameExports.gameImports.dprintf("WARNING: Entity used itself.\n");
+                    gameExports.gameImports.dprintf("WARNING: Entity tried to use itself.\n");
                 } else {
                     if (t.use != null)
                         t.use.use(t, ent, activator, gameExports);
@@ -124,50 +120,10 @@ public class GameUtil {
         }
     }
 
-    static void G_InitEdict(SubgameEntity e, int i) {
-        e.inuse = true;
-        e.classname = "noclass";
-        e.gravity = 1.0f;
-        //e.s.number= e - g_edicts;
-        e.s = new entity_state_t(e);
-        e.s.number = i;
-        e.index = i;
-    }
-
-    /**
-     * Marks the edict as free
-     */
-    public static void G_FreeEdict(SubgameEntity ed, GameExportsImpl gameExports) {
-        gameExports.gameImports.unlinkentity(ed); // unlink from world
-
-        //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
-        if (ed.index <= (gameExports.game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
-            // gi.dprintf("tried to free special edict\n");
-            return;
-        }
-
-        gameExports.g_edicts[ed.index] = new SubgameEntity(ed.index);
-        ed.classname = "freed";
-        ed.freetime = gameExports.level.time;
-        ed.inuse = false;
-    }
-
-    /**
-     * Call after linking a new trigger in during gameplay to force all entities
-     * it covers to immediately touch it.
-     */
-
-    static void G_ClearEdict(edict_t ent, GameExportsImpl gameExports) {
-        int i = ent.index;
-        gameExports.g_edicts[i] = new SubgameEntity(i);
-    }
-
-
     /**
      * Kills all entities that would touch the proposed new positioning of ent.
      * Ent should be unlinked before calling this!
      */
-
     static boolean KillBox(SubgameEntity ent, GameExportsImpl gameExports) {
 
         while (true) {
@@ -515,7 +471,7 @@ public class GameUtil {
     	public String getID() { return "Think_Delay"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             G_UseTargets(ent, ent.activator, gameExports);
-            G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return true;
         }
     };
@@ -523,7 +479,7 @@ public class GameUtil {
     static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            G_FreeEdict(ent, gameExports);
+            gameExports.freeEntity(ent);
             return false;
         }
     };
