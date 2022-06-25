@@ -79,6 +79,7 @@ public final class Com
 	private static String msg= "";
 
 	// helper class to replace the pointer-pointer
+	@Deprecated
 	public static class ParseHelp
 	{
 		public ParseHelp(String in)
@@ -167,6 +168,7 @@ public final class Com
 	private static char com_token[]= new char[Defines.MAX_TOKEN_CHARS];
 
 	// See GameSpanw.ED_ParseEdict() to see how to use it now.
+	@Deprecated
 	public static String Parse(ParseHelp hlp) {
 		int c;
 		int len = 0;
