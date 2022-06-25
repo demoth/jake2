@@ -27,12 +27,11 @@ import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 
-public class level_locals_t
-{
-	
-	//	this structure is cleared as each map is entered
-	//	it is read/written to the level.sav file for savegames
-	//
+/**
+ * this structure is cleared as each map is entered
+ * it is read/written to the level.sav file for savegames
+ */
+public class level_locals_t {
     public int framenum;
     public float time;
 

@@ -178,8 +178,6 @@ public class GameExportsImpl implements GameExports {
         sv = new SV(gameImports);
 
         game = new game_locals_t();
-        game.helpmessage1 = "";
-        game.helpmessage2 = "";
         items = createGameItemList("/items.csv");
 
         level = new level_locals_t();
@@ -1378,25 +1376,22 @@ public class GameExportsImpl implements GameExports {
 
         String cmd = args.get(0).toLowerCase();
 
-        if (cmd.equals("players")) {
-            Players_f(ent);
-            return;
-        }
-        if (cmd.equals("say")) {
-            Say_f(ent, false, false, args);
-            return;
-        }
-        if (cmd.equals("say_team")) {
-            Say_f(ent, true, false, args);
-            return;
-        }
-        if (cmd.equals("score")) {
-            Score_f(ent);
-            return;
-        }
-        if (cmd.equals("help")) {
-            Help_f(ent);
-            return;
+        switch (cmd) {
+            case "players":
+                Players_f(ent);
+                return;
+            case "say":
+                Say_f(ent, false, false, args);
+                return;
+            case "say_team":
+                Say_f(ent, true, false, args);
+                return;
+            case "score":
+                Score_f(ent);
+                return;
+            case "help":
+                Help_f(ent);
+                return;
         }
 
         if (level.intermissiontime != 0)
