@@ -27,6 +27,7 @@ import jake2.game.items.GameItem;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.EntityParserKt;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -1311,92 +1312,77 @@ public class GameSpawn {
     static void SpawnEntities(String mapname, String entities, String spawnpoint, GameExportsImpl gameExports) {
 
         gameExports.gameImports.dprintf("SpawnEntities(), mapname=" + mapname);
-        int i;
         //skill.value =2.0f;
-        float skill_level = (float) Math.floor(gameExports.gameCvars.skill.value);
+        final float skill = gameExports.gameCvars.skill.value;
+        float skillNormalized = (float) Math.floor(skill);
 
-        if (skill_level < 0)
-            skill_level = 0;
-        if (skill_level > 3)
-            skill_level = 3;
-        if (gameExports.gameCvars.skill.value != skill_level)
-            gameExports.gameImports.cvar_forceset("skill", "" + skill_level);
+        if (skillNormalized < 0)
+            skillNormalized = 0;
+        if (skillNormalized > 3)
+            skillNormalized = 3;
+        if (skill != skillNormalized)
+            gameExports.gameImports.cvar_forceset("skill", "" + skillNormalized);
 
         gameExports.level.mapname = mapname;
         gameExports.game.spawnpoint = spawnpoint;
 
-        // todo:
         // set client fields on player ents
-        for (i = 0; i < gameExports.game.maxclients; i++)
+        for (int i = 0; i < gameExports.game.maxclients; i++)
             gameExports.g_edicts[i + 1].setClient(gameExports.game.clients[i]);
 
-        SubgameEntity ent = null;
-        int inhibit = 0;
+        List<Map<String, String>> entityMap = EntityParserKt.parseEntities(entities);
 
-        Com.ParseHelp ph = new Com.ParseHelp(entities);
+        entityMap.forEach(map -> {
 
-        while (true) { // parse the opening brace
-
-            String com_token = Com.Parse(ph);
-            if (ph.isEof())
-                break;
-            if (!com_token.startsWith("{"))
-                gameExports.gameImports.error("ED_LoadFromFile: found " + com_token
-                        + " when expecting {");
-
-            if (ent == null)
+            final SubgameEntity ent;
+            if ("worldspawn".equals(map.get("classname")))
                 ent = gameExports.g_edicts[0];
             else
                 ent = gameExports.G_Spawn();
 
-            ED_ParseEdict(ph, ent, gameExports);
-            gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
-                    ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
+            map.forEach((key, value) -> ED_ParseField(key, value, ent, gameExports));
 
+
+            // todo: add description
             // yet another map hack
-            if (0 == Lib.Q_stricmp(gameExports.level.mapname, "command")
-                    && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
-                    && 0 == Lib.Q_stricmp(ent.model, "*27"))
+            if ("command".equalsIgnoreCase(gameExports.level.mapname)
+                    && "trigger_once".equalsIgnoreCase(ent.classname)
+                    && "*27".equalsIgnoreCase(ent.model))
                 ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
 
-            // remove things (except the world) from different skill levels or
-            // deathmatch
-            if (ent != gameExports.g_edicts[0]) {
+            boolean spawned = true;
+            if (!ent.classname.equals("worldspawn")) {
                 if (gameExports.gameCvars.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
-
-                        gameExports.gameImports.dprintf("->inhibited.\n");
-                        gameExports.freeEntity(ent);
-                        inhibit++;
-                        continue;
+                        spawned = false;
                     }
                 } else {
-                    if (/*
-                     * ((coop.value) && (ent.spawnflags &
-                     * SPAWNFLAG_NOT_COOP)) ||
-                     */
-                            ((gameExports.gameCvars.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
-                                    || ((gameExports.gameCvars.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                                    || (((gameExports.gameCvars.skill.value == 2) || (gameExports.gameCvars.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
-
-                        gameExports.gameImports.dprintf("->inhibited.\n");
-                        gameExports.freeEntity(ent);
-                        inhibit++;
-
-                        continue;
+                    // fixme: similar check for SPAWNFLAG_NOT_COOP?
+                    if (skill == 0 && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0
+                                    || skill == 1 && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0
+                                    // SPAWNFLAG_NOT_HARD implies not hard+ also
+                                    || (skill == 2 || skill == 3) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0) {
+                        spawned = false;
                     }
                 }
 
+                // reset difficulty spawnflags
                 ent.spawnflags &= ~(GameDefines.SPAWNFLAG_NOT_EASY
                         | GameDefines.SPAWNFLAG_NOT_MEDIUM
                         | GameDefines.SPAWNFLAG_NOT_HARD
-                        | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
+                        | GameDefines.SPAWNFLAG_NOT_COOP
+                        | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
-            ED_CallSpawn(ent, gameExports);
-            gameExports.gameImports.dprintf("\n");
-        }
-        gameExports.gameImports.dprintf("player skill level:" + gameExports.gameCvars.skill.value + "\n");
-        gameExports.gameImports.dprintf(inhibit + " entities inhibited.\n");
+            if (spawned) {
+                gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
+                        ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
+                ED_CallSpawn(ent, gameExports);
+            } else {
+                gameExports.freeEntity(ent);
+            }
+        });
+
+        gameExports.gameImports.dprintf("player skill level:" + skill + "\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
     }

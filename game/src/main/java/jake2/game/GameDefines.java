@@ -99,7 +99,6 @@ public interface GameDefines {
     int SPAWNFLAG_NOT_DEATHMATCH = 0x00000800;
     int SPAWNFLAG_NOT_COOP = 0x00001000;
 
-    int MELEE_DISTANCE = 80;
     int BODY_QUEUE_SIZE = 8;
 
     //	deadflag
@@ -109,6 +108,9 @@ public interface GameDefines {
     int DEAD_DEAD = 2;
     int DEAD_RESPAWNABLE = 3;
 
+    int MELEE_DISTANCE = 80;
+    int NEAR_DISTANCE = 500;
+    int MID_DISTANCE = 1000;
     //	range
     // todo enum
     int RANGE_MELEE = 0;

@@ -209,9 +209,9 @@ public class GameUtil {
         len = Math3D.VectorLength(v);
         if (len < GameDefines.MELEE_DISTANCE)
             return GameDefines.RANGE_MELEE;
-        if (len < 500)
+        if (len < GameDefines.NEAR_DISTANCE)
             return GameDefines.RANGE_NEAR;
-        if (len < 1000)
+        if (len < GameDefines.MID_DISTANCE)
             return GameDefines.RANGE_MID;
         return GameDefines.RANGE_FAR;
     }
