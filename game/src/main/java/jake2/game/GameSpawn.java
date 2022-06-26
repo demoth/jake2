@@ -1217,6 +1217,7 @@ public class GameSpawn {
      * Parses an edict out of the given string, returning the new position ed
      * should be a properly initialized empty edict.
      */
+    @Deprecated
     private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent, GameExportsImpl gameExports) {
 
         String keyname;
