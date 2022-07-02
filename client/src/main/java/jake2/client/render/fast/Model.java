@@ -1290,7 +1290,7 @@ public abstract class Model extends Surf {
 	/*
 	 * new functions for vertex array handling
 	 */
-	static final int MODEL_BUFFER_SIZE = 50000;
+	static final int MODEL_BUFFER_SIZE = 100000; // increased to be able to have all monsters in a map (testbox2)
 	static FloatBuffer globalModelTextureCoordBuf = Lib.newFloatBuffer(MODEL_BUFFER_SIZE * 2);
 	static IntBuffer globalModelVertexIndexBuf = Lib.newIntBuffer(MODEL_BUFFER_SIZE);
 	
