@@ -206,7 +206,7 @@ public class NetworkMessageSizeTest {
 
     @Test
     public void testQuakeNetworkProtocol34Compatibility() {
-        try (InputStream inputStream = getClass().getResourceAsStream(testName)) {
+        try (InputStream inputStream = getClass().getResourceAsStream(testName + ".bin")) {
             final byte[] quake34data = inputStream.readAllBytes();
             assertEquals("Message size is different from quake34 protocol", quake34data.length, buffer.cursize);
             for (int i = 0; i < quake34data.length; i++) {
