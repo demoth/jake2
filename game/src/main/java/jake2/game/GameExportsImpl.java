@@ -1470,6 +1470,9 @@ public class GameExportsImpl implements GameExports {
             case "spawn":
                 GameSpawn.SpawnNewEntity(ent, args, this);
                 break;
+            case "parse":
+                GameSpawn.createEntity(ent, args, this);
+                break;
             case "spawnrandommonster":
                 GameSpawn.SpawnRandomMonster(ent, this);
                 break;

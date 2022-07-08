@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GameSpawn {
 
@@ -1311,28 +1312,18 @@ public class GameSpawn {
 
     static void SpawnEntities(String mapname, String entities, String spawnpoint, GameExportsImpl gameExports) {
 
-        gameExports.gameImports.dprintf("SpawnEntities(), mapname=" + mapname);
-        //skill.value =2.0f;
-        final float skill = gameExports.gameCvars.skill.value;
-        float skillNormalized = (float) Math.floor(skill);
-
-        if (skillNormalized < 0)
-            skillNormalized = 0;
-        if (skillNormalized > 3)
-            skillNormalized = 3;
-        if (skill != skillNormalized)
-            gameExports.gameImports.cvar_forceset("skill", "" + skillNormalized);
+        // todo: split into different functions
 
         gameExports.level.mapname = mapname;
         gameExports.game.spawnpoint = spawnpoint;
+
+        final float skill = normalizeSkillCvar(gameExports);
 
         // set client fields on player ents
         for (int i = 0; i < gameExports.game.maxclients; i++)
             gameExports.g_edicts[i + 1].setClient(gameExports.game.clients[i]);
 
-        List<Map<String, String>> entityMap = EntityParserKt.parseEntities(entities);
-
-        entityMap.forEach(map -> {
+        EntityParserKt.parseEntities(entities).forEach(map -> {
 
             final SubgameEntity ent;
             if ("worldspawn".equals(map.get("classname")))
@@ -1385,6 +1376,19 @@ public class GameSpawn {
         gameExports.gameImports.dprintf("player skill level:" + skill + "\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
+    }
+
+    private static float normalizeSkillCvar(GameExportsImpl gameExports) {
+        final float skill = gameExports.gameCvars.skill.value;
+        float skillNormalized = (float) Math.floor(skill);
+
+        if (skillNormalized < 0)
+            skillNormalized = 0;
+        if (skillNormalized > 3)
+            skillNormalized = 3;
+        if (skill != skillNormalized)
+            gameExports.gameImports.cvar_forceset("skill", "" + skillNormalized);
+        return skill;
     }
 
     /**
@@ -1445,22 +1449,9 @@ public class GameSpawn {
         EntThinkAdapter spawn = spawns.get(className);
         GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
-            float[] location = creator.s.origin;
             SubgameEntity newThing = gameExports.G_Spawn();
 
-            float[] offset = {0,0,0};
-            float[] forward = { 0, 0, 0 };
-
-            // only works if damage point is in front
-            Math3D.AngleVectors(creator.s.angles, forward, null, null);
-
-            Math3D.VectorNormalize(forward);
-            Math3D.VectorScale(forward, 128, offset);
-            Math3D.VectorAdd(location, offset, offset);
-
-            newThing.s.origin = offset;
-
-            Math3D.VectorCopy(creator.s.angles, newThing.s.angles);
+            putInFrontOfCreator(creator, newThing);
 
             newThing.classname = className;
             gameExports.gameImports.linkentity(newThing);
@@ -1471,6 +1462,38 @@ public class GameSpawn {
 
             gameExports.gameImports.dprintf("Spawned!\n");
         }
+    }
 
+    private static void putInFrontOfCreator(SubgameEntity creator, SubgameEntity newThing) {
+        float[] location = creator.s.origin;
+        float[] offset = {0,0,0};
+        float[] forward = { 0, 0, 0 };
+        Math3D.AngleVectors(creator.s.angles, forward, null, null);
+        Math3D.VectorNormalize(forward);
+        Math3D.VectorScale(forward, 128, offset);
+        Math3D.VectorAdd(location, offset, offset);
+        newThing.s.origin = offset;
+        newThing.s.angles[Defines.YAW] = creator.s.angles[Defines.YAW];
+    }
+
+    /**
+     * Makes sense only for point entities
+     */
+    public static void createEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {
+        // hack: join back all the arguments, quoting keys and values
+        // no comments are expected here
+        String entities = args.stream()
+                .skip(1)
+                .filter(s -> !s.equals("}") && !s.equals("{"))
+                .map(s -> '"' + s + '"')
+                .collect(Collectors.joining(" ", "{", "}"));
+
+        // actually we expect 1 entity
+        EntityParserKt.parseEntities(entities).forEach(entity -> {
+            SubgameEntity newThing = gameExports.G_Spawn();
+            entity.forEach((key, value) -> ED_ParseField(key, value, newThing, gameExports));
+            putInFrontOfCreator(creator, newThing);
+            ED_CallSpawn(newThing, gameExports);
+        });
     }
 }

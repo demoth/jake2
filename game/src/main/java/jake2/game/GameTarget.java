@@ -147,6 +147,16 @@ class GameTarget {
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
+    /**
+     * QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8) Creates a particle splash
+     * effect when used.
+     *
+     * Set "sounds" to one of the following: 1) sparks 2) blue water 3) brown
+     * water 4) slime 5) lava 6) blood
+     *
+     * "count" how many pixels in the splash "dmg" if set, does a radius damage
+     * at this location when it splashes useful for lava/sparks
+     */
     static void SP_target_splash(SubgameEntity self) {
         self.use = use_target_splash;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
@@ -449,16 +459,6 @@ class GameTarget {
         }
     };
 
-    /**
-     * QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8) Creates a particle splash
-     * effect when used.
-     * 
-     * Set "sounds" to one of the following: 1) sparks 2) blue water 3) brown
-     * water 4) slime 5) lava 6) blood
-     * 
-     * "count" how many pixels in the splash "dmg" if set, does a radius damage
-     * at this location when it splashes useful for lava/sparks
-     */
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
@@ -480,7 +480,6 @@ class GameTarget {
      * For gibs: Set direction if you want it moving and speed how fast it
      * should be moving otherwise it will just be dropped
      */
-
     private static EntUseAdapter use_target_spawner = new EntUseAdapter() {
     	public String getID() { return "use_target_spawner"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
