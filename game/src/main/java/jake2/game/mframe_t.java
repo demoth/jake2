@@ -29,34 +29,40 @@ import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 
-public class mframe_t
-{
-	public mframe_t(AIAdapter ai, float dist, EntThinkAdapter think)
-	{
-		this.ai= ai;
-		this.dist= dist;
-		this.think= think;
-	}
-	
-	/** Empty constructor. */	
-	public mframe_t()
-	{}
+/**
+ * Represents a single time frame of a monster.
+ * Combined into {@link mmove_t} to form a state
+ */
+public class mframe_t {
+	/**
+	 *
+	 * @param ai - Function responsible for the intention of the actor - what to do (next)?
+	 * @param dist - Entity will be moved this amount of units along the direction of view this frame (can be negative)
+	 * @param think - a callback which is invoked this frame - like playing a sound or firing
+	 */
+	public mframe_t(AIAdapter ai, float dist, EntThinkAdapter think) {
+        this.ai = ai;
+        this.dist = dist;
+        this.think = think;
+    }
 
-	public AIAdapter ai;
-	public float dist;
-	public EntThinkAdapter think;
+    public mframe_t() {
+    }
 
-	public void write(QuakeFile f) throws IOException
-	{
-		SuperAdapter.writeAdapter(f, ai);
-		f.writeFloat(dist);
-		SuperAdapter.writeAdapter(f, think);
-	}
+    public AIAdapter ai;
+    public float dist;
 
-	public void read(QuakeFile f) throws IOException
-	{
-		ai= (AIAdapter) SuperAdapter.readAdapter(f);
-		dist= f.readFloat();
-		think= (EntThinkAdapter) SuperAdapter.readAdapter(f);
-	}
+    public EntThinkAdapter think;
+
+    public void write(QuakeFile f) throws IOException {
+        SuperAdapter.writeAdapter(f, ai);
+        f.writeFloat(dist);
+        SuperAdapter.writeAdapter(f, think);
+    }
+
+    public void read(QuakeFile f) throws IOException {
+        ai = (AIAdapter) SuperAdapter.readAdapter(f);
+        dist = f.readFloat();
+        think = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+    }
 }

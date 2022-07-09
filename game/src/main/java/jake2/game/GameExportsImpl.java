@@ -67,7 +67,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.PlayerHud",
                     "jake2.game.PlayerTrail",
                     "jake2.game.PlayerView",
-                    "jake2.game.monsters.M_Actor",
                     "jake2.game.monsters.M_Berserk",
                     "jake2.game.monsters.M_Hornet",
                     "jake2.game.monsters.M_Makron_Idle",

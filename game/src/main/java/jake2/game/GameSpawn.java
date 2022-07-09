@@ -689,16 +689,6 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_actor", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_actor";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Actor.SP_target_actor(ent, gameExports);
-                return true;
-            }
-        });
         spawns.put("target_lightramp", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_lightramp";
@@ -858,16 +848,6 @@ public class GameSpawn {
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
                 GameMisc.SP_misc_satellite_dish(ent, gameExports);
                 return true;
-            }
-        });
-        spawns.put("misc_actor", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_actor";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Actor.SP_misc_actor(ent, gameExports);
-                return false;
             }
         });
         spawns.put("misc_gib_arm", new EntThinkAdapter() {

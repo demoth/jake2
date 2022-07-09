@@ -407,12 +407,11 @@ public final class M {
 
     //ok
     public static void M_MoveFrame(SubgameEntity self, GameExportsImpl gameExports) {
-        mmove_t move; //ptr
-        int index;
 
-        move = self.monsterinfo.currentmove;
+        mmove_t move = self.monsterinfo.currentmove;
         self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
+        // nextframe can override next state
         if ((self.monsterinfo.nextframe != 0)
                 && (self.monsterinfo.nextframe >= move.firstframe)
                 && (self.monsterinfo.nextframe <= move.lastframe)) {
@@ -444,16 +443,16 @@ public final class M {
             }
         }
 
-        index = self.s.frame - move.firstframe;
-        if (move.frame[index].ai != null)
+        int index = self.s.frame - move.firstframe;
+        if (move.frames[index].ai != null)
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
-                move.frame[index].ai.ai(self, move.frame[index].dist
+                move.frames[index].ai.ai(self, move.frames[index].dist
                         * self.monsterinfo.scale, gameExports);
             else
-                move.frame[index].ai.ai(self, 0, gameExports);
+                move.frames[index].ai.ai(self, 0, gameExports);
 
-        if (move.frame[index].think != null)
-            move.frame[index].think.think(self, gameExports);
+        if (move.frames[index].think != null)
+            move.frames[index].think.think(self, gameExports);
     }
 
     /** Stops the Flies. */

@@ -57,10 +57,10 @@ public abstract class Model extends Surf {
 	byte[] mod_novis = new byte[Defines.MAX_MAP_LEAFS/8];
 
 	static final int MAX_MOD_KNOWN = 512;
-	model_t[] mod_known = new model_t[MAX_MOD_KNOWN];
+	model_t[] mod_known = new model_t[MAX_MOD_KNOWN]; //todo: replace with a List<>
 	int mod_numknown;
 
-	// the inline * models from the current map are kept seperate
+	// the inline * models from the current map are kept separate
 	model_t[] mod_inline = new model_t[MAX_MOD_KNOWN];
 	
 	abstract void GL_SubdivideSurface(msurface_t surface); // Warp.java
@@ -163,31 +163,6 @@ public abstract class Model extends Surf {
 //	  ===============================================================================
 
 	/*
-	================
-	Mod_Modellist_f
-	================
-	*/
-	void Mod_Modellist_f()
-	{
-		int i;
-		model_t	mod;
-		int total;
-
-		total = 0;
-		Com.Printf(Defines.PRINT_ALL,"Loaded models:\n");
-		for (i=0; i < mod_numknown ; i++)
-		{
-			mod = mod_known[i];
-			if (mod.name.length() == 0)
-				continue;
-
-			Com.Printf (Defines.PRINT_ALL, "%8i : %s\n", new Vargs(2).add(mod.extradatasize).add(mod.name));
-			total += mod.extradatasize;
-		}
-		Com.Printf (Defines.PRINT_ALL, "Total resident: " + total +'\n');
-	}
-
-	/*
 	===============
 	Mod_Init
 	===============
@@ -210,6 +185,7 @@ public abstract class Model extends Surf {
 	Loads in a model for the given name
 	==================
 	*/
+	// todo: replace with constructor calls
 	model_t Mod_ForName(String name, boolean crash)
 	{
 		model_t mod = null;
@@ -941,7 +917,7 @@ public abstract class Model extends Surf {
 		qfiles.dheader_t	header;
 		mmodel_t bm;
 	
-		loadmodel.type = mod_brush;
+		loadmodel.type = ModelType.BRUSH;
 		if (loadmodel != mod_known[0])
 			Com.Error(Defines.ERR_DROP, "Loaded a brush model after the world");
 
@@ -1009,116 +985,25 @@ public abstract class Model extends Surf {
 	Mod_LoadAliasModel
 	=================
 	*/
-	void Mod_LoadAliasModel (model_t mod, ByteBuffer buffer)
-	{
-		int i;
-		qfiles.dmdl_t pheader;
-		qfiles.dstvert_t[] poutst;
-		qfiles.dtriangle_t[] pouttri;
-		qfiles.daliasframe_t[] poutframe;
-		int[] poutcmd;
+	// todo: replace with a constructor call (model_t)
+	void Mod_LoadAliasModel(model_t mod, ByteBuffer buffer) {
+		qfiles.Md2Model md2Model = new qfiles.Md2Model(buffer, mod.name);
 
-		pheader = new qfiles.dmdl_t(buffer);
-
-		if (pheader.version != qfiles.ALIAS_VERSION)
-			Com.Error(Defines.ERR_DROP, "%s has wrong version number (%i should be %i)",
-					 new Vargs(3).add(mod.name).add(pheader.version).add(qfiles.ALIAS_VERSION));
-
-		if (pheader.skinheight > MAX_LBM_HEIGHT)
-			Com.Error(Defines.ERR_DROP, "model "+ mod.name +" has a skin taller than " + MAX_LBM_HEIGHT);
-
-		if (pheader.num_xyz <= 0)
-			Com.Error(Defines.ERR_DROP, "model " + mod.name + " has no vertices");
-
-		if (pheader.num_xyz > qfiles.MAX_VERTS)
-			Com.Error(Defines.ERR_DROP, "model " + mod.name +" has too many vertices");
-
-		if (pheader.num_st <= 0)
-			Com.Error(Defines.ERR_DROP, "model " + mod.name + " has no st vertices");
-
-		if (pheader.num_tris <= 0)
-			Com.Error(Defines.ERR_DROP, "model " + mod.name + " has no triangles");
-
-		if (pheader.num_frames <= 0)
-			Com.Error(Defines.ERR_DROP, "model " + mod.name + " has no frames");
-
-		//
-		// load base s and t vertices (not used in gl version)
-		//
-		poutst = new qfiles.dstvert_t[pheader.num_st]; 
-		buffer.position(pheader.ofs_st);
-		for (i=0 ; i<pheader.num_st ; i++)
-		{
-			poutst[i] = new qfiles.dstvert_t(buffer);
-		} 
-
-		//
-		//	   load triangle lists
-		//
-		pouttri = new qfiles.dtriangle_t[pheader.num_tris];
-		buffer.position(pheader.ofs_tris);
-		for (i=0 ; i<pheader.num_tris ; i++)
-		{
-			pouttri[i] = new qfiles.dtriangle_t(buffer);
+		for (int i = 0; i < md2Model.skinNames.length; i++) {
+			mod.skins[i] = GL_FindImage(md2Model.skinNames[i], it_skin);
 		}
 
-		//
-		//	   load the frames
-		//
-		poutframe = new qfiles.daliasframe_t[pheader.num_frames];
-		buffer.position(pheader.ofs_frames);
-		for (i=0 ; i<pheader.num_frames ; i++)
-		{
-			poutframe[i] = new qfiles.daliasframe_t(buffer);
-			// verts are all 8 bit, so no swapping needed
-			poutframe[i].verts = new int[pheader.num_xyz];
-			for (int k=0; k < pheader.num_xyz; k++) {
-				poutframe[i].verts[k] = buffer.getInt();	
-			}
-		}
+		mod.type = ModelType.MD2;
+		mod.extradata = md2Model;
 
-		mod.type = mod_alias;
-
-		//
-		// load the glcmds
-		//
-		poutcmd = new int[pheader.num_glcmds];
-		buffer.position(pheader.ofs_glcmds);
-		for (i=0 ; i<pheader.num_glcmds ; i++)
-			poutcmd[i] = buffer.getInt(); // LittleLong (pincmd[i]);
-
-		// register all skins
-		String[] skinNames = new String[pheader.num_skins];
-		byte[] nameBuf = new byte[qfiles.MAX_SKINNAME];
-		buffer.position(pheader.ofs_skins);
-		for (i=0 ; i<pheader.num_skins ; i++)
-		{
-			buffer.get(nameBuf);
-			skinNames[i] = new String(nameBuf);
-			int n = skinNames[i].indexOf('\0');
-			if (n > -1) {
-				skinNames[i] = skinNames[i].substring(0, n);
-			}	
-			mod.skins[i] = GL_FindImage(skinNames[i], it_skin);
-		}
-		
-		// set the model arrays
-		pheader.skinNames = skinNames; // skin names
-		pheader.stVerts = poutst; // textur koordinaten
-		pheader.triAngles = pouttri; // dreiecke
-		pheader.glCmds = poutcmd; // STRIP or FAN
-		pheader.aliasFrames = poutframe; // frames mit vertex array
-		
-		mod.extradata = pheader;
-			
 		mod.mins[0] = -32;
 		mod.mins[1] = -32;
 		mod.mins[2] = -32;
 		mod.maxs[0] = 32;
 		mod.maxs[1] = 32;
 		mod.maxs[2] = 32;
-		
-		precompileGLCmds(pheader);
+
+		precompileGLCmds(md2Model);
 	}
 
 	/*
@@ -1151,7 +1036,7 @@ public abstract class Model extends Surf {
 			mod.skins[i] = GL_FindImage(sprout.frames[i].name,	it_sprite);
 		}
 
-		mod.type = mod_sprite;
+		mod.type = ModelType.SPRITE;
 		mod.extradata = sprout;
 	}
 
@@ -1198,7 +1083,7 @@ public abstract class Model extends Surf {
 		model_t	mod = null;
 		int		i;
 		qfiles.dsprite_t sprout;
-		qfiles.dmdl_t pheader;
+		qfiles.Md2Model pheader;
 
 		mod = Mod_ForName(name, false);
 		if (mod != null)
@@ -1206,22 +1091,22 @@ public abstract class Model extends Surf {
 			mod.registration_sequence = registration_sequence;
 
 			// register any images used by the models
-			if (mod.type == mod_sprite)
+			if (mod.type == ModelType.SPRITE)
 			{
 				sprout = (qfiles.dsprite_t)mod.extradata;
 				for (i=0 ; i<sprout.numframes ; i++)
 					mod.skins[i] = GL_FindImage(sprout.frames[i].name, it_sprite);
 			}
-			else if (mod.type == mod_alias)
+			else if (mod.type == ModelType.MD2)
 			{
-				pheader = (qfiles.dmdl_t)mod.extradata;
+				pheader = (qfiles.Md2Model)mod.extradata;
 				for (i=0 ; i<pheader.num_skins ; i++)
 					mod.skins[i] = GL_FindImage(pheader.skinNames[i], it_skin);
 				// PGM
 				mod.numframes = pheader.num_frames;
 				// PGM
 			}
-			else if (mod.type == mod_brush)
+			else if (mod.type == ModelType.BRUSH)
 			{
 				for (i=0 ; i<mod.numtexinfo ; i++)
 					mod.texinfo[i].image.registration_sequence = registration_sequence;
@@ -1251,8 +1136,8 @@ public abstract class Model extends Surf {
 				Mod_Free(mod);
 			} else {
 				// precompile AliasModels
-				if (mod.type == mod_alias)
-					precompileGLCmds((qfiles.dmdl_t)mod.extradata);
+				if (mod.type == ModelType.MD2)
+					precompileGLCmds((qfiles.Md2Model)mod.extradata);
 			}
 		}
 		GL_FreeUnusedImages();
@@ -1294,7 +1179,7 @@ public abstract class Model extends Surf {
 	static FloatBuffer globalModelTextureCoordBuf = Lib.newFloatBuffer(MODEL_BUFFER_SIZE * 2);
 	static IntBuffer globalModelVertexIndexBuf = Lib.newIntBuffer(MODEL_BUFFER_SIZE);
 	
-	void precompileGLCmds(qfiles.dmdl_t model) {
+	void precompileGLCmds(qfiles.Md2Model model) {
 		model.textureCoordBuf = globalModelTextureCoordBuf.slice();
 		model.vertexIndexBuf = globalModelVertexIndexBuf.slice();
 		Vector tmp = new Vector();

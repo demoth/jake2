@@ -31,6 +31,9 @@ import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
 
+/**
+ * Common class for alias (md2) models, brushed and sprites
+ */
 public class model_t implements Cloneable {
 	
 	public String name = "";
@@ -38,7 +41,7 @@ public class model_t implements Cloneable {
 	public int registration_sequence;
 
 	// was enum modtype_t
-	public int type;
+	public Base.ModelType type;
 	public int numframes;
 
 	public int flags;
@@ -109,8 +112,7 @@ public class model_t implements Cloneable {
 		name = "";
 		registration_sequence = 0;
 
-		// was enum modtype_t
-		type = 0;
+		type = Base.ModelType.NULL;
 		numframes = 0;
 		flags = 0;
 

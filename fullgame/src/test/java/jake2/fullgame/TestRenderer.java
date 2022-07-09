@@ -202,7 +202,7 @@ public class TestRenderer {
         entity.origin[2] = 0;
         Math3D.VectorCopy(entity.origin, entity.oldorigin);
         entity.frame = (framecount / 3)
-        % ((qfiles.dmdl_t) entity.model.extradata).num_frames;
+        % ((qfiles.Md2Model) entity.model.extradata).num_frames;
         entity.oldframe = 0;
         entity.backlerp = 0.0f;
         yaw += KBD.mx;

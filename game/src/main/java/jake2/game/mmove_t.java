@@ -28,56 +28,50 @@ import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 
+/**
+ * Represents a state of animation: a collection of {@link mframe_t} and an end function.
+ */
 public class mmove_t {
 
-	public mmove_t(int firstframe, int lastframe, mframe_t frame[], EntThinkAdapter endfunc) {
-		
-		this.firstframe= firstframe;
-		this.lastframe= lastframe;
-		this.frame= frame;
-		// assert frame.length == lastframe - firstframe + 1;
-		this.endfunc= endfunc;
-	}
+    public mmove_t(int firstframe, int lastframe, mframe_t[] frames, EntThinkAdapter endfunc) {
 
-	public final int firstframe;
-	public final int lastframe;
-	public final mframe_t[] frame; //ptr
-	final EntThinkAdapter endfunc;
-	
+        this.firstframe = firstframe;
+        this.lastframe = lastframe;
+        this.frames = frames;
+        this.endfunc = endfunc;
 
-	/** Writes the structure to a random acccess file. */
-	public void write(QuakeFile f) throws IOException
-	{
-		f.writeInt(firstframe);
-		f.writeInt(lastframe);
-		if (frame == null)
-			f.writeInt(-1);
-		else 
-		{
-			f. writeInt(frame.length);
-			for (int n=0; n < frame.length; n++)
-				frame[n].write(f);
-		}
-		SuperAdapter.writeAdapter(f, endfunc);
-	}
-	
-	/** Read the mmove_t from the RandomAccessFile. */
-	public static mmove_t read(QuakeFile f) throws IOException
-	{
+        //assert frames.length == lastframe - firstframe + 1;
+    }
 
-		int firstframe = f.readInt();
-		int lastframe = f.readInt();
-		
-		int len = f.readInt();
-		
-		mframe_t[] frame = new mframe_t[len];
-		for (int n=0; n < len ; n++)
-		{			
-			frame[n] = new mframe_t();
-			frame[n].read(f);
-		}
-		EntThinkAdapter endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+    public final int firstframe;
+    public final int lastframe;
 
-		return new mmove_t(firstframe, lastframe, frame, endfunc);
-	}
+    public final mframe_t[] frames;
+    final EntThinkAdapter endfunc;
+
+    public void write(QuakeFile f) throws IOException {
+        f.writeInt(firstframe);
+        f.writeInt(lastframe);
+        f.writeInt(frames.length);
+        for (mframe_t frame : frames)
+            frame.write(f);
+        SuperAdapter.writeAdapter(f, endfunc);
+    }
+
+    public static mmove_t read(QuakeFile f) throws IOException {
+
+        int firstframe = f.readInt();
+        int lastframe = f.readInt();
+
+        int len = f.readInt();
+
+        mframe_t[] frame = new mframe_t[len];
+        for (int n = 0; n < len; n++) {
+            frame[n] = new mframe_t();
+            frame[n].read(f);
+        }
+        EntThinkAdapter endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+
+        return new mmove_t(firstframe, lastframe, frame, endfunc);
+    }
 }

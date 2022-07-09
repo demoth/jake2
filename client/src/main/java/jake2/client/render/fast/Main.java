@@ -78,7 +78,6 @@ public abstract class Main extends Base {
 	abstract void GL_SetTexturePalette(int[] palette);
 	abstract void GL_Strings_f();
 
-	abstract void Mod_Modellist_f();
 	abstract mleaf_t Mod_PointInLeaf(float[] point, model_t model);
 
 	abstract void GL_SetDefaultState();
@@ -410,13 +409,13 @@ public abstract class Main extends Base {
 					continue;
 				}
 				switch (currentmodel.type) {
-					case mod_alias :
+					case MD2:
 						R_DrawAliasModel(currententity);
 						break;
-					case mod_brush :
+					case BRUSH:
 						R_DrawBrushModel(currententity);
 						break;
-					case mod_sprite :
+					case SPRITE:
 						R_DrawSpriteModel(currententity);
 						break;
 					default :
@@ -444,13 +443,13 @@ public abstract class Main extends Base {
 					continue;
 				}
 				switch (currentmodel.type) {
-					case mod_alias :
+					case MD2:
 						R_DrawAliasModel(currententity);
 						break;
-					case mod_brush :
+					case BRUSH:
 						R_DrawBrushModel(currententity);
 						break;
-					case mod_sprite :
+					case SPRITE:
 						R_DrawSpriteModel(currententity);
 						break;
 					default :
@@ -1013,7 +1012,6 @@ public abstract class Main extends Base {
 
 		Cmd.AddCommand("imagelist", (List<String> args) -> GL_ImageList_f());
 		Cmd.AddCommand("screenshot", (List<String> args) -> glImpl.screenshot());
-		Cmd.AddCommand("modellist", (List<String> args) -> Mod_Modellist_f());
 		Cmd.AddCommand("gl_strings", (List<String> args) -> GL_Strings_f());
 	}
 

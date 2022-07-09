@@ -854,7 +854,7 @@ public final class CL {
     static void RequestNextDownload() {
         int map_checksum = 0; // for detecting cheater maps
 
-        qfiles.dmdl_t pheader;
+        qfiles.Md2Model pheader;
 
         if (ClientGlobals.cls.state != Defines.ca_connected)
             return;
@@ -919,7 +919,7 @@ public final class CL {
                             CL.precache_check++;
                             continue;
                         }
-                        pheader = new qfiles.dmdl_t(ByteBuffer.wrap(
+                        pheader = new qfiles.Md2Model(ByteBuffer.wrap(
                                 CL.precache_model).order(
                                 ByteOrder.LITTLE_ENDIAN));
                         if (pheader.version != Defines.ALIAS_VERSION) {
@@ -929,7 +929,7 @@ public final class CL {
                         }
                     }
 
-                    pheader = new qfiles.dmdl_t(ByteBuffer.wrap(
+                    pheader = new qfiles.Md2Model(ByteBuffer.wrap(
                             CL.precache_model).order(ByteOrder.LITTLE_ENDIAN));
 
                     int num_skins = pheader.num_skins;
@@ -939,7 +939,7 @@ public final class CL {
                         // mess!\n");
 
                         String name = Lib.CtoJava(CL.precache_model,
-                                pheader.ofs_skins
+                                pheader.skinsOffset
                                         + (CL.precache_model_skin - 1)
                                         * Defines.MAX_SKINNAME,
                                 Defines.MAX_SKINNAME * num_skins);

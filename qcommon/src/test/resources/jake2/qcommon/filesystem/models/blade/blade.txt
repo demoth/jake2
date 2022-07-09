@@ -1,0 +1,92 @@
+
+10/11/98
+================================================================
+Model Name              : Tekkaman Blade
+installation directory  : quake2/baseq2/players/tekk-blade
+Author                  : Michael 'Magarnigal' Mellor
+			  homepage at http://magarn.3dpalette.com
+
+
+Skin Author(s)          : FIX created all blade skins included - no, he DOES NOT do tc/clan
+			  requests and don't mail him asking 'how do u make yer skins'
+			  email		: ogro_fix@yahoo.com
+			  homepage	: http://www.fondation.com/pandemonium
+
+
+My Email Address        : mellor@iaccess.com.au
+
+
+Model description       : It's the popular anime character, Tekkaman Blade.
+			  
+
+
+Other info              : Please note:  I will not take any model/clan/tc requests.
+			    
+
+Additional Credits to   : id software.  FIX, for once again coming through with brilliant skin
+			  work.  The guy is invaluable.  
+			  Howzer and Faxmodem for ideas and criticisms - however baseless and
+			  irrelevant :))
+
+
+
+================================================================
+* Play Information *
+
+New Sounds              : no
+
+CTF Skins               : no    
+VWEP Support            : no, could work tho
+
+
+* Construction *
+Poly Counts
+Tris.md2		: 756
+weapon.md2		: 44
+
+Vert Counts
+tris.md2		: 457
+weapon.md2		: 28
+
+Skin Count              : 9  
+Base                    : new model
+
+Editors used:-
+
+Modelling/animation	: Lightwave 5.5 
+
+Converting/clean-up	: QME, Q2modeler
+
+Skinning/mapping	: NST
+
+Bugs/comments/excuses   : The model is approx 3 heads taller than the standard male, This was a
+			  specification by the clan who I was building it for at the time.  
+			  Serious bounding box issue here people.  So watch out if you attempt 
+			  to shoot him in the head, and when he is crouched...well, we won't go 
+			  into that.     
+			  The feet become quite jittery in a lot of scenes, I've got to find a 
+			  better way of grounding the feet in lightwave...any suggestions?  
+			  Thankfully, with Quake2's interpolation, all small jitters become 
+			  unnoticeable in-game.  
+
+			  Please don't neglect importing the weapon.md2  The animations look
+			  rather strange without it.  
+			  
+			  A note to skinners: I wouldn't attempt to skin this thing unless you 
+			  paint directly onto the model using a program like NST.  Due to the 
+			  segmentedness (?)  of the model, the baseframe is seriously disjointed.  
+
+
+Build/Animation time    : a few weeks, on an off.  
+
+
+* How to use this model *
+
+extract to quake2\baseq2\players\tekk-blade  run quake2, kill things.    
+
+
+* Copyright / Permissions *
+
+QUAKE(R) and QUAKE II(R) are registered trademarks of id Software, Inc.
+
+All rights reserved.  

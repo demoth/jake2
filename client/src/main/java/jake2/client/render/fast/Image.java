@@ -1442,7 +1442,7 @@ public abstract class Image extends Main {
 		return image;
 	}
     
-    Map imageCache = new HashMap(MAX_GLTEXTURES);
+    Map<String, image_t> imageCache = new HashMap<>(MAX_GLTEXTURES);
 
 	/*
 	===============
@@ -1457,7 +1457,7 @@ public abstract class Image extends Main {
 			return null;
         
         // look for it
-        image_t image = (image_t) imageCache.get(name);
+        image_t image = imageCache.get(name);
         if (image != null) {
             image.registration_sequence = registration_sequence;
             return image;

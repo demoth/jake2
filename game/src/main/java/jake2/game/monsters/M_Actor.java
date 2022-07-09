@@ -16,7 +16,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  * Place - Suite 330, Boston, MA 02111-1307, USA.
  *  
- */
+ *//*
+
 
 // Created on 11.11.2003 by RST.
 // $Id: M_Actor.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
@@ -1381,7 +1382,8 @@ public class M_Actor {
         }
     };
 
-    /*
+    */
+/*
      * QUAKED target_actor (.5 .3 0) (-8 -8 -8) (8 8 8) JUMP SHOOT ATTACK x HOLD
      * BRUTAL JUMP jump in set direction upon reaching this target SHOOT take a
      * single shot at the pathtarget ATTACK attack pathtarget until it or actor
@@ -1393,7 +1395,8 @@ public class M_Actor {
      * 
      * for JUMP only: "speed" speed thrown forward (default 200) "height" speed
      * thrown upwards (default 200)
-     */
+     *//*
+
 
     static EntTouchAdapter target_actor_touch = new EntTouchAdapter() {
         public String getID() { return "target_actor_touch";}
@@ -1510,9 +1513,11 @@ public class M_Actor {
                 Defines.MZ2_ACTOR_MACHINEGUN_1, gameExports);
     }
 
-    /**
+    */
+/**
      * QUAKED misc_actor (1 .5 0) (-16 -16 -24) (16 16 32)
-     */
+     *//*
+
 
     public static void SP_misc_actor(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
@@ -1593,3 +1598,4 @@ public class M_Actor {
         gameExports.gameImports.linkentity(self);
     }
 }
+*/

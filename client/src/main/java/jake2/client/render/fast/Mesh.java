@@ -246,12 +246,12 @@ public abstract class Mesh extends Light {
      * interpolates between two frames and origins FIXME: batch lerp all
      * vertexes
      */
-    void GL_DrawAliasFrameLerp(qfiles.dmdl_t paliashdr, float backlerp) {
-		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
+    void GL_DrawAliasFrameLerp(qfiles.Md2Model paliashdr, float backlerp) {
+		qfiles.Md2Frame frame = paliashdr.frames[currententity.frame];
 	
 		int[] verts = frame.verts;
 	
-		qfiles.daliasframe_t oldframe = paliashdr.aliasFrames[currententity.oldframe];
+		qfiles.Md2Frame oldframe = paliashdr.frames[currententity.oldframe];
 	
 		int[] ov = oldframe.verts;
 	
@@ -291,7 +291,7 @@ public abstract class Mesh extends Light {
 	
 		// ab hier wird optimiert
 	
-		GL_LerpVerts(paliashdr.num_xyz, ov, verts, move, frontv, backv);
+		GL_LerpVerts(paliashdr.num_vertices, ov, verts, move, frontv, backv);
 	
 		// gl.gl.glEnableClientState( GL_VERTEX_ARRAY );
 		gl.glVertexPointer(3, 0, vertexArrayBuf);
@@ -311,7 +311,7 @@ public abstract class Mesh extends Light {
 		    //
 		    FloatBuffer color = colorArrayBuf;
 		    float l;
-		    int size = paliashdr.num_xyz;
+		    int size = paliashdr.num_vertices;
 		    int j = 0;
 		    for (int i = 0; i < size; i++) {
 			l = shadedots[(verts[i] >>> 24) & 0xFF];
@@ -407,7 +407,7 @@ public abstract class Mesh extends Light {
     /**
      * GL_DrawAliasShadow
      */
-    void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum) {
+    void GL_DrawAliasShadow(qfiles.Md2Model paliashdr, int posenum) {
 	float lheight = currententity.origin[2] - lightspot[2];
 	int[] order = paliashdr.glCmds;
 	float height = -lheight + 1.0f;
@@ -458,7 +458,7 @@ public abstract class Mesh extends Light {
      * R_CullAliasModel
      */
     boolean R_CullAliasModel(entity_t e) {
-	qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
+	qfiles.Md2Model paliashdr = (qfiles.Md2Model) currentmodel.extradata;
 
 	if ((e.frame >= paliashdr.num_frames) || (e.frame < 0)) {
 	    Com.Printf(Defines.PRINT_ALL, "R_CullAliasModel "
@@ -472,8 +472,8 @@ public abstract class Mesh extends Light {
 	    e.oldframe = 0;
 	}
 
-	qfiles.daliasframe_t pframe = paliashdr.aliasFrames[e.frame];
-	qfiles.daliasframe_t poldframe = paliashdr.aliasFrames[e.oldframe];
+	qfiles.Md2Frame pframe = paliashdr.frames[e.frame];
+	qfiles.Md2Frame poldframe = paliashdr.frames[e.oldframe];
 
 	/*
 	 * * compute axially aligned mins and maxs
@@ -585,7 +585,7 @@ public abstract class Mesh extends Light {
 		return;
 	}
 
-	qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
+	qfiles.Md2Model paliashdr = (qfiles.Md2Model) currentmodel.extradata;
 
 	//
 	// get lighting information

@@ -66,14 +66,12 @@ public abstract class Base implements QGLConst, RenderAPI {
 
     public static final int it_sky = 4;
 
-    // enum modtype_t
-    public static final int mod_bad = 0;
-
-    public static final int mod_brush = 1;
-
-    public static final int mod_sprite = 2;
-
-    public static final int mod_alias = 3;
+    public enum ModelType {
+        NULL,
+        BRUSH,
+        SPRITE,
+        MD2,
+    }
 
     public static final int TEXNUM_LIGHTMAPS = 1024;
 

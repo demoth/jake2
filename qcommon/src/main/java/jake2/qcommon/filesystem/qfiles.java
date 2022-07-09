@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon.filesystem;
 
+import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.lump_t;
 
@@ -207,81 +208,106 @@ public class qfiles {
 	public static final int DTRIVERTX_V2 = 2;
 	public static final int DTRIVERTX_LNI = 3;
 	public static final int DTRIVERTX_SIZE = 4;
-	
-	public static class  daliasframe_t {
+
+	/**
+	 * daliasframe_t
+	 * A frame in the MD2 model
+	 */
+	public static class Md2Frame {
 		public float[] scale = {0, 0, 0}; // multiply byte verts by this
-		public float[] translate = {0, 0, 0};	// then add this
+		public float[] translate = {0, 0, 0};    // then add this
 		public String name; // frame name from grabbing (size 16)
-		public int[] verts;	// variable sized
-		
-		public daliasframe_t(ByteBuffer b) {
-			scale[0] = b.getFloat();	scale[1] = b.getFloat();	scale[2] = b.getFloat();
-			translate[0] = b.getFloat(); translate[1] = b.getFloat(); translate[2] = b.getFloat();
+		public int[] verts;
+
+		public Md2Frame(ByteBuffer buffer, int num_xyz) {
+			scale[0] = buffer.getFloat();
+			scale[1] = buffer.getFloat();
+			scale[2] = buffer.getFloat();
+			translate[0] = buffer.getFloat();
+			translate[1] = buffer.getFloat();
+			translate[2] = buffer.getFloat();
 			byte[] nameBuf = new byte[16];
-			b.get(nameBuf);
+			buffer.get(nameBuf);
 			name = new String(nameBuf).trim();
+
+			// vertices are all 8 bit, so no swapping needed
+			verts = new int[num_xyz];
+			for (int k = 0; k < num_xyz; k++) {
+				verts[k] = buffer.getInt();
+			}
 		}
 	}
-	
-	//	   the glcmd format:
-	//	   a positive integer starts a tristrip command, followed by that many
-	//	   vertex structures.
-	//	   a negative integer starts a trifan command, followed by -x vertexes
-	//	   a zero indicates the end of the command list.
-	//	   a vertex consists of a floating point s, a floating point t,
-	//	   and an integer vertex index.
-	
-	public static class dmdl_t {
-		int ident;
+
+	/**
+	 * MD2 (quake2) model (previously named dmdl_t)
+	 * Header section contains size information (how many vertices, frames, skins, etc)
+	 * and byte offsets to the respective sections.
+	 * Body section are the data arrays.
+	 *
+	 * The GL commands (glcmd) format:
+	 * <ul>
+	 *   <li> positive integer starts a tristrip command, followed by that many vertex structures.</li>
+	 * 	 <li> negative integer starts a trifan command, followed by -x vertexes</li>
+	 * 	 <li> zero indicates the end of the command list.</li>
+	 * </ul>
+	 * <p/>
+	 * A vertex consists of a floating point s, a floating point and an integer vertex index.
+	 */
+	public static class Md2Model {
+
+		// Header
+		public int ident;
 		public int version;
-
-		int skinwidth;
-		public int skinheight;
-		int framesize; // byte size of each frame
-
 		public int num_skins;
-		public int num_xyz;
-		public int num_st; // greater than num_xyz for seams
+		public int num_vertices;
+
 		public int num_tris;
 		public int num_glcmds; // dwords in strip/fan command list
 		public int num_frames;
 
-		public int ofs_skins; // each skin is a MAX_SKINNAME string
-		public int ofs_st; // byte offset from start for stverts
-		public int ofs_tris; // offset for dtriangles
-		public int ofs_frames; // offset for first frame
-		public int ofs_glcmds;
-		int ofs_end; // end of file
-		
-		// wird extra gebraucht
+		// each skin is a MAX_SKINNAME string
+		public int skinsOffset;
+		public int firstFrameOffset;
+		public int glCommandsOffset;
+		int endOfFileOffset; // end of file
+
+		// Body
 		public String[] skinNames;
-		public dstvert_t[] stVerts;
-		public dtriangle_t[] triAngles;
 		public int[] glCmds;
-		public daliasframe_t[] aliasFrames;
-		
-		
-		public dmdl_t(ByteBuffer b) {
+		// all frames have vertex array of equal size (num_xyz)
+		public Md2Frame[] frames;
+
+
+		/**
+		 * Reads md2 header
+		 */
+		public Md2Model(ByteBuffer b) {
 			ident = b.getInt();
 			version = b.getInt();
 
-			skinwidth = b.getInt();
-			skinheight = b.getInt();
-			framesize = b.getInt(); // byte size of each frame
+			b.getInt(); // skinwidth
+			b.getInt(); // skinheight
+			b.getInt(); // framesize: byte size of each frame
 
 			num_skins = b.getInt();
-			num_xyz = b.getInt();
-			num_st = b.getInt(); // greater than num_xyz for seams
+			num_vertices = b.getInt();
+			b.getInt(); //num_st: greater than num_xyz for seams, parsed into dstvert_t
 			num_tris = b.getInt();
 			num_glcmds = b.getInt(); // dwords in strip/fan command list
 			num_frames = b.getInt();
 
-			ofs_skins = b.getInt(); // each skin is a MAX_SKINNAME string
-			ofs_st = b.getInt(); // byte offset from start for stverts
-			ofs_tris = b.getInt(); // offset for dtriangles
-			ofs_frames = b.getInt(); // offset for first frame
-			ofs_glcmds = b.getInt();
-			ofs_end = b.getInt(); // end of file
+			skinsOffset = b.getInt(); // each skin is a MAX_SKINNAME string
+			b.getInt(); // offset from start until dstvert_t[]
+			b.getInt(); // offset from start until dtriangles[]
+			firstFrameOffset = b.getInt(); // offset for first frame
+			glCommandsOffset = b.getInt();
+			endOfFileOffset = b.getInt(); // end of file
+		}
+
+		public Md2Model(ByteBuffer b, String modelName) {
+			this(b);
+			validateMd2Header(modelName);
+			loadBody(b);
 		}
 
 		/*
@@ -291,6 +317,55 @@ public class qfiles {
 		public IntBuffer vertexIndexBuf = null;
 		public int[] counts = null;
 		public IntBuffer[] indexElements = null;
+
+		/**
+		 * Loads the bulk of the data
+		 */
+		private void loadBody(ByteBuffer buffer) {
+			//
+			//	   load the frames
+			//
+			frames = new qfiles.Md2Frame[num_frames];
+			buffer.position(firstFrameOffset);
+			for (int i = 0; i < num_frames; i++) {
+				frames[i] = new qfiles.Md2Frame(buffer, num_vertices);
+			}
+
+			//
+			// load the glcmds
+			// STRIP or FAN
+			glCmds = new int[num_glcmds];
+			buffer.position(glCommandsOffset);
+			for (int i = 0; i < num_glcmds; i++) {
+				glCmds[i] = buffer.getInt();
+			}
+
+			skinNames = new String[num_skins];
+			byte[] nameBuf = new byte[qfiles.MAX_SKINNAME];
+			buffer.position(skinsOffset);
+			for (int i = 0; i < num_skins; i++) {
+				buffer.get(nameBuf);
+				skinNames[i] = new String(nameBuf);
+				int n = skinNames[i].indexOf('\0');
+				if (n > -1) {
+					skinNames[i] = skinNames[i].substring(0, n);
+				}
+			}
+		}
+
+		private void validateMd2Header(String modelName) {
+			// todo: switch to exceptions instead
+			if (ident != qfiles.IDALIASHEADER)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong magic number " + version + ", expected: " + qfiles.IDALIASHEADER);
+			if (version != ALIAS_VERSION)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong version number " + version + ", expected: " + ALIAS_VERSION);
+			if (num_vertices <= 0)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has no vertices");
+			if (num_vertices > MAX_VERTS)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has too many vertices");
+			if (num_frames <= 0)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has no frames");
+		}
 	}
 	
 	/*
