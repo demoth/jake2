@@ -168,10 +168,7 @@ public class qfiles {
 	
 	========================================================================
 	*/
-	
-	public static final int IDALIASHEADER =	(('2'<<24)+('P'<<16)+('D'<<8)+'I');
-	public static final int ALIAS_VERSION = 8;
-	
+
 	public static final int MAX_TRIANGLES = 4096;
 	public static final int MAX_VERTS = 2048;
 	public static final int MAX_FRAMES = 512;
@@ -209,10 +206,13 @@ public class qfiles {
 
 	/**
 	 * MD2 (quake2) model (previously named dmdl_t)
+	 * <p/>
+	 * Also known as "alias model" in the code - named after the model editor originally used (PowerAnimator)
+	 * <p/>
 	 * Header section contains size information (how many vertices, frames, skins, etc)
 	 * and byte offsets to the respective sections.
 	 * Body section are the data arrays.
-	 *
+	 * <p/>
 	 * The GL commands (glcmd) format:
 	 * <ul>
 	 *   <li> positive integer starts a tristrip command, followed by that many vertex structures.</li>
@@ -223,7 +223,9 @@ public class qfiles {
 	 * A vertex consists of a floating point s, a floating point and an integer vertex index.
 	 */
 	public static class Md2Model {
-
+		// Little Endian IDP2
+		public static final int IDALIASHEADER =	(('2'<<24)+('P'<<16)+('D'<<8)+'I');
+		public static final int ALIAS_VERSION = 8;
 		// Header
 		public int ident;
 		public int version;
@@ -324,8 +326,8 @@ public class qfiles {
 
 		private void validateMd2Header(String modelName) {
 			// todo: switch to exceptions instead
-			if (ident != qfiles.IDALIASHEADER)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong magic number " + version + ", expected: " + qfiles.IDALIASHEADER);
+			if (ident != IDALIASHEADER)
+				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong magic number " + version + ", expected: " + IDALIASHEADER);
 			if (version != ALIAS_VERSION)
 				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong version number " + version + ", expected: " + ALIAS_VERSION);
 			if (num_vertices <= 0)
@@ -336,24 +338,18 @@ public class qfiles {
 				Com.Error(Defines.ERR_DROP, "model " + modelName + " has no frames");
 		}
 	}
-	
-	/*
-	========================================================================
-	
-	.SP2 sprite file format
-	
-	========================================================================
-	*/
-	// little-endian "IDS2"
-	public static final int IDSPRITEHEADER = (('2'<<24)+('S'<<16)+('D'<<8)+'I');
-	public static final int SPRITE_VERSION = 2;
 
-	public static class dsprframe_t {
-		public int width, height;
-		public int origin_x, origin_y; // raster coordinates inside pic
-		public String name; // name of pcx file (MAX_SKINNAME)
-		
-		dsprframe_t(ByteBuffer b) {
+	public static class Sp2SpriteFrame {
+		public int width;
+		public int height;
+		// raster coordinates inside pic
+		public int origin_x;
+		public int origin_y;
+		// name of pcx file (MAX_SKINNAME=64 bytes)
+		public String imageFileName;
+
+		// assume Little endian format
+		Sp2SpriteFrame(ByteBuffer b) {
 			width = b.getInt();
 			height = b.getInt();
 			origin_x = b.getInt();
@@ -361,25 +357,44 @@ public class qfiles {
 			
 			byte[] nameBuf = new byte[MAX_SKINNAME];
 			b.get(nameBuf);
-			name = new String(nameBuf).trim();
+			imageFileName = new String(nameBuf).trim();
 		}
 	}
 
-	public static class dsprite_t {
+	/**
+	 * dsprite_t
+	 *
+	 * Sp2 file don't actually contain image data, only metadata like width/height/location of a frame in the linked .pcx file
+	 */
+	public static class Sp2Sprite {
+		// little-endian "IDS2"
+		public static final int IDSPRITEHEADER = (('2'<<24)+('S'<<16)+('D'<<8)+'I');
+		public static final int SPRITE_VERSION = 2;
 		int ident;
 		public int version;
 		public int numframes;
-		public dsprframe_t frames[]; // variable sized
-		
-		public dsprite_t(ByteBuffer b) {
+		public Sp2SpriteFrame[] frames;
+
+		// assume Little endian format
+		public Sp2Sprite(ByteBuffer b, String name) {
 			ident = b.getInt();
 			version = b.getInt();
 			numframes = b.getInt();
-			
-			frames = new dsprframe_t[numframes];
-			for (int i=0; i < numframes; i++) {
-				frames[i] = new dsprframe_t(b);	
+
+			frames = new Sp2SpriteFrame[numframes];
+			for (int i = 0; i < numframes; i++) {
+				frames[i] = new Sp2SpriteFrame(b);
 			}
+
+			if (version != qfiles.Sp2Sprite.SPRITE_VERSION) {
+				Com.Error(Defines.ERR_DROP, name + "has wrong version number " + version + ", expected: " + SPRITE_VERSION);
+			}
+
+			if (numframes > qfiles.MAX_MD2SKINS) {
+				Com.Error(Defines.ERR_DROP, name + "has too many frames " + numframes + ", expected < " + MAX_MD2SKINS);
+			}
+
+
 		}
 	}
 	

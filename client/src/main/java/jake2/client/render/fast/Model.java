@@ -33,7 +33,6 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -271,10 +270,10 @@ public abstract class Model extends Surf {
 		
 		switch (ident)
 		{
-		case qfiles.IDALIASHEADER:
+		case qfiles.Md2Model.IDALIASHEADER:
 			Mod_LoadAliasModel(mod, bb);
 			break;
-		case qfiles.IDSPRITEHEADER:
+		case qfiles.Sp2Sprite.IDSPRITEHEADER:
 			Mod_LoadSpriteModel(mod, bb);
 			break;
 		case qfiles.IDBSPHEADER:
@@ -1021,19 +1020,11 @@ public abstract class Model extends Surf {
 	*/
 	void Mod_LoadSpriteModel(model_t mod, ByteBuffer buffer)
 	{
-		qfiles.dsprite_t sprout = new qfiles.dsprite_t(buffer);
-		
-		if (sprout.version != qfiles.SPRITE_VERSION)
-			Com.Error(Defines.ERR_DROP, "%s has wrong version number (%i should be %i)",
-				new Vargs(3).add(mod.name).add(sprout.version).add(qfiles.SPRITE_VERSION));
-
-		if (sprout.numframes > qfiles.MAX_MD2SKINS)
-			Com.Error(Defines.ERR_DROP, "%s has too many frames (%i > %i)",
-				new Vargs(3).add(mod.name).add(sprout.numframes).add(qfiles.MAX_MD2SKINS));
+		qfiles.Sp2Sprite sprout = new qfiles.Sp2Sprite(buffer, mod.name);
 
 		for (int i=0 ; i<sprout.numframes ; i++)
 		{
-			mod.skins[i] = GL_FindImage(sprout.frames[i].name,	it_sprite);
+			mod.skins[i] = GL_FindImage(sprout.frames[i].imageFileName,	it_sprite);
 		}
 
 		mod.type = ModelType.SPRITE;
@@ -1082,7 +1073,7 @@ public abstract class Model extends Surf {
 	{
 		model_t	mod = null;
 		int		i;
-		qfiles.dsprite_t sprout;
+		qfiles.Sp2Sprite sprout;
 		qfiles.Md2Model pheader;
 
 		mod = Mod_ForName(name, false);
@@ -1093,9 +1084,9 @@ public abstract class Model extends Surf {
 			// register any images used by the models
 			if (mod.type == ModelType.SPRITE)
 			{
-				sprout = (qfiles.dsprite_t)mod.extradata;
+				sprout = (qfiles.Sp2Sprite)mod.extradata;
 				for (i=0 ; i<sprout.numframes ; i++)
-					mod.skins[i] = GL_FindImage(sprout.frames[i].name, it_sprite);
+					mod.skins[i] = GL_FindImage(sprout.frames[i].imageFileName, it_sprite);
 			}
 			else if (mod.type == ModelType.MD2)
 			{

@@ -19,8 +19,8 @@ class Md2ModelTest {
 
         val model = Md2Model(buffer, fileName)
 
-        assertEquals(ALIAS_VERSION, model.version)
-        assertEquals(IDALIASHEADER, model.ident)
+        assertEquals(Md2Model.ALIAS_VERSION, model.version)
+        assertEquals(Md2Model.IDALIASHEADER, model.ident)
         assertArrayEquals(arrayOf("players/tekk-blade/blade.pcx", "players/tekk-blade/blograde.pcx"), model.skinNames)
         assertEquals(4145, model.glCmds.size)
         assertEquals(200, model.frames.size)

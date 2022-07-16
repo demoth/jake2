@@ -912,7 +912,7 @@ public final class CL {
 
                         int header = bb.getInt();
 
-                        if (header != qfiles.IDALIASHEADER) {
+                        if (header != qfiles.Md2Model.IDALIASHEADER) {
                             // not an alias model
                             CL.precache_model = null;
                             CL.precache_model_skin = 0;

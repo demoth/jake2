@@ -276,13 +276,13 @@ public abstract class Main extends Base {
 	void R_DrawSpriteModel(entity_t e) {
 		float alpha = 1.0F;
 
-		qfiles.dsprframe_t frame;
-		qfiles.dsprite_t psprite;
+		qfiles.Sp2SpriteFrame frame;
+		qfiles.Sp2Sprite psprite;
 
 		// don't even bother culling, because it's just a single
 		// polygon without a surface cache
 
-		psprite = (qfiles.dsprite_t) currentmodel.extradata;
+		psprite = (qfiles.Sp2Sprite) currentmodel.extradata;
 
 		e.frame %= psprite.numframes;
 
