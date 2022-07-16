@@ -178,37 +178,6 @@ public class qfiles {
 	public static final int MAX_MD2SKINS = 32;
 	public static final int MAX_SKINNAME = 64;
 	
-	public static class dstvert_t {
-		public short s;
-		public short t;
-		
-		public dstvert_t(ByteBuffer b) {
-			s = b.getShort();
-			t = b.getShort();
-		}
-	}
-
-	public static class dtriangle_t {
-		short index_xyz[] = { 0, 0, 0 };
-		short index_st[] = { 0, 0, 0 };
-		
-		public dtriangle_t(ByteBuffer b) {
-			index_xyz[0] = b.getShort();
-			index_xyz[1] = b.getShort();
-			index_xyz[2] = b.getShort();
-			
-			index_st[0] = b.getShort();
-			index_st[1] = b.getShort();
-			index_st[2] = b.getShort();
-		}
-	}
-
-	public static final int DTRIVERTX_V0 =  0;
-	public static final int DTRIVERTX_V1 = 1;
-	public static final int DTRIVERTX_V2 = 2;
-	public static final int DTRIVERTX_LNI = 3;
-	public static final int DTRIVERTX_SIZE = 4;
-
 	/**
 	 * daliasframe_t
 	 * A frame in the MD2 model
