@@ -48,7 +48,7 @@ public class GameAI {
      */
     public static void ai_run_melee(SubgameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = gameExports.enemy_yaw;
-        M.M_ChangeYaw(self);
+        M.rotateToIdealYaw(self);
 
         if (FacingIdeal(self)) {
             self.monsterinfo.melee.think(self, gameExports);
@@ -61,7 +61,7 @@ public class GameAI {
      */
     public static void ai_run_missile(SubgameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = gameExports.enemy_yaw;
-        M.M_ChangeYaw(self);
+        M.rotateToIdealYaw(self);
 
         if (FacingIdeal(self)) {
             self.monsterinfo.attack.think(self, gameExports);
@@ -76,7 +76,7 @@ public class GameAI {
         float ofs;
 
         self.ideal_yaw = gameExports.enemy_yaw;
-        M.M_ChangeYaw(self);
+        M.rotateToIdealYaw(self);
 
         if (self.monsterinfo.lefty != 0)
             ofs = 90;
@@ -374,7 +374,7 @@ public class GameAI {
             if (GameUtil.FindTarget(self, gameExports))
                 return;
 
-            M.M_ChangeYaw(self);
+            M.rotateToIdealYaw(self);
         }
     };
 
@@ -437,7 +437,7 @@ public class GameAI {
                         self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
                         self.monsterinfo.run.think(self, gameExports);
                     }
-                    M.M_ChangeYaw(self);
+                    M.rotateToIdealYaw(self);
                     ai_checkattack(self, 0, gameExports);
                 } else
                     GameUtil.FindTarget(self, gameExports);
@@ -475,7 +475,7 @@ public class GameAI {
 
             Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
             self.ideal_yaw = Math3D.vectoyaw(v);
-            M.M_ChangeYaw(self);
+            M.rotateToIdealYaw(self);
 
             if (dist != 0)
                 M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);

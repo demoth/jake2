@@ -406,7 +406,7 @@ public class GameUtil {
                     return false;
 
             self.ideal_yaw = Math3D.vectoyaw(temp);
-            M.M_ChangeYaw(self);
+            M.rotateToIdealYaw(self);
 
             // hunt the sound for a bit; hopefully find the real player
             self.monsterinfo.aiflags |= GameDefines.AI_SOUND_TARGET;

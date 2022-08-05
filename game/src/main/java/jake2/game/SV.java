@@ -947,10 +947,9 @@ final class SV {
     static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
         float[] move = { 0, 0, 0 };
         float[] oldorigin = { 0, 0, 0 };
-        float delta;
 
         ent.ideal_yaw = yaw;
-        M.M_ChangeYaw(ent);
+        M.rotateToIdealYaw(ent);
 
         yaw = (float) (yaw * Math.PI * 2 / 360);
         move[0] = (float) Math.cos(yaw) * dist;
@@ -959,9 +958,9 @@ final class SV {
 
         Math3D.VectorCopy(ent.s.origin, oldorigin);
         if (SV_movestep(ent, move, false, gameExports)) {
-            delta = ent.s.angles[Defines.YAW] - ent.ideal_yaw;
-            if (delta > 45 && delta < 315) { // not turned far enough, so don't
-                                             // take the step
+            float delta = ent.s.angles[Defines.YAW] - ent.ideal_yaw;
+            if (delta > 45 && delta < 315) {
+                // not turned far enough, so don't take the step
                 Math3D.VectorCopy(oldorigin, ent.s.origin);
             }
             gameExports.gameImports.linkentity(ent);

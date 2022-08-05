@@ -146,37 +146,35 @@ public final class M {
 
     /** 
      * M_ChangeYaw.
+     * Rotate to the direction of ent.ideal_yaw, but not faster than ent.yaw_speed
      */
-    public static void M_ChangeYaw(SubgameEntity ent) {
-        float ideal;
-        float current;
-        float move;
-        float speed;
+    public static void rotateToIdealYaw(SubgameEntity ent) {
 
-        current = Math3D.anglemod(ent.s.angles[Defines.YAW]);
-        ideal = ent.ideal_yaw;
+        float currentYaw = Math3D.anglemod(ent.s.angles[Defines.YAW]);
 
-        if (current == ideal)
+        if (currentYaw == ent.ideal_yaw)
             return;
 
-        move = ideal - current;
-        speed = ent.yaw_speed;
-        if (ideal > current) {
-            if (move >= 180)
-                move = move - 360;
+        float deltaYaw = ent.ideal_yaw - currentYaw;
+        // normalize to (-180, 180)
+        if (ent.ideal_yaw > currentYaw) {
+            if (deltaYaw >= 180)
+                deltaYaw = deltaYaw - 360;
         } else {
-            if (move <= -180)
-                move = move + 360;
-        }
-        if (move > 0) {
-            if (move > speed)
-                move = speed;
-        } else {
-            if (move < -speed)
-                move = -speed;
+            if (deltaYaw <= -180)
+                deltaYaw = deltaYaw + 360;
         }
 
-        ent.s.angles[Defines.YAW] = Math3D.anglemod(current + move);
+        // normalize to (-ent.yaw_speed, ent.yaw_speed)
+        if (deltaYaw > 0) {
+            if (deltaYaw > ent.yaw_speed)
+                deltaYaw = ent.yaw_speed;
+        } else {
+            if (deltaYaw < -ent.yaw_speed)
+                deltaYaw = -ent.yaw_speed;
+        }
+
+        ent.s.angles[Defines.YAW] = Math3D.anglemod(currentYaw + deltaYaw);
     }
 
     /**
@@ -225,47 +223,49 @@ public final class M {
         return SV.SV_movestep(ent, move, true, gameExports);
     }
 
-    public static void M_CatagorizePosition(SubgameEntity ent, GameExportsImpl gameExports) {
-        float[] point = { 0, 0, 0 };
-        int cont;
+    /**
+     * M_CatagorizePosition
+     */
+    public static void setWaterLevel(SubgameEntity ent, GameExportsImpl gameExports) {
+        float[] point = {
+                ent.s.origin[0],
+                ent.s.origin[1],
+                ent.s.origin[2] + ent.mins[2] + 1
+        };
 
-        //
-        //	get waterlevel
-        //
-        point[0] = ent.s.origin[0];
-        point[1] = ent.s.origin[1];
-        point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-        cont = gameExports.gameImports.getPointContents(point);
+        int pointContents = gameExports.gameImports.getPointContents(point);
 
-        if (0 == (cont & Defines.MASK_WATER)) {
+        if (0 == (pointContents & Defines.MASK_WATER)) {
             ent.waterlevel = 0;
             ent.watertype = 0;
             return;
         }
-
-        ent.watertype = cont;
+        // we are in the water, let check how deep
+        ent.watertype = pointContents;
         ent.waterlevel = 1;
         point[2] += 26;
-        cont = gameExports.gameImports.getPointContents(point);
-        if (0 == (cont & Defines.MASK_WATER))
+        pointContents = gameExports.gameImports.getPointContents(point);
+        if (0 == (pointContents & Defines.MASK_WATER))
             return;
 
         ent.waterlevel = 2;
         point[2] += 22;
-        cont = gameExports.gameImports.getPointContents(point);
-        if (0 != (cont & Defines.MASK_WATER))
+        pointContents = gameExports.gameImports.getPointContents(point);
+        if (0 != (pointContents & Defines.MASK_WATER))
             ent.waterlevel = 3;
     }
 
     /**
+     * M_WorldEffects
      * Apply water drowning, lava or slime effects
      */
-    static void M_WorldEffects(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void applyWaterEffects(SubgameEntity ent, GameExportsImpl gameExports) {
 
         if (ent.health > 0) {
             int dmg;
             if (0 == (ent.flags & GameDefines.FL_SWIM)) {
                 if (ent.waterlevel < 3) {
+                    // refresh air
                     ent.air_finished = gameExports.level.time + 12;
                 } else if (ent.air_finished < gameExports.level.time) {
                     // drown!
@@ -301,6 +301,7 @@ public final class M {
             }
         }
 
+        // get out of water
         if (ent.waterlevel == 0) {
             if ((ent.flags & GameDefines.FL_INWATER) != 0) {
                 gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
@@ -332,6 +333,7 @@ public final class M {
             }
         }
 
+        // play sound
         if (0 == (ent.flags & GameDefines.FL_INWATER)) {
             if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
                 if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
@@ -378,7 +380,7 @@ public final class M {
 
             gameExports.gameImports.linkentity(ent);
             M.M_CheckGround(ent, gameExports);
-            M_CatagorizePosition(ent, gameExports);
+            setWaterLevel(ent, gameExports);
             return true;
         }
     };

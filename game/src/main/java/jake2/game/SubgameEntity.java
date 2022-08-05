@@ -182,6 +182,17 @@ public class SubgameEntity extends edict_t {
 
     public int watertype;
 
+    /**
+     * <ul>
+     *     <li>0 - not in the water</li>
+     *     <li>1 - standing in water - at least 1 unit underwater</li>
+     *     <li>2 - not fully submerged - at least 27 units underwater</li>
+     *     <li>3 - fully submerged - at least 49 units underwater</li>
+     * </ul>
+     * Note: Player is 56 units high
+     * <p/>
+     * Slime and lava deal more dmg for higher waterlevel
+     */
     public int waterlevel;
 
     public float[] move_origin = { 0, 0, 0 };

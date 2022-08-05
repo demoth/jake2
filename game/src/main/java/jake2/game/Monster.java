@@ -276,8 +276,8 @@ public class Monster {
                 self.monsterinfo.linkcount = self.linkcount;
                 M.M_CheckGround(self, gameExports);
             }
-            M.M_CatagorizePosition(self, gameExports);
-            M.M_WorldEffects(self, gameExports);
+            M.setWaterLevel(self, gameExports);
+            M.applyWaterEffects(self, gameExports);
             M.M_SetEffects(self, gameExports.level.time);
             return true;
         }
