@@ -103,7 +103,6 @@ public class GameExportsImpl implements GameExports {
     public game_locals_t game;
     public GameCvars gameCvars;
     public level_locals_t level;
-    public int meansOfDeath;
 
     //////////////
     // Collision
@@ -807,7 +806,7 @@ public class GameExportsImpl implements GameExports {
             return;
         ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
-        gameExports.meansOfDeath = GameDefines.MOD_SUICIDE;
+        ent.meansOfDeath = GameDefines.MOD_SUICIDE;
         PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, this);
     }
 

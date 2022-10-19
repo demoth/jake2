@@ -131,6 +131,7 @@ public class SubgameEntity extends edict_t {
     public float last_move_time;
 
     public int health;
+    public int meansOfDeath;
 
     public int max_health;
 

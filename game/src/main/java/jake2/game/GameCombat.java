@@ -415,7 +415,7 @@ public class GameCombat {
                     mod |= GameDefines.MOD_FRIENDLY_FIRE;
             }
         }
-        gameExports.meansOfDeath = mod;
+        targ.meansOfDeath = mod;
     
         // easy mode takes half damage
         if (cvars.skill.value == 0 && cvars.deathmatch.value == 0

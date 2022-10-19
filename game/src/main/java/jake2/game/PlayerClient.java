@@ -297,23 +297,21 @@ public class PlayerClient {
     public static void SP_info_player_intermission() {
     }
 
-    public static void ClientObituary(SubgameEntity self, edict_t inflictor,
-                                      SubgameEntity attacker, GameExportsImpl gameExports) {
-        int mod;
-        String message;
-        String message2;
-        boolean ff;
+    public static void ClientObituary(SubgameEntity self,
+                                      edict_t inflictor,
+                                      SubgameEntity attacker,
+                                      GameExportsImpl gameExports) {
 
         gclient_t attackerClient = attacker.getClient();
         if (gameExports.gameCvars.coop.value != 0 && attackerClient != null)
-            gameExports.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
+            self.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         gclient_t client = self.getClient();
         if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
-            ff = (gameExports.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
-            mod = gameExports.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
-            message = null;
-            message2 = "";
+            boolean friendlyFire = (self.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
+            int mod = self.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
+            String message = null;
+            String message2 = "";
 
             switch (mod) {
             case GameDefines.MOD_SUICIDE:
@@ -475,7 +473,7 @@ public class PlayerClient {
                                     + attackerClient.pers.netname + " "
                                     + message2 + "\n");
                     if (gameExports.gameCvars.deathmatch.value != 0) {
-                        if (ff)
+                        if (friendlyFire)
                             attackerClient.resp.score--;
                         else
                             attackerClient.resp.score++;
