@@ -277,7 +277,7 @@ public final class M {
                         GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                                 gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
+                                DamageFlags.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }
@@ -294,7 +294,7 @@ public final class M {
                         GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                                 gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
+                                DamageFlags.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }

@@ -183,6 +183,9 @@ public class qfiles {
 		public float[] scale = {0, 0, 0}; // multiply byte verts by this
 		public float[] translate = {0, 0, 0};    // then add this
 		public String name; // frame name from grabbing (size 16)
+		// 4 bytes:
+		// hightest - normal index
+		// x y z
 		public int[] verts;
 
 		public Md2Frame(ByteBuffer buffer, int num_xyz) {
@@ -215,8 +218,8 @@ public class qfiles {
 	 * <p/>
 	 * The GL commands (glcmd) format:
 	 * <ul>
-	 *   <li> positive integer starts a tristrip command, followed by that many vertex structures.</li>
-	 * 	 <li> negative integer starts a trifan command, followed by -x vertexes</li>
+	 *   <li> positive integer starts a triangle strip command, followed by that many vertex structures.</li>
+	 * 	 <li> negative integer starts a triangle fan command, followed by -x vertexes</li>
 	 * 	 <li> zero indicates the end of the command list.</li>
 	 * </ul>
 	 * <p/>

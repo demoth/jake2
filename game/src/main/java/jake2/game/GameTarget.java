@@ -611,7 +611,7 @@ class GameTarget {
                         && 0 == (target.flags & GameDefines.FL_IMMUNE_LASER))
                     GameCombat.T_Damage((SubgameEntity) target, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
-                            self.dmg, 1, Defines.DAMAGE_ENERGY,
+                            self.dmg, 1, DamageFlags.DAMAGE_ENERGY,
                             GameDefines.MOD_TARGET_LASER, gameExports);
 
                 // if we hit something that's not a monster or player or is

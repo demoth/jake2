@@ -635,7 +635,7 @@ public class M_Parasite {
             Math3D.VectorSubtract(start, end, dir);
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, damage, 0,
-                    Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_UNKNOWN, gameExports);
+                    DamageFlags.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_UNKNOWN, gameExports);
             return true;
         }
     };

@@ -714,7 +714,7 @@ class PlayerView {
                     GameCombat.T_Damage(current_player, gameExports.g_edicts[0],
                             gameExports.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
-                            current_player.dmg, 0, Defines.DAMAGE_NO_ARMOR,
+                            current_player.dmg, 0, DamageFlags.DAMAGE_NO_ARMOR,
                             GameDefines.MOD_WATER, gameExports);
                 }
             }

@@ -70,7 +70,7 @@ public class GameWeapon {
     
                 GameCombat.T_Damage(other, self, self.getOwner(), self.velocity,
                         self.s.origin, normal, self.dmg, 1,
-                        Defines.DAMAGE_ENERGY, mod, gameExports);
+                        DamageFlags.DAMAGE_ENERGY, mod, gameExports);
     
             } else {
                 final float[] dir;
@@ -112,7 +112,7 @@ public class GameWeapon {
                     mod = GameDefines.MOD_GRENADE;
                 GameCombat.T_Damage(ent.enemy, ent, ent.getOwner(), dir, ent.s.origin,
                         Globals.vec3_origin, (int) points, (int) points,
-                        Defines.DAMAGE_RADIUS, mod, gameExports);
+                        DamageFlags.DAMAGE_RADIUS, mod, gameExports);
             }
     
             if ((ent.spawnflags & 2) != 0)
@@ -281,7 +281,7 @@ public class GameWeapon {
 
                     GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
-                            Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT, gameExports);
+                            DamageFlags.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT, gameExports);
                 }
             }
     
@@ -394,7 +394,7 @@ public class GameWeapon {
                             && (target != self.getOwner()))
                         GameCombat.T_Damage((SubgameEntity) target, self, self.getOwner(), dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
-                                Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER, gameExports);
+                                DamageFlags.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER, gameExports);
     
                     // if we hit something that's not a monster or player we're
                     // done
@@ -506,7 +506,7 @@ public class GameWeapon {
     
         // do the damage
         GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, dir, point, Globals.vec3_origin,
-                damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT, gameExports);
+                damage, kick / 2, DamageFlags.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT, gameExports);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
                 && (null == tr.ent.getClient()))
@@ -610,7 +610,7 @@ public class GameWeapon {
                 if (target.takedamage != 0) {
                     GameCombat.T_Damage(target, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick,
-                            Defines.DAMAGE_BULLET, mod, gameExports);
+                            DamageFlags.DAMAGE_BULLET, mod, gameExports);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
                         gameExports.gameImports.multicastMessage(tr.endpos, new PointDirectionTEMessage(te_impact, tr.endpos, tr.plane.normal), MulticastTypes.MULTICAST_PVS);

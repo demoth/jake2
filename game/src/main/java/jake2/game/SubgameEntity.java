@@ -131,6 +131,9 @@ public class SubgameEntity extends edict_t {
     public float last_move_time;
 
     public int health;
+    /**
+     * Type of damage. Also contains friendly fire bit flag. todo: split
+     */
     public int meansOfDeath;
 
     public int max_health;

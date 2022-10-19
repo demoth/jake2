@@ -166,7 +166,7 @@ public class GameCombat {
     
         client = ent.getClient();
     
-        if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
+        if ((dflags & DamageFlags.DAMAGE_NO_ARMOR) != 0)
             return 0;
     
         if (client != null) {
@@ -240,7 +240,7 @@ public class GameCombat {
         if (client == null)
             return 0;
 
-        if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
+        if ((dflags & DamageFlags.DAMAGE_NO_ARMOR) != 0)
             return 0;
 
         int index = GameItems.ArmorIndex(ent, gameExports);
@@ -251,7 +251,7 @@ public class GameCombat {
         GameItem armor = GameItems.GetItemByIndex(index, gameExports);
         gitem_armor_t garmor = armor.info;
 
-        if (0 != (dflags & Defines.DAMAGE_ENERGY))
+        if (0 != (dflags & DamageFlags.DAMAGE_ENERGY))
             save = (int) Math.ceil(garmor.energy_protection * damage);
         else
             save = (int) Math.ceil(garmor.normal_protection * damage);
@@ -383,175 +383,176 @@ public class GameCombat {
                     Math3D.VectorSubtract(ent.s.origin, inflictor.s.origin, dir);
                     T_Damage(ent, inflictor, attacker, dir, inflictor.s.origin,
                             Globals.vec3_origin, (int) points, (int) points,
-                            Defines.DAMAGE_RADIUS, mod, gameExports);
+                            DamageFlags.DAMAGE_RADIUS, mod, gameExports);
                 }
             }
         }
     }
 
-    public static void T_Damage(SubgameEntity targ, SubgameEntity inflictor,
-                                SubgameEntity attacker, float[] dir, float[] point, float[] normal,
-                                int damage, int knockback, int dflags, int mod, GameExportsImpl gameExports) {
-        gclient_t client;
-        int take;
-        int save;
-        int asave;
-        int psave;
-        int te_sparks;
-    
-        if (targ.takedamage == 0)
+    /**
+     *
+     * Calculates damage, plays sounds and sents network updates.
+     * TODO: split?
+     *
+     * @param target - entity receiving damage
+     * @param inflictor - entity dealing damage (e.g. a grenade)
+     * @param attacker - owner of the inflictor (e.g. a player)
+     * @param dir - direction of the impact. Mutated
+     * @param point - point of the impact
+     * @param normal - normal of the impact
+     * @param damage - amount of damage
+     * @param knockback - amount of knowback
+     * @param damageFlags - {@link DamageFlags}
+     * @param mod - means of death
+     */
+    public static void T_Damage(SubgameEntity target, SubgameEntity inflictor, SubgameEntity attacker,
+                                float[] dir, float[] point, float[] normal,
+                                int damage, int knockback, int damageFlags, int mod, GameExportsImpl gameExports) {
+
+        if (target.takedamage == 0)
             return;
     
         // friendly fire avoidance
         // if enabled you can't hurt teammates (but you can hurt yourself)
         // knockback still occurs
         final GameCvars cvars = gameExports.gameCvars;
-        if ((targ != attacker)
+        if ((target != attacker)
                 && ((cvars.deathmatch.value != 0 && 0 != ((int) (cvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.value != 0)) {
-            if (GameUtil.OnSameTeam(targ, attacker, gameExports.gameCvars.dmflags.value)) {
+            if (GameUtil.OnSameTeam(target, attacker, gameExports.gameCvars.dmflags.value)) {
                 if (((int) (cvars.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
                 else
                     mod |= GameDefines.MOD_FRIENDLY_FIRE;
             }
         }
-        targ.meansOfDeath = mod;
+        target.meansOfDeath = mod;
     
         // easy mode takes half damage
         if (cvars.skill.value == 0 && cvars.deathmatch.value == 0
-                && targ.getClient() != null) {
+                && target.getClient() != null) {
             damage *= 0.5;
             if (damage == 0)
                 damage = 1;
         }
-    
-        client = targ.getClient();
-    
-        if ((dflags & Defines.DAMAGE_BULLET) != 0)
-            te_sparks = Defines.TE_BULLET_SPARKS;
+
+
+        final int sparks;
+        if ((damageFlags & DamageFlags.DAMAGE_BULLET) != 0)
+            sparks = Defines.TE_BULLET_SPARKS;
         else
-            te_sparks = Defines.TE_SPARKS;
+            sparks = Defines.TE_SPARKS;
     
-        Math3D.VectorNormalize(dir);
-    
-        // bonus damage for suprising a monster
-        if (0 == (dflags & Defines.DAMAGE_RADIUS)
-                && (targ.svflags & Defines.SVF_MONSTER) != 0
-                && (attacker.getClient() != null) && (targ.enemy == null)
-                && (targ.health > 0))
+        // bonus damage for surprising a monster
+        if (0 == (damageFlags & DamageFlags.DAMAGE_RADIUS)
+                && (target.svflags & Defines.SVF_MONSTER) != 0
+                && (attacker.getClient() != null) && (target.enemy == null)
+                && (target.health > 0))
             damage *= 2;
     
-        if ((targ.flags & GameDefines.FL_NO_KNOCKBACK) != 0)
+        if ((target.flags & GameDefines.FL_NO_KNOCKBACK) != 0)
             knockback = 0;
-    
+
+        Math3D.VectorNormalize(dir);
         // figure momentum add
-        if (0 == (dflags & Defines.DAMAGE_NO_KNOCKBACK)) {
-            if ((knockback != 0) && (targ.movetype != GameDefines.MOVETYPE_NONE)
-                    && (targ.movetype != GameDefines.MOVETYPE_BOUNCE)
-                    && (targ.movetype != GameDefines.MOVETYPE_PUSH)
-                    && (targ.movetype != GameDefines.MOVETYPE_STOP)) {
-                float[] kvel = { 0, 0, 0 };
-                float mass;
-    
-                if (targ.mass < 50)
-                    mass = 50;
-                else
-                    mass = targ.mass;
-    
-                if (targ.getClient() != null && attacker == targ)
-                    Math3D.VectorScale(dir, 1600.0f * (float) knockback / mass,
-                            kvel);
+        if (0 == (damageFlags & DamageFlags.DAMAGE_NO_KNOCKBACK)) {
+            if ((knockback != 0) && (target.movetype != GameDefines.MOVETYPE_NONE)
+                    && (target.movetype != GameDefines.MOVETYPE_BOUNCE)
+                    && (target.movetype != GameDefines.MOVETYPE_PUSH)
+                    && (target.movetype != GameDefines.MOVETYPE_STOP)) {
+                float[] velocityDelta = { 0, 0, 0 };
+                final float mass = Math.max(target.mass, 50);
+
+                if (target.getClient() != null && attacker == target)
+                    Math3D.VectorScale(dir, 1600.0f * (float) knockback / mass, velocityDelta);
                 // the rocket jump hack...
                 else
-                    Math3D.VectorScale(dir, 500.0f * (float) knockback / mass,
-                            kvel);
+                    Math3D.VectorScale(dir, 500.0f * (float) knockback / mass, velocityDelta);
     
-                Math3D.VectorAdd(targ.velocity, kvel, targ.velocity);
+                Math3D.VectorAdd(target.velocity, velocityDelta, target.velocity);
             }
         }
-    
-        take = damage;
-        save = 0;
+
+        int received = damage;
+        int saved = 0;
     
         // check for godmode
-        if ((targ.flags & GameDefines.FL_GODMODE) != 0
-                && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
-            take = 0;
-            save = damage;
-            SpawnDamage(te_sparks, point, normal, save, gameExports);
+        if ((target.flags & GameDefines.FL_GODMODE) != 0
+                && 0 == (damageFlags & DamageFlags.DAMAGE_NO_PROTECTION)) {
+            received = 0;
+            saved = damage;
+            SpawnDamage(sparks, point, normal, received, gameExports);
         }
     
         // check for invincibility
-        if ((client != null && client.invincible_framenum > gameExports.level.framenum)
-                && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
-            if (targ.pain_debounce_time < gameExports.level.time) {
-                gameExports.gameImports.sound(targ, Defines.CHAN_ITEM, gameExports.gameImports
+        gclient_t targetClient = target.getClient();
+        if ((targetClient != null && targetClient.invincible_framenum > gameExports.level.framenum)
+                && 0 == (damageFlags & DamageFlags.DAMAGE_NO_PROTECTION)) {
+            if (target.pain_debounce_time < gameExports.level.time) {
+                gameExports.gameImports.sound(target, Defines.CHAN_ITEM, gameExports.gameImports
                         .soundindex("items/protect4.wav"), 1,
                         Defines.ATTN_NORM, 0);
-                targ.pain_debounce_time = gameExports.level.time + 2;
+                target.pain_debounce_time = gameExports.level.time + 2;
             }
-            take = 0;
-            save = damage;
+            received = 0;
+            saved = damage;
         }
-    
-        psave = CheckPowerArmor(targ, point, normal, take, dflags, gameExports);
-        take -= psave;
-    
-        asave = CheckArmor(targ, point, normal, take, te_sparks, dflags, gameExports);
-        take -= asave;
+
+        int powerArmorSaved = CheckPowerArmor(target, point, normal, received, damageFlags, gameExports);
+        received -= powerArmorSaved;
+
+        int armorSaved = CheckArmor(target, point, normal, received, sparks, damageFlags, gameExports);
+        received -= armorSaved;
     
         // treat cheat/powerup savings the same as armor
-        asave += save;
+        armorSaved += saved;
     
         // team damage avoidance
-        if (0 == (dflags & Defines.DAMAGE_NO_PROTECTION)
-                && CheckTeamDamage(targ, attacker))
+        if (0 == (damageFlags & DamageFlags.DAMAGE_NO_PROTECTION) && CheckTeamDamage(target, attacker))
             return;
     
         // do the damage
-        if (take != 0) {
-            if (0 != (targ.svflags & Defines.SVF_MONSTER) || (client != null))
-                SpawnDamage(Defines.TE_BLOOD, point, normal, take, gameExports);
+        if (received != 0) {
+            if (0 != (target.svflags & Defines.SVF_MONSTER) || targetClient != null)
+                SpawnDamage(Defines.TE_BLOOD, point, normal, received, gameExports);
             else
-                SpawnDamage(te_sparks, point, normal, take, gameExports);
+                SpawnDamage(sparks, point, normal, received, gameExports);
+
+            target.health -= received;
     
-            targ.health = targ.health - take;
-    
-            if (targ.health <= 0) {
-                if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                        || (client != null))
-                    targ.flags |= GameDefines.FL_NO_KNOCKBACK;
-                Killed(targ, inflictor, attacker, take, point, gameExports);
+            if (target.health <= 0) {
+                if ((target.svflags & Defines.SVF_MONSTER) != 0 || targetClient != null)
+                    target.flags |= GameDefines.FL_NO_KNOCKBACK;
+                Killed(target, inflictor, attacker, received, point, gameExports);
                 return;
             }
         }
-    
-        if ((targ.svflags & Defines.SVF_MONSTER) != 0) {
-            M_ReactToDamage(targ, attacker, gameExports);
-            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED)
-                    && (take != 0)) {
-                targ.pain.pain(targ, attacker, knockback, take, gameExports);
+
+        // React to the received damage
+        if ((target.svflags & Defines.SVF_MONSTER) != 0) {
+            M_ReactToDamage(target, attacker, gameExports);
+            if (0 == (target.monsterinfo.aiflags & GameDefines.AI_DUCKED) && received != 0) {
+                target.pain.pain(target, attacker, knockback, received, gameExports);
                 // nightmare mode monsters don't go into pain frames often
                 if (cvars.skill.value == 3)
-                    targ.pain_debounce_time = gameExports.level.time + 5;
+                    target.pain_debounce_time = gameExports.level.time + 5;
             }
-        } else if (client != null) {
-            if (((targ.flags & GameDefines.FL_GODMODE) == 0) && (take != 0))
-                targ.pain.pain(targ, attacker, knockback, take, gameExports);
-        } else if (take != 0) {
-            if (targ.pain != null)
-                targ.pain.pain(targ, attacker, knockback, take, gameExports);
+        } else if (targetClient != null) {
+            if (((target.flags & GameDefines.FL_GODMODE) == 0) && received != 0)
+                target.pain.pain(target, attacker, knockback, received, gameExports);
+        } else if (received != 0) {
+            if (target.pain != null)
+                target.pain.pain(target, attacker, knockback, received, gameExports);
         }
     
         // add to the damage inflicted on a player this frame
         // the total will be turned into screen blends and view angle kicks
         // at the end of the frame
-        if (client != null) {
-            client.damage_parmor += psave;
-            client.damage_armor += asave;
-            client.damage_blood += take;
-            client.damage_knockback += knockback;
-            Math3D.VectorCopy(point, client.damage_from);
+        if (targetClient != null) {
+            targetClient.damage_parmor += powerArmorSaved;
+            targetClient.damage_armor += armorSaved;
+            targetClient.damage_blood += received;
+            targetClient.damage_knockback += knockback;
+            Math3D.VectorCopy(point, targetClient.damage_from);
         }
     }
 }

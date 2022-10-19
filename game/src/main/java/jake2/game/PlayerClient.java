@@ -483,8 +483,7 @@ public class PlayerClient {
             }
         }
 
-        gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
-                + " died.\n");
+        gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname + " died.\n");
         if (gameExports.gameCvars.deathmatch.value != 0)
             client.resp.score--;
     }

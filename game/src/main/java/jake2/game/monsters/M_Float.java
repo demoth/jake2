@@ -866,7 +866,7 @@ public class M_Float {
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,
-                    Defines.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN, gameExports);
+                    DamageFlags.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN, gameExports);
             return true;
         }
     };

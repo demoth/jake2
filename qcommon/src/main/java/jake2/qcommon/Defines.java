@@ -712,14 +712,6 @@ public class Defines {
 	public final static float DAMAGE_TIME = 0.5f;
 	public final static float FALL_TIME = 0.3f;
 
-	//	damage flags
-	public final static int DAMAGE_RADIUS = 0x00000001; // damage was indirect 
-	public final static int DAMAGE_NO_ARMOR = 0x00000002; // armour does not protect from this damage 
-	public final static int DAMAGE_ENERGY = 0x00000004; // damage is from an energy based weapon 
-	public final static int DAMAGE_NO_KNOCKBACK = 0x00000008; // do not affect velocity, just view angles 
-	public final static int DAMAGE_BULLET = 0x00000010; // damage is from a bullet (used for ricochets) 
-	public final static int DAMAGE_NO_PROTECTION = 0x00000020;
-	// armor, shields, invulnerability, and godmode have no effect
 
 	public final static int DAMAGE_NO = 0;
 	public final static int DAMAGE_YES = 1; // will take damage if hit 

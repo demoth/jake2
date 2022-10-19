@@ -520,7 +520,7 @@ class GameTrigger {
             }
 
             if ((self.spawnflags & 8) != 0)
-                dflags = Defines.DAMAGE_NO_PROTECTION;
+                dflags = DamageFlags.DAMAGE_NO_PROTECTION;
             else
                 dflags = 0;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,

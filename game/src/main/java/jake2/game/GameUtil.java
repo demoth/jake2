@@ -138,7 +138,7 @@ public class GameUtil {
             // nail it
             GameCombat.T_Damage(target, ent, ent, Globals.vec3_origin, ent.s.origin,
                     Globals.vec3_origin, 100000, 0,
-                    Defines.DAMAGE_NO_PROTECTION, GameDefines.MOD_TELEFRAG, gameExports);
+                    DamageFlags.DAMAGE_NO_PROTECTION, GameDefines.MOD_TELEFRAG, gameExports);
 
             // if we didn't kill it, fail
             if (target.solid != 0)
