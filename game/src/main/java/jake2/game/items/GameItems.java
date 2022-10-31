@@ -21,11 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 16.11.2005 by RST.
 // $Id: GameItems.java,v 1.4 2006-01-21 21:53:32 salomo Exp $
 
-package jake2.game;
+package jake2.game.items;
 
 
+import jake2.game.*;
 import jake2.game.adapters.*;
-import jake2.game.items.GameItem;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
@@ -220,7 +220,7 @@ public class GameItems {
         }
     
     };
-    static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
+    public static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
         public String getID() { return "touch_item";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
@@ -854,7 +854,7 @@ public class GameItems {
     /*
      * =============== GetItemByIndex ===============
      */
-    static GameItem GetItemByIndex(int index, GameExportsImpl gameExports) {
+    public static GameItem GetItemByIndex(int index, GameExportsImpl gameExports) {
         if (index < 0 || index >= gameExports.items.size())
             return null;
 
@@ -866,14 +866,14 @@ public class GameItems {
      *
      * ===============
      */
-    static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
+    public static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
         return gameExports.items.stream()
                 .filter(it -> classname.equalsIgnoreCase(it.classname))
                 .findFirst()
                 .orElse(null);
     }
 
-    static GameItem FindItem(String pickup_name, GameExportsImpl gameExports) {
+    public static GameItem FindItem(String pickup_name, GameExportsImpl gameExports) {
         var found = gameExports.items.stream()
                 .filter(it -> pickup_name.equalsIgnoreCase(it.pickup_name))
                 .findFirst();
@@ -882,7 +882,7 @@ public class GameItems {
         return found.orElse(null);
     }
 
-    static void SetRespawn(SubgameEntity ent, float delay, GameExportsImpl gameExports) {
+    public static void SetRespawn(SubgameEntity ent, float delay, GameExportsImpl gameExports) {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
@@ -891,7 +891,7 @@ public class GameItems {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static SubgameEntity Drop_Item(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    public static SubgameEntity Drop_Item(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
         float[] forward = {0, 0, 0};
         float[] right = {0, 0, 0};
         float[] offset = {0, 0, 0};
@@ -940,7 +940,7 @@ public class GameItems {
         return dropped;
     }
 
-    static int PowerArmorType(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static int PowerArmorType(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
@@ -957,7 +957,7 @@ public class GameItems {
         return GameDefines.POWER_ARMOR_NONE;
     }
 
-    static int ArmorIndex(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static int ArmorIndex(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return -1;
@@ -974,7 +974,7 @@ public class GameItems {
         return -1;
     }
 
-    static boolean Add_Ammo(SubgameEntity ent, GameItem item, int count) {
+    public static boolean Add_Ammo(SubgameEntity ent, GameItem item, int count) {
         int index;
         int max;
 
@@ -1015,7 +1015,7 @@ public class GameItems {
      * 
      * Called by worldspawn ===============
      */
-    static void SetItemNames(GameExportsImpl gameExports) {
+    public static void SetItemNames(GameExportsImpl gameExports) {
 
         for (GameItem it : gameExports.items) {
             gameExports.gameImports.configstring(Defines.CS_ITEMS + it.index, it.pickup_name);
@@ -1028,7 +1028,7 @@ public class GameItems {
         gameExports.power_shield_index = FindItem("Power Shield", gameExports).index;
     }
 
-    static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
+    public static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -1055,7 +1055,7 @@ public class GameItems {
         cl.pers.selected_item = -1;
     }
 
-    static void SelectPrevItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
+    public static void SelectPrevItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -1093,7 +1093,7 @@ public class GameItems {
      *
      * This will be called for each item spawned in a level, and for each item in each client's inventory.
      */
-    static void PrecacheItem(GameItem it, GameExportsImpl gameExports) {
+    public static void PrecacheItem(GameItem it, GameExportsImpl gameExports) {
 
         if (it == null)
             return;
@@ -1152,7 +1152,7 @@ public class GameItems {
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet.
      */
-    static void SpawnItem(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    public static void SpawnItem(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
         PrecacheItem(item, gameExports);
 
         if (ent.spawnflags != 0) {
@@ -1222,7 +1222,7 @@ public class GameItems {
     /*
      * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             gameExports.freeEntity(self);
@@ -1237,7 +1237,7 @@ public class GameItems {
     /*
      * QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             gameExports.freeEntity(self);
@@ -1254,7 +1254,7 @@ public class GameItems {
     /*
      * QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             gameExports.freeEntity(self);
@@ -1270,7 +1270,7 @@ public class GameItems {
     /*
      * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0
                 && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             gameExports.freeEntity(self);
@@ -1289,8 +1289,8 @@ public class GameItems {
      * Touch_Item 
      * ===============
      */
-    static void Touch_Item(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                           csurface_t surf, GameExportsImpl gameExports) {
+    public static void Touch_Item(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+                                  csurface_t surf, GameExportsImpl gameExports) {
         boolean taken;
 
         // freed edicts have not items.
@@ -1360,7 +1360,7 @@ public class GameItems {
         }
     }
 
-    static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
@@ -1372,7 +1372,7 @@ public class GameItems {
     /**
      * Writes an item reference.
      */
-    static void writeItem(QuakeFile f, GameItem item) throws IOException {
+    public static void writeItem(QuakeFile f, GameItem item) throws IOException {
         if (item == null)
             f.writeInt(-1);
         else
@@ -1382,7 +1382,7 @@ public class GameItems {
     /**
      * Reads the item index and returns the game item.
      */
-    static GameItem readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
+    public static GameItem readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
         int index = f.readInt();
         if (index == -1)
             return null;

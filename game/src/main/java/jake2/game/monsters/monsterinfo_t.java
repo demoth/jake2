@@ -20,12 +20,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 31.10.2003 by RST.
 
-package jake2.game;
+package jake2.game.monsters;
 
 import jake2.game.adapters.EntDodgeAdapter;
 import jake2.game.adapters.EntInteractAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.SuperAdapter;
+import jake2.game.monsters.mmove_t;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;

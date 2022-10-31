@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 11.11.2003 by RST.
 
-package jake2.game;
+package jake2.game.monsters;
 
 import jake2.game.adapters.AIAdapter;
 import jake2.game.adapters.EntThinkAdapter;

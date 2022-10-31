@@ -1,6 +1,5 @@
 package jake2.game.items;
 
-import jake2.game.GameItems;
 import org.junit.Test;
 
 public class GameItemsTest {

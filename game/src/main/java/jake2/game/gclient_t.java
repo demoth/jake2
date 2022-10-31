@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.player_state_t;
@@ -64,7 +65,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	boolean weapon_thunk;
 
-	GameItem newweapon;
+	public GameItem newweapon;
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
@@ -82,9 +83,9 @@ public class gclient_t implements jake2.qcommon.GameClient {
 	float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
 	float fall_time, fall_value; // for view drop on fall
 	float damage_alpha;
-	float bonus_alpha;
+	public float bonus_alpha;
 	float[] damage_blend = { 0, 0, 0 };
-	float[] v_angle = { 0, 0, 0 }; // aiming direction
+	public float[] v_angle = { 0, 0, 0 }; // aiming direction
 	float bobtime; // so off-ground doesn't change it
 	float[] oldviewangles = { 0, 0, 0 };
 	float[] oldvelocity = { 0, 0, 0 };
@@ -102,17 +103,17 @@ public class gclient_t implements jake2.qcommon.GameClient {
 	boolean anim_run;
 
 	// powerup timers
-	float quad_framenum;
-	float invincible_framenum;
-	float breather_framenum;
-	float enviro_framenum;
+	public float quad_framenum;
+	public float invincible_framenum;
+	public float breather_framenum;
+	public float enviro_framenum;
 
 	boolean grenade_blew_up;
 	float grenade_time;
-	int silencer_shots;
+	public int silencer_shots;
 	int weapon_sound;
 
-	float pickup_msg_time;
+	public float pickup_msg_time;
 
 	float flood_locktill; // locked from talking
 	float flood_when[] = new float[10]; // when messages were said
@@ -120,7 +121,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	float respawn_time; // can respawn when time > this
 
-	SubgameEntity chase_target; // player we are chasing
+	public SubgameEntity chase_target; // player we are chasing
 	boolean update_chase; // need to update chase info?
 
 	private int index;

@@ -1,6 +1,7 @@
 package jake2.game;
 
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
@@ -19,7 +20,7 @@ import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClassName;
-import static jake2.game.GameItems.createGameItemList;
+import static jake2.game.items.GameItems.createGameItemList;
 import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
 
@@ -125,16 +126,16 @@ public class GameExportsImpl implements GameExports {
     float enemy_yaw;
 
     // Game Items related
-    List<GameItem> items;
+    public List<GameItem> items;
     // todo: move to appropriate places
-    int quad_drop_timeout_hack;
+    public int quad_drop_timeout_hack;
     boolean is_quad;
     byte is_silenced;
-    int jacket_armor_index;
-    int combat_armor_index;
-    int body_armor_index;
-    int power_screen_index;
-    int power_shield_index;
+    public int jacket_armor_index;
+    public int combat_armor_index;
+    public int body_armor_index;
+    public int power_screen_index;
+    public int power_shield_index;
 
     int windsound_index;
 

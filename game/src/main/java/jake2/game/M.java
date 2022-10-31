@@ -26,6 +26,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.monsters.mmove_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;

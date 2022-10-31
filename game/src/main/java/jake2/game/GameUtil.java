@@ -26,6 +26,7 @@ package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
+import jake2.game.items.GameItems;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -185,7 +186,7 @@ public class GameUtil {
         return value.substring(p + 1, value.length());
     }
 
-    static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -478,7 +479,7 @@ public class GameUtil {
         }
     };
 
-    static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
+    public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             gameExports.freeEntity(ent);

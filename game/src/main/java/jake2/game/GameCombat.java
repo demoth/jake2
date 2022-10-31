@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;

@@ -36,9 +36,9 @@ public class gitem_armor_t {
 		this.energy_protection = energy_protection;
 	}
 
-	int base_count;
-	int max_count;
-	float normal_protection;
+	public int base_count;
+	public int max_count;
+	public float normal_protection;
 	float energy_protection;
 
 	@Override

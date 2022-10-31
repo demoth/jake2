@@ -26,6 +26,7 @@ import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;

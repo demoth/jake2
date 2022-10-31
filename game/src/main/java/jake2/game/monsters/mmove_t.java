@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 11.11.2003 by RST.
 
-package jake2.game;
+package jake2.game.monsters;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.SuperAdapter;
@@ -47,7 +47,7 @@ public class mmove_t {
     public final int lastframe;
 
     public final mframe_t[] frames;
-    final EntThinkAdapter endfunc;
+    public final EntThinkAdapter endfunc;
 
     public void write(QuakeFile f) throws IOException {
         f.writeInt(firstframe);

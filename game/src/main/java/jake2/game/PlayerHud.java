@@ -23,6 +23,7 @@
 package jake2.game;
 
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.messages.server.LayoutMessage;

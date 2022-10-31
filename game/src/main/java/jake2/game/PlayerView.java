@@ -22,6 +22,7 @@
 // $Id: PlayerView.java,v 1.5 2005-12-27 21:02:30 salomo Exp $
 package jake2.game;
 
+import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.GameImports;

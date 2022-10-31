@@ -27,6 +27,7 @@ import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.ItemDropAdapter;
 import jake2.game.adapters.ItemUseAdapter;
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;

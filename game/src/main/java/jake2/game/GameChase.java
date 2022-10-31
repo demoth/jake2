@@ -29,7 +29,7 @@ import jake2.qcommon.edict_t;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 
-class GameChase {
+public class GameChase {
 
     static void UpdateChaseCam(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
@@ -123,7 +123,7 @@ class GameChase {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void ChaseNext(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ChaseNext(SubgameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (null == client.chase_target)
@@ -148,7 +148,7 @@ class GameChase {
         client.update_chase = true;
     }
 
-    static void ChasePrev(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ChasePrev(SubgameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (client.chase_target == null)

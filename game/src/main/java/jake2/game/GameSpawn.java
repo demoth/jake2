@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.items.GameItem;
+import jake2.game.items.GameItems;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
