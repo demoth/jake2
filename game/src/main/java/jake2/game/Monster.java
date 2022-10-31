@@ -264,7 +264,7 @@ public class Monster {
             self.monsterinfo.stand.think(self, gameExports);
         }
 
-        self.think = Monster.monster_think;
+        self.think.action = Monster.monster_think;
         self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     }
 
@@ -314,7 +314,7 @@ public class Monster {
     public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
         public String getID() { return "monster_trigger_spawn_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.think = monster_triggered_spawn;
+            self.think.action = monster_triggered_spawn;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             if (activator.getClient() != null)
                 self.enemy = activator;

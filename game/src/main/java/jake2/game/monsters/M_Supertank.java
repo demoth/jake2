@@ -1216,7 +1216,7 @@ public class M_Supertank {
     
             int n;
     
-            self.think = BossExplode;
+            self.think.action = BossExplode;
             Math3D.VectorCopy(self.s.origin, org);
             org[2] += 24 + (Lib.rand() & 15);
             switch (self.count++) {

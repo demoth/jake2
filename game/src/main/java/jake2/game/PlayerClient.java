@@ -241,7 +241,7 @@ public class PlayerClient {
             return;
         if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
             // invoke one of our gross, ugly, disgusting hacks
-            self.think = PlayerClient.SP_CreateCoopSpots;
+            self.think.action = PlayerClient.SP_CreateCoopSpots;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     }
@@ -284,7 +284,7 @@ public class PlayerClient {
                 || (Lib.Q_stricmp(gameExports.level.mapname, "power2") == 0)
                 || (Lib.Q_stricmp(gameExports.level.mapname, "strike") == 0)) {
             // invoke one of our gross, ugly, disgusting hacks
-            self.think = PlayerClient.SP_FixCoopSpots;
+            self.think.action = PlayerClient.SP_FixCoopSpots;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     }
@@ -1519,7 +1519,7 @@ public class PlayerClient {
             drop.nextthink = gameExports.level.time
                     + (client.quad_framenum - gameExports.level.framenum)
                     * Defines.FRAMETIME;
-            drop.think = GameUtil.G_FreeEdictA;
+            drop.think.action = GameUtil.G_FreeEdictA;
         }
     }
 }

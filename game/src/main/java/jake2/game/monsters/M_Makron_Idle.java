@@ -80,7 +80,7 @@ public class M_Makron_Idle {
         Math3D.VectorSet(self.maxs, 32, 32, 90);
 
         self.use = Use_Boss3;
-        self.think = Think_Boss3Stand;
+        self.think.action = Think_Boss3Stand;
         self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         gameExports.gameImports.linkentity(self);
     }

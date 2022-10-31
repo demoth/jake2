@@ -114,7 +114,7 @@ public class GameTurret {
 
         self.blocked = turret_blocked;
 
-        self.think = turret_breach_finish_init;
+        self.think.action = turret_breach_finish_init;
         self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         gameExports.gameImports.linkentity(self);
     }
@@ -173,7 +173,7 @@ public class GameTurret {
                         + self.st.item + "\n");
         }
 
-        self.think = turret_driver_link;
+        self.think.action = turret_driver_link;
         self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
         gameExports.gameImports.linkentity(self);
@@ -323,8 +323,8 @@ public class GameTurret {
             }
 
             self.teammaster.dmg = self.dmg;
-            self.think = turret_breach_think;
-            self.think.think(self, gameExports);
+            self.think.action = turret_breach_think;
+            self.think.action.think(self, gameExports);
             return true;
         }
     };
@@ -416,7 +416,7 @@ public class GameTurret {
 
             float[] vec = { 0, 0, 0 };
 
-            self.think = turret_driver_think;
+            self.think.action = turret_driver_think;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
             self.target_ent = GameBase.G_PickTarget(self.target, gameExports);

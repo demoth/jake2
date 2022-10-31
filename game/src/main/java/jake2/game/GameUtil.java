@@ -60,7 +60,7 @@ public class GameUtil {
             t = gameExports.G_Spawn();
             t.classname = "DelayedUse";
             t.nextthink = gameExports.level.time + ent.delay;
-            t.think = Think_Delay;
+            t.think.action = Think_Delay;
             t.activator = activator;
             if (activator == null)
                 gameExports.gameImports.dprintf("Think_Delay with no activator\n");

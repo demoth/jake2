@@ -477,7 +477,7 @@ public final class M {
 
             self.s.effects |= Defines.EF_FLIES;
             self.s.sound = gameExports.gameImports.soundindex("infantry/inflies1.wav");
-            self.think = M_FliesOff;
+            self.think.action = M_FliesOff;
             self.nextthink = gameExports.level.time + 60;
             return true;
         }
@@ -494,7 +494,7 @@ public final class M {
             if (Globals.rnd.nextFloat() > 0.5)
                 return true;
 
-            self.think = M_FliesOn;
+            self.think.action = M_FliesOn;
             self.nextthink = gameExports.level.time + 5 + 10
                     * Globals.rnd.nextFloat();
             return true;

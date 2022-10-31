@@ -301,7 +301,7 @@ public class GameAI {
     };
 
     public static void walkmonster_start(SubgameEntity self, GameExportsImpl gameExports) {
-        self.think = walkmonster_start_go;
+        self.think.action = walkmonster_start_go;
         Monster.monster_start(self, gameExports);
     }
 
@@ -328,7 +328,7 @@ public class GameAI {
         public String getID() { return "flymonster_start";}        
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_FLY;
-            self.think = flymonster_start_go;
+            self.think.action = flymonster_start_go;
             Monster.monster_start(self, gameExports);
             return true;
         }
@@ -353,7 +353,7 @@ public class GameAI {
         public String getID() { return "swimmonster_start";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_SWIM;
-            self.think = swimmonster_start_go;
+            self.think.action = swimmonster_start_go;
             Monster.monster_start(self, gameExports);
             return true;
         }

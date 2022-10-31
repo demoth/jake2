@@ -204,7 +204,7 @@ public class GameItems {
             }
     
             if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
-                ent.think = MegaHealth_think;
+                ent.think.action = MegaHealth_think;
                 ent.nextthink = gameExports.level.time + 5f;
                 ent.setOwner(other);
                 ent.flags |= GameDefines.FL_RESPAWN;
@@ -313,7 +313,7 @@ public class GameItems {
             ent.touch = Touch_Item;
             if (gameExports.gameCvars.deathmatch.value != 0) {
                 ent.nextthink = gameExports.level.time + 29;
-                ent.think = GameUtil.G_FreeEdictA;
+                ent.think.action = GameUtil.G_FreeEdictA;
             }
             return false;
         }
@@ -783,7 +783,7 @@ public class GameItems {
                 ent.solid = Defines.SOLID_NOT;
                 if (ent == ent.teammaster) {
                     ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
-                    ent.think = DoRespawn;
+                    ent.think.action = DoRespawn;
                 }
             }
     
@@ -887,7 +887,7 @@ public class GameItems {
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
         ent.nextthink = gameExports.level.time + delay;
-        ent.think = DoRespawn;
+        ent.think.action = DoRespawn;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -932,7 +932,7 @@ public class GameItems {
         Math3D.VectorScale(forward, 100, dropped.velocity);
         dropped.velocity[2] = 300;
     
-        dropped.think = drop_make_touchable;
+        dropped.think.action = drop_make_touchable;
         dropped.nextthink = gameExports.level.time + 1;
     
         gameExports.gameImports.linkentity(dropped);
@@ -1211,7 +1211,7 @@ public class GameItems {
         ent.item = item;
         ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         // items start after other solids
-        ent.think = droptofloor;
+        ent.think.action = droptofloor;
         ent.s.effects = item.world_model_flags;
         ent.s.renderfx = Defines.RF_GLOW;
     

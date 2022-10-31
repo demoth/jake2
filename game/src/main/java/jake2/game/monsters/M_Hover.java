@@ -599,7 +599,7 @@ public class M_Hover {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
-            self.think = hover_deadthink;
+            self.think.action = hover_deadthink;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.timestamp = gameExports.level.time + 15;
             gameExports.gameImports.linkentity(self);

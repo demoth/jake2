@@ -52,14 +52,14 @@ class GameTrigger {
         GameUtil.G_UseTargets(ent, ent.activator, gameExports);
 
         if (ent.wait > 0) {
-            ent.think = multi_wait;
+            ent.think.action = multi_wait;
             ent.nextthink = gameExports.level.time + ent.wait;
         } else { // we can't just remove (self) here, because this is a touch
                  // function
             // called while looping through area links...
             ent.touch = null;
             ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
-            ent.think = GameUtil.G_FreeEdictA;
+            ent.think.action = GameUtil.G_FreeEdictA;
         }
     }
 

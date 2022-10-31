@@ -1,6 +1,7 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
+import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.monsterinfo_t;
@@ -104,11 +105,10 @@ public class SubgameEntity extends edict_t {
     // degrees
     public float ideal_yaw;
 
+    public ThinkComponent think = new ThinkComponent();
     public float nextthink;
 
     public EntThinkAdapter prethink = null;
-
-    public EntThinkAdapter think = null;
 
     public EntBlockedAdapter blocked = null;
 
@@ -449,7 +449,7 @@ public class SubgameEntity extends edict_t {
         f.writeFloat(nextthink);
 
         SuperAdapter.writeAdapter(f, prethink);
-        SuperAdapter.writeAdapter(f, think);
+        SuperAdapter.writeAdapter(f, think.action);
         SuperAdapter.writeAdapter(f, blocked);
         SuperAdapter.writeAdapter(f, touch);
         SuperAdapter.writeAdapter(f, use);
@@ -609,7 +609,7 @@ public class SubgameEntity extends edict_t {
         nextthink = f.readFloat();
 
         prethink = (EntThinkAdapter) SuperAdapter.readAdapter(f);
-        think = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+        think.action = (EntThinkAdapter) SuperAdapter.readAdapter(f);
         blocked = (EntBlockedAdapter) SuperAdapter.readAdapter(f);
 
         touch = (EntTouchAdapter) SuperAdapter.readAdapter(f);

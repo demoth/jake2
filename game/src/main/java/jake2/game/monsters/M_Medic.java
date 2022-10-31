@@ -1152,7 +1152,7 @@ public class M_Medic {
                 self.enemy.setOwner(null);
                 if (self.enemy.think != null) {
                     self.enemy.nextthink = gameExports.level.time;
-                    self.enemy.think.think(self.enemy, gameExports);
+                    self.enemy.think.action.think(self.enemy, gameExports);
                 }
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
                 if (self.oldenemy != null && self.oldenemy.getClient() != null) {

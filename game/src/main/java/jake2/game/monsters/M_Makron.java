@@ -1684,7 +1684,7 @@ public class M_Makron {
             ent.s.frame = 346;
             ent.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/boss3/rider/tris.md2");
-            ent.think = makron_torso_think;
+            ent.think.action = makron_torso_think;
             ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
             ent.s.sound = gameExports.gameImports.soundindex("makron/spine.wav");
             gameExports.gameImports.linkentity(ent);
@@ -1926,7 +1926,7 @@ public class M_Makron {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent = gameExports.G_Spawn();
             ent.nextthink = gameExports.level.time + 0.8f;
-            ent.think = MakronSpawn;
+            ent.think.action = MakronSpawn;
             ent.target = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);
             return true;

@@ -91,7 +91,7 @@ final class SV {
         if (ent.think == null)
             gameExports.gameImports.error(Defines.ERR_FATAL, "ent.think == null");
 
-        ent.think.think(ent, gameExports);
+        ent.think.action.think(ent, gameExports);
 
         return false;
     }

@@ -288,7 +288,7 @@ public class GameWeapon {
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.s.frame++;
             if (self.s.frame == 5)
-                self.think = GameUtil.G_FreeEdictA;
+                self.think.action = GameUtil.G_FreeEdictA;
             return true;
     
         }
@@ -330,7 +330,7 @@ public class GameWeapon {
             self.s.frame = 0;
             self.s.sound = 0;
             self.s.effects &= ~Defines.EF_ANIM_ALLFAST;
-            self.think = bfg_explode;
+            self.think.action = bfg_explode;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
@@ -709,7 +709,7 @@ public class GameWeapon {
         bolt.setOwner(self);
         bolt.touch = blaster_touch;
         bolt.nextthink = gameExports.level.time + 2;
-        bolt.think = GameUtil.G_FreeEdictA;
+        bolt.think.action = GameUtil.G_FreeEdictA;
         bolt.dmg = damage;
         bolt.classname = "bolt";
         if (hyper)
@@ -755,7 +755,7 @@ public class GameWeapon {
         grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
         grenade.nextthink = gameExports.level.time + timer;
-        grenade.think = Grenade_Explode;
+        grenade.think.action = Grenade_Explode;
         grenade.dmg = damage;
         grenade.dmg_radius = damage_radius;
         grenade.classname = "grenade";
@@ -791,7 +791,7 @@ public class GameWeapon {
         grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
         grenade.nextthink = gameExports.level.time + timer;
-        grenade.think = Grenade_Explode;
+        grenade.think.action = Grenade_Explode;
         grenade.dmg = damage;
         grenade.dmg_radius = damage_radius;
         grenade.classname = "hgrenade";
@@ -830,7 +830,7 @@ public class GameWeapon {
         rocket.setOwner(self);
         rocket.touch = rocket_touch;
         rocket.nextthink = gameExports.level.time + 8000 / speed;
-        rocket.think = GameUtil.G_FreeEdictA;
+        rocket.think.action = GameUtil.G_FreeEdictA;
         rocket.dmg = damage;
         rocket.radius_dmg = radius_damage;
         rocket.dmg_radius = damage_radius;
@@ -920,13 +920,13 @@ public class GameWeapon {
         bfg.setOwner(self);
         bfg.touch = bfg_touch;
         bfg.nextthink = gameExports.level.time + 8000 / speed;
-        bfg.think = GameUtil.G_FreeEdictA;
+        bfg.think.action = GameUtil.G_FreeEdictA; // FIXME
         bfg.radius_dmg = damage;
         bfg.dmg_radius = damage_radius;
         bfg.classname = "bfg blast";
         bfg.s.sound = gameExports.gameImports.soundindex("weapons/bfg__l1a.wav");
     
-        bfg.think = bfg_think;
+        bfg.think.action = bfg_think;
         bfg.nextthink = gameExports.level.time + Defines.FRAMETIME;
         bfg.teammaster = bfg;
         bfg.teamchain = null;

@@ -199,7 +199,7 @@ class GameTarget {
             self.delay = 1;
         self.svflags = Defines.SVF_NOCLIENT;
 
-        self.think = target_crosslevel_target_think;
+        self.think.action = target_crosslevel_target_think;
         self.nextthink = gameExports.level.time + self.delay;
     }
 
@@ -219,7 +219,7 @@ class GameTarget {
 
     static void SP_target_laser(SubgameEntity self, GameExportsImpl gameExports) {
         // let everything else get spawned before we start firing
-        self.think = target_laser_start;
+        self.think.action = target_laser_start;
         self.nextthink = gameExports.level.time + 1;
     }
 
@@ -248,7 +248,7 @@ class GameTarget {
 
         self.svflags |= Defines.SVF_NOCLIENT;
         self.use = target_lightramp_use;
-        self.think = target_lightramp_think;
+        self.think.action = target_lightramp_think;
 
         self.movedir[0] = self.message.charAt(0) - 'a';
         self.movedir[1] = self.message.charAt(1) - 'a';
@@ -268,7 +268,7 @@ class GameTarget {
             self.speed = 200;
 
         self.svflags |= Defines.SVF_NOCLIENT;
-        self.think = target_earthquake_think;
+        self.think.action = target_earthquake_think;
         self.use = target_earthquake_use;
 
         self.noise_index = gameExports.gameImports.soundindex("world/quake.wav");
@@ -410,7 +410,7 @@ class GameTarget {
                 return;
             }
 
-            self.think = target_explosion_explode;
+            self.think.action = target_explosion_explode;
             self.nextthink = gameExports.level.time + self.delay;
         }
     };
@@ -689,7 +689,7 @@ class GameTarget {
                 }
             }
             self.use = target_laser_use;
-            self.think = target_laser_think;
+            self.think.action = target_laser_think;
 
             if (0 == self.dmg)
                 self.dmg = 1;

@@ -78,7 +78,7 @@ public class GameMisc {
                 .modelindex("models/objects/banner/tris.md2");
         gameExports.gameImports.linkentity(ent);
         ent.nextthink = gameExports.level.time + 0.5f;
-        ent.think = TH_viewthing;
+        ent.think.action = TH_viewthing;
     }
 
     /*
@@ -170,7 +170,7 @@ public class GameMisc {
         if (self.spawnflags == 0) {
             self.solid = Defines.SOLID_BSP;
             self.movetype = GameDefines.MOVETYPE_PUSH;
-            self.think = func_object_release;
+            self.think.action = func_object_release;
             self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         } else {
             self.solid = Defines.SOLID_NOT;
@@ -258,7 +258,7 @@ public class GameMisc {
 
         self.touch = barrel_touch;
 
-        self.think = M.M_droptofloor;
+        self.think.action = M.M_droptofloor;
         self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
 
         gameExports.gameImports.linkentity(self);
@@ -273,7 +273,7 @@ public class GameMisc {
                 .modelindex("models/objects/black/tris.md2");
         ent.s.renderfx = Defines.RF_TRANSLUCENT;
         ent.use = misc_blackhole_use;
-        ent.think = misc_blackhole_think;
+        ent.think.action = misc_blackhole_think;
         ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
@@ -286,7 +286,7 @@ public class GameMisc {
         ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/tank/tris.md2");
         ent.s.frame = 254;
-        ent.think = misc_eastertank_think;
+        ent.think.action = misc_eastertank_think;
         ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
@@ -299,7 +299,7 @@ public class GameMisc {
         ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 208;
-        ent.think = misc_easterchick_think;
+        ent.think.action = misc_easterchick_think;
         ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
@@ -312,7 +312,7 @@ public class GameMisc {
         ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 248;
-        ent.think = misc_easterchick2_think;
+        ent.think.action = misc_easterchick2_think;
         ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
@@ -333,7 +333,7 @@ public class GameMisc {
         gameExports.gameImports.soundindex("tank/thud.wav");
         gameExports.gameImports.soundindex("tank/pain.wav");
 
-        self.think = commander_body_drop;
+        self.think.action = commander_body_drop;
         self.nextthink = gameExports.level.time + 5 * Defines.FRAMETIME;
     }
 
@@ -345,7 +345,7 @@ public class GameMisc {
         ent.s.frame = Lib.rand() % 16;
         gameExports.gameImports.linkentity(ent);
 
-        ent.think = misc_banner_think;
+        ent.think.action = misc_banner_think;
         ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
     }
 
@@ -403,7 +403,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
-        ent.think = GameFunc.func_train_find;
+        ent.think.action = GameFunc.func_train_find;
         ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_viper_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
@@ -462,7 +462,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
-        ent.think = GameFunc.func_train_find;
+        ent.think.action = GameFunc.func_train_find;
         ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_strogg_ship_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
@@ -520,7 +520,7 @@ public class GameMisc {
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
-        ent.think = GameUtil.G_FreeEdictA;
+        ent.think.action = GameUtil.G_FreeEdictA;
         ent.nextthink = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
@@ -541,7 +541,7 @@ public class GameMisc {
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
-        ent.think = GameUtil.G_FreeEdictA;
+        ent.think.action = GameUtil.G_FreeEdictA;
         ent.nextthink = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
@@ -562,7 +562,7 @@ public class GameMisc {
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
-        ent.think = GameUtil.G_FreeEdictA;
+        ent.think.action = GameUtil.G_FreeEdictA;
         ent.nextthink = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
@@ -657,7 +657,7 @@ public class GameMisc {
 
         self.message = new String();
 
-        self.think = func_clock_think;
+        self.think.action = func_clock_think;
 
         if ((self.spawnflags & 4) != 0)
             self.use = func_clock_use;
@@ -763,7 +763,7 @@ public class GameMisc {
         gib.avelocity[1] = Lib.random() * 600;
         gib.avelocity[2] = Lib.random() * 600;
     
-        gib.think = GameUtil.G_FreeEdictA;
+        gib.think.action = GameUtil.G_FreeEdictA;
         gib.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
     
         gameExports.gameImports.linkentity(gib);
@@ -806,7 +806,7 @@ public class GameMisc {
     
         self.avelocity[Defines.YAW] = Lib.crandom() * 600f;
     
-        self.think = GameUtil.G_FreeEdictA;
+        self.think.action = GameUtil.G_FreeEdictA;
         self.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
     
         gameExports.gameImports.linkentity(self);
@@ -847,7 +847,7 @@ public class GameMisc {
             client.anim_priority = Defines.ANIM_DEATH;
             client.anim_end = self.s.frame;
         } else {
-            self.think = null;
+            self.think.action = null;
             self.nextthink = 0;
         }
     
@@ -870,7 +870,7 @@ public class GameMisc {
         chunk.avelocity[0] = Lib.random() * 600;
         chunk.avelocity[1] = Lib.random() * 600;
         chunk.avelocity[2] = Lib.random() * 600;
-        chunk.think = GameUtil.G_FreeEdictA;
+        chunk.think.action = GameUtil.G_FreeEdictA;
         chunk.nextthink = gameExports.level.time + 5 + Lib.random() * 5;
         chunk.s.frame = 0;
         chunk.flags = 0;
@@ -1378,7 +1378,7 @@ public class GameMisc {
 
             self.takedamage = Defines.DAMAGE_NO;
             self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
-            self.think = barrel_explode;
+            self.think.action = barrel_explode;
             self.activator = attacker;
         }
     };
@@ -1491,7 +1491,7 @@ public class GameMisc {
     private static EntUseAdapter commander_body_use = new EntUseAdapter() {
         public String getID() { return "commander_body_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.think = commander_body_think;
+            self.think.action = commander_body_think;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("tank/pain.wav"), 1, Defines.ATTN_NORM, 0);
@@ -1672,7 +1672,7 @@ public class GameMisc {
         public String getID() { return "misc_satellite_dish_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.s.frame = 0;
-            self.think = misc_satellite_dish_think;
+            self.think.action = misc_satellite_dish_think;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     };
@@ -1799,7 +1799,7 @@ public class GameMisc {
             if (self.activator != null)
                 return;
             self.activator = activator;
-            self.think.think(self, gameExports);
+            self.think.action.think(self, gameExports);
         }
     };
 
@@ -1884,7 +1884,7 @@ public class GameMisc {
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     
             if (self.s.frame == 10) {
-                self.think = GameUtil.G_FreeEdictA;
+                self.think.action = GameUtil.G_FreeEdictA;
                 self.nextthink = gameExports.level.time + 8
                         + Globals.rnd.nextFloat() * 10;
             }
@@ -1913,7 +1913,7 @@ public class GameMisc {
     
                 if (self.s.modelindex == gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2")) {
                     self.s.frame++;
-                    self.think = gib_think;
+                    self.think.action = gib_think;
                     self.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 }
             }
