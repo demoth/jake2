@@ -732,7 +732,7 @@ public class M_Makron_Jorg {
              * //VectorSet (self.mins, -16, -16, -24); //VectorSet (self.maxs,
              * 16, 16, -8); // Jorg is on modelindex2. Do not clear him.
              * VectorSet( self.mins, -60, -60, 0); VectorSet(self.maxs, 60, 60,
-             * 72); self.movetype= MOVETYPE_TOSS; self.nextthink= 0;
+             * 72); self.movetype= MOVETYPE_TOSS; self.think.nextTime= 0;
              * gi.linkentity(self);
              * 
              * tempent= G_Spawn(); VectorCopy(self.s.origin, tempent.s.origin);

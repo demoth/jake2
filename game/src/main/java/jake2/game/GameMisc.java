@@ -77,7 +77,7 @@ public class GameMisc {
         ent.s.modelindex = gameExports.gameImports
                 .modelindex("models/objects/banner/tris.md2");
         gameExports.gameImports.linkentity(ent);
-        ent.nextthink = gameExports.level.time + 0.5f;
+        ent.think.nextTime = gameExports.level.time + 0.5f;
         ent.think.action = TH_viewthing;
     }
 
@@ -171,7 +171,7 @@ public class GameMisc {
             self.solid = Defines.SOLID_BSP;
             self.movetype = GameDefines.MOVETYPE_PUSH;
             self.think.action = func_object_release;
-            self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         } else {
             self.solid = Defines.SOLID_NOT;
             self.movetype = GameDefines.MOVETYPE_PUSH;
@@ -259,7 +259,7 @@ public class GameMisc {
         self.touch = barrel_touch;
 
         self.think.action = M.M_droptofloor;
-        self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
 
         gameExports.gameImports.linkentity(self);
     }
@@ -274,7 +274,7 @@ public class GameMisc {
         ent.s.renderfx = Defines.RF_TRANSLUCENT;
         ent.use = misc_blackhole_use;
         ent.think.action = misc_blackhole_think;
-        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -287,7 +287,7 @@ public class GameMisc {
                 .modelindex("models/monsters/tank/tris.md2");
         ent.s.frame = 254;
         ent.think.action = misc_eastertank_think;
-        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -300,7 +300,7 @@ public class GameMisc {
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 208;
         ent.think.action = misc_easterchick_think;
-        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -313,7 +313,7 @@ public class GameMisc {
                 .modelindex("models/monsters/bitch/tris.md2");
         ent.s.frame = 248;
         ent.think.action = misc_easterchick2_think;
-        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -334,7 +334,7 @@ public class GameMisc {
         gameExports.gameImports.soundindex("tank/pain.wav");
 
         self.think.action = commander_body_drop;
-        self.nextthink = gameExports.level.time + 5 * Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + 5 * Defines.FRAMETIME;
     }
 
     static void SP_misc_banner(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -346,7 +346,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
 
         ent.think.action = misc_banner_think;
-        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
     }
 
     static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -404,7 +404,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
         ent.think.action = GameFunc.func_train_find;
-        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_viper_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
@@ -463,7 +463,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
         ent.think.action = GameFunc.func_train_find;
-        ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_strogg_ship_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
@@ -521,7 +521,7 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think.action = GameUtil.G_FreeEdictA;
-        ent.nextthink = gameExports.level.time + 30;
+        ent.think.nextTime = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -542,7 +542,7 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think.action = GameUtil.G_FreeEdictA;
-        ent.nextthink = gameExports.level.time + 30;
+        ent.think.nextTime = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -563,7 +563,7 @@ public class GameMisc {
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
         ent.think.action = GameUtil.G_FreeEdictA;
-        ent.nextthink = gameExports.level.time + 30;
+        ent.think.nextTime = gameExports.level.time + 30;
         gameExports.gameImports.linkentity(ent);
     }
 
@@ -662,7 +662,7 @@ public class GameMisc {
         if ((self.spawnflags & 4) != 0)
             self.use = func_clock_use;
         else
-            self.nextthink = gameExports.level.time + 1;
+            self.think.nextTime = gameExports.level.time + 1;
     }
 
     /**
@@ -764,7 +764,7 @@ public class GameMisc {
         gib.avelocity[2] = Lib.random() * 600;
     
         gib.think.action = GameUtil.G_FreeEdictA;
-        gib.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
+        gib.think.nextTime = gameExports.level.time + 10 + Lib.random() * 10;
     
         gameExports.gameImports.linkentity(gib);
     }
@@ -807,7 +807,7 @@ public class GameMisc {
         self.avelocity[Defines.YAW] = Lib.crandom() * 600f;
     
         self.think.action = GameUtil.G_FreeEdictA;
-        self.nextthink = gameExports.level.time + 10 + Lib.random() * 10;
+        self.think.nextTime = gameExports.level.time + 10 + Lib.random() * 10;
     
         gameExports.gameImports.linkentity(self);
     }
@@ -848,7 +848,7 @@ public class GameMisc {
             client.anim_end = self.s.frame;
         } else {
             self.think.action = null;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
         }
     
         gameExports.gameImports.linkentity(self);
@@ -871,7 +871,7 @@ public class GameMisc {
         chunk.avelocity[1] = Lib.random() * 600;
         chunk.avelocity[2] = Lib.random() * 600;
         chunk.think.action = GameUtil.G_FreeEdictA;
-        chunk.nextthink = gameExports.level.time + 5 + Lib.random() * 5;
+        chunk.think.nextTime = gameExports.level.time + 5 + Lib.random() * 5;
         chunk.s.frame = 0;
         chunk.flags = 0;
         chunk.classname = "debris";
@@ -1049,7 +1049,7 @@ public class GameMisc {
         public String getID() { return "th_viewthing";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 7;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1377,7 +1377,7 @@ public class GameMisc {
                         int damage, float[] point, GameExportsImpl gameExports) {
 
             self.takedamage = Defines.DAMAGE_NO;
-            self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
             self.think.action = barrel_explode;
             self.activator = attacker;
         }
@@ -1408,10 +1408,10 @@ public class GameMisc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (++self.s.frame < 19)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 0;
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1425,10 +1425,10 @@ public class GameMisc {
         public String getID() { return "misc_eastertank_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 293)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 254;
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1442,10 +1442,10 @@ public class GameMisc {
         public String getID() { return "misc_easterchick_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 247)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 208;
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1458,10 +1458,10 @@ public class GameMisc {
         public String getID() { return "misc_easterchick2_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 287)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 248;
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1477,9 +1477,9 @@ public class GameMisc {
         public String getID() { return "commander_body_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 24)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else
-                self.nextthink = 0;
+                self.think.nextTime = 0;
 
             if (self.s.frame == 22)
                 gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
@@ -1492,7 +1492,7 @@ public class GameMisc {
         public String getID() { return "commander_body_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.think.action = commander_body_think;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("tank/pain.wav"), 1, Defines.ATTN_NORM, 0);
         }
@@ -1515,7 +1515,7 @@ public class GameMisc {
         public String getID() { return "misc_banner_think";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 16;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1663,7 +1663,7 @@ public class GameMisc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
             if (self.s.frame < 38)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1673,7 +1673,7 @@ public class GameMisc {
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.s.frame = 0;
             self.think.action = misc_satellite_dish_think;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         }
     };
 
@@ -1785,7 +1785,7 @@ public class GameMisc {
                     return true;
             }
 
-            self.nextthink = gameExports.level.time + 1;
+            self.think.nextTime = gameExports.level.time + 1;
             return true;
 
         }
@@ -1881,11 +1881,11 @@ public class GameMisc {
         public String getID() { return "gib_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
     
             if (self.s.frame == 10) {
                 self.think.action = GameUtil.G_FreeEdictA;
-                self.nextthink = gameExports.level.time + 8
+                self.think.nextTime = gameExports.level.time + 8
                         + Globals.rnd.nextFloat() * 10;
             }
             return true;
@@ -1914,7 +1914,7 @@ public class GameMisc {
                 if (self.s.modelindex == gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2")) {
                     self.s.frame++;
                     self.think.action = gib_think;
-                    self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                    self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
                 }
             }
         }

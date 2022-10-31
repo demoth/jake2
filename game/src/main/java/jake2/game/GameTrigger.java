@@ -46,19 +46,19 @@ class GameTrigger {
     // ent.activator should be set to the activator so it can be held through a
     // delay so wait for the delay time before firing
     private static void multi_trigger(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (ent.nextthink != 0)
+        if (ent.think.nextTime != 0)
             return; // already been triggered
 
         GameUtil.G_UseTargets(ent, ent.activator, gameExports);
 
         if (ent.wait > 0) {
             ent.think.action = multi_wait;
-            ent.nextthink = gameExports.level.time + ent.wait;
+            ent.think.nextTime = gameExports.level.time + ent.wait;
         } else { // we can't just remove (self) here, because this is a touch
                  // function
             // called while looping through area links...
             ent.touch = null;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             ent.think.action = GameUtil.G_FreeEdictA;
         }
     }
@@ -243,7 +243,7 @@ class GameTrigger {
     	public String getID(){ return "multi_wait"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
 
-            ent.nextthink = 0;
+            ent.think.nextTime = 0;
             return true;
         }
     };

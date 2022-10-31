@@ -747,7 +747,7 @@ public class M_Supertank {
             Math3D.VectorSet(self.maxs, 60, 60, 72);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
             gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -1270,7 +1270,7 @@ public class M_Supertank {
     
             gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, org), MulticastTypes.MULTICAST_PVS);
     
-            self.nextthink = gameExports.level.time + 0.1f;
+            self.think.nextTime = gameExports.level.time + 0.1f;
             return true;
         }
     };

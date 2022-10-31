@@ -242,7 +242,7 @@ public class PlayerClient {
         if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
             // invoke one of our gross, ugly, disgusting hacks
             self.think.action = PlayerClient.SP_CreateCoopSpots;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
@@ -285,7 +285,7 @@ public class PlayerClient {
                 || (Lib.Q_stricmp(gameExports.level.mapname, "strike") == 0)) {
             // invoke one of our gross, ugly, disgusting hacks
             self.think.action = PlayerClient.SP_FixCoopSpots;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
@@ -1516,7 +1516,7 @@ public class PlayerClient {
             drop.spawnflags |= GameDefines.DROPPED_PLAYER_ITEM;
     
             drop.touch = GameItems.Touch_Item;
-            drop.nextthink = gameExports.level.time
+            drop.think.nextTime = gameExports.level.time
                     + (client.quad_framenum - gameExports.level.framenum)
                     * Defines.FRAMETIME;
             drop.think.action = GameUtil.G_FreeEdictA;

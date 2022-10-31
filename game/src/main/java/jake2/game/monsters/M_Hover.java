@@ -585,7 +585,7 @@ public class M_Hover {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == self.groundentity
                     && gameExports.level.time < self.timestamp) {
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
                 return true;
             }
             GameMisc.BecomeExplosion1(self, gameExports);
@@ -600,7 +600,7 @@ public class M_Hover {
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.think.action = hover_deadthink;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             self.timestamp = gameExports.level.time + 15;
             gameExports.gameImports.linkentity(self);
             return true;

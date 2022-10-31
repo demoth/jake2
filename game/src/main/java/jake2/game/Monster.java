@@ -141,7 +141,7 @@ public class Monster {
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
             gameExports.level.total_monsters++;
 
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
         self.takedamage = Defines.DAMAGE_AIM;
@@ -265,7 +265,7 @@ public class Monster {
         }
 
         self.think.action = Monster.monster_think;
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
     }
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
@@ -315,7 +315,7 @@ public class Monster {
         public String getID() { return "monster_trigger_spawn_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.think.action = monster_triggered_spawn;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             if (activator.getClient() != null)
                 self.enemy = activator;
             self.use = GameUtil.monster_use;
@@ -328,7 +328,7 @@ public class Monster {
             self.solid = Defines.SOLID_NOT;
             self.movetype = GameDefines.MOVETYPE_NONE;
             self.svflags |= Defines.SVF_NOCLIENT;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
             self.use = monster_triggered_spawn_use;
             return true;
         }

@@ -80,15 +80,15 @@ final class SV {
     private static boolean SV_RunThink(SubgameEntity ent, GameExportsImpl gameExports) {
         float thinktime;
 
-        thinktime = ent.nextthink;
+        thinktime = ent.think.nextTime;
         if (thinktime <= 0)
             return true;
         if (thinktime > gameExports.level.time + 0.001)
             return true;
 
-        ent.nextthink = 0;
+        ent.think.nextTime = 0;
 
-        if (ent.think == null)
+        if (ent.think.action == null)
             gameExports.gameImports.error(Defines.ERR_FATAL, "ent.think == null");
 
         ent.think.action.think(ent, gameExports);
@@ -485,8 +485,8 @@ final class SV {
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves
             for (SubgameEntity mv = ent; mv != null; mv = mv.teamchain) {
-                if (mv.nextthink > 0)
-                    mv.nextthink += Defines.FRAMETIME;
+                if (mv.think.nextTime > 0)
+                    mv.think.nextTime += Defines.FRAMETIME;
             }
 
             // if the pusher has a "blocked" function, call it

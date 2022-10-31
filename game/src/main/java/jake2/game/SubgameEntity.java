@@ -64,8 +64,15 @@ public class SubgameEntity extends edict_t {
     /** set in qe3, -1 = up, -2 = down */
     public float angle;
 
+    /**
+     * The name of another object (matching its targetname), which should be a target.
+     * For example, a button's target can be a door
+     */
     public String target = null;
 
+    /**
+     * Tame of the current object, used for targeting. If it is not null, usually it means something is targeting it.
+     */
     public String targetname = null;
 
     public String killtarget = null;
@@ -106,8 +113,6 @@ public class SubgameEntity extends edict_t {
     public float ideal_yaw;
 
     public ThinkComponent think = new ThinkComponent();
-    public float nextthink;
-
     public EntThinkAdapter prethink = null;
 
     public EntBlockedAdapter blocked = null;
@@ -446,7 +451,7 @@ public class SubgameEntity extends edict_t {
         f.writeFloat(yaw_speed);
         f.writeFloat(ideal_yaw);
 
-        f.writeFloat(nextthink);
+        f.writeFloat(think.nextTime);
 
         SuperAdapter.writeAdapter(f, prethink);
         SuperAdapter.writeAdapter(f, think.action);
@@ -606,7 +611,7 @@ public class SubgameEntity extends edict_t {
         yaw_speed = f.readFloat();
         ideal_yaw = f.readFloat();
 
-        nextthink = f.readFloat();
+        think.nextTime = f.readFloat();
 
         prethink = (EntThinkAdapter) SuperAdapter.readAdapter(f);
         think.action = (EntThinkAdapter) SuperAdapter.readAdapter(f);

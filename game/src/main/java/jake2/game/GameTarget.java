@@ -200,7 +200,7 @@ class GameTarget {
         self.svflags = Defines.SVF_NOCLIENT;
 
         self.think.action = target_crosslevel_target_think;
-        self.nextthink = gameExports.level.time + self.delay;
+        self.think.nextTime = gameExports.level.time + self.delay;
     }
 
     private static void target_laser_on(SubgameEntity self, GameExportsImpl gameExports) {
@@ -214,13 +214,13 @@ class GameTarget {
     private static void target_laser_off(SubgameEntity self) {
         self.spawnflags &= ~1;
         self.svflags |= Defines.SVF_NOCLIENT;
-        self.nextthink = 0;
+        self.think.nextTime = 0;
     }
 
     static void SP_target_laser(SubgameEntity self, GameExportsImpl gameExports) {
         // let everything else get spawned before we start firing
         self.think.action = target_laser_start;
-        self.nextthink = gameExports.level.time + 1;
+        self.think.nextTime = gameExports.level.time + 1;
     }
 
     static void SP_target_lightramp(SubgameEntity self, GameExportsImpl gameExports) {
@@ -411,7 +411,7 @@ class GameTarget {
             }
 
             self.think.action = target_explosion_explode;
-            self.nextthink = gameExports.level.time + self.delay;
+            self.think.nextTime = gameExports.level.time + self.delay;
         }
     };
 
@@ -631,7 +631,7 @@ class GameTarget {
 
             Math3D.VectorCopy(tr.endpos, self.s.old_origin);
 
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -722,7 +722,7 @@ class GameTarget {
                     new String(tmp));
 
             if ((gameExports.level.time - self.timestamp) < self.speed) {
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             } else if ((self.spawnflags & 1) != 0) {
                 char temp;
 
@@ -814,7 +814,7 @@ class GameTarget {
             }
 
             if (gameExports.level.time < self.timestamp)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
             return true;
         }
@@ -824,7 +824,7 @@ class GameTarget {
     	public String getID() { return "target_earthquake_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.timestamp = gameExports.level.time + self.count;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             self.activator = activator;
             self.last_move_time = 0;
         }

@@ -548,7 +548,7 @@ public class M_Medic {
                 continue;
             if (ent.health > 0)
                 continue;
-            if (ent.nextthink == 0)
+            if (ent.think.nextTime == 0)
                 continue;
             if (!GameUtil.visible(self, ent, gameExports))
                 continue;
@@ -877,7 +877,7 @@ public class M_Medic {
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
             gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -1150,8 +1150,8 @@ public class M_Medic {
                 self.enemy.setOwner(self);
                 GameSpawn.ED_CallSpawn(self.enemy, gameExports);
                 self.enemy.setOwner(null);
-                if (self.enemy.think != null) {
-                    self.enemy.nextthink = gameExports.level.time;
+                if (self.enemy.think.action != null) {
+                    self.enemy.think.nextTime = gameExports.level.time;
                     self.enemy.think.action.think(self.enemy, gameExports);
                 }
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;

@@ -1649,7 +1649,7 @@ public class GameExportsImpl implements GameExports {
 
                 // fire any cross-level triggers
                 if ("target_crosslevel_target".equals(ent.classname))
-                    ent.nextthink = level.time + ent.delay;
+                    ent.think.nextTime = level.time + ent.delay;
             }
         } catch (Exception e) {
             e.printStackTrace();

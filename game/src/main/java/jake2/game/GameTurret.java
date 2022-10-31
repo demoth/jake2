@@ -115,7 +115,7 @@ public class GameTurret {
         self.blocked = turret_blocked;
 
         self.think.action = turret_breach_finish_init;
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         gameExports.gameImports.linkentity(self);
     }
 
@@ -174,7 +174,7 @@ public class GameTurret {
         }
 
         self.think.action = turret_driver_link;
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
         gameExports.gameImports.linkentity(self);
     }
@@ -260,7 +260,7 @@ public class GameTurret {
 
             Math3D.VectorScale(delta, 1.0f / Defines.FRAMETIME, self.avelocity);
 
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
             for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
                 ent.avelocity[1] = self.avelocity[1];
@@ -365,7 +365,7 @@ public class GameTurret {
             float[] dir = { 0, 0, 0 };
             float reaction_time;
 
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
             if (self.enemy != null
                     && (!self.enemy.inuse || self.enemy.health <= 0))
@@ -417,7 +417,7 @@ public class GameTurret {
             float[] vec = { 0, 0, 0 };
 
             self.think.action = turret_driver_think;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
             self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
             self.target_ent.setOwner(self);

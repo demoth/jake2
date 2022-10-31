@@ -1246,7 +1246,7 @@ public class M_Makron {
             Math3D.VectorSet(self.maxs, 60, 60, 72);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
             gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -1665,10 +1665,10 @@ public class M_Makron {
     	public String getID() { return "makron_torso_think"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 365)
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 346;
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1685,7 +1685,7 @@ public class M_Makron {
             ent.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/boss3/rider/tris.md2");
             ent.think.action = makron_torso_think;
-            ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
             ent.s.sound = gameExports.gameImports.soundindex("makron/spine.wav");
             gameExports.gameImports.linkentity(ent);
             return true;
@@ -1925,7 +1925,7 @@ public class M_Makron {
     	public String getID() { return "MakronToss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent = gameExports.G_Spawn();
-            ent.nextthink = gameExports.level.time + 0.8f;
+            ent.think.nextTime = gameExports.level.time + 0.8f;
             ent.think.action = MakronSpawn;
             ent.target = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);

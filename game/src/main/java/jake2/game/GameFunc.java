@@ -46,14 +46,14 @@ class GameFunc {
                     : ent)) {
                 Move_Begin.think(ent, gameExports);
             } else {
-                ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
                 ent.think.action = Move_Begin;
             }
         } else {
             // accelerative
             ent.moveinfo.current_speed = 0;
             ent.think.action = Think_AccelMove;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
@@ -64,7 +64,7 @@ class GameFunc {
                 : ent)) {
             AngleMove_Begin.think(ent, gameExports);
         } else {
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             ent.think.action = AngleMove_Begin;
         }
     }
@@ -347,7 +347,7 @@ class GameFunc {
         if (self.moveinfo.state == STATE_TOP) {
             // reset top wait time
             if (self.moveinfo.wait >= 0)
-                self.nextthink = gameExports.level.time + self.moveinfo.wait;
+                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
             return;
         }
 
@@ -498,7 +498,7 @@ class GameFunc {
             // start trains on the second frame, to make sure their targets have
             // had
             // a chance to spawn
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             self.think.action = func_train_find;
         } else {
             gameExports.gameImports.dprintf("func_train without a target at "
@@ -520,7 +520,7 @@ class GameFunc {
         }
 
         if ((self.spawnflags & 1) != 0) {
-            self.nextthink = gameExports.level.time + 1.0f + self.st.pausetime
+            self.think.nextTime = gameExports.level.time + 1.0f + self.st.pausetime
                     + self.delay + self.wait + Lib.crandom() * self.random;
             self.activator = self;
         }
@@ -596,7 +596,7 @@ class GameFunc {
                     ent.velocity);
 
             ent.think.action = Move_Done;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -618,7 +618,7 @@ class GameFunc {
                             / Defines.FRAMETIME);
             ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed
                     * Defines.FRAMETIME;
-            ent.nextthink = gameExports.level.time + (frames * Defines.FRAMETIME);
+            ent.think.nextTime = gameExports.level.time + (frames * Defines.FRAMETIME);
             ent.think.action = Move_Final;
             return true;
         }
@@ -657,7 +657,7 @@ class GameFunc {
             Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, ent.avelocity);
 
             ent.think.action = AngleMove_Done;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -696,7 +696,7 @@ class GameFunc {
             Math3D.VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
 
             // set nextthink to trigger a think when dest is reached
-            ent.nextthink = gameExports.level.time + frames * Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + frames * Defines.FRAMETIME;
             ent.think.action = AngleMove_Final;
             return true;
         }
@@ -720,7 +720,7 @@ class GameFunc {
 
             Math3D.VectorScale(ent.moveinfo.dir,
                     ent.moveinfo.current_speed * 10, ent.velocity);
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             ent.think.action = Think_AccelMove;
             return true;
         }
@@ -739,7 +739,7 @@ class GameFunc {
             ent.moveinfo.state = STATE_TOP;
 
             ent.think.action = plat_go_down;
-            ent.nextthink = gameExports.level.time + 3;
+            ent.think.nextTime = gameExports.level.time + 3;
             return true;
         }
     };
@@ -806,7 +806,7 @@ class GameFunc {
     private static EntUseAdapter Use_Plat = new EntUseAdapter() {
         public String getID() { return "use_plat";}
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (ent.think != null)
+            if (ent.think.action != null)
                 return; // already down
             plat_go_down.think(ent, gameExports);
         }
@@ -826,7 +826,7 @@ class GameFunc {
             if (ent.moveinfo.state == STATE_BOTTOM)
                 plat_go_up(ent, gameExports);
             else if (ent.moveinfo.state == STATE_TOP) {
-                ent.nextthink = gameExports.level.time + 1; // the player is still
+                ent.think.nextTime = gameExports.level.time + 1; // the player is still
                                                          // on the plat, so
                                                          // delay going down
             }
@@ -990,7 +990,7 @@ class GameFunc {
             GameUtil.G_UseTargets(self, self.activator, gameExports);
             self.s.frame = 1;
             if (self.moveinfo.wait >= 0) {
-                self.nextthink = gameExports.level.time + self.moveinfo.wait;
+                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
                 self.think.action = button_return;
             }
             return true;
@@ -1127,7 +1127,7 @@ class GameFunc {
                 return true;
             if (self.moveinfo.wait >= 0) {
                 self.think.action = door_go_down;
-                self.nextthink = gameExports.level.time + self.moveinfo.wait;
+                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
             }
             return true;
         }
@@ -1485,7 +1485,7 @@ class GameFunc {
 
             gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think.action = Think_CalcMoveSpeed;
             else
@@ -1620,7 +1620,7 @@ class GameFunc {
 
             gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think.action = Think_CalcMoveSpeed;
             else
@@ -1692,14 +1692,14 @@ class GameFunc {
 
             if (self.moveinfo.wait != 0) {
                 if (self.moveinfo.wait > 0) {
-                    self.nextthink = gameExports.level.time + self.moveinfo.wait;
+                    self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
                     self.think.action = train_next;
                 } else if (0 != (self.spawnflags & TRAIN_TOGGLE)) // && wait < 0
                 {
                     train_next.think(self, gameExports);
                     self.spawnflags &= ~TRAIN_START_ON;
                     Math3D.VectorClear(self.velocity);
-                    self.nextthink = 0;
+                    self.think.nextTime = 0;
                 }
 
                 if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
@@ -1804,8 +1804,8 @@ class GameFunc {
                 self.spawnflags |= TRAIN_START_ON;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
-                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
-                ent.think.action = train_next;
+                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
+                self.think.action = train_next;
                 self.activator = self;
             }
             return true;
@@ -1822,7 +1822,7 @@ class GameFunc {
                     return;
                 self.spawnflags &= ~TRAIN_START_ON;
                 Math3D.VectorClear(self.velocity);
-                self.nextthink = 0;
+                self.think.nextTime = 0;
             } else {
                 if (self.target_ent != null)
                     train_resume(self, gameExports);
@@ -1840,7 +1840,7 @@ class GameFunc {
 
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
-            if (0 != self.movetarget.nextthink) {
+            if (self.movetarget.think.nextTime != 0) {
                 //			gi.dprintf("elevator busy\n");
                 return;
             }
@@ -1891,7 +1891,7 @@ class GameFunc {
         public String getID() { return "sp_trigger_elevator";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.think.action = trigger_elevator_init;
-            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1916,7 +1916,7 @@ class GameFunc {
         public String getID() { return "func_timer_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameUtil.G_UseTargets(self, self.activator, gameExports);
-            self.nextthink = gameExports.level.time + self.wait + Lib.crandom()
+            self.think.nextTime = gameExports.level.time + self.wait + Lib.crandom()
                     * self.random;
             return true;
         }
@@ -1928,14 +1928,14 @@ class GameFunc {
             self.activator = activator;
 
             // if on, turn it off
-            if (self.nextthink != 0) {
-                self.nextthink = 0;
+            if (self.think.nextTime != 0) {
+                self.think.nextTime = 0;
                 return;
             }
 
             // turn it on
             if (self.delay != 0)
-                self.nextthink = gameExports.level.time + self.delay;
+                self.think.nextTime = gameExports.level.time + self.delay;
             else
                 func_timer_think.think(self, gameExports);
         }
@@ -2018,7 +2018,7 @@ class GameFunc {
     private static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move1";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.nextthink = gameExports.level.time + 1.0f;
+            self.think.nextTime = gameExports.level.time + 1.0f;
             self.think.action = door_secret_move2;
             return true;
         }
@@ -2037,7 +2037,7 @@ class GameFunc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.wait == -1)
                 return true;
-            self.nextthink = gameExports.level.time + self.wait;
+            self.think.nextTime = gameExports.level.time + self.wait;
             self.think.action = door_secret_move4;
             return true;
         }
@@ -2054,7 +2054,7 @@ class GameFunc {
     private static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move5";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.nextthink = gameExports.level.time + 1.0f;
+            self.think.nextTime = gameExports.level.time + 1.0f;
             self.think.action = door_secret_move6;
             return true;
         }

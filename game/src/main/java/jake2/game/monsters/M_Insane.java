@@ -799,7 +799,7 @@ public class M_Insane {
                 self.movetype = GameDefines.MOVETYPE_TOSS;
             }
             self.svflags |= Defines.SVF_DEADMONSTER;
-            self.nextthink = 0;
+            self.think.nextTime = 0;
             gameExports.gameImports.linkentity(self);
             return true;
         }

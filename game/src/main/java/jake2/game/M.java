@@ -412,7 +412,7 @@ public final class M {
     public static void M_MoveFrame(SubgameEntity self, GameExportsImpl gameExports) {
 
         mmove_t move = self.monsterinfo.currentmove;
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
 
         // nextframe can override next state
         if ((self.monsterinfo.nextframe != 0)
@@ -478,7 +478,7 @@ public final class M {
             self.s.effects |= Defines.EF_FLIES;
             self.s.sound = gameExports.gameImports.soundindex("infantry/inflies1.wav");
             self.think.action = M_FliesOff;
-            self.nextthink = gameExports.level.time + 60;
+            self.think.nextTime = gameExports.level.time + 60;
             return true;
         }
     };
@@ -495,7 +495,7 @@ public final class M {
                 return true;
 
             self.think.action = M_FliesOn;
-            self.nextthink = gameExports.level.time + 5 + 10
+            self.think.nextTime = gameExports.level.time + 5 + 10
                     * Globals.rnd.nextFloat();
             return true;
         }

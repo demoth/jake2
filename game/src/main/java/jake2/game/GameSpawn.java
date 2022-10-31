@@ -1347,7 +1347,7 @@ public class GameSpawn {
             }
             if (spawned) {
                 gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
-                        ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
+                        ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags) + "\n");
                 ED_CallSpawn(ent, gameExports);
             } else {
                 gameExports.freeEntity(ent);

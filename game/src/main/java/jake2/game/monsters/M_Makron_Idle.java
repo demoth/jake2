@@ -51,7 +51,7 @@ public class M_Makron_Idle {
                 ent.s.frame = M_Makron.FRAME_stand201;
             else
                 ent.s.frame++;
-            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
 
@@ -81,7 +81,7 @@ public class M_Makron_Idle {
 
         self.use = Use_Boss3;
         self.think.action = Think_Boss3Stand;
-        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         gameExports.gameImports.linkentity(self);
     }
 }

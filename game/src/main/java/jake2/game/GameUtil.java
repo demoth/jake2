@@ -59,7 +59,7 @@ public class GameUtil {
             // create a temp object to fire at a later time
             t = gameExports.G_Spawn();
             t.classname = "DelayedUse";
-            t.nextthink = gameExports.level.time + ent.delay;
+            t.think.nextTime = gameExports.level.time + ent.delay;
             t.think.action = Think_Delay;
             t.activator = activator;
             if (activator == null)

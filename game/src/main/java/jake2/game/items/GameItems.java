@@ -173,7 +173,7 @@ public class GameItems {
     	public String getID() { return "MegaHealth_think"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.getOwner().health > self.getOwner().max_health) {
-                self.nextthink = gameExports.level.time + 1;
+                self.think.nextTime = gameExports.level.time + 1;
                 self.getOwner().health -= 1;
                 return false;
             }
@@ -205,7 +205,7 @@ public class GameItems {
     
             if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
                 ent.think.action = MegaHealth_think;
-                ent.nextthink = gameExports.level.time + 5f;
+                ent.think.nextTime = gameExports.level.time + 5f;
                 ent.setOwner(other);
                 ent.flags |= GameDefines.FL_RESPAWN;
                 ent.svflags |= Defines.SVF_NOCLIENT;
@@ -312,7 +312,7 @@ public class GameItems {
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
             if (gameExports.gameCvars.deathmatch.value != 0) {
-                ent.nextthink = gameExports.level.time + 29;
+                ent.think.nextTime = gameExports.level.time + 29;
                 ent.think.action = GameUtil.G_FreeEdictA;
             }
             return false;
@@ -602,7 +602,7 @@ public class GameItems {
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
-                        gameExports.quad_drop_timeout_hack = (int) ((ent.nextthink - gameExports.level.time) / Defines.FRAMETIME);
+                        gameExports.quad_drop_timeout_hack = (int) ((ent.think.nextTime - gameExports.level.time) / Defines.FRAMETIME);
     
                     ent.item.use.use(other, ent.item, gameExports);
                 }
@@ -782,7 +782,7 @@ public class GameItems {
                 ent.svflags |= Defines.SVF_NOCLIENT;
                 ent.solid = Defines.SOLID_NOT;
                 if (ent == ent.teammaster) {
-                    ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
+                    ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
                     ent.think.action = DoRespawn;
                 }
             }
@@ -886,7 +886,7 @@ public class GameItems {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
-        ent.nextthink = gameExports.level.time + delay;
+        ent.think.nextTime = gameExports.level.time + delay;
         ent.think.action = DoRespawn;
         gameExports.gameImports.linkentity(ent);
     }
@@ -933,7 +933,7 @@ public class GameItems {
         dropped.velocity[2] = 300;
     
         dropped.think.action = drop_make_touchable;
-        dropped.nextthink = gameExports.level.time + 1;
+        dropped.think.nextTime = gameExports.level.time + 1;
     
         gameExports.gameImports.linkentity(dropped);
     
@@ -1209,7 +1209,7 @@ public class GameItems {
         }
     
         ent.item = item;
-        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
         // items start after other solids
         ent.think.action = droptofloor;
         ent.s.effects = item.world_model_flags;
