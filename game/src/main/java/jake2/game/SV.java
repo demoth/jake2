@@ -106,6 +106,7 @@ final class SV {
         if (e1.touch != null && e1.solid != Defines.SOLID_NOT)
             e1.touch.touch(e1, e2, trace.plane, trace.surface, gameExports);
 
+        // fixme: why trace plane & surface are not passed here?
         if (e2.touch != null && e2.solid != Defines.SOLID_NOT)
             e2.touch.touch(e2, e1, GameBase.dummyplane, null, gameExports);
     }

@@ -1210,8 +1210,8 @@ public class GameExportsImpl implements GameExports {
     private void runEntity(SubgameEntity ent) {
 
         // call prethink handler
-        if (ent.prethink != null)
-            ent.prethink.think(ent, this);
+        if (ent.think.prethink != null)
+            ent.think.prethink.think(ent, this);
 
         switch (ent.movetype) {
             case GameDefines.MOVETYPE_PUSH:

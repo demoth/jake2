@@ -1619,7 +1619,7 @@ public class GameMisc {
             self.s.effects |= Defines.EF_ROCKET;
             self.use = null;
             self.movetype = GameDefines.MOVETYPE_TOSS;
-            self.prethink = misc_viper_bomb_prethink;
+            self.think.prethink = misc_viper_bomb_prethink;
             self.touch = misc_viper_bomb_touch;
             self.activator = activator;
 

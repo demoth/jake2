@@ -113,7 +113,6 @@ public class SubgameEntity extends edict_t {
     public float ideal_yaw;
 
     public ThinkComponent think = new ThinkComponent();
-    public EntThinkAdapter prethink = null;
 
     public EntBlockedAdapter blocked = null;
 
@@ -451,10 +450,11 @@ public class SubgameEntity extends edict_t {
         f.writeFloat(yaw_speed);
         f.writeFloat(ideal_yaw);
 
+        // Think Component
         f.writeFloat(think.nextTime);
-
-        SuperAdapter.writeAdapter(f, prethink);
+        SuperAdapter.writeAdapter(f, think.prethink);
         SuperAdapter.writeAdapter(f, think.action);
+
         SuperAdapter.writeAdapter(f, blocked);
         SuperAdapter.writeAdapter(f, touch);
         SuperAdapter.writeAdapter(f, use);
@@ -611,10 +611,11 @@ public class SubgameEntity extends edict_t {
         yaw_speed = f.readFloat();
         ideal_yaw = f.readFloat();
 
+        // Think Component
         think.nextTime = f.readFloat();
-
-        prethink = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+        think.prethink = (EntThinkAdapter) SuperAdapter.readAdapter(f);
         think.action = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+
         blocked = (EntBlockedAdapter) SuperAdapter.readAdapter(f);
 
         touch = (EntTouchAdapter) SuperAdapter.readAdapter(f);
