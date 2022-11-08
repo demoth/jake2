@@ -118,6 +118,9 @@ public class SubgameEntity extends edict_t {
 
     public EntTouchAdapter touch = null;
 
+    /**
+     * "Activate" function
+     */
     public EntUseAdapter use = null;
 
     public EntPainAdapter pain = null;
@@ -721,6 +724,6 @@ public class SubgameEntity extends edict_t {
 
     @Override
     public String toString() {
-        return classname;
+        return classname + "(" + super.index + ")";
     }
 }

@@ -35,15 +35,13 @@ class GameFunc {
     private static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.velocity);
         Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
-        ent.moveinfo.remaining_distance = Math3D
-                .VectorNormalize(ent.moveinfo.dir);
 
+        ent.moveinfo.remaining_distance = Math3D.VectorNormalize(ent.moveinfo.dir);
         ent.moveinfo.endfunc = func;
 
-        if (ent.moveinfo.speed == ent.moveinfo.accel
-                && ent.moveinfo.speed == ent.moveinfo.decel) {
-            if (gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
-                    : ent)) {
+        if (ent.moveinfo.speed == ent.moveinfo.accel && ent.moveinfo.speed == ent.moveinfo.decel) {
+            final boolean teamSlave = (ent.flags & GameDefines.FL_TEAMSLAVE) != 0;
+            if (gameExports.level.current_entity == (teamSlave ? ent.teammaster: ent)) {
                 Move_Begin.think(ent, gameExports);
             } else {
                 ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -2118,17 +2116,10 @@ class GameFunc {
     static EntThinkAdapter SP_func_door_secret = new EntThinkAdapter() {
         public String getID() { return "sp_func_door_secret";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
-            float side;
-            float width;
-            float length;
 
-            ent.moveinfo.sound_start = gameExports.gameImports
-                    .soundindex("doors/dr1_strt.wav");
-            ent.moveinfo.sound_middle = gameExports.gameImports
-                    .soundindex("doors/dr1_mid.wav");
-            ent.moveinfo.sound_end = gameExports.gameImports
-                    .soundindex("doors/dr1_end.wav");
+            ent.moveinfo.sound_start = gameExports.gameImports.soundindex("doors/dr1_strt.wav");
+            ent.moveinfo.sound_middle = gameExports.gameImports.soundindex("doors/dr1_mid.wav");
+            ent.moveinfo.sound_end = gameExports.gameImports.soundindex("doors/dr1_end.wav");
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
@@ -2153,14 +2144,18 @@ class GameFunc {
             ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = 50;
 
             // calculate positions
+            float[] forward = {0, 0, 0};
+            float[] right = {0, 0, 0};
+            float[] up = {0, 0, 0};
             Math3D.AngleVectors(ent.s.angles, forward, right, up);
             Math3D.VectorClear(ent.s.angles);
-            side = 1.0f - (ent.spawnflags & SECRET_1ST_LEFT);
+            float side = 1.0f - (ent.spawnflags & SECRET_1ST_LEFT);
+            final float width;
             if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
                 width = Math.abs(Math3D.DotProduct(up, ent.size));
             else
                 width = Math.abs(Math3D.DotProduct(right, ent.size));
-            length = Math.abs(Math3D.DotProduct(forward, ent.size));
+            float length = Math.abs(Math3D.DotProduct(forward, ent.size));
             if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
                 Math3D.VectorMA(ent.s.origin, -1 * width, up, ent.pos1);
             else
@@ -2205,11 +2200,9 @@ class GameFunc {
     };
 
     private static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
-        int i;
-        float val;
 
-        for (i = 0; i < 3; i++) {
-            val = v[i];
+        for (int i = 0; i < 3; i++) {
+            float val = v[i];
             if (val < mins[i])
                 mins[i] = val;
             if (val > maxs[i])
