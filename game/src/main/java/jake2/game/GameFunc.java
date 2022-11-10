@@ -555,7 +555,7 @@ class GameFunc {
 
     public final static int DOOR_START_OPEN = 1;
 
-    private final static int DOOR_REVERSE = 2;
+    public final static int DOOR_REVERSE = 2;
 
     private final static int DOOR_CRUSHER = 4;
 
@@ -563,9 +563,9 @@ class GameFunc {
 
     private final static int DOOR_TOGGLE = 32;
 
-    private final static int DOOR_X_AXIS = 64;
+    public final static int DOOR_X_AXIS = 64;
 
-    private final static int DOOR_Y_AXIS = 128;
+    public final static int DOOR_Y_AXIS = 128;
 
     //
     //	   Support routines for movement (changes in origin using velocity)

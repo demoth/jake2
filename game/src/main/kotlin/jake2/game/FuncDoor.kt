@@ -1,7 +1,12 @@
 package jake2.game
 
 import jake2.game.GameBase.G_SetMovedir
+import jake2.game.GameFunc.Think_CalcMoveSpeed
+import jake2.game.GameFunc.Think_SpawnDoorTrigger
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.qcommon.Defines
+import jake2.qcommon.util.Lib
+import jake2.qcommon.util.Math3D
 import jake2.qcommon.util.Math3D.VectorCopy
 import jake2.qcommon.util.Math3D.VectorMA
 import kotlin.math.abs
@@ -17,6 +22,8 @@ import kotlin.math.abs
  *  * TOGGLE - wait in both the start and end states for a trigger event.
  *  * ANIMATED
  *  * ANIMATED_FAST
+
+ *  todo: add animation flags
  *
  * ## Properties:
  *  * message - will print a message when the door is triggered. Message will NOT work when the door is not triggered open.
@@ -30,6 +37,7 @@ import kotlin.math.abs
  *  * sounds 1) silent 2) light 3) medium 4) heavy
  */
 val funcDoor = registerThink("func_door") { ent, gameExports ->
+    // todo: split into entity property initialization & moveinfo
     val abs_movedir = floatArrayOf(0f, 0f, 0f)
     if (ent.sounds != 1) {
         ent.moveinfo.sound_start = gameExports.gameImports.soundindex("doors/dr1_strt.wav")
@@ -62,7 +70,8 @@ val funcDoor = registerThink("func_door") { ent, gameExports ->
     abs_movedir[0] = abs(ent.movedir[0])
     abs_movedir[1] = abs(ent.movedir[1])
     abs_movedir[2] = abs(ent.movedir[2])
-    ent.moveinfo.distance = abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1] + (abs_movedir[2] * ent.size[2]) - ent.st.lip
+    ent.moveinfo.distance =
+        abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1] + (abs_movedir[2] * ent.size[2]) - ent.st.lip
     VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir, ent.pos2)
 
     // if it starts open, switch the positions
@@ -103,4 +112,95 @@ val funcDoor = registerThink("func_door") { ent, gameExports ->
     else
         ent.think.action = GameFunc.Think_SpawnDoorTrigger
     true
+}
+
+val funcDoorRotating = registerThink("func_door_rotating") { ent, gameExports ->
+    Math3D.VectorClear(ent.s.angles)
+
+    // set the axis of rotation
+    Math3D.VectorClear(ent.movedir)
+    if (ent.spawnflags and GameFunc.DOOR_X_AXIS != 0) ent.movedir[2] =
+        1.0f else if (ent.spawnflags and GameFunc.DOOR_Y_AXIS != 0) ent.movedir[0] = 1.0f else  // Z_AXIS
+        ent.movedir[1] = 1.0f
+
+    // check for reverse rotation
+    if (ent.spawnflags and GameFunc.DOOR_REVERSE != 0) Math3D.VectorNegate(ent.movedir, ent.movedir)
+
+    if (0 == ent.st.distance) {
+        gameExports.gameImports.dprintf("${ent.classname} at ${Lib.vtos(ent.s.origin)} with no distance set")
+        ent.st.distance = 90
+    }
+
+    VectorCopy(ent.s.angles, ent.pos1)
+    VectorMA(
+        ent.s.angles, ent.st.distance.toFloat(), ent.movedir,
+        ent.pos2
+    )
+    ent.moveinfo.distance = ent.st.distance.toFloat()
+
+    ent.movetype = GameDefines.MOVETYPE_PUSH
+    ent.solid = Defines.SOLID_BSP
+    gameExports.gameImports.setmodel(ent, ent.model)
+
+    ent.blocked = GameFunc.door_blocked
+    ent.use = GameFunc.door_use
+
+    if (0f == ent.speed) ent.speed = 100f
+    if (0f == ent.accel) ent.accel = ent.speed
+    if (0f == ent.decel) ent.decel = ent.speed
+
+    if (0f == ent.wait) ent.wait = 3f
+    if (0 == ent.dmg) ent.dmg = 2
+
+    if (ent.sounds != 1) {
+        ent.moveinfo.sound_start = gameExports.gameImports
+            .soundindex("doors/dr1_strt.wav")
+        ent.moveinfo.sound_middle = gameExports.gameImports
+            .soundindex("doors/dr1_mid.wav")
+        ent.moveinfo.sound_end = gameExports.gameImports
+            .soundindex("doors/dr1_end.wav")
+    }
+
+    // if it starts open, switch the positions
+    if (ent.spawnflags and GameFunc.DOOR_START_OPEN != 0) {
+        VectorCopy(ent.pos2, ent.s.angles)
+        VectorCopy(ent.pos1, ent.pos2)
+        VectorCopy(ent.s.angles, ent.pos1)
+        Math3D.VectorNegate(ent.movedir, ent.movedir)
+    }
+
+    if (ent.health != 0) {
+        ent.takedamage = Defines.DAMAGE_YES
+        ent.die = GameFunc.door_killed
+        ent.max_health = ent.health
+    }
+
+    if (ent.targetname != null && ent.message != null) {
+        gameExports.gameImports.soundindex("misc/talk.wav")
+        ent.touch = GameFunc.door_touch
+    }
+
+    ent.moveinfo.state = GameFunc.STATE_BOTTOM
+    ent.moveinfo.speed = ent.speed
+    ent.moveinfo.accel = ent.accel
+    ent.moveinfo.decel = ent.decel
+    ent.moveinfo.wait = ent.wait
+    VectorCopy(ent.s.origin, ent.moveinfo.start_origin)
+    VectorCopy(ent.pos1, ent.moveinfo.start_angles)
+    VectorCopy(ent.s.origin, ent.moveinfo.end_origin)
+    VectorCopy(ent.pos2, ent.moveinfo.end_angles)
+
+    if (ent.spawnflags and 16 != 0) ent.s.effects = ent.s.effects or Defines.EF_ANIM_ALL
+
+    // to simplify logic elsewhere, make non-teamed doors into a team of one
+    if (ent.team == null) ent.teammaster = ent
+
+    gameExports.gameImports.linkentity(ent)
+
+    ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME
+    if (ent.health != 0 || ent.targetname != null)
+        ent.think.action = Think_CalcMoveSpeed
+    else ent.think.action = Think_SpawnDoorTrigger
+    true
+
 }
