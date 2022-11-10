@@ -545,15 +545,15 @@ class GameFunc {
 
     private final static int PLAT_LOW_TRIGGER = 1;
 
-    private final static int STATE_TOP = 0;
+    public final static int STATE_TOP = 0;
 
-    private final static int STATE_BOTTOM = 1;
+    public final static int STATE_BOTTOM = 1;
 
-    private final static int STATE_UP = 2;
+    public final static int STATE_UP = 2;
 
-    private final static int STATE_DOWN = 3;
+    public final static int STATE_DOWN = 3;
 
-    private final static int DOOR_START_OPEN = 1;
+    public final static int DOOR_START_OPEN = 1;
 
     private final static int DOOR_REVERSE = 2;
 
@@ -1172,7 +1172,7 @@ class GameFunc {
         }
     };
 
-    private static EntUseAdapter door_use = new EntUseAdapter() {
+    public static EntUseAdapter door_use = new EntUseAdapter() {
         public String getID() { return "door_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
@@ -1225,7 +1225,7 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
+    public static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
         public String getID() { return "think_calc_movespeed";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent;
@@ -1266,7 +1266,7 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
+    public static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
         public String getID() { return "think_spawn_door_trigger";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
@@ -1306,7 +1306,7 @@ class GameFunc {
         }
     };
 
-    private static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
+    static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
 
@@ -1345,7 +1345,7 @@ class GameFunc {
         }
     };
 
-    private static EntDieAdapter door_killed = new EntDieAdapter() {
+    public static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
@@ -1359,7 +1359,7 @@ class GameFunc {
         }
     };
 
-    private static EntTouchAdapter door_touch = new EntTouchAdapter() {
+    public static EntTouchAdapter door_touch = new EntTouchAdapter() {
         public String getID() { return "door_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
@@ -1376,121 +1376,6 @@ class GameFunc {
         }
     };
 
-    /**
-     * QUAKED func_door (0 .5 .8) ? START_OPEN x CRUSHER NOMONSTER ANIMATED
-     * TOGGLE ANIMATED_FAST TOGGLE wait in both the start and end states for a
-     * trigger event. START_OPEN the door to moves to its destination when
-     * spawned, and operate in reverse. It is used to temporarily or permanently
-     * close off an area when triggered (not useful for touch or takedamage
-     * doors). NOMONSTER monsters will not trigger this door
-     *
-     * "message" is printed when the door is touched if it is a trigger door and
-     * it hasn't been fired yet "angle" determines the opening direction
-     * "targetname" if set, no touch field will be spawned and a remote button
-     * or trigger field activates the door. "health" if set, door must be shot
-     * open "speed" movement speed (100 default) "wait" wait before returning (3
-     * default, -1 = never return) "lip" lip remaining at end of move (8
-     * default) "dmg" damage to inflict when blocked (2 default) "sounds" 1)
-     * silent 2) light 3) medium 4) heavy
-     */
-    static EntThinkAdapter SP_func_door = new EntThinkAdapter() {
-        public String getID() { return "sp_func_door";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] abs_movedir = { 0, 0, 0 };
-
-            if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = gameExports.gameImports
-                        .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = gameExports.gameImports
-                        .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = gameExports.gameImports
-                        .soundindex("doors/dr1_end.wav");
-            }
-
-            GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
-            ent.movetype = GameDefines.MOVETYPE_PUSH;
-            ent.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.setmodel(ent, ent.model);
-
-            ent.blocked = door_blocked;
-            ent.use = door_use;
-
-            if (0 == ent.speed)
-                ent.speed = 100;
-            if (gameExports.gameCvars.deathmatch.value != 0)
-                ent.speed *= 2;
-
-            if (0 == ent.accel)
-                ent.accel = ent.speed;
-            if (0 == ent.decel)
-                ent.decel = ent.speed;
-
-            if (0 == ent.wait)
-                ent.wait = 3;
-            if (0 == ent.st.lip)
-                ent.st.lip = 8;
-            if (0 == ent.dmg)
-                ent.dmg = 2;
-
-            // calculate second position
-            Math3D.VectorCopy(ent.s.origin, ent.pos1);
-            abs_movedir[0] = Math.abs(ent.movedir[0]);
-            abs_movedir[1] = Math.abs(ent.movedir[1]);
-            abs_movedir[2] = Math.abs(ent.movedir[2]);
-            ent.moveinfo.distance = abs_movedir[0] * ent.size[0]
-                    + abs_movedir[1] * ent.size[1] + abs_movedir[2]
-                    * ent.size[2] - ent.st.lip;
-
-            Math3D.VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir,
-                    ent.pos2);
-
-            // if it starts open, switch the positions
-            if ((ent.spawnflags & DOOR_START_OPEN) != 0) {
-                Math3D.VectorCopy(ent.pos2, ent.s.origin);
-                Math3D.VectorCopy(ent.pos1, ent.pos2);
-                Math3D.VectorCopy(ent.s.origin, ent.pos1);
-            }
-
-            ent.moveinfo.state = STATE_BOTTOM;
-
-            if (ent.health != 0) {
-                ent.takedamage = Defines.DAMAGE_YES;
-                ent.die = door_killed;
-                ent.max_health = ent.health;
-            } else if (ent.targetname != null && ent.message != null) {
-                gameExports.gameImports.soundindex("misc/talk.wav");
-                ent.touch = door_touch;
-            }
-
-            ent.moveinfo.speed = ent.speed;
-            ent.moveinfo.accel = ent.accel;
-            ent.moveinfo.decel = ent.decel;
-            ent.moveinfo.wait = ent.wait;
-            Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-            Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-            Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-            Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
-
-            if ((ent.spawnflags & 16) != 0)
-                ent.s.effects |= Defines.EF_ANIM_ALL;
-            if ((ent.spawnflags & 64) != 0)
-                ent.s.effects |= Defines.EF_ANIM_ALLFAST;
-
-            // to simplify logic elsewhere, make non-teamed doors into a team of
-            // one
-            if (null == ent.team)
-                ent.teammaster = ent;
-
-            gameExports.gameImports.linkentity(ent);
-
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            if (ent.health != 0 || ent.targetname != null)
-                ent.think.action = Think_CalcMoveSpeed;
-            else
-                ent.think.action = Think_SpawnDoorTrigger;
-            return true;
-        }
-    };
 
     /*
      * QUAKED func_door_rotating (0 .5 .8) ? START_OPEN REVERSE CRUSHER
