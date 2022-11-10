@@ -20,8 +20,10 @@ import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClassName;
-import static jake2.game.items.GameItems.createGameItemList;
+import static jake2.game.GameWeapon.buildEntityInfo;
 import static jake2.game.PlayerClient.*;
+import static jake2.game.items.GameItems.createGameItemList;
+import static jake2.qcommon.Defines.PRINT_HIGH;
 import static java.util.Comparator.comparingInt;
 
 /**
@@ -340,7 +342,7 @@ public class GameExportsImpl implements GameExports {
     private void Give_f(SubgameEntity ent, List<String> args) {
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
@@ -442,13 +444,13 @@ public class GameExportsImpl implements GameExports {
             // try to find by the 2nd word, like `give cells 55`
             it = GameItems.FindItem(args.get(1), this);
             if (it == null) {
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "unknown item\n");
                 return;
             }
         }
 
         if (it.pickup == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "non-pickup item\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "non-pickup item\n");
             return;
         }
 
@@ -479,7 +481,7 @@ public class GameExportsImpl implements GameExports {
         String msg;
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH,
+            gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -490,7 +492,7 @@ public class GameExportsImpl implements GameExports {
         else
             msg = "godmode ON\n";
 
-        gameImports.cprintf(ent, Defines.PRINT_HIGH, msg);
+        gameImports.cprintf(ent, PRINT_HIGH, msg);
     }
 
     /**
@@ -500,7 +502,7 @@ public class GameExportsImpl implements GameExports {
 
         // why do you need notarget in deathmatch??
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH,
+            gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -512,7 +514,7 @@ public class GameExportsImpl implements GameExports {
         else
             msg = "notarget ON\n";
 
-        gameImports.cprintf(ent, Defines.PRINT_HIGH, msg);
+        gameImports.cprintf(ent, PRINT_HIGH, msg);
     }
 
     /**
@@ -524,7 +526,7 @@ public class GameExportsImpl implements GameExports {
         String msg;
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH,
+            gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -537,7 +539,7 @@ public class GameExportsImpl implements GameExports {
             msg = "noclip ON\n";
         }
 
-        gameImports.cprintf(ent,Defines.PRINT_HIGH, msg);
+        gameImports.cprintf(ent, PRINT_HIGH, msg);
     }
 
     /**
@@ -550,17 +552,17 @@ public class GameExportsImpl implements GameExports {
         String itemName = Cmd.getArguments(args);
         GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
         }
         if (it.use == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "Item is not usable.\n");
             return;
         }
         int index = it.index;
         gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
         gameImports.dprintf("using:" + itemName + "\n");
@@ -577,18 +579,18 @@ public class GameExportsImpl implements GameExports {
         String itemName = Cmd.getArguments(args);
         GameItem it = GameItems.FindItem(itemName, this);
         if (it == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
         }
         if (it.drop == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH,
+            gameImports.cprintf(ent, PRINT_HIGH,
                     "Item is not dropable.\n");
             return;
         }
         int index = it.index;
         gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
 
@@ -625,13 +627,13 @@ public class GameExportsImpl implements GameExports {
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "No item to use.\n");
             return;
         }
 
         it = items.get(client.pers.selected_item);
         if (it.use == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "Item is not usable.\n");
             return;
         }
         it.use.use(ent, it, this);
@@ -735,13 +737,13 @@ public class GameExportsImpl implements GameExports {
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "No item to drop.\n");
             return;
         }
 
         it = items.get(client.pers.selected_item);
         if (it.drop == null) {
-            gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
+            gameImports.cprintf(ent, PRINT_HIGH, "Item is not dropable.\n");
             return;
         }
         it.drop.drop(ent, it, this);
@@ -883,28 +885,28 @@ public class GameExportsImpl implements GameExports {
 
         switch (type) {
             case 0:
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "flipoff\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "flipoff\n");
                 ent.s.frame = M_Player.FRAME_flip01 - 1;
                 client.anim_end = M_Player.FRAME_flip12;
                 break;
             case 1:
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "salute\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "salute\n");
                 ent.s.frame = M_Player.FRAME_salute01 - 1;
                 client.anim_end = M_Player.FRAME_salute11;
                 break;
             case 2:
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "taunt\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "taunt\n");
                 ent.s.frame = M_Player.FRAME_taunt01 - 1;
                 client.anim_end = M_Player.FRAME_taunt17;
                 break;
             case 3:
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "wave\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "wave\n");
                 ent.s.frame = M_Player.FRAME_wave01 - 1;
                 client.anim_end = M_Player.FRAME_wave11;
                 break;
             case 4:
             default:
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "point\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "point\n");
                 ent.s.frame = M_Player.FRAME_point01 - 1;
                 client.anim_end = M_Player.FRAME_point12;
                 break;
@@ -915,7 +917,7 @@ public class GameExportsImpl implements GameExports {
      * Command to print the players own position.
      */
     private void ShowPosition_f(edict_t ent) {
-        gameImports.cprintf(ent, Defines.PRINT_HIGH, "pos=" + Lib.vtofsbeaty(ent.s.origin) + "\n");
+        gameImports.cprintf(ent, PRINT_HIGH, "pos=" + Lib.vtofsbeaty(ent.s.origin) + "\n");
     }
 
     /**
@@ -961,7 +963,7 @@ public class GameExportsImpl implements GameExports {
             gclient_t cl = client;
 
             if (level.time < cl.flood_locktill) {
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "You can't talk for "
+                gameImports.cprintf(ent, PRINT_HIGH, "You can't talk for "
                         + (int) (cl.flood_locktill - level.time)
                         + " more seconds\n");
                 return;
@@ -1026,12 +1028,12 @@ public class GameExportsImpl implements GameExports {
 
             if (text.length() + st.length() > 1024 - 50) {
                 text += "And more...\n";
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
+                gameImports.cprintf(ent, PRINT_HIGH, "" + text + "");
                 return;
             }
             text += st;
         }
-        gameImports.cprintf(ent, Defines.PRINT_HIGH, text);
+        gameImports.cprintf(ent, PRINT_HIGH, text);
     }
 
     /////////////////////////////////////
@@ -1145,7 +1147,7 @@ public class GameExportsImpl implements GameExports {
             String spectator = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
 
             if (!passwdOK(gameCvars.spectator_password.string, spectator)) {
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
                 gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0"), true);
                 return;
@@ -1161,7 +1163,7 @@ public class GameExportsImpl implements GameExports {
             }
 
             if (numspec >= gameCvars.maxspectators.value) {
-                gameImports.cprintf(ent, Defines.PRINT_HIGH,
+                gameImports.cprintf(ent, PRINT_HIGH,
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
@@ -1173,7 +1175,7 @@ public class GameExportsImpl implements GameExports {
             // he must have the right password
             String password = Info.Info_ValueForKey(client.pers.userinfo, "password");
             if (!passwdOK(gameCvars.password.string, password)) {
-                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
+                gameImports.cprintf(ent, PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
                 gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 1"), true);
                 return;
@@ -1199,9 +1201,9 @@ public class GameExportsImpl implements GameExports {
         client.respawn_time = level.time;
 
         if (client.pers.spectator)
-            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " has moved to the sidelines\n");
+            gameImports.bprintf(PRINT_HIGH, client.pers.netname + " has moved to the sidelines\n");
         else
-            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " joined the game\n");
+            gameImports.bprintf(PRINT_HIGH, client.pers.netname + " joined the game\n");
     }
 
     /**
@@ -1253,7 +1255,7 @@ public class GameExportsImpl implements GameExports {
 
         if (gameCvars.timelimit.value != 0) {
             if (level.time >= gameCvars.timelimit.value * 60) {
-                gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
+                gameImports.bprintf(PRINT_HIGH, "Timelimit hit.\n");
                 EndDMLevel();
                 return;
             }
@@ -1266,7 +1268,7 @@ public class GameExportsImpl implements GameExports {
                     continue;
 
                 if (cl.resp.score >= gameCvars.fraglimit.value) {
-                    gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
+                    gameImports.bprintf(PRINT_HIGH, "Fraglimit hit.\n");
                     EndDMLevel();
                     return;
                 }
@@ -1475,11 +1477,48 @@ public class GameExportsImpl implements GameExports {
             case "spawnrandommonster":
                 GameSpawn.SpawnRandomMonster(ent, this);
                 break;
+            case "entityinfo":
+                printEntityInfo(ent, args);
+                break;
+            case "entityinfobyname":
+                findEdictByName(ent, args);
+                break;
             default:
                 // anything that doesn't match a command will be a chat
                 Say_f(ent, false, true, args);
                 break;
         }
+    }
+    private void findEdictByName(SubgameEntity ent, List<String> args) {
+        if (args.size() < 2) {
+            gameImports.cprintf(ent, PRINT_HIGH, "usage: findbyname <targetname>\n");
+            return;
+        }
+        var name = args.get(1);
+        Arrays.stream(g_edicts)
+                .filter(s -> name.equalsIgnoreCase(s.targetname))
+                .forEach(s -> printEntityInfo(ent, List.of("", String.valueOf(s.index))));
+
+    }
+
+    private void printEntityInfo(SubgameEntity ent, List<String> args) {
+        if (args.size() < 2) {
+            gameImports.cprintf(ent, PRINT_HIGH, "usage: entityinfo <entity_index>\n");
+            return;
+        }
+        final int entityIndex;
+        try {
+            entityIndex = Integer.parseInt(args.get(1));
+        } catch (Exception e) {
+            gameImports.cprintf(ent, PRINT_HIGH, "not a number: " + args.get(1) + "\n");
+            return;
+        }
+        if (entityIndex >= g_edicts.length) {
+            gameImports.cprintf(ent, PRINT_HIGH, "wrong index: " + args.get(1) + "\n");
+            return;
+        }
+        var entity = g_edicts[entityIndex];
+        gameImports.cprintf(ent, PRINT_HIGH, buildEntityInfo(entity) + "\n");
     }
 
     @Override
