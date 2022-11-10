@@ -33,7 +33,6 @@ import jake2.qcommon.network.messages.server.TrailTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-
 public class GameWeapon {
 
     static EntTouchAdapter blaster_touch = new EntTouchAdapter() {
@@ -42,7 +41,7 @@ public class GameWeapon {
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             int mod;
-    
+
             if (other == self.getOwner())
                 return;
     
@@ -54,7 +53,11 @@ public class GameWeapon {
             if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
                         GameDefines.PNOISE_IMPACT, gameExports);
-    
+
+            if (gameExports.gameImports.cvar("dev_blaster", "0", 0).value == 1) {
+                gameExports.gameImports.centerprintf(gameExports.g_edicts[1], buildEntityInfo(other) + "\n");
+            }
+
             if (other.takedamage != 0) {
                 if ((self.spawnflags & 1) != 0)
                     mod = GameDefines.MOD_HYPERBLASTER;
@@ -84,7 +87,30 @@ public class GameWeapon {
             gameExports.freeEntity(self);
         }
     };
-    
+
+    public static String buildEntityInfo(SubgameEntity other) {
+        final StringBuilder result = new StringBuilder("Classname: " + other.classname);
+        appendIfNonNull(result, "Index", other.index);
+        appendIfNonNull(result, "Target", other.target);
+        appendIfNonNull(result, "Targetname", other.targetname);
+        appendIfNonNull(result, "Use", other.use);
+        appendIfNonNull(result, "Die", other.die);
+        appendIfNonNull(result, "Blocked", other.blocked);
+        appendIfNonNull(result, "Touch", other.touch);
+        appendIfNonNull(result, "Pain", other.pain);
+        appendIfNonNull(result, "Kill target", other.killtarget);
+        appendIfNonNull(result, "Death target", other.deathtarget);
+        appendIfNonNull(result, "Combat target", other.combattarget);
+        appendIfNonNull(result, "Activator", other.activator);
+        return result.toString();
+    }
+
+    private static void appendIfNonNull(StringBuilder result, String name, Object o) {
+        if (o != null) {
+            result.append("\n    ").append(name).append(": ").append(o);
+        }
+    }
+
     static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
     	public String getID() { return "Grenade_Explode"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
