@@ -340,7 +340,7 @@ class GameFunc {
         }
     }
 
-    private static void door_go_up(SubgameEntity self, SubgameEntity activator, GameExportsImpl gameExports) {
+    public static void door_go_up(SubgameEntity self, SubgameEntity activator, GameExportsImpl gameExports) {
         if (self.moveinfo.state == STATE_UP)
             return; // already going up
 
@@ -559,7 +559,7 @@ class GameFunc {
 
     public final static int DOOR_REVERSE = 2;
 
-    private final static int DOOR_CRUSHER = 4;
+    public final static int DOOR_CRUSHER = 4;
 
     private final static int DOOR_NOMONSTER = 8;
 
@@ -1149,7 +1149,7 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter door_go_down = new EntThinkAdapter() {
+    public static EntThinkAdapter door_go_down = new EntThinkAdapter() {
         public String getID() { return "door_go_down";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
@@ -1308,45 +1308,6 @@ class GameFunc {
         }
     };
 
-    static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
-        public String getID() { return "door_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-
-            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
-                    && (null == obstacle.getClient())) {
-                // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH, gameExports);
-                // if it's still there, nuke it
-                if (obstacle != null)
-                    GameMisc.BecomeExplosion1(obstacle, gameExports);
-                return;
-            }
-
-            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-
-            if ((self.spawnflags & DOOR_CRUSHER) != 0)
-                return;
-
-            // if a door has a negative wait, it would never come back if
-            // blocked,
-            // so let it just squash the object to death real fast
-            if (self.moveinfo.wait >= 0) {
-                SubgameEntity ent;
-                if (self.moveinfo.state == STATE_DOWN) {
-                    for (ent = self.teammaster; ent != null; ent = ent.teamchain)
-                        door_go_up(ent, ent.activator, gameExports);
-                } else {
-                    for (ent = self.teammaster; ent != null; ent = ent.teamchain)
-                        door_go_down.think(ent, gameExports);
-                }
-            }
-        }
-    };
-
     public static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
@@ -1379,112 +1340,6 @@ class GameFunc {
     };
 
 
-
-    static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter() {
-        public String getID() { return "sp_func_door_rotating";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            Math3D.VectorClear(ent.s.angles);
-
-            // set the axis of rotation
-            Math3D.VectorClear(ent.movedir);
-            if ((ent.spawnflags & DOOR_X_AXIS) != 0)
-                ent.movedir[2] = 1.0f;
-            else if ((ent.spawnflags & DOOR_Y_AXIS) != 0)
-                ent.movedir[0] = 1.0f;
-            else
-                // Z_AXIS
-                ent.movedir[1] = 1.0f;
-
-            // check for reverse rotation
-            if ((ent.spawnflags & DOOR_REVERSE) != 0)
-                Math3D.VectorNegate(ent.movedir, ent.movedir);
-
-            if (0 == ent.st.distance) {
-                gameExports.gameImports.dprintf(ent.classname + " at "
-                        + Lib.vtos(ent.s.origin) + " with no distance set\n");
-                ent.st.distance = 90;
-            }
-
-            Math3D.VectorCopy(ent.s.angles, ent.pos1);
-            Math3D.VectorMA(ent.s.angles, ent.st.distance, ent.movedir,
-                    ent.pos2);
-            ent.moveinfo.distance = ent.st.distance;
-
-            ent.movetype = GameDefines.MOVETYPE_PUSH;
-            ent.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.setmodel(ent, ent.model);
-
-            ent.blocked = door_blocked;
-            ent.use = door_use;
-
-            if (0 == ent.speed)
-                ent.speed = 100;
-            if (0 == ent.accel)
-                ent.accel = ent.speed;
-            if (0 == ent.decel)
-                ent.decel = ent.speed;
-
-            if (0 == ent.wait)
-                ent.wait = 3;
-            if (0 == ent.dmg)
-                ent.dmg = 2;
-
-            if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = gameExports.gameImports
-                        .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = gameExports.gameImports
-                        .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = gameExports.gameImports
-                        .soundindex("doors/dr1_end.wav");
-            }
-
-            // if it starts open, switch the positions
-            if ((ent.spawnflags & DOOR_START_OPEN) != 0) {
-                Math3D.VectorCopy(ent.pos2, ent.s.angles);
-                Math3D.VectorCopy(ent.pos1, ent.pos2);
-                Math3D.VectorCopy(ent.s.angles, ent.pos1);
-                Math3D.VectorNegate(ent.movedir, ent.movedir);
-            }
-
-            if (ent.health != 0) {
-                ent.takedamage = Defines.DAMAGE_YES;
-                ent.die = door_killed;
-                ent.max_health = ent.health;
-            }
-
-            if (ent.targetname != null && ent.message != null) {
-                gameExports.gameImports.soundindex("misc/talk.wav");
-                ent.touch = door_touch;
-            }
-
-            ent.moveinfo.state = STATE_BOTTOM;
-            ent.moveinfo.speed = ent.speed;
-            ent.moveinfo.accel = ent.accel;
-            ent.moveinfo.decel = ent.decel;
-            ent.moveinfo.wait = ent.wait;
-            Math3D.VectorCopy(ent.s.origin, ent.moveinfo.start_origin);
-            Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_angles);
-            Math3D.VectorCopy(ent.s.origin, ent.moveinfo.end_origin);
-            Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_angles);
-
-            if ((ent.spawnflags & 16) != 0)
-                ent.s.effects |= Defines.EF_ANIM_ALL;
-
-            // to simplify logic elsewhere, make non-teamed doors into a team of
-            // one
-            if (ent.team == null)
-                ent.teammaster = ent;
-
-            gameExports.gameImports.linkentity(ent);
-
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            if (ent.health != 0 || ent.targetname != null)
-                ent.think.action = Think_CalcMoveSpeed;
-            else
-                ent.think.action = Think_SpawnDoorTrigger;
-            return true;
-        }
-    };
 
     private final static int TRAIN_START_ON = 1;
 

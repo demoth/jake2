@@ -3,8 +3,10 @@ package jake2.game
 import jake2.game.GameBase.G_SetMovedir
 import jake2.game.GameFunc.Think_CalcMoveSpeed
 import jake2.game.GameFunc.Think_SpawnDoorTrigger
+import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.qcommon.Defines
+import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 import jake2.qcommon.util.Math3D.VectorCopy
@@ -48,7 +50,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = jake2.qcommon.Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
-    self.blocked = GameFunc.door_blocked
+    self.blocked = doorBlocked
     self.use = GameFunc.door_use
     if (self.speed == 0f)
         self.speed = 100f
@@ -190,7 +192,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
 
-    self.blocked = GameFunc.door_blocked
+    self.blocked = doorBlocked
     self.use = GameFunc.door_use
 
     if (0f == self.speed)
@@ -342,5 +344,53 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
     game.gameImports.linkentity(self)
 
     true
+
+}
+
+private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game ->
+    // if not a monster or player
+    if ((0 == obstacle.svflags and Defines.SVF_MONSTER) && obstacle.client == null) {
+        // give it a chance to go away on its own terms (like gibs)
+        GameCombat.T_Damage(
+            obstacle, self, self, Globals.vec3_origin,
+            obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+            GameDefines.MOD_CRUSH, game
+        )
+        // if it's still there, nuke it
+        // fixme: was != null before
+        if (obstacle.inuse)
+            GameMisc.BecomeExplosion1(obstacle, game)
+        return@registerBlocked
+    }
+
+    GameCombat.T_Damage(
+        obstacle, self, self, Globals.vec3_origin,
+        obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+        GameDefines.MOD_CRUSH, game
+    )
+
+    if (self.spawnflags and GameFunc.DOOR_CRUSHER != 0)
+        return@registerBlocked
+
+    // if a door has a negative wait, it would never come back if
+    // blocked,
+    // so let it just squash the object to death real fast
+
+    if (self.moveinfo.wait >= 0) {
+        var ent: SubgameEntity?
+        if (self.moveinfo.state == GameFunc.STATE_DOWN) {
+            ent = self.teammaster
+            while (ent != null) {
+                GameFunc.door_go_up(ent, ent.activator, game)
+                ent = ent.teamchain
+            }
+        } else {
+            ent = self.teammaster
+            while (ent != null) {
+                GameFunc.door_go_down.think(ent, game)
+                ent = ent.teamchain
+            }
+        }
+    }
 
 }
