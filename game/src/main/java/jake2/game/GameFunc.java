@@ -30,6 +30,8 @@ import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import static jake2.game.DoorsKt.SECRET_ALWAYS_SHOOT;
+
 class GameFunc {
 
     private static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
@@ -1377,34 +1379,6 @@ class GameFunc {
     };
 
 
-    /*
-     * QUAKED func_door_rotating (0 .5 .8) ? START_OPEN REVERSE CRUSHER
-     * NOMONSTER ANIMATED TOGGLE X_AXIS Y_AXIS TOGGLE causes the door to wait in
-     * both the start and end states for a trigger event.
-     * 
-     * START_OPEN the door to moves to its destination when spawned, and operate
-     * in reverse. It is used to temporarily or permanently close off an area
-     * when triggered (not useful for touch or takedamage doors). NOMONSTER
-     * monsters will not trigger this door
-     * 
-     * You need to have an origin brush as part of this entity. The center of
-     * that brush will be the point around which it is rotated. It will rotate
-     * around the Z axis by default. You can check either the X_AXIS or Y_AXIS
-     * box to change that.
-     * 
-     * "distance" is how many degrees the door will be rotated. "speed"
-     * determines how fast the door moves; default value is 100.
-     * 
-     * REVERSE will cause the door to rotate in the opposite direction.
-     * 
-     * "message" is printed when the door is touched if it is a trigger door and
-     * it hasn't been fired yet "angle" determines the opening direction
-     * "targetname" if set, no touch field will be spawned and a remote button
-     * or trigger field activates the door. "health" if set, door must be shot
-     * open "speed" movement speed (100 default) "wait" wait before returning (3
-     * default, -1 = never return) "dmg" damage to inflict when blocked (2
-     * default) "sounds" 1) silent 2) light 3) medium 4) heavy
-     */
 
     static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter() {
         public String getID() { return "sp_func_door_rotating";}
@@ -1867,26 +1841,8 @@ class GameFunc {
         }
     };
 
-    /*
-     * QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down A
-     * secret door. Slide back and then to the side.
-     * 
-     * open_once doors never closes 1st_left 1st move is left of arrow 1st_down
-     * 1st move is down from arrow always_shoot door is shootebale even if
-     * targeted
-     * 
-     * "angle" determines the direction "dmg" damage to inflic when blocked
-     * (default 2) "wait" how long to hold in the open position (default 5, -1
-     * means hold)
-     */
 
-    private final static int SECRET_ALWAYS_SHOOT = 1;
-
-    private final static int SECRET_1ST_LEFT = 2;
-
-    private final static int SECRET_1ST_DOWN = 4;
-
-    private static EntUseAdapter door_secret_use = new EntUseAdapter() {
+    public static EntUseAdapter door_secret_use = new EntUseAdapter() {
         public String getID() { return "door_secret_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             // make sure we're not already moving
@@ -1964,7 +1920,7 @@ class GameFunc {
         }
     };
 
-    private static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
+    public static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
             if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
@@ -1989,77 +1945,12 @@ class GameFunc {
         }
     };
 
-    private static EntDieAdapter door_secret_die = new EntDieAdapter() {
+    public static EntDieAdapter door_secret_die = new EntDieAdapter() {
         public String getID() { return "door_secret_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             self.takedamage = Defines.DAMAGE_NO;
             door_secret_use.use(self, attacker, attacker, gameExports);
-        }
-    };
-
-    static EntThinkAdapter SP_func_door_secret = new EntThinkAdapter() {
-        public String getID() { return "sp_func_door_secret";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-
-            ent.moveinfo.sound_start = gameExports.gameImports.soundindex("doors/dr1_strt.wav");
-            ent.moveinfo.sound_middle = gameExports.gameImports.soundindex("doors/dr1_mid.wav");
-            ent.moveinfo.sound_end = gameExports.gameImports.soundindex("doors/dr1_end.wav");
-
-            ent.movetype = GameDefines.MOVETYPE_PUSH;
-            ent.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.setmodel(ent, ent.model);
-
-            ent.blocked = door_secret_blocked;
-            ent.use = door_secret_use;
-
-            if (null == (ent.targetname)
-                    || 0 != (ent.spawnflags & SECRET_ALWAYS_SHOOT)) {
-                ent.health = 0;
-                ent.takedamage = Defines.DAMAGE_YES;
-                ent.die = door_secret_die;
-            }
-
-            if (0 == ent.dmg)
-                ent.dmg = 2;
-
-            if (0 == ent.wait)
-                ent.wait = 5;
-
-            ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = 50;
-
-            // calculate positions
-            float[] forward = {0, 0, 0};
-            float[] right = {0, 0, 0};
-            float[] up = {0, 0, 0};
-            Math3D.AngleVectors(ent.s.angles, forward, right, up);
-            Math3D.VectorClear(ent.s.angles);
-            float side = 1.0f - (ent.spawnflags & SECRET_1ST_LEFT);
-            final float width;
-            if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
-                width = Math.abs(Math3D.DotProduct(up, ent.size));
-            else
-                width = Math.abs(Math3D.DotProduct(right, ent.size));
-            float length = Math.abs(Math3D.DotProduct(forward, ent.size));
-            if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
-                Math3D.VectorMA(ent.s.origin, -1 * width, up, ent.pos1);
-            else
-                Math3D.VectorMA(ent.s.origin, side * width, right, ent.pos1);
-            Math3D.VectorMA(ent.pos1, length, forward, ent.pos2);
-
-            if (ent.health != 0) {
-                ent.takedamage = Defines.DAMAGE_YES;
-                ent.die = door_killed;
-                ent.max_health = ent.health;
-            } else if (ent.targetname != null && ent.message != null) {
-                gameExports.gameImports.soundindex("misc/talk.wav");
-                ent.touch = door_touch;
-            }
-
-            ent.classname = "func_door";
-
-            gameExports.gameImports.linkentity(ent);
-            return true;
         }
     };
 
