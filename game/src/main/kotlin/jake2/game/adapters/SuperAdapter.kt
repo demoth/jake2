@@ -88,6 +88,21 @@ abstract class SuperAdapter {
             return adapter
         }
 
+        fun registerUse(id: String, use: (self: SubgameEntity, other: SubgameEntity, activator: SubgameEntity?, gameExports: GameExportsImpl) -> Unit): EntUseAdapter {
+            return object : EntUseAdapter() {
+                override fun use(
+                    self: SubgameEntity,
+                    other: SubgameEntity,
+                    activator: SubgameEntity?,
+                    gameExports: GameExportsImpl
+                ) {
+                    use.invoke(self, other, activator, gameExports)
+                }
+
+                override val iD = id
+            }
+        }
+
         /** Adapter repository.  */
         private val adapters: MutableMap<String, SuperAdapter> = HashMap()
 
