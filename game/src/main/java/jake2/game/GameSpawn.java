@@ -409,9 +409,9 @@ public class GameSpawn {
         spawns.put("info_player_intermission", SP_info_player_intermission);
         spawns.put("func_plat", SP_func_plat);
         spawns.put("func_button", GameFunc.SP_func_button);
-        spawns.put(FuncDoorKt.getFuncDoor().getID(), FuncDoorKt.getFuncDoor());
-        spawns.put("func_door_secret", GameFunc.SP_func_door_secret);
-        spawns.put("func_door_rotating", GameFunc.SP_func_door_rotating);
+        spawns.put(DoorsKt.getFuncDoor().getID(), DoorsKt.getFuncDoor());
+        spawns.put(DoorsKt.getFuncDoorSecret().getID(), DoorsKt.getFuncDoorSecret());
+        spawns.put(DoorsKt.getFuncDoorRotating().getID(), DoorsKt.getFuncDoorRotating());
         spawns.put("func_rotating", GameFunc.SP_func_rotating);
         spawns.put("func_train", SP_func_train);
         spawns.put("func_water", SP_func_water);
