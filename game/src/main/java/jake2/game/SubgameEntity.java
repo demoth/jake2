@@ -26,6 +26,7 @@ public class SubgameEntity extends edict_t {
     public SubgameEntity activator = null;
     public edict_t groundentity = null;
     public int groundentity_linkcount;
+    // linked list
     public SubgameEntity teamchain = null;
     public SubgameEntity teammaster = null;
     public SubgameEntity goalentity = null;

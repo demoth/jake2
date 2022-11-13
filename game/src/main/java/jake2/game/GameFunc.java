@@ -30,6 +30,7 @@ import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import static jake2.game.DoorsKt.DOOR_START_OPEN;
 import static jake2.game.DoorsKt.SECRET_ALWAYS_SHOOT;
 
 class GameFunc {
@@ -442,7 +443,7 @@ class GameFunc {
             self.wait = -1;
         self.moveinfo.wait = self.wait;
 
-        self.use = door_use;
+        self.use = DoorsKt.getDoorUse();
 
         if (self.wait == -1)
             self.spawnflags |= DOOR_TOGGLE;
@@ -555,15 +556,9 @@ class GameFunc {
 
     public final static int STATE_DOWN = 3;
 
-    public final static int DOOR_START_OPEN = 1;
-
-    public final static int DOOR_REVERSE = 2;
-
-    public final static int DOOR_CRUSHER = 4;
-
     private final static int DOOR_NOMONSTER = 8;
 
-    private final static int DOOR_TOGGLE = 32;
+    public final static int DOOR_TOGGLE = 32;
 
     public final static int DOOR_X_AXIS = 64;
 
@@ -1223,7 +1218,7 @@ class GameFunc {
                 return;
             self.touch_debounce_time = gameExports.level.time + 1.0f;
 
-            door_use.use(self.getOwner(), other, other, gameExports);
+            DoorsKt.getDoorUse().use(self.getOwner(), other, other, gameExports);
         }
     };
 
@@ -1318,7 +1313,7 @@ class GameFunc {
                 ent.health = ent.max_health;
                 ent.takedamage = Defines.DAMAGE_NO;
             }
-            door_use.use(self.teammaster, attacker, attacker, gameExports);
+            DoorsKt.getDoorUse().use(self.teammaster, attacker, attacker, gameExports);
         }
     };
 

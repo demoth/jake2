@@ -5,6 +5,7 @@ import jake2.game.GameFunc.Think_CalcMoveSpeed
 import jake2.game.GameFunc.Think_SpawnDoorTrigger
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -12,6 +13,13 @@ import jake2.qcommon.util.Math3D
 import jake2.qcommon.util.Math3D.VectorCopy
 import jake2.qcommon.util.Math3D.VectorMA
 import kotlin.math.abs
+
+
+const val DOOR_START_OPEN = 1
+
+private const val DOOR_REVERSE = 2
+
+private const val DOOR_CRUSHER = 4
 
 /**
  * QUAKED func_door (0 .5 .8) ?
@@ -51,7 +59,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     self.solid = jake2.qcommon.Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
     self.blocked = doorBlocked
-    self.use = GameFunc.door_use
+    self.use = doorUse
     if (self.speed == 0f)
         self.speed = 100f
     if (game.gameCvars.deathmatch.value != 0f)
@@ -77,7 +85,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2)
 
     // if it starts open, switch the positions
-    if (self.spawnflags and GameFunc.DOOR_START_OPEN != 0) {
+    if (self.spawnflags and DOOR_START_OPEN != 0) {
         VectorCopy(self.pos2, self.s.origin)
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.origin, self.pos1)
@@ -176,7 +184,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
         self.movedir[1] = 1.0f
 
     // check for reverse rotation
-    if (self.spawnflags and GameFunc.DOOR_REVERSE != 0)
+    if (self.spawnflags and DOOR_REVERSE != 0)
         Math3D.VectorNegate(self.movedir, self.movedir)
 
     if (0 == self.st.distance) {
@@ -193,7 +201,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     game.gameImports.setmodel(self, self.model)
 
     self.blocked = doorBlocked
-    self.use = GameFunc.door_use
+    self.use = doorUse
 
     if (0f == self.speed)
         self.speed = 100f
@@ -214,7 +222,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     }
 
     // if it starts open, switch the positions
-    if (self.spawnflags and GameFunc.DOOR_START_OPEN != 0) {
+    if (self.spawnflags and DOOR_START_OPEN != 0) {
         VectorCopy(self.pos2, self.s.angles)
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.angles, self.pos1)
@@ -259,7 +267,6 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     true
 
 }
-
 
 const val SECRET_ALWAYS_SHOOT = 1
 
@@ -369,7 +376,7 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
         GameDefines.MOD_CRUSH, game
     )
 
-    if (self.spawnflags and GameFunc.DOOR_CRUSHER != 0)
+    if (self.spawnflags and DOOR_CRUSHER != 0)
         return@registerBlocked
 
     // if a door has a negative wait, it would never come back if
@@ -392,5 +399,36 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
             }
         }
     }
+
+}
+
+val doorUse = registerUse("door_use") { self, other, activator, game ->
+
+    if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
+        return@registerUse
+
+    if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0) {
+        if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP) {
+            // trigger all paired doors
+            var ent: SubgameEntity? = self
+            while (ent != null) {
+                ent.message = null
+                ent.touch = null
+                GameFunc.door_go_down.think(ent, game)
+                ent = ent.teamchain
+            }
+            return@registerUse
+        }
+    }
+
+    // trigger all paired doors
+    var ent: SubgameEntity? = self
+    while (ent != null) {
+        ent.message = null
+        ent.touch = null
+        GameFunc.door_go_up(ent, activator, game)
+        ent = ent.teamchain
+    }
+
 
 }
