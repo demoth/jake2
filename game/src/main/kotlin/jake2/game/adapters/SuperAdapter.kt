@@ -56,16 +56,30 @@ abstract class SuperAdapter {
     companion object {
         /** Adapter registration.  */
         fun register(id: String?, sa: SuperAdapter): String {
-            if (id == null)
+            if (id == null) {
+                // TODO: exception
                 return "null"
+            }
             adapters[id] = sa
             return id
         }
 
         fun registerThink(id: String, think: (self: SubgameEntity, gameExports: GameExportsImpl) -> Boolean): EntThinkAdapter {
             val adapter = object : EntThinkAdapter() {
-                override fun think(self: SubgameEntity, gameExports: GameExportsImpl): Boolean {
-                    return think.invoke(self, gameExports)
+                override fun think(self: SubgameEntity, game: GameExportsImpl): Boolean {
+                    return think.invoke(self, game)
+                }
+
+                override val iD: String = id
+            }
+            register(id, adapter)
+            return adapter
+        }
+
+        fun registerBlocked(id: String, block: (self: SubgameEntity, obstacle: SubgameEntity, game: GameExportsImpl ) -> Unit): EntBlockedAdapter {
+            val adapter = object: EntBlockedAdapter() {
+                override fun blocked(self: SubgameEntity, obstacle: SubgameEntity, game: GameExportsImpl) {
+                    block.invoke(self, obstacle, game)
                 }
 
                 override val iD: String = id
