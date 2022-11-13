@@ -2,9 +2,9 @@ package jake2.game
 
 import jake2.game.GameBase.G_SetMovedir
 import jake2.game.GameFunc.Think_CalcMoveSpeed
-import jake2.game.GameFunc.Think_SpawnDoorTrigger
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -16,10 +16,9 @@ import kotlin.math.abs
 
 
 const val DOOR_START_OPEN = 1
-
 private const val DOOR_REVERSE = 2
-
 private const val DOOR_CRUSHER = 4
+private const val DOOR_NOMONSTER = 8
 
 /**
  * QUAKED func_door (0 .5 .8) ?
@@ -56,7 +55,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     }
     G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_PUSH
-    self.solid = jake2.qcommon.Defines.SOLID_BSP
+    self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
     self.blocked = doorBlocked
     self.use = doorUse
@@ -92,12 +91,12 @@ val funcDoor = registerThink("func_door") { self, game ->
     }
     self.moveinfo.state = GameFunc.STATE_BOTTOM
     if (self.health != 0) {
-        self.takedamage = jake2.qcommon.Defines.DAMAGE_YES
+        self.takedamage = Defines.DAMAGE_YES
         self.die = GameFunc.door_killed
         self.max_health = self.health
     } else if (self.targetname != null && self.message != null) {
         game.gameImports.soundindex("misc/talk.wav")
-        self.touch = GameFunc.door_touch
+        self.touch = doorTouch
     }
     self.moveinfo.speed = self.speed
     self.moveinfo.accel = self.accel
@@ -108,21 +107,25 @@ val funcDoor = registerThink("func_door") { self, game ->
     VectorCopy(self.pos2, self.moveinfo.end_origin)
     VectorCopy(self.s.angles, self.moveinfo.end_angles)
     if (self.spawnflags and 16 != 0)
-        self.s.effects = self.s.effects or jake2.qcommon.Defines.EF_ANIM_ALL
+        self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
     if (self.spawnflags and 64 != 0)
-        self.s.effects = self.s.effects or jake2.qcommon.Defines.EF_ANIM_ALLFAST
+        self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     // to simplify logic elsewhere, make non-teamed doors into a team of one
     if (null == self.team)
         self.teammaster = self
     game.gameImports.linkentity(self)
-    self.think.nextTime = game.level.time + jake2.qcommon.Defines.FRAMETIME
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
     if (self.health != 0 || self.targetname != null)
-        self.think.action = GameFunc.Think_CalcMoveSpeed
+        self.think.action = Think_CalcMoveSpeed
     else
-        self.think.action = GameFunc.Think_SpawnDoorTrigger
+        self.think.action = spawnTouchTrigger
     true
 }
+
+private const val DOOR_X_AXIS = 64
+
+private const val DOOR_Y_AXIS = 128
 
 /**
  * QUAKED func_door_rotating (0 .5 .8) ?
@@ -176,9 +179,9 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
     // set the axis of rotation
     Math3D.VectorClear(self.movedir)
-    if (self.spawnflags and GameFunc.DOOR_X_AXIS != 0)
+    if (self.spawnflags and DOOR_X_AXIS != 0)
         self.movedir[2] = 1.0f
-    else if (self.spawnflags and GameFunc.DOOR_Y_AXIS != 0)
+    else if (self.spawnflags and DOOR_Y_AXIS != 0)
         self.movedir[0] = 1.0f
     else  // Z_AXIS
         self.movedir[1] = 1.0f
@@ -237,7 +240,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
     if (self.targetname != null && self.message != null) {
         game.gameImports.soundindex("misc/talk.wav")
-        self.touch = GameFunc.door_touch
+        self.touch = doorTouch
     }
 
     self.moveinfo.state = GameFunc.STATE_BOTTOM
@@ -263,7 +266,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     if (self.health != 0 || self.targetname != null)
         self.think.action = Think_CalcMoveSpeed
     else
-        self.think.action = Think_SpawnDoorTrigger
+        self.think.action = spawnTouchTrigger
     true
 
 }
@@ -343,7 +346,7 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
         self.max_health = self.health
     } else if (self.targetname != null && self.message != null) {
         game.gameImports.soundindex("misc/talk.wav")
-        self.touch = GameFunc.door_touch
+        self.touch = doorTouch
     }
 
     self.classname = "func_door"
@@ -402,6 +405,7 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
 
 }
 
+// go up or down
 val doorUse = registerUse("door_use") { self, other, activator, game ->
 
     if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
@@ -410,25 +414,106 @@ val doorUse = registerUse("door_use") { self, other, activator, game ->
     if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0) {
         if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP) {
             // trigger all paired doors
-            var ent: SubgameEntity? = self
-            while (ent != null) {
-                ent.message = null
-                ent.touch = null
-                GameFunc.door_go_down.think(ent, game)
-                ent = ent.teamchain
+            var team: SubgameEntity? = self
+            while (team != null) {
+                team.message = null
+                team.touch = null
+                GameFunc.door_go_down.think(team, game)
+                team = team.teamchain
             }
             return@registerUse
         }
     }
 
     // trigger all paired doors
-    var ent: SubgameEntity? = self
-    while (ent != null) {
-        ent.message = null
-        ent.touch = null
-        GameFunc.door_go_up(ent, activator, game)
-        ent = ent.teamchain
+    var team: SubgameEntity? = self
+    while (team != null) {
+        team.message = null
+        team.touch = null
+        GameFunc.door_go_up(team, activator, game)
+        team = team.teamchain
     }
 
 
+}
+
+// print a message
+private val doorTouch = registerTouch("door_touch") { self, other, plane, surf, game ->
+    // only players receive messages
+    if (null == other.client)
+        return@registerTouch
+
+    if (game.level.time < self.touch_debounce_time)
+        return@registerTouch
+
+    self.touch_debounce_time = game.level.time + 5.0f
+
+    if (!self.message.isNullOrBlank()) {
+        game.gameImports.centerprintf(other, self.message)
+        game.gameImports.sound(other, Defines.CHAN_AUTO, game.gameImports.soundindex("misc/talk1.wav"), 1f, Defines.ATTN_NORM.toFloat(), 0f)
+    }
+
+}
+
+/**
+ * spawn a trigger surrounding the entire team unless it is already targeted by another entity.
+ */
+private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent, gameExports ->
+    val mins = floatArrayOf(0f, 0f, 0f)
+    val maxs = floatArrayOf(0f, 0f, 0f)
+
+    // only the team leader spawns a trigger
+    if (ent.flags and GameDefines.FL_TEAMSLAVE != 0)
+        return@registerThink true
+
+    VectorCopy(ent.absmin, mins)
+    VectorCopy(ent.absmax, maxs)
+
+    var team: SubgameEntity? = ent.teamchain
+    while (team != null) {
+        GameFunc.AddPointToBounds(team.absmin, mins, maxs)
+        GameFunc.AddPointToBounds(team.absmax, mins, maxs)
+        team = team.teamchain
+    }
+
+    // expand
+    mins[0] -= 60f
+    mins[1] -= 60f
+    maxs[0] += 60f
+    maxs[1] += 60f
+
+    val trigger = gameExports.G_Spawn()
+    VectorCopy(mins, trigger.mins)
+    VectorCopy(maxs, trigger.maxs)
+    trigger.owner = ent
+    trigger.solid = Defines.SOLID_TRIGGER
+    trigger.movetype = GameDefines.MOVETYPE_NONE
+    trigger.touch = doorTriggerTouch
+    gameExports.gameImports.linkentity(trigger)
+
+    if (ent.spawnflags and DOOR_START_OPEN != 0)
+        GameFunc.door_use_areaportals(ent, true, gameExports)
+
+    Think_CalcMoveSpeed.think(ent, gameExports)
+    return@registerThink true
+}
+
+private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other, plane, surf, gameExports ->
+    // dead cannot open doors
+    if (other.health <= 0)
+        return@registerTouch
+
+    // only monsters & players
+    if (other.svflags and Defines.SVF_MONSTER == 0 && other.client == null)
+        return@registerTouch
+
+    if (other.svflags and Defines.SVF_MONSTER != 0 && self.owner.spawnflags and DOOR_NOMONSTER != 0)
+        return@registerTouch
+
+    if (gameExports.level.time < self.touch_debounce_time)
+        return@registerTouch
+
+    self.touch_debounce_time = gameExports.level.time + 1.0f
+
+    doorUse.use(self.owner, other, other, gameExports)
 }

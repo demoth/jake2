@@ -208,6 +208,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void centerprintf(edict_t ent, String s) {
+        // todo: check if s is not empty
         sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
     }
 
