@@ -22,6 +22,8 @@ package jake2.game.adapters
 
 import jake2.game.GameExportsImpl
 import jake2.game.SubgameEntity
+import jake2.qcommon.cplane_t
+import jake2.qcommon.csurface_t
 import jake2.qcommon.filesystem.QuakeFile
 
 /**
@@ -89,7 +91,7 @@ abstract class SuperAdapter {
         }
 
         fun registerUse(id: String, use: (self: SubgameEntity, other: SubgameEntity, activator: SubgameEntity?, gameExports: GameExportsImpl) -> Unit): EntUseAdapter {
-            return object : EntUseAdapter() {
+            val adapter = object : EntUseAdapter() {
                 override fun use(
                     self: SubgameEntity,
                     other: SubgameEntity,
@@ -101,7 +103,36 @@ abstract class SuperAdapter {
 
                 override val iD = id
             }
+            register(id, adapter)
+            return adapter
         }
+
+        fun registerTouch(id: String, touch: (self: SubgameEntity, other: SubgameEntity, plane: cplane_t, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
+            val adapter = object : EntTouchAdapter() {
+                override fun touch(
+                    self: SubgameEntity,
+                    other: SubgameEntity,
+                    plane: cplane_t,
+                    surf: csurface_t?,
+                    game: GameExportsImpl
+                ) {
+                    touch.invoke(self, other, plane, surf, game)
+                }
+
+                override val iD = id
+            }
+            register(id, adapter)
+            return adapter
+        }
+
+//        abstract fun die(
+//            self: SubgameEntity?,
+//            inflictor: SubgameEntity?,
+//            attacker: SubgameEntity?,
+//            damage: Int,
+//            point: FloatArray?,
+//            gameExports: GameExportsImpl?
+//        )
 
         /** Adapter repository.  */
         private val adapters: MutableMap<String, SuperAdapter> = HashMap()

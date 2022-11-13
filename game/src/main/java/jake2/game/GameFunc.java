@@ -325,7 +325,7 @@ class GameFunc {
      */
 
 
-    private static void door_use_areaportals(SubgameEntity self, boolean open, GameExportsImpl gameExports) {
+    public static void door_use_areaportals(SubgameEntity self, boolean open, GameExportsImpl gameExports) {
 
         if (self.target == null)
             return;
@@ -556,17 +556,8 @@ class GameFunc {
 
     public final static int STATE_DOWN = 3;
 
-    private final static int DOOR_NOMONSTER = 8;
-
     public final static int DOOR_TOGGLE = 32;
 
-    public final static int DOOR_X_AXIS = 64;
-
-    public final static int DOOR_Y_AXIS = 128;
-
-    //
-    //	   Support routines for movement (changes in origin using velocity)
-    //
 
     private static EntThinkAdapter Move_Done = new EntThinkAdapter() {
         public String getID() { return "move_done";}
@@ -1169,58 +1160,6 @@ class GameFunc {
         }
     };
 
-    public static EntUseAdapter door_use = new EntUseAdapter() {
-        public String getID() { return "door_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            SubgameEntity ent;
-
-            if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                return;
-
-            if ((self.spawnflags & DOOR_TOGGLE) != 0) {
-                if (self.moveinfo.state == STATE_UP
-                        || self.moveinfo.state == STATE_TOP) {
-                    // trigger all paired doors
-                    for (ent = self; ent != null; ent = ent.teamchain) {
-                        ent.message = null;
-                        ent.touch = null;
-                        door_go_down.think(ent, gameExports);
-                    }
-                    return;
-                }
-            }
-
-            // trigger all paired doors
-            for (ent = self; ent != null; ent = ent.teamchain) {
-                ent.message = null;
-                ent.touch = null;
-                door_go_up(ent, activator, gameExports);
-            }
-        }
-    };
-
-    private static EntTouchAdapter Touch_DoorTrigger = new EntTouchAdapter() {
-        public String getID() { return "touch_door_trigger";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (other.health <= 0)
-                return;
-
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient()))
-                return;
-
-            if (0 != (self.getOwner().spawnflags & DOOR_NOMONSTER)
-                    && 0 != (other.svflags & Defines.SVF_MONSTER))
-                return;
-
-            if (gameExports.level.time < self.touch_debounce_time)
-                return;
-            self.touch_debounce_time = gameExports.level.time + 1.0f;
-
-            DoorsKt.getDoorUse().use(self.getOwner(), other, other, gameExports);
-        }
-    };
 
     public static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
         public String getID() { return "think_calc_movespeed";}
@@ -1263,46 +1202,6 @@ class GameFunc {
         }
     };
 
-    public static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
-        public String getID() { return "think_spawn_door_trigger";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
-
-            if ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                return true; // only the team leader spawns a trigger
-
-            Math3D.VectorCopy(ent.absmin, mins);
-            Math3D.VectorCopy(ent.absmax, maxs);
-
-            SubgameEntity other;
-            for (other = ent.teamchain; other != null; other = other.teamchain) {
-                AddPointToBounds(other.absmin, mins, maxs);
-                AddPointToBounds(other.absmax, mins, maxs);
-            }
-
-            // expand
-            mins[0] -= 60;
-            mins[1] -= 60;
-            maxs[0] += 60;
-            maxs[1] += 60;
-
-            other = gameExports.G_Spawn();
-            Math3D.VectorCopy(mins, other.mins);
-            Math3D.VectorCopy(maxs, other.maxs);
-            other.setOwner(ent);
-            other.solid = Defines.SOLID_TRIGGER;
-            other.movetype = GameDefines.MOVETYPE_NONE;
-            other.touch = Touch_DoorTrigger;
-            gameExports.gameImports.linkentity(other);
-
-            if ((ent.spawnflags & DOOR_START_OPEN) != 0)
-                door_use_areaportals(ent, true, gameExports);
-
-            Think_CalcMoveSpeed.think(ent, gameExports);
-            return true;
-        }
-    };
-
     public static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
@@ -1316,25 +1215,6 @@ class GameFunc {
             DoorsKt.getDoorUse().use(self.teammaster, attacker, attacker, gameExports);
         }
     };
-
-    public static EntTouchAdapter door_touch = new EntTouchAdapter() {
-        public String getID() { return "door_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (null == other.getClient())
-                return;
-
-            if (gameExports.level.time < self.touch_debounce_time)
-                return;
-            self.touch_debounce_time = gameExports.level.time + 5.0f;
-
-            gameExports.gameImports.centerprintf(other, self.message);
-            gameExports.gameImports.sound(other, Defines.CHAN_AUTO, gameExports.gameImports
-                    .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-
 
     private final static int TRAIN_START_ON = 1;
 
@@ -1825,7 +1705,7 @@ class GameFunc {
         }
     };
 
-    private static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
+    public static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
 
         for (int i = 0; i < 3; i++) {
             float val = v[i];
