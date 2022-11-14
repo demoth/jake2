@@ -391,13 +391,13 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
         if (self.moveinfo.state == GameFunc.STATE_DOWN) {
             team = self.teammaster
             while (team != null) {
-                doorGoUp(team, team.activator, game)
+                doorOpening(team, team.activator, game)
                 team = team.teamchain
             }
         } else {
             team = self.teammaster
             while (team != null) {
-                GameFunc.door_go_down.think(team, game)
+                doorClosing.think(team, game)
                 team = team.teamchain
             }
         }
@@ -417,7 +417,7 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
             while (team != null) {
                 team.message = null
                 team.touch = null
-                GameFunc.door_go_down.think(team, game)
+                doorClosing.think(team, game)
                 team = team.teamchain
             }
             return@registerUse
@@ -429,7 +429,7 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
     while (team != null) {
         team.message = null
         team.touch = null
-        doorGoUp(team, activator, game)
+        doorOpening(team, activator, game)
         team = team.teamchain
     }
 }
@@ -515,7 +515,8 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
     doorOpenUse.use(self.owner, other, other, gameExports)
 }
 
-private fun doorGoUp(self: SubgameEntity, activator: SubgameEntity?, game: GameExportsImpl) {
+// Door opening/closing
+private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: GameExportsImpl) {
     if (self.moveinfo.state == GameFunc.STATE_UP)
         return  // already going up
     if (self.moveinfo.state == GameFunc.STATE_TOP) {
@@ -535,15 +536,15 @@ private fun doorGoUp(self: SubgameEntity, activator: SubgameEntity?, game: GameE
     }
     self.moveinfo.state = GameFunc.STATE_UP
     if ("func_door" == self.classname)
-        GameFunc.Move_Calc(self, self.moveinfo.end_origin, doorHitTop, game)
+        GameFunc.Move_Calc(self, self.moveinfo.end_origin, doorOpened, game)
     else if ("func_door_rotating" == self.classname)
-        GameFunc.AngleMove_Calc(self, doorHitTop, game)
+        GameFunc.AngleMove_Calc(self, doorOpened, game)
     GameUtil.G_UseTargets(self, activator, game)
     GameFunc.door_use_areaportals(self, true, game)
 }
 
-private val doorHitTop = registerThink("door_hit_top") { self: SubgameEntity, game: GameExportsImpl ->
-    if (0 == (self.flags and GameDefines.FL_TEAMSLAVE)) {
+private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, game: GameExportsImpl ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
         if (self.moveinfo.sound_end != 0)
             game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                     + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
@@ -557,10 +558,42 @@ private val doorHitTop = registerThink("door_hit_top") { self: SubgameEntity, ga
         return@registerThink true
 
     if (self.moveinfo.wait >= 0) {
-        self.think.action = GameFunc.door_go_down
+        self.think.action = doorClosing
         self.think.nextTime = game.level.time + self.moveinfo.wait
     }
     return@registerThink true
+}
 
+private val doorClosing = registerThink("door_go_down") { self, game ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_start != 0)
+            game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
+                self.moveinfo.sound_start, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
 
+        self.s.sound = self.moveinfo.sound_middle
+    }
+
+    if (self.max_health != 0) {
+        self.takedamage = Defines.DAMAGE_YES
+        self.health = self.max_health
+    }
+
+    self.moveinfo.state = GameFunc.STATE_DOWN
+    if ("func_door" == self.classname)
+        GameFunc.Move_Calc(self, self.moveinfo.start_origin, doorClosed, game)
+    else if ("func_door_rotating" == self.classname)
+        GameFunc.AngleMove_Calc(self, doorClosed, game)
+    return@registerThink true
+}
+
+private val doorClosed = registerThink("door_hit_bottom") { self, gameExports ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_end != 0)
+            gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
+                self.moveinfo.sound_end, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
+        self.s.sound = 0
+    }
+    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    GameFunc.door_use_areaportals(self, false, gameExports)
+    return@registerThink true
 }

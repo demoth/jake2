@@ -1071,48 +1071,6 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
-        public String getID() { return "door_hit_bottom";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (self.moveinfo.sound_end != 0)
-                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
-                            Defines.ATTN_STATIC, 0);
-                self.s.sound = 0;
-            }
-            self.moveinfo.state = STATE_BOTTOM;
-            door_use_areaportals(self, false, gameExports);
-            return true;
-        }
-    };
-
-    public static EntThinkAdapter door_go_down = new EntThinkAdapter() {
-        public String getID() { return "door_go_down";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (self.moveinfo.sound_start != 0)
-                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
-                            Defines.ATTN_STATIC, 0);
-                self.s.sound = self.moveinfo.sound_middle;
-            }
-            if (self.max_health != 0) {
-                self.takedamage = Defines.DAMAGE_YES;
-                self.health = self.max_health;
-            }
-
-            self.moveinfo.state = STATE_DOWN;
-            if ("func_door".equals(self.classname))
-                Move_Calc(self, self.moveinfo.start_origin,
-                        door_hit_bottom, gameExports);
-            else if ("func_door_rotating".equals(self.classname))
-                AngleMove_Calc(self, door_hit_bottom, gameExports);
-            return true;
-        }
-    };
-
-
     public static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
         public String getID() { return "think_calc_movespeed";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
