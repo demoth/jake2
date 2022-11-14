@@ -31,7 +31,6 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import static jake2.game.DoorsKt.DOOR_START_OPEN;
-import static jake2.game.DoorsKt.SECRET_ALWAYS_SHOOT;
 
 class GameFunc {
 
@@ -315,15 +314,6 @@ class GameFunc {
         ent.moveinfo.sound_middle = gameExports.gameImports.soundindex("plats/pt1_mid.wav");
         ent.moveinfo.sound_end = gameExports.gameImports.soundindex("plats/pt1_end.wav");
     }
-
-    /**
-     * DOORS
-     * 
-     * spawn a trigger surrounding the entire team unless it is already targeted
-     * by another.
-     * 
-     */
-
 
     public static void door_use_areaportals(SubgameEntity self, boolean open, GameExportsImpl gameExports) {
 
@@ -1468,85 +1458,6 @@ class GameFunc {
         }
     };
 
-
-    public static EntUseAdapter door_secret_use = new EntUseAdapter() {
-        public String getID() { return "door_secret_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            // make sure we're not already moving
-            if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
-                return;
-
-            Move_Calc(self, self.pos1, door_secret_move1, gameExports);
-            door_use_areaportals(self, true, gameExports);
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move1";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.think.nextTime = gameExports.level.time + 1.0f;
-            self.think.action = door_secret_move2;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move2 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move2";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            Move_Calc(self, self.pos2, door_secret_move3, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move3 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move3";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (self.wait == -1)
-                return true;
-            self.think.nextTime = gameExports.level.time + self.wait;
-            self.think.action = door_secret_move4;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move4 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move4";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            Move_Calc(self, self.pos1, door_secret_move5, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move5";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.think.nextTime = gameExports.level.time + 1.0f;
-            self.think.action = door_secret_move6;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_move6 = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move6";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            Move_Calc(self, Globals.vec3_origin, door_secret_done, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter door_secret_done = new EntThinkAdapter() {
-        public String getID() { return "door_secret_move7";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (null == (self.targetname)
-                    || 0 != (self.spawnflags & SECRET_ALWAYS_SHOOT)) {
-                self.health = 0;
-                self.takedamage = Defines.DAMAGE_YES;
-            }
-            door_use_areaportals(self, false, gameExports);
-            return true;
-        }
-    };
-
     public static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
@@ -1569,15 +1480,6 @@ class GameFunc {
             GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
                     obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
-
-    public static EntDieAdapter door_secret_die = new EntDieAdapter() {
-        public String getID() { return "door_secret_die";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-            self.takedamage = Defines.DAMAGE_NO;
-            door_secret_use.use(self, attacker, attacker, gameExports);
         }
     };
 
