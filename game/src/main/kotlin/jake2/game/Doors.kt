@@ -302,7 +302,7 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
     game.gameImports.setmodel(self, self.model)
 
     self.blocked = GameFunc.door_secret_blocked
-    self.use = doorSecretUse
+    self.use = doorSecretOpeningBack
 
     if (null == self.targetname || 0 != self.spawnflags and SECRET_ALWAYS_SHOOT) {
         self.health = 0
@@ -613,55 +613,56 @@ private val doorKilled = registerDie("door_killed") { self, inflictor, attacker,
 // secret door related functions
 private val doorSecretKilled = registerDie("door_secret_die") { self, inflictor, attacker, damage, point, game ->
     self.takedamage = Defines.DAMAGE_NO
-    doorSecretUse.use(self, attacker, attacker, game)
+    doorSecretOpeningBack.use(self, attacker, attacker, game)
 }
 
-private val doorSecretUse = registerUse("door_secret_use") { self, other, activator, game ->
+private val doorSecretOpeningBack = registerUse("door_secret_use") { self, other, activator, game ->
     // make sure we're not already moving
     // fixme: == zero
     if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
         return@registerUse
 
-    GameFunc.Move_Calc(self, self.pos1, doorSecretMove1, game)
+    GameFunc.Move_Calc(self, self.pos1, doorSecretOpeningWait, game)
     GameFunc.door_use_areaportals(self, true, game)
 }
 
-private val doorSecretMove1 = registerThink("door_secret_move1") { self, game ->
+// Wait between 2 moves
+private val doorSecretOpeningWait = registerThink("door_secret_move1") { self, game ->
     self.think.nextTime = game.level.time + 1.0f
-    self.think.action = doorSecretMove2
+    self.think.action = doorSecretOpeningSideways
     true
 }
 
-private val doorSecretMove2 = registerThink("door_secret_move2") { self, game ->
-    GameFunc.Move_Calc(self, self.pos2, doorSecretMove3, game)
+private val doorSecretOpeningSideways = registerThink("door_secret_move2") { self, game ->
+    GameFunc.Move_Calc(self, self.pos2, doorSecretOpened, game)
     true
 }
 
-private val doorSecretMove3 = registerThink("door_secret_move3") { self, game ->
+private val doorSecretOpened = registerThink("door_secret_move3") { self, game ->
     if (self.wait == -1f) 
         return@registerThink true
     self.think.nextTime = game.level.time + self.wait
-    self.think.action = doorSecretMove4
+    self.think.action = doorSecretClosingSideways
     true
 }
 
-private val doorSecretMove4 = registerThink("door_secret_move4") { self, game ->
-    GameFunc.Move_Calc(self, self.pos1, doorSecretMove5, game)
+private val doorSecretClosingSideways = registerThink("door_secret_move4") { self, game ->
+    GameFunc.Move_Calc(self, self.pos1, doorSecretClosingWait, game)
     true
 }
 
-private val doorSecretMove5 = registerThink("door_secret_move5") { self, game ->
+private val doorSecretClosingWait = registerThink("door_secret_move5") { self, game ->
     self.think.nextTime = game.level.time + 1.0f
-    self.think.action = doorSecretMove6
+    self.think.action = doorSecretClosingBack
     true
 }
 
-private val doorSecretMove6 = registerThink("door_secret_move6") { self, game ->
-    GameFunc.Move_Calc(self, Globals.vec3_origin, doorSecretDone, game)
+private val doorSecretClosingBack = registerThink("door_secret_move6") { self, game ->
+    GameFunc.Move_Calc(self, Globals.vec3_origin, doorSecretClosed, game)
     true
 }
 
-private val doorSecretDone = registerThink("door_secret_move7") { self, game ->
+private val doorSecretClosed = registerThink("door_secret_move7") { self, game ->
     if (self.targetname == null || self.spawnflags and SECRET_ALWAYS_SHOOT != 0) {
         self.health = 0
         self.takedamage = Defines.DAMAGE_YES
