@@ -35,7 +35,7 @@ import static jake2.game.DoorsKt.SECRET_ALWAYS_SHOOT;
 
 class GameFunc {
 
-    private static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
+    public static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.velocity);
         Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
 
@@ -58,7 +58,7 @@ class GameFunc {
         }
     }
 
-    private static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func, GameExportsImpl gameExports) {
+    public static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.avelocity);
         ent.moveinfo.endfunc = func;
         if (gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
@@ -341,33 +341,6 @@ class GameFunc {
         }
     }
 
-    public static void door_go_up(SubgameEntity self, SubgameEntity activator, GameExportsImpl gameExports) {
-        if (self.moveinfo.state == STATE_UP)
-            return; // already going up
-
-        if (self.moveinfo.state == STATE_TOP) {
-            // reset top wait time
-            if (self.moveinfo.wait >= 0)
-                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
-            return;
-        }
-
-        if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-            if (self.moveinfo.sound_start != 0)
-                gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                        + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
-                        Defines.ATTN_STATIC, 0);
-            self.s.sound = self.moveinfo.sound_middle;
-        }
-        self.moveinfo.state = STATE_UP;
-        if ("func_door".equals(self.classname))
-            Move_Calc(self, self.moveinfo.end_origin, door_hit_top, gameExports);
-        else if ("func_door_rotating".equals(self.classname))
-            AngleMove_Calc(self, door_hit_top, gameExports);
-
-        GameUtil.G_UseTargets(self, activator, gameExports);
-        door_use_areaportals(self, true, gameExports);
-    }
 
     /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
@@ -443,7 +416,7 @@ class GameFunc {
             self.wait = -1;
         self.moveinfo.wait = self.wait;
 
-        self.use = DoorsKt.getDoorUse();
+        self.use = DoorsKt.getDoorOpenUse();
 
         if (self.wait == -1)
             self.spawnflags |= DOOR_TOGGLE;
@@ -1098,27 +1071,6 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter door_hit_top = new EntThinkAdapter() {
-        public String getID() { return "door_hit_top";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (self.moveinfo.sound_end != 0)
-                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
-                            Defines.ATTN_STATIC, 0);
-                self.s.sound = 0;
-            }
-            self.moveinfo.state = STATE_TOP;
-            if ((self.spawnflags & DOOR_TOGGLE) != 0)
-                return true;
-            if (self.moveinfo.wait >= 0) {
-                self.think.action = door_go_down;
-                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
-            }
-            return true;
-        }
-    };
-
     private static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "door_hit_bottom";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
@@ -1212,7 +1164,7 @@ class GameFunc {
                 ent.health = ent.max_health;
                 ent.takedamage = Defines.DAMAGE_NO;
             }
-            DoorsKt.getDoorUse().use(self.teammaster, attacker, attacker, gameExports);
+            DoorsKt.getDoorOpenUse().use(self.teammaster, attacker, attacker, gameExports);
         }
     };
 

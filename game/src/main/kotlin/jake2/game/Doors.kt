@@ -58,7 +58,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
     self.blocked = doorBlocked
-    self.use = doorUse
+    self.use = doorOpenUse
     if (self.speed == 0f)
         self.speed = 100f
     if (game.gameCvars.deathmatch.value != 0f)
@@ -204,7 +204,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
     game.gameImports.setmodel(self, self.model)
 
     self.blocked = doorBlocked
-    self.use = doorUse
+    self.use = doorOpenUse
 
     if (0f == self.speed)
         self.speed = 100f
@@ -387,26 +387,25 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
     // so let it just squash the object to death real fast
 
     if (self.moveinfo.wait >= 0) {
-        var ent: SubgameEntity?
+        var team: SubgameEntity?
         if (self.moveinfo.state == GameFunc.STATE_DOWN) {
-            ent = self.teammaster
-            while (ent != null) {
-                GameFunc.door_go_up(ent, ent.activator, game)
-                ent = ent.teamchain
+            team = self.teammaster
+            while (team != null) {
+                doorGoUp(team, team.activator, game)
+                team = team.teamchain
             }
         } else {
-            ent = self.teammaster
-            while (ent != null) {
-                GameFunc.door_go_down.think(ent, game)
-                ent = ent.teamchain
+            team = self.teammaster
+            while (team != null) {
+                GameFunc.door_go_down.think(team, game)
+                team = team.teamchain
             }
         }
     }
 
 }
 
-// go up or down
-val doorUse = registerUse("door_use") { self, other, activator, game ->
+val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
 
     if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
         return@registerUse
@@ -430,11 +429,9 @@ val doorUse = registerUse("door_use") { self, other, activator, game ->
     while (team != null) {
         team.message = null
         team.touch = null
-        GameFunc.door_go_up(team, activator, game)
+        doorGoUp(team, activator, game)
         team = team.teamchain
     }
-
-
 }
 
 // print a message
@@ -515,5 +512,55 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
 
     self.touch_debounce_time = gameExports.level.time + 1.0f
 
-    doorUse.use(self.owner, other, other, gameExports)
+    doorOpenUse.use(self.owner, other, other, gameExports)
+}
+
+private fun doorGoUp(self: SubgameEntity, activator: SubgameEntity?, game: GameExportsImpl) {
+    if (self.moveinfo.state == GameFunc.STATE_UP)
+        return  // already going up
+    if (self.moveinfo.state == GameFunc.STATE_TOP) {
+        // reset top wait time
+        if (self.moveinfo.wait >= 0)
+            self.think.nextTime = game.level.time + self.moveinfo.wait
+        return
+    }
+    if (0 == self.flags and GameDefines.FL_TEAMSLAVE) {
+        if (self.moveinfo.sound_start != 0)
+            game.gameImports.sound(
+                self, Defines.CHAN_NO_PHS_ADD
+                        + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
+                Defines.ATTN_STATIC.toFloat(), 0f
+            )
+        self.s.sound = self.moveinfo.sound_middle
+    }
+    self.moveinfo.state = GameFunc.STATE_UP
+    if ("func_door" == self.classname)
+        GameFunc.Move_Calc(self, self.moveinfo.end_origin, doorHitTop, game)
+    else if ("func_door_rotating" == self.classname)
+        GameFunc.AngleMove_Calc(self, doorHitTop, game)
+    GameUtil.G_UseTargets(self, activator, game)
+    GameFunc.door_use_areaportals(self, true, game)
+}
+
+private val doorHitTop = registerThink("door_hit_top") { self: SubgameEntity, game: GameExportsImpl ->
+    if (0 == (self.flags and GameDefines.FL_TEAMSLAVE)) {
+        if (self.moveinfo.sound_end != 0)
+            game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+            Defines.ATTN_STATIC.toFloat(), 0f
+        )
+        self.s.sound = 0
+    }
+    self.moveinfo.state = GameFunc.STATE_TOP
+
+    if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0)
+        return@registerThink true
+
+    if (self.moveinfo.wait >= 0) {
+        self.think.action = GameFunc.door_go_down
+        self.think.nextTime = game.level.time + self.moveinfo.wait
+    }
+    return@registerThink true
+
+
 }
