@@ -302,12 +302,12 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
     game.gameImports.setmodel(self, self.model)
 
     self.blocked = GameFunc.door_secret_blocked
-    self.use = GameFunc.door_secret_use
+    self.use = doorSecretUse
 
     if (null == self.targetname || 0 != self.spawnflags and SECRET_ALWAYS_SHOOT) {
         self.health = 0
         self.takedamage = Defines.DAMAGE_YES
-        self.die = GameFunc.door_secret_die
+        self.die = doorSecretKilled
     }
 
     if (0 == self.dmg)
@@ -456,7 +456,7 @@ private val doorTouch = registerTouch("door_touch") { self, other, plane, surf, 
 /**
  * spawn a trigger surrounding the entire team unless it is already targeted by another entity.
  */
-private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent, gameExports ->
+private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent, game->
     val mins = floatArrayOf(0f, 0f, 0f)
     val maxs = floatArrayOf(0f, 0f, 0f)
 
@@ -480,23 +480,23 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
     maxs[0] += 60f
     maxs[1] += 60f
 
-    val trigger = gameExports.G_Spawn()
+    val trigger = game.G_Spawn()
     VectorCopy(mins, trigger.mins)
     VectorCopy(maxs, trigger.maxs)
     trigger.owner = ent
     trigger.solid = Defines.SOLID_TRIGGER
     trigger.movetype = GameDefines.MOVETYPE_NONE
     trigger.touch = doorTriggerTouch
-    gameExports.gameImports.linkentity(trigger)
+    game.gameImports.linkentity(trigger)
 
     if (ent.spawnflags and DOOR_START_OPEN != 0)
-        GameFunc.door_use_areaportals(ent, true, gameExports)
+        GameFunc.door_use_areaportals(ent, true, game)
 
-    Think_CalcMoveSpeed.think(ent, gameExports)
-    return@registerThink true
+    Think_CalcMoveSpeed.think(ent, game)
+    true
 }
 
-private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other, plane, surf, gameExports ->
+private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other, plane, surf, game ->
     // dead cannot open doors
     if (other.health <= 0)
         return@registerTouch
@@ -508,12 +508,12 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
     if (other.svflags and Defines.SVF_MONSTER != 0 && self.owner.spawnflags and DOOR_NOMONSTER != 0)
         return@registerTouch
 
-    if (gameExports.level.time < self.touch_debounce_time)
+    if (game.level.time < self.touch_debounce_time)
         return@registerTouch
 
-    self.touch_debounce_time = gameExports.level.time + 1.0f
+    self.touch_debounce_time = game.level.time + 1.0f
 
-    doorOpenUse.use(self.owner, other, other, gameExports)
+    doorOpenUse.use(self.owner, other, other, game)
 }
 
 // Door opening/closing
@@ -562,7 +562,7 @@ private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, ga
         self.think.action = doorClosing
         self.think.nextTime = game.level.time + self.moveinfo.wait
     }
-    return@registerThink true
+    true
 }
 
 private val doorClosing = registerThink("door_go_down") { self, game ->
@@ -584,28 +584,88 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
         GameFunc.Move_Calc(self, self.moveinfo.start_origin, doorClosed, game)
     else if ("func_door_rotating" == self.classname)
         GameFunc.AngleMove_Calc(self, doorClosed, game)
-    return@registerThink true
+    true
 }
 
-private val doorClosed = registerThink("door_hit_bottom") { self, gameExports ->
+private val doorClosed = registerThink("door_hit_bottom") { self, game ->
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
         if (self.moveinfo.sound_end != 0)
-            gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
+            game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
                 self.moveinfo.sound_end, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
         self.s.sound = 0
     }
     self.moveinfo.state = GameFunc.STATE_BOTTOM
-    GameFunc.door_use_areaportals(self, false, gameExports)
-    return@registerThink true
+    GameFunc.door_use_areaportals(self, false, game)
+    true
 }
 
-private val doorKilled = registerDie("door_killed") { self, inflictor, attacker, damage, point, gameExports ->
+private val doorKilled = registerDie("door_killed") { self, inflictor, attacker, damage, point, game ->
     var ent: SubgameEntity? = self.teammaster
     while (ent != null) {
             ent.health = ent.max_health
             ent.takedamage = Defines.DAMAGE_NO
             ent = ent.teamchain
     }
-    doorOpenUse.use(self.teammaster, attacker, attacker, gameExports)
+    doorOpenUse.use(self.teammaster, attacker, attacker, game)
 
+}
+
+// secret door related functions
+private val doorSecretKilled = registerDie("door_secret_die") { self, inflictor, attacker, damage, point, game ->
+    self.takedamage = Defines.DAMAGE_NO
+    doorSecretUse.use(self, attacker, attacker, game)
+}
+
+private val doorSecretUse = registerUse("door_secret_use") { self, other, activator, game ->
+    // make sure we're not already moving
+    // fixme: == zero
+    if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
+        return@registerUse
+
+    GameFunc.Move_Calc(self, self.pos1, doorSecretMove1, game)
+    GameFunc.door_use_areaportals(self, true, game)
+}
+
+private val doorSecretMove1 = registerThink("door_secret_move1") { self, game ->
+    self.think.nextTime = game.level.time + 1.0f
+    self.think.action = doorSecretMove2
+    true
+}
+
+private val doorSecretMove2 = registerThink("door_secret_move2") { self, game ->
+    GameFunc.Move_Calc(self, self.pos2, doorSecretMove3, game)
+    true
+}
+
+private val doorSecretMove3 = registerThink("door_secret_move3") { self, game ->
+    if (self.wait == -1f) 
+        return@registerThink true
+    self.think.nextTime = game.level.time + self.wait
+    self.think.action = doorSecretMove4
+    true
+}
+
+private val doorSecretMove4 = registerThink("door_secret_move4") { self, game ->
+    GameFunc.Move_Calc(self, self.pos1, doorSecretMove5, game)
+    true
+}
+
+private val doorSecretMove5 = registerThink("door_secret_move5") { self, game ->
+    self.think.nextTime = game.level.time + 1.0f
+    self.think.action = doorSecretMove6
+    true
+}
+
+private val doorSecretMove6 = registerThink("door_secret_move6") { self, game ->
+    GameFunc.Move_Calc(self, Globals.vec3_origin, doorSecretDone, game)
+    true
+}
+
+private val doorSecretDone = registerThink("door_secret_move7") { self, game ->
+    if (self.targetname == null || self.spawnflags and SECRET_ALWAYS_SHOOT != 0) {
+        self.health = 0
+        self.takedamage = Defines.DAMAGE_YES
+    }
+    GameFunc.door_use_areaportals(self, false, game)
+    true
 }
