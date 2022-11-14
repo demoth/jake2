@@ -405,6 +405,7 @@ public class GameCombat {
      * @param knockback - amount of knowback
      * @param damageFlags - {@link DamageFlags}
      * @param mod - means of death
+     * todo: infer nullify
      */
     public static void T_Damage(SubgameEntity target, SubgameEntity inflictor, SubgameEntity attacker,
                                 float[] dir, float[] point, float[] normal,

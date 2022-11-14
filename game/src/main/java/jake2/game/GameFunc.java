@@ -1112,19 +1112,6 @@ class GameFunc {
         }
     };
 
-    public static EntDieAdapter door_killed = new EntDieAdapter() {
-        public String getID() { return "door_killed";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-            SubgameEntity ent;
-
-            for (ent = self.teammaster; ent != null; ent = ent.teamchain) {
-                ent.health = ent.max_health;
-                ent.takedamage = Defines.DAMAGE_NO;
-            }
-            DoorsKt.getDoorOpenUse().use(self.teammaster, attacker, attacker, gameExports);
-        }
-    };
 
     private final static int TRAIN_START_ON = 1;
 

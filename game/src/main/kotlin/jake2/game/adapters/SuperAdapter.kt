@@ -125,14 +125,24 @@ abstract class SuperAdapter {
             return adapter
         }
 
-//        abstract fun die(
-//            self: SubgameEntity?,
-//            inflictor: SubgameEntity?,
-//            attacker: SubgameEntity?,
-//            damage: Int,
-//            point: FloatArray?,
-//            gameExports: GameExportsImpl?
-//        )
+        fun registerDie(id:String, die: (self: SubgameEntity, inflictor: SubgameEntity?, attacker: SubgameEntity?, damage: Int, point: FloatArray?, gameExports: GameExportsImpl) -> Unit): EntDieAdapter {
+            val adapter = object : EntDieAdapter() {
+                override fun die(
+                    self: SubgameEntity,
+                    inflictor: SubgameEntity?,
+                    attacker: SubgameEntity?,
+                    damage: Int,
+                    point: FloatArray?,
+                    gameExports: GameExportsImpl
+                ) {
+                    die.invoke(self, inflictor, attacker, damage, point, gameExports)
+                }
+
+                override val iD = id
+            }
+            register(id, adapter)
+            return adapter
+        }
 
         /** Adapter repository.  */
         private val adapters: MutableMap<String, SuperAdapter> = HashMap()

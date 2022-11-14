@@ -3,6 +3,7 @@ package jake2.game
 import jake2.game.GameBase.G_SetMovedir
 import jake2.game.GameFunc.Think_CalcMoveSpeed
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
+import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -92,7 +93,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     self.moveinfo.state = GameFunc.STATE_BOTTOM
     if (self.health != 0) {
         self.takedamage = Defines.DAMAGE_YES
-        self.die = GameFunc.door_killed
+        self.die = doorKilled
         self.max_health = self.health
     } else if (self.targetname != null && self.message != null) {
         game.gameImports.soundindex("misc/talk.wav")
@@ -234,7 +235,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
     if (self.health != 0) {
         self.takedamage = Defines.DAMAGE_YES
-        self.die = GameFunc.door_killed
+        self.die = doorKilled
         self.max_health = self.health
     }
 
@@ -342,7 +343,7 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
 
     if (self.health != 0) {
         self.takedamage = Defines.DAMAGE_YES
-        self.die = GameFunc.door_killed
+        self.die = doorKilled
         self.max_health = self.health
     } else if (self.targetname != null && self.message != null) {
         game.gameImports.soundindex("misc/talk.wav")
@@ -596,4 +597,15 @@ private val doorClosed = registerThink("door_hit_bottom") { self, gameExports ->
     self.moveinfo.state = GameFunc.STATE_BOTTOM
     GameFunc.door_use_areaportals(self, false, gameExports)
     return@registerThink true
+}
+
+private val doorKilled = registerDie("door_killed") { self, inflictor, attacker, damage, point, gameExports ->
+    var ent: SubgameEntity? = self.teammaster
+    while (ent != null) {
+            ent.health = ent.max_health
+            ent.takedamage = Defines.DAMAGE_NO
+            ent = ent.teamchain
+    }
+    doorOpenUse.use(self.teammaster, attacker, attacker, gameExports)
+
 }
