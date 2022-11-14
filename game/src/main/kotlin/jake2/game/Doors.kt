@@ -272,92 +272,6 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
 }
 
-const val SECRET_ALWAYS_SHOOT = 1
-
-private const val SECRET_1ST_LEFT = 2
-
-private const val SECRET_1ST_DOWN = 4
-
-/**
- * QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down A
- * secret door. Slide back and then to the side.
- *
- * open_once doors never closes 1st_left 1st move is left of arrow 1st_down
- * 1st move is down from arrow always_shoot door is shootebale even if
- * targeted
- *
- * "angle" determines the direction "dmg" damage to inflic when blocked
- * (default 2) "wait" how long to hold in the open position (default 5, -1
- * means hold)
- *
- * TODO: add proper description
- */
-val funcDoorSecret = registerThink("func_door_secret") { self, game ->
-    self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
-    self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
-    self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
-
-    self.movetype = GameDefines.MOVETYPE_PUSH
-    self.solid = Defines.SOLID_BSP
-    game.gameImports.setmodel(self, self.model)
-
-    self.blocked = GameFunc.door_secret_blocked
-    self.use = doorSecretOpeningBack
-
-    if (null == self.targetname || 0 != self.spawnflags and SECRET_ALWAYS_SHOOT) {
-        self.health = 0
-        self.takedamage = Defines.DAMAGE_YES
-        self.die = doorSecretKilled
-    }
-
-    if (0 == self.dmg)
-        self.dmg = 2
-
-    if (0f == self.wait)
-        self.wait = 5f
-
-    self.moveinfo.accel = 50f
-    self.moveinfo.speed = 50f
-    self.moveinfo.decel = 50f
-
-    // calculate positions
-    val forward = floatArrayOf(0f, 0f, 0f)
-    val right = floatArrayOf(0f, 0f, 0f)
-    val up = floatArrayOf(0f, 0f, 0f)
-    Math3D.AngleVectors(self.s.angles, forward, right, up)
-    Math3D.VectorClear(self.s.angles)
-    val side = 1.0f - (self.spawnflags and SECRET_1ST_LEFT)
-    val width: Float =
-        if (self.spawnflags and SECRET_1ST_DOWN != 0)
-            abs(Math3D.DotProduct(up, self.size))
-        else
-            abs(Math3D.DotProduct(right, self.size))
-
-    val length = abs(Math3D.DotProduct(forward, self.size))
-
-    if (self.spawnflags and SECRET_1ST_DOWN != 0)
-        VectorMA(self.s.origin, -1 * width, up, self.pos1)
-    else
-        VectorMA(self.s.origin, side * width, right, self.pos1)
-    VectorMA(self.pos1, length, forward, self.pos2)
-
-    if (self.health != 0) {
-        self.takedamage = Defines.DAMAGE_YES
-        self.die = doorKilled
-        self.max_health = self.health
-    } else if (self.targetname != null && self.message != null) {
-        game.gameImports.soundindex("misc/talk.wav")
-        self.touch = doorTouch
-    }
-
-    self.classname = "func_door"
-
-    game.gameImports.linkentity(self)
-
-    true
-
-}
-
 private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game ->
     // if not a monster or player
     if ((0 == obstacle.svflags and Defines.SVF_MONSTER) && obstacle.client == null) {
@@ -469,8 +383,8 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
 
     var team: SubgameEntity? = ent.teamchain
     while (team != null) {
-        GameFunc.AddPointToBounds(team.absmin, mins, maxs)
-        GameFunc.AddPointToBounds(team.absmax, mins, maxs)
+        addPointToBounds(team.absmin, mins, maxs)
+        addPointToBounds(team.absmax, mins, maxs)
         team = team.teamchain
     }
 
@@ -490,10 +404,19 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
     game.gameImports.linkentity(trigger)
 
     if (ent.spawnflags and DOOR_START_OPEN != 0)
-        GameFunc.door_use_areaportals(ent, true, game)
+        doorUseAreaPortals(ent, true, game)
 
     Think_CalcMoveSpeed.think(ent, game)
     true
+}
+
+private fun addPointToBounds(v: FloatArray, mins: FloatArray, maxs: FloatArray) {
+    for (i in 0..2) {
+        if (v[i] < mins[i])
+            mins[i] = v[i]
+        if (v[i] > maxs[i])
+            maxs[i] = v[i]
+    }
 }
 
 private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other, plane, surf, game ->
@@ -541,7 +464,7 @@ private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: Ga
     else if ("func_door_rotating" == self.classname)
         GameFunc.AngleMove_Calc(self, doorOpened, game)
     GameUtil.G_UseTargets(self, activator, game)
-    GameFunc.door_use_areaportals(self, true, game)
+    doorUseAreaPortals(self, true, game)
 }
 
 private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, game: GameExportsImpl ->
@@ -595,7 +518,7 @@ private val doorClosed = registerThink("door_hit_bottom") { self, game ->
         self.s.sound = 0
     }
     self.moveinfo.state = GameFunc.STATE_BOTTOM
-    GameFunc.door_use_areaportals(self, false, game)
+    doorUseAreaPortals(self, false, game)
     true
 }
 
@@ -611,6 +534,93 @@ private val doorKilled = registerDie("door_killed") { self, inflictor, attacker,
 }
 
 // secret door related functions
+
+const val SECRET_ALWAYS_SHOOT = 1
+
+private const val SECRET_1ST_LEFT = 2
+
+private const val SECRET_1ST_DOWN = 4
+
+/**
+ * QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down A
+ * secret door. Slide back and then to the side.
+ *
+ * open_once doors never closes 1st_left 1st move is left of arrow 1st_down
+ * 1st move is down from arrow always_shoot door is shootebale even if
+ * targeted
+ *
+ * "angle" determines the direction "dmg" damage to inflic when blocked
+ * (default 2) "wait" how long to hold in the open position (default 5, -1
+ * means hold)
+ *
+ * TODO: add proper description
+ */
+val funcDoorSecret = registerThink("func_door_secret") { self, game ->
+    self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
+    self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
+    self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
+
+    self.movetype = GameDefines.MOVETYPE_PUSH
+    self.solid = Defines.SOLID_BSP
+    game.gameImports.setmodel(self, self.model)
+
+    self.blocked = doorSecretBlocked
+    self.use = doorSecretOpeningBack
+
+    if (null == self.targetname || 0 != self.spawnflags and SECRET_ALWAYS_SHOOT) {
+        self.health = 0
+        self.takedamage = Defines.DAMAGE_YES
+        self.die = doorSecretKilled
+    }
+
+    if (0 == self.dmg)
+        self.dmg = 2
+
+    if (0f == self.wait)
+        self.wait = 5f
+
+    self.moveinfo.accel = 50f
+    self.moveinfo.speed = 50f
+    self.moveinfo.decel = 50f
+
+    // calculate positions
+    val forward = floatArrayOf(0f, 0f, 0f)
+    val right = floatArrayOf(0f, 0f, 0f)
+    val up = floatArrayOf(0f, 0f, 0f)
+    Math3D.AngleVectors(self.s.angles, forward, right, up)
+    Math3D.VectorClear(self.s.angles)
+    val side = 1.0f - (self.spawnflags and SECRET_1ST_LEFT)
+    val width: Float =
+        if (self.spawnflags and SECRET_1ST_DOWN != 0)
+            abs(Math3D.DotProduct(up, self.size))
+        else
+            abs(Math3D.DotProduct(right, self.size))
+
+    val length = abs(Math3D.DotProduct(forward, self.size))
+
+    if (self.spawnflags and SECRET_1ST_DOWN != 0)
+        VectorMA(self.s.origin, -1 * width, up, self.pos1)
+    else
+        VectorMA(self.s.origin, side * width, right, self.pos1)
+    VectorMA(self.pos1, length, forward, self.pos2)
+
+    if (self.health != 0) {
+        self.takedamage = Defines.DAMAGE_YES
+        self.die = doorKilled
+        self.max_health = self.health
+    } else if (self.targetname != null && self.message != null) {
+        game.gameImports.soundindex("misc/talk.wav")
+        self.touch = doorTouch
+    }
+
+    self.classname = "func_door"
+
+    game.gameImports.linkentity(self)
+
+    true
+
+}
+
 private val doorSecretKilled = registerDie("door_secret_die") { self, inflictor, attacker, damage, point, game ->
     self.takedamage = Defines.DAMAGE_NO
     doorSecretOpeningBack.use(self, attacker, attacker, game)
@@ -623,7 +633,7 @@ private val doorSecretOpeningBack = registerUse("door_secret_use") { self, other
         return@registerUse
 
     GameFunc.Move_Calc(self, self.pos1, doorSecretOpeningWait, game)
-    GameFunc.door_use_areaportals(self, true, game)
+    doorUseAreaPortals(self, true, game)
 }
 
 // Wait between 2 moves
@@ -667,6 +677,50 @@ private val doorSecretClosed = registerThink("door_secret_move7") { self, game -
         self.health = 0
         self.takedamage = Defines.DAMAGE_YES
     }
-    GameFunc.door_use_areaportals(self, false, game)
+    doorUseAreaPortals(self, false, game)
     true
+}
+
+private val doorSecretBlocked = registerBlocked("door_secret_blocked") { self, obstacle, game ->
+    // if not a monster or player
+    if (obstacle.svflags and Defines.SVF_MONSTER == 0 && obstacle.client == null) {
+        // give it a chance to go away on its own terms (like gibs)
+        GameCombat.T_Damage(
+            obstacle, self, self, Globals.vec3_origin,
+            obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
+            GameDefines.MOD_CRUSH, game)
+        // if it's still there, nuke it
+        if (obstacle.inuse)
+            GameMisc.BecomeExplosion1(obstacle, game)
+        return@registerBlocked
+    }
+
+    if (game.level.time < self.touch_debounce_time)
+        return@registerBlocked
+
+    self.touch_debounce_time = game.level.time + 0.5f
+
+    GameCombat.T_Damage(
+        obstacle, self, self, Globals.vec3_origin,
+        obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+        GameDefines.MOD_CRUSH, game
+    )
+}
+
+private fun doorUseAreaPortals(self: SubgameEntity, open: Boolean, game: GameExportsImpl) {
+    if (self.target == null)
+        return
+
+    var iterator: EdictIterator? = null
+    
+    while (true) {
+        iterator = GameBase.G_Find(iterator, GameBase.findByTargetName, self.target, game)
+        if (iterator == null)
+            break
+        val entity = iterator.o
+
+        if ("func_areaportal".equals(entity?.classname, true)) {
+            game.gameImports.SetAreaPortalState(entity!!.style, open)
+        }
+    }
 }

@@ -315,23 +315,6 @@ class GameFunc {
         ent.moveinfo.sound_end = gameExports.gameImports.soundindex("plats/pt1_end.wav");
     }
 
-    public static void door_use_areaportals(SubgameEntity self, boolean open, GameExportsImpl gameExports) {
-
-        if (self.target == null)
-            return;
-
-        EdictIterator edit = null;
-
-        while ((edit = GameBase
-                .G_Find(edit, GameBase.findByTargetName, self.target, gameExports)) != null) {
-            SubgameEntity t = edit.o;
-            if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
-                gameExports.gameImports.SetAreaPortalState(t.style, open);
-            }
-        }
-    }
-
-
     /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
      * brush. It must be targeted to operate. Use a non-water texture at your
@@ -1458,31 +1441,6 @@ class GameFunc {
         }
     };
 
-    public static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
-        public String getID() { return "door_secret_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
-                    && (null == obstacle.getClient())) {
-                // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH, gameExports);
-                // if it's still there, nuke it
-                if (obstacle != null)
-                    GameMisc.BecomeExplosion1(obstacle, gameExports);
-                return;
-            }
-
-            if (gameExports.level.time < self.touch_debounce_time)
-                return;
-            self.touch_debounce_time = gameExports.level.time + 0.5f;
-
-            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
-
     /**
      * QUAKED func_killbox (1 0 0) ? Kills everything inside when fired,
      * irrespective of protection.
@@ -1504,14 +1462,4 @@ class GameFunc {
         }
     };
 
-    public static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
-
-        for (int i = 0; i < 3; i++) {
-            float val = v[i];
-            if (val < mins[i])
-                mins[i] = val;
-            if (val > maxs[i])
-                maxs[i] = val;
-        }
-    }
 }
