@@ -872,19 +872,6 @@ class GameFunc {
      * ======================================================================
      */
 
-    /*
-     * QUAKED func_button (0 .5 .8) ? When a button is touched, it moves some
-     * distance in the direction of it's angle, triggers all of it's targets,
-     * waits some time, then returns to it's original position where it can be
-     * triggered again.
-     * 
-     * "angle" determines the opening direction "target" all entities with a
-     * matching targetname will be used "speed" override the default 40 speed
-     * "wait" override the default 1 second wait (-1 = never return) "lip"
-     * override the default 4 pixel lip remaining at end of move "health" if
-     * set, the button must be killed instead of touched "sounds" 1) silent 2)
-     * steam metal 3) wooden clunk 4) metallic click 5) in-out
-     */
 
     private static EntThinkAdapter button_done = new EntThinkAdapter() {
         public String getID() { return "button_done";}
@@ -947,7 +934,7 @@ class GameFunc {
         }
     };
 
-    private static EntUseAdapter button_use = new EntUseAdapter() {
+    public static EntUseAdapter button_use = new EntUseAdapter() {
         public String getID() { return "button_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
@@ -956,7 +943,7 @@ class GameFunc {
         }
     };
 
-    private static EntTouchAdapter button_touch = new EntTouchAdapter() {
+    public static EntTouchAdapter button_touch = new EntTouchAdapter() {
         public String getID() { return "button_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
@@ -972,7 +959,7 @@ class GameFunc {
         }
     };
 
-    private static EntDieAdapter button_killed = new EntDieAdapter() {
+    public static EntDieAdapter button_killed = new EntDieAdapter() {
         public String getID() { return "button_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
@@ -981,66 +968,6 @@ class GameFunc {
             self.takedamage = Defines.DAMAGE_NO;
             button_fire.think(self, gameExports);
 
-        }
-    };
-
-    static EntThinkAdapter SP_func_button = new EntThinkAdapter() {
-        public String getID() { return "sp_func_button";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] abs_movedir = { 0, 0, 0 };
-            float dist;
-
-            GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
-            ent.movetype = GameDefines.MOVETYPE_STOP;
-            ent.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.setmodel(ent, ent.model);
-
-            if (ent.sounds != 1)
-                ent.moveinfo.sound_start = gameExports.gameImports.soundindex("switches/butn2.wav");
-
-            if (0 == ent.speed)
-                ent.speed = 40;
-            if (0 == ent.accel)
-                ent.accel = ent.speed;
-            if (0 == ent.decel)
-                ent.decel = ent.speed;
-
-            if (0 == ent.wait)
-                ent.wait = 3;
-            if (0 == ent.st.lip)
-                ent.st.lip = 4;
-
-            Math3D.VectorCopy(ent.s.origin, ent.pos1);
-            abs_movedir[0] = (float) Math.abs(ent.movedir[0]);
-            abs_movedir[1] = (float) Math.abs(ent.movedir[1]);
-            abs_movedir[2] = (float) Math.abs(ent.movedir[2]);
-            dist = abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1]
-                    + abs_movedir[2] * ent.size[2] - ent.st.lip;
-            Math3D.VectorMA(ent.pos1, dist, ent.movedir, ent.pos2);
-
-            ent.use = button_use;
-            ent.s.effects |= Defines.EF_ANIM01;
-
-            if (ent.health != 0) {
-                ent.max_health = ent.health;
-                ent.die = button_killed;
-                ent.takedamage = Defines.DAMAGE_YES;
-            } else if (null == ent.targetname)
-                ent.touch = button_touch;
-
-            ent.moveinfo.state = STATE_BOTTOM;
-
-            ent.moveinfo.speed = ent.speed;
-            ent.moveinfo.accel = ent.accel;
-            ent.moveinfo.decel = ent.decel;
-            ent.moveinfo.wait = ent.wait;
-            Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-            Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-            Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-            Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
-
-            gameExports.gameImports.linkentity(ent);
-            return true;
         }
     };
 
