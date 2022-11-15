@@ -33,7 +33,7 @@ import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import static jake2.game.DoorsKt.DOOR_START_OPEN;
+import static jake2.game.DoorKt.DOOR_START_OPEN;
 
 class GameFunc {
 
@@ -257,7 +257,7 @@ class GameFunc {
             self.wait = -1;
         self.moveinfo.wait = self.wait;
 
-        self.use = DoorsKt.getDoorOpenUse();
+        self.use = DoorKt.getDoorOpenUse();
 
         if (self.wait == -1)
             self.spawnflags |= DOOR_TOGGLE;
