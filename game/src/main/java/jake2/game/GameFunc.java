@@ -183,7 +183,7 @@ class GameFunc {
         return;
     };
 
-    private static void plat_go_up(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void plat_go_up(SubgameEntity ent, GameExportsImpl gameExports) {
         if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
             if (ent.moveinfo.sound_start != 0)
                 gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
@@ -195,129 +195,8 @@ class GameFunc {
         Move_Calc(ent, ent.moveinfo.start_origin, plat_hit_top, gameExports);
     }
 
-    private static void plat_spawn_inside_trigger(SubgameEntity ent, GameExportsImpl gameExports) {
-        float[] tmin = { 0, 0, 0 }, tmax = { 0, 0, 0 };
-
-        //
-        //	   middle trigger
-        //	
-        SubgameEntity trigger = gameExports.G_Spawn();
-        trigger.touch = Touch_Plat_Center;
-        trigger.movetype = GameDefines.MOVETYPE_NONE;
-        trigger.solid = Defines.SOLID_TRIGGER;
-        trigger.enemy = ent;
-
-        tmin[0] = ent.mins[0] + 25;
-        tmin[1] = ent.mins[1] + 25;
-        tmin[2] = ent.mins[2];
-
-        tmax[0] = ent.maxs[0] - 25;
-        tmax[1] = ent.maxs[1] - 25;
-        tmax[2] = ent.maxs[2] + 8;
-
-        tmin[2] = tmax[2] - (ent.pos1[2] - ent.pos2[2] + ent.st.lip);
-
-        if ((ent.spawnflags & PLAT_LOW_TRIGGER) != 0)
-            tmax[2] = tmin[2] + 8;
-
-        if (tmax[0] - tmin[0] <= 0) {
-            tmin[0] = (ent.mins[0] + ent.maxs[0]) * 0.5f;
-            tmax[0] = tmin[0] + 1;
-        }
-        if (tmax[1] - tmin[1] <= 0) {
-            tmin[1] = (ent.mins[1] + ent.maxs[1]) * 0.5f;
-            tmax[1] = tmin[1] + 1;
-        }
-
-        Math3D.VectorCopy(tmin, trigger.mins);
-        Math3D.VectorCopy(tmax, trigger.maxs);
-
-        gameExports.gameImports.linkentity(trigger);
-    }
-
-    /**
-     * QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER speed default 150
-     * 
-     * Plats are always drawn in the extended position, so they will light
-     * correctly.
-     * 
-     * If the plat is the target of another trigger or button, it will start out
-     * disabled in the extended position until it is trigger, when it will lower
-     * and become a normal plat.
-     * 
-     * "speed" overrides default 200. "accel" overrides default 500 "lip"
-     * overrides default 8 pixel lip
-     * 
-     * If the "height" key is set, that will determine the amount the plat
-     * moves, instead of being implicitly determoveinfoned by the model's
-     * height.
-     * 
-     * Set "sounds" to one of the following: 1) base fast 2) chain slow
-     */
-    static void SP_func_plat(SubgameEntity ent, GameExportsImpl gameExports) {
-        Math3D.VectorClear(ent.s.angles);
-        ent.solid = Defines.SOLID_BSP;
-        ent.movetype = GameDefines.MOVETYPE_PUSH;
-
-        gameExports.gameImports.setmodel(ent, ent.model);
-
-        ent.blocked = plat_blocked;
-
-        if (0 == ent.speed)
-            ent.speed = 20;
-        else
-            ent.speed *= 0.1;
-
-        if (ent.accel == 0)
-            ent.accel = 5;
-        else
-            ent.accel *= 0.1;
-
-        if (ent.decel == 0)
-            ent.decel = 5;
-        else
-            ent.decel *= 0.1;
-
-        if (ent.dmg == 0)
-            ent.dmg = 2;
-
-        if (ent.st.lip == 0)
-            ent.st.lip = 8;
-
-        // pos1 is the top position, pos2 is the bottom
-        Math3D.VectorCopy(ent.s.origin, ent.pos1);
-        Math3D.VectorCopy(ent.s.origin, ent.pos2);
-        if (ent.st.height != 0)
-            ent.pos2[2] -= ent.st.height;
-        else
-            ent.pos2[2] -= (ent.maxs[2] - ent.mins[2]) - ent.st.lip;
-
-        ent.use = Use_Plat;
-
-        plat_spawn_inside_trigger(ent, gameExports); // the "start moving" trigger
-
-        if (ent.targetname != null) {
-            ent.moveinfo.state = STATE_UP;
-        } else {
-            Math3D.VectorCopy(ent.pos2, ent.s.origin);
-            gameExports.gameImports.linkentity(ent);
-            ent.moveinfo.state = STATE_BOTTOM;
-        }
-
-        ent.moveinfo.speed = ent.speed;
-        ent.moveinfo.accel = ent.accel;
-        ent.moveinfo.decel = ent.decel;
-        ent.moveinfo.wait = ent.wait;
-        Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-        Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-        Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-        Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
-
-        ent.moveinfo.sound_start = gameExports.gameImports.soundindex("plats/pt1_strt.wav");
-        ent.moveinfo.sound_middle = gameExports.gameImports.soundindex("plats/pt1_mid.wav");
-        ent.moveinfo.sound_end = gameExports.gameImports.soundindex("plats/pt1_end.wav");
-    }
-
+    
+    
     /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
      * brush. It must be targeted to operate. Use a non-water texture at your
@@ -495,7 +374,7 @@ class GameFunc {
      * 
      */
 
-    private final static int PLAT_LOW_TRIGGER = 1;
+    public final static int PLAT_LOW_TRIGGER = 1;
 
     public final static int STATE_TOP = 0;
 
@@ -695,7 +574,7 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
+    public static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
         public String getID() { return "plat_go_down";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
@@ -711,43 +590,7 @@ class GameFunc {
         }
     };
 
-    private static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
-        public String getID() { return "plat_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
-                    && (null == obstacle.getClient())) {
-                // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH, gameExports);
-                // if it's still there, nuke it
-                if (obstacle != null)
-                    GameMisc.BecomeExplosion1(obstacle, gameExports);
-                return;
-            }
-
-            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-
-            if (self.moveinfo.state == STATE_UP)
-                plat_go_down.think(self, gameExports);
-            else if (self.moveinfo.state == STATE_DOWN)
-                plat_go_up(self, gameExports);
-
-        }
-    };
-
-    private static EntUseAdapter Use_Plat = new EntUseAdapter() {
-        public String getID() { return "use_plat";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (ent.think.action != null)
-                return; // already down
-            plat_go_down.think(ent, gameExports);
-        }
-    };
-
-    private static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
+    public static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
         public String getID() { return "touch_plat_center";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {

@@ -129,18 +129,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_func_plat = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_func_plat";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameFunc.SP_func_plat(ent, gameExports);
-            return true;
-        }
-    };
-
-
     private static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
         public String getID() {
             return "SP_func_water";
@@ -407,7 +395,7 @@ public class GameSpawn {
         spawns.put("info_player_deathmatch", SP_info_player_deathmatch);
         spawns.put("info_player_coop", SP_info_player_coop);
         spawns.put("info_player_intermission", SP_info_player_intermission);
-        spawns.put("func_plat", SP_func_plat);
+        spawns.put(PlatKt.getPlat().getID(), PlatKt.getPlat());
         spawns.put(ButtonKt.getButton().getID(), ButtonKt.getButton());
         spawns.put(DoorsKt.getFuncDoor().getID(), DoorsKt.getFuncDoor());
         spawns.put(DoorsKt.getFuncDoorSecret().getID(), DoorsKt.getFuncDoorSecret());
