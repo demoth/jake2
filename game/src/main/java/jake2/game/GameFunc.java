@@ -182,20 +182,6 @@ class GameFunc {
         // we are at constant velocity (move_speed)
         return;
     };
-
-    public static void plat_go_up(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
-            if (ent.moveinfo.sound_start != 0)
-                gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
-                        + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
-                        Defines.ATTN_STATIC, 0);
-            ent.s.sound = ent.moveinfo.sound_middle;
-        }
-        ent.moveinfo.state = STATE_UP;
-        Move_Calc(ent, ent.moveinfo.start_origin, plat_hit_top, gameExports);
-    }
-
-    
     
     /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
@@ -356,25 +342,6 @@ class GameFunc {
 
         self.svflags = Defines.SVF_NOCLIENT;
     }
-
-    /**
-     * PLATS
-     * 
-     * movement options:
-     * 
-     * linear smooth start, hard stop smooth start, smooth stop
-     * 
-     * start end acceleration speed deceleration begin sound end sound target
-     * fired when reaching end wait at end
-     * 
-     * object characteristics that use move segments
-     * --------------------------------------------- movetype_push, or
-     * movetype_stop action when touched action when blocked action when used
-     * disabled? auto trigger spawning
-     * 
-     */
-
-    public final static int PLAT_LOW_TRIGGER = 1;
 
     public final static int STATE_TOP = 0;
 
@@ -539,78 +506,7 @@ class GameFunc {
             return true;
         }
     };
-
-    private static EntThinkAdapter plat_hit_top = new EntThinkAdapter() {
-        public String getID() { return "plat_hit_top";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (ent.moveinfo.sound_end != 0)
-                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
-                            Defines.ATTN_STATIC, 0);
-                ent.s.sound = 0;
-            }
-            ent.moveinfo.state = STATE_TOP;
-
-            ent.think.action = plat_go_down;
-            ent.think.nextTime = gameExports.level.time + 3;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter plat_hit_bottom = new EntThinkAdapter() {
-        public String getID() { return "plat_hit_bottom";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-
-            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (ent.moveinfo.sound_end != 0)
-                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
-                            Defines.ATTN_STATIC, 0);
-                ent.s.sound = 0;
-            }
-            ent.moveinfo.state = STATE_BOTTOM;
-            return true;
-        }
-    };
-
-    public static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
-        public String getID() { return "plat_go_down";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (ent.moveinfo.sound_start != 0)
-                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
-                            Defines.ATTN_STATIC, 0);
-                ent.s.sound = ent.moveinfo.sound_middle;
-            }
-            ent.moveinfo.state = STATE_DOWN;
-            Move_Calc(ent, ent.moveinfo.end_origin, plat_hit_bottom, gameExports);
-            return true;
-        }
-    };
-
-    public static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
-        public String getID() { return "touch_plat_center";}
-        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (other.getClient() == null)
-                return;
-
-            if (other.health <= 0)
-                return;
-
-            ent = ent.enemy; // now point at the plat, not the trigger
-            if (ent.moveinfo.state == STATE_BOTTOM)
-                plat_go_up(ent, gameExports);
-            else if (ent.moveinfo.state == STATE_TOP) {
-                ent.think.nextTime = gameExports.level.time + 1; // the player is still
-                                                         // on the plat, so
-                                                         // delay going down
-            }
-        }
-    };
-
+    
     /**
      * QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
      * TOUCH_PAIN STOP ANIMATED ANIMATED_FAST You need to have an origin brush
