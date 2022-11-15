@@ -397,9 +397,9 @@ public class GameSpawn {
         spawns.put("info_player_intermission", SP_info_player_intermission);
         spawns.put(PlatKt.getPlat().getID(), PlatKt.getPlat());
         spawns.put(ButtonKt.getButton().getID(), ButtonKt.getButton());
-        spawns.put(DoorsKt.getFuncDoor().getID(), DoorsKt.getFuncDoor());
-        spawns.put(DoorsKt.getFuncDoorSecret().getID(), DoorsKt.getFuncDoorSecret());
-        spawns.put(DoorsKt.getFuncDoorRotating().getID(), DoorsKt.getFuncDoorRotating());
+        spawns.put(DoorKt.getFuncDoor().getID(), DoorKt.getFuncDoor());
+        spawns.put(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
+        spawns.put(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
         spawns.put("func_rotating", GameFunc.SP_func_rotating);
         spawns.put("func_train", SP_func_train);
         spawns.put("func_water", SP_func_water);
