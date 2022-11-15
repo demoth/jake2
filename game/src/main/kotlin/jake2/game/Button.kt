@@ -46,9 +46,8 @@ val button = registerThink("func_button") { self, game ->
 
     Math3D.VectorCopy(self.s.origin, self.pos1)
     val absMoveDir = floatArrayOf(abs(self.movedir[0]), abs(self.movedir[1]), abs(self.movedir[2]))
-    val dist: Float = absMoveDir[0] * self.size[0] 
-        + absMoveDir[1] * self.size[1] 
-        + absMoveDir[2] * self.size[2] - self.st.lip
+    val dist: Float =
+        absMoveDir[0] * self.size[0] + absMoveDir[1] * self.size[1] + absMoveDir[2] * self.size[2] - self.st.lip
     Math3D.VectorMA(self.pos1, dist, self.movedir, self.pos2)
 
     self.use = buttonUse
