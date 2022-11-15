@@ -2,14 +2,34 @@ package jake2.game
 
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Math3D
+/*
+ * PLATS
+ *
+ * movement options:
+ *
+ * linear smooth start, hard stop smooth start, smooth stop
+ *
+ * start end acceleration speed deceleration begin sound end sound target
+ * fired when reaching end wait at end
+ *
+ * object characteristics that use move segments
+ * --------------------------------------------- 
+ * movetype_push, or
+ * movetype_stop action when touched action when blocked action when used
+ * disabled? auto trigger spawning
+ *
+ */
+
+private const val PLAT_LOW_TRIGGER = 1
 
 /**
  * QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER speed default 150
- *
+ * Plat or elevator.
  * Plats are always drawn in the extended position, so they will light
  * correctly.
  *
@@ -115,9 +135,9 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
     )
 
     if (self.moveinfo.state == GameFunc.STATE_UP)
-        GameFunc.plat_go_down.think(self, gameExports) 
+        platGoDown.think(self, gameExports) 
     else if (self.moveinfo.state == GameFunc.STATE_DOWN)
-        GameFunc.plat_go_up(self, gameExports)
+        platGoUp(self, gameExports)
 
 }
 
@@ -126,13 +146,13 @@ private val platUse = registerUse("use_plat") { self, other, activator, game ->
     if (self.think.action != null)
         return@registerUse
 
-    GameFunc.plat_go_down.think(self, game)
+    platGoDown.think(self, game)
 
 }
 
 private fun spawnInsideTrigger(plat: SubgameEntity, gameExports: GameExportsImpl) {
     val trigger = gameExports.G_Spawn()
-    trigger.touch = GameFunc.Touch_Plat_Center
+    trigger.touch = platTriggerTouch
     trigger.movetype = GameDefines.MOVETYPE_NONE
     trigger.solid = Defines.SOLID_TRIGGER
     trigger.enemy = plat
@@ -141,7 +161,7 @@ private fun spawnInsideTrigger(plat: SubgameEntity, gameExports: GameExportsImpl
 
     tmin[2] = tmax[2] - (plat.pos1[2] - plat.pos2[2] + plat.st.lip)
 
-    if (plat.spawnflags and GameFunc.PLAT_LOW_TRIGGER != 0) {
+    if (plat.spawnflags and PLAT_LOW_TRIGGER != 0) {
         tmax[2] = tmin[2] + 8
     }
     if (tmax[0] - tmin[0] <= 0) {
@@ -155,4 +175,81 @@ private fun spawnInsideTrigger(plat: SubgameEntity, gameExports: GameExportsImpl
     Math3D.VectorCopy(tmin, trigger.mins)
     Math3D.VectorCopy(tmax, trigger.maxs)
     gameExports.gameImports.linkentity(trigger)
+}
+
+private val platTriggerTouch = registerTouch("touch_plat_center") { self, other, plane, surf, game ->
+    if (other.client == null)
+        return@registerTouch
+
+    if (other.health <= 0)
+        return@registerTouch
+
+    // now point at the plat, not the trigger
+    val plat = self.enemy 
+
+    if (plat.moveinfo.state == GameFunc.STATE_BOTTOM)
+        platGoUp(plat, game)
+    else if (plat.moveinfo.state == GameFunc.STATE_TOP) {
+        // the player is still on the plat, so delay going down
+        plat.think.nextTime = game.level.time + 1 
+    }
+}
+private fun platGoUp(ent: SubgameEntity, game: GameExportsImpl) {
+    if (ent.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (ent.moveinfo.sound_start != 0)
+            game.gameImports.sound(
+            ent, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1f,
+            Defines.ATTN_STATIC.toFloat(), 0f
+        )
+        ent.s.sound = ent.moveinfo.sound_middle
+    }
+    ent.moveinfo.state = GameFunc.STATE_UP
+    GameFunc.Move_Calc(ent, ent.moveinfo.start_origin, platHitTop, game)
+}
+
+private val platHitTop = registerThink("plat_hit_top") { self, game ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_end != 0)
+            game.gameImports.sound(
+            self, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+            Defines.ATTN_STATIC.toFloat(), 0f
+        )
+        self.s.sound = 0
+    }
+    self.moveinfo.state = GameFunc.STATE_TOP
+
+    self.think.action = platGoDown
+    self.think.nextTime = game.level.time + 3
+    true
+}
+
+private val platGoDown = registerThink("plat_go_down") { self, game ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_start != 0)
+            game.gameImports.sound(
+            self, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
+            Defines.ATTN_STATIC.toFloat(), 0f
+        )
+        self.s.sound = self.moveinfo.sound_middle
+    }
+    self.moveinfo.state = GameFunc.STATE_DOWN
+    GameFunc.Move_Calc(self, self.moveinfo.end_origin, platHitBottom, game)
+    true
+}
+
+private val platHitBottom = registerThink("plat_hit_bottom") { self, game ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_end != 0)
+            game.gameImports.sound(
+            self, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+            Defines.ATTN_STATIC.toFloat(), 0f
+        )
+        self.s.sound = 0
+    }
+    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    true
 }

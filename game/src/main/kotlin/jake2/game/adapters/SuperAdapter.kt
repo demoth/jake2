@@ -66,7 +66,7 @@ abstract class SuperAdapter {
             return id
         }
 
-        fun registerThink(id: String, think: (self: SubgameEntity, gameExports: GameExportsImpl) -> Boolean): EntThinkAdapter {
+        fun registerThink(id: String, think: (self: SubgameEntity, game: GameExportsImpl) -> Boolean): EntThinkAdapter {
             val adapter = object : EntThinkAdapter() {
                 override fun think(self: SubgameEntity, game: GameExportsImpl): Boolean {
                     return think.invoke(self, game)
