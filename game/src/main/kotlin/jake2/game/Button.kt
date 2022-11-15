@@ -1,6 +1,9 @@
 package jake2.game
 
+import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.adapters.SuperAdapter.Companion.registerTouch
+import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
@@ -17,6 +20,8 @@ import kotlin.math.abs
  * override the default 4 pixel lip remaining at end of move "health" if
  * set, the button must be killed instead of touched "sounds" 1) silent 2)
  * steam metal 3) wooden clunk 4) metallic click 5) in-out
+ * 
+ * Buttons can be activated by touching, shooting or targeting by other entity.
  */
 val button = registerThink("func_button") { self, game ->
 
@@ -46,15 +51,15 @@ val button = registerThink("func_button") { self, game ->
         + absMoveDir[2] * self.size[2] - self.st.lip
     Math3D.VectorMA(self.pos1, dist, self.movedir, self.pos2)
 
-    self.use = GameFunc.button_use
+    self.use = buttonUse
     self.s.effects = self.s.effects or Defines.EF_ANIM01
 
     if (self.health != 0) {
         self.max_health = self.health
-        self.die = GameFunc.button_killed
+        self.die = buttonKilled
         self.takedamage = Defines.DAMAGE_YES
     } else if (self.targetname == null)
-        self.touch = GameFunc.button_touch
+        self.touch = buttonTouch
 
     self.moveinfo.state = GameFunc.STATE_BOTTOM
 
@@ -72,3 +77,77 @@ val button = registerThink("func_button") { self, game ->
     true
 }
 
+private val buttonUse = registerUse("button_use") { self, other, activator, game ->
+    self.activator = activator
+    buttonFire(self, game)
+}
+
+private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
+    if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP)
+        return true
+    self.moveinfo.state = GameFunc.STATE_UP
+    if (self.moveinfo.sound_start != 0 && self.flags and GameDefines.FL_TEAMSLAVE == 0)
+        game.gameImports.sound(
+        self, Defines.CHAN_NO_PHS_ADD
+                + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
+        Defines.ATTN_STATIC.toFloat(), 0f
+    )
+    GameFunc.Move_Calc(self, self.moveinfo.end_origin, buttonWait, game)
+    return true
+}
+
+private val buttonWait = registerThink("button_wait") { self, game ->
+    self.moveinfo.state = GameFunc.STATE_TOP
+
+    // EF_ANIM01 -> EF_ANIM23
+    self.s.effects = self.s.effects and Defines.EF_ANIM01.inv()
+    self.s.effects = self.s.effects or Defines.EF_ANIM23
+
+    GameUtil.G_UseTargets(self, self.activator, game)
+    self.s.frame = 1
+    if (self.moveinfo.wait >= 0) {
+        self.think.nextTime = game.level.time + self.moveinfo.wait
+        self.think.action = buttonReturn
+    }
+    true
+}
+
+private val buttonReturn = registerThink("button_return") { self, game ->
+    self.moveinfo.state = GameFunc.STATE_DOWN
+
+    GameFunc.Move_Calc(self, self.moveinfo.start_origin, buttonDone, game)
+
+    self.s.frame = 0
+
+    if (self.health != 0) {
+        // why not max_health? - because by this time health is already reset to max_health
+        self.takedamage = Defines.DAMAGE_YES
+    }
+    true
+}
+
+private val buttonDone = registerThink("button_done") { self, game ->
+    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    // EF_ANIM23 -> EF_ANIM01
+    self.s.effects = self.s.effects and Defines.EF_ANIM23.inv()
+    self.s.effects = self.s.effects or Defines.EF_ANIM01
+    true
+}
+
+private val buttonTouch = registerTouch("button_touch") { self, other, plane, surf, game ->
+    if (other.client == null)
+        return@registerTouch
+
+    if (other.health <= 0)
+        return@registerTouch
+
+    self.activator = other
+    buttonFire(self, game)
+}
+
+private val buttonKilled = registerDie("button_killed") { self, inflictor, attacker, damage, point, game ->
+    self.activator = attacker
+    self.health = self.max_health
+    self.takedamage = Defines.DAMAGE_NO
+    buttonFire(self, game)
+}

@@ -22,7 +22,10 @@
 // $Id: GameFunc.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.game.adapters.*;
+import jake2.game.adapters.EntBlockedAdapter;
+import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.adapters.EntTouchAdapter;
+import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.cplane_t;
@@ -861,113 +864,6 @@ class GameFunc {
             gameExports.gameImports.setmodel(ent, ent.model);
             gameExports.gameImports.linkentity(ent);
             return true;
-        }
-    };
-
-    /*
-     * ======================================================================
-     * 
-     * BUTTONS
-     * 
-     * ======================================================================
-     */
-
-
-    private static EntThinkAdapter button_done = new EntThinkAdapter() {
-        public String getID() { return "button_done";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            self.moveinfo.state = STATE_BOTTOM;
-            self.s.effects &= ~Defines.EF_ANIM23;
-            self.s.effects |= Defines.EF_ANIM01;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter button_return = new EntThinkAdapter() {
-        public String getID() { return "button_return";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.moveinfo.state = STATE_DOWN;
-
-            Move_Calc(self, self.moveinfo.start_origin, button_done, gameExports);
-
-            self.s.frame = 0;
-
-            if (self.health != 0)
-                self.takedamage = Defines.DAMAGE_YES;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter button_wait = new EntThinkAdapter() {
-        public String getID() { return "button_wait";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.moveinfo.state = STATE_TOP;
-            self.s.effects &= ~Defines.EF_ANIM01;
-            self.s.effects |= Defines.EF_ANIM23;
-
-            GameUtil.G_UseTargets(self, self.activator, gameExports);
-            self.s.frame = 1;
-            if (self.moveinfo.wait >= 0) {
-                self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
-                self.think.action = button_return;
-            }
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter button_fire = new EntThinkAdapter() {
-        public String getID() { return "button_fire";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (self.moveinfo.state == STATE_UP
-                    || self.moveinfo.state == STATE_TOP)
-                return true;
-
-            self.moveinfo.state = STATE_UP;
-            if (self.moveinfo.sound_start != 0
-                    && 0 == (self.flags & GameDefines.FL_TEAMSLAVE))
-                gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                        + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
-                        Defines.ATTN_STATIC, 0);
-            Move_Calc(self, self.moveinfo.end_origin, button_wait, gameExports);
-            return true;
-        }
-    };
-
-    public static EntUseAdapter button_use = new EntUseAdapter() {
-        public String getID() { return "button_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.activator = activator;
-            button_fire.think(self, gameExports);
-            return;
-        }
-    };
-
-    public static EntTouchAdapter button_touch = new EntTouchAdapter() {
-        public String getID() { return "button_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (null == other.getClient())
-                return;
-
-            if (other.health <= 0)
-                return;
-
-            self.activator = other;
-            button_fire.think(self, gameExports);
-
-        }
-    };
-
-    public static EntDieAdapter button_killed = new EntDieAdapter() {
-        public String getID() { return "button_killed";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-            self.activator = attacker;
-            self.health = self.max_health;
-            self.takedamage = Defines.DAMAGE_NO;
-            button_fire.think(self, gameExports);
-
         }
     };
 
