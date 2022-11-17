@@ -274,7 +274,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
 private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game ->
     // if not a monster or player
-    if ((0 == obstacle.svflags and Defines.SVF_MONSTER) && obstacle.client == null) {
+    if ((obstacle.svflags and Defines.SVF_MONSTER == 0) && obstacle.client == null) {
         // give it a chance to go away on its own terms (like gibs)
         GameCombat.T_Damage(
             obstacle, self, self, Globals.vec3_origin,
@@ -282,7 +282,7 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
             GameDefines.MOD_CRUSH, game
         )
         // if it's still there, nuke it
-        // fixme: was != null before
+        // fixme check: before it was `obstacle != null`
         if (obstacle.inuse)
             GameMisc.BecomeExplosion1(obstacle, game)
         return@registerBlocked
@@ -298,22 +298,15 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
         return@registerBlocked
 
     // if a door has a negative wait, it would never come back if
-    // blocked,
-    // so let it just squash the object to death real fast
-
+    // blocked, so let it just squash the object to death real fast
     if (self.moveinfo.wait >= 0) {
-        var team: SubgameEntity?
         if (self.moveinfo.state == GameFunc.STATE_DOWN) {
-            team = self.teammaster
-            while (team != null) {
-                doorOpening(team, team.activator, game)
-                team = team.teamchain
+            self.forEachTeamMember {
+                doorOpening(it, it.activator, game)
             }
         } else {
-            team = self.teammaster
-            while (team != null) {
-                doorClosing.think(team, game)
-                team = team.teamchain
+            self.forEachTeamMember {
+                doorClosing.think(it, game)
             }
         }
     }
@@ -328,24 +321,14 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
     if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0) {
         if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP) {
             // trigger all paired doors
-            var team: SubgameEntity? = self
-            while (team != null) {
-                team.message = null
-                team.touch = null
-                doorClosing.think(team, game)
-                team = team.teamchain
+            self.forEachTeamMember {
+                doorClosing.think(it, game)
             }
             return@registerUse
         }
     }
-
-    // trigger all paired doors
-    var team: SubgameEntity? = self
-    while (team != null) {
-        team.message = null
-        team.touch = null
-        doorOpening(team, activator, game)
-        team = team.teamchain
+    self.forEachTeamMember {
+        doorOpening(it, activator, game)
     }
 }
 
@@ -381,11 +364,9 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
     VectorCopy(ent.absmin, mins)
     VectorCopy(ent.absmax, maxs)
 
-    var team: SubgameEntity? = ent.teamchain
-    while (team != null) {
-        addPointToBounds(team.absmin, mins, maxs)
-        addPointToBounds(team.absmax, mins, maxs)
-        team = team.teamchain
+    ent.forEachTeamMember {
+        addPointToBounds(it.absmin, mins, maxs)
+        addPointToBounds(it.absmax, mins, maxs)
     }
 
     // expand
@@ -523,11 +504,9 @@ private val doorClosed = registerThink("door_hit_bottom") { self, game ->
 }
 
 private val doorKilled = registerDie("door_killed") { self, inflictor, attacker, damage, point, game ->
-    var ent: SubgameEntity? = self.teammaster
-    while (ent != null) {
-            ent.health = ent.max_health
-            ent.takedamage = Defines.DAMAGE_NO
-            ent = ent.teamchain
+    self.forEachTeamMember {
+        it.health = it.max_health
+        it.takedamage = Defines.DAMAGE_NO
     }
     doorOpenUse.use(self.teammaster, attacker, attacker, game)
 

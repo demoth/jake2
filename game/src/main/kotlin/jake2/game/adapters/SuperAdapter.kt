@@ -35,14 +35,10 @@ import jake2.qcommon.filesystem.QuakeFile
  * The purpose of all Adapter registration is to store and restore such behavioural edict fields.
  */
 abstract class SuperAdapter {
-    /** Constructor, does the adapter registration.  */
     init {
         register(iD, this)
     }
 
-    /**
-     * Returns the Adapter-ID.
-     */
     abstract val iD: String
 
     override fun toString(): String {
@@ -56,7 +52,6 @@ abstract class SuperAdapter {
     }
 
     companion object {
-        /** Adapter registration.  */
         fun register(id: String?, sa: SuperAdapter): String {
             if (id == null) {
                 // TODO: exception
