@@ -1245,7 +1245,7 @@ public class GameSpawn {
      * All but the first will have the FL_TEAMSLAVE flag set. All but the last
      * will have the teamchain field set to the next one.
      *
-     * Warning: n^2 complexity
+     * fixme: n^2 complexity
      */
     private static void G_FindTeams(GameExportsImpl gameExports) {
         for (int i = 1; i < gameExports.num_edicts; i++) {
