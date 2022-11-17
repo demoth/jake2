@@ -140,17 +140,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_func_train = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_func_train";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameFunc.SP_func_train(ent, gameExports);
-            return true;
-        }
-    };
-
     private static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
         public String getID() {
             return "SP_func_clock";
@@ -401,7 +390,7 @@ public class GameSpawn {
         spawns.put(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
         spawns.put(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
         spawns.put("func_rotating", GameFunc.SP_func_rotating);
-        spawns.put("func_train", SP_func_train);
+        spawns.put(TrainKt.getTrain().getID(), TrainKt.getTrain());
         spawns.put("func_water", SP_func_water);
         spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
         spawns.put("func_areaportal", GameMisc.SP_func_areaportal);

@@ -281,46 +281,6 @@ class GameFunc {
 
     }
 
-    static void SP_func_train(SubgameEntity self, GameExportsImpl gameExports) {
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-
-        Math3D.VectorClear(self.s.angles);
-        self.blocked = train_blocked;
-        if ((self.spawnflags & TRAIN_BLOCK_STOPS) != 0)
-            self.dmg = 0;
-        else {
-            if (0 == self.dmg)
-                self.dmg = 100;
-        }
-        self.solid = Defines.SOLID_BSP;
-        gameExports.gameImports.setmodel(self, self.model);
-
-        if (self.st.noise != null)
-            self.moveinfo.sound_middle = gameExports.gameImports
-                    .soundindex(self.st.noise);
-
-        if (0 == self.speed)
-            self.speed = 100;
-
-        self.moveinfo.speed = self.speed;
-        self.moveinfo.accel = self.moveinfo.decel = self.moveinfo.speed;
-
-        self.use = train_use;
-
-        gameExports.gameImports.linkentity(self);
-
-        if (self.target != null) {
-            // start trains on the second frame, to make sure their targets have
-            // had
-            // a chance to spawn
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            self.think.action = func_train_find;
-        } else {
-            gameExports.gameImports.dprintf("func_train without a target at "
-                    + Lib.vtos(self.absmin) + "\n");
-        }
-    }
-
     static void SP_func_timer(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.wait)
             self.wait = 1.0f;
@@ -652,7 +612,7 @@ class GameFunc {
 
     private final static int TRAIN_TOGGLE = 2;
 
-    private final static int TRAIN_BLOCK_STOPS = 4;
+    public final static int TRAIN_BLOCK_STOPS = 4;
 
     /*
      * QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS Trains are
@@ -664,7 +624,7 @@ class GameFunc {
      *  
      */
 
-    private static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
+    public static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
         public String getID() { return "train_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
             if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
