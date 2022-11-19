@@ -1,5 +1,6 @@
 package jake2.game
 
+import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -129,6 +130,7 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
     true
 }
 
+// Train is moving to the next stop
 val trainNextGoal = registerThink("train_next") { self, game ->
     val dest = floatArrayOf(0f, 0f, 0f)
 
@@ -180,9 +182,53 @@ val trainNextGoal = registerThink("train_next") { self, game ->
     self.moveinfo.state = GameFunc.STATE_TOP
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    GameFunc.Move_Calc(self, dest, GameFunc.train_wait, game)
+    GameFunc.Move_Calc(self, dest, trainWait, game)
     self.spawnflags = self.spawnflags or GameFunc.TRAIN_START_ON
 
+    true
+
+}
+
+// train has arrived to the stop
+val trainWait: EntThinkAdapter = registerThink("train_wait") { self, game ->
+    if (self.target_ent.pathtarget != null) {
+        val ent = self.target_ent
+        val savetarget = ent.target
+        ent.target = ent.pathtarget
+        GameUtil.G_UseTargets(ent, self.activator, game)
+        ent.target = savetarget
+
+        // make sure we didn't get killed by a killtarget
+        if (!self.inuse)
+            return@registerThink true
+    }
+
+    if (self.moveinfo.wait != 0f) {
+        if (self.moveinfo.wait > 0) {
+            self.think.nextTime = game.level.time + self.moveinfo.wait
+            self.think.action = trainNextGoal
+        } else if (self.spawnflags and GameFunc.TRAIN_TOGGLE != 0) // && wait < 0
+        {
+            trainNextGoal.think(self, game)
+            self.spawnflags = self.spawnflags and GameFunc.TRAIN_START_ON.inv()
+            Math3D.VectorClear(self.velocity)
+            self.think.nextTime = 0f
+        }
+        if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+            if (self.moveinfo.sound_end != 0)
+                game.gameImports.sound(
+                self,
+                Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
+                self.moveinfo.sound_end,
+                1f,
+                Defines.ATTN_STATIC.toFloat(),
+                0f
+            )
+            self.s.sound = 0
+        }
+    } else {
+        trainNextGoal.think(self, game)
+    }
     true
 
 }

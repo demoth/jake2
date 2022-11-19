@@ -37,12 +37,12 @@ import static jake2.game.DoorKt.DOOR_START_OPEN;
 
 class GameFunc {
 
-    public static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter func, GameExportsImpl gameExports) {
+    public static void Move_Calc(SubgameEntity ent, float[] dest, EntThinkAdapter endFunction, GameExportsImpl gameExports) {
         Math3D.VectorClear(ent.velocity);
         Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
 
         ent.moveinfo.remaining_distance = Math3D.VectorNormalize(ent.moveinfo.dir);
-        ent.moveinfo.endfunc = func;
+        ent.moveinfo.endfunc = endFunction;
 
         if (ent.moveinfo.speed == ent.moveinfo.accel && ent.moveinfo.speed == ent.moveinfo.decel) {
             final boolean teamSlave = (ent.flags & GameDefines.FL_TEAMSLAVE) != 0;
@@ -276,7 +276,7 @@ class GameFunc {
         self.moveinfo.state = STATE_TOP;
         Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
         Math3D.VectorCopy(dest, self.moveinfo.end_origin);
-        Move_Calc(self, dest, train_wait, gameExports);
+        Move_Calc(self, dest, TrainKt.getTrainWait(), gameExports);
         self.spawnflags |= TRAIN_START_ON;
 
     }
@@ -614,48 +614,6 @@ class GameFunc {
 
     public final static int TRAIN_BLOCK_STOPS = 4;
 
-
-    public static EntThinkAdapter train_wait = new EntThinkAdapter() {
-        public String getID() { return "train_wait";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (self.target_ent.pathtarget != null) {
-                String savetarget;
-                SubgameEntity ent;
-
-                ent = self.target_ent;
-                savetarget = ent.target;
-                ent.target = ent.pathtarget;
-                GameUtil.G_UseTargets(ent, self.activator, gameExports);
-                ent.target = savetarget;
-
-                // make sure we didn't get killed by a killtarget
-                if (!self.inuse)
-                    return true;
-            }
-
-            if (self.moveinfo.wait != 0) {
-                if (self.moveinfo.wait > 0) {
-                    self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
-                    self.think.action = TrainKt.getTrainNextGoal();
-                } else if (0 != (self.spawnflags & TRAIN_TOGGLE)) // && wait < 0
-                {
-                    TrainKt.getTrainNextGoal().think(self, gameExports);
-                    self.spawnflags &= ~TRAIN_START_ON;
-                    Math3D.VectorClear(self.velocity);
-                    self.think.nextTime = 0;
-                }
-
-                if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-                    if (self.moveinfo.sound_end != 0)
-                        gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1, Defines.ATTN_STATIC, 0);
-                    self.s.sound = 0;
-                }
-            } else {
-                TrainKt.getTrainNextGoal().think(self, gameExports);
-            }
-            return true;
-        }
-    };
 
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
