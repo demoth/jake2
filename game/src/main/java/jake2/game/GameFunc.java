@@ -614,42 +614,6 @@ class GameFunc {
 
     public final static int TRAIN_BLOCK_STOPS = 4;
 
-    /*
-     * QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS Trains are
-     * moving platforms that players can ride. The targets origin specifies the
-     * min point of the train at each corner. The train spawns at the first
-     * target it is pointing at. If the train is the target of a button or
-     * trigger, it will not begin moving until activated. speed default 100 dmg
-     * default 2 noise looping sound to play when the train is in motion
-     *  
-     */
-
-    public static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
-        public String getID() { return "train_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
-                    && (null == obstacle.getClient())) {
-                // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        GameDefines.MOD_CRUSH, gameExports);
-                // if it's still there, nuke it
-                if (obstacle != null)
-                    GameMisc.BecomeExplosion1(obstacle, gameExports);
-                return;
-            }
-
-            if (gameExports.level.time < self.touch_debounce_time)
-                return;
-
-            if (self.dmg == 0)
-                return;
-            self.touch_debounce_time = gameExports.level.time + 0.5f;
-            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
 
     private static EntThinkAdapter train_wait = new EntThinkAdapter() {
         public String getID() { return "train_wait";}
@@ -793,7 +757,7 @@ class GameFunc {
 
     static EntUseAdapter train_use = new EntUseAdapter() {
         public String getID() { return "train_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl game) {
             self.activator = activator;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
@@ -804,9 +768,9 @@ class GameFunc {
                 self.think.nextTime = 0;
             } else {
                 if (self.target_ent != null)
-                    train_resume(self, gameExports);
+                    train_resume(self, game);
                 else
-                    train_next.think(self, gameExports);
+                    train_next.think(self, game);
             }
         }
     };
