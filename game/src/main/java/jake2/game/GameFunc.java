@@ -722,39 +722,6 @@ class GameFunc {
         }
     };
 
-    static EntThinkAdapter func_train_find = new EntThinkAdapter() {
-        public String getID() { return "func_train_find";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent;
-
-            if (null == self.target) {
-                gameExports.gameImports.dprintf("train_find: no target\n");
-                return true;
-            }
-            ent = GameBase.G_PickTarget(self.target, gameExports);
-            if (null == ent) {
-                gameExports.gameImports.dprintf("train_find: target " + self.target
-                        + " not found\n");
-                return true;
-            }
-            self.target = ent.target;
-
-            Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin);
-            gameExports.gameImports.linkentity(self);
-
-            // if not triggered, start immediately
-            if (null == self.targetname)
-                self.spawnflags |= TRAIN_START_ON;
-
-            if ((self.spawnflags & TRAIN_START_ON) != 0) {
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-                self.think.action = train_next;
-                self.activator = self;
-            }
-            return true;
-        }
-    };
-
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
      */

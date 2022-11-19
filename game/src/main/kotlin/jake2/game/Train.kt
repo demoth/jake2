@@ -48,7 +48,7 @@ val train = registerThink("func_train") { self, game ->
     if (self.target != null) {
         // start trains on the second frame, to make sure their targets have had a chance to spawn
         self.think.nextTime = game.level.time + Defines.FRAMETIME
-        self.think.action = GameFunc.func_train_find
+        self.think.action = trainFindTarget
     } else {
         game.gameImports.dprintf("func_train without a target at ${Lib.vtos(self.absmin)}\n")
     }
@@ -98,4 +98,33 @@ val trainUse = registerUse("train_use") { self, other, activator, game ->
         else
             GameFunc.train_next.think(self, game)
     }
+}
+
+val trainFindTarget = registerThink("func_train_find") { self, game ->
+    if (self.target == null) {
+        game.gameImports.dprintf("train_find: no target\n")
+        return@registerThink true
+    }
+    val ent = GameBase.G_PickTarget(self.target, game)
+    if (ent == null) {
+        game.gameImports.dprintf("train_find: target ${self.target} not found\n")
+        return@registerThink true
+    }
+    self.target = ent.target
+
+    Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin)
+    game.gameImports.linkentity(self)
+
+
+    // if not targeted, start immediately
+    if (self.targetname == null) {
+        self.spawnflags = self.spawnflags or GameFunc.TRAIN_START_ON
+    }
+
+    if (self.spawnflags and GameFunc.TRAIN_START_ON != 0) {
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+        self.think.action = GameFunc.train_next
+        self.activator = self
+    }
+    true
 }

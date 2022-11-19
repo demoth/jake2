@@ -403,7 +403,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
-        ent.think.action = GameFunc.func_train_find;
+        ent.think.action = TrainKt.getTrainFindTarget();
         ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_viper_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
@@ -462,7 +462,7 @@ public class GameMisc {
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 32);
 
-        ent.think.action = GameFunc.func_train_find;
+        ent.think.action = TrainKt.getTrainFindTarget();
         ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
         ent.use = misc_strogg_ship_use;
         ent.svflags |= Defines.SVF_NOCLIENT;
