@@ -267,19 +267,6 @@ class GameFunc {
         gameExports.gameImports.linkentity(self);
     }
 
-    public static void train_resume(SubgameEntity self, GameExportsImpl gameExports) {
-        float[] dest = { 0, 0, 0 };
-
-        SubgameEntity ent = self.target_ent;
-
-        Math3D.VectorSubtract(ent.s.origin, self.mins, dest);
-        self.moveinfo.state = STATE_TOP;
-        Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
-        Math3D.VectorCopy(dest, self.moveinfo.end_origin);
-        Move_Calc(self, dest, TrainKt.getTrainWait(), gameExports);
-        self.spawnflags |= TRAIN_START_ON;
-
-    }
 
     static void SP_func_timer(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.wait)
@@ -608,13 +595,6 @@ class GameFunc {
     };
 
 
-    public final static int TRAIN_START_ON = 1;
-
-    public final static int TRAIN_TOGGLE = 2;
-
-    public final static int TRAIN_BLOCK_STOPS = 4;
-
-
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
      */
@@ -641,7 +621,7 @@ class GameFunc {
             }
 
             self.movetarget.target_ent = target;
-            train_resume(self.movetarget, gameExports);
+            TrainKt.trainResume(self.movetarget, gameExports);
         }
     };
 

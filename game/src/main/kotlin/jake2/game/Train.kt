@@ -9,6 +9,10 @@ import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
+private const val TRAIN_START_ON = 1
+private const val TRAIN_TOGGLE = 2
+private const val TRAIN_BLOCK_STOPS = 4
+
 /*
  * QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS Trains are
  * moving platforms that players can ride. The targets origin specifies the
@@ -23,7 +27,7 @@ val train = registerThink("func_train") { self, game ->
 
     Math3D.VectorClear(self.s.angles)
     self.blocked = trainBlocked
-    if (self.spawnflags and GameFunc.TRAIN_BLOCK_STOPS != 0) {
+    if (self.spawnflags and TRAIN_BLOCK_STOPS != 0) {
         self.dmg = 0
     } else if (self.dmg == 0) {
         self.dmg = 100
@@ -87,15 +91,15 @@ private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, ga
 val trainUse = registerUse("train_use") { self, other, activator, game ->
     self.activator = activator
 
-    if (self.spawnflags and GameFunc.TRAIN_START_ON != 0) {
-        if (self.spawnflags and GameFunc.TRAIN_TOGGLE == 0)
+    if (self.spawnflags and TRAIN_START_ON != 0) {
+        if (self.spawnflags and TRAIN_TOGGLE == 0)
             return@registerUse
-        self.spawnflags = self.spawnflags and GameFunc.TRAIN_START_ON.inv()
+        self.spawnflags = self.spawnflags and TRAIN_START_ON.inv()
         Math3D.VectorClear(self.velocity)
         self.think.nextTime = 0f
     } else {
         if (self.target_ent != null)
-            GameFunc.train_resume(self, game)
+            trainResume(self, game)
         else
             trainNextGoal.think(self, game)
     }
@@ -119,10 +123,10 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
 
     // if not targeted, start immediately
     if (self.targetname == null) {
-        self.spawnflags = self.spawnflags or GameFunc.TRAIN_START_ON
+        self.spawnflags = self.spawnflags or TRAIN_START_ON
     }
 
-    if (self.spawnflags and GameFunc.TRAIN_START_ON != 0) {
+    if (self.spawnflags and TRAIN_START_ON != 0) {
         self.think.nextTime = game.level.time + Defines.FRAMETIME
         self.think.action = trainNextGoal
         self.activator = self
@@ -131,7 +135,7 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
 }
 
 // Train is moving to the next stop
-val trainNextGoal = registerThink("train_next") { self, game ->
+private val trainNextGoal = registerThink("train_next") { self, game ->
     val dest = floatArrayOf(0f, 0f, 0f)
 
     var first = true
@@ -183,14 +187,14 @@ val trainNextGoal = registerThink("train_next") { self, game ->
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     GameFunc.Move_Calc(self, dest, trainWait, game)
-    self.spawnflags = self.spawnflags or GameFunc.TRAIN_START_ON
+    self.spawnflags = self.spawnflags or TRAIN_START_ON
 
     true
 
 }
 
 // train has arrived to the stop
-val trainWait: EntThinkAdapter = registerThink("train_wait") { self, game ->
+private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, game ->
     if (self.target_ent.pathtarget != null) {
         val ent = self.target_ent
         val savetarget = ent.target
@@ -207,10 +211,10 @@ val trainWait: EntThinkAdapter = registerThink("train_wait") { self, game ->
         if (self.moveinfo.wait > 0) {
             self.think.nextTime = game.level.time + self.moveinfo.wait
             self.think.action = trainNextGoal
-        } else if (self.spawnflags and GameFunc.TRAIN_TOGGLE != 0) // && wait < 0
+        } else if (self.spawnflags and TRAIN_TOGGLE != 0) // && wait < 0
         {
             trainNextGoal.think(self, game)
-            self.spawnflags = self.spawnflags and GameFunc.TRAIN_START_ON.inv()
+            self.spawnflags = self.spawnflags and TRAIN_START_ON.inv()
             Math3D.VectorClear(self.velocity)
             self.think.nextTime = 0f
         }
@@ -231,4 +235,15 @@ val trainWait: EntThinkAdapter = registerThink("train_wait") { self, game ->
     }
     true
 
+}
+
+fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
+    val dest = floatArrayOf(0f, 0f, 0f)
+    val ent = self.target_ent
+    Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
+    self.moveinfo.state = GameFunc.STATE_TOP
+    Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
+    Math3D.VectorCopy(dest, self.moveinfo.end_origin)
+    GameFunc.Move_Calc(self, dest, trainWait, game)
+    self.spawnflags = self.spawnflags or TRAIN_START_ON
 }
