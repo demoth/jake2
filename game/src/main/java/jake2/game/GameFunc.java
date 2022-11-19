@@ -267,7 +267,7 @@ class GameFunc {
         gameExports.gameImports.linkentity(self);
     }
 
-    private static void train_resume(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void train_resume(SubgameEntity self, GameExportsImpl gameExports) {
         float[] dest = { 0, 0, 0 };
 
         SubgameEntity ent = self.target_ent;
@@ -608,9 +608,9 @@ class GameFunc {
     };
 
 
-    private final static int TRAIN_START_ON = 1;
+    public final static int TRAIN_START_ON = 1;
 
-    private final static int TRAIN_TOGGLE = 2;
+    public final static int TRAIN_TOGGLE = 2;
 
     public final static int TRAIN_BLOCK_STOPS = 4;
 
@@ -657,7 +657,7 @@ class GameFunc {
         }
     };
 
-    private static EntThinkAdapter train_next = new EntThinkAdapter() {
+    public static EntThinkAdapter train_next = new EntThinkAdapter() {
         public String getID() { return "train_next";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             SubgameEntity ent = null;
@@ -752,26 +752,6 @@ class GameFunc {
                 self.activator = self;
             }
             return true;
-        }
-    };
-
-    static EntUseAdapter train_use = new EntUseAdapter() {
-        public String getID() { return "train_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl game) {
-            self.activator = activator;
-
-            if ((self.spawnflags & TRAIN_START_ON) != 0) {
-                if (0 == (self.spawnflags & TRAIN_TOGGLE))
-                    return;
-                self.spawnflags &= ~TRAIN_START_ON;
-                Math3D.VectorClear(self.velocity);
-                self.think.nextTime = 0;
-            } else {
-                if (self.target_ent != null)
-                    train_resume(self, game);
-                else
-                    train_next.think(self, game);
-            }
         }
     };
 

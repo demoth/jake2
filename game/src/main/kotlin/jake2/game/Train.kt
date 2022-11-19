@@ -41,7 +41,7 @@ val train = registerThink("func_train") { self, game ->
     self.moveinfo.accel = self.moveinfo.speed
     self.moveinfo.decel = self.moveinfo.speed
 
-    self.use = GameFunc.train_use
+    self.use = trainUse
 
     game.gameImports.linkentity(self)
 
@@ -84,5 +84,18 @@ private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, ga
 }
 
 val trainUse = registerUse("train_use") { self, other, activator, game ->
+    self.activator = activator
 
+    if (self.spawnflags and GameFunc.TRAIN_START_ON != 0) {
+        if (self.spawnflags and GameFunc.TRAIN_TOGGLE == 0)
+            return@registerUse
+        self.spawnflags = self.spawnflags and GameFunc.TRAIN_START_ON.inv()
+        Math3D.VectorClear(self.velocity)
+        self.think.nextTime = 0f
+    } else {
+        if (self.target_ent != null)
+            GameFunc.train_resume(self, game)
+        else
+            GameFunc.train_next.think(self, game)
+    }
 }

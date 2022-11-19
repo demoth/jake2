@@ -1557,8 +1557,8 @@ public class GameMisc {
         public String getID() { return "misc_viper_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator, gameExports);
+            self.use = TrainKt.getTrainUse();
+            TrainKt.getTrainUse().use(self, other, activator, gameExports);
         }
     };
 
@@ -1650,8 +1650,8 @@ public class GameMisc {
         public String getID() { return "misc_strogg_ship_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator, gameExports);
+            self.use = TrainKt.getTrainUse();
+            TrainKt.getTrainUse().use(self, other, activator, gameExports);
         }
     };
 
