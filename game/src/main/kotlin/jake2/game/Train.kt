@@ -96,7 +96,7 @@ val trainUse = registerUse("train_use") { self, other, activator, game ->
         if (self.target_ent != null)
             GameFunc.train_resume(self, game)
         else
-            GameFunc.train_next.think(self, game)
+            trainNextGoal.think(self, game)
     }
 }
 
@@ -123,8 +123,66 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
 
     if (self.spawnflags and GameFunc.TRAIN_START_ON != 0) {
         self.think.nextTime = game.level.time + Defines.FRAMETIME
-        self.think.action = GameFunc.train_next
+        self.think.action = trainNextGoal
         self.activator = self
     }
     true
+}
+
+val trainNextGoal = registerThink("train_next") { self, game ->
+    val dest = floatArrayOf(0f, 0f, 0f)
+
+    var first = true
+
+    var dogoto = true
+    var ent: SubgameEntity? = null
+    // fixme: change to for (for each) loop
+    while (dogoto) {
+        if (self.target == null) {
+            //			gi.dprintf ("train_next: no next target\n");
+            return@registerThink true
+        }
+        ent = GameBase.G_PickTarget(self.target, game)
+        if (ent == null) {
+            game.gameImports.dprintf("train_next: bad target " + self.target + "\n")
+            return@registerThink true
+        }
+        self.target = ent.target
+        dogoto = false
+        // check for a teleport path_corner
+        if ((ent.spawnflags and 1) != 0) {
+            if (!first) {
+                game.gameImports.dprintf("connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin) + "\n")
+                return@registerThink true
+            }
+            first = false
+            Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin)
+            Math3D.VectorCopy(self.s.origin, self.s.old_origin)
+            self.s.event = Defines.EV_OTHER_TELEPORT
+            game.gameImports.linkentity(self)
+            dogoto = true
+        }
+    }
+    self.moveinfo.wait = ent!!.wait
+    self.target_ent = ent
+
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (self.moveinfo.sound_start != 0)
+            game.gameImports.sound(
+                self, (Defines.CHAN_NO_PHS_ADD
+                        + Defines.CHAN_VOICE), self.moveinfo.sound_start, 1f,
+                Defines.ATTN_STATIC.toFloat(), 0f
+            )
+        self.s.sound = self.moveinfo.sound_middle
+    }
+
+    Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
+    self.moveinfo.state = GameFunc.STATE_TOP
+    Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
+    Math3D.VectorCopy(dest, self.moveinfo.end_origin)
+    GameFunc.Move_Calc(self, dest, GameFunc.train_wait, game)
+    self.spawnflags = self.spawnflags or GameFunc.TRAIN_START_ON
+
+    true
+
 }

@@ -615,7 +615,7 @@ class GameFunc {
     public final static int TRAIN_BLOCK_STOPS = 4;
 
 
-    private static EntThinkAdapter train_wait = new EntThinkAdapter() {
+    public static EntThinkAdapter train_wait = new EntThinkAdapter() {
         public String getID() { return "train_wait";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.target_ent.pathtarget != null) {
@@ -636,10 +636,10 @@ class GameFunc {
             if (self.moveinfo.wait != 0) {
                 if (self.moveinfo.wait > 0) {
                     self.think.nextTime = gameExports.level.time + self.moveinfo.wait;
-                    self.think.action = train_next;
+                    self.think.action = TrainKt.getTrainNextGoal();
                 } else if (0 != (self.spawnflags & TRAIN_TOGGLE)) // && wait < 0
                 {
-                    train_next.think(self, gameExports);
+                    TrainKt.getTrainNextGoal().think(self, gameExports);
                     self.spawnflags &= ~TRAIN_START_ON;
                     Math3D.VectorClear(self.velocity);
                     self.think.nextTime = 0;
@@ -651,73 +651,8 @@ class GameFunc {
                     self.s.sound = 0;
                 }
             } else {
-                train_next.think(self, gameExports);
+                TrainKt.getTrainNextGoal().think(self, gameExports);
             }
-            return true;
-        }
-    };
-
-    public static EntThinkAdapter train_next = new EntThinkAdapter() {
-        public String getID() { return "train_next";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent = null;
-            float[] dest = { 0, 0, 0 };
-            boolean first;
-
-            first = true;
-
-            boolean dogoto = true;
-            while (dogoto) {
-                if (null == self.target) {
-                    //			gi.dprintf ("train_next: no next target\n");
-                    return true;
-                }
-
-                ent = GameBase.G_PickTarget(self.target, gameExports);
-                if (null == ent) {
-                    gameExports.gameImports.dprintf("train_next: bad target " + self.target
-                            + "\n");
-                    return true;
-                }
-
-                self.target = ent.target;
-                dogoto = false;
-                // check for a teleport path_corner
-                if ((ent.spawnflags & 1) != 0) {
-                    if (!first) {
-                        gameExports.gameImports
-                                .dprintf("connected teleport path_corners, see "
-                                        + ent.classname
-                                        + " at "
-                                        + Lib.vtos(ent.s.origin) + "\n");
-                        return true;
-                    }
-                    first = false;
-                    Math3D.VectorSubtract(ent.s.origin, self.mins,
-                            self.s.origin);
-                    Math3D.VectorCopy(self.s.origin, self.s.old_origin);
-                    self.s.event = Defines.EV_OTHER_TELEPORT;
-                    gameExports.gameImports.linkentity(self);
-                    dogoto = true;
-                }
-            }
-            self.moveinfo.wait = ent.wait;
-            self.target_ent = ent;
-
-            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
-                if (self.moveinfo.sound_start != 0)
-                    gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                            + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
-                            Defines.ATTN_STATIC, 0);
-                self.s.sound = self.moveinfo.sound_middle;
-            }
-
-            Math3D.VectorSubtract(ent.s.origin, self.mins, dest);
-            self.moveinfo.state = STATE_TOP;
-            Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
-            Math3D.VectorCopy(dest, self.moveinfo.end_origin);
-            Move_Calc(self, dest, train_wait, gameExports);
-            self.spawnflags |= TRAIN_START_ON;
             return true;
         }
     };
