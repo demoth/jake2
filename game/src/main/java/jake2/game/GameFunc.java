@@ -73,8 +73,6 @@ class GameFunc {
     };
 
     private static void plat_CalcAcceleratedMove(moveinfo_t moveinfo) {
-        float accel_dist;
-        float decel_dist;
 
         moveinfo.move_speed = moveinfo.speed;
 
@@ -83,18 +81,13 @@ class GameFunc {
             return;
         }
 
-        accel_dist = AccelerationDistance(moveinfo.speed, moveinfo.accel);
-        decel_dist = AccelerationDistance(moveinfo.speed, moveinfo.decel);
+        float accel_dist = AccelerationDistance(moveinfo.speed, moveinfo.accel);
+        float decel_dist = AccelerationDistance(moveinfo.speed, moveinfo.decel);
 
-        if ((moveinfo.remaining_distance - accel_dist - decel_dist) < 0) {
-            float f;
-
-            f = (moveinfo.accel + moveinfo.decel)
-                    / (moveinfo.accel * moveinfo.decel);
-            moveinfo.move_speed = (float) ((-2 + Math.sqrt(4 - 4 * f
-                    * (-2 * moveinfo.remaining_distance))) / (2 * f));
-            decel_dist = AccelerationDistance(moveinfo.move_speed,
-                    moveinfo.decel);
+        if (moveinfo.remaining_distance - accel_dist - decel_dist < 0) {
+            float f = (moveinfo.accel + moveinfo.decel) / (moveinfo.accel * moveinfo.decel);
+            moveinfo.move_speed = (float) ((-2 + Math.sqrt(4 - 4 * f * (-2 * moveinfo.remaining_distance))) / (2 * f));
+            decel_dist = AccelerationDistance(moveinfo.move_speed, moveinfo.decel);
         }
 
         moveinfo.decel_distance = decel_dist;
@@ -122,26 +115,18 @@ class GameFunc {
                 float p2_distance;
                 float distance;
 
-                p1_distance = moveinfo.remaining_distance
-                        - moveinfo.decel_distance;
-                p2_distance = moveinfo.move_speed
-                        * (1.0f - (p1_distance / moveinfo.move_speed));
+                p1_distance = moveinfo.remaining_distance - moveinfo.decel_distance;
+                p2_distance = moveinfo.move_speed * (1.0f - (p1_distance / moveinfo.move_speed));
                 distance = p1_distance + p2_distance;
                 moveinfo.current_speed = moveinfo.move_speed;
-                moveinfo.next_speed = moveinfo.move_speed - moveinfo.decel
-                        * (p2_distance / distance);
+                moveinfo.next_speed = moveinfo.move_speed - moveinfo.decel * (p2_distance / distance);
                 return;
             }
 
         // are we accelerating?
         if (moveinfo.current_speed < moveinfo.speed) {
-            float old_speed;
-            float p1_distance;
-            float p1_speed;
-            float p2_distance;
-            float distance;
 
-            old_speed = moveinfo.current_speed;
+            float old_speed = moveinfo.current_speed;
 
             // figure simple acceleration up to move_speed
             moveinfo.current_speed += moveinfo.accel;
@@ -157,15 +142,12 @@ class GameFunc {
             // and cross over the decel_distance; figure the average speed for
             // the
             // entire move
-            p1_distance = moveinfo.remaining_distance - moveinfo.decel_distance;
-            p1_speed = (old_speed + moveinfo.move_speed) / 2.0f;
-            p2_distance = moveinfo.move_speed
-                    * (1.0f - (p1_distance / p1_speed));
-            distance = p1_distance + p2_distance;
-            moveinfo.current_speed = (p1_speed * (p1_distance / distance))
-                    + (moveinfo.move_speed * (p2_distance / distance));
-            moveinfo.next_speed = moveinfo.move_speed - moveinfo.decel
-                    * (p2_distance / distance);
+            float p1_distance = moveinfo.remaining_distance - moveinfo.decel_distance;
+            float p1_speed = (old_speed + moveinfo.move_speed) / 2.0f;
+            float p2_distance = moveinfo.move_speed * (1.0f - (p1_distance / p1_speed));
+            float distance = p1_distance + p2_distance;
+            moveinfo.current_speed = (p1_speed * (p1_distance / distance)) + (moveinfo.move_speed * (p2_distance / distance));
+            moveinfo.next_speed = moveinfo.move_speed - moveinfo.decel * (p2_distance / distance);
             return;
         }
 
@@ -302,42 +284,36 @@ class GameFunc {
 
     private static EntThinkAdapter Move_Final = new EntThinkAdapter() {
         public String getID() { return "move_final";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(SubgameEntity self, GameExportsImpl game) {
 
-            if (ent.moveinfo.remaining_distance == 0) {
-                Move_Done.think(ent, gameExports);
+            if (self.moveinfo.remaining_distance == 0) {
+                Move_Done.think(self, game);
                 return true;
             }
 
-            Math3D.VectorScale(ent.moveinfo.dir,
-                    ent.moveinfo.remaining_distance / Defines.FRAMETIME,
-                    ent.velocity);
+            Math3D.VectorScale(self.moveinfo.dir,
+                    self.moveinfo.remaining_distance / Defines.FRAMETIME,
+                    self.velocity);
 
-            ent.think.action = Move_Done;
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
+            self.think.action = Move_Done;
+            self.think.nextTime = game.level.time + Defines.FRAMETIME;
             return true;
         }
     };
 
-    private static EntThinkAdapter Move_Begin = new EntThinkAdapter() {
+    public static EntThinkAdapter Move_Begin = new EntThinkAdapter() {
         public String getID() { return "move_begin";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(SubgameEntity self, GameExportsImpl game) {
 
-            float frames;
-
-            if ((ent.moveinfo.speed * Defines.FRAMETIME) >= ent.moveinfo.remaining_distance) {
-                Move_Final.think(ent, gameExports);
+            if (self.moveinfo.speed * Defines.FRAMETIME >= self.moveinfo.remaining_distance) {
+                Move_Final.think(self, game);
                 return true;
             }
-            Math3D.VectorScale(ent.moveinfo.dir, ent.moveinfo.speed,
-                    ent.velocity);
-            frames = (float) Math
-                    .floor((ent.moveinfo.remaining_distance / ent.moveinfo.speed)
-                            / Defines.FRAMETIME);
-            ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed
-                    * Defines.FRAMETIME;
-            ent.think.nextTime = gameExports.level.time + (frames * Defines.FRAMETIME);
-            ent.think.action = Move_Final;
+            Math3D.VectorScale(self.moveinfo.dir, self.moveinfo.speed, self.velocity);
+            float frames = (float) Math.floor((self.moveinfo.remaining_distance / self.moveinfo.speed) / Defines.FRAMETIME);
+            self.moveinfo.remaining_distance -= frames * self.moveinfo.speed * Defines.FRAMETIME;
+            self.think.nextTime = game.level.time + (frames * Defines.FRAMETIME);
+            self.think.action = Move_Final;
             return true;
         }
     };

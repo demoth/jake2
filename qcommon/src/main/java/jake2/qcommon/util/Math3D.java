@@ -26,12 +26,13 @@ package jake2.qcommon.util;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
+import org.jetbrains.annotations.NotNull;
 
 public class Math3D {
 
 	static final float shortratio = 180.0f / Short.MAX_VALUE;
 	static final float piratio = (float) (Math.PI / 360.0);
-	public static void VectorSubtract(float[] a, float[] b, float[] c) {
+	public static void VectorSubtract(@NotNull float[] a, @NotNull float[] b, @NotNull float[] c) {
 		c[0] = a[0] - b[0];
 		c[1] = a[1] - b[1];
 		c[2] = a[2] - b[2];

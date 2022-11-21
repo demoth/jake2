@@ -171,5 +171,13 @@ abstract class SuperAdapter {
             val id = f.readString() ?: return null
             return getFromID(id)
         }
+
+        fun think(s: String): EntThinkAdapter {
+            val adapter = adapters[s]
+            if (adapter is EntThinkAdapter)
+                return adapter
+            else
+                throw IllegalStateException("No such think adapter: $s")
+        }
     }
 }

@@ -40,23 +40,23 @@ public class moveinfo_t {
 	int sound_middle;
 	int sound_end;
 
-	float accel;
-	float speed;
-	float decel;
+	public float accel;
+	public float speed;
+	public float decel;
 	float distance;
 
 	float wait;
 
 	// state data
 	int state;
-	float[] dir= { 0, 0, 0 };
+	public float[] dir= { 0, 0, 0 };
 
-	float current_speed;
-	float move_speed;
-	float next_speed;
-	float remaining_distance;
-	float decel_distance;
-	EntThinkAdapter endfunc;
+	public float current_speed;
+	public float move_speed;
+	public float next_speed;
+	public float remaining_distance;
+	public float decel_distance;
+	public EntThinkAdapter endfunc;
 
 	/** saves the moveinfo to the file.*/
 	public void write(QuakeFile f) throws IOException {
