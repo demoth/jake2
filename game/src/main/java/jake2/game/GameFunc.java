@@ -22,14 +22,10 @@
 // $Id: GameFunc.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.game.adapters.EntBlockedAdapter;
 import jake2.game.adapters.EntThinkAdapter;
-import jake2.game.adapters.EntTouchAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.cplane_t;
-import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -72,12 +68,6 @@ class GameFunc {
         }
     }
 
-    /**
-     * Think_AccelMove
-     * 
-     * The team has completed a frame of movement, so change the speed for the
-     * next frame.
-     */
     private static float AccelerationDistance(float target, float rate) {
         return target * ((target / rate) + 1) / 2;
     };
@@ -430,6 +420,12 @@ class GameFunc {
         }
     };
 
+    /**
+     * Think_AccelMove
+     *
+     * The team has completed a frame of movement, so change the speed for the
+     * next frame.
+     */
     private static EntThinkAdapter Think_AccelMove = new EntThinkAdapter() {
         public String getID() { return "thinc_accelmove";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -450,105 +446,6 @@ class GameFunc {
                     ent.moveinfo.current_speed * 10, ent.velocity);
             ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             ent.think.action = Think_AccelMove;
-            return true;
-        }
-    };
-    
-    /**
-     * QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
-     * TOUCH_PAIN STOP ANIMATED ANIMATED_FAST You need to have an origin brush
-     * as part of this entity. The center of that brush will be the point around
-     * which it is rotated. It will rotate around the Z axis by default. You can
-     * check either the X_AXIS or Y_AXIS box to change that.
-     * 
-     * "speed" determines how fast it moves; default value is 100. "dmg" damage
-     * to inflict when blocked (2 default)
-     * 
-     * REVERSE will cause the it to rotate in the opposite direction. STOP mean
-     * it will stop moving instead of pushing entities
-     */
-
-    private static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
-        public String getID() { return "rotating_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
-                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
-
-    private static EntTouchAdapter rotating_touch = new EntTouchAdapter() {
-        public String getID() { return "rotating_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (self.avelocity[0] != 0 || self.avelocity[1] != 0
-                    || self.avelocity[2] != 0)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                        GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
-
-    private static EntUseAdapter rotating_use = new EntUseAdapter() {
-        public String getID() { return "rotating_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
-                self.s.sound = 0;
-                Math3D.VectorClear(self.avelocity);
-                self.touch = null;
-            } else {
-                self.s.sound = self.moveinfo.sound_middle;
-                Math3D.VectorScale(self.movedir, self.speed, self.avelocity);
-                if ((self.spawnflags & 16) != 0)
-                    self.touch = rotating_touch;
-            }
-        }
-    };
-
-    static EntThinkAdapter SP_func_rotating = new EntThinkAdapter() {
-        public String getID() { return "sp_func_rotating";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            ent.solid = Defines.SOLID_BSP;
-            if ((ent.spawnflags & 32) != 0)
-                ent.movetype = GameDefines.MOVETYPE_STOP;
-            else
-                ent.movetype = GameDefines.MOVETYPE_PUSH;
-
-            // set the axis of rotation
-            Math3D.VectorClear(ent.movedir);
-            if ((ent.spawnflags & 4) != 0)
-                ent.movedir[2] = 1.0f;
-            else if ((ent.spawnflags & 8) != 0)
-                ent.movedir[0] = 1.0f;
-            else
-                // Z_AXIS
-                ent.movedir[1] = 1.0f;
-
-            // check for reverse rotation
-            if ((ent.spawnflags & 2) != 0)
-                Math3D.VectorNegate(ent.movedir, ent.movedir);
-
-            if (0 == ent.speed)
-                ent.speed = 100;
-            if (0 == ent.dmg)
-                ent.dmg = 2;
-
-            //		ent.moveinfo.sound_middle = "doors/hydro1.wav";
-
-            ent.use = rotating_use;
-            if (ent.dmg != 0)
-                ent.blocked = rotating_blocked;
-
-            if ((ent.spawnflags & 1) != 0)
-                ent.use.use(ent, null, null, gameExports);
-
-            if ((ent.spawnflags & 64) != 0)
-                ent.s.effects |= Defines.EF_ANIM_ALL;
-            if ((ent.spawnflags & 128) != 0)
-                ent.s.effects |= Defines.EF_ANIM_ALLFAST;
-
-            gameExports.gameImports.setmodel(ent, ent.model);
-            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };

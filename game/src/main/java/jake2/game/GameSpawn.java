@@ -389,7 +389,7 @@ public class GameSpawn {
         spawns.put(DoorKt.getFuncDoor().getID(), DoorKt.getFuncDoor());
         spawns.put(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
         spawns.put(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
-        spawns.put("func_rotating", GameFunc.SP_func_rotating);
+        spawns.put(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
         spawns.put(TrainKt.getTrain().getID(), TrainKt.getTrain());
         spawns.put("func_water", SP_func_water);
         spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
