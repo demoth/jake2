@@ -4,6 +4,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
@@ -91,7 +92,7 @@ private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
                 + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
         Defines.ATTN_STATIC.toFloat(), 0f
     )
-    GameFunc.Move_Calc(self, self.moveinfo.end_origin, buttonWait, game)
+    startMovement(self, self.moveinfo.end_origin!!, buttonWait, game)
     return true
 }
 
@@ -114,7 +115,7 @@ private val buttonWait = registerThink("button_wait") { self, game ->
 private val buttonReturn = registerThink("button_return") { self, game ->
     self.moveinfo.state = GameFunc.STATE_DOWN
 
-    GameFunc.Move_Calc(self, self.moveinfo.start_origin, buttonDone, game)
+    startMovement(self, self.moveinfo.start_origin!!, buttonDone, game)
 
     self.s.frame = 0
 

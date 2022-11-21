@@ -7,6 +7,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -457,8 +458,9 @@ private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: Ga
         self.s.sound = self.moveinfo.sound_middle
     }
     self.moveinfo.state = GameFunc.STATE_UP
-    if ("func_door" == self.classname)
-        GameFunc.Move_Calc(self, self.moveinfo.end_origin, doorOpened, game)
+    if ("func_door" == self.classname) {
+        startMovement(self, self.moveinfo.end_origin!!, doorOpened, game)
+    }
     else if ("func_door_rotating" == self.classname)
         GameFunc.AngleMove_Calc(self, doorOpened, game)
     GameUtil.G_UseTargets(self, activator, game)
@@ -501,8 +503,9 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
     }
 
     self.moveinfo.state = GameFunc.STATE_DOWN
-    if ("func_door" == self.classname)
-        GameFunc.Move_Calc(self, self.moveinfo.start_origin, doorClosed, game)
+    if ("func_door" == self.classname) {
+        startMovement(self, self.moveinfo.start_origin!!, doorClosed, game)
+    }
     else if ("func_door_rotating" == self.classname)
         GameFunc.AngleMove_Calc(self, doorClosed, game)
     true
@@ -630,7 +633,7 @@ private val doorSecretOpeningBack = registerUse("door_secret_use") { self, other
     if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
         return@registerUse
 
-    GameFunc.Move_Calc(self, self.pos1, doorSecretOpeningWait, game)
+    startMovement(self, self.pos1!!, doorSecretOpeningWait, game)
     doorUseAreaPortals(self, true, game)
 }
 
@@ -642,7 +645,7 @@ private val doorSecretOpeningWait = registerThink("door_secret_move1") { self, g
 }
 
 private val doorSecretOpeningSideways = registerThink("door_secret_move2") { self, game ->
-    GameFunc.Move_Calc(self, self.pos2, doorSecretOpened, game)
+    startMovement(self, self.pos2!!, doorSecretOpened, game)
     true
 }
 
@@ -655,7 +658,7 @@ private val doorSecretOpened = registerThink("door_secret_move3") { self, game -
 }
 
 private val doorSecretClosingSideways = registerThink("door_secret_move4") { self, game ->
-    GameFunc.Move_Calc(self, self.pos1, doorSecretClosingWait, game)
+    startMovement(self, self.pos1!!, doorSecretClosingWait, game)
     true
 }
 
@@ -666,7 +669,7 @@ private val doorSecretClosingWait = registerThink("door_secret_move5") { self, g
 }
 
 private val doorSecretClosingBack = registerThink("door_secret_move6") { self, game ->
-    GameFunc.Move_Calc(self, Globals.vec3_origin, doorSecretClosed, game)
+    startMovement(self, Globals.vec3_origin!!, doorSecretClosed, game)
     true
 }
 

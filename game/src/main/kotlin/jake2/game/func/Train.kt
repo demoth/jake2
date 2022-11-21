@@ -4,6 +4,7 @@ import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -186,7 +187,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
     self.moveinfo.state = GameFunc.STATE_TOP
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    GameFunc.Move_Calc(self, dest, trainWait, game)
+    startMovement(self, dest, trainWait, game)
     self.spawnflags = self.spawnflags or TRAIN_START_ON
 
     true
@@ -244,6 +245,6 @@ fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     self.moveinfo.state = GameFunc.STATE_TOP
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    GameFunc.Move_Calc(self, dest, trainWait, game)
+    startMovement(self, dest, trainWait, game!!)
     self.spawnflags = self.spawnflags or TRAIN_START_ON
 }

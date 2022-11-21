@@ -241,7 +241,7 @@ public class Globals extends Defines {
 	// logfile
 	public static RandomAccessFile logfile = null;
 	
-	public static float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
+	public static final float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
 
 	public static Random rnd = new Random();
 

@@ -29,7 +29,7 @@ import jake2.qcommon.util.Math3D
  * REVERSE will cause it to rotate in the opposite direction. 
  * STOP mean it will stop moving instead of pushing entities
  */
-val rotating = registerThink("") { self, game ->
+val rotating = registerThink("func_rotating") { self, game ->
     self.solid = Defines.SOLID_BSP
     if (self.spawnflags and 32 != 0)
         self.movetype = GameDefines.MOVETYPE_STOP
@@ -71,7 +71,7 @@ val rotating = registerThink("") { self, game ->
     true
 }
 
-private val rotatingUse = registerUse("rotating_use") { self, other, activator, game ->
+private val rotatingUse = registerUse("rotating_use") { self, _, _, _ ->
     if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
         self.s.sound = 0
         Math3D.VectorClear(self.avelocity)

@@ -85,11 +85,11 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerUse(id: String, use: (self: SubgameEntity, other: SubgameEntity, activator: SubgameEntity?, gameExports: GameExportsImpl) -> Unit): EntUseAdapter {
+        fun registerUse(id: String, use: (self: SubgameEntity, other: SubgameEntity?, activator: SubgameEntity?, game: GameExportsImpl) -> Unit): EntUseAdapter {
             val adapter = object : EntUseAdapter() {
                 override fun use(
                     self: SubgameEntity,
-                    other: SubgameEntity,
+                    other: SubgameEntity?,
                     activator: SubgameEntity?,
                     gameExports: GameExportsImpl
                 ) {

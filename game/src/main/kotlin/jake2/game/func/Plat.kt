@@ -4,6 +4,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Math3D
@@ -205,7 +206,7 @@ private fun platGoUp(ent: SubgameEntity, game: GameExportsImpl) {
         ent.s.sound = ent.moveinfo.sound_middle
     }
     ent.moveinfo.state = GameFunc.STATE_UP
-    GameFunc.Move_Calc(ent, ent.moveinfo.start_origin, platHitTop, game)
+    startMovement(ent!!, ent.moveinfo.start_origin!!, platHitTop, game!!)
 }
 
 private val platHitTop = registerThink("plat_hit_top") { self, game ->
@@ -236,7 +237,7 @@ private val platGoDown = registerThink("plat_go_down") { self, game ->
         self.s.sound = self.moveinfo.sound_middle
     }
     self.moveinfo.state = GameFunc.STATE_DOWN
-    GameFunc.Move_Calc(self, self.moveinfo.end_origin, platHitBottom, game)
+    startMovement(self!!, self.moveinfo.end_origin!!, platHitBottom, game!!)
     true
 }
 
