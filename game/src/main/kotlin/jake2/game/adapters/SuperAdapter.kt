@@ -53,7 +53,7 @@ abstract class SuperAdapter {
 
     companion object {
         fun register(id: String?, sa: SuperAdapter): String {
-            if (id == null) {
+            if (id.isNullOrBlank()) {
                 // TODO: exception
                 return "null"
             }

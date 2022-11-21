@@ -93,7 +93,7 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.monsters.M_Soldier",
                     "jake2.game.monsters.M_Supertank",
                     "jake2.game.monsters.M_Tank",
-                    "jake2.game.GameItems"
+                    "jake2.game.items.GameItems",
             };
 
     /////////////////////////////////////
