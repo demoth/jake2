@@ -239,48 +239,6 @@ class GameFunc {
         }
     };
 
-    public static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
-        public String getID() { return "think_calc_movespeed";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent;
-            float min;
-            float time;
-            float newspeed;
-            float ratio;
-            float dist;
-
-            if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                return true; // only the team master does this
-
-            // find the smallest distance any member of the team will be moving
-            min = Math.abs(self.moveinfo.distance);
-            for (ent = self.teamchain; ent != null; ent = ent.teamchain) {
-                dist = Math.abs(ent.moveinfo.distance);
-                if (dist < min)
-                    min = dist;
-            }
-
-            time = min / self.moveinfo.speed;
-
-            // adjust speeds so they will all complete at the same time
-            for (ent = self; ent != null; ent = ent.teamchain) {
-                newspeed = Math.abs(ent.moveinfo.distance) / time;
-                ratio = newspeed / ent.moveinfo.speed;
-                if (ent.moveinfo.accel == ent.moveinfo.speed)
-                    ent.moveinfo.accel = newspeed;
-                else
-                    ent.moveinfo.accel *= ratio;
-                if (ent.moveinfo.decel == ent.moveinfo.speed)
-                    ent.moveinfo.decel = newspeed;
-                else
-                    ent.moveinfo.decel *= ratio;
-                ent.moveinfo.speed = newspeed;
-            }
-            return true;
-        }
-    };
-
-
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
      */

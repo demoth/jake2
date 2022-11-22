@@ -1,7 +1,6 @@
 package jake2.game
 
 import jake2.game.GameBase.G_SetMovedir
-import jake2.game.GameFunc.Think_CalcMoveSpeed
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -119,7 +118,7 @@ val funcDoor = registerThink("func_door") { self, game ->
     game.gameImports.linkentity(self)
     self.think.nextTime = game.level.time + Defines.FRAMETIME
     if (self.health != 0 || self.targetname != null)
-        self.think.action = Think_CalcMoveSpeed
+        self.think.action = doorCalculateMoveSpeed
     else
         self.think.action = spawnTouchTrigger
     true
@@ -266,7 +265,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
 
     self.think.nextTime = game.level.time + Defines.FRAMETIME
     if (self.health != 0 || self.targetname != null)
-        self.think.action = Think_CalcMoveSpeed
+        self.think.action = doorCalculateMoveSpeed
     else
         self.think.action = spawnTouchTrigger
     true
@@ -405,7 +404,7 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
     if (ent.spawnflags and DOOR_START_OPEN != 0)
         doorUseAreaPortals(ent, true, game)
 
-    Think_CalcMoveSpeed.think(ent, game)
+    doorCalculateMoveSpeed.think(ent, game)
     true
 }
 
@@ -724,4 +723,41 @@ private fun doorUseAreaPortals(self: SubgameEntity, open: Boolean, game: GameExp
             game.gameImports.SetAreaPortalState(entity!!.style, open)
         }
     }
+}
+
+private val doorCalculateMoveSpeed = registerThink("think_calc_movespeed") { self, game ->
+    if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
+        return@registerThink true // only the team master does this
+
+    // find the smallest distance any member of the team will be moving
+    var minDistance: Float = abs(self.moveinfo.distance)
+    var entity = self.teamchain
+    while (entity != null) {
+        val dist = abs(entity.moveinfo.distance)
+        if (dist < minDistance)
+            minDistance = dist
+        entity = entity.teamchain
+    }
+
+    val time = minDistance / self.moveinfo.speed
+
+    // adjust speeds so they will all complete at the same time
+    var team: SubgameEntity? = self
+    while (team != null) {
+        val newspeed = abs(team.moveinfo.distance) / time
+        val ratio = newspeed / team.moveinfo.speed
+        if (team.moveinfo.accel == team.moveinfo.speed)
+            team.moveinfo.accel = newspeed
+        else
+            team.moveinfo.accel *= ratio
+        if (team.moveinfo.decel == team.moveinfo.speed)
+            team.moveinfo.decel = newspeed
+        else
+            team.moveinfo.decel *= ratio
+        team.moveinfo.speed = newspeed
+        team = team.teamchain
+    }
+
+    true
+
 }
