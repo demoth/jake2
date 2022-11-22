@@ -33,8 +33,6 @@ import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import java.util.Calendar;
-
 import static jake2.qcommon.Defines.EF_FLIES;
 
 public class GameMisc {
@@ -587,83 +585,6 @@ public class GameMisc {
         if (self.message == null)
             self.message = "";
         self.use = target_string_use;
-    }
-
-    // don't let field width of any clock messages change, or it
-    // could cause an overwrite after a game load
-
-    private static void func_clock_reset(SubgameEntity self) {
-        self.activator = null;
-        if ((self.spawnflags & 1) != 0) {
-            self.health = 0;
-            self.wait = self.count;
-        } else if ((self.spawnflags & 2) != 0) {
-            self.health = self.count;
-            self.wait = 0;
-        }
-    }
-
-    private static void func_clock_format_countdown(SubgameEntity self) {
-        if (self.style == 0) {
-            self.message = "" + self.health;
-            //Com_sprintf(self.message, CLOCK_MESSAGE_SIZE, "%2i",
-            // self.health);
-            return;
-        }
-
-        if (self.style == 1) {
-            self.message = "" + self.health / 60 + ":" + self.health % 60;
-            //Com_sprintf(self.message, CLOCK_MESSAGE_SIZE, "%2i:%2i",
-            // self.health / 60, self.health % 60);
-            /*
-             * if (self.message.charAt(3) == ' ') self.message.charAt(3) = '0';
-             */
-            return;
-        }
-
-        if (self.style == 2) {
-            self.message = "" + self.health / 3600 + ":"
-                    + (self.health - (self.health / 3600) * 3600) / 60 + ":"
-                    + self.health % 60;
-            /*
-             * Com_sprintf( self.message, CLOCK_MESSAGE_SIZE, "%2i:%2i:%2i",
-             * self.health / 3600, (self.health - (self.health / 3600) * 3600) /
-             * 60, self.health % 60); if (self.message[3] == ' ')
-             * self.message[3] = '0'; if (self.message[6] == ' ')
-             * self.message[6] = '0';
-             */
-            return;
-        }
-    }
-
-    static void SP_func_clock(SubgameEntity self, GameExportsImpl gameExports) {
-        if (self.target == null) {
-            gameExports.gameImports.dprintf(self.classname + " with no target at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        if ((self.spawnflags & 2) != 0 && (0 == self.count)) {
-            gameExports.gameImports.dprintf(self.classname + " with no count at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        if ((self.spawnflags & 1) != 0 && (0 == self.count))
-            self.count = 60 * 60;
-
-        func_clock_reset(self);
-
-        self.message = new String();
-
-        self.think.action = func_clock_think;
-
-        if ((self.spawnflags & 4) != 0)
-            self.use = func_clock_use;
-        else
-            self.think.nextTime = gameExports.level.time + 1;
     }
 
     /**
@@ -1706,101 +1627,6 @@ public class GameMisc {
                 else
                     e.s.frame = 12;
             }
-        }
-    };
-
-    /*
-     * QUAKED func_clock (0 0 1) (-8 -8 -8) (8 8 8) TIMER_UP TIMER_DOWN
-     * START_OFF MULTI_USE target a target_string with this
-     * 
-     * The default is to be a time of day clock
-     * 
-     * TIMER_UP and TIMER_DOWN run for "count" seconds and the fire "pathtarget"
-     * If START_OFF, this entity must be used before it starts
-     * 
-     * "style" 0 "xx" 1 "xx:xx" 2 "xx:xx:xx"
-     */
-
-    public static final int CLOCK_MESSAGE_SIZE = 16;
-
-    private static EntThinkAdapter func_clock_think = new EntThinkAdapter() {
-        public String getID() { return "func_clock_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (null == self.enemy) {
-
-                EdictIterator es = null;
-
-                es = GameBase.G_Find(es, GameBase.findByTargetName, self.target, gameExports);
-                if (es != null)
-                    self.enemy = es.o;
-                if (self.enemy == null)
-                    return true;
-            }
-
-            if ((self.spawnflags & 1) != 0) {
-                func_clock_format_countdown(self);
-                self.health++;
-            } else if ((self.spawnflags & 2) != 0) {
-                func_clock_format_countdown(self);
-                self.health--;
-            } else {
-                Calendar c = Calendar.getInstance();
-                self.message = "" + c.get(Calendar.HOUR_OF_DAY) + ":"
-                        + c.get(Calendar.MINUTE) + ":" + c.get(Calendar.SECOND);
-
-                /*
-                 * struct tm * ltime; time_t gmtime;
-                 * 
-                 * time(& gmtime); ltime = localtime(& gmtime);
-                 * Com_sprintf(self.message, CLOCK_MESSAGE_SIZE, "%2i:%2i:%2i",
-                 * ltime.tm_hour, ltime.tm_min, ltime.tm_sec); if
-                 * (self.message[3] == ' ') self.message[3] = '0'; if
-                 * (self.message[6] == ' ') self.message[6] = '0';
-                 */
-            }
-
-            self.enemy.message = self.message;
-            self.enemy.use.use(self.enemy, self, self, gameExports);
-
-            if (((self.spawnflags & 1) != 0 && (self.health > self.wait))
-                    || ((self.spawnflags & 2) != 0 && (self.health < self.wait))) {
-                if (self.pathtarget != null) {
-                    String savetarget;
-                    String savemessage;
-
-                    savetarget = self.target;
-                    savemessage = self.message;
-                    self.target = self.pathtarget;
-                    self.message = null;
-                    GameUtil.G_UseTargets(self, self.activator, gameExports);
-                    self.target = savetarget;
-                    self.message = savemessage;
-                }
-
-                if (0 == (self.spawnflags & 8))
-                    return true;
-
-                func_clock_reset(self);
-
-                if ((self.spawnflags & 4) != 0)
-                    return true;
-            }
-
-            self.think.nextTime = gameExports.level.time + 1;
-            return true;
-
-        }
-    };
-
-    private static EntUseAdapter func_clock_use = new EntUseAdapter() {
-        public String getID() { return "func_clock_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (0 == (self.spawnflags & 8))
-                self.use = null;
-            if (self.activator != null)
-                return;
-            self.activator = activator;
-            self.think.action.think(self, gameExports);
         }
     };
 

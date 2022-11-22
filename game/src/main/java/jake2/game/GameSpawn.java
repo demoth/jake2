@@ -130,16 +130,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_func_clock";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameMisc.SP_func_clock(ent, gameExports);
-            return true;
-        }
-    };
     private static final String single_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
@@ -384,7 +374,7 @@ public class GameSpawn {
         spawns.put(WaterKt.getWater().getID(), WaterKt.getWater());
         spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
         spawns.put("func_areaportal", GameMisc.SP_func_areaportal);
-        spawns.put("func_clock", SP_func_clock);
+        spawns.put(ClockKt.getClock().getID(), ClockKt.getClock());
         spawns.put("func_wall", new EntThinkAdapter() {
             public String getID() {
                 return "func_wall";
