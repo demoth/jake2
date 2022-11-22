@@ -7,6 +7,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.MovementState
 import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -91,7 +92,7 @@ val funcDoor = registerThink("func_door") { self, game ->
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.origin, self.pos1)
     }
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
     if (self.health != 0) {
         self.takedamage = Defines.DAMAGE_YES
         self.die = doorKilled
@@ -245,7 +246,7 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
         self.touch = doorTouch
     }
 
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
     self.moveinfo.speed = self.speed
     self.moveinfo.accel = self.accel
     self.moveinfo.decel = self.decel
@@ -302,7 +303,7 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
     // blocked, so let it just squash the object to death real fast
     if (self.moveinfo.wait >= 0) {
         var team: SubgameEntity?
-        if (self.moveinfo.state == GameFunc.STATE_DOWN) {
+        if (self.moveinfo.state == MovementState.DOWN) {
             team = self.teammaster
             while (team != null) {
                 doorOpening(team, team.activator, game)
@@ -325,7 +326,7 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
         return@registerUse
 
     if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0) {
-        if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP) {
+        if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP) {
             // trigger all paired doors
             var team: SubgameEntity? = self
             while (team != null) {
@@ -440,9 +441,9 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
 
 // Door opening/closing
 private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: GameExportsImpl) {
-    if (self.moveinfo.state == GameFunc.STATE_UP)
+    if (self.moveinfo.state == MovementState.UP)
         return  // already going up
-    if (self.moveinfo.state == GameFunc.STATE_TOP) {
+    if (self.moveinfo.state == MovementState.TOP) {
         // reset top wait time
         if (self.moveinfo.wait >= 0)
             self.think.nextTime = game.level.time + self.moveinfo.wait
@@ -457,7 +458,7 @@ private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: Ga
             )
         self.s.sound = self.moveinfo.sound_middle
     }
-    self.moveinfo.state = GameFunc.STATE_UP
+    self.moveinfo.state = MovementState.UP
     if ("func_door" == self.classname) {
         startMovement(self, self.moveinfo.end_origin!!, doorOpened, game)
     } else if ("func_door_rotating" == self.classname) {
@@ -476,7 +477,7 @@ private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, ga
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = GameFunc.STATE_TOP
+    self.moveinfo.state = MovementState.TOP
 
     if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0)
         return@registerThink true
@@ -502,7 +503,7 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
         self.health = self.max_health
     }
 
-    self.moveinfo.state = GameFunc.STATE_DOWN
+    self.moveinfo.state = MovementState.DOWN
     if ("func_door" == self.classname) {
         startMovement(self, self.moveinfo.start_origin!!, doorClosed, game)
     } else if ("func_door_rotating" == self.classname) {
@@ -518,7 +519,7 @@ private val doorClosed = registerThink("door_hit_bottom") { self, game ->
                 self.moveinfo.sound_end, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
         self.s.sound = 0
     }
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
     doorUseAreaPortals(self, false, game)
     true
 }
@@ -536,7 +537,7 @@ private val doorKilled = registerDie("door_killed") { self, inflictor, attacker,
 
 // secret door related functions
 
-const val SECRET_ALWAYS_SHOOT = 1
+private const val SECRET_ALWAYS_SHOOT = 1
 
 private const val SECRET_1ST_LEFT = 2
 
@@ -782,7 +783,7 @@ private val doorRotatingBegin = registerThink("angle_move_begin") { self, game -
     val destdelta = floatArrayOf(0f, 0f, 0f)
 
     // set destdelta to the vector needed to move
-    if (self.moveinfo.state == GameFunc.STATE_UP)
+    if (self.moveinfo.state == MovementState.UP)
         Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, destdelta)
     else
         Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, destdelta)
@@ -811,7 +812,7 @@ private val doorRotatingBegin = registerThink("angle_move_begin") { self, game -
 private val doorRotatingFinal = registerThink("angle_move_final") { self, game ->
     val move = floatArrayOf(0f, 0f, 0f)
 
-    if (self.moveinfo.state == GameFunc.STATE_UP)
+    if (self.moveinfo.state == MovementState.UP)
         Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, move)
     else
         Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, move)

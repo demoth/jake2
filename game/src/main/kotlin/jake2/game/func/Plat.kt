@@ -4,6 +4,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.MovementState
 import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -92,11 +93,11 @@ val plat = registerThink("func_plat") { self, game ->
 
 
     if (self.targetname != null) {
-        self.moveinfo.state = GameFunc.STATE_UP
+        self.moveinfo.state = MovementState.UP
     } else {
         Math3D.VectorCopy(self.pos2, self.s.origin)
         game.gameImports.linkentity(self)
-        self.moveinfo.state = GameFunc.STATE_BOTTOM
+        self.moveinfo.state = MovementState.BOTTOM
     }
 
     self.moveinfo.speed = self.speed
@@ -135,9 +136,9 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
         GameDefines.MOD_CRUSH, gameExports
     )
 
-    if (self.moveinfo.state == GameFunc.STATE_UP)
+    if (self.moveinfo.state == MovementState.UP)
         platGoDown.think(self, gameExports) 
-    else if (self.moveinfo.state == GameFunc.STATE_DOWN)
+    else if (self.moveinfo.state == MovementState.DOWN)
         platGoUp(self, gameExports)
 
 }
@@ -188,9 +189,9 @@ private val platTriggerTouch = registerTouch("touch_plat_center") { self, other,
     // now point at the plat, not the trigger
     val plat = self.enemy 
 
-    if (plat.moveinfo.state == GameFunc.STATE_BOTTOM)
+    if (plat.moveinfo.state == MovementState.BOTTOM)
         platGoUp(plat, game)
-    else if (plat.moveinfo.state == GameFunc.STATE_TOP) {
+    else if (plat.moveinfo.state == MovementState.TOP) {
         // the player is still on the plat, so delay going down
         plat.think.nextTime = game.level.time + 1 
     }
@@ -205,7 +206,7 @@ private fun platGoUp(ent: SubgameEntity, game: GameExportsImpl) {
         )
         ent.s.sound = ent.moveinfo.sound_middle
     }
-    ent.moveinfo.state = GameFunc.STATE_UP
+    ent.moveinfo.state = MovementState.UP
     startMovement(ent!!, ent.moveinfo.start_origin!!, platHitTop, game!!)
 }
 
@@ -219,7 +220,7 @@ private val platHitTop = registerThink("plat_hit_top") { self, game ->
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = GameFunc.STATE_TOP
+    self.moveinfo.state = MovementState.TOP
 
     self.think.action = platGoDown
     self.think.nextTime = game.level.time + 3
@@ -236,7 +237,7 @@ private val platGoDown = registerThink("plat_go_down") { self, game ->
         )
         self.s.sound = self.moveinfo.sound_middle
     }
-    self.moveinfo.state = GameFunc.STATE_DOWN
+    self.moveinfo.state = MovementState.DOWN
     startMovement(self!!, self.moveinfo.end_origin!!, platHitBottom, game!!)
     true
 }
@@ -251,6 +252,6 @@ private val platHitBottom = registerThink("plat_hit_bottom") { self, game ->
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
     true
 }

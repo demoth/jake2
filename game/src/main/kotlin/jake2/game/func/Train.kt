@@ -4,6 +4,7 @@ import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.MovementState
 import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -184,7 +185,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
     }
 
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
-    self.moveinfo.state = GameFunc.STATE_TOP
+    self.moveinfo.state = MovementState.TOP
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game)
@@ -242,7 +243,7 @@ fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     val dest = floatArrayOf(0f, 0f, 0f)
     val ent = self.target_ent
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
-    self.moveinfo.state = GameFunc.STATE_TOP
+    self.moveinfo.state = MovementState.TOP
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game!!)

@@ -25,6 +25,7 @@ package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.SuperAdapter;
+import jake2.game.func.MovementState;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class moveinfo_t {
 	float wait;
 
 	// state data
-	int state;
+	MovementState state;
 	public float[] dir= { 0, 0, 0 };
 
 	public float current_speed;
@@ -76,7 +77,7 @@ public class moveinfo_t {
 
 		f.writeFloat(wait);
 
-		f.writeInt(state);
+		f.writeString(state.name());
 		f.writeVector(dir);
 
 		f.writeFloat(current_speed);
@@ -105,7 +106,7 @@ public class moveinfo_t {
 
 		wait= f.readFloat();
 
-		state= f.readInt();
+		state = MovementState.valueOf(f.readString());
 		dir= f.readVector();
 
 		current_speed= f.readFloat();

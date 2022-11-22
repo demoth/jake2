@@ -11,6 +11,13 @@ import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.floor
 
+enum class MovementState {
+    TOP,
+    UP,
+    DOWN,
+    BOTTOM
+}
+
 /**
  * Move_Calc
  */

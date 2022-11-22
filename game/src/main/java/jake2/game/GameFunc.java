@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
+import jake2.game.func.MovementState;
 import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -95,7 +96,7 @@ class GameFunc {
         Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin);
         Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles);
 
-        self.moveinfo.state = STATE_BOTTOM;
+        self.moveinfo.state = MovementState.BOTTOM;
 
         if (0 == self.speed)
             self.speed = 25;
@@ -137,14 +138,6 @@ class GameFunc {
 
         self.svflags = Defines.SVF_NOCLIENT;
     }
-
-    public final static int STATE_TOP = 0;
-
-    public final static int STATE_BOTTOM = 1;
-
-    public final static int STATE_UP = 2;
-
-    public final static int STATE_DOWN = 3;
 
     public final static int DOOR_TOGGLE = 32;
 

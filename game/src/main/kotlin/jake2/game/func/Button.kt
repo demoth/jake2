@@ -4,6 +4,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.func.MovementState
 import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
@@ -61,7 +62,7 @@ val button = registerThink("func_button") { self, game ->
     } else if (self.targetname == null)
         self.touch = buttonTouch
 
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
 
     self.moveinfo.speed = self.speed
     self.moveinfo.accel = self.accel
@@ -83,9 +84,9 @@ private val buttonUse = registerUse("button_use") { self, other, activator, game
 }
 
 private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
-    if (self.moveinfo.state == GameFunc.STATE_UP || self.moveinfo.state == GameFunc.STATE_TOP)
+    if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP)
         return true
-    self.moveinfo.state = GameFunc.STATE_UP
+    self.moveinfo.state = MovementState.UP
     if (self.moveinfo.sound_start != 0 && self.flags and GameDefines.FL_TEAMSLAVE == 0)
         game.gameImports.sound(
         self, Defines.CHAN_NO_PHS_ADD
@@ -97,7 +98,7 @@ private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
 }
 
 private val buttonWait = registerThink("button_wait") { self, game ->
-    self.moveinfo.state = GameFunc.STATE_TOP
+    self.moveinfo.state = MovementState.TOP
 
     // EF_ANIM01 -> EF_ANIM23
     self.s.effects = self.s.effects and Defines.EF_ANIM01.inv()
@@ -113,7 +114,7 @@ private val buttonWait = registerThink("button_wait") { self, game ->
 }
 
 private val buttonReturn = registerThink("button_return") { self, game ->
-    self.moveinfo.state = GameFunc.STATE_DOWN
+    self.moveinfo.state = MovementState.DOWN
 
     startMovement(self, self.moveinfo.start_origin!!, buttonDone, game)
 
@@ -127,7 +128,7 @@ private val buttonReturn = registerThink("button_return") { self, game ->
 }
 
 private val buttonDone = registerThink("button_done") { self, game ->
-    self.moveinfo.state = GameFunc.STATE_BOTTOM
+    self.moveinfo.state = MovementState.BOTTOM
     // EF_ANIM23 -> EF_ANIM01
     self.s.effects = self.s.effects and Defines.EF_ANIM23.inv()
     self.s.effects = self.s.effects or Defines.EF_ANIM01
