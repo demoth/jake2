@@ -779,32 +779,6 @@ public class GameMisc {
             ent.velocity[2] = 500;
     }
 
-    private static EntUseAdapter Use_Areaportal = new EntUseAdapter() {
-        public String getID() { return "use_areaportal";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            ent.count ^= 1; // toggle state
-            //	gi.dprintf ("portalstate: %i = %i\n", ent.style, ent.count);
-            gameExports.gameImports.SetAreaPortalState(ent.style, ent.count != 0);
-        }
-    };
-
-    /**
-     * QUAKED func_areaportal (0 0 0) ?
-     * 
-     * This is a non-visible object that divides the world into areas that are
-     * seperated when this portal is not activated. Usually enclosed in the
-     * middle of a door.
-     */
-
-    static EntThinkAdapter SP_func_areaportal = new EntThinkAdapter() {
-        public String getID() { return "sp_func_areaportal";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            ent.use = Use_Areaportal;
-            ent.count = 0; // always start closed;
-            return true;
-        }
-    };
-
     /**
      * QUAKED path_corner (.5 .3 0) (-8 -8 -8) (8 8 8) TELEPORT Target: next
      * path corner Pathtarget: gets used when an entity that has this
