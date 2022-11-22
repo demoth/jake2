@@ -1,6 +1,7 @@
 package jake2.game
 
 import jake2.game.GameBase.G_SetMovedir
+import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -459,9 +460,9 @@ private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: Ga
     self.moveinfo.state = GameFunc.STATE_UP
     if ("func_door" == self.classname) {
         startMovement(self, self.moveinfo.end_origin!!, doorOpened, game)
+    } else if ("func_door_rotating" == self.classname) {
+        calculateRotation(self, doorOpened, game)
     }
-    else if ("func_door_rotating" == self.classname)
-        GameFunc.AngleMove_Calc(self, doorOpened, game)
     GameUtil.G_UseTargets(self, activator, game)
     doorUseAreaPortals(self, true, game)
 }
@@ -504,9 +505,9 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
     self.moveinfo.state = GameFunc.STATE_DOWN
     if ("func_door" == self.classname) {
         startMovement(self, self.moveinfo.start_origin!!, doorClosed, game)
+    } else if ("func_door_rotating" == self.classname) {
+        calculateRotation(self, doorClosed, game)
     }
-    else if ("func_door_rotating" == self.classname)
-        GameFunc.AngleMove_Calc(self, doorClosed, game)
     true
 }
 
@@ -760,4 +761,75 @@ private val doorCalculateMoveSpeed = registerThink("think_calc_movespeed") { sel
 
     true
 
+}
+
+// Rotating door routines
+
+// AngleMove_Calc
+private fun calculateRotation(self: SubgameEntity, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
+    Math3D.VectorClear(self.avelocity)
+    self.moveinfo.endfunc = endFunction
+    val teamMaster = self.flags and GameDefines.FL_TEAMSLAVE == 0
+    if (game.level.current_entity === (if (teamMaster) self else self.teammaster)) {
+        doorRotatingBegin.think(self, game)
+    } else {
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+        self.think.action = doorRotatingBegin
+    }
+}
+
+private val doorRotatingBegin = registerThink("angle_move_begin") { self, game ->
+    val destdelta = floatArrayOf(0f, 0f, 0f)
+
+    // set destdelta to the vector needed to move
+    if (self.moveinfo.state == GameFunc.STATE_UP)
+        Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, destdelta)
+    else
+        Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, destdelta)
+
+    val len = Math3D.VectorLength(destdelta)
+
+    // divide by speed to get time to reach dest
+    val traveltime = len / self.moveinfo.speed
+
+    if (traveltime < Defines.FRAMETIME) {
+        doorRotatingFinal.think(self, game)
+        return@registerThink true
+    }
+
+    val frames = Math.floor((traveltime / Defines.FRAMETIME).toDouble()).toFloat()
+
+    // scale the destdelta vector by the time spent traveling to get velocity
+    Math3D.VectorScale(destdelta, 1.0f / traveltime, self.avelocity)
+
+    // set nextthink to trigger a think when dest is reached
+    self.think.nextTime = game.level.time + frames * Defines.FRAMETIME
+    self.think.action = doorRotatingFinal
+    true
+}
+
+private val doorRotatingFinal = registerThink("angle_move_final") { self, game ->
+    val move = floatArrayOf(0f, 0f, 0f)
+
+    if (self.moveinfo.state == GameFunc.STATE_UP)
+        Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, move)
+    else
+        Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, move)
+
+    if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
+        doorRotatingDone.think(self, game)
+        return@registerThink true
+    }
+
+    Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, self.avelocity)
+
+    self.think.action = doorRotatingDone
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    true
+}
+
+private val doorRotatingDone = registerThink("angle_move_final") { self, game ->
+    Math3D.VectorClear(self.avelocity)
+    self.moveinfo.endfunc.think(self, game)
+    true
 }

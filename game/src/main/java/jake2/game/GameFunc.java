@@ -25,25 +25,12 @@ package jake2.game;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import static jake2.game.DoorKt.DOOR_START_OPEN;
 
 class GameFunc {
-
-    public static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func, GameExportsImpl gameExports) {
-        Math3D.VectorClear(ent.avelocity);
-        ent.moveinfo.endfunc = func;
-        if (gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
-                : ent)) {
-            AngleMove_Begin.think(ent, gameExports);
-        } else {
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            ent.think.action = AngleMove_Begin;
-        }
-    }
 
     /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
@@ -160,84 +147,6 @@ class GameFunc {
     public final static int STATE_DOWN = 3;
 
     public final static int DOOR_TOGGLE = 32;
-
-    //
-    //	   Support routines for angular movement (changes in angle using avelocity)
-    //
-
-    private static EntThinkAdapter AngleMove_Done = new EntThinkAdapter() {
-        public String getID() { return "agnle_move_done";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            Math3D.VectorClear(ent.avelocity);
-            ent.moveinfo.endfunc.think(ent, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter AngleMove_Final = new EntThinkAdapter() {
-        public String getID() { return "angle_move_final";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] move = { 0, 0, 0 };
-
-            if (ent.moveinfo.state == STATE_UP)
-                Math3D.VectorSubtract(ent.moveinfo.end_angles, ent.s.angles,
-                        move);
-            else
-                Math3D.VectorSubtract(ent.moveinfo.start_angles, ent.s.angles,
-                        move);
-
-            if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
-                AngleMove_Done.think(ent, gameExports);
-                return true;
-            }
-
-            Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, ent.avelocity);
-
-            ent.think.action = AngleMove_Done;
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter AngleMove_Begin = new EntThinkAdapter() {
-        public String getID() { return "angle_move_begin";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            float[] destdelta = { 0, 0, 0 };
-            float len;
-            float traveltime;
-            float frames;
-
-            // set destdelta to the vector needed to move
-            if (ent.moveinfo.state == STATE_UP)
-                Math3D.VectorSubtract(ent.moveinfo.end_angles, ent.s.angles,
-                        destdelta);
-            else
-                Math3D.VectorSubtract(ent.moveinfo.start_angles, ent.s.angles,
-                        destdelta);
-
-            // calculate length of vector
-            len = Math3D.VectorLength(destdelta);
-
-            // divide by speed to get time to reach dest
-            traveltime = len / ent.moveinfo.speed;
-
-            if (traveltime < Defines.FRAMETIME) {
-                AngleMove_Final.think(ent, gameExports);
-                return true;
-            }
-
-            frames = (float) (Math.floor(traveltime / Defines.FRAMETIME));
-
-            // scale the destdelta vector by the time spent traveling to get
-            // velocity
-            Math3D.VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
-
-            // set nextthink to trigger a think when dest is reached
-            ent.think.nextTime = gameExports.level.time + frames * Defines.FRAMETIME;
-            ent.think.action = AngleMove_Final;
-            return true;
-        }
-    };
 
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
