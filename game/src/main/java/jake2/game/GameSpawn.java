@@ -406,7 +406,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("func_killbox", GameFunc.SP_func_killbox);
+        spawns.put(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());
         spawns.put("trigger_always", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_always";

@@ -127,7 +127,7 @@ public class GameUtil {
      * Kills all entities that would touch the proposed new positioning of ent.
      * Ent should be unlinked before calling this!
      */
-    static boolean KillBox(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static boolean KillBox(SubgameEntity ent, GameExportsImpl gameExports) {
 
         while (true) {
             trace_t tr = gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,

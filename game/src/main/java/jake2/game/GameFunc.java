@@ -137,26 +137,5 @@ class GameFunc {
             return true;
         }
     };
-
-    /**
-     * QUAKED func_killbox (1 0 0) ? Kills everything inside when fired,
-     * irrespective of protection.
-     */
-    private static EntUseAdapter use_killbox = new EntUseAdapter() {
-        public String getID() { return "use_killbox";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            GameUtil.KillBox(self, gameExports);
-        }
-    };
-
-    static EntThinkAdapter SP_func_killbox = new EntThinkAdapter() {
-        public String getID() { return "sp_func_killbox";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            gameExports.gameImports.setmodel(ent, ent.model);
-            ent.use = use_killbox;
-            ent.svflags = Defines.SVF_NOCLIENT;
-            return true;
-        }
-    };
-
 }
+
