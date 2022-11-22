@@ -1,7 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 
@@ -21,7 +20,7 @@ fun funcConveyor(self: SubgameEntity, game: GameExportsImpl) {
     if (self.speed == 0f)
         self.speed = 100f
 
-    if (self.spawnflags and START_ON == 0) {
+    if (!self.hasSpawnFlag(START_ON)) {
         self.count = self.speed.toInt()
         self.speed = 0f
     }
@@ -34,15 +33,15 @@ fun funcConveyor(self: SubgameEntity, game: GameExportsImpl) {
 }
 
 private val conveyorUse = registerUse("func_conveyor_use") { self, _, _, _ ->
-    if (self.spawnflags and START_ON != 0) {
+    if (self.hasSpawnFlag(START_ON)) {
         self.speed = 0f
-        self.spawnflags = self.spawnflags and START_ON.inv()
+        self.removeSpawnFlag(START_ON)
     } else {
         self.speed = self.count.toFloat()
-        self.spawnflags = self.spawnflags or START_ON
+        self.addSpawnFlag(START_ON)
     }
 
-    if (self.spawnflags and TOGGLE == 0)
+    if (!self.hasSpawnFlag(TOGGLE))
         self.count = 0
 }
 

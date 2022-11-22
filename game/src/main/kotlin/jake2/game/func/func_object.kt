@@ -43,9 +43,9 @@ fun funcObject(self: SubgameEntity, game: GameExportsImpl) {
         self.svflags = self.svflags or Defines.SVF_NOCLIENT
     }
 
-    if (self.spawnflags and ANIMATED != 0)
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
-    if (self.spawnflags and ANIMATED_FAST != 0)
+    if (self.hasSpawnFlag(ANIMATED_FAST))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     self.clipmask = Defines.MASK_MONSTERSOLID

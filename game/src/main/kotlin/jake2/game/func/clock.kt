@@ -1,9 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameBase
-import jake2.game.GameExportsImpl
-import jake2.game.GameUtil
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.util.Lib
@@ -37,20 +34,20 @@ fun funcClock(self: SubgameEntity, game: GameExportsImpl) {
         return
     }
 
-    if (self.spawnflags and TIMER_DOWN != 0 && self.count == 0) {
+    if (self.hasSpawnFlag(TIMER_DOWN) && self.count == 0) {
         game.gameImports.dprintf("${self.classname} with no count at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
 
-    if (self.spawnflags and TIMER_UP != 0 && self.count == 0)
+    if (self.hasSpawnFlag(TIMER_UP) && self.count == 0)
         self.count = 60 * 60
 
     clockReset(self)
 
     self.message = ""
     self.think.action = clockThink
-    if (self.spawnflags and START_OFF != 0)
+    if (self.hasSpawnFlag(START_OFF))
         self.use = clockUse
     else
         self.think.nextTime = game.level.time + 1
@@ -66,10 +63,10 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
             return@registerThink true
     }
 
-    if (self.spawnflags and TIMER_UP != 0) {
+    if (self.hasSpawnFlag(TIMER_UP)) {
         clockFormatCountDown(self)
         self.health++
-    } else if (self.spawnflags and TIMER_DOWN != 0) {
+    } else if (self.hasSpawnFlag(TIMER_DOWN)) {
         clockFormatCountDown(self)
         self.health--
     } else {
@@ -80,8 +77,8 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
     self.enemy.message = self.message
     self.enemy.use.use(self.enemy, self, self, game)
 
-    if (self.spawnflags and TIMER_UP != 0 && self.health > self.wait
-                || self.spawnflags and TIMER_DOWN != 0 && self.health < self.wait) {
+    if (self.hasSpawnFlag(TIMER_UP) && self.health > self.wait
+                || self.hasSpawnFlag(TIMER_DOWN) && self.health < self.wait) {
         if (self.pathtarget != null) {
             val prevTarget = self.target
             val prevMessage = self.message
@@ -91,12 +88,12 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
             self.target = prevTarget
             self.message = prevMessage
         }
-        if (self.spawnflags and MULTI_USE == 0) {
+        if (!self.hasSpawnFlag(MULTI_USE)) {
             // todo: free entity
             return@registerThink true
         }
         clockReset(self)
-        if (self.spawnflags and START_OFF != 0) {
+        if (self.hasSpawnFlag(START_OFF)) {
             return@registerThink true
         }
     }
@@ -106,7 +103,7 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
 }
 
 private val clockUse = registerUse("func_clock_use") { self, other, activator, game ->
-    if (self.spawnflags and MULTI_USE == 0)
+    if (self.hasSpawnFlag(MULTI_USE))
         self.use = null
 
     if (self.activator != null)
@@ -120,10 +117,10 @@ private val clockUse = registerUse("func_clock_use") { self, other, activator, g
 // could cause an overwrite after a game load
 private fun clockReset(self: SubgameEntity) {
     self.activator = null
-    if (self.spawnflags and TIMER_UP != 0) {
+    if (self.hasSpawnFlag(TIMER_UP)) {
         self.health = 0
         self.wait = self.count.toFloat()
-    } else if (self.spawnflags and TIMER_DOWN != 0) {
+    } else if (self.hasSpawnFlag(TIMER_DOWN)) {
         self.health = self.count
         self.wait = 0f
     }

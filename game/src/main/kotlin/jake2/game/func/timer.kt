@@ -5,6 +5,7 @@ import jake2.game.GameUtil
 import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Lib
 
@@ -36,7 +37,7 @@ fun funcTimer(self: SubgameEntity, game: GameExportsImpl) {
         game.gameImports.dprintf("func_timer at ${Lib.vtos(self.s.origin)} has random >= wait\n")
     }
 
-    if (self.spawnflags and TIMER_START_ON != 0) {
+    if (self.hasSpawnFlag(TIMER_START_ON)) {
         self.think.nextTime = game.level.time + 1.0f + self.st.pausetime + self.delay + self.wait + Lib.crandom() * self.random
         self.activator = self
     }

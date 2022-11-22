@@ -1,9 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameBase
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
@@ -49,7 +46,7 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2)
 
     // if it starts open, switch the positions
-    if (self.spawnflags and DOOR_START_OPEN != 0) {
+    if (self.hasSpawnFlag(DOOR_START_OPEN)) {
         Math3D.VectorCopy(self.pos2, self.s.origin)
         Math3D.VectorCopy(self.pos1, self.pos2)
         Math3D.VectorCopy(self.s.origin, self.pos1)
@@ -75,12 +72,9 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
     self.use = doorOpenUse
 
     if (self.wait == -1f)
-        self.spawnflags = self.spawnflags or DOOR_TOGGLE
+        self.addSpawnFlag(DOOR_TOGGLE)
 
     self.classname = "func_door"
 
     game.gameImports.linkentity(self)
-
-    true
-
 }

@@ -42,7 +42,7 @@ fun funcExplosive(self: SubgameEntity, game: GameExportsImpl) {
 
     game.gameImports.setmodel(self, self.model)
 
-    if (self.spawnflags and TRIGGER_SPAWN != 0) {
+    if (self.hasSpawnFlag(TRIGGER_SPAWN)) {
         self.svflags = self.svflags or Defines.SVF_NOCLIENT
         self.solid = Defines.SOLID_NOT
         self.use = explosiveUseSpawn
@@ -52,9 +52,9 @@ fun funcExplosive(self: SubgameEntity, game: GameExportsImpl) {
             self.use = explosiveUse
     }
 
-    if (self.spawnflags and ANIMATED != 0)
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
-    if (self.spawnflags and ANIMATED_FAST != 0)
+    if (self.hasSpawnFlag(ANIMATED_FAST))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     if (self.use !== explosiveUse) { // fixme: any better way to indicate it's not usable?

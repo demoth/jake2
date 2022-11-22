@@ -161,7 +161,7 @@ private fun spawnInsideTrigger(plat: SubgameEntity, gameExports: GameExportsImpl
 
     tmin[2] = tmax[2] - (plat.pos1[2] - plat.pos2[2] + plat.st.lip)
 
-    if (plat.spawnflags and PLAT_LOW_TRIGGER != 0) {
+    if (plat.hasSpawnFlag(PLAT_LOW_TRIGGER)) {
         tmax[2] = tmin[2] + 8
     }
     if (tmax[0] - tmin[0] <= 0) {

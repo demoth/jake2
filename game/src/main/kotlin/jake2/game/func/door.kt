@@ -21,8 +21,9 @@ const val DOOR_START_OPEN = 1
 private const val DOOR_REVERSE = 2
 private const val DOOR_CRUSHER = 4
 private const val DOOR_NOMONSTER = 8
+private const val ANIMATED = 16
 const val DOOR_TOGGLE = 32
-
+private const val ANIMATED_FAST = 64
 /**
  * QUAKED func_door (0 .5 .8) ?
  *
@@ -87,7 +88,7 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
     VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2)
 
     // if it starts open, switch the positions
-    if (self.spawnflags and DOOR_START_OPEN != 0) {
+    if (self.hasSpawnFlag(DOOR_START_OPEN)) {
         VectorCopy(self.pos2, self.s.origin)
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.origin, self.pos1)
@@ -109,9 +110,9 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
     VectorCopy(self.s.angles, self.moveinfo.start_angles)
     VectorCopy(self.pos2, self.moveinfo.end_origin)
     VectorCopy(self.s.angles, self.moveinfo.end_angles)
-    if (self.spawnflags and 16 != 0)
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
-    if (self.spawnflags and 64 != 0)
+    if (self.hasSpawnFlag(ANIMATED_FAST))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -181,15 +182,15 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
 
     // set the axis of rotation
     Math3D.VectorClear(self.movedir)
-    if (self.spawnflags and DOOR_X_AXIS != 0)
+    if (self.hasSpawnFlag(DOOR_X_AXIS))
         self.movedir[2] = 1.0f
-    else if (self.spawnflags and DOOR_Y_AXIS != 0)
+    else if (self.hasSpawnFlag(DOOR_Y_AXIS))
         self.movedir[0] = 1.0f
     else  // Z_AXIS
         self.movedir[1] = 1.0f
 
     // check for reverse rotation
-    if (self.spawnflags and DOOR_REVERSE != 0)
+    if (self.hasSpawnFlag(DOOR_REVERSE))
         Math3D.VectorNegate(self.movedir, self.movedir)
 
     if (0 == self.st.distance) {
@@ -227,7 +228,7 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     }
 
     // if it starts open, switch the positions
-    if (self.spawnflags and DOOR_START_OPEN != 0) {
+    if (self.hasSpawnFlag(DOOR_START_OPEN)) {
         VectorCopy(self.pos2, self.s.angles)
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.angles, self.pos1)
@@ -255,7 +256,7 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     VectorCopy(self.s.origin, self.moveinfo.end_origin)
     VectorCopy(self.pos2, self.moveinfo.end_angles)
 
-    if (self.spawnflags and 16 != 0)
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
 
     // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -293,7 +294,7 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
         GameDefines.MOD_CRUSH, game
     )
 
-    if (self.spawnflags and DOOR_CRUSHER != 0)
+    if (self.hasSpawnFlag(DOOR_CRUSHER))
         return@registerBlocked
 
     // if a door has a negative wait, it would never come back if
@@ -322,7 +323,7 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
     if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
         return@registerUse
 
-    if (self.spawnflags and DOOR_TOGGLE != 0) {
+    if (self.hasSpawnFlag(DOOR_TOGGLE)) {
         if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP) {
             // trigger all paired doors
             var team: SubgameEntity? = self
@@ -400,7 +401,7 @@ private val spawnTouchTrigger = registerThink("think_spawn_door_trigger") { ent,
     trigger.touch = doorTriggerTouch
     game.gameImports.linkentity(trigger)
 
-    if (ent.spawnflags and DOOR_START_OPEN != 0)
+    if (ent.hasSpawnFlag(DOOR_START_OPEN))
         doorUseAreaPortals(ent, true, game)
 
     doorCalculateMoveSpeed.think(ent, game)
@@ -425,7 +426,7 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
     if (other.svflags and Defines.SVF_MONSTER == 0 && other.client == null)
         return@registerTouch
 
-    if (other.svflags and Defines.SVF_MONSTER != 0 && self.owner.spawnflags and DOOR_NOMONSTER != 0)
+    if (other.svflags and Defines.SVF_MONSTER != 0 && self.owner.hasSpawnFlag(DOOR_NOMONSTER))
         return@registerTouch
 
     if (game.level.time < self.touch_debounce_time)
@@ -476,7 +477,7 @@ private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, ga
     }
     self.moveinfo.state = MovementState.TOP
 
-    if (self.spawnflags and DOOR_TOGGLE != 0)
+    if (self.hasSpawnFlag(DOOR_TOGGLE))
         return@registerThink true
 
     if (self.moveinfo.wait >= 0) {
@@ -566,16 +567,16 @@ fun funcDoorSecret(self: SubgameEntity, game: GameExportsImpl) {
     self.blocked = doorSecretBlocked
     self.use = doorSecretOpeningBack
 
-    if (null == self.targetname || 0 != self.spawnflags and SECRET_ALWAYS_SHOOT) {
+    if (self.targetname == null || self.hasSpawnFlag(SECRET_ALWAYS_SHOOT)) {
         self.health = 0
         self.takedamage = Defines.DAMAGE_YES
         self.die = doorSecretKilled
     }
 
-    if (0 == self.dmg)
+    if (self.dmg == 0)
         self.dmg = 2
 
-    if (0f == self.wait)
+    if (self.wait == 0f)
         self.wait = 5f
 
     self.moveinfo.accel = 50f
@@ -588,16 +589,16 @@ fun funcDoorSecret(self: SubgameEntity, game: GameExportsImpl) {
     val up = floatArrayOf(0f, 0f, 0f)
     Math3D.AngleVectors(self.s.angles, forward, right, up)
     Math3D.VectorClear(self.s.angles)
-    val side = 1.0f - (self.spawnflags and SECRET_1ST_LEFT)
+    val side = if (self.hasSpawnFlag(SECRET_1ST_LEFT)) -1.0f else 1.0f
     val width: Float =
-        if (self.spawnflags and SECRET_1ST_DOWN != 0)
+        if (self.hasSpawnFlag(SECRET_1ST_DOWN))
             abs(Math3D.DotProduct(up, self.size))
         else
             abs(Math3D.DotProduct(right, self.size))
 
     val length = abs(Math3D.DotProduct(forward, self.size))
 
-    if (self.spawnflags and SECRET_1ST_DOWN != 0)
+    if (self.hasSpawnFlag(SECRET_1ST_DOWN))
         VectorMA(self.s.origin, -1 * width, up, self.pos1)
     else
         VectorMA(self.s.origin, side * width, right, self.pos1)
@@ -669,7 +670,7 @@ private val doorSecretClosingBack = registerThink("door_secret_move6") { self, g
 }
 
 private val doorSecretClosed = registerThink("door_secret_move7") { self, game ->
-    if (self.targetname == null || self.spawnflags and SECRET_ALWAYS_SHOOT != 0) {
+    if (self.targetname == null || self.hasSpawnFlag(SECRET_ALWAYS_SHOOT)) {
         self.health = 0
         self.takedamage = Defines.DAMAGE_YES
     }

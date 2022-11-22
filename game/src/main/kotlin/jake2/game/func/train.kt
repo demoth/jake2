@@ -28,7 +28,7 @@ fun funcTrain(self: SubgameEntity, game: GameExportsImpl) {
 
     Math3D.VectorClear(self.s.angles)
     self.blocked = trainBlocked
-    if (self.spawnflags and TRAIN_BLOCK_STOPS != 0) {
+    if (self.hasSpawnFlag(TRAIN_BLOCK_STOPS)) {
         self.dmg = 0
     } else if (self.dmg == 0) {
         self.dmg = 100
@@ -91,10 +91,10 @@ private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, ga
 val trainUse = registerUse("train_use") { self, other, activator, game ->
     self.activator = activator
 
-    if (self.spawnflags and TRAIN_START_ON != 0) {
-        if (self.spawnflags and TRAIN_TOGGLE == 0)
+    if (self.hasSpawnFlag(TRAIN_START_ON)) {
+        if (!self.hasSpawnFlag(TRAIN_TOGGLE))
             return@registerUse
-        self.spawnflags = self.spawnflags and TRAIN_START_ON.inv()
+        self.removeSpawnFlag(TRAIN_START_ON)
         Math3D.VectorClear(self.velocity)
         self.think.nextTime = 0f
     } else {
@@ -123,10 +123,10 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
 
     // if not targeted, start immediately
     if (self.targetname == null) {
-        self.spawnflags = self.spawnflags or TRAIN_START_ON
+        self.addSpawnFlag(TRAIN_START_ON)
     }
 
-    if (self.spawnflags and TRAIN_START_ON != 0) {
+    if (self.hasSpawnFlag(TRAIN_START_ON)) {
         self.think.nextTime = game.level.time + Defines.FRAMETIME
         self.think.action = trainNextGoal
         self.activator = self
@@ -156,7 +156,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         self.target = ent.target
         dogoto = false
         // check for a teleport path_corner
-        if ((ent.spawnflags and 1) != 0) {
+        if (ent.hasSpawnFlag(TRAIN_START_ON)) {
             if (!first) {
                 game.gameImports.dprintf("connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin) + "\n")
                 return@registerThink true
@@ -187,7 +187,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game)
-    self.spawnflags = self.spawnflags or TRAIN_START_ON
+    self.addSpawnFlag(TRAIN_START_ON)
 
     true
 
@@ -211,10 +211,10 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
         if (self.moveinfo.wait > 0) {
             self.think.nextTime = game.level.time + self.moveinfo.wait
             self.think.action = trainNextGoal
-        } else if (self.spawnflags and TRAIN_TOGGLE != 0) // && wait < 0
+        } else if (self.hasSpawnFlag(TRAIN_TOGGLE)) // && wait < 0
         {
             trainNextGoal.think(self, game)
-            self.spawnflags = self.spawnflags and TRAIN_START_ON.inv()
+            self.removeSpawnFlag(TRAIN_START_ON)
             Math3D.VectorClear(self.velocity)
             self.think.nextTime = 0f
         }
@@ -245,5 +245,5 @@ fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game!!)
-    self.spawnflags = self.spawnflags or TRAIN_START_ON
+    self.addSpawnFlag(TRAIN_START_ON)
 }
