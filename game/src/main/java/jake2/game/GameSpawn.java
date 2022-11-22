@@ -375,16 +375,7 @@ public class GameSpawn {
         spawns.put("func_conveyor", ConveyorKt.getConveyor());
         spawns.put("func_areaportal", AreaportalKt.getAreaportal());
         spawns.put(ClockKt.getClock().getID(), ClockKt.getClock());
-        spawns.put("func_wall", new EntThinkAdapter() {
-            public String getID() {
-                return "func_wall";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_func_wall(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("func_wall", WallKt.getWall());
         spawns.put("func_object", new EntThinkAdapter() {
             public String getID() {
                 return "SP_func_object";

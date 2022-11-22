@@ -113,46 +113,6 @@ public class GameMisc {
         }
     }
 
-    static void SP_func_wall(SubgameEntity self, GameExportsImpl gameExports) {
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-        gameExports.gameImports.setmodel(self, self.model);
-
-        if ((self.spawnflags & 8) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALL;
-        if ((self.spawnflags & 16) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALLFAST;
-
-        // just a wall
-        if ((self.spawnflags & 7) == 0) {
-            self.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.linkentity(self);
-            return;
-        }
-
-        // it must be TRIGGER_SPAWN
-        if (0 == (self.spawnflags & 1)) {
-            gameExports.gameImports.dprintf("func_wall missing TRIGGER_SPAWN\n");
-            self.spawnflags |= 1;
-        }
-
-        // yell if the spawnflags are odd
-        if ((self.spawnflags & 4) != 0) {
-            if (0 == (self.spawnflags & 2)) {
-                gameExports.gameImports.dprintf("func_wall START_ON without TOGGLE\n");
-                self.spawnflags |= 2;
-            }
-        }
-
-        self.use = func_wall_use;
-        if ((self.spawnflags & 4) != 0) {
-            self.solid = Defines.SOLID_BSP;
-        } else {
-            self.solid = Defines.SOLID_NOT;
-            self.svflags |= Defines.SVF_NOCLIENT;
-        }
-        gameExports.gameImports.linkentity(self);
-    }
-
     static void SP_func_object(SubgameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.setmodel(self, self.model);
 
@@ -931,38 +891,6 @@ public class GameMisc {
                 gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
                 self.spawnflags |= START_OFF;
             }
-        }
-    };
-
-    /*
-     * QUAKED func_wall (0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON ANIMATED
-     * ANIMATED_FAST This is just a solid wall if not inhibited
-     * 
-     * TRIGGER_SPAWN the wall will not be present until triggered it will then
-     * blink in to existance; it will kill anything that was in it's way
-     * 
-     * TOGGLE only valid for TRIGGER_SPAWN walls this allows the wall to be
-     * turned on and off
-     * 
-     * START_ON only valid for TRIGGER_SPAWN walls the wall will initially be
-     * present
-     */
-
-    private static EntUseAdapter func_wall_use = new EntUseAdapter() {
-        public String getID() { return "func_wall_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (self.solid == Defines.SOLID_NOT) {
-                self.solid = Defines.SOLID_BSP;
-                self.svflags &= ~Defines.SVF_NOCLIENT;
-                GameUtil.KillBox(self, gameExports);
-            } else {
-                self.solid = Defines.SOLID_NOT;
-                self.svflags |= Defines.SVF_NOCLIENT;
-            }
-            gameExports.gameImports.linkentity(self);
-
-            if (0 == (self.spawnflags & 2))
-                self.use = null;
         }
     };
 
