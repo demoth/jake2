@@ -40,7 +40,6 @@ public class GameWeapon {
     
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
-            int mod;
 
             if (other == self.getOwner())
                 return;
@@ -50,15 +49,20 @@ public class GameWeapon {
                 return;
             }
     
-            if (self.getOwner().getClient() != null)
-                PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
-                        GameDefines.PNOISE_IMPACT, gameExports);
-
             if (gameExports.gameImports.cvar("dev_blaster", "0", 0).value == 1) {
-                gameExports.gameImports.centerprintf(gameExports.g_edicts[1], buildEntityInfo(other) + "\n");
+                if (self.getOwner().getClient() != null && !"worldspawn".equalsIgnoreCase(other.classname)) {
+                    gameExports.gameImports.centerprintf(gameExports.g_edicts[1], buildEntityInfo(other) + "\n");
+                    gameExports.freeEntity(self);
+                    return;
+                }
+            }
+
+            if (self.getOwner().getClient() != null) {
+                PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin, GameDefines.PNOISE_IMPACT, gameExports);
             }
 
             if (other.takedamage != 0) {
+                int mod;
                 if ((self.spawnflags & 1) != 0)
                     mod = GameDefines.MOD_HYPERBLASTER;
                 else
