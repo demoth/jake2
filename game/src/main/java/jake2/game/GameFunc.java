@@ -93,49 +93,5 @@ class GameFunc {
             return true;
         }
     };
-
-
-    /*
-     * QUAKED func_conveyor (0 .5 .8) ? START_ON TOGGLE Conveyors are stationary
-     * brushes that move what's on them. The brush should be have a surface with
-     * at least one current content enabled. speed default 100
-     */
-
-    private static EntUseAdapter func_conveyor_use = new EntUseAdapter() {
-        public String getID() { return "func_conveyor_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if ((self.spawnflags & 1) != 0) {
-                self.speed = 0;
-                self.spawnflags &= ~1;
-            } else {
-                self.speed = self.count;
-                self.spawnflags |= 1;
-            }
-
-            if (0 == (self.spawnflags & 2))
-                self.count = 0;
-        }
-    };
-
-    static EntThinkAdapter SP_func_conveyor = new EntThinkAdapter() {
-        public String getID() { return "sp_func_conveyor";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            if (0 == self.speed)
-                self.speed = 100;
-
-            if (0 == (self.spawnflags & 1)) {
-                self.count = (int) self.speed;
-                self.speed = 0;
-            }
-
-            self.use = func_conveyor_use;
-
-            gameExports.gameImports.setmodel(self, self.model);
-            self.solid = Defines.SOLID_BSP;
-            gameExports.gameImports.linkentity(self);
-            return true;
-        }
-    };
 }
 

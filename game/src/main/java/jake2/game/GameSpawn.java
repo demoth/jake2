@@ -372,7 +372,7 @@ public class GameSpawn {
         spawns.put(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
         spawns.put(TrainKt.getTrain().getID(), TrainKt.getTrain());
         spawns.put(WaterKt.getWater().getID(), WaterKt.getWater());
-        spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
+        spawns.put("func_conveyor", ConveyorKt.getConveyor());
         spawns.put("func_areaportal", GameMisc.SP_func_areaportal);
         spawns.put(ClockKt.getClock().getID(), ClockKt.getClock());
         spawns.put("func_wall", new EntThinkAdapter() {
