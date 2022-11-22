@@ -376,16 +376,7 @@ public class GameSpawn {
         spawns.put("func_areaportal", AreaportalKt.getAreaportal());
         spawns.put(ClockKt.getClock().getID(), ClockKt.getClock());
         spawns.put("func_wall", WallKt.getWall());
-        spawns.put("func_object", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_func_object";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_func_object(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("func_object", Func_objectKt.getFuncObject());
         spawns.put(TimerKt.getTimer().getID(), TimerKt.getTimer());
         spawns.put(ExplosiveKt.getExplosive().getID(), ExplosiveKt.getExplosive());
         spawns.put(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());

@@ -113,41 +113,6 @@ public class GameMisc {
         }
     }
 
-    static void SP_func_object(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.gameImports.setmodel(self, self.model);
-
-        self.mins[0] += 1;
-        self.mins[1] += 1;
-        self.mins[2] += 1;
-        self.maxs[0] -= 1;
-        self.maxs[1] -= 1;
-        self.maxs[2] -= 1;
-
-        if (self.dmg == 0)
-            self.dmg = 100;
-
-        if (self.spawnflags == 0) {
-            self.solid = Defines.SOLID_BSP;
-            self.movetype = GameDefines.MOVETYPE_PUSH;
-            self.think.action = func_object_release;
-            self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
-        } else {
-            self.solid = Defines.SOLID_NOT;
-            self.movetype = GameDefines.MOVETYPE_PUSH;
-            self.use = func_object_use;
-            self.svflags |= Defines.SVF_NOCLIENT;
-        }
-
-        if ((self.spawnflags & 2) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALL;
-        if ((self.spawnflags & 4) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALLFAST;
-
-        self.clipmask = Defines.MASK_MONSTERSOLID;
-
-        gameExports.gameImports.linkentity(self);
-    }
-
         static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             gameExports.freeEntity(self);
@@ -891,47 +856,6 @@ public class GameMisc {
                 gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
                 self.spawnflags |= START_OFF;
             }
-        }
-    };
-
-    /*
-     * QUAKED func_object (0 .5 .8) ? TRIGGER_SPAWN ANIMATED ANIMATED_FAST This
-     * is solid bmodel that will fall if it's support it removed.
-     */
-    private static EntTouchAdapter func_object_touch = new EntTouchAdapter() {
-        public String getID() { return "func_object_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            // only squash thing we fall on top of
-            if (plane == null)
-                return;
-            if (plane.normal[2] < 1.0)
-                return;
-            if (other.takedamage == Defines.DAMAGE_NO)
-                return;
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    self.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    GameDefines.MOD_CRUSH, gameExports);
-        }
-    };
-
-    private static EntThinkAdapter func_object_release = new EntThinkAdapter() {
-        public String getID() { return "func_object_release";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.movetype = GameDefines.MOVETYPE_TOSS;
-            self.touch = func_object_touch;
-            return true;
-        }
-    };
-
-    private static EntUseAdapter func_object_use = new EntUseAdapter() {
-        public String getID() { return "func_object_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.solid = Defines.SOLID_BSP;
-            self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = null;
-            GameUtil.KillBox(self, gameExports);
-            func_object_release.think(self, gameExports);
         }
     };
 
