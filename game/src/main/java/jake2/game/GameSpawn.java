@@ -351,36 +351,40 @@ public class GameSpawn {
             return true;
         }
     };
-    private static final Map<String, EntThinkAdapter> spawns;
+    private static final Map<String, SpawnInterface> spawns;
 
+    private static void addSpawnAdapter(String id, EntThinkAdapter adapter) {
+        spawns.put(id, adapter::think);
+    }
+    
     static {
         spawns = new HashMap<>();
 
-        spawns.put("item_health", SP_item_health);
-        spawns.put("item_health_small", SP_item_health_small);
-        spawns.put("item_health_large", SP_item_health_large);
-        spawns.put("item_health_mega", SP_item_health_mega);
-        spawns.put("info_player_start", SP_info_player_start);
-        spawns.put("info_player_deathmatch", SP_info_player_deathmatch);
-        spawns.put("info_player_coop", SP_info_player_coop);
-        spawns.put("info_player_intermission", SP_info_player_intermission);
-        spawns.put(PlatKt.getPlat().getID(), PlatKt.getPlat());
-        spawns.put(ButtonKt.getButton().getID(), ButtonKt.getButton());
-        spawns.put(DoorKt.getFuncDoor().getID(), DoorKt.getFuncDoor());
-        spawns.put(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
-        spawns.put(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
-        spawns.put(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
-        spawns.put(TrainKt.getTrain().getID(), TrainKt.getTrain());
-        spawns.put(WaterKt.getWater().getID(), WaterKt.getWater());
-        spawns.put("func_conveyor", ConveyorKt.getConveyor());
-        spawns.put("func_areaportal", AreaportalKt.getAreaportal());
-        spawns.put(ClockKt.getClock().getID(), ClockKt.getClock());
-        spawns.put("func_wall", WallKt.getWall());
-        spawns.put("func_object", Func_objectKt.getFuncObject());
-        spawns.put(TimerKt.getTimer().getID(), TimerKt.getTimer());
-        spawns.put(ExplosiveKt.getExplosive().getID(), ExplosiveKt.getExplosive());
-        spawns.put(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());
-        spawns.put("trigger_always", new EntThinkAdapter() {
+        addSpawnAdapter("item_health", SP_item_health);
+        addSpawnAdapter("item_health_small", SP_item_health_small);
+        addSpawnAdapter("item_health_large", SP_item_health_large);
+        addSpawnAdapter("item_health_mega", SP_item_health_mega);
+        addSpawnAdapter("info_player_start", SP_info_player_start);
+        addSpawnAdapter("info_player_deathmatch", SP_info_player_deathmatch);
+        addSpawnAdapter("info_player_coop", SP_info_player_coop);
+        addSpawnAdapter("info_player_intermission", SP_info_player_intermission);
+        addSpawnAdapter(PlatKt.getPlat().getID(), PlatKt.getPlat());
+        addSpawnAdapter(ButtonKt.getButton().getID(), ButtonKt.getButton());
+        addSpawnAdapter(DoorKt.getFuncDoor().getID(), DoorKt.getFuncDoor());
+        addSpawnAdapter(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
+        addSpawnAdapter(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
+        addSpawnAdapter(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
+        addSpawnAdapter(TrainKt.getTrain().getID(), TrainKt.getTrain());
+        addSpawnAdapter(WaterKt.getWater().getID(), WaterKt.getWater());
+        addSpawnAdapter("func_conveyor", ConveyorKt.getConveyor());
+        addSpawnAdapter("func_areaportal", AreaportalKt.getAreaportal());
+        addSpawnAdapter(ClockKt.getClock().getID(), ClockKt.getClock());
+        addSpawnAdapter("func_wall", WallKt.getWall());
+        addSpawnAdapter("func_object", Func_objectKt.getFuncObject());
+        addSpawnAdapter(TimerKt.getTimer().getID(), TimerKt.getTimer());
+        addSpawnAdapter(ExplosiveKt.getExplosive().getID(), ExplosiveKt.getExplosive());
+        addSpawnAdapter(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());
+        addSpawnAdapter("trigger_always", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_always";
             }
@@ -390,7 +394,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_once", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_once", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_once";
             }
@@ -400,7 +404,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_multiple", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_multiple", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_multiple";
             }
@@ -410,7 +414,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_relay", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_relay", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_relay";
             }
@@ -420,7 +424,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_push", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_push", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_push";
             }
@@ -430,7 +434,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_hurt", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_hurt", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_hurt";
             }
@@ -440,7 +444,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_key", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_key", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_key";
             }
@@ -450,7 +454,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_counter", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_counter", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_counter";
             }
@@ -460,8 +464,8 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_elevator", GameFunc.SP_trigger_elevator);
-        spawns.put("trigger_gravity", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_elevator", GameFunc.SP_trigger_elevator);
+        addSpawnAdapter("trigger_gravity", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_gravity";
             }
@@ -471,7 +475,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("trigger_monsterjump", new EntThinkAdapter() {
+        addSpawnAdapter("trigger_monsterjump", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_monsterjump";
             }
@@ -481,7 +485,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_temp_entity", new EntThinkAdapter() {
+        addSpawnAdapter("target_temp_entity", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_temp_entity";
             }
@@ -491,7 +495,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_speaker", new EntThinkAdapter() {
+        addSpawnAdapter("target_speaker", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_speaker";
             }
@@ -501,7 +505,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_explosion", new EntThinkAdapter() {
+        addSpawnAdapter("target_explosion", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_explosion";
             }
@@ -511,7 +515,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_changelevel", new EntThinkAdapter() {
+        addSpawnAdapter("target_changelevel", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_changelevel";
             }
@@ -521,7 +525,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_secret", new EntThinkAdapter() {
+        addSpawnAdapter("target_secret", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_secret";
             }
@@ -531,7 +535,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_goal", new EntThinkAdapter() {
+        addSpawnAdapter("target_goal", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_goal";
             }
@@ -541,7 +545,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_splash", new EntThinkAdapter() {
+        addSpawnAdapter("target_splash", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_splash";
             }
@@ -551,7 +555,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_spawner", new EntThinkAdapter() {
+        addSpawnAdapter("target_spawner", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_spawner";
             }
@@ -561,7 +565,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_blaster", new EntThinkAdapter() {
+        addSpawnAdapter("target_blaster", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_blaster";
             }
@@ -571,7 +575,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_crosslevel_trigger", new EntThinkAdapter() {
+        addSpawnAdapter("target_crosslevel_trigger", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_crosslevel_trigger";
             }
@@ -581,7 +585,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_crosslevel_target", new EntThinkAdapter() {
+        addSpawnAdapter("target_crosslevel_target", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_crosslevel_target";
             }
@@ -591,7 +595,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_laser", new EntThinkAdapter() {
+        addSpawnAdapter("target_laser", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_laser";
             }
@@ -601,7 +605,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_help", new EntThinkAdapter() {
+        addSpawnAdapter("target_help", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_help";
             }
@@ -611,7 +615,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_lightramp", new EntThinkAdapter() {
+        addSpawnAdapter("target_lightramp", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_lightramp";
             }
@@ -621,7 +625,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_earthquake", new EntThinkAdapter() {
+        addSpawnAdapter("target_earthquake", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_earthquake";
             }
@@ -631,7 +635,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_character", new EntThinkAdapter() {
+        addSpawnAdapter("target_character", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_character";
             }
@@ -641,7 +645,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("target_string", new EntThinkAdapter() {
+        addSpawnAdapter("target_string", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_string";
             }
@@ -651,8 +655,8 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("worldspawn", SP_worldspawn);
-        spawns.put("viewthing", new EntThinkAdapter() {
+        addSpawnAdapter("worldspawn", SP_worldspawn);
+        addSpawnAdapter("viewthing", new EntThinkAdapter() {
             public String getID() {
                 return "SP_viewthing";
             }
@@ -662,7 +666,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("light", new EntThinkAdapter() {
+        addSpawnAdapter("light", new EntThinkAdapter() {
             public String getID() {
                 return "SP_light";
             }
@@ -672,7 +676,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("light_mine1", new EntThinkAdapter() {
+        addSpawnAdapter("light_mine1", new EntThinkAdapter() {
             public String getID() {
                 return "SP_light_mine1";
             }
@@ -682,7 +686,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("light_mine2", new EntThinkAdapter() {
+        addSpawnAdapter("light_mine2", new EntThinkAdapter() {
             public String getID() {
                 return "SP_light_mine2";
             }
@@ -692,7 +696,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("info_null", new EntThinkAdapter() {
+        addSpawnAdapter("info_null", new EntThinkAdapter() {
             public String getID() {
                 return "SP_info_null";
             }
@@ -702,7 +706,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("func_group", new EntThinkAdapter() {
+        addSpawnAdapter("func_group", new EntThinkAdapter() {
             public String getID() {
                 return "SP_info_null";
             }
@@ -712,7 +716,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("info_notnull", new EntThinkAdapter() {
+        addSpawnAdapter("info_notnull", new EntThinkAdapter() {
             public String getID() {
                 return "info_notnull";
             }
@@ -722,7 +726,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("path_corner", new EntThinkAdapter() {
+        addSpawnAdapter("path_corner", new EntThinkAdapter() {
             public String getID() {
                 return "SP_path_corner";
             }
@@ -732,7 +736,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("point_combat", new EntThinkAdapter() {
+        addSpawnAdapter("point_combat", new EntThinkAdapter() {
             public String getID() {
                 return "SP_point_combat";
             }
@@ -742,7 +746,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_explobox", new EntThinkAdapter() {
+        addSpawnAdapter("misc_explobox", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_explobox";
             }
@@ -752,7 +756,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_banner", new EntThinkAdapter() {
+        addSpawnAdapter("misc_banner", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_banner";
             }
@@ -762,7 +766,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_satellite_dish", new EntThinkAdapter() {
+        addSpawnAdapter("misc_satellite_dish", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_satellite_dish";
             }
@@ -772,7 +776,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_gib_arm", new EntThinkAdapter() {
+        addSpawnAdapter("misc_gib_arm", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_gib_arm";
             }
@@ -782,7 +786,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_gib_leg", new EntThinkAdapter() {
+        addSpawnAdapter("misc_gib_leg", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_gib_leg";
             }
@@ -792,7 +796,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_gib_head", new EntThinkAdapter() {
+        addSpawnAdapter("misc_gib_head", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_gib_head";
             }
@@ -802,7 +806,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_insane", new EntThinkAdapter() {
+        addSpawnAdapter("misc_insane", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_insane";
             }
@@ -812,7 +816,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_deadsoldier", new EntThinkAdapter() {
+        addSpawnAdapter("misc_deadsoldier", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_deadsoldier";
             }
@@ -822,7 +826,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_viper", new EntThinkAdapter() {
+        addSpawnAdapter("misc_viper", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_viper";
             }
@@ -832,7 +836,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_viper_bomb", new EntThinkAdapter() {
+        addSpawnAdapter("misc_viper_bomb", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_viper_bomb";
             }
@@ -842,7 +846,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_bigviper", new EntThinkAdapter() {
+        addSpawnAdapter("misc_bigviper", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_bigviper";
             }
@@ -852,7 +856,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_strogg_ship", new EntThinkAdapter() {
+        addSpawnAdapter("misc_strogg_ship", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_strogg_ship";
             }
@@ -862,7 +866,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_teleporter", new EntThinkAdapter() {
+        addSpawnAdapter("misc_teleporter", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_teleporter";
             }
@@ -872,8 +876,8 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
-        spawns.put("misc_blackhole", new EntThinkAdapter() {
+        addSpawnAdapter("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
+        addSpawnAdapter("misc_blackhole", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_blackhole";
             }
@@ -883,7 +887,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_eastertank", new EntThinkAdapter() {
+        addSpawnAdapter("misc_eastertank", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_eastertank";
             }
@@ -893,7 +897,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_easterchick", new EntThinkAdapter() {
+        addSpawnAdapter("misc_easterchick", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_easterchick";
             }
@@ -903,7 +907,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("misc_easterchick2", new EntThinkAdapter() {
+        addSpawnAdapter("misc_easterchick2", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_easterchick2";
             }
@@ -913,7 +917,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_berserk", new EntThinkAdapter() {
+        addSpawnAdapter("monster_berserk", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_berserk";
             }
@@ -923,7 +927,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_gladiator", new EntThinkAdapter() {
+        addSpawnAdapter("monster_gladiator", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_gladiator";
             }
@@ -933,7 +937,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_gunner", new EntThinkAdapter() {
+        addSpawnAdapter("monster_gunner", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_gunner";
             }
@@ -943,7 +947,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_infantry", new EntThinkAdapter() {
+        addSpawnAdapter("monster_infantry", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_infantry";
             }
@@ -953,12 +957,12 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_soldier_light", M_Soldier.SP_monster_soldier_light);
-        spawns.put("monster_soldier", M_Soldier.SP_monster_soldier);
-        spawns.put("monster_soldier_ss", M_Soldier.SP_monster_soldier_ss);
-        spawns.put("monster_tank", M_Tank.SP_monster_tank);
-        spawns.put("monster_tank_commander", M_Tank.SP_monster_tank);
-        spawns.put("monster_medic", new EntThinkAdapter() {
+        addSpawnAdapter("monster_soldier_light", M_Soldier.SP_monster_soldier_light);
+        addSpawnAdapter("monster_soldier", M_Soldier.SP_monster_soldier);
+        addSpawnAdapter("monster_soldier_ss", M_Soldier.SP_monster_soldier_ss);
+        addSpawnAdapter("monster_tank", M_Tank.SP_monster_tank);
+        addSpawnAdapter("monster_tank_commander", M_Tank.SP_monster_tank);
+        addSpawnAdapter("monster_medic", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_medic";
             }
@@ -968,7 +972,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_flipper", new EntThinkAdapter() {
+        addSpawnAdapter("monster_flipper", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_flipper";
             }
@@ -978,7 +982,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_chick", new EntThinkAdapter() {
+        addSpawnAdapter("monster_chick", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_chick";
             }
@@ -988,8 +992,8 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_parasite", M_Parasite.SP_monster_parasite);
-        spawns.put("monster_flyer", new EntThinkAdapter() {
+        addSpawnAdapter("monster_parasite", M_Parasite.SP_monster_parasite);
+        addSpawnAdapter("monster_flyer", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_flyer";
             }
@@ -999,7 +1003,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_brain", new EntThinkAdapter() {
+        addSpawnAdapter("monster_brain", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_brain";
             }
@@ -1009,7 +1013,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_floater", new EntThinkAdapter() {
+        addSpawnAdapter("monster_floater", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_floater";
             }
@@ -1019,7 +1023,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_hover", new EntThinkAdapter() {
+        addSpawnAdapter("monster_hover", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_hover";
             }
@@ -1029,9 +1033,9 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_mutant", M_Mutant.SP_monster_mutant);
-        spawns.put("monster_supertank", M_Supertank.SP_monster_supertank);
-        spawns.put("monster_boss2", new EntThinkAdapter() {
+        addSpawnAdapter("monster_mutant", M_Mutant.SP_monster_mutant);
+        addSpawnAdapter("monster_supertank", M_Supertank.SP_monster_supertank);
+        addSpawnAdapter("monster_boss2", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_boss2";
             }
@@ -1041,7 +1045,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_boss3_stand", new EntThinkAdapter() {
+        addSpawnAdapter("monster_boss3_stand", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_boss3_stand";
             }
@@ -1051,7 +1055,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_jorg", new EntThinkAdapter() {
+        addSpawnAdapter("monster_jorg", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_jorg";
             }
@@ -1061,7 +1065,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("monster_commander_body", new EntThinkAdapter() {
+        addSpawnAdapter("monster_commander_body", new EntThinkAdapter() {
             public String getID() {
                 return "SP_monster_commander_body";
             }
@@ -1071,7 +1075,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("turret_breach", new EntThinkAdapter() {
+        addSpawnAdapter("turret_breach", new EntThinkAdapter() {
             public String getID() {
                 return "SP_turret_breach";
             }
@@ -1081,7 +1085,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("turret_base", new EntThinkAdapter() {
+        addSpawnAdapter("turret_base", new EntThinkAdapter() {
             public String getID() {
                 return "SP_turret_base";
             }
@@ -1091,7 +1095,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("turret_driver", new EntThinkAdapter() {
+        addSpawnAdapter("turret_driver", new EntThinkAdapter() {
             public String getID() {
                 return "SP_turret_driver";
             }
@@ -1313,9 +1317,9 @@ public class GameSpawn {
         }
 
         // check normal spawn functions
-        EntThinkAdapter spawn = spawns.get(ent.classname.toLowerCase());
+        var spawn = spawns.get(ent.classname.toLowerCase());
         if (spawn != null) {
-            spawn.think(ent, gameExports);
+            spawn.spawn(ent, gameExports);
             ent.st = null;
         } else {
             gameExports.gameImports.dprintf(ent.classname + " doesn't have a spawn function\n");
@@ -1348,7 +1352,7 @@ public class GameSpawn {
 
         gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
-        EntThinkAdapter spawn = spawns.get(className);
+        var spawn = spawns.get(className);
         GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
             SubgameEntity newThing = gameExports.G_Spawn();
@@ -1358,7 +1362,7 @@ public class GameSpawn {
             newThing.classname = className;
             gameExports.gameImports.linkentity(newThing);
             if (spawn != null)
-                spawn.think(newThing, gameExports);
+                spawn.spawn(newThing, gameExports);
             else
                 GameItems.SpawnItem(newThing, gitem_t, gameExports);
 
