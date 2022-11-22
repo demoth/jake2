@@ -1,8 +1,10 @@
 package jake2.game.func
 
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
+
 /**
  * QUAKED func_conveyor (0 .5 .8) ?
  * START_ON
@@ -15,7 +17,7 @@ import jake2.qcommon.Defines
 private const val START_ON = 1
 private const val TOGGLE = 2
 
-val conveyor = registerThink("func_conveyor") { self, game ->
+fun funcConveyor(self: SubgameEntity, game: GameExportsImpl) {
     if (self.speed == 0f)
         self.speed = 100f
 
@@ -29,7 +31,6 @@ val conveyor = registerThink("func_conveyor") { self, game ->
     game.gameImports.setmodel(self, self.model)
     self.solid = Defines.SOLID_BSP
     game.gameImports.linkentity(self)
-    true
 }
 
 private val conveyorUse = registerUse("func_conveyor_use") { self, _, _, _ ->

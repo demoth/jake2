@@ -368,22 +368,22 @@ public class GameSpawn {
         addSpawnAdapter("info_player_deathmatch", SP_info_player_deathmatch);
         addSpawnAdapter("info_player_coop", SP_info_player_coop);
         addSpawnAdapter("info_player_intermission", SP_info_player_intermission);
-        addSpawnAdapter(PlatKt.getPlat().getID(), PlatKt.getPlat());
-        addSpawnAdapter(ButtonKt.getButton().getID(), ButtonKt.getButton());
-        addSpawnAdapter(DoorKt.getFuncDoor().getID(), DoorKt.getFuncDoor());
-        addSpawnAdapter(DoorKt.getFuncDoorSecret().getID(), DoorKt.getFuncDoorSecret());
-        addSpawnAdapter(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
-        addSpawnAdapter(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
-        addSpawnAdapter(TrainKt.getTrain().getID(), TrainKt.getTrain());
-        addSpawnAdapter(WaterKt.getWater().getID(), WaterKt.getWater());
-        addSpawnAdapter("func_conveyor", ConveyorKt.getConveyor());
-        addSpawnAdapter("func_areaportal", AreaportalKt.getAreaportal());
-        addSpawnAdapter(ClockKt.getClock().getID(), ClockKt.getClock());
-        addSpawnAdapter("func_wall", WallKt.getWall());
-        addSpawnAdapter("func_object", Func_objectKt.getFuncObject());
-        addSpawnAdapter(TimerKt.getTimer().getID(), TimerKt.getTimer());
-        addSpawnAdapter(ExplosiveKt.getExplosive().getID(), ExplosiveKt.getExplosive());
-        addSpawnAdapter(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());
+        spawns.put("func_plat", PlatKt::funcPlat);
+        spawns.put("func_button", ButtonKt::funcButton);
+        spawns.put("func_door", DoorKt::funcDoor);
+        spawns.put("func_door_secret", DoorKt::funcDoorSecret);
+        spawns.put("func_door_rotating", DoorKt::funcDoorRotating);
+        spawns.put("func_rotating", RotatingKt::funcRotating);
+        spawns.put("func_train", TrainKt::funcTrain);
+        spawns.put("func_water", WaterKt::funcWater);
+        spawns.put("func_conveyor", ConveyorKt::funcConveyor);
+        spawns.put("func_areaportal", AreaportalKt::funcAreaPortal);
+        spawns.put("func_clock", ClockKt::funcClock);
+        spawns.put("func_wall", WallKt::funcWall);
+        spawns.put("func_object", Func_objectKt::funcObject);
+        spawns.put("func_timer", TimerKt::funcTimer);
+        spawns.put("func_explosive", ExplosiveKt::funcExplosive);
+        spawns.put("func_killbox", KillboxKt::funcKillbox);
         addSpawnAdapter("trigger_always", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_always";

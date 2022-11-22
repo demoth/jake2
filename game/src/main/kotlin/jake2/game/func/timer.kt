@@ -1,6 +1,8 @@
 package jake2.game.func
 
+import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
@@ -22,7 +24,7 @@ import jake2.qcommon.util.Lib
 
 private const val TIMER_START_ON = 1
 
-val timer = registerThink("func_timer") { self, game ->
+fun funcTimer(self: SubgameEntity, game: GameExportsImpl) {
     if (self.wait == 0f)
         self.wait = 1.0f
 
@@ -40,7 +42,6 @@ val timer = registerThink("func_timer") { self, game ->
     }
 
     self.svflags = Defines.SVF_NOCLIENT
-    true
 }
 
 private val timerUse = registerUse("func_timer_use") { self, _, activator, game ->

@@ -1,8 +1,9 @@
 package jake2.game.func
 
 import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 
@@ -30,7 +31,7 @@ private const val START_ON = 4
 private const val ANIMATED = 8
 private const val ANIMATED_FAST = 16
 
-val wall = registerThink("func_wall") { self, game ->
+fun funcWall(self: SubgameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
     game.gameImports.setmodel(self, self.model)
 
@@ -43,7 +44,7 @@ val wall = registerThink("func_wall") { self, game ->
     if (self.spawnflags and 7 == 0) {
         self.solid = Defines.SOLID_BSP
         game.gameImports.linkentity(self)
-        return@registerThink true
+        return
     }
 
     // it must be TRIGGER_SPAWN
@@ -68,8 +69,6 @@ val wall = registerThink("func_wall") { self, game ->
         self.svflags = self.svflags or Defines.SVF_NOCLIENT
     }
     game.gameImports.linkentity(self)
-
-    true
 }
 
 private val wallUse = registerUse("func_wall_use") { self, other, activator, game ->

@@ -1,6 +1,7 @@
 package jake2.game.func
 
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 
 /**
@@ -10,10 +11,9 @@ import jake2.game.adapters.SuperAdapter.Companion.registerUse
  * separated when this portal is not activated. Usually enclosed in the
  * middle of a door.
  */
-val areaportal = registerThink("func_areaportal") { self, game ->
+fun funcAreaPortal(self: SubgameEntity, game: GameExportsImpl) {
     self.use = areaportalUse
     self.count = 0 // always start closed;
-    true
 }
 
 private val areaportalUse = registerUse("use_areaportal") { self, other, activator, game ->

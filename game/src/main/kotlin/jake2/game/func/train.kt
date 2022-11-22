@@ -1,12 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameBase
-import jake2.game.GameCombat
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.GameMisc
-import jake2.game.GameUtil
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -29,7 +23,7 @@ private const val TRAIN_BLOCK_STOPS = 4
  * default 2 noise looping sound to play when the train is in motion
  *
  */
-val train = registerThink("func_train") { self, game ->
+fun funcTrain(self: SubgameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
 
     Math3D.VectorClear(self.s.angles)
@@ -64,7 +58,6 @@ val train = registerThink("func_train") { self, game ->
     } else {
         game.gameImports.dprintf("func_train without a target at ${Lib.vtos(self.absmin)}\n")
     }
-    true
 }
 
 private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, game ->

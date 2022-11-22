@@ -1,8 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameCombat
-import jake2.game.GameDefines
-import jake2.game.GameUtil
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -19,7 +17,8 @@ import jake2.qcommon.Globals
 private const val TRIGGER_SPAWN = 1
 private const val ANIMATED = 2
 private const val ANIMATED_FAST = 4
-val funcObject = registerThink("func_object") { self, game ->
+
+fun funcObject(self: SubgameEntity, game: GameExportsImpl) {
     game.gameImports.setmodel(self, self.model)
 
     self.mins[0] += 1f
@@ -52,8 +51,6 @@ val funcObject = registerThink("func_object") { self, game ->
     self.clipmask = Defines.MASK_MONSTERSOLID
 
     game.gameImports.linkentity(self)
-    
-    true
 }
 
 private val funcObjectAppear = registerUse("func_object_use") { self, _, _, game ->

@@ -1,11 +1,7 @@
 package jake2.game.func
 
-import jake2.game.GameCombat
-import jake2.game.GameDefines
-import jake2.game.GameMisc
-import jake2.game.GameUtil
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -33,10 +29,10 @@ private const val TRIGGER_SPAWN = 1
 private const val ANIMATED = 2
 private const val ANIMATED_FAST = 4
 
-val explosive = registerThink("func_explosive") { self, game ->
+fun funcExplosive(self: SubgameEntity, game: GameExportsImpl) {
     if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
         game.freeEntity(self)
-        return@registerThink true
+        return
     }
 
     self.movetype = GameDefines.MOVETYPE_PUSH
@@ -69,7 +65,6 @@ val explosive = registerThink("func_explosive") { self, game ->
     }
 
     game.gameImports.linkentity(self)
-    true
 }
 
 private val explosiveUseSpawn = registerUse("func_explosive_spawn") { self, _, _, game ->

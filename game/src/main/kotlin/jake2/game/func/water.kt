@@ -2,7 +2,8 @@ package jake2.game.func
 
 import jake2.game.GameBase
 import jake2.game.GameDefines
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
@@ -23,7 +24,7 @@ import kotlin.math.abs
  *
  * Note: func_water has a classname `func_door`
  */
-val water = registerThink("func_water") { self, game ->
+fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BSP

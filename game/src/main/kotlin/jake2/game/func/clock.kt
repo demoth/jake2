@@ -1,6 +1,7 @@
 package jake2.game.func
 
 import jake2.game.GameBase
+import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
 import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -29,17 +30,17 @@ private const val TIMER_DOWN = 2
 private const val START_OFF = 4
 private const val MULTI_USE = 8
 
-val clock = registerThink("func_clock") { self, game ->
+fun funcClock(self: SubgameEntity, game: GameExportsImpl) {
     if (self.target == null) {
         game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
         game.freeEntity(self)
-        return@registerThink true
+        return
     }
 
     if (self.spawnflags and TIMER_DOWN != 0 && self.count == 0) {
         game.gameImports.dprintf("${self.classname} with no count at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
-        return@registerThink true
+        return
     }
 
     if (self.spawnflags and TIMER_UP != 0 && self.count == 0)
@@ -53,8 +54,6 @@ val clock = registerThink("func_clock") { self, game ->
         self.use = clockUse
     else
         self.think.nextTime = game.level.time + 1
-
-    true
 }
 
 private val clockThink = registerThink("func_clock_think") { self, game ->

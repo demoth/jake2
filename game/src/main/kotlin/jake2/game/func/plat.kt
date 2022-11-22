@@ -1,10 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameCombat
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.GameMisc
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
@@ -12,6 +8,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Math3D
+
 /*
  * PLATS
  *
@@ -51,7 +48,7 @@ private const val PLAT_LOW_TRIGGER = 1
  *
  * Set "sounds" to one of the following: 1) base fast 2) chain slow
  */
-val plat = registerThink("func_plat") { self, game ->
+fun funcPlat(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorClear(self.s.angles)
     self.solid = Defines.SOLID_BSP
     self.movetype = GameDefines.MOVETYPE_PUSH
@@ -115,8 +112,6 @@ val plat = registerThink("func_plat") { self, game ->
     self.moveinfo.sound_start = game.gameImports.soundindex("plats/pt1_strt.wav")
     self.moveinfo.sound_middle = game.gameImports.soundindex("plats/pt1_mid.wav")
     self.moveinfo.sound_end = game.gameImports.soundindex("plats/pt1_end.wav")
-
-    true
 }
 
 private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, gameExports ->

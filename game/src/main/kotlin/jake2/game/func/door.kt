@@ -1,14 +1,7 @@
 package jake2.game.func
 
-import jake2.game.EdictIterator
-import jake2.game.GameBase
+import jake2.game.*
 import jake2.game.GameBase.G_SetMovedir
-import jake2.game.GameCombat
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.GameMisc
-import jake2.game.GameUtil
-import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
@@ -55,7 +48,7 @@ const val DOOR_TOGGLE = 32
  *  * lip - lip remaining at end of move (8 default)
  *  * sounds 1) silent 2) light 3) medium 4) heavy
  */
-val funcDoor = registerThink("func_door") { self, game ->
+fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
     // todo: split into entity property initialization & moveinfo
     val abs_movedir = floatArrayOf(0f, 0f, 0f)
     if (self.sounds != 1) {
@@ -130,7 +123,6 @@ val funcDoor = registerThink("func_door") { self, game ->
         self.think.action = doorCalculateMoveSpeed
     else
         self.think.action = spawnTouchTrigger
-    true
 }
 
 private const val DOOR_X_AXIS = 64
@@ -184,7 +176,7 @@ private const val DOOR_Y_AXIS = 128
  *
  * "sounds" 1) silent 2) light 3) medium 4) heavy
  */
-val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
+fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorClear(self.s.angles)
 
     // set the axis of rotation
@@ -277,8 +269,6 @@ val funcDoorRotating = registerThink("func_door_rotating") { self, game ->
         self.think.action = doorCalculateMoveSpeed
     else
         self.think.action = spawnTouchTrigger
-    true
-
 }
 
 private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game ->
@@ -564,7 +554,7 @@ private const val SECRET_1ST_DOWN = 4
  *
  * TODO: add proper description
  */
-val funcDoorSecret = registerThink("func_door_secret") { self, game ->
+fun funcDoorSecret(self: SubgameEntity, game: GameExportsImpl) {
     self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
     self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
     self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
@@ -625,9 +615,6 @@ val funcDoorSecret = registerThink("func_door_secret") { self, game ->
     self.classname = "func_door"
 
     game.gameImports.linkentity(self)
-
-    true
-
 }
 
 private val doorSecretKilled = registerDie("door_secret_die") { self, inflictor, attacker, damage, point, game ->

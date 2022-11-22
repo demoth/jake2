@@ -2,8 +2,9 @@ package jake2.game.func
 
 import jake2.game.GameCombat
 import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
-import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
@@ -31,7 +32,7 @@ import jake2.qcommon.util.Math3D
  * REVERSE will cause it to rotate in the opposite direction. 
  * STOP mean it will stop moving instead of pushing entities
  */
-val rotating = registerThink("func_rotating") { self, game ->
+fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     if (self.spawnflags and 32 != 0)
         self.movetype = GameDefines.MOVETYPE_STOP
@@ -70,7 +71,6 @@ val rotating = registerThink("func_rotating") { self, game ->
 
     game.gameImports.setmodel(self, self.model)
     game.gameImports.linkentity(self)
-    true
 }
 
 private val rotatingUse = registerUse("rotating_use") { self, _, _, _ ->

@@ -1,10 +1,6 @@
 package jake2.game.func
 
-import jake2.game.GameBase
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.GameUtil
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
@@ -28,7 +24,7 @@ import kotlin.math.abs
  * 
  * Buttons can be activated by touching, shooting or targeting by other entity.
  */
-val button = registerThink("func_button") { self, game ->
+fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
 
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_STOP
@@ -78,7 +74,6 @@ val button = registerThink("func_button") { self, game ->
     Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
 
     game.gameImports.linkentity(self)
-    true
 }
 
 private val buttonUse = registerUse("button_use") { self, other, activator, game ->
