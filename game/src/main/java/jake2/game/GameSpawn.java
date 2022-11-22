@@ -405,16 +405,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        spawns.put("func_timer", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_func_timer";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameFunc.SP_func_timer(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put(TimerKt.getTimer().getID(), TimerKt.getTimer());
         spawns.put("func_explosive", new EntThinkAdapter() {
             public String getID() {
                 return "SP_func_explosive";

@@ -26,31 +26,8 @@ import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.game.func.TrainKt;
 import jake2.qcommon.Defines;
-import jake2.qcommon.util.Lib;
 
 class GameFunc {
-
-    static void SP_func_timer(SubgameEntity self, GameExportsImpl gameExports) {
-        if (0 == self.wait)
-            self.wait = 1.0f;
-
-        self.use = func_timer_use;
-        self.think.action = func_timer_think;
-
-        if (self.random >= self.wait) {
-            self.random = self.wait - Defines.FRAMETIME;
-            gameExports.gameImports.dprintf("func_timer at " + Lib.vtos(self.s.origin)
-                    + " has random >= wait\n");
-        }
-
-        if ((self.spawnflags & 1) != 0) {
-            self.think.nextTime = gameExports.level.time + 1.0f + self.st.pausetime
-                    + self.delay + self.wait + Lib.crandom() * self.random;
-            self.activator = self;
-        }
-
-        self.svflags = Defines.SVF_NOCLIENT;
-    }
 
 
     /*
@@ -117,50 +94,6 @@ class GameFunc {
         }
     };
 
-    /*
-     * QUAKED func_timer (0.3 0.1 0.6) (-8 -8 -8) (8 8 8) START_ON "wait" base
-     * time between triggering all targets, default is 1 "random" wait variance,
-     * default is 0
-     * 
-     * so, the basic time between firing is a random time between (wait -
-     * random) and (wait + random)
-     * 
-     * "delay" delay before first firing when turned on, default is 0
-     * 
-     * "pausetime" additional delay used only the very first time and only if
-     * spawned with START_ON
-     * 
-     * These can used but not touched.
-     */
-
-    private static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
-        public String getID() { return "func_timer_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, self.activator, gameExports);
-            self.think.nextTime = gameExports.level.time + self.wait + Lib.crandom()
-                    * self.random;
-            return true;
-        }
-    };
-
-    private static EntUseAdapter func_timer_use = new EntUseAdapter() {
-        public String getID() { return "func_timer_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.activator = activator;
-
-            // if on, turn it off
-            if (self.think.nextTime != 0) {
-                self.think.nextTime = 0;
-                return;
-            }
-
-            // turn it on
-            if (self.delay != 0)
-                self.think.nextTime = gameExports.level.time + self.delay;
-            else
-                func_timer_think.think(self, gameExports);
-        }
-    };
 
     /*
      * QUAKED func_conveyor (0 .5 .8) ? START_ON TOGGLE Conveyors are stationary

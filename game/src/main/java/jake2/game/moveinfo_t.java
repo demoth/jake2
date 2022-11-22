@@ -77,7 +77,7 @@ public class moveinfo_t {
 
 		f.writeFloat(wait);
 
-		f.writeString(state.name());
+		f.writeString(state != null ? state.name() : null);
 		f.writeVector(dir);
 
 		f.writeFloat(current_speed);
@@ -105,8 +105,8 @@ public class moveinfo_t {
 		distance= f.readFloat();
 
 		wait= f.readFloat();
-
-		state = MovementState.valueOf(f.readString());
+		var savedState = f.readString();
+		state = savedState != null ? MovementState.valueOf(savedState) : null;
 		dir= f.readVector();
 
 		current_speed= f.readFloat();
