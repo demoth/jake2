@@ -26,7 +26,9 @@
 
 package jake2.game;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -74,7 +76,7 @@ public class GameBase {
      *
      * @param name - either className or targetName
      */
-    static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
+    public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
                                 String name, GameExportsImpl gameExports) {
 
         if (from == null)
@@ -225,7 +227,7 @@ public class GameBase {
     static final int STEPSIZE = 18;
 
 
-    static final EdictFindFilter findByTargetName = (e, targetName) -> {
+    public static final EdictFindFilter findByTargetName = (e, targetName) -> {
         if (e.targetname == null)
             return false;
         return e.targetname.equalsIgnoreCase(targetName);

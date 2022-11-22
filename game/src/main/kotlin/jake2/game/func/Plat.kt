@@ -1,11 +1,14 @@
-package jake2.game
+package jake2.game.func
 
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
-import jake2.game.func.MovementState
-import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Math3D
@@ -89,7 +92,7 @@ val plat = registerThink("func_plat") { self, game ->
     self.use = platUse
 
     // the "start moving" trigger
-    spawnInsideTrigger(self, game) 
+    spawnInsideTrigger(self, game)
 
 
     if (self.targetname != null) {
@@ -137,7 +140,7 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
     )
 
     if (self.moveinfo.state == MovementState.UP)
-        platGoDown.think(self, gameExports) 
+        platGoDown.think(self, gameExports)
     else if (self.moveinfo.state == MovementState.DOWN)
         platGoUp(self, gameExports)
 

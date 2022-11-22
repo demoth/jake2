@@ -1,11 +1,14 @@
-package jake2.game
+package jake2.game.func
 
+import jake2.game.GameBase
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
-import jake2.game.func.MovementState
-import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs

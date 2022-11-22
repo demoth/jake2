@@ -1,14 +1,20 @@
-package jake2.game
+package jake2.game.func
 
+import jake2.game.EdictIterator
+import jake2.game.GameBase
 import jake2.game.GameBase.G_SetMovedir
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
-import jake2.game.func.MovementState
-import jake2.game.func.startMovement
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -691,7 +697,8 @@ private val doorSecretBlocked = registerBlocked("door_secret_blocked") { self, o
         GameCombat.T_Damage(
             obstacle, self, self, Globals.vec3_origin,
             obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
-            GameDefines.MOD_CRUSH, game)
+            GameDefines.MOD_CRUSH, game
+        )
         // if it's still there, nuke it
         if (obstacle.inuse)
             GameMisc.BecomeExplosion1(obstacle, game)

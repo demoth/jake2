@@ -23,7 +23,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
-import jake2.game.func.WaterKt;
+import jake2.game.func.*;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.*;

@@ -1,11 +1,8 @@
 package jake2.game.func
 
-import jake2.game.DOOR_START_OPEN
-import jake2.game.DOOR_TOGGLE
 import jake2.game.GameBase
 import jake2.game.GameDefines
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
-import jake2.game.doorOpenUse
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs

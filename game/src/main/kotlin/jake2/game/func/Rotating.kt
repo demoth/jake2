@@ -1,5 +1,7 @@
-package jake2.game
+package jake2.game.func
 
+import jake2.game.GameCombat
+import jake2.game.GameDefines
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
