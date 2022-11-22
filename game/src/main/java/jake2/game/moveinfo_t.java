@@ -32,24 +32,24 @@ import java.io.IOException;
 
 public class moveinfo_t {
 	// fixed data
-	float[] start_origin= { 0, 0, 0 };
-	float[] start_angles= { 0, 0, 0 };
-	float[] end_origin= { 0, 0, 0 };
-	float[] end_angles= { 0, 0, 0 };
+	public float[] start_origin= { 0, 0, 0 };
+	public float[] start_angles= { 0, 0, 0 };
+	public float[] end_origin= { 0, 0, 0 };
+	public float[] end_angles= { 0, 0, 0 };
 
-	int sound_start;
-	int sound_middle;
-	int sound_end;
+	public int sound_start;
+	public int sound_middle;
+	public int sound_end;
 
 	public float accel;
 	public float speed;
 	public float decel;
-	float distance;
+	public float distance;
 
-	float wait;
+	public float wait;
 
 	// state data
-	MovementState state;
+	public MovementState state;
 	public float[] dir= { 0, 0, 0 };
 
 	public float current_speed;

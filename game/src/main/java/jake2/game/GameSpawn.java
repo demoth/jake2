@@ -23,6 +23,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.func.WaterKt;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.*;
@@ -125,17 +126,6 @@ public class GameSpawn {
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             PlayerClient.SP_info_player_intermission();
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_func_water";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameFunc.SP_func_water(ent, gameExports);
             return true;
         }
     };
@@ -391,7 +381,7 @@ public class GameSpawn {
         spawns.put(DoorKt.getFuncDoorRotating().getID(), DoorKt.getFuncDoorRotating());
         spawns.put(RotatingKt.getRotating().getID(), RotatingKt.getRotating());
         spawns.put(TrainKt.getTrain().getID(), TrainKt.getTrain());
-        spawns.put("func_water", SP_func_water);
+        spawns.put(WaterKt.getWater().getID(), WaterKt.getWater());
         spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
         spawns.put("func_areaportal", GameMisc.SP_func_areaportal);
         spawns.put("func_clock", SP_func_clock);

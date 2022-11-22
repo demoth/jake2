@@ -22,6 +22,7 @@ const val DOOR_START_OPEN = 1
 private const val DOOR_REVERSE = 2
 private const val DOOR_CRUSHER = 4
 private const val DOOR_NOMONSTER = 8
+const val DOOR_TOGGLE = 32
 
 /**
  * QUAKED func_door (0 .5 .8) ?
@@ -325,7 +326,7 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
     if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
         return@registerUse
 
-    if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0) {
+    if (self.spawnflags and DOOR_TOGGLE != 0) {
         if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP) {
             // trigger all paired doors
             var team: SubgameEntity? = self
@@ -479,7 +480,7 @@ private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, ga
     }
     self.moveinfo.state = MovementState.TOP
 
-    if (self.spawnflags and GameFunc.DOOR_TOGGLE != 0)
+    if (self.spawnflags and DOOR_TOGGLE != 0)
         return@registerThink true
 
     if (self.moveinfo.wait >= 0) {
