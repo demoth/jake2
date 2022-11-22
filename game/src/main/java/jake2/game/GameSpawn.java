@@ -396,16 +396,7 @@ public class GameSpawn {
             }
         });
         spawns.put(TimerKt.getTimer().getID(), TimerKt.getTimer());
-        spawns.put("func_explosive", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_func_explosive";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_func_explosive(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put(ExplosiveKt.getExplosive().getID(), ExplosiveKt.getExplosive());
         spawns.put(KillboxKt.getKillbox().getID(), KillboxKt.getKillbox());
         spawns.put("trigger_always", new EntThinkAdapter() {
             public String getID() {

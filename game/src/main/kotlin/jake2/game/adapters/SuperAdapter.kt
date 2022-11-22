@@ -45,9 +45,9 @@ abstract class SuperAdapter {
         return "${this.javaClass.simpleName} '$iD'"
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (obj is SuperAdapter) {
-            iD == obj.iD
+    override fun equals(other: Any?): Boolean {
+        return if (other is SuperAdapter) {
+            iD == other.iD
         } else false
     }
 
@@ -120,7 +120,7 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerDie(id:String, die: (self: SubgameEntity, inflictor: SubgameEntity?, attacker: SubgameEntity?, damage: Int, point: FloatArray?, gameExports: GameExportsImpl) -> Unit): EntDieAdapter {
+        fun registerDie(id:String, die: (self: SubgameEntity, inflictor: SubgameEntity?, attacker: SubgameEntity?, damage: Int, point: FloatArray?, game: GameExportsImpl) -> Unit): EntDieAdapter {
             val adapter = object : EntDieAdapter() {
                 override fun die(
                     self: SubgameEntity,

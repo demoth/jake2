@@ -188,45 +188,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_func_explosive(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-
-        gameExports.gameImports.modelindex("models/objects/debris1/tris.md2");
-        gameExports.gameImports.modelindex("models/objects/debris2/tris.md2");
-
-        gameExports.gameImports.setmodel(self, self.model);
-
-        if ((self.spawnflags & 1) != 0) {
-            self.svflags |= Defines.SVF_NOCLIENT;
-            self.solid = Defines.SOLID_NOT;
-            self.use = func_explosive_spawn;
-        } else {
-            self.solid = Defines.SOLID_BSP;
-            if (self.targetname != null)
-                self.use = func_explosive_use;
-        }
-
-        if ((self.spawnflags & 2) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALL;
-        if ((self.spawnflags & 4) != 0)
-            self.s.effects |= Defines.EF_ANIM_ALLFAST;
-
-        if (self.use != func_explosive_use) {
-            if (self.health == 0)
-                self.health = 100;
-            self.die = func_explosive_explode;
-            self.takedamage = Defines.DAMAGE_YES;
-        }
-
-        gameExports.gameImports.linkentity(self);
-    }
-
-    static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
+        static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             gameExports.freeEntity(self);
             return;
@@ -776,7 +738,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(self);
     }
 
-    static void ThrowDebris(SubgameEntity self, String modelname, float speed,
+    public static void ThrowDebris(SubgameEntity self, String modelname, float speed,
                             float[] origin, GameExportsImpl gameExports) {
         float[] v = { 0, 0, 0 };
 
@@ -1068,107 +1030,6 @@ public class GameMisc {
             self.use = null;
             GameUtil.KillBox(self, gameExports);
             func_object_release.think(self, gameExports);
-        }
-    };
-
-    /*
-     * QUAKED func_explosive (0 .5 .8) ? Trigger_Spawn ANIMATED ANIMATED_FAST
-     * Any brush that you want to explode or break apart. If you want an
-     * ex0plosion, set dmg and it will do a radius explosion of that amount at
-     * the center of the bursh.
-     * 
-     * If targeted it will not be shootable.
-     * 
-     * health defaults to 100.
-     * 
-     * mass defaults to 75. This determines how much debris is emitted when it
-     * explodes. You get one large chunk per 100 of mass (up to 8) and one small
-     * chunk per 25 of mass (up to 16). So 800 gives the most.
-     */
-    private static EntDieAdapter func_explosive_explode = new EntDieAdapter() {
-        public String getID() { return "func_explosive_explode";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-            float[] origin = { 0, 0, 0 };
-            float[] chunkorigin = { 0, 0, 0 };
-            float[] size = { 0, 0, 0 };
-            int count;
-            int mass;
-
-            // bmodel origins are (0 0 0), we need to adjust that here
-            Math3D.VectorScale(self.size, 0.5f, size);
-            Math3D.VectorAdd(self.absmin, size, origin);
-            Math3D.VectorCopy(origin, self.s.origin);
-
-            self.takedamage = Defines.DAMAGE_NO;
-
-            if (self.dmg != 0)
-                GameCombat.T_RadiusDamage(self, attacker, self.dmg, null,
-                        self.dmg + 40, GameDefines.MOD_EXPLOSIVE, gameExports);
-
-            Math3D.VectorSubtract(self.s.origin, inflictor.s.origin,
-                    self.velocity);
-            Math3D.VectorNormalize(self.velocity);
-            Math3D.VectorScale(self.velocity, 150, self.velocity);
-
-            // start chunks towards the center
-            Math3D.VectorScale(size, 0.5f, size);
-
-            mass = self.mass;
-            if (0 == mass)
-                mass = 75;
-
-            // big chunks
-            if (mass >= 100) {
-                count = mass / 100;
-                if (count > 8)
-                    count = 8;
-                while (count-- != 0) {
-                    chunkorigin[0] = origin[0] + Lib.crandom() * size[0];
-                    chunkorigin[1] = origin[1] + Lib.crandom() * size[1];
-                    chunkorigin[2] = origin[2] + Lib.crandom() * size[2];
-                    ThrowDebris(self, "models/objects/debris1/tris.md2",
-                            1, chunkorigin, gameExports);
-                }
-            }
-
-            // small chunks
-            count = mass / 25;
-            if (count > 16)
-                count = 16;
-            while (count-- != 0) {
-                chunkorigin[0] = origin[0] + Lib.crandom() * size[0];
-                chunkorigin[1] = origin[1] + Lib.crandom() * size[1];
-                chunkorigin[2] = origin[2] + Lib.crandom() * size[2];
-                ThrowDebris(self, "models/objects/debris2/tris.md2", 2,
-                        chunkorigin, gameExports);
-            }
-
-            GameUtil.G_UseTargets(self, attacker, gameExports);
-
-            if (self.dmg != 0)
-                BecomeExplosion1(self, gameExports);
-            else
-                gameExports.freeEntity(self);
-        }
-    };
-
-    private static EntUseAdapter func_explosive_use = new EntUseAdapter() {
-        public String getID() { return "func_explosive_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            func_explosive_explode.die(self, self, other, self.health,
-                    Globals.vec3_origin, gameExports);
-        }
-    };
-
-    private static EntUseAdapter func_explosive_spawn = new EntUseAdapter() {
-        public String getID() { return "func_explosive_spawn";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.solid = Defines.SOLID_BSP;
-            self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = null;
-            GameUtil.KillBox(self, gameExports);
-            gameExports.gameImports.linkentity(self);
         }
     };
 

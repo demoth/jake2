@@ -357,7 +357,7 @@ public class GameCombat {
     /**
      * T_RadiusDamage.
      */
-    static void T_RadiusDamage(SubgameEntity inflictor, SubgameEntity attacker,
+    public static void T_RadiusDamage(SubgameEntity inflictor, SubgameEntity attacker,
                                float damage, edict_t ignore, float radius, int mod, GameExportsImpl gameExports) {
         float points;
         EdictIterator edictit = null;
