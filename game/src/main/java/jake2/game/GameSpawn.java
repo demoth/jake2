@@ -34,10 +34,7 @@ import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameSpawn {
@@ -1173,7 +1170,6 @@ public class GameSpawn {
     }
 
 
-
     /**
      * G_FindTeams
      * <p>
@@ -1184,34 +1180,37 @@ public class GameSpawn {
      *
      * fixme: n^2 complexity
      */
-    private static void G_FindTeams(GameExportsImpl gameExports) {
-        for (int i = 1; i < gameExports.num_edicts; i++) {
-            SubgameEntity e = gameExports.g_edicts[i];
+    private static void G_FindTeams(GameExportsImpl game) {
+        var teams = new HashMap<String, ArrayList<SubgameEntity>>();
+        // TODO check that num_edicts is not more than g_edicts.size()
+        // TODO rename fields: teamchain -> next, teamslave -> teammember, teammaster -> teamlead
+
+        for (int i = 1; i < game.num_edicts; i++) {
+            SubgameEntity e = game.g_edicts[i];
 
             if (!e.inuse)
                 continue;
             if (e.team == null)
                 continue;
             if ((e.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                continue;
-            SubgameEntity chain = e;
-            e.teammaster = e;
+                throw new RuntimeException("Some flags are already set. why?");
 
-            for (int j = i + 1; j < gameExports.num_edicts; j++) {
-                SubgameEntity e2 = gameExports.g_edicts[j];
-                if (!e2.inuse)
-                    continue;
-                if (null == e2.team)
-                    continue;
-                if ((e2.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                    continue;
-                if (e.team.equals(e2.team)) {
-                    chain.teamchain = e2;
-                    e2.teammaster = e;
-                    chain = e2;
-                    e2.flags |= GameDefines.FL_TEAMSLAVE;
+            var team = teams.get(e.team);
 
-                }
+            if (team == null) {
+                // teamlead
+                e.teammaster = e;
+                team = new ArrayList<>();
+                team.add(e);
+                teams.put(e.team, team);
+            } else if (team.size() == 0) {
+                throw new RuntimeException("Array exists but empty. why?");
+            } else {
+                // member
+                e.teammaster = team.get(0);
+                e.flags |= GameDefines.FL_TEAMSLAVE;
+                team.get(team.size() - 1).teamchain = e;
+                team.add(e);
             }
         }
     }
