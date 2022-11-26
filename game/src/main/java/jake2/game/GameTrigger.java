@@ -24,7 +24,6 @@ package jake2.game;
 
 import jake2.game.adapters.EntTouchAdapter;
 import jake2.game.adapters.EntUseAdapter;
-import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.cplane_t;
@@ -42,33 +41,6 @@ class GameTrigger {
         self.movetype = GameDefines.MOVETYPE_NONE;
         gameExports.gameImports.setmodel(self, self.model);
         self.svflags = Defines.SVF_NOCLIENT;
-    }
-
-    static void SP_trigger_key(SubgameEntity self, GameExportsImpl gameExports) {
-        if (self.st.item == null) {
-            gameExports.gameImports.dprintf("no key item for trigger_key at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            return;
-        }
-        self.item = GameItems.FindItemByClassname(self.st.item, gameExports);
-
-        if (null == self.item) {
-            gameExports.gameImports.dprintf("item " + self.st.item
-                    + " not found for trigger_key at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            return;
-        }
-
-        if (self.target == null) {
-            gameExports.gameImports.dprintf(self.classname + " at "
-                    + Lib.vtos(self.s.origin) + " has no target\n");
-            return;
-        }
-
-        gameExports.gameImports.soundindex("misc/keytry.wav");
-        gameExports.gameImports.soundindex("misc/keyuse.wav");
-
-        self.use = trigger_key_use;
     }
 
     /*
@@ -128,89 +100,6 @@ class GameTrigger {
         self.touch = trigger_monsterjump_touch;
         self.movedir[2] = self.st.height;
     }
-
-    /*
-     * ==============================================================================
-     * 
-     * trigger_key
-     * 
-     * ==============================================================================
-     */
-
-    /**
-     * QUAKED trigger_key (.5 .5 .5) (-8 -8 -8) (8 8 8) A relay trigger that
-     * only fires it's targets if player has the proper key. Use "item" to
-     * specify the required key, for example "key_data_cd"
-     */
-
-    private static EntUseAdapter trigger_key_use = new EntUseAdapter() {
-    	public String getID(){ return "trigger_key_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            int index;
-
-            if (self.item == null)
-                return;
-            gclient_t activatorClient = activator.getClient();
-            if (activatorClient == null)
-                return;
-
-            index = self.item.index;
-            if (activatorClient.pers.inventory[index] == 0) {
-                if (gameExports.level.time < self.touch_debounce_time)
-                    return;
-                self.touch_debounce_time = gameExports.level.time + 5.0f;
-                gameExports.gameImports.centerprintf(activator, "You need the "
-                        + self.item.pickup_name);
-                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO,
-                        gameExports.gameImports.soundindex("misc/keytry.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                return;
-            }
-
-            gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
-                    .soundindex("misc/keyuse.wav"), 1, Defines.ATTN_NORM, 0);
-            if (gameExports.gameCvars.coop.value != 0) {
-                int player;
-                SubgameEntity ent;
-
-                if ("key_power_cube".equals(self.item.classname)) {
-                    int cube;
-
-                    for (cube = 0; cube < 8; cube++)
-                        if ((activatorClient.pers.power_cubes & (1 << cube)) != 0)
-                            break;
-                    for (player = 1; player <= gameExports.game.maxclients; player++) {
-                        ent = gameExports.g_edicts[player];
-                        if (!ent.inuse)
-                            continue;
-                        gclient_t client = ent.getClient();
-                        if (client == null)
-                            continue;
-                        if ((client.pers.power_cubes & (1 << cube)) != 0) {
-                            client.pers.inventory[index]--;
-                            client.pers.power_cubes &= ~(1 << cube);
-                        }
-                    }
-                } else {
-                    for (player = 1; player <= gameExports.game.maxclients; player++) {
-                        ent = gameExports.g_edicts[player];
-                        if (!ent.inuse)
-                            continue;
-                        gclient_t client = ent.getClient();
-                        if (client == null)
-                            continue;
-                        client.pers.inventory[index] = 0;
-                    }
-                }
-            } else {
-                activatorClient.pers.inventory[index]--;
-            }
-
-            GameUtil.G_UseTargets(self, activator, gameExports);
-
-            self.use = null;
-        }
-    };
 
     /*
      * ==============================================================================

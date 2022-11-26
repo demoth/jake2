@@ -3,6 +3,7 @@ package jake2.game
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.items.GameItems
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -207,4 +208,96 @@ fun triggerRelay(self: SubgameEntity, game: GameExportsImpl) {
 
 private val triggerRelayUse = registerUse("trigger_relay_use") { self: SubgameEntity, other: SubgameEntity?, activator: SubgameEntity?, game: GameExportsImpl ->
     GameUtil.G_UseTargets(self, activator, game)
+}
+
+/**
+ * QUAKED trigger_key (.5 .5 .5) (-8 -8 -8) (8 8 8)
+ * A relay trigger that only fires its targets if player has the proper key.
+ * Use "item" to specify the required key, for example "key_data_cd"
+ */
+fun triggerKey(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.st.item == null) {
+        game.gameImports.dprintf("no key item for trigger_key at ${Lib.vtos(self.s.origin)}\n")
+        return
+    }
+    self.item = GameItems.FindItemByClassname(self.st.item, game)
+
+    if (self.item == null) {
+        game.gameImports.dprintf("item ${self.st.item} not found for trigger_key at ${Lib.vtos(self.s.origin)}\n")
+        return
+    }
+
+    if (self.target == null) {
+        game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)} has no target\n")
+        return
+    }
+
+    game.gameImports.soundindex("misc/keytry.wav")
+    game.gameImports.soundindex("misc/keyuse.wav")
+    self.use = triggerKeyUse
+}
+
+private val triggerKeyUse = registerUse("trigger_key_use") { self, other, activator, game ->
+
+    if (self.item == null)
+        return@registerUse
+
+    val activatorClient = activator?.client ?: return@registerUse
+
+    val index = self.item.index
+    if (activatorClient.pers.inventory[index] == 0) {
+        if (game.level.time < self.touch_debounce_time)
+            return@registerUse
+        self.touch_debounce_time = game.level.time + 5.0f
+        game.gameImports.centerprintf(activator, "You need the " + self.item.pickup_name)
+        game.gameImports.sound(
+            activator, Defines.CHAN_AUTO,
+            game.gameImports.soundindex("misc/keytry.wav"), 1f,
+            Defines.ATTN_NORM.toFloat(), 0f
+        )
+        return@registerUse
+    }
+
+    game.gameImports.sound(
+        activator, Defines.CHAN_AUTO,
+        game.gameImports.soundindex("misc/keyuse.wav"), 1f,
+        Defines.ATTN_NORM.toFloat(), 0f
+    )
+
+    // in multiplayer games we deduct keys from all players at once
+    if (game.gameCvars.coop.value != 0f) {
+        if ("key_power_cube" == self.item.classname) {
+            // power cubes are handled differently in coop than other keys
+            var cubeMaxBit = 0
+            while (cubeMaxBit < 8) {
+                // find the highest cube bit the player has
+                if (activatorClient.pers.power_cubes and (1 shl cubeMaxBit) != 0)
+                    break
+                cubeMaxBit++
+            }
+            for (player in 1..game.game.maxclients) {
+                val ent = game.g_edicts[player]
+                if (!ent.inuse)
+                    continue
+                val client = ent.client ?: continue
+                if (client.pers.power_cubes and (1 shl cubeMaxBit) != 0) {
+                    client.pers.inventory[index]--
+                    client.pers.power_cubes = client.pers.power_cubes and (1 shl cubeMaxBit).inv()
+                }
+            }
+        } else {
+            for (player in 1..game.game.maxclients) {
+                val ent = game.g_edicts[player]
+                if (!ent.inuse)
+                    continue
+                val client = ent.client ?: continue
+                client.pers.inventory[index] = 0
+            }
+        }
+    } else {
+        activatorClient.pers.inventory[index]--
+    }
+
+    GameUtil.G_UseTargets(self, activator, game)
+    self.use = null
 }

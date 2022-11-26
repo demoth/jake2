@@ -405,16 +405,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("trigger_key", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_key";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_key(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("trigger_key", TriggersKt::triggerKey);
         spawns.put("trigger_counter", TriggersKt::triggerCounter);
         addSpawnAdapter("trigger_elevator", GameFunc.SP_trigger_elevator);
         addSpawnAdapter("trigger_gravity", new EntThinkAdapter() {
