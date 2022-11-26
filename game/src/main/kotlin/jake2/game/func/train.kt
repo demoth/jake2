@@ -1,10 +1,19 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.GameBase
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
+import jake2.game.setSpawnFlag
+import jake2.game.unsetSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -94,7 +103,7 @@ val trainUse = registerUse("train_use") { self, other, activator, game ->
     if (self.hasSpawnFlag(TRAIN_START_ON)) {
         if (!self.hasSpawnFlag(TRAIN_TOGGLE))
             return@registerUse
-        self.removeSpawnFlag(TRAIN_START_ON)
+        self.unsetSpawnFlag(TRAIN_START_ON)
         Math3D.VectorClear(self.velocity)
         self.think.nextTime = 0f
     } else {
@@ -123,7 +132,7 @@ val trainFindTarget = registerThink("func_train_find") { self, game ->
 
     // if not targeted, start immediately
     if (self.targetname == null) {
-        self.addSpawnFlag(TRAIN_START_ON)
+        self.setSpawnFlag(TRAIN_START_ON)
     }
 
     if (self.hasSpawnFlag(TRAIN_START_ON)) {
@@ -187,7 +196,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game)
-    self.addSpawnFlag(TRAIN_START_ON)
+    self.setSpawnFlag(TRAIN_START_ON)
 
     true
 
@@ -214,7 +223,7 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
         } else if (self.hasSpawnFlag(TRAIN_TOGGLE)) // && wait < 0
         {
             trainNextGoal.think(self, game)
-            self.removeSpawnFlag(TRAIN_START_ON)
+            self.unsetSpawnFlag(TRAIN_START_ON)
             Math3D.VectorClear(self.velocity)
             self.think.nextTime = 0f
         }
@@ -245,5 +254,5 @@ fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game!!)
-    self.addSpawnFlag(TRAIN_START_ON)
+    self.setSpawnFlag(TRAIN_START_ON)
 }

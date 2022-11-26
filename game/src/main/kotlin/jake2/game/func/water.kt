@@ -1,6 +1,11 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.GameBase
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
+import jake2.game.hasSpawnFlag
+import jake2.game.setSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
@@ -72,7 +77,7 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
     self.use = doorOpenUse
 
     if (self.wait == -1f)
-        self.addSpawnFlag(DOOR_TOGGLE)
+        self.setSpawnFlag(DOOR_TOGGLE)
 
     self.classname = "func_door"
 
