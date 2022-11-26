@@ -126,7 +126,7 @@ private val triggerTouchMultiple = registerTouch("Touch_Multi") { self, other, _
  * self.activator should be set to the activator, so it can be held through a
  * delay so wait for the delay time before firing.
  */
-fun multiTrigger(self: SubgameEntity, game: GameExportsImpl) {
+private fun multiTrigger(self: SubgameEntity, game: GameExportsImpl) {
     if (self.think.nextTime != 0f)
         return  // already been triggered
     GameUtil.G_UseTargets(self, self.activator, game)
@@ -147,4 +147,52 @@ fun multiTrigger(self: SubgameEntity, game: GameExportsImpl) {
 private val triggerMultiWait = registerThink("multi_wait") { self, _ ->
     self.think.nextTime = 0f
     true
+}
+
+/**
+ * QUAKED trigger_counter (.5 .5 .5) ? nomessage Acts as an intermediary for
+ * an action that takes multiple inputs.
+ *
+ * If NO_MESSAGE is not set, t will print "1 more... " etc. when triggered and
+ * "sequence complete" when finished.
+ *
+ * After the counter has been triggered "count" times (default 2), it will
+ * fire all of its targets and remove itself.
+ */
+private const val NO_MESSAGE = 1
+fun triggerCounter(self: SubgameEntity, game: GameExportsImpl) {
+    self.wait = -1f
+    if (0 == self.count)
+        self.count = 2
+    self.use = triggerCounterUse
+}
+
+private val triggerCounterUse = registerUse("trigger_counter_use") { self, other, activator, game ->
+    if (self.count == 0)
+        return@registerUse
+
+    self.count--
+
+    if (self.count != 0) {
+        if (!self.hasSpawnFlag(NO_MESSAGE)) {
+            game.gameImports.centerprintf(activator, "${self.count} more to go...")
+            game.gameImports.sound(
+                activator, Defines.CHAN_AUTO, game.gameImports
+                    .soundindex("misc/talk1.wav"), 1f,
+                Defines.ATTN_NORM.toFloat(), 0f
+            )
+        }
+        return@registerUse
+    }
+
+    if (!self.hasSpawnFlag(NO_MESSAGE)) {
+        game.gameImports.centerprintf(activator, "Sequence completed!")
+        game.gameImports.sound(
+            activator, Defines.CHAN_AUTO, game.gameImports
+                .soundindex("misc/talk1.wav"), 1f,
+            Defines.ATTN_NORM.toFloat(), 0f
+        )
+    }
+    self.activator = activator
+    multiTrigger(self, game)
 }

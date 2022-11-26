@@ -32,8 +32,6 @@ import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import static jake2.game.TriggersKt.multiTrigger;
-
 class GameTrigger {
 
     private static void InitTrigger(SubgameEntity self, GameExportsImpl gameExports) {
@@ -75,14 +73,6 @@ class GameTrigger {
         gameExports.gameImports.soundindex("misc/keyuse.wav");
 
         self.use = trigger_key_use;
-    }
-
-    static void SP_trigger_counter(SubgameEntity self) {
-        self.wait = -1;
-        if (0 == self.count)
-            self.count = 2;
-
-        self.use = trigger_counter_use;
     }
 
     /*
@@ -234,46 +224,6 @@ class GameTrigger {
             GameUtil.G_UseTargets(self, activator, gameExports);
 
             self.use = null;
-        }
-    };
-
-    /**
-     * QUAKED trigger_counter (.5 .5 .5) ? nomessage Acts as an intermediary for
-     * an action that takes multiple inputs.
-     * 
-     * If nomessage is not set, t will print "1 more.. " etc when triggered and
-     * "sequence complete" when finished.
-     * 
-     * After the counter has been triggered "count" times (default 2), it will
-     * fire all of it's targets and remove itself.
-     */
-    private static EntUseAdapter trigger_counter_use = new EntUseAdapter() {
-    	public String getID(){ return "trigger_counter_use"; }
-
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (self.count == 0)
-                return;
-
-            self.count--;
-
-            if (self.count != 0) {
-                if (0 == (self.spawnflags & 1)) {
-                    gameExports.gameImports.centerprintf(activator, self.count
-                            + " more to go...");
-                    gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
-                            .soundindex("misc/talk1.wav"), 1,
-                            Defines.ATTN_NORM, 0);
-                }
-                return;
-            }
-
-            if (0 == (self.spawnflags & 1)) {
-                gameExports.gameImports.centerprintf(activator, "Sequence completed!");
-                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
-                        .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
-            }
-            self.activator = activator;
-            multiTrigger(self, gameExports);
         }
     };
 
