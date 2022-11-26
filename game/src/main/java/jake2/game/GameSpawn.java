@@ -384,16 +384,7 @@ public class GameSpawn {
         spawns.put("trigger_always", TriggersKt::triggerAlways);
         spawns.put("trigger_once", TriggersKt::triggerOnce);
         spawns.put("trigger_multiple", TriggersKt::triggerMultiple);
-        addSpawnAdapter("trigger_relay", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_relay";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_relay(ent);
-                return true;
-            }
-        });
+        spawns.put("trigger_relay", TriggersKt::triggerRelay);
         addSpawnAdapter("trigger_push", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_push";

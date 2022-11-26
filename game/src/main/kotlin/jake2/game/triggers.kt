@@ -196,3 +196,15 @@ private val triggerCounterUse = registerUse("trigger_counter_use") { self, other
     self.activator = activator
     multiTrigger(self, game)
 }
+
+/**
+ * QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8) This fixed size
+ * trigger cannot be touched, it can only be fired by other events.
+ */
+fun triggerRelay(self: SubgameEntity, game: GameExportsImpl) {
+    self.use = triggerRelayUse
+}
+
+private val triggerRelayUse = registerUse("trigger_relay_use") { self: SubgameEntity, other: SubgameEntity?, activator: SubgameEntity?, game: GameExportsImpl ->
+    GameUtil.G_UseTargets(self, activator, game)
+}

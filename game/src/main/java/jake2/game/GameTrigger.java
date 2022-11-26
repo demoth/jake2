@@ -44,10 +44,6 @@ class GameTrigger {
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_trigger_relay(SubgameEntity self) {
-        self.use = trigger_relay_use;
-    }
-
     static void SP_trigger_key(SubgameEntity self, GameExportsImpl gameExports) {
         if (self.st.item == null) {
             gameExports.gameImports.dprintf("no key item for trigger_key at "
@@ -132,17 +128,6 @@ class GameTrigger {
         self.touch = trigger_monsterjump_touch;
         self.movedir[2] = self.st.height;
     }
-
-    /**
-     * QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8) This fixed size
-     * trigger cannot be touched, it can only be fired by other events.
-     */
-    private static EntUseAdapter trigger_relay_use = new EntUseAdapter() {
-    	public String getID(){ return "trigger_relay_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, activator, gameExports);
-        }
-    };
 
     /*
      * ==============================================================================
