@@ -22,13 +22,17 @@
 
 package jake2.game;
 
-import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntTouchAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.game.items.GameItems;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+
+import static jake2.game.TriggersKt.multiTrigger;
 
 class GameTrigger {
 
@@ -40,86 +44,6 @@ class GameTrigger {
         self.movetype = GameDefines.MOVETYPE_NONE;
         gameExports.gameImports.setmodel(self, self.model);
         self.svflags = Defines.SVF_NOCLIENT;
-    }
-
-    // the trigger was just activated
-    // ent.activator should be set to the activator so it can be held through a
-    // delay so wait for the delay time before firing
-    private static void multi_trigger(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (ent.think.nextTime != 0)
-            return; // already been triggered
-
-        GameUtil.G_UseTargets(ent, ent.activator, gameExports);
-
-        if (ent.wait > 0) {
-            ent.think.action = multi_wait;
-            ent.think.nextTime = gameExports.level.time + ent.wait;
-        } else { // we can't just remove (self) here, because this is a touch
-                 // function
-            // called while looping through area links...
-            ent.touch = null;
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            ent.think.action = GameUtil.G_FreeEdictA;
-        }
-    }
-
-    static void SP_trigger_multiple(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (ent.sounds == 1)
-            ent.noise_index = gameExports.gameImports.soundindex("misc/secret.wav");
-        else if (ent.sounds == 2)
-            ent.noise_index = gameExports.gameImports.soundindex("misc/talk.wav");
-        else if (ent.sounds == 3)
-            ent.noise_index = gameExports.gameImports.soundindex("misc/trigger1.wav");
-
-        if (ent.wait == 0)
-            ent.wait = 0.2f;
-
-        ent.touch = Touch_Multi;
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.svflags |= Defines.SVF_NOCLIENT;
-
-        if ((ent.spawnflags & 4) != 0) {
-            ent.solid = Defines.SOLID_NOT;
-            ent.use = trigger_enable;
-        } else {
-            ent.solid = Defines.SOLID_TRIGGER;
-            ent.use = Use_Multi;
-        }
-
-        if (!Math3D.VectorEquals(ent.s.angles, Globals.vec3_origin))
-            GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
-
-        gameExports.gameImports.setmodel(ent, ent.model);
-        gameExports.gameImports.linkentity(ent);
-    }
-
-    /**
-     * QUAKED trigger_once (.5 .5 .5) ? x x TRIGGERED Triggers once, then
-     * removes itself. You must set the key "target" to the name of another
-     * object in the level that has a matching "targetname".
-     * 
-     * If TRIGGERED, this trigger must be triggered before it is live.
-     * 
-     * sounds 1) secret 2) beep beep 3) large switch 4)
-     * 
-     * "message" string to be displayed when triggered
-     */
-
-    static void SP_trigger_once(SubgameEntity ent, GameExportsImpl gameExports) {
-        // make old maps work because I messed up on flag assignments here
-        // triggered was on bit 1 when it should have been on bit 4
-        if ((ent.spawnflags & 1) != 0) {
-            float[] v = { 0, 0, 0 };
-
-            Math3D.VectorMA(ent.mins, 0.5f, ent.size, v);
-            ent.spawnflags &= ~1;
-            ent.spawnflags |= 4;
-            gameExports.gameImports.dprintf("fixed TRIGGERED flag on " + ent.classname
-                    + " at " + Lib.vtos(v) + "\n");
-        }
-
-        ent.wait = -1;
-        SP_trigger_multiple(ent, gameExports);
     }
 
     static void SP_trigger_relay(SubgameEntity self) {
@@ -159,25 +83,6 @@ class GameTrigger {
             self.count = 2;
 
         self.use = trigger_counter_use;
-    }
-
-    /*
-     * ==============================================================================
-     * 
-     * trigger_always
-     * 
-     * ==============================================================================
-     */
-
-    /*
-     * QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8) This trigger will
-     * always fire. It is activated by the world.
-     */
-    static void SP_trigger_always(SubgameEntity ent, GameExportsImpl gameExports) {
-        // we must have some delay to make sure our use targets are present
-        if (ent.delay < 0.2f)
-            ent.delay = 0.2f;
-        GameUtil.G_UseTargets(ent, ent, gameExports);
     }
 
     /*
@@ -237,66 +142,6 @@ class GameTrigger {
         self.touch = trigger_monsterjump_touch;
         self.movedir[2] = self.st.height;
     }
-
-    // the wait time has passed, so set back up for another activation
-    private static EntThinkAdapter multi_wait = new EntThinkAdapter() {
-    	public String getID(){ return "multi_wait"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-
-            ent.think.nextTime = 0;
-            return true;
-        }
-    };
-
-    private static EntUseAdapter Use_Multi = new EntUseAdapter() {
-    	public String getID(){ return "Use_Multi"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            ent.activator = activator;
-            multi_trigger(ent, gameExports);
-        }
-    };
-
-    private static EntTouchAdapter Touch_Multi = new EntTouchAdapter() {
-    	public String getID(){ return "Touch_Multi"; }
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if (other.getClient() != null) {
-                if ((self.spawnflags & 2) != 0)
-                    return;
-            } else if ((other.svflags & Defines.SVF_MONSTER) != 0) {
-                if (0 == (self.spawnflags & 1))
-                    return;
-            } else
-                return;
-
-            if (!Math3D.VectorEquals(self.movedir, Globals.vec3_origin)) {
-                float[] forward = { 0, 0, 0 };
-
-                Math3D.AngleVectors(other.s.angles, forward, null, null);
-                if (Math3D.DotProduct(forward, self.movedir) < 0)
-                    return;
-            }
-
-            self.activator = other;
-            multi_trigger(self, gameExports);
-        }
-    };
-
-    /**
-     * QUAKED trigger_multiple (.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
-     * Variable sized repeatable trigger. Must be targeted at one or more
-     * entities. If "delay" is set, the trigger waits some time after activating
-     * before firing. "wait" : Seconds between triggerings. (.2 default) sounds
-     * 1) secret 2) beep beep 3) large switch 4) set "message" to text string
-     */
-    private static EntUseAdapter trigger_enable = new EntUseAdapter() {
-    	public String getID(){ return "trigger_enable"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.solid = Defines.SOLID_TRIGGER;
-            self.use = Use_Multi;
-            gameExports.gameImports.linkentity(self);
-        }
-    };
 
     /**
      * QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8) This fixed size
@@ -428,7 +273,7 @@ class GameTrigger {
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
             }
             self.activator = activator;
-            multi_trigger(self, gameExports);
+            multiTrigger(self, gameExports);
         }
     };
 

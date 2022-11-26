@@ -381,36 +381,9 @@ public class GameSpawn {
         spawns.put("func_timer", TimerKt::funcTimer);
         spawns.put("func_explosive", ExplosiveKt::funcExplosive);
         spawns.put("func_killbox", KillboxKt::funcKillbox);
-        addSpawnAdapter("trigger_always", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_always";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_always(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("trigger_once", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_once";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_once(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("trigger_multiple", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_multiple";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_multiple(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("trigger_always", TriggersKt::triggerAlways);
+        spawns.put("trigger_once", TriggersKt::triggerOnce);
+        spawns.put("trigger_multiple", TriggersKt::triggerMultiple);
         addSpawnAdapter("trigger_relay", new EntThinkAdapter() {
             public String getID() {
                 return "SP_trigger_relay";
