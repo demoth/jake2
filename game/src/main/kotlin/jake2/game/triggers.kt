@@ -301,3 +301,53 @@ private val triggerKeyUse = registerUse("trigger_key_use") { self, other, activa
     GameUtil.G_UseTargets(self, activator, game)
     self.use = null
 }
+
+/**
+ * QUAKED trigger_push (.5 .5 .5) ?
+ * PUSH_ONCE
+ * Pushes the player
+ * "speed" defaults to 1000
+ */
+
+private const val PUSH_ONCE = 1
+
+fun triggerPush(self: SubgameEntity, game: GameExportsImpl) {
+    initTrigger(self, game)
+    game.windsound_index = game.gameImports.soundindex("misc/windfly.wav")
+    self.touch = triggerPushTouch
+    if (self.speed == 0f)
+        self.speed = 1000f
+    game.gameImports.linkentity(self)
+}
+
+private val triggerPushTouch = registerTouch("trigger_push_touch") { self, other, plane, surf, game ->
+    if ("grenade" == other.classname) {
+        Math3D.VectorScale(self.movedir, self.speed * 10, other.velocity)
+    } else if (other.health > 0) {
+        Math3D.VectorScale(self.movedir, self.speed * 10, other.velocity)
+        val player = other.client
+        if (player != null) {
+            // don't take falling damage immediately from this
+            Math3D.VectorCopy(other.velocity, player.oldvelocity)
+            if (other.fly_sound_debounce_time < game.level.time) {
+                other.fly_sound_debounce_time = game.level.time + 1.5f
+                game.gameImports.sound(
+                    other, Defines.CHAN_AUTO, game.windsound_index,
+                    1f, Defines.ATTN_NORM.toFloat(), 0f
+                )
+            }
+        }
+    }
+    // fixme: should it be inside the player branch above?
+    if (self.hasSpawnFlag(PUSH_ONCE))
+        game.freeEntity(self)
+}
+
+fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
+    if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
+        GameBase.G_SetMovedir(self.s.angles, self.movedir)
+    self.solid = Defines.SOLID_TRIGGER
+    self.movetype = GameDefines.MOVETYPE_NONE
+    game.gameImports.setmodel(self, self.model)
+    self.svflags = Defines.SVF_NOCLIENT
+}

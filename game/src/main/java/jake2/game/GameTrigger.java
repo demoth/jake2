@@ -29,37 +29,15 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Math3D;
+
+import static jake2.game.TriggersKt.initTrigger;
 
 class GameTrigger {
 
-    private static void InitTrigger(SubgameEntity self, GameExportsImpl gameExports) {
-        if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
-            GameBase.G_SetMovedir(self.s.angles, self.movedir);
+    static void SP_trigger_hurt(SubgameEntity self, GameExportsImpl game) {
+        initTrigger(self, game);
 
-        self.solid = Defines.SOLID_TRIGGER;
-        self.movetype = GameDefines.MOVETYPE_NONE;
-        gameExports.gameImports.setmodel(self, self.model);
-        self.svflags = Defines.SVF_NOCLIENT;
-    }
-
-    /*
-     * QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE Pushes the player "speed"
-     * defaults to 1000
-     */
-    static void SP_trigger_push(SubgameEntity self, GameExportsImpl gameExports) {
-        InitTrigger(self, gameExports);
-        gameExports.windsound_index = gameExports.gameImports.soundindex("misc/windfly.wav");
-        self.touch = trigger_push_touch;
-        if (0 == self.speed)
-            self.speed = 1000;
-        gameExports.gameImports.linkentity(self);
-    }
-
-    static void SP_trigger_hurt(SubgameEntity self, GameExportsImpl gameExports) {
-        InitTrigger(self, gameExports);
-
-        self.noise_index = gameExports.gameImports.soundindex("world/electro.wav");
+        self.noise_index = game.gameImports.soundindex("world/electro.wav");
         self.touch = hurt_touch;
 
         if (0 == self.dmg)
@@ -73,7 +51,7 @@ class GameTrigger {
         if ((self.spawnflags & 2) != 0)
             self.use = hurt_use;
 
-        gameExports.gameImports.linkentity(self);
+        game.gameImports.linkentity(self);
     }
 
     static void SP_trigger_gravity(SubgameEntity self, GameExportsImpl gameExports) {
@@ -84,7 +62,7 @@ class GameTrigger {
             return;
         }
 
-        InitTrigger(self, gameExports);
+        initTrigger(self, gameExports);
         self.gravity = Lib.atoi(self.st.gravity);
         self.touch = trigger_gravity_touch;
     }
@@ -96,48 +74,10 @@ class GameTrigger {
             self.st.height = 200;
         if (self.s.angles[Defines.YAW] == 0)
             self.s.angles[Defines.YAW] = 360;
-        InitTrigger(self, gameExports);
+        initTrigger(self, gameExports);
         self.touch = trigger_monsterjump_touch;
         self.movedir[2] = self.st.height;
     }
-
-    /*
-     * ==============================================================================
-     * 
-     * trigger_push
-     * 
-     * ==============================================================================
-     */
-
-    private static final int PUSH_ONCE = 1;
-
-    private static EntTouchAdapter trigger_push_touch = new EntTouchAdapter() {
-    	public String getID(){ return "trigger_push_touch"; }
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            if ("grenade".equals(other.classname)) {
-                Math3D.VectorScale(self.movedir, self.speed * 10,
-                        other.velocity);
-            } else if (other.health > 0) {
-                Math3D.VectorScale(self.movedir, self.speed * 10,
-                        other.velocity);
-
-                gclient_t otherClient = other.getClient();
-                if (otherClient != null) {
-                    // don't take falling damage immediately from this
-                    Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);
-                    if (other.fly_sound_debounce_time < gameExports.level.time) {
-                        other.fly_sound_debounce_time = gameExports.level.time + 1.5f;
-                        gameExports.gameImports.sound(other, Defines.CHAN_AUTO, gameExports.windsound_index,
-                                1, Defines.ATTN_NORM, 0);
-                    }
-                }
-            }
-            if ((self.spawnflags & PUSH_ONCE) != 0)
-                gameExports.freeEntity(self);
-        }
-    };
-
 
     /**
      * QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION
