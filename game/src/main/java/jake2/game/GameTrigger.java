@@ -28,7 +28,6 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
-import jake2.qcommon.util.Lib;
 
 import static jake2.game.TriggersKt.initTrigger;
 
@@ -52,19 +51,6 @@ class GameTrigger {
             self.use = hurt_use;
 
         game.gameImports.linkentity(self);
-    }
-
-    static void SP_trigger_gravity(SubgameEntity self, GameExportsImpl gameExports) {
-        if (self.st.gravity == null) {
-            gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        initTrigger(self, gameExports);
-        self.gravity = Lib.atoi(self.st.gravity);
-        self.touch = trigger_gravity_touch;
     }
 
     static void SP_trigger_monsterjump(SubgameEntity self, GameExportsImpl gameExports) {
@@ -136,28 +122,6 @@ class GameTrigger {
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
                     dflags, GameDefines.MOD_TRIGGER_HURT, gameExports);
-        }
-    };
-
-    /*
-     * ==============================================================================
-     * 
-     * trigger_gravity
-     * 
-     * ==============================================================================
-     */
-
-    /**
-     * QUAKED trigger_gravity (.5 .5 .5) ? Changes the touching entites gravity
-     * to the value of "gravity". 1.0 is standard gravity for the level.
-     */
-
-    private static EntTouchAdapter trigger_gravity_touch = new EntTouchAdapter() {
-    	public String getID(){ return "trigger_gravity_touch"; }
-
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            other.gravity = self.gravity;
         }
     };
 

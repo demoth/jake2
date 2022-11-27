@@ -343,6 +343,25 @@ private val triggerPushTouch = registerTouch("trigger_push_touch") { self, other
         game.freeEntity(self)
 }
 
+/**
+ * QUAKED trigger_gravity (.5 .5 .5) ? Changes the touching entity's gravity
+ * to the value of "gravity". 1.0 is standard gravity for the level.
+ */
+fun triggerGravity(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.st.gravity == null) {
+        game.gameImports.dprintf("trigger_gravity without gravity set at ${Lib.vtos(self.s.origin)}\n")
+        game.freeEntity(self)
+        return
+    }
+    initTrigger(self, game)
+    self.gravity = Lib.atoi(self.st.gravity).toFloat()
+    self.touch = triggerGravityTouch
+}
+
+private val triggerGravityTouch = registerTouch("trigger_gravity_touch") { self, other, _, _, _ ->
+    other.gravity = self.gravity
+}
+
 fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
     if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
         GameBase.G_SetMovedir(self.s.angles, self.movedir)
