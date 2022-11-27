@@ -559,36 +559,14 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("info_null", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_info_null";
-            }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_info_null(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("func_group", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_info_null";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_info_null(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("info_notnull", new EntThinkAdapter() {
-            public String getID() {
-                return "info_notnull";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_info_notnull(ent);
-                return true;
-            }
-        });
+        /*
+         * QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
+         * Used as a positional target for spotlights, etc.
+         */
+        spawns.put("info_null", (self, game) -> game.freeEntity(self));
+        spawns.put("func_group", (self, game) -> game.freeEntity(self));
+        spawns.put("info_notnull", InfoEntitiesKt::infoNotNull);
         addSpawnAdapter("path_corner", new EntThinkAdapter() {
             public String getID() {
                 return "SP_path_corner";

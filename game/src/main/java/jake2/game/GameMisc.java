@@ -80,23 +80,6 @@ public class GameMisc {
         ent.think.action = TH_viewthing;
     }
 
-    /*
-     * QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4) Used as a positional target
-     * for spotlights, etc.
-     */
-    static void SP_info_null(SubgameEntity self, GameExportsImpl gameExports) {
-        gameExports.freeEntity(self);
-    };
-
-    /*
-     * QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4) Used as a positional
-     * target for lightning.
-     */
-    static void SP_info_notnull(SubgameEntity self) {
-        Math3D.VectorCopy(self.s.origin, self.absmin);
-        Math3D.VectorCopy(self.s.origin, self.absmax);
-    };
-
     static void SP_light(SubgameEntity self, GameExportsImpl gameExports) {
         // no targeted lights in deathmatch, because they cause global messages
         if (null == self.targetname || gameExports.gameCvars.deathmatch.value != 0) {
