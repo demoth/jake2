@@ -83,17 +83,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_info_player_start = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_info_player_start";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            PlayerClient.SP_info_player_start(ent, gameExports);
-            return true;
-        }
-    };
-
     private static EntThinkAdapter SP_info_player_deathmatch = new EntThinkAdapter() {
         public String getID() {
             return "SP_info_player_deathmatch";
@@ -361,7 +350,7 @@ public class GameSpawn {
         addSpawnAdapter("item_health_small", SP_item_health_small);
         addSpawnAdapter("item_health_large", SP_item_health_large);
         addSpawnAdapter("item_health_mega", SP_item_health_mega);
-        addSpawnAdapter("info_player_start", SP_info_player_start);
+        spawns.put("info_player_start", InfoEntitiesKt::infoPlayerStart);
         addSpawnAdapter("info_player_deathmatch", SP_info_player_deathmatch);
         addSpawnAdapter("info_player_coop", SP_info_player_coop);
         addSpawnAdapter("info_player_intermission", SP_info_player_intermission);
