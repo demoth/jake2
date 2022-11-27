@@ -494,3 +494,4 @@ private fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
     game.gameImports.setmodel(self, self.model)
     self.svflags = Defines.SVF_NOCLIENT
 }
+

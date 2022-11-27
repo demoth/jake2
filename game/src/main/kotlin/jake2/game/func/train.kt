@@ -246,7 +246,7 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
 
 }
 
-fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
+private fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     val dest = floatArrayOf(0f, 0f, 0f)
     val ent = self.target_ent
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
@@ -255,4 +255,56 @@ fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     Math3D.VectorCopy(dest, self.moveinfo.end_origin)
     startMovement(self, dest, trainWait, game!!)
     self.setSpawnFlag(TRAIN_START_ON)
+}
+
+/*
+ * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
+ *
+ * A special trigger used together with the train entity.
+ * todo: describe
+ */
+fun triggerElevator(self: SubgameEntity, game: GameExportsImpl) {
+    self.think.action = triggerElevatorCheckTargets
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+}
+
+private val triggerElevatorCheckTargets = registerThink("trigger_elevator_init") { self, game ->
+    if (self.target == null) {
+        game.gameImports.dprintf("trigger_elevator has no target\n")
+        return@registerThink true
+    }
+    self.movetarget = GameBase.G_PickTarget(self.target, game)
+    if (self.movetarget == null) {
+        game.gameImports.dprintf("trigger_elevator unable to find target ${self.target}\n")
+        return@registerThink true
+    }
+    if ("func_train" != self.movetarget.classname) {
+        game.gameImports.dprintf("trigger_elevator target ${self.target} is not a train\n")
+        return@registerThink true
+    }
+
+    self.use = triggerElevatorUse
+    self.svflags = Defines.SVF_NOCLIENT
+    true
+}
+
+private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, other, activator, game ->
+    if (self.movetarget.think.nextTime != 0f) {
+        // elevator busy
+        return@registerUse
+    }
+
+    if (other?.pathtarget == null) {
+        game.gameImports.dprintf("elevator used with no pathtarget\n")
+        return@registerUse
+    }
+
+    val target = GameBase.G_PickTarget(other.pathtarget, game)
+    if (target == null) {
+        game.gameImports.dprintf("elevator used with bad pathtarget: ${other.pathtarget}\n")
+        return@registerUse
+    }
+
+    self.movetarget.target_ent = target
+    trainResume(self.movetarget, game)
 }

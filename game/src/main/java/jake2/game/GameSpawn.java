@@ -389,7 +389,7 @@ public class GameSpawn {
         spawns.put("trigger_hurt", TriggersKt::triggerHurt);
         spawns.put("trigger_key", TriggersKt::triggerKey);
         spawns.put("trigger_counter", TriggersKt::triggerCounter);
-        addSpawnAdapter("trigger_elevator", GameFunc.SP_trigger_elevator);
+        spawns.put("trigger_elevator", TrainKt::triggerElevator);
         spawns.put("trigger_gravity", TriggersKt::triggerGravity);
         spawns.put("trigger_monsterjump", TriggersKt::triggerMonsterJump);
         addSpawnAdapter("target_temp_entity", new EntThinkAdapter() {
