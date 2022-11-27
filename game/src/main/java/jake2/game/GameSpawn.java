@@ -386,16 +386,7 @@ public class GameSpawn {
         spawns.put("trigger_multiple", TriggersKt::triggerMultiple);
         spawns.put("trigger_relay", TriggersKt::triggerRelay);
         spawns.put("trigger_push", TriggersKt::triggerPush);
-        addSpawnAdapter("trigger_hurt", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_hurt";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_hurt(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("trigger_hurt", TriggersKt::triggerHurt);
         spawns.put("trigger_key", TriggersKt::triggerKey);
         spawns.put("trigger_counter", TriggersKt::triggerCounter);
         addSpawnAdapter("trigger_elevator", GameFunc.SP_trigger_elevator);

@@ -23,9 +23,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntTouchAdapter;
-import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
 
@@ -33,25 +31,6 @@ import static jake2.game.TriggersKt.initTrigger;
 
 class GameTrigger {
 
-    static void SP_trigger_hurt(SubgameEntity self, GameExportsImpl game) {
-        initTrigger(self, game);
-
-        self.noise_index = game.gameImports.soundindex("world/electro.wav");
-        self.touch = hurt_touch;
-
-        if (0 == self.dmg)
-            self.dmg = 5;
-
-        if ((self.spawnflags & 1) != 0)
-            self.solid = Defines.SOLID_NOT;
-        else
-            self.solid = Defines.SOLID_TRIGGER;
-
-        if ((self.spawnflags & 2) != 0)
-            self.use = hurt_use;
-
-        game.gameImports.linkentity(self);
-    }
 
     static void SP_trigger_monsterjump(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.speed)
@@ -65,65 +44,6 @@ class GameTrigger {
         self.movedir[2] = self.st.height;
     }
 
-    /**
-     * QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION
-     * SLOW Any entity that touches this will be hurt.
-     * 
-     * It does dmg points of damage each server frame
-     * 
-     * SILENT supresses playing the sound SLOW changes the damage rate to once
-     * per second NO_PROTECTION *nothing* stops the damage
-     * 
-     * "dmg" default 5 (whole numbers only)
-     *  
-     */
-    private static EntUseAdapter hurt_use = new EntUseAdapter() {
-    	public String getID(){ return "hurt_use"; }
-
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (self.solid == Defines.SOLID_NOT)
-                self.solid = Defines.SOLID_TRIGGER;
-            else
-                self.solid = Defines.SOLID_NOT;
-            gameExports.gameImports.linkentity(self);
-
-            if (0 == (self.spawnflags & 2))
-                self.use = null;
-        }
-    };
-
-    private static EntTouchAdapter hurt_touch = new EntTouchAdapter() {
-    	public String getID(){ return "hurt_touch"; }
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            int dflags;
-
-            if (other.takedamage == 0)
-                return;
-
-            if (self.timestamp > gameExports.level.time)
-                return;
-
-            if ((self.spawnflags & 16) != 0)
-                self.timestamp = gameExports.level.time + 1;
-            else
-                self.timestamp = gameExports.level.time + Defines.FRAMETIME;
-
-            if (0 == (self.spawnflags & 4)) {
-                if ((gameExports.level.framenum % 10) == 0)
-                    gameExports.gameImports.sound(other, Defines.CHAN_AUTO,
-                            self.noise_index, 1, Defines.ATTN_NORM, 0);
-            }
-
-            if ((self.spawnflags & 8) != 0)
-                dflags = DamageFlags.DAMAGE_NO_PROTECTION;
-            else
-                dflags = 0;
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
-                    dflags, GameDefines.MOD_TRIGGER_HURT, gameExports);
-        }
-    };
 
     /*
      * ==============================================================================

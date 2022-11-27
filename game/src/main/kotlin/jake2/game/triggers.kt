@@ -5,6 +5,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.items.GameItems
 import jake2.qcommon.Defines
+import jake2.qcommon.Defines.DAMAGE_NO
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
@@ -360,6 +361,88 @@ fun triggerGravity(self: SubgameEntity, game: GameExportsImpl) {
 
 private val triggerGravityTouch = registerTouch("trigger_gravity_touch") { self, other, _, _, _ ->
     other.gravity = self.gravity
+}
+
+/**
+ * QUAKED trigger_hurt (.5 .5 .5) ?
+ * START_OFF
+ * TOGGLE
+ * SILENT
+ * NO_PROTECTION
+ * SLOW
+ * Any entity that touches this will be hurt. It does dmg points of damage each server frame
+ *
+ * SILENT supresses playing the sound.
+ * SLOW changes the damage rate to once per second.
+ * NO_PROTECTION *nothing* stops the damage.
+ *
+ * "dmg" default 5 (whole numbers only)
+ *
+ */
+private const val START_OFF = 1
+private const val TOGGLE = 2
+private const val SILENT = 4
+private const val NO_PROTECTION = 8
+private const val SLOW = 16
+fun triggerHurt(self: SubgameEntity, game: GameExportsImpl) {
+    initTrigger(self, game)
+    self.noise_index = game.gameImports.soundindex("world/electro.wav")
+    self.touch = triggerHurtTouch
+    if (self.dmg == 0)
+        self.dmg = 5
+
+    if (self.hasSpawnFlag(START_OFF))
+        self.solid = Defines.SOLID_NOT
+    else
+        self.solid = Defines.SOLID_TRIGGER
+
+    if (self.hasSpawnFlag(TOGGLE))
+        self.use = triggerHurtUse
+    game.gameImports.linkentity(self)
+}
+
+private val triggerHurtTouch = registerTouch("hurt_touch") { self, other, plane, surf, game ->
+    if (other.takedamage == DAMAGE_NO)
+        return@registerTouch
+
+    if (self.timestamp > game.level.time)
+        return@registerTouch
+
+    if (self.hasSpawnFlag(SLOW))
+        self.timestamp = game.level.time + 1
+    else
+        self.timestamp = game.level.time + Defines.FRAMETIME
+
+    if (!self.hasSpawnFlag(SILENT)) {
+        if (game.level.framenum % 10 == 0)
+            game.gameImports.sound(
+                other, Defines.CHAN_AUTO,
+                self.noise_index, 1f,
+                Defines.ATTN_NORM.toFloat(), 0f
+            )
+    }
+
+    val dflags: Int = if (self.hasSpawnFlag(NO_PROTECTION)) DamageFlags.DAMAGE_NO_PROTECTION else 0
+    GameCombat.T_Damage(
+        other, self, self, Globals.vec3_origin,
+        other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
+        dflags, GameDefines.MOD_TRIGGER_HURT, game
+    )
+}
+
+private val triggerHurtUse = registerUse("hurt_use") { self, other, activator, game ->
+    if (self.solid == Defines.SOLID_NOT)
+        self.solid = Defines.SOLID_TRIGGER
+    else
+        self.solid = Defines.SOLID_NOT
+
+    // todo: fix from yamagi quake for monsters spawning inside the trigger_hurt
+
+    game.gameImports.linkentity(self)
+
+    if (!self.hasSpawnFlag(TOGGLE))
+        self.use = null
+
 }
 
 fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {

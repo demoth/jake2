@@ -1,6 +1,6 @@
 package jake2.game
 
-fun SubgameEntity.hasSpawnFlag(flag: Int) = spawnflags and flag != 0
+infix fun SubgameEntity.hasSpawnFlag(flag: Int) = spawnflags and flag != 0
 
 fun SubgameEntity.setSpawnFlag(flag: Int) {
     spawnflags = spawnflags or flag
