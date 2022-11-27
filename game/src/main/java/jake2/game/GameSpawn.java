@@ -83,17 +83,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_info_player_intermission";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            PlayerClient.SP_info_player_intermission();
-            return true;
-        }
-    };
-
     private static final String single_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
@@ -331,7 +320,7 @@ public class GameSpawn {
         spawns.put("info_player_start", InfoEntitiesKt::infoPlayerStart);
         spawns.put("info_player_deathmatch", InfoEntitiesKt::infoPlayerDeathmatch);
         spawns.put("info_player_coop", InfoEntitiesKt::infoPlayerCoop);
-        addSpawnAdapter("info_player_intermission", SP_info_player_intermission);
+        spawns.put("info_player_intermission", (self, game) -> {});
         spawns.put("func_plat", PlatKt::funcPlat);
         spawns.put("func_button", ButtonKt::funcButton);
         spawns.put("func_door", DoorKt::funcDoor);
