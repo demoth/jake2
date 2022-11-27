@@ -94,17 +94,6 @@ public class GameSpawn {
         }
     };
 
-    private static EntThinkAdapter SP_info_player_coop = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_info_player_coop";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            PlayerClient.SP_info_player_coop(ent, gameExports);
-            return true;
-        }
-    };
-
     private static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {
         public String getID() {
             return "SP_info_player_intermission";
@@ -352,7 +341,7 @@ public class GameSpawn {
         addSpawnAdapter("item_health_mega", SP_item_health_mega);
         spawns.put("info_player_start", InfoEntitiesKt::infoPlayerStart);
         addSpawnAdapter("info_player_deathmatch", SP_info_player_deathmatch);
-        addSpawnAdapter("info_player_coop", SP_info_player_coop);
+        spawns.put("info_player_coop", InfoEntitiesKt::infoPlayerCoop);
         addSpawnAdapter("info_player_intermission", SP_info_player_intermission);
         spawns.put("func_plat", PlatKt::funcPlat);
         spawns.put("func_button", ButtonKt::funcButton);
