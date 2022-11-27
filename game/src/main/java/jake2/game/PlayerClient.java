@@ -167,20 +167,6 @@ public class PlayerClient {
 
 
     /**
-     * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) potential
-     * spawning position for deathmatch games.
-     */
-    public static void SP_info_player_deathmatch(SubgameEntity self, GameExportsImpl gameExports) {
-        if (0 == gameExports.gameCvars.deathmatch.value) {
-            gameExports.freeEntity(self);
-            return;
-        }
-        GameMisc.SP_misc_teleporter_dest.think(self, gameExports);
-    }
-
-
-
-    /**
      * QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32) The
      * deathmatch intermission point will be at one of these Use 'angles'
      * instead of 'angle', so you can set pitch or roll as well as yaw. 'pitch

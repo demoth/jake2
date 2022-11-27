@@ -117,3 +117,16 @@ private val createCoopStartHack = registerThink("SP_CreateCoopSpots") { _, game 
     }
     true
 }
+
+/**
+ * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
+ * A potential spawning position for deathmatch games.
+ */
+fun infoPlayerDeathmatch(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.gameCvars.deathmatch.value == 0f) {
+        game.freeEntity(self)
+        return
+    }
+    // deathmatch (re)spawnpoints have a distinct model
+    GameMisc.SP_misc_teleporter_dest.think(self, game)
+}
