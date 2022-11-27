@@ -139,3 +139,12 @@ fun infoPlayerDeathmatch(self: SubgameEntity, game: GameExportsImpl) {
  *
  * Does not contain any special code
  */
+
+/**
+ * QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
+ * Used as a positional target for lightning.
+ */
+fun infoNotNull(self: SubgameEntity, game: GameExportsImpl) {
+    Math3D.VectorCopy(self.s.origin, self.absmin)
+    Math3D.VectorCopy(self.s.origin, self.absmax)
+}
