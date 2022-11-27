@@ -445,7 +445,48 @@ private val triggerHurtUse = registerUse("hurt_use") { self, other, activator, g
 
 }
 
-fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
+
+/**
+ * QUAKED trigger_monsterjump (.5 .5 .5) ?
+ * Walking monsters that touch this will jump in the direction of the trigger's angle
+ *
+ * "speed" default to 200, the speed thrown forward
+ * "height" default to 200, the speed thrown upwards
+ */
+fun triggerMonsterJump(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.speed == 0f)
+        self.speed = 200f
+
+    if (self.st.height == 0)
+        self.st.height = 200
+
+    if (self.s.angles[Defines.YAW] == 0f)
+        self.s.angles[Defines.YAW] = 360f
+    initTrigger(self, game)
+    self.touch = triggerMonsterJumpTouch
+    self.movedir[2] = self.st.height.toFloat()
+}
+
+private val triggerMonsterJumpTouch = registerTouch("trigger_monsterjump_touch") { self, other, plane, surf, game ->
+    if (other.flags and (GameDefines.FL_FLY or GameDefines.FL_SWIM) != 0)
+        return@registerTouch
+    if (other.svflags and Defines.SVF_DEADMONSTER != 0)
+        return@registerTouch
+    if (other.svflags and Defines.SVF_MONSTER == 0)
+        return@registerTouch
+
+    // set XY even if not on ground, so the jump will clear lips
+    other.velocity[0] = self.movedir[0] * self.speed
+    other.velocity[1] = self.movedir[1] * self.speed
+
+    if (other.groundentity != null)
+        return@registerTouch
+
+    other.velocity[2] = self.movedir[2]
+
+}
+
+private fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
     if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
         GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.solid = Defines.SOLID_TRIGGER

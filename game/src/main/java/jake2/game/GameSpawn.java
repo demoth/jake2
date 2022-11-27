@@ -391,16 +391,7 @@ public class GameSpawn {
         spawns.put("trigger_counter", TriggersKt::triggerCounter);
         addSpawnAdapter("trigger_elevator", GameFunc.SP_trigger_elevator);
         spawns.put("trigger_gravity", TriggersKt::triggerGravity);
-        addSpawnAdapter("trigger_monsterjump", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_trigger_monsterjump";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_monsterjump(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("trigger_monsterjump", TriggersKt::triggerMonsterJump);
         addSpawnAdapter("target_temp_entity", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_temp_entity";
