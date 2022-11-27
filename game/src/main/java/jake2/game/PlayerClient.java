@@ -174,38 +174,7 @@ public class PlayerClient {
             }
         }
     };
-    static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
-    	public String getID() { return "SP_CreateCoopSpots"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
-                SubgameEntity spot = gameExports.G_Spawn();
-                spot.classname = "info_player_coop";
-                spot.s.origin[0] = 188 - 64;
-                spot.s.origin[1] = -164;
-                spot.s.origin[2] = 80;
-                spot.targetname = "jail3";
-                spot.s.angles[1] = 90;
-
-                spot = gameExports.G_Spawn();
-                spot.classname = "info_player_coop";
-                spot.s.origin[0] = 188 + 64;
-                spot.s.origin[1] = -164;
-                spot.s.origin[2] = 80;
-                spot.targetname = "jail3";
-                spot.s.angles[1] = 90;
-
-                spot = gameExports.G_Spawn();
-                spot.classname = "info_player_coop";
-                spot.s.origin[0] = 188 + 128;
-                spot.s.origin[1] = -164;
-                spot.s.origin[2] = 80;
-                spot.targetname = "jail3";
-                spot.s.angles[1] = 90;
-            }
-            return true;
-        }
-    };
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
     	public String getID() { return "player_pain"; }
@@ -232,19 +201,6 @@ public class PlayerClient {
         }
     };
 
-    /**
-     * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
-     * starting point for a level.
-     */
-    public static void SP_info_player_start(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.coop.value == 0)
-            return;
-        if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
-            // invoke one of our gross, ugly, disgusting hacks
-            self.think.action = PlayerClient.SP_CreateCoopSpots;
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        }
-    }
 
     /**
      * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) potential
