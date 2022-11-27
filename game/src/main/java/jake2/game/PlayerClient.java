@@ -24,7 +24,6 @@ package jake2.game;
 
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
-import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
@@ -139,41 +138,6 @@ public class PlayerClient {
             gameExports.gameImports.linkentity(self);
         }
     };
-    static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
-    	public String getID() { return "SP_FixCoopSpots"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            float[] d = { 0, 0, 0 };
-
-            SubgameEntity spot;
-            EdictIterator es = null;
-    
-            while (true) {
-                es = GameBase.G_Find(es, GameBase.findByClassName,
-                        "info_player_start", gameExports);
-    
-                if (es == null)
-                    return true;
-                
-                spot = es.o;
-                
-                if (spot.targetname == null)
-                    continue;
-                Math3D.VectorSubtract(self.s.origin, spot.s.origin, d);
-                if (Math3D.VectorLength(d) < 384) {
-                    if ((self.targetname == null)
-                            || Lib.Q_stricmp(self.targetname, spot.targetname) != 0) {
-                        // gi.dprintf("FixCoopSpots changed %s at %s targetname
-                        // from %s to %s\n", self.classname,
-                        // vtos(self.s.origin), self.targetname,
-                        // spot.targetname);
-                        self.targetname = spot.targetname;
-                    }
-                    return true;
-                }
-            }
-        }
-    };
 
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
@@ -214,36 +178,7 @@ public class PlayerClient {
         GameMisc.SP_misc_teleporter_dest.think(self, gameExports);
     }
 
-    /**
-     * QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32) potential
-     * spawning position for coop games.
-     */
 
-    public static void SP_info_player_coop(SubgameEntity self, GameExportsImpl gameExports) {
-        if (0 == gameExports.gameCvars.coop.value) {
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        if ((Lib.Q_stricmp(gameExports.level.mapname, "jail2") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "jail4") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "mine1") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "mine2") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "mine3") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "mine4") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "lab") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "boss1") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "fact3") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "biggun") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "space") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "command") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "power2") == 0)
-                || (Lib.Q_stricmp(gameExports.level.mapname, "strike") == 0)) {
-            // invoke one of our gross, ugly, disgusting hacks
-            self.think.action = PlayerClient.SP_FixCoopSpots;
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        }
-    }
 
     /**
      * QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32) The
