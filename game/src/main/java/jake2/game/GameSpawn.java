@@ -349,16 +349,7 @@ public class GameSpawn {
         spawns.put("trigger_gravity", TriggersKt::triggerGravity);
         spawns.put("trigger_monsterjump", TriggersKt::triggerMonsterJump);
         spawns.put("target_temp_entity", TargetEntitiesKt::targetTempEntity);
-        addSpawnAdapter("target_speaker", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_speaker";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_speaker(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_speaker", TargetEntitiesKt::targetSpeaker);
         addSpawnAdapter("target_explosion", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_explosion";

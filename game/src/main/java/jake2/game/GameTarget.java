@@ -37,41 +37,6 @@ import jake2.qcommon.util.Math3D;
 class GameTarget {
 
 
-    static void SP_target_speaker(SubgameEntity ent, GameExportsImpl gameExports) {
-        //char buffer[MAX_QPATH];
-        String buffer;
-
-        if (ent.st.noise == null) {
-            gameExports.gameImports.dprintf("target_speaker with no noise set at "
-                    + Lib.vtos(ent.s.origin) + "\n");
-            return;
-        }
-        if (!ent.st.noise.contains(".wav"))
-            buffer = "" + ent.st.noise + ".wav";
-        else
-            buffer = ent.st.noise;
-
-        ent.noise_index = gameExports.gameImports.soundindex(buffer);
-
-        if (ent.volume == 0)
-            ent.volume = 1.0f;
-
-        if (ent.attenuation == 0)
-            ent.attenuation = 1.0f;
-        else if (ent.attenuation == -1) // use -1 so 0 defaults to 1
-            ent.attenuation = 0;
-
-        // check for prestarted looping sound
-        if ((ent.spawnflags & 1) != 0)
-            ent.s.sound = ent.noise_index;
-
-        ent.use = Use_Target_Speaker;
-
-        // must link the entity so we get areas and clusters so
-        // the server can determine who to send updates to
-        gameExports.gameImports.linkentity(ent);
-    }
-
     /**
      * QUAKED target_help (1 0 1) (-16 -16 -24) (16 16 24) help1 When fired, the
      * "message" key becomes the current personal computer string, and the
@@ -273,44 +238,6 @@ class GameTarget {
 
         self.noise_index = gameExports.gameImports.soundindex("world/quake.wav");
     }
-
-    /**
-     * QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off
-     * reliable "noise" wav file to play "attenuation" -1 = none, send to whole
-     * level 1 = normal fighting sounds 2 = idle sound level 3 = ambient sound
-     * level "volume" 0.0 to 1.0
-     * 
-     * Normal sounds play each time the target is used. The reliable flag can be
-     * set for crucial voiceovers.
-     * 
-     * Looped sounds are always atten 3 / vol 1, and the use function toggles it
-     * on/off. Multiple identical looping sounds will just increase volume
-     * without any speed cost.
-     */
-    private static EntUseAdapter Use_Target_Speaker = new EntUseAdapter() {
-    	public String getID() { return "Use_Target_Speaker"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            int chan;
-
-            if ((ent.spawnflags & 3) != 0) { // looping sound toggles
-                if (ent.s.sound != 0)
-                    ent.s.sound = 0; // turn it off
-                else
-                    ent.s.sound = ent.noise_index; // start it
-            } else { // normal sound
-                if ((ent.spawnflags & 4) != 0)
-                    chan = Defines.CHAN_VOICE | Defines.CHAN_RELIABLE;
-                else
-                    chan = Defines.CHAN_VOICE;
-                // use a positioned_sound, because this entity won't normally be
-                // sent to any clients because it is invisible
-                gameExports.gameImports.positioned_sound(ent.s.origin, ent, chan,
-                        ent.noise_index, ent.volume, ent.attenuation, 0);
-            }
-
-        }
-    };
-
 
     private static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Help"; }
