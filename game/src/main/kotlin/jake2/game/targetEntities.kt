@@ -119,3 +119,40 @@ private val targetExplosionExplode = registerThink("target_explosion_explode") {
     self.delay = delay
     true
 }
+
+/**
+ * QUAKED target_secret (1 0 1) (-8 -8 -8) (8 8 8)
+ * Counts a secret found.
+ * These are single use targets.
+ */
+fun targetSecret(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
+        game.freeEntity(self)
+        return
+    }
+    self.use = targetSecretUse
+    if (self.st.noise == null)
+        self.st.noise = "misc/secret.wav"
+    self.noise_index = game.gameImports.soundindex(self.st.noise)
+    self.svflags = Defines.SVF_NOCLIENT
+    game.level.total_secrets++
+
+    // map bug hack
+    if ("mine3" == game.level.mapname
+        && self.s.origin[0] == 280f
+        && self.s.origin[1] == -2048f
+        && self.s.origin[2] == -624f
+    ) {
+        self.message = "You have found a secret area."
+    }
+}
+
+private val targetSecretUse = registerUse("use_target_explosion") { self, _, activator, game ->
+    game.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+
+    game.level.found_secrets++
+
+    GameUtil.G_UseTargets(self, activator, game)
+    game.freeEntity(self)
+}
+
