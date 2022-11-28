@@ -7,6 +7,7 @@ import jake2.qcommon.network.MulticastTypes
 import jake2.qcommon.network.messages.server.PointTEMessage
 import jake2.qcommon.network.messages.server.SplashTEMessage
 import jake2.qcommon.util.Lib
+import jake2.qcommon.util.Math3D
 
 /**
  * QUAKED target_temp_entity (1 0 0) (-8 -8 -8) (8 8 8) 
@@ -196,7 +197,7 @@ private val targetGoalUse = registerUse("use_target_goal") { self, _, activator,
  * "count" how many pixels in the splash (32 by default)
  * "dmg" if set, does a radius damage at this location when it splashes useful for lava/sparks
  */
-fun targetSplash(self: SubgameEntity, game: GameExportsImpl?) {
+fun targetSplash(self: SubgameEntity, game: GameExportsImpl) {
     self.use = targetSplashUse
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     if (0 == self.count)
@@ -222,3 +223,36 @@ private val targetSplashUse = registerUse("use_target_splash") { self, _, activa
             gameExports
         )
 }
+
+/**
+ * QUAKED target_spawner (1 0 0) (-8 -8 -8) (8 8 8) 
+ * Set target to the type of entity you want spawned. 
+ * Useful for spawning monsters and gibs in the factory levels.
+ *
+ * For monsters: Set direction to the facing you want it to have.
+ *
+ * For gibs: Set direction if you want it moving and speed how fast it
+ * should be moving otherwise it will just be dropped
+ */
+fun targetSpawner(self: SubgameEntity, game: GameExportsImpl) {
+    self.use = targetSpawnerUse
+    self.svflags = Defines.SVF_NOCLIENT
+    if (self.speed != 0f) {
+        GameBase.G_SetMovedir(self.s.angles, self.movedir)
+        Math3D.VectorScale(self.movedir, self.speed, self.movedir)
+    }
+}
+
+private val targetSpawnerUse = registerUse("use_target_spawner") { self, _, _, game ->
+    val ent: SubgameEntity = game.G_Spawn()
+    ent.classname = self.target
+    Math3D.VectorCopy(self.s.origin, ent.s.origin)
+    Math3D.VectorCopy(self.s.angles, ent.s.angles)
+    GameSpawn.ED_CallSpawn(ent, game)
+    game.gameImports.unlinkentity(ent)
+    GameUtil.KillBox(ent, game)
+    game.gameImports.linkentity(ent)
+    if (self.speed != 0f)
+        Math3D.VectorCopy(self.movedir, ent.velocity)
+}
+

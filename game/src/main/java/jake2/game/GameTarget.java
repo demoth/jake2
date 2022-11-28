@@ -73,15 +73,6 @@ class GameTarget {
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_spawner(SubgameEntity self) {
-        self.use = use_target_spawner;
-        self.svflags = Defines.SVF_NOCLIENT;
-        if (self.speed != 0) {
-            GameBase.G_SetMovedir(self.s.angles, self.movedir);
-            Math3D.VectorScale(self.movedir, self.speed, self.movedir);
-        }
-    }
-
     static void SP_target_blaster(SubgameEntity self, GameExportsImpl gameExports) {
         self.use = use_target_blaster;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
@@ -237,43 +228,6 @@ class GameTarget {
         }
     };
 
-    private static EntUseAdapter use_target_splash = new EntUseAdapter() {
-    	public String getID() { return "use_target_splash"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.multicastMessage(self.s.origin, new SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds), MulticastTypes.MULTICAST_PVS);
-
-            if (self.dmg != 0)
-                GameCombat.T_RadiusDamage(self, activator, self.dmg, null,self.dmg + 40, GameDefines.MOD_SPLASH, gameExports);
-        }
-    };
-
-    /**
-     * QUAKED target_spawner (1 0 0) (-8 -8 -8) (8 8 8) Set target to the type
-     * of entity you want spawned. Useful for spawning monsters and gibs in the
-     * factory levels.
-     * 
-     * For monsters: Set direction to the facing you want it to have.
-     * 
-     * For gibs: Set direction if you want it moving and speed how fast it
-     * should be moving otherwise it will just be dropped
-     */
-    private static EntUseAdapter use_target_spawner = new EntUseAdapter() {
-    	public String getID() { return "use_target_spawner"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            SubgameEntity ent;
-
-            ent = gameExports.G_Spawn();
-            ent.classname = self.target;
-            Math3D.VectorCopy(self.s.origin, ent.s.origin);
-            Math3D.VectorCopy(self.s.angles, ent.s.angles);
-            GameSpawn.ED_CallSpawn(ent, gameExports);
-            gameExports.gameImports.unlinkentity(ent);
-            GameUtil.KillBox(ent, gameExports);
-            gameExports.gameImports.linkentity(ent);
-            if (self.speed != 0)
-                Math3D.VectorCopy(self.movedir, ent.velocity);
-        }
-    };
 
     /**
      * QUAKED target_blaster (1 0 0) (-8 -8 -8) (8 8 8) NOTRAIL NOEFFECTS Fires
