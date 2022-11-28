@@ -256,3 +256,43 @@ private val targetSpawnerUse = registerUse("use_target_spawner") { self, _, _, g
         Math3D.VectorCopy(self.movedir, ent.velocity)
 }
 
+/**
+ * QUAKED target_blaster (1 0 0) (-8 -8 -8) (8 8 8) 
+ * NOTRAIL
+ * NOEFFECTS
+ * Fires a blaster bolt in the set direction when triggered.
+ *
+ * dmg default is 15 speed default is 1000
+ */
+private const val NO_TRAIL = 1
+private const val NO_EFFECTS = 2
+fun targetBlaster(self: SubgameEntity, game: GameExportsImpl) {
+    self.use = targetBlasterUse
+    GameBase.G_SetMovedir(self.s.angles, self.movedir)
+    self.noise_index = game.gameImports.soundindex("weapons/laser2.wav")
+    if (0 == self.dmg)
+        self.dmg = 15
+    if (0f == self.speed)
+        self.speed = 1000f
+    self.svflags = Defines.SVF_NOCLIENT
+}
+
+private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, game ->
+
+    // fixme
+    val effect: Int = if (self.hasSpawnFlag(NO_EFFECTS))
+        0
+    else if (self.hasSpawnFlag(NO_TRAIL))
+        Defines.EF_HYPERBLASTER
+    else
+        Defines.EF_BLASTER
+
+    GameWeapon.fire_blaster(
+        self, self.s.origin, self.movedir, self.dmg, self.speed.toInt(),
+        Defines.EF_BLASTER, 
+        self.hasSpawnFlag(NO_TRAIL), // fixed?
+        game
+    )
+
+    game.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+}

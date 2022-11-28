@@ -73,19 +73,6 @@ class GameTarget {
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_blaster(SubgameEntity self, GameExportsImpl gameExports) {
-        self.use = use_target_blaster;
-        GameBase.G_SetMovedir(self.s.angles, self.movedir);
-        self.noise_index = gameExports.gameImports.soundindex("weapons/laser2.wav");
-
-        if (0 == self.dmg)
-            self.dmg = 15;
-        if (0 == self.speed)
-            self.speed = 1000;
-
-        self.svflags = Defines.SVF_NOCLIENT;
-    }
-
     static void SP_target_crosslevel_trigger(SubgameEntity self) {
         self.svflags = Defines.SVF_NOCLIENT;
         self.use = trigger_crosslevel_trigger_use;

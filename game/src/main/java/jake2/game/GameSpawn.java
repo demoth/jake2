@@ -365,16 +365,7 @@ public class GameSpawn {
         spawns.put("target_goal", TargetEntitiesKt::targetGoal);
         spawns.put("target_splash", TargetEntitiesKt::targetSplash);
         spawns.put("target_spawner", TargetEntitiesKt::targetSpawner);
-        addSpawnAdapter("target_blaster", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_blaster";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_blaster(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_blaster", TargetEntitiesKt::targetBlaster);
         addSpawnAdapter("target_crosslevel_trigger", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_crosslevel_trigger";
