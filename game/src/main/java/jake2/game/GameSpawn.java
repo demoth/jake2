@@ -361,16 +361,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("target_secret", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_secret";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_secret(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_secret", TargetEntitiesKt::targetSecret);
         addSpawnAdapter("target_goal", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_goal";

@@ -56,25 +56,6 @@ class GameTarget {
         ent.use = Use_Target_Help;
     }
 
-    static void SP_target_secret(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        ent.use = use_target_secret;
-        if (ent.st.noise == null)
-            ent.st.noise = "misc/secret.wav";
-        ent.noise_index = gameExports.gameImports.soundindex(ent.st.noise);
-        ent.svflags = Defines.SVF_NOCLIENT;
-        gameExports.level.total_secrets++;
-        // map bug hack
-        if (0 == Lib.Q_stricmp(gameExports.level.mapname, "mine3")
-                && ent.s.origin[0] == 280 && ent.s.origin[1] == -2048
-                && ent.s.origin[2] == -624)
-            ent.message = "You have found a secret area.";
-    }
-
     static void SP_target_goal(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             gameExports.freeEntity(ent);
@@ -246,23 +227,6 @@ class GameTarget {
         }
     };
 
-    /**
-     * QUAKED target_secret (1 0 1) (-8 -8 -8) (8 8 8) Counts a secret found.
-     * These are single use targets.
-     */
-    private static EntUseAdapter use_target_secret = new EntUseAdapter() {
-    	public String getID() { return "use_target_secret"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
-                    Defines.ATTN_NORM, 0);
-
-            gameExports.level.found_secrets++;
-
-            GameUtil.G_UseTargets(ent, activator, gameExports);
-            gameExports.freeEntity(ent);
-        }
-    };
-    
     /**
      * QUAKED target_goal (1 0 1) (-8 -8 -8) (8 8 8) Counts a goal completed.
      * These are single use targets.
