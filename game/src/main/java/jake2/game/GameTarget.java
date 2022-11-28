@@ -24,18 +24,18 @@ package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.network.messages.server.SplashTEMessage;
+import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 class GameTarget {
 
-    static void SP_target_temp_entity(SubgameEntity ent) {
-        ent.use = Use_Target_Tent;
-    }
 
     static void SP_target_speaker(SubgameEntity ent, GameExportsImpl gameExports) {
         //char buffer[MAX_QPATH];
@@ -273,17 +273,6 @@ class GameTarget {
 
         self.noise_index = gameExports.gameImports.soundindex("world/quake.wav");
     }
-
-    /**
-     * QUAKED target_temp_entity (1 0 0) (-8 -8 -8) (8 8 8) Fire an origin based
-     * temp entity event to the clients. "style" type byte
-     */
-    private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
-    	public String getID() { return "Use_Target_Tent"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(ent.style, ent.s.origin), MulticastTypes.MULTICAST_PVS);
-        }
-    };
 
     /**
      * QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off
