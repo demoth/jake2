@@ -28,7 +28,6 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.network.messages.server.SplashTEMessage;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
@@ -88,11 +87,6 @@ class GameTarget {
         ent.noise_index = gameExports.gameImports.soundindex(ent.st.noise);
         ent.svflags = Defines.SVF_NOCLIENT;
         gameExports.level.total_goals++;
-    }
-
-    static void SP_target_explosion(SubgameEntity ent) {
-        ent.use = use_target_explosion;
-        ent.svflags = Defines.SVF_NOCLIENT;
     }
 
     static void SP_target_changelevel(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -286,48 +280,6 @@ class GameTarget {
 
             GameUtil.G_UseTargets(ent, activator, gameExports);
             gameExports.freeEntity(ent);
-        }
-    };
-
-
-    /**
-     * QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8) Spawns an explosion
-     * temporary entity when used.
-     * 
-     * "delay" wait this long before going off "dmg" how much radius damage
-     * should be done, defaults to 0
-     */
-    private static EntThinkAdapter target_explosion_explode = new EntThinkAdapter() {
-    	public String getID() { return "target_explosion_explode"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            float save;
-
-            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PHS);
-
-            GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, GameDefines.MOD_EXPLOSIVE, gameExports);
-
-            save = self.delay;
-            self.delay = 0;
-            GameUtil.G_UseTargets(self, self.activator, gameExports);
-            self.delay = save;
-            return true;
-        }
-    };
-
-    private static EntUseAdapter use_target_explosion = new EntUseAdapter() {
-    	public String getID() { return "use_target_explosion"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.activator = activator;
-
-            if (0 == self.delay) {
-                target_explosion_explode.think(self, gameExports);
-                return;
-            }
-
-            self.think.action = target_explosion_explode;
-            self.think.nextTime = gameExports.level.time + self.delay;
         }
     };
 

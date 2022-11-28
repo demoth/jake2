@@ -1,5 +1,6 @@
 package jake2.game
 
+import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.network.MulticastTypes
@@ -81,4 +82,40 @@ private val targetSpeakerUse = registerUse("Use_Target_Speaker") { self, _, _, g
         )
     }
 
+}
+
+/**
+ * QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8) 
+ * Spawns an explosion temporary entity when used.
+ *
+ * "delay" wait this long before going off "dmg" how much radius damage
+ * should be done, defaults to 0
+ */
+fun targetExplosion(self: SubgameEntity, game: GameExportsImpl) {
+    self.use = targetExplosionUse
+    self.svflags = Defines.SVF_NOCLIENT
+}
+
+private val targetExplosionUse = registerUse("use_target_explosion") { self, _, activator, game ->
+    self.activator = activator
+
+    if (self.delay != 0f) {
+        self.think.action = targetExplosionExplode
+        self.think.nextTime = game.level.time + self.delay
+    } else {
+        targetExplosionExplode.think(self, game) // BOOM!
+    }
+}
+
+private val targetExplosionExplode = registerThink("target_explosion_explode") { self, game ->
+    game.gameImports.multicastMessage(self.s.origin, PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PHS)
+
+    GameCombat.T_RadiusDamage(self, self.activator, self.dmg.toFloat(), null,
+        (self.dmg + 40).toFloat(), GameDefines.MOD_EXPLOSIVE, game)
+
+    val delay = self.delay
+    self.delay = 0f
+    GameUtil.G_UseTargets(self, self.activator, game)
+    self.delay = delay
+    true
 }
