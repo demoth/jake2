@@ -69,10 +69,10 @@ fun targetSpeaker(self: SubgameEntity, game: GameExportsImpl) {
 }
 
 private val targetSpeakerUse = registerUse("Use_Target_Speaker") { self, _, _, game ->
-    if (self.hasSpawnFlag(LOOPED_ON) && self.hasSpawnFlag(LOOPED_OFF)) { // looping sound toggles
+    if (self.hasSpawnFlag(LOOPED_ON) || self.hasSpawnFlag(LOOPED_OFF)) { // looping sound toggles
         if (self.s.sound != 0)
             self.s.sound = 0 // turn it off
-        else 
+        else
             self.s.sound = self.noise_index // start it
     } else { // normal sound
         val chan: Int = if (self.hasSpawnFlag(RELIABLE)) Defines.CHAN_VOICE or Defines.CHAN_RELIABLE else Defines.CHAN_VOICE
