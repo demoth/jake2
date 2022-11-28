@@ -7,6 +7,7 @@ import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Math3D
@@ -32,25 +33,33 @@ import jake2.qcommon.util.Math3D
  * REVERSE will cause it to rotate in the opposite direction. 
  * STOP mean it will stop moving instead of pushing entities
  */
+private const val START_ON = 1
+private const val REVERSE = 2
+private const val X_AXIS = 4
+private const val Y_AXIS = 8
+private const val TOUCH_PAIN = 16
+private const val STOP = 32
+private const val ANIMATED = 64
+private const val ANIMATED_FAST = 128
 fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
-    if (self.spawnflags and 32 != 0)
+    if (self.hasSpawnFlag(STOP))
         self.movetype = GameDefines.MOVETYPE_STOP
     else
         self.movetype = GameDefines.MOVETYPE_PUSH
 
     // set the axis of rotation
     Math3D.VectorClear(self.movedir)
-    if (self.spawnflags and 4 != 0)
+    if (self.hasSpawnFlag(X_AXIS))
         self.movedir[2] = 1.0f
-    else if (self.spawnflags and 8 != 0)
+    else if (self.hasSpawnFlag(Y_AXIS))
         self.movedir[0] = 1.0f
     else  // Z_AXIS
         self.movedir[1] = 1.0f
 
 
     // check for reverse rotation
-    if (self.spawnflags and 2 != 0)
+    if (self.hasSpawnFlag(REVERSE))
         Math3D.VectorNegate(self.movedir, self.movedir)
 
     if (0f == self.speed)
@@ -62,11 +71,11 @@ fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
     self.use = rotatingUse
     if (self.dmg != 0) 
         self.blocked = rotatingBlocked
-    if (self.spawnflags and 1 != 0) 
+    if (self.hasSpawnFlag(START_ON))
         self.use.use(self, null, null, game)
-    if (self.spawnflags and 64 != 0) 
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
-    if (self.spawnflags and 128 != 0) 
+    if (self.hasSpawnFlag(ANIMATED_FAST))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     game.gameImports.setmodel(self, self.model)
@@ -81,7 +90,7 @@ private val rotatingUse = registerUse("rotating_use") { self, _, _, _ ->
     } else {
         self.s.sound = self.moveinfo.sound_middle
         Math3D.VectorScale(self.movedir, self.speed, self.avelocity)
-        if (self.spawnflags and 16 != 0)
+        if (self.hasSpawnFlag(TOUCH_PAIN))
             self.touch = rotatingTouch
     }
 }
