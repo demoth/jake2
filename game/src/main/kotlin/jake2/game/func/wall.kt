@@ -5,6 +5,8 @@ import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
 import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
+import jake2.game.setSpawnFlag
 import jake2.qcommon.Defines
 
 /**
@@ -35,34 +37,34 @@ fun funcWall(self: SubgameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
     game.gameImports.setmodel(self, self.model)
 
-    if (self.spawnflags and ANIMATED != 0)
+    if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
-    if (self.spawnflags and ANIMATED_FAST != 0)
+    if (self.hasSpawnFlag(ANIMATED_FAST))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALLFAST
 
     // not triggered, not toggle, not started on == just a wall
-    if (self.spawnflags and 7 == 0) {
+    if (!self.hasSpawnFlag(TRIGGER_SPAWN) && !self.hasSpawnFlag(TOGGLE) && !self.hasSpawnFlag(START_ON)) {
         self.solid = Defines.SOLID_BSP
         game.gameImports.linkentity(self)
         return
     }
 
     // it must be TRIGGER_SPAWN
-    if (self.spawnflags and TRIGGER_SPAWN == 0) {
+    if (!self.hasSpawnFlag(TRIGGER_SPAWN)) {
+        self.setSpawnFlag(TRIGGER_SPAWN)
         game.gameImports.dprintf("func_wall missing TRIGGER_SPAWN\n")
-        self.spawnflags = self.spawnflags or TRIGGER_SPAWN
     }
 
     // yell if the spawnflags are odd
-    if (self.spawnflags and START_ON != 0) {
-        if (self.spawnflags and TOGGLE == 0) {
+    if (self.hasSpawnFlag(START_ON)) {
+        if (!self.hasSpawnFlag(TOGGLE)) {
+            self.setSpawnFlag(TOGGLE)
             game.gameImports.dprintf("func_wall START_ON without TOGGLE\n")
-            self.spawnflags = self.spawnflags or TOGGLE
         }
     }
 
     self.use = wallUse
-    if (self.spawnflags and START_ON != 0) {
+    if (self.hasSpawnFlag(START_ON)) {
         self.solid = Defines.SOLID_BSP
     } else {
         self.solid = Defines.SOLID_NOT
@@ -84,7 +86,7 @@ private val wallUse = registerUse("func_wall_use") { self, other, activator, gam
     }
     game.gameImports.linkentity(self)
 
-    if (self.spawnflags and TOGGLE == 0)
+    if (!self.hasSpawnFlag(TOGGLE))
         self.use = null
 }
 
