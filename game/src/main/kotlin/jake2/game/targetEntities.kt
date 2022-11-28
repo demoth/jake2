@@ -156,3 +156,32 @@ private val targetSecretUse = registerUse("use_target_explosion") { self, _, act
     game.freeEntity(self)
 }
 
+/**
+ * QUAKED target_goal (1 0 1) (-8 -8 -8) (8 8 8) Counts a goal completed.
+ * These are single use targets.
+ */
+fun targetGoal(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
+        game.freeEntity(self)
+        return
+    }
+    self.use = targetGoalUse
+    if (self.st.noise == null)
+        self.st.noise = "misc/secret.wav"
+    self.noise_index = game.gameImports.soundindex(self.st.noise)
+    self.svflags = Defines.SVF_NOCLIENT
+    game.level.total_goals++
+}
+
+private val targetGoalUse = registerUse("use_target_goal") { self, _, activator, gameExports ->
+    gameExports.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+
+    gameExports.level.found_goals++
+
+    if (gameExports.level.found_goals == gameExports.level.total_goals)
+        gameExports.gameImports.configstring(Defines.CS_CDTRACK,"0")
+
+    GameUtil.G_UseTargets(self, activator, gameExports)
+    gameExports.freeEntity(self)
+}
+
