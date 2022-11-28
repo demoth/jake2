@@ -5,6 +5,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.network.MulticastTypes
 import jake2.qcommon.network.messages.server.PointTEMessage
+import jake2.qcommon.network.messages.server.SplashTEMessage
 import jake2.qcommon.util.Lib
 
 /**
@@ -185,3 +186,39 @@ private val targetGoalUse = registerUse("use_target_goal") { self, _, activator,
     gameExports.freeEntity(self)
 }
 
+/**
+ * QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8) Creates a particle splash
+ * effect when used.
+ *
+ * Set "sounds" to one of the following: 
+ * 1) sparks 2) blue water 3) brown water 4) slime 5) lava 6) blood
+ *
+ * "count" how many pixels in the splash (32 by default)
+ * "dmg" if set, does a radius damage at this location when it splashes useful for lava/sparks
+ */
+fun targetSplash(self: SubgameEntity, game: GameExportsImpl?) {
+    self.use = targetSplashUse
+    GameBase.G_SetMovedir(self.s.angles, self.movedir)
+    if (0 == self.count)
+        self.count = 32
+    self.svflags = Defines.SVF_NOCLIENT
+}
+
+private val targetSplashUse = registerUse("use_target_splash") { self, _, activator, gameExports ->
+    gameExports.gameImports.multicastMessage(
+        self.s.origin,
+        SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds),
+        MulticastTypes.MULTICAST_PVS
+    )
+
+    if (self.dmg != 0)
+        GameCombat.T_RadiusDamage(
+            self,
+            activator,
+            self.dmg.toFloat(),
+            null,
+            (self.dmg + 40).toFloat(),
+            GameDefines.MOD_SPLASH,
+            gameExports
+        )
+}

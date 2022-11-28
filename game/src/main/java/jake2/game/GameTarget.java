@@ -73,26 +73,6 @@ class GameTarget {
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
-    /**
-     * QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8) Creates a particle splash
-     * effect when used.
-     *
-     * Set "sounds" to one of the following: 1) sparks 2) blue water 3) brown
-     * water 4) slime 5) lava 6) blood
-     *
-     * "count" how many pixels in the splash "dmg" if set, does a radius damage
-     * at this location when it splashes useful for lava/sparks
-     */
-    static void SP_target_splash(SubgameEntity self) {
-        self.use = use_target_splash;
-        GameBase.G_SetMovedir(self.s.angles, self.movedir);
-
-        if (0 == self.count)
-            self.count = 32;
-
-        self.svflags = Defines.SVF_NOCLIENT;
-    }
-
     static void SP_target_spawner(SubgameEntity self) {
         self.use = use_target_spawner;
         self.svflags = Defines.SVF_NOCLIENT;
@@ -263,8 +243,7 @@ class GameTarget {
             gameExports.gameImports.multicastMessage(self.s.origin, new SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds), MulticastTypes.MULTICAST_PVS);
 
             if (self.dmg != 0)
-                GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
-                        self.dmg + 40, GameDefines.MOD_SPLASH, gameExports);
+                GameCombat.T_RadiusDamage(self, activator, self.dmg, null,self.dmg + 40, GameDefines.MOD_SPLASH, gameExports);
         }
     };
 
