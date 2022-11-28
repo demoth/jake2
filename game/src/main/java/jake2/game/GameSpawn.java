@@ -362,16 +362,7 @@ public class GameSpawn {
             }
         });
         spawns.put("target_secret", TargetEntitiesKt::targetSecret);
-        addSpawnAdapter("target_goal", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_goal";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_goal(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_goal", TargetEntitiesKt::targetGoal);
         addSpawnAdapter("target_splash", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_splash";

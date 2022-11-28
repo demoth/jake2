@@ -56,20 +56,6 @@ class GameTarget {
         ent.use = Use_Target_Help;
     }
 
-    static void SP_target_goal(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        ent.use = use_target_goal;
-        if (ent.st.noise == null)
-            ent.st.noise = "misc/secret.wav";
-        ent.noise_index = gameExports.gameImports.soundindex(ent.st.noise);
-        ent.svflags = Defines.SVF_NOCLIENT;
-        gameExports.level.total_goals++;
-    }
-
     static void SP_target_changelevel(SubgameEntity ent, GameExportsImpl gameExports) {
         if (ent.map == null) {
             gameExports.gameImports.dprintf("target_changelevel with no map at "
@@ -224,26 +210,6 @@ class GameTarget {
                 gameExports.game.helpmessage2 = ent.message;
 
             gameExports.game.helpchanged++;
-        }
-    };
-
-    /**
-     * QUAKED target_goal (1 0 1) (-8 -8 -8) (8 8 8) Counts a goal completed.
-     * These are single use targets.
-     */
-    private static EntUseAdapter use_target_goal = new EntUseAdapter() {
-    	public String getID() { return "use_target_goal"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
-                    Defines.ATTN_NORM, 0);
-
-            gameExports.level.found_goals++;
-
-            if (gameExports.level.found_goals == gameExports.level.total_goals)
-                gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
-
-            GameUtil.G_UseTargets(ent, activator, gameExports);
-            gameExports.freeEntity(ent);
         }
     };
 
