@@ -396,16 +396,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("target_help", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_help";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_help(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_help", TargetEntitiesKt::targetHelp);
         addSpawnAdapter("target_lightramp", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_lightramp";

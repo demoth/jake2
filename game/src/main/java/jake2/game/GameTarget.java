@@ -36,26 +36,6 @@ import jake2.qcommon.util.Math3D;
 class GameTarget {
 
 
-    /**
-     * QUAKED target_help (1 0 1) (-16 -16 -24) (16 16 24) help1 When fired, the
-     * "message" key becomes the current personal computer string, and the
-     * message light will be set on all clients status bars.
-     */
-    static void SP_target_help(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        if (ent.message == null) {
-            gameExports.gameImports.dprintf(ent.classname + " with no message at "
-                    + Lib.vtos(ent.s.origin) + "\n");
-            gameExports.freeEntity(ent);
-            return;
-        }
-        ent.use = Use_Target_Help;
-    }
-
     static void SP_target_changelevel(SubgameEntity ent, GameExportsImpl gameExports) {
         if (ent.map == null) {
             gameExports.gameImports.dprintf("target_changelevel with no map at "
@@ -139,19 +119,6 @@ class GameTarget {
         self.movedir[2] = (self.movedir[1] - self.movedir[0])
                 / (self.speed / Defines.FRAMETIME);
     }
-
-    private static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
-    	public String getID() { return "Use_Target_Help"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-
-            if ((ent.spawnflags & 1) != 0)
-                gameExports.game.helpmessage1 = ent.message;
-            else
-                gameExports.game.helpmessage2 = ent.message;
-
-            gameExports.game.helpchanged++;
-        }
-    };
 
     /**
      * QUAKED target_changelevel (1 0 0) (-8 -8 -8) (8 8 8) Changes level to

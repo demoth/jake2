@@ -355,3 +355,33 @@ private val targetEarthquakeThink = registerThink("target_earthquake_think") { s
 
     true
 }
+
+/**
+ * QUAKED target_help (1 0 1) (-16 -16 -24) (16 16 24)
+ * HELP1 - if sets the primary objective, else - secondary objective
+ * When fired, the "message" key becomes the current personal computer string,
+ * and the  message light will be set on all clients status bars.
+ */
+
+private const val HELP1 = 1
+fun targetHelp(ent: SubgameEntity, game: GameExportsImpl) {
+    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
+        game.freeEntity(ent)
+        return
+    }
+    if (ent.message == null) {
+        game.gameImports.dprintf("${ent.classname} with no message at ${Lib.vtos(ent.s.origin)}\n")
+        game.freeEntity(ent)
+        return
+    }
+    ent.use = targetHelpUse
+}
+
+private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
+    if (self.hasSpawnFlag(HELP1))
+        game.game.helpmessage1 = self.message
+    else
+        game.game.helpmessage2 = self.message
+
+    game.game.helpchanged++
+}
