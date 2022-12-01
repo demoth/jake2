@@ -296,3 +296,62 @@ private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, g
 
     game.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1f, Defines.ATTN_NORM.toFloat(), 0f)
 }
+
+/**
+ * QUAKED target_earthquake (1 0 0) (-8 -8 -8) (8 8 8)
+ * When triggered, this initiates a level-wide earthquake.
+ * All players and monsters are affected.
+ *
+ * "speed" severity of the quake (default:200)
+ *
+ * "count" duration of the quake (default:5)
+ */
+fun targetEarthquake(self: SubgameEntity, gameExports: GameExportsImpl) {
+    if (self.targetname == null)
+        gameExports.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
+    if (self.count == 0)
+        self.count = 5
+    if (self.speed == 0f)
+        self.speed = 200f
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.think.action = targetEarthquakeThink
+    self.use = targetEarthquakeUse
+    self.noise_index = gameExports.gameImports.soundindex("world/quake.wav")
+}
+
+private val targetEarthquakeUse = registerUse("target_earthquake_use") { self, other, activator, game ->
+    self.timestamp = game.level.time + self.count
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    self.activator = activator
+    self.last_move_time = 0f
+}
+
+private val targetEarthquakeThink = registerThink("target_earthquake_think") { self, game ->
+    if (self.last_move_time < game.level.time) {
+        game.gameImports.positioned_sound(
+            self.s.origin, self,
+            Defines.CHAN_AUTO, self.noise_index, 1.0f,
+            Defines.ATTN_NONE.toFloat(), 0f
+        )
+        self.last_move_time = game.level.time + 0.5f
+    }
+
+    for (i in 1 until game.num_edicts) {
+        val entity = game.g_edicts[i]
+        if (!entity.inuse)
+            continue
+        if (entity.client == null)
+            continue
+        if (entity.groundentity == null)
+            continue
+        entity.groundentity = null
+        entity.velocity[0] += Lib.crandom() * 150
+        entity.velocity[1] += Lib.crandom() * 150
+        entity.velocity[2] = self.speed * (100.0f / entity.mass)
+    }
+
+    if (game.level.time < self.timestamp)
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+
+    true
+}
