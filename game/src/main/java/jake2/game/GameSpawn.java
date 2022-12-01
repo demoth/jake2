@@ -416,16 +416,7 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("target_earthquake", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_earthquake";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_earthquake(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_earthquake", TargetEntitiesKt::targetEarthquake);
         addSpawnAdapter("target_character", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_character";

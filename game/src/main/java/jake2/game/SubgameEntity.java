@@ -139,6 +139,7 @@ public class SubgameEntity extends edict_t {
     /** Move to clientinfo. */
     public float fly_sound_debounce_time;
 
+    // used only for target_earthquake as sound_debounce_time
     public float last_move_time;
 
     public int health;

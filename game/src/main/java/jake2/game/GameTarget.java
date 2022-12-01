@@ -140,24 +140,6 @@ class GameTarget {
                 / (self.speed / Defines.FRAMETIME);
     }
 
-    static void SP_target_earthquake(SubgameEntity self, GameExportsImpl gameExports) {
-        if (null == self.targetname)
-            gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
-                    + Lib.vtos(self.s.origin) + "\n");
-
-        if (0 == self.count)
-            self.count = 5;
-
-        if (0 == self.speed)
-            self.speed = 200;
-
-        self.svflags |= Defines.SVF_NOCLIENT;
-        self.think.action = target_earthquake_think;
-        self.use = target_earthquake_use;
-
-        self.noise_index = gameExports.gameImports.soundindex("world/quake.wav");
-    }
-
     private static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Help"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
@@ -212,35 +194,6 @@ class GameTarget {
                 gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
 
             PlayerHud.BeginIntermission(self, gameExports);
-        }
-    };
-
-
-    /**
-     * QUAKED target_blaster (1 0 0) (-8 -8 -8) (8 8 8) NOTRAIL NOEFFECTS Fires
-     * a blaster bolt in the set direction when triggered.
-     * 
-     * dmg default is 15 speed default is 1000
-     */
-    private static EntUseAdapter use_target_blaster = new EntUseAdapter() {
-    	public String getID() { return "use_target_blaster"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            int effect;
-
-            if ((self.spawnflags & 2) != 0)
-                effect = 0;
-            else if ((self.spawnflags & 1) != 0)
-                effect = Defines.EF_HYPERBLASTER;
-            else
-                effect = Defines.EF_BLASTER;
-
-            GameWeapon.fire_blaster(self, self.s.origin, self.movedir, self.dmg,
-                    (int) self.speed, Defines.EF_BLASTER,
-                    GameDefines.MOD_TARGET_BLASTER != 0, gameExports
-                    /* true */
-            );
-            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1,
-                    Defines.ATTN_NORM, 0);
         }
     };
 
@@ -493,58 +446,6 @@ class GameTarget {
 
             self.timestamp = gameExports.level.time;
             target_lightramp_think.think(self, gameExports);
-        }
-    };
-
-    /**
-     * QUAKED target_earthquake (1 0 0) (-8 -8 -8) (8 8 8) When triggered, this
-     * initiates a level-wide earthquake. All players and monsters are affected.
-     * "speed" severity of the quake (default:200) "count" duration of the quake
-     * (default:5)
-     */
-    private static EntThinkAdapter target_earthquake_think = new EntThinkAdapter() {
-    	public String getID() { return "target_earthquake_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            int i;
-
-            if (self.last_move_time < gameExports.level.time) {
-                gameExports.gameImports.positioned_sound(self.s.origin, self,
-                        Defines.CHAN_AUTO, self.noise_index, 1.0f,
-                        Defines.ATTN_NONE, 0);
-                self.last_move_time = gameExports.level.time + 0.5f;
-            }
-
-            for (i = 1; i < gameExports.num_edicts; i++) {
-                SubgameEntity e = gameExports.g_edicts[i];
-
-                if (!e.inuse)
-                    continue;
-                if (null == e.getClient())
-                    continue;
-                if (null == e.groundentity)
-                    continue;
-
-                e.groundentity = null;
-                e.velocity[0] += Lib.crandom() * 150;
-                e.velocity[1] += Lib.crandom() * 150;
-                e.velocity[2] = self.speed * (100.0f / e.mass);
-            }
-
-            if (gameExports.level.time < self.timestamp)
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-
-            return true;
-        }
-    };
-
-    private static EntUseAdapter target_earthquake_use = new EntUseAdapter() {
-    	public String getID() { return "target_earthquake_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.timestamp = gameExports.level.time + self.count;
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            self.activator = activator;
-            self.last_move_time = 0;
         }
     };
 }
