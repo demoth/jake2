@@ -9,6 +9,7 @@ import jake2.qcommon.network.messages.server.SplashTEMessage
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
+
 /**
  * QUAKED target_temp_entity (1 0 0) (-8 -8 -8) (8 8 8) 
  * Fire an origin based temp entity event to the clients. 
@@ -306,9 +307,9 @@ private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, g
  *
  * "count" duration of the quake (default:5)
  */
-fun targetEarthquake(self: SubgameEntity, gameExports: GameExportsImpl) {
+fun targetEarthquake(self: SubgameEntity, game: GameExportsImpl) {
     if (self.targetname == null)
-        gameExports.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
+        game.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
     if (self.count == 0)
         self.count = 5
     if (self.speed == 0f)
@@ -316,7 +317,7 @@ fun targetEarthquake(self: SubgameEntity, gameExports: GameExportsImpl) {
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
     self.think.action = targetEarthquakeThink
     self.use = targetEarthquakeUse
-    self.noise_index = gameExports.gameImports.soundindex("world/quake.wav")
+    self.noise_index = game.gameImports.soundindex("world/quake.wav")
 }
 
 private val targetEarthquakeUse = registerUse("target_earthquake_use") { self, other, activator, game ->
@@ -362,7 +363,6 @@ private val targetEarthquakeThink = registerThink("target_earthquake_think") { s
  * When fired, the "message" key becomes the current personal computer string,
  * and the  message light will be set on all clients status bars.
  */
-
 private const val HELP1 = 1
 fun targetHelp(ent: SubgameEntity, game: GameExportsImpl) {
     if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
@@ -384,4 +384,85 @@ private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
         game.game.helpmessage2 = self.message
 
     game.game.helpchanged++
+}
+
+/**
+ * QUAKED target_lightramp (0 .5 .8) (-8 -8 -8) (8 8 8)
+ * TOGGLE
+ *
+ * Gradually changes intensity (aka style) of a targeted light.
+ * speed - How many seconds the ramping will take message two letters;
+ * "message" two letter string: (starting lightlevel, ending lightlevel)
+ */
+private const val LIGHTRAMP_TOGGLE = 1
+fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
+    // expect 2 letters between "a" and "z"
+    if (self.message?.length != 2
+        || self.message[0] < 'a' || self.message[0] > 'z'
+        || self.message[1] < 'a' || self.message[1] > 'z'
+        || self.message[0] == self.message[1]
+    ) {
+        game.gameImports.dprintf("target_lightramp has bad ramp (${self.message}) at ${Lib.vtos(self.s.origin)}\n")
+        game.freeEntity(self)
+        return
+    }
+    if (game.gameCvars.deathmatch.value != 0f) {
+        game.freeEntity(self)
+        return
+    }
+    if (self.target == null) {
+        game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
+        game.freeEntity(self)
+        return
+    }
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.use = targetLightrampUse
+    self.think.action = targetLightrampThink
+    // todo: don't use movedir for storing lightramp data
+    self.movedir[0] = (self.message[0].code - 'a'.code).toFloat() // start
+    self.movedir[1] = (self.message[1].code - 'a'.code).toFloat() // end
+    self.movedir[2] = (self.movedir[1] - self.movedir[0]) / (self.speed / Defines.FRAMETIME) // speed
+}
+
+private val targetLightrampThink = registerThink("target_lightramp_think") { self, game ->
+    val value: Char = ('a'.code + (self.movedir[0] + (game.level.time - self.timestamp) / Defines.FRAMETIME * self.movedir[2]).toInt()).toChar()
+
+    game.gameImports.configstring(Defines.CS_LIGHTS + self.enemy.style, value.toString())
+
+    if (game.level.time - self.timestamp < self.speed) {
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+    } else if (self.hasSpawnFlag(LIGHTRAMP_TOGGLE)) {
+        val temp = self.movedir[0]
+        self.movedir[0] = self.movedir[1]
+        self.movedir[1] = temp
+        self.movedir[2] *= -1f
+    }
+    true
+}
+
+private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, _, game ->
+    if (self.enemy == null) {
+        // check all the targets
+        var es: EdictIterator? = null
+        while (true) {
+            es = GameBase.G_Find(es, GameBase.findByTargetName, self.target, game)
+            if (es == null)
+                break
+            val entity = es.o
+            if ("light" == entity.classname) {
+                self.enemy = entity
+            } else {
+                game.gameImports.dprintf(self.classname + " at "+ Lib.vtos(self.s.origin))
+                game.gameImports.dprintf(("target " + self.target + " ("+ entity.classname + " at " + Lib.vtos(entity.s.origin)+ ") is not a light\n"))
+            }
+        }
+        if (self.enemy == null) {
+            game.gameImports.dprintf((self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin) + "\n"))
+            game.freeEntity(self)
+            return@registerUse
+        }
+    }
+    self.timestamp = game.level.time
+    targetLightrampThink.think(self, game)
+
 }

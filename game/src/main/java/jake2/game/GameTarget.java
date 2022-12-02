@@ -87,39 +87,6 @@ class GameTarget {
         self.think.nextTime = gameExports.level.time + 1;
     }
 
-    static void SP_target_lightramp(SubgameEntity self, GameExportsImpl gameExports) {
-        if (self.message == null || self.message.length() != 2
-                || self.message.charAt(0) < 'a' || self.message.charAt(0) > 'z'
-                || self.message.charAt(1) < 'a' || self.message.charAt(1) > 'z'
-                || self.message.charAt(0) == self.message.charAt(1)) {
-            gameExports.gameImports.dprintf("target_lightramp has bad ramp ("
-                    + self.message + ") at " + Lib.vtos(self.s.origin) + "\n");
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        if (self.target == null) {
-            gameExports.gameImports.dprintf(self.classname + " with no target at "
-                    + Lib.vtos(self.s.origin) + "\n");
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        self.svflags |= Defines.SVF_NOCLIENT;
-        self.use = target_lightramp_use;
-        self.think.action = target_lightramp_think;
-
-        self.movedir[0] = self.message.charAt(0) - 'a';
-        self.movedir[1] = self.message.charAt(1) - 'a';
-        self.movedir[2] = (self.movedir[1] - self.movedir[0])
-                / (self.speed / Defines.FRAMETIME);
-    }
-
     /**
      * QUAKED target_changelevel (1 0 0) (-8 -8 -8) (8 8 8) Changes level to
      * "map" when fired
@@ -341,78 +308,6 @@ class GameTarget {
             else
                 target_laser_off(self);
             return true;
-        }
-    };
-
-    /**
-     * QUAKED target_lightramp (0 .5 .8) (-8 -8 -8) (8 8 8) TOGGLE speed How
-     * many seconds the ramping will take message two letters; starting
-     * lightlevel and ending lightlevel
-     */
-    private static EntThinkAdapter target_lightramp_think = new EntThinkAdapter() {
-    	public String getID() { return "target_lightramp_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (gameExports.level.time - self.timestamp)
-                    / Defines.FRAMETIME * self.movedir[2]))};
-            
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.enemy.style,
-                    new String(tmp));
-
-            if ((gameExports.level.time - self.timestamp) < self.speed) {
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            } else if ((self.spawnflags & 1) != 0) {
-                char temp;
-
-                temp = (char) self.movedir[0];
-                self.movedir[0] = self.movedir[1];
-                self.movedir[1] = temp;
-                self.movedir[2] *= -1;
-            }
-
-            return true;
-        }
-    };
-
-    private static EntUseAdapter target_lightramp_use = new EntUseAdapter() {
-    	public String getID() { return "target_lightramp_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (self.enemy == null) {
-
-                // check all the targets
-                EdictIterator es = null;
-
-                while (true) {
-                    es = GameBase
-                            .G_Find(es, GameBase.findByTargetName, self.target, gameExports);
-                    
-                    if (es == null)
-                        break;
-
-                    SubgameEntity e = es.o;
-
-                    if (!"light".equals(e.classname)) {
-                        gameExports.gameImports.dprintf(self.classname + " at "
-                                + Lib.vtos(self.s.origin));
-                        gameExports.gameImports.dprintf("target " + self.target + " ("
-                                + e.classname + " at " + Lib.vtos(e.s.origin)
-                                + ") is not a light\n");
-                    } else {
-                        self.enemy = e;
-                    }
-                }
-
-                if (null == self.enemy) {
-                    gameExports.gameImports.dprintf(self.classname + " target "
-                            + self.target + " not found at "
-                            + Lib.vtos(self.s.origin) + "\n");
-                    gameExports.freeEntity(self);
-                    return;
-                }
-            }
-
-            self.timestamp = gameExports.level.time;
-            target_lightramp_think.think(self, gameExports);
         }
     };
 }
