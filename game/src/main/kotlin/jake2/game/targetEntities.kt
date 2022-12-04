@@ -466,3 +466,51 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
     targetLightrampThink.think(self, game)
 
 }
+
+/**
+ * QUAKED target_character (0 0 1) ?
+ * Used with target_string [jake2.game.TargetEntitiesKt.targetString] - must be on same "team"
+ *
+ * "count" is position in the string (starts at 1)
+ */
+fun targetCharacter(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_PUSH
+    game.gameImports.setmodel(self, self.model)
+    self.solid = Defines.SOLID_BSP
+    self.s.frame = 12
+    game.gameImports.linkentity(self)
+}
+
+/*
+ * QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
+ */
+fun targetString(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.message == null)
+        self.message = ""
+    self.use = targetStringUse
+}
+
+private val targetStringUse = registerUse("target_string_use") { self, _, _, _ ->
+    val length = self.message.length
+    var e = self.teammaster
+    while (e != null) {
+        if (e.count == 0) {
+            e = e.teamchain
+            continue
+        }
+        val index = e.count - 1
+        if (index >= length) {
+            e.s.frame = 12
+            e = e.teamchain
+            continue
+        }
+        e.s.frame = when (val c = self.message[index]) {
+            in '0'..'9' -> c.code - '0'.code
+            '-' -> 10
+            ':' -> 11
+            else -> 12
+        }
+        e = e.teamchain
+    }
+
+}
