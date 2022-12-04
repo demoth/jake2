@@ -351,16 +351,7 @@ public class GameSpawn {
         spawns.put("target_temp_entity", TargetEntitiesKt::targetTempEntity);
         spawns.put("target_speaker", TargetEntitiesKt::targetSpeaker);
         spawns.put("target_explosion", TargetEntitiesKt::targetExplosion);
-        addSpawnAdapter("target_changelevel", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_changelevel";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_changelevel(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_changelevel", TargetEntitiesKt::targetChangelevel);
         spawns.put("target_secret", TargetEntitiesKt::targetSecret);
         spawns.put("target_goal", TargetEntitiesKt::targetGoal);
         spawns.put("target_splash", TargetEntitiesKt::targetSplash);

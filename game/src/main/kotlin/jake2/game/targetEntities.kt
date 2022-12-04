@@ -3,6 +3,7 @@ package jake2.game
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
+import jake2.qcommon.Globals
 import jake2.qcommon.network.MulticastTypes
 import jake2.qcommon.network.messages.server.PointTEMessage
 import jake2.qcommon.network.messages.server.SplashTEMessage
@@ -513,4 +514,61 @@ private val targetStringUse = registerUse("target_string_use") { self, _, _, _ -
         e = e.teamchain
     }
 
+}
+
+/**
+ * QUAKED target_changelevel (1 0 0) (-8 -8 -8) (8 8 8)
+ *
+ * Changes level to "map" when fired
+ */
+fun targetChangelevel(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.map == null) {
+        game.gameImports.dprintf("target_changelevel with no map at " + Lib.vtos(self.s.origin) + "\n")
+        game.freeEntity(self)
+        return
+    }
+
+    // ugly hack because *SOMEBODY* screwed up their map
+    if(self.map == "fact3" && game.level.mapname == "fact1")
+        self.map = "fact3\$secret1"
+
+    self.use = targetChangelevelUse
+    self.svflags = Defines.SVF_NOCLIENT
+}
+
+private val targetChangelevelUse = registerUse("use_target_changelevel") { self, other, activator, game ->
+    if (game.level.intermissiontime != 0f)
+        return@registerUse  // already activated
+
+
+    if (game.gameCvars.deathmatch.value == 0f && game.gameCvars.coop.value == 0f) {
+        if (game.g_edicts[1].health <= 0)
+            return@registerUse
+    }
+
+    // if noexit, do a ton of damage to other
+    if (game.gameCvars.deathmatch.value != 0f
+        && game.gameCvars.dmflags.value.toInt() and Defines.DF_ALLOW_EXIT == 0 && other !== game.g_edicts[0] /* world */) {
+        GameCombat.T_Damage(
+            other, self, self, Globals.vec3_origin,
+            other!!.s.origin, Globals.vec3_origin,
+            10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT, game
+        )
+        return@registerUse
+    }
+
+    // if multiplayer, let everyone know who hit the exit
+    if (game.gameCvars.deathmatch.value != 0f) {
+        if (activator != null) {
+            val activatorClient = activator.client
+            if (activatorClient != null)
+                game.gameImports.bprintf(Defines.PRINT_HIGH, "${activatorClient.pers.netname} exited the level.\n")
+        }
+    }
+
+    // if going to a new unit, clear cross triggers
+    if (self.map.indexOf('*') > -1) game.game.serverflags =
+        game.game.serverflags and Defines.SFL_CROSS_TRIGGER_MASK.inv()
+
+    PlayerHud.BeginIntermission(self, game)
 }
