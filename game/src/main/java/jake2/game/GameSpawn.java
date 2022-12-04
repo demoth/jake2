@@ -357,26 +357,8 @@ public class GameSpawn {
         spawns.put("target_splash", TargetEntitiesKt::targetSplash);
         spawns.put("target_spawner", TargetEntitiesKt::targetSpawner);
         spawns.put("target_blaster", TargetEntitiesKt::targetBlaster);
-        addSpawnAdapter("target_crosslevel_trigger", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_crosslevel_trigger";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_crosslevel_trigger(ent);
-                return true;
-            }
-        });
-        addSpawnAdapter("target_crosslevel_target", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_crosslevel_target";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_crosslevel_target(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_crosslevel_trigger", TargetEntitiesKt::targetCrosslevelTrigger);
+        spawns.put("target_crosslevel_target", TargetEntitiesKt::targetCrosslevelTarget);
         addSpawnAdapter("target_laser", new EntThinkAdapter() {
             public String getID() {
                 return "SP_target_laser";
