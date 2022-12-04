@@ -36,23 +36,6 @@ import jake2.qcommon.util.Math3D;
 class GameTarget {
 
 
-    static void SP_target_changelevel(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (ent.map == null) {
-            gameExports.gameImports.dprintf("target_changelevel with no map at "
-                    + Lib.vtos(ent.s.origin) + "\n");
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        // ugly hack because *SOMEBODY* screwed up their map
-        if ((Lib.Q_stricmp(gameExports.level.mapname, "fact1") == 0)
-                && (Lib.Q_stricmp(ent.map, "fact3") == 0))
-            ent.map = "fact3$secret1";
-
-        ent.use = use_target_changelevel;
-        ent.svflags = Defines.SVF_NOCLIENT;
-    }
-
     static void SP_target_crosslevel_trigger(SubgameEntity self) {
         self.svflags = Defines.SVF_NOCLIENT;
         self.use = trigger_crosslevel_trigger_use;
@@ -86,50 +69,6 @@ class GameTarget {
         self.think.action = target_laser_start;
         self.think.nextTime = gameExports.level.time + 1;
     }
-
-    /**
-     * QUAKED target_changelevel (1 0 0) (-8 -8 -8) (8 8 8) Changes level to
-     * "map" when fired
-     */
-    private static EntUseAdapter use_target_changelevel = new EntUseAdapter() {
-    	public String getID() { return "use_target_changelevel"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            if (gameExports.level.intermissiontime != 0)
-                return; // already activated
-
-            if (0 == gameExports.gameCvars.deathmatch.value && 0 == gameExports.gameCvars.coop.value) {
-                if (gameExports.g_edicts[1].health <= 0)
-                    return;
-            }
-
-            // if noexit, do a ton of damage to other
-            if (gameExports.gameCvars.deathmatch.value != 0
-                    && 0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_ALLOW_EXIT)
-                    && other != gameExports.g_edicts[0] /* world */
-            ) {
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin,
-                        10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT, gameExports);
-                return;
-            }
-
-            // if multiplayer, let everyone know who hit the exit
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                if (activator != null) {
-                    gclient_t activatorClient = activator.getClient();
-                    if (activatorClient != null) gameExports.gameImports.bprintf(Defines.PRINT_HIGH,
-                            activatorClient.pers.netname
-                                    + " exited the level.\n");
-                }
-            }
-
-            // if going to a new unit, clear cross triggers
-            if (self.map.indexOf('*') > -1)
-                gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
-
-            PlayerHud.BeginIntermission(self, gameExports);
-        }
-    };
 
     /**
      * QUAKED target_crosslevel_trigger (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
