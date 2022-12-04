@@ -399,26 +399,8 @@ public class GameSpawn {
         spawns.put("target_help", TargetEntitiesKt::targetHelp);
         spawns.put("target_lightramp", TargetEntitiesKt::targetLightramp);
         spawns.put("target_earthquake", TargetEntitiesKt::targetEarthquake);
-        addSpawnAdapter("target_character", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_character";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_target_character(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("target_string", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_string";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_target_string(ent);
-                return true;
-            }
-        });
+        spawns.put("target_character", TargetEntitiesKt::targetCharacter);
+        spawns.put("target_string", TargetEntitiesKt::targetString);
         addSpawnAdapter("worldspawn", SP_worldspawn);
         addSpawnAdapter("viewthing", new EntThinkAdapter() {
             public String getID() {

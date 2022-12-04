@@ -438,24 +438,6 @@ public class GameMisc {
 
     //=====================================================
 
-    /*
-     * QUAKED target_character (0 0 1) ? used with target_string (must be on
-     * same "team") "count" is position in the string (starts at 1)
-     */
-
-    static void SP_target_character(SubgameEntity self, GameExportsImpl gameExports) {
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-        gameExports.gameImports.setmodel(self, self.model);
-        self.solid = Defines.SOLID_BSP;
-        self.s.frame = 12;
-        gameExports.gameImports.linkentity(self);
-    }
-
-    static void SP_target_string(SubgameEntity self) {
-        if (self.message == null)
-            self.message = "";
-        self.use = target_string_use;
-    }
 
     /**
      * QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) Stepping onto
@@ -1269,38 +1251,6 @@ public class GameMisc {
         }
     };
 
-    /*
-     * QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
-     */
-
-    private static EntUseAdapter target_string_use = new EntUseAdapter() {
-        public String getID() { return "target_string_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-
-            int l = self.message.length();
-            for (SubgameEntity e = self.teammaster; e != null; e = e.teamchain) {
-                if (e.count == 0)
-                    continue;
-                int n = e.count - 1;
-                if (n >= l) {
-                    e.s.frame = 12;
-                    continue;
-                }
-
-                char c = self.message.charAt(n);
-                if (c >= '0' && c <= '9')
-                    e.s.frame = c - '0';
-                else if (c == '-')
-                    e.s.frame = 10;
-                else if (c == ':')
-                    e.s.frame = 11;
-                else
-                    e.s.frame = 12;
-            }
-        }
-    };
-
-    //=================================================================================
 
     private static EntTouchAdapter teleporter_touch = new EntTouchAdapter() {
         public String getID() { return "teleporter_touch";}
