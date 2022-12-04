@@ -567,8 +567,56 @@ private val targetChangelevelUse = registerUse("use_target_changelevel") { self,
     }
 
     // if going to a new unit, clear cross triggers
-    if (self.map.indexOf('*') > -1) game.game.serverflags =
-        game.game.serverflags and Defines.SFL_CROSS_TRIGGER_MASK.inv()
+    if (self.map.indexOf('*') > -1)
+        game.game.serverflags = game.game.serverflags and Defines.SFL_CROSS_TRIGGER_MASK.inv()
 
     PlayerHud.BeginIntermission(self, game)
+}
+
+/**
+ * QUAKED target_crosslevel_trigger (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
+ * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8
+ *
+ * Set's it's spawnflag to the serverflags register.
+ *
+ * Once this trigger is touched/used, any trigger_crosslevel_target with the same
+ * trigger number is automatically used when a level is started within the same unit.
+ * It is OK to check multiple triggers.
+ * Message, delay, target, and killtarget also work.
+ */
+fun targetCrosslevelTrigger(self: SubgameEntity, game: GameExportsImpl) {
+    self.svflags = Defines.SVF_NOCLIENT
+    self.use = targetCrosslevelTriggerUse
+}
+
+private val targetCrosslevelTriggerUse = registerUse("trigger_crosslevel_trigger_use") { self, _, _, game ->
+    game.game.serverflags = game.game.serverflags or self.spawnflags
+    game.freeEntity(self)
+}
+
+/**
+ * QUAKED target_crosslevel_target (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
+ * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8
+ *
+ * Triggered by a trigger_crosslevel elsewhere within a unit.
+ * If multiple triggers are checked, all must be true.
+ * Delay, target and killtarget also work.
+ *
+ * "delay" delay before using targets if the trigger has been activated
+ * (default 1)
+ */
+fun targetCrosslevelTarget(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.delay == 0f)
+        self.delay = 1f
+    self.svflags = Defines.SVF_NOCLIENT
+    self.think.action = targetCrosslevelTargetThink
+    self.think.nextTime = game.level.time + self.delay
+}
+
+private val targetCrosslevelTargetThink = registerThink("target_crosslevel_target_think") { self, game ->
+    if (self.spawnflags == Defines.SFL_CROSS_TRIGGER_MASK and game.game.serverflags and self.spawnflags) {
+        GameUtil.G_UseTargets(self, self, game)
+        game.freeEntity(self)
+    }
+    true
 }

@@ -35,21 +35,6 @@ import jake2.qcommon.util.Math3D;
 
 class GameTarget {
 
-
-    static void SP_target_crosslevel_trigger(SubgameEntity self) {
-        self.svflags = Defines.SVF_NOCLIENT;
-        self.use = trigger_crosslevel_trigger_use;
-    }
-
-    static void SP_target_crosslevel_target(SubgameEntity self, GameExportsImpl gameExports) {
-        if (0 == self.delay)
-            self.delay = 1;
-        self.svflags = Defines.SVF_NOCLIENT;
-
-        self.think.action = target_crosslevel_target_think;
-        self.think.nextTime = gameExports.level.time + self.delay;
-    }
-
     private static void target_laser_on(SubgameEntity self, GameExportsImpl gameExports) {
         if (null == self.activator)
             self.activator = self;
@@ -69,43 +54,6 @@ class GameTarget {
         self.think.action = target_laser_start;
         self.think.nextTime = gameExports.level.time + 1;
     }
-
-    /**
-     * QUAKED target_crosslevel_trigger (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
-     * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8 Once this
-     * trigger is touched/used, any trigger_crosslevel_target with the same
-     * trigger number is automatically used when a level is started within the
-     * same unit. It is OK to check multiple triggers. Message, delay, target,
-     * and killtarget also work.
-     */
-    private static EntUseAdapter trigger_crosslevel_trigger_use = new EntUseAdapter() {
-    	public String getID() { return "trigger_crosslevel_trigger_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            gameExports.game.serverflags |= self.spawnflags;
-            gameExports.freeEntity(self);
-        }
-    };
-
-    /**
-     * QUAKED target_crosslevel_target (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
-     * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8 Triggered
-     * by a trigger_crosslevel elsewhere within a unit. If multiple triggers are
-     * checked, all must be true. Delay, target and killtarget also work.
-     * 
-     * "delay" delay before using targets if the trigger has been activated
-     * (default 1)
-     */
-    private static EntThinkAdapter target_crosslevel_target_think = new EntThinkAdapter() {
-    	public String getID() { return "target_crosslevel_target_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (self.spawnflags == (gameExports.game.serverflags
-                    & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
-                GameUtil.G_UseTargets(self, self, gameExports);
-                gameExports.freeEntity(self);
-            }
-            return true;
-        }
-    };
 
     /**
      * QUAKED target_laser (0 .5 .8) (-8 -8 -8) (8 8 8) START_ON RED GREEN BLUE
