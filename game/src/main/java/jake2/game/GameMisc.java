@@ -96,43 +96,6 @@ public class GameMisc {
         }
     }
 
-        static void SP_misc_explobox(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(self);
-            return;
-        }
-
-        gameExports.gameImports.modelindex("models/objects/debris1/tris.md2");
-        gameExports.gameImports.modelindex("models/objects/debris2/tris.md2");
-        gameExports.gameImports.modelindex("models/objects/debris3/tris.md2");
-
-        self.solid = Defines.SOLID_BBOX;
-        self.movetype = GameDefines.MOVETYPE_STEP;
-
-        self.model = "models/objects/barrels/tris.md2";
-        self.s.modelindex = gameExports.gameImports.modelindex(self.model);
-        Math3D.VectorSet(self.mins, -16, -16, 0);
-        Math3D.VectorSet(self.maxs, 16, 16, 40);
-
-        if (self.mass == 0)
-            self.mass = 400;
-        if (0 == self.health)
-            self.health = 10;
-        if (0 == self.dmg)
-            self.dmg = 150;
-
-        self.die = barrel_delay;
-        self.takedamage = Defines.DAMAGE_YES;
-        self.monsterinfo.aiflags = GameDefines.AI_NOSTEP;
-
-        self.touch = barrel_touch;
-
-        self.think.action = M.M_droptofloor;
-        self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
-
-        gameExports.gameImports.linkentity(self);
-    }
-
     static void SP_misc_blackhole(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
@@ -494,7 +457,7 @@ public class GameMisc {
         gameExports.freeEntity(self);
     }
 
-    private static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin), MulticastTypes.MULTICAST_PVS);
         gameExports.freeEntity(self);
     }
@@ -824,138 +787,6 @@ public class GameMisc {
         }
     };
 
-    /*
-     * QUAKED misc_explobox (0 .5 .8) (-16 -16 0) (16 16 40) Large exploding
-     * box. You can override its mass (100), health (80), and dmg (150).
-     */
-
-    private static EntTouchAdapter barrel_touch = new EntTouchAdapter() {
-        public String getID() { return "barrel_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            float ratio;
-            float[] v = { 0, 0, 0 };
-
-            if ((null == other.groundentity) || (other.groundentity == self))
-                return;
-
-            ratio = (float) other.mass / (float) self.mass;
-            Math3D.VectorSubtract(self.s.origin, other.s.origin, v);
-            M.M_walkmove(self, Math3D.vectoyaw(v), 20 * ratio
-                    * Defines.FRAMETIME, gameExports);
-        }
-    };
-
-    private static EntThinkAdapter barrel_explode = new EntThinkAdapter() {
-        public String getID() { return "barrel_explode";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            float[] org = { 0, 0, 0 };
-            float spd;
-            float[] save = { 0, 0, 0 };
-
-            GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, GameDefines.MOD_BARREL, gameExports);
-
-            Math3D.VectorCopy(self.s.origin, save);
-            Math3D.VectorMA(self.absmin, 0.5f, self.size, self.s.origin);
-
-            // a few big chunks
-            spd = 1.5f * (float) self.dmg / 200.0f;
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris1/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris1/tris.md2", spd,
-                    org, gameExports);
-
-            // bottom corners
-            spd = 1.75f * (float) self.dmg / 200.0f;
-            Math3D.VectorCopy(self.absmin, org);
-            ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org, gameExports);
-            Math3D.VectorCopy(self.absmin, org);
-            org[0] += self.size[0];
-            ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org, gameExports);
-            Math3D.VectorCopy(self.absmin, org);
-            org[1] += self.size[1];
-            ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org, gameExports);
-            Math3D.VectorCopy(self.absmin, org);
-            org[0] += self.size[0];
-            org[1] += self.size[1];
-            ThrowDebris(self, "models/objects/debris3/tris.md2", spd,
-                    org, gameExports);
-
-            // a bunch of little chunks
-            spd = 2 * self.dmg / 200;
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-            org[0] = self.s.origin[0] + Lib.crandom() * self.size[0];
-            org[1] = self.s.origin[1] + Lib.crandom() * self.size[1];
-            org[2] = self.s.origin[2] + Lib.crandom() * self.size[2];
-            ThrowDebris(self, "models/objects/debris2/tris.md2", spd,
-                    org, gameExports);
-
-            Math3D.VectorCopy(save, self.s.origin);
-            if (self.groundentity != null)
-                BecomeExplosion2(self, gameExports);
-            else
-                BecomeExplosion1(self, gameExports);
-
-            return true;
-        }
-    };
-
-    private static EntDieAdapter barrel_delay = new EntDieAdapter() {
-        public String getID() { return "barrel_delay";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-
-            self.takedamage = Defines.DAMAGE_NO;
-            self.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
-            self.think.action = barrel_explode;
-            self.activator = attacker;
-        }
-    };
 
     //
     // miscellaneous specialty items
