@@ -565,16 +565,7 @@ public class GameSpawn {
             }
         });
         addSpawnAdapter("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
-        addSpawnAdapter("misc_blackhole", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_blackhole";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_blackhole(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_blackhole", MiscEntitiesKt::miscBlackhole);
         addSpawnAdapter("misc_eastertank", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_eastertank";

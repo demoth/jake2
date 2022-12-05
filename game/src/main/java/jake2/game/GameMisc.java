@@ -96,20 +96,6 @@ public class GameMisc {
         }
     }
 
-    static void SP_misc_blackhole(SubgameEntity ent, GameExportsImpl gameExports) {
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_NOT;
-        Math3D.VectorSet(ent.mins, -64, -64, 0);
-        Math3D.VectorSet(ent.maxs, 64, 64, 8);
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/objects/black/tris.md2");
-        ent.s.renderfx = Defines.RF_TRANSLUCENT;
-        ent.use = misc_blackhole_use;
-        ent.think.action = misc_blackhole_think;
-        ent.think.nextTime = gameExports.level.time + 2 * Defines.FRAMETIME;
-        gameExports.gameImports.linkentity(ent);
-    }
-
     static void SP_misc_eastertank(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
@@ -792,35 +778,6 @@ public class GameMisc {
     // miscellaneous specialty items
     //
 
-    /*
-     * QUAKED misc_blackhole (1 .5 0) (-8 -8 -8) (8 8 8)
-     */
-
-    private static EntUseAdapter misc_blackhole_use = new EntUseAdapter() {
-        public String getID() { return "misc_blavkhole_use";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            /*
-             * gi.WriteByte (svc_temp_entity); gi.WriteByte (TE_BOSSTPORT);
-             * gi.WritePosition (ent.s.origin); gi.multicast (ent.s.origin,
-             * MULTICAST_PVS);
-             */
-            gameExports.freeEntity(ent);
-        }
-    };
-
-    private static EntThinkAdapter misc_blackhole_think = new EntThinkAdapter() {
-        public String getID() { return "misc_blackhole_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            if (++self.s.frame < 19)
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            else {
-                self.s.frame = 0;
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            }
-            return true;
-        }
-    };
 
     /*
      * QUAKED misc_eastertank (1 .5 0) (-32 -32 -16) (32 32 32)

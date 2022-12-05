@@ -3,6 +3,7 @@ package jake2.game
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
+import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
@@ -108,4 +109,34 @@ private val miscExploboxExplode = registerThink("") { self, game ->
     else
         GameMisc.BecomeExplosion1(self, game)
     true
+}
+
+/*
+ * QUAKED misc_blackhole (1 .5 0) (-8 -8 -8) (8 8 8)
+ * 
+ * Disappears when used.
+ */
+fun miscBlackhole(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_NOT
+    Math3D.VectorSet(self.mins, -64f, -64f, 0f)
+    Math3D.VectorSet(self.maxs, 64f, 64f, 8f)
+    self.s.modelindex = game.gameImports.modelindex("models/objects/black/tris.md2")
+    self.s.renderfx = Defines.RF_TRANSLUCENT
+    self.use = miscBlackholeDisappear
+    self.think.action = miscBlackholeThink
+    self.think.nextTime = game.level.time + 2 * Defines.FRAMETIME
+    game.gameImports.linkentity(self)
+}
+
+private val miscBlackholeThink = registerThink("misc_blackhole_think") { self, game ->
+    if (++self.s.frame >= 19) {
+        self.s.frame = 0
+    }
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    true
+}
+
+private val miscBlackholeDisappear = registerUse("misc_blackhole_use") { self, _, _, game ->
+     game.freeEntity(self)
 }
