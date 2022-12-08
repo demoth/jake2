@@ -161,3 +161,48 @@ private val bannerThink = registerThink("misc_banner_think") { self, game ->
     self.think.nextTime = game.level.time + Defines.FRAMETIME
     true
 }
+
+/*
+ * QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8) 
+ * Intended for use with the target_spawner
+ */
+fun miscGibArm(self: SubgameEntity, game: GameExportsImpl) {
+    initGib(self, game, "arm")
+}
+
+/*
+ * QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8) 
+ * Intended for use with the target_spawner
+ */
+fun miscGibLeg(self: SubgameEntity, game: GameExportsImpl) {
+    initGib(self, game, "leg")
+}
+
+/*
+ * QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8) 
+ * Intended for use with the target_spawner
+ */
+fun miscGibHead(self: SubgameEntity, game: GameExportsImpl) {
+    initGib(self, game, "head")
+}
+
+private fun initGib(ent: SubgameEntity, gameExports: GameExportsImpl, model: String) {
+    gameExports.gameImports.setmodel(ent, "models/objects/gibs/$model/tris.md2")
+    ent.solid = Defines.SOLID_NOT
+    ent.s.effects = ent.s.effects or Defines.EF_GIB
+    ent.takedamage = Defines.DAMAGE_YES
+    ent.die = dieFreeEntity
+    ent.movetype = GameDefines.MOVETYPE_TOSS
+    ent.svflags = ent.svflags or Defines.SVF_MONSTER
+    ent.deadflag = GameDefines.DEAD_DEAD
+    ent.avelocity[0] = Lib.random() * 200
+    ent.avelocity[1] = Lib.random() * 200
+    ent.avelocity[2] = Lib.random() * 200
+    ent.think.action = GameUtil.G_FreeEdictA
+    ent.think.nextTime = gameExports.level.time + 30
+    gameExports.gameImports.linkentity(ent)
+}
+
+private val dieFreeEntity = registerDie("die-free-entity") { self, _, _, _, _, game ->
+    game.freeEntity(self)
+}

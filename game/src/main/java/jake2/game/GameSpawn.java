@@ -455,36 +455,9 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("misc_gib_arm", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_arm";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_arm(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_gib_leg", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_leg";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_leg(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_gib_head", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_head";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_head(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_gib_arm", MiscEntitiesKt::miscGibArm);
+        spawns.put("misc_gib_leg", MiscEntitiesKt::miscGibLeg);
+        spawns.put("misc_gib_head", MiscEntitiesKt::miscGibHead);
         addSpawnAdapter("misc_insane", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_insane";

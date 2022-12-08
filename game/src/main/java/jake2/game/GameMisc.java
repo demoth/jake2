@@ -310,69 +310,6 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    /*
-     * QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
-     * target_spawner
-     */
-    static void SP_misc_gib_arm(SubgameEntity ent, GameExportsImpl gameExports) {
-        gameExports.gameImports.setmodel(ent, "models/objects/gibs/arm/tris.md2");
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.effects |= Defines.EF_GIB;
-        ent.takedamage = Defines.DAMAGE_YES;
-        ent.die = gib_die;
-        ent.movetype = GameDefines.MOVETYPE_TOSS;
-        ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = GameDefines.DEAD_DEAD;
-        ent.avelocity[0] = Lib.random() * 200;
-        ent.avelocity[1] = Lib.random() * 200;
-        ent.avelocity[2] = Lib.random() * 200;
-        ent.think.action = GameUtil.G_FreeEdictA;
-        ent.think.nextTime = gameExports.level.time + 30;
-        gameExports.gameImports.linkentity(ent);
-    }
-
-    /*
-     * QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
-     * target_spawner
-     */
-    static void SP_misc_gib_leg(SubgameEntity ent, GameExportsImpl gameExports) {
-        gameExports.gameImports.setmodel(ent, "models/objects/gibs/leg/tris.md2");
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.effects |= Defines.EF_GIB;
-        ent.takedamage = Defines.DAMAGE_YES;
-        ent.die = gib_die;
-        ent.movetype = GameDefines.MOVETYPE_TOSS;
-        ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = GameDefines.DEAD_DEAD;
-        ent.avelocity[0] = Lib.random() * 200;
-        ent.avelocity[1] = Lib.random() * 200;
-        ent.avelocity[2] = Lib.random() * 200;
-        ent.think.action = GameUtil.G_FreeEdictA;
-        ent.think.nextTime = gameExports.level.time + 30;
-        gameExports.gameImports.linkentity(ent);
-    }
-
-    /*
-     * QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
-     * target_spawner
-     */
-    static void SP_misc_gib_head(SubgameEntity ent, GameExportsImpl gameExports) {
-        gameExports.gameImports.setmodel(ent, "models/objects/gibs/head/tris.md2");
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.effects |= Defines.EF_GIB;
-        ent.takedamage = Defines.DAMAGE_YES;
-        ent.die = gib_die;
-        ent.movetype = GameDefines.MOVETYPE_TOSS;
-        ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = GameDefines.DEAD_DEAD;
-        ent.avelocity[0] = Lib.random() * 200;
-        ent.avelocity[1] = Lib.random() * 200;
-        ent.avelocity[2] = Lib.random() * 200;
-        ent.think.action = GameUtil.G_FreeEdictA;
-        ent.think.nextTime = gameExports.level.time + 30;
-        gameExports.gameImports.linkentity(ent);
-    }
-
     //=====================================================
 
 
@@ -1134,7 +1071,6 @@ public class GameMisc {
         public String getID() { return "gib_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
-            gameExports.freeEntity(self);
         }
     };
 
