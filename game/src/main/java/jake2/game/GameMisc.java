@@ -155,18 +155,6 @@ public class GameMisc {
         self.think.nextTime = gameExports.level.time + 5 * Defines.FRAMETIME;
     }
 
-    static void SP_misc_banner(SubgameEntity ent, GameExportsImpl gameExports) {
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/objects/banner/tris.md2");
-        ent.s.frame = Lib.rand() % 16;
-        gameExports.gameImports.linkentity(ent);
-
-        ent.think.action = misc_banner_think;
-        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-    }
-
     static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
             gameExports.freeEntity(ent);
@@ -865,19 +853,6 @@ public class GameMisc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
-            return true;
-        }
-    };
-
-    /*
-     * QUAKED misc_banner (1 .5 0) (-4 -4 -4) (4 4 4) The origin is the bottom
-     * of the banner. The banner is 128 tall.
-     */
-    private static EntThinkAdapter misc_banner_think = new EntThinkAdapter() {
-        public String getID() { return "misc_banner_think";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            ent.s.frame = (ent.s.frame + 1) % 16;
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };

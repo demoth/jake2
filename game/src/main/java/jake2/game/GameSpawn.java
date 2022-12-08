@@ -444,16 +444,7 @@ public class GameSpawn {
             }
         });
         spawns.put("misc_explobox", MiscEntitiesKt::miscExplobox);
-        addSpawnAdapter("misc_banner", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_banner";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_banner(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_banner", MiscEntitiesKt::miscBanner);
         addSpawnAdapter("misc_satellite_dish", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_satellite_dish";

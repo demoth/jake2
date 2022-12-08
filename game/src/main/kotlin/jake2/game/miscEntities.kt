@@ -140,3 +140,24 @@ private val miscBlackholeThink = registerThink("misc_blackhole_think") { self, g
 private val miscBlackholeDisappear = registerUse("misc_blackhole_use") { self, _, _, game ->
      game.freeEntity(self)
 }
+
+/*
+ * QUAKED misc_banner (1 .5 0) (-4 -4 -4) (4 4 4)
+ * The origin is the bottom of the banner.
+ * The banner is 128 tall.
+ */
+fun miscBanner(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_NOT
+    self.s.modelindex = game.gameImports.modelindex("models/objects/banner/tris.md2")
+    self.s.frame = Lib.rand() % 16
+    game.gameImports.linkentity(self)
+    self.think.action = bannerThink
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+}
+
+private val bannerThink = registerThink("misc_banner_think") { self, game ->
+    self.s.frame = (self.s.frame + 1) % 16
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    true
+}
