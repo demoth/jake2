@@ -61,7 +61,7 @@ private val miscExploboxPush = registerTouch("barrel_touch") { self, other, _, _
     M.M_walkmove(self, Math3D.vectoyaw(v), 20 * ratio * Defines.FRAMETIME, game)
 }
 
-private val miscExploboxExplode = registerThink("") { self, game ->
+private val miscExploboxExplode = registerThink("barrel_explode") { self, game ->
     val oldOrigin = floatArrayOf(0f, 0f, 0f)
 
     GameCombat.T_RadiusDamage(self, self.activator, self.dmg.toFloat(), null, (self.dmg + 40).toFloat(), GameDefines.MOD_BARREL, game)
