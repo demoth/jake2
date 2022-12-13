@@ -285,3 +285,70 @@ private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { se
 
 }
 
+/*
+ * QUAKED misc_viper_bomb (1 0 0) (-8 -8 -8) (8 8 8) "dmg" how much boom
+ * should the bomb make?
+ */
+fun miscViperBomb(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_NOT
+    Math3D.VectorSet(self.mins, -8f, -8f, -8f)
+    Math3D.VectorSet(self.maxs, 8f, 8f, 8f)
+    self.s.modelindex = game.gameImports.modelindex("models/objects/bomb/tris.md2")
+    if (self.dmg == 0)
+        self.dmg = 1000
+    self.use = miscViperBombUse
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    game.gameImports.linkentity(self)
+}
+
+private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other, activator, game ->
+    self.solid = Defines.SOLID_BBOX
+    self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
+    self.s.effects = self.s.effects or Defines.EF_ROCKET
+    self.use = null
+    self.movetype = GameDefines.MOVETYPE_TOSS
+    self.think.prethink = miscViperBombPrethink
+    self.touch = miscViperBombTouch
+    self.activator = activator
+
+    val es = GameBase.G_Find(null, GameBase.findByClassName, "misc_viper", game)
+    var viper: SubgameEntity? = null
+    if (es != null)
+        viper = es.o
+
+    Math3D.VectorScale(viper!!.moveinfo.dir, viper.moveinfo.speed, self.velocity)
+
+    self.timestamp = game.level.time
+    Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir)
+}
+
+/**
+ * Rotates the bomb to imitate the drag of the tail
+ */
+private val miscViperBombPrethink = registerThink("misc_viper_bomb_prethink") { self, game ->
+    self.groundentity = null
+
+    var diff: Float = self.timestamp - game.level.time
+    if (diff < -1.0)
+        diff = -1.0f
+
+    val v = floatArrayOf(0f, 0f, 0f)
+    Math3D.VectorScale(self.moveinfo.dir, 1.0f + diff, v)
+    v[2] = diff
+
+    diff = self.s.angles[2]
+    Math3D.vectoangles(v, self.s.angles)
+    self.s.angles[2] = diff + 10
+
+    true
+}
+
+private val miscViperBombTouch = registerTouch("misc_viper_bomb_touch") { self, other, plane, surf, game ->
+    GameUtil.G_UseTargets(self, self.activator, game)
+
+    self.s.origin[2] = self.absmin[2] + 1
+    GameCombat.T_RadiusDamage(self, self, self.dmg.toFloat(), null, (self.dmg + 40).toFloat(), GameDefines.MOD_BOMB, game)
+    GameMisc.BecomeExplosion2(self, game)
+
+}

@@ -169,23 +169,6 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_viper_bomb(SubgameEntity self, GameExportsImpl gameExports) {
-        self.movetype = GameDefines.MOVETYPE_NONE;
-        self.solid = Defines.SOLID_NOT;
-        Math3D.VectorSet(self.mins, -8, -8, -8);
-        Math3D.VectorSet(self.maxs, 8, 8, 8);
-
-        self.s.modelindex = gameExports.gameImports
-                .modelindex("models/objects/bomb/tris.md2");
-
-        if (self.dmg == 0)
-            self.dmg = 1000;
-
-        self.use = misc_viper_bomb_use;
-        self.svflags |= Defines.SVF_NOCLIENT;
-
-        gameExports.gameImports.linkentity(self);
-    }
 
 
     /*
@@ -691,82 +674,6 @@ public class GameMisc {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
-        }
-    };
-
-
-    /*
-     * QUAKED misc_viper_bomb (1 0 0) (-8 -8 -8) (8 8 8) "dmg" how much boom
-     * should the bomb make?
-     */
-    private static EntTouchAdapter misc_viper_bomb_touch = new EntTouchAdapter() {
-        public String getID() { return "misc_viper_bomb_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, self.activator, gameExports);
-
-            self.s.origin[2] = self.absmin[2] + 1;
-            GameCombat.T_RadiusDamage(self, self, self.dmg, null, self.dmg + 40,
-                    GameDefines.MOD_BOMB, gameExports);
-            BecomeExplosion2(self, gameExports);
-        }
-    };
-
-    /**
-     * Rotates the bomb to imitate the drag of the tail
-     */
-    private static EntThinkAdapter misc_viper_bomb_prethink = new EntThinkAdapter() {
-        public String getID() {
-            return "misc_viper_bomb_prethink";
-        }
-
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            float[] v = {0, 0, 0};
-            float diff;
-
-            self.groundentity = null;
-
-            diff = self.timestamp - gameExports.level.time;
-            if (diff < -1.0)
-                diff = -1.0f;
-
-            Math3D.VectorScale(self.moveinfo.dir, 1.0f + diff, v);
-            v[2] = diff;
-
-            diff = self.s.angles[2];
-            Math3D.vectoangles(v, self.s.angles);
-            self.s.angles[2] = diff + 10;
-
-            return true;
-        }
-    };
-
-    private static EntUseAdapter misc_viper_bomb_use = new EntUseAdapter() {
-        public String getID() { return "misc_viper_bomb_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            SubgameEntity viper = null;
-
-            self.solid = Defines.SOLID_BBOX;
-            self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.s.effects |= Defines.EF_ROCKET;
-            self.use = null;
-            self.movetype = GameDefines.MOVETYPE_TOSS;
-            self.think.prethink = misc_viper_bomb_prethink;
-            self.touch = misc_viper_bomb_touch;
-            self.activator = activator;
-
-            EdictIterator es = null;
-
-            es = GameBase.G_Find(es, GameBase.findByClassName, "misc_viper", gameExports);
-            if (es != null)
-                viper = es.o;
-
-            Math3D.VectorScale(viper.moveinfo.dir, viper.moveinfo.speed,
-                    self.velocity);
-
-            self.timestamp = gameExports.level.time;
-            Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir);
         }
     };
 
