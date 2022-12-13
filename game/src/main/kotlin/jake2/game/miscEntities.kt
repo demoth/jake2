@@ -233,3 +233,54 @@ private val miscDishRotate = registerThink("misc_satellite_dish_think") { self, 
 
     true
 }
+
+/*
+ * QUAKED misc_deadsoldier (1 .5 0) (-16 -16 0) (16 16 16)
+ * ON_BACK
+ * ON_STOMACH
+ * BACK_DECAP
+ * FETAL_POS
+ * SIT_DECAP
+ * IMPALED
+ * This is the dead player model.
+ * Comes in 6 exciting different poses!
+ */
+// todo: extract spawnflags
+fun miscDeadSoldier(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
+        game.freeEntity(self)
+        return
+    }
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_BBOX
+    self.s.modelindex = game.gameImports.modelindex("models/deadbods/dude/tris.md2")
+
+    // Defaults to frame 0
+    self.s.frame = if (self.spawnflags and 2 != 0) 1
+    else if (self.spawnflags and 4 != 0) 2
+    else if (self.spawnflags and 8 != 0) 3
+    else if (self.spawnflags and 16 != 0) 4
+    else if (self.spawnflags and 32 != 0) 5
+    else 0
+
+    Math3D.VectorSet(self.mins, -16f, -16f, 0f)
+    Math3D.VectorSet(self.maxs, 16f, 16f, 16f)
+    self.deadflag = GameDefines.DEAD_DEAD
+    self.takedamage = Defines.DAMAGE_YES
+    self.svflags = self.svflags or (Defines.SVF_MONSTER or Defines.SVF_DEADMONSTER)
+    self.die = miscDeadSoldierDieAdapter
+    self.monsterinfo.aiflags = self.monsterinfo.aiflags or GameDefines.AI_GOOD_GUY
+    game.gameImports.linkentity(self)
+}
+
+private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { self, inflictor, attacker, damage, point, game ->
+    if (self.health > -80)
+        return@registerDie
+
+    game.gameImports.sound(self, Defines.CHAN_BODY, game.gameImports.soundindex("misc/udeath.wav"), 1f, Defines.ATTN_NORM.toFloat(), 0f)
+    repeat(3) {
+        GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
+    }
+    GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
+
+}

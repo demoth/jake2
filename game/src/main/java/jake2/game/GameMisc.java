@@ -155,41 +155,6 @@ public class GameMisc {
         self.think.nextTime = gameExports.level.time + 5 * Defines.FRAMETIME;
     }
 
-    static void SP_misc_deadsoldier(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) { // auto-remove for deathmatch
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_BBOX;
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/deadbods/dude/tris.md2");
-
-        // Defaults to frame 0
-        if ((ent.spawnflags & 2) != 0)
-            ent.s.frame = 1;
-        else if ((ent.spawnflags & 4) != 0)
-            ent.s.frame = 2;
-        else if ((ent.spawnflags & 8) != 0)
-            ent.s.frame = 3;
-        else if ((ent.spawnflags & 16) != 0)
-            ent.s.frame = 4;
-        else if ((ent.spawnflags & 32) != 0)
-            ent.s.frame = 5;
-        else
-            ent.s.frame = 0;
-
-        Math3D.VectorSet(ent.mins, -16, -16, 0);
-        Math3D.VectorSet(ent.maxs, 16, 16, 16);
-        ent.deadflag = GameDefines.DEAD_DEAD;
-        ent.takedamage = Defines.DAMAGE_YES;
-        ent.svflags |= Defines.SVF_MONSTER | Defines.SVF_DEADMONSTER;
-        ent.die = misc_deadsoldier_die;
-        ent.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
-
-        gameExports.gameImports.linkentity(ent);
-    }
 
     static void SP_misc_viper(SubgameEntity ent, GameExportsImpl gameExports) {
         if (null == ent.target) {
@@ -780,30 +745,6 @@ public class GameMisc {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
-        }
-    };
-
-    /*
-     * QUAKED misc_deadsoldier (1 .5 0) (-16 -16 0) (16 16 16) ON_BACK
-     * ON_STOMACH BACK_DECAP FETAL_POS SIT_DECAP IMPALED This is the dead player
-     * model. Comes in 6 exciting different poses!
-     */
-    private static EntDieAdapter misc_deadsoldier_die = new EntDieAdapter() {
-        public String getID() { return "misc_deadsoldier_die";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point, GameExportsImpl gameExports) {
-            int n;
-
-            if (self.health > -80)
-                return;
-
-            gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
-                    .soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
-            for (n = 0; n < 4; n++)
-                ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC, gameExports);
-            ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                    damage, GameDefines.GIB_ORGANIC, gameExports);
         }
     };
 
