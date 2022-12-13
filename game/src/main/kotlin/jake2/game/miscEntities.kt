@@ -186,8 +186,8 @@ fun miscGibHead(self: SubgameEntity, game: GameExportsImpl) {
     initGib(self, game, "head")
 }
 
-private fun initGib(ent: SubgameEntity, gameExports: GameExportsImpl, model: String) {
-    gameExports.gameImports.setmodel(ent, "models/objects/gibs/$model/tris.md2")
+private fun initGib(ent: SubgameEntity, game: GameExportsImpl, model: String) {
+    game.gameImports.setmodel(ent, "models/objects/gibs/$model/tris.md2")
     ent.solid = Defines.SOLID_NOT
     ent.s.effects = ent.s.effects or Defines.EF_GIB
     ent.takedamage = Defines.DAMAGE_YES
@@ -199,10 +199,37 @@ private fun initGib(ent: SubgameEntity, gameExports: GameExportsImpl, model: Str
     ent.avelocity[1] = Lib.random() * 200
     ent.avelocity[2] = Lib.random() * 200
     ent.think.action = GameUtil.G_FreeEdictA
-    ent.think.nextTime = gameExports.level.time + 30
-    gameExports.gameImports.linkentity(ent)
+    ent.think.nextTime = game.level.time + 30
+    game.gameImports.linkentity(ent)
 }
 
 private val dieFreeEntity = registerDie("die-free-entity") { self, _, _, _, _, game ->
     game.freeEntity(self)
+}
+
+/*
+ * QUAKED misc_satellite_dish (1 .5 0) (-64 -64 0) (64 64 128)
+ */
+fun miscSatelliteDish(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_BBOX
+    Math3D.VectorSet(self.mins, -64f, -64f, 0f)
+    Math3D.VectorSet(self.maxs, 64f, 64f, 128f)
+    self.s.modelindex = game.gameImports.modelindex("models/objects/satellite/tris.md2")
+    self.use = miscSatelliteDishUse
+    game.gameImports.linkentity(self)
+}
+
+private val miscSatelliteDishUse = registerUse("misc_satellite_dish_use") { self, other, activator, game ->
+    self.s.frame = 0
+    self.think.action = miscDishRotate
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+}
+
+private val miscDishRotate = registerThink("misc_satellite_dish_think") { self, game ->
+    self.s.frame++
+    if (self.s.frame < 38)
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+
+    true
 }

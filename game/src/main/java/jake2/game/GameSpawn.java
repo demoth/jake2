@@ -445,16 +445,7 @@ public class GameSpawn {
         });
         spawns.put("misc_explobox", MiscEntitiesKt::miscExplobox);
         spawns.put("misc_banner", MiscEntitiesKt::miscBanner);
-        addSpawnAdapter("misc_satellite_dish", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_satellite_dish";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_satellite_dish(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_satellite_dish", MiscEntitiesKt::miscSatelliteDish);
         spawns.put("misc_gib_arm", MiscEntitiesKt::miscGibArm);
         spawns.put("misc_gib_leg", MiscEntitiesKt::miscGibLeg);
         spawns.put("misc_gib_head", MiscEntitiesKt::miscGibHead);

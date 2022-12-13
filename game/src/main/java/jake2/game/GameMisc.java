@@ -277,17 +277,6 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_satellite_dish(SubgameEntity ent, GameExportsImpl gameExports) {
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_BBOX;
-        Math3D.VectorSet(ent.mins, -64, -64, 0);
-        Math3D.VectorSet(ent.maxs, 64, 64, 128);
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/objects/satellite/tris.md2");
-        ent.use = misc_satellite_dish_use;
-        gameExports.gameImports.linkentity(ent);
-    }
-
     /*
      * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
      */
@@ -928,29 +917,6 @@ public class GameMisc {
             TrainKt.getTrainUse().use(self, other, activator, gameExports);
         }
     };
-
-    /*
-     * QUAKED misc_satellite_dish (1 .5 0) (-64 -64 0) (64 64 128)
-     */
-    private static EntThinkAdapter misc_satellite_dish_think = new EntThinkAdapter() {
-        public String getID() { return "misc_satellite_dish_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            self.s.frame++;
-            if (self.s.frame < 38)
-                self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            return true;
-        }
-    };
-
-    private static EntUseAdapter misc_satellite_dish_use = new EntUseAdapter() {
-        public String getID() { return "misc_satellite_dish_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.s.frame = 0;
-            self.think.action = misc_satellite_dish_think;
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        }
-    };
-
 
     private static EntTouchAdapter teleporter_touch = new EntTouchAdapter() {
         public String getID() { return "teleporter_touch";}
