@@ -155,20 +155,6 @@ public class GameMisc {
     }
 
 
-    /*
-     * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72) This is a
-     * large stationary viper as seen in Paul's intro
-     */
-    static void SP_misc_bigviper(SubgameEntity ent, GameExportsImpl gameExports) {
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_BBOX;
-        Math3D.VectorSet(ent.mins, -176, -120, -24);
-        Math3D.VectorSet(ent.maxs, 176, 120, 72);
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/ships/bigviper/tris.md2");
-        gameExports.gameImports.linkentity(ent);
-    }
-
 
 
     /*

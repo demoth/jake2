@@ -463,16 +463,7 @@ public class GameSpawn {
         spawns.put("misc_viper", (self, game) -> TrainKt.miscFlyingShip(self, game, "viper"));
         spawns.put("misc_strogg_ship", (self, game) -> TrainKt.miscFlyingShip(self, game, "strogg1"));
         spawns.put("misc_viper_bomb", MiscEntitiesKt::miscViperBomb);
-        addSpawnAdapter("misc_bigviper", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_bigviper";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_bigviper(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_bigviper", MiscEntitiesKt::miscBigViper);
         addSpawnAdapter("misc_teleporter", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_teleporter";

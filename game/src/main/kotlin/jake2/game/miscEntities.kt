@@ -282,7 +282,6 @@ private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { se
         GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
     }
     GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
-
 }
 
 /*
@@ -350,5 +349,19 @@ private val miscViperBombTouch = registerTouch("misc_viper_bomb_touch") { self, 
     self.s.origin[2] = self.absmin[2] + 1
     GameCombat.T_RadiusDamage(self, self, self.dmg.toFloat(), null, (self.dmg + 40).toFloat(), GameDefines.MOD_BOMB, game)
     GameMisc.BecomeExplosion2(self, game)
-
 }
+
+
+/*
+ * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72)
+ * This is a large stationary viper as seen in Paul's intro
+ */
+fun miscBigViper(self: SubgameEntity, game: GameExportsImpl) {
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_BBOX
+    Math3D.VectorSet(self.mins, -176f, -120f, -24f)
+    Math3D.VectorSet(self.maxs, 176f, 120f, 72f)
+    self.s.modelindex = game.gameImports.modelindex("models/ships/bigviper/tris.md2")
+    game.gameImports.linkentity(self)
+}
+
