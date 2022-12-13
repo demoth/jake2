@@ -26,7 +26,6 @@ import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntTouchAdapter;
 import jake2.game.adapters.EntUseAdapter;
-import jake2.game.func.TrainKt;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;
@@ -188,32 +187,6 @@ public class GameMisc {
         gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_misc_strogg_ship(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (null == ent.target) {
-            gameExports.gameImports.dprintf(ent.classname + " without a target at "
-                    + Lib.vtos(ent.absmin) + "\n");
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        if (0 == ent.speed)
-            ent.speed = 300;
-
-        ent.movetype = GameDefines.MOVETYPE_PUSH;
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/ships/strogg1/tris.md2");
-        Math3D.VectorSet(ent.mins, -16, -16, 0);
-        Math3D.VectorSet(ent.maxs, 16, 16, 32);
-
-        ent.think.action = TrainKt.getTrainFindTarget();
-        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        ent.use = misc_strogg_ship_use;
-        ent.svflags |= Defines.SVF_NOCLIENT;
-        ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
-
-        gameExports.gameImports.linkentity(ent);
-    }
 
     /*
      * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
@@ -794,24 +767,6 @@ public class GameMisc {
 
             self.timestamp = gameExports.level.time;
             Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir);
-        }
-    };
-
-    /*
-     * QUAKED misc_strogg_ship (1 .5 0) (-16 -16 0) (16 16 32) This is a Storgg
-     * ship for the flybys. It is trigger_spawned, so you must have something
-     * use it for it to show up. There must be a path for it to follow once it
-     * is activated.
-     * 
-     * "speed" How fast it should fly
-     */
-
-    private static EntUseAdapter misc_strogg_ship_use = new EntUseAdapter() {
-        public String getID() { return "misc_strogg_ship_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = TrainKt.getTrainUse();
-            TrainKt.getTrainUse().use(self, other, activator, gameExports);
         }
     };
 
