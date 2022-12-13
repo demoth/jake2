@@ -308,3 +308,42 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
     self.movetarget.target_ent = target
     trainResume(self.movetarget, game)
 }
+
+// since the entities below behave like func_train and require similar routines, they are placed here
+
+/*
+ * QUAKED misc_viper (1 .5 0) (-16 -16 0) (16 16 32)
+ * This is the Viper for the flyby bombing.
+ * It is trigger_spawned, so you must have something use it for it to show up.
+ * There must be a path for it to follow once it is activated.
+ *
+ * "speed" How fast the Viper should fly
+ */
+fun miscViper(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.target == null) {
+        game.gameImports.dprintf("misc_viper without a target at ${Lib.vtos(self.absmin)}\n")
+        game.freeEntity(self)
+        return
+    }
+    if (self.speed == 0f)
+        self.speed = 300f
+    self.movetype = GameDefines.MOVETYPE_PUSH
+    self.solid = Defines.SOLID_NOT
+    self.s.modelindex = game.gameImports.modelindex("models/ships/viper/tris.md2")
+    Math3D.VectorSet(self.mins, -16f, -16f, 0f)
+    Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
+    self.think.action = trainFindTarget
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    self.use = miscViperUse
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.moveinfo.speed = self.speed
+    self.moveinfo.decel = self.moveinfo.speed
+    self.moveinfo.accel = self.moveinfo.decel
+    game.gameImports.linkentity(self)
+}
+
+private val miscViperUse = registerUse("misc_viper_use") { self, other, activator, game ->
+    self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
+    self.use = trainUse
+    trainUse.use(self, other, activator, game)
+}

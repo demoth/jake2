@@ -284,3 +284,4 @@ private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { se
     GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
 
 }
+

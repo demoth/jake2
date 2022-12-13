@@ -156,33 +156,6 @@ public class GameMisc {
     }
 
 
-    static void SP_misc_viper(SubgameEntity ent, GameExportsImpl gameExports) {
-        if (null == ent.target) {
-            gameExports.gameImports.dprintf("misc_viper without a target at "
-                    + Lib.vtos(ent.absmin) + "\n");
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        if (0 == ent.speed)
-            ent.speed = 300;
-
-        ent.movetype = GameDefines.MOVETYPE_PUSH;
-        ent.solid = Defines.SOLID_NOT;
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/ships/viper/tris.md2");
-        Math3D.VectorSet(ent.mins, -16, -16, 0);
-        Math3D.VectorSet(ent.maxs, 16, 16, 32);
-
-        ent.think.action = TrainKt.getTrainFindTarget();
-        ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        ent.use = misc_viper_use;
-        ent.svflags |= Defines.SVF_NOCLIENT;
-        ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
-
-        gameExports.gameImports.linkentity(ent);
-    }
-
     /*
      * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72) This is a
      * large stationary viper as seen in Paul's intro
@@ -748,23 +721,6 @@ public class GameMisc {
         }
     };
 
-    /*
-     * QUAKED misc_viper (1 .5 0) (-16 -16 0) (16 16 32) This is the Viper for
-     * the flyby bombing. It is trigger_spawned, so you must have something use
-     * it for it to show up. There must be a path for it to follow once it is
-     * activated.
-     * 
-     * "speed" How fast the Viper should fly
-     */
-
-    private static EntUseAdapter misc_viper_use = new EntUseAdapter() {
-        public String getID() { return "misc_viper_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.use = TrainKt.getTrainUse();
-            TrainKt.getTrainUse().use(self, other, activator, gameExports);
-        }
-    };
 
     /*
      * QUAKED misc_viper_bomb (1 0 0) (-8 -8 -8) (8 8 8) "dmg" how much boom

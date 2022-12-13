@@ -460,16 +460,7 @@ public class GameSpawn {
             }
         });
         spawns.put("misc_deadsoldier", MiscEntitiesKt::miscDeadSoldier);
-        addSpawnAdapter("misc_viper", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_viper";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_viper(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_viper", TrainKt::miscViper);
         addSpawnAdapter("misc_viper_bomb", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_viper_bomb";
