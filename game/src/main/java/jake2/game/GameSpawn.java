@@ -421,6 +421,10 @@ public class GameSpawn {
          * Used as a positional target for spotlights, etc.
          */
         spawns.put("info_null", (self, game) -> game.freeEntity(self));
+        /*
+         * QUAKED func_group (0 0 0) ? Used to group brushes together just for
+         * editor convenience.
+         */
         spawns.put("func_group", (self, game) -> game.freeEntity(self));
         spawns.put("info_notnull", InfoEntitiesKt::infoNotNull);
         addSpawnAdapter("path_corner", new EntThinkAdapter() {
@@ -464,17 +468,8 @@ public class GameSpawn {
         spawns.put("misc_strogg_ship", (self, game) -> TrainKt.miscFlyingShip(self, game, "strogg1"));
         spawns.put("misc_viper_bomb", MiscEntitiesKt::miscViperBomb);
         spawns.put("misc_bigviper", MiscEntitiesKt::miscBigViper);
-        addSpawnAdapter("misc_teleporter", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_teleporter";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_teleporter(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
+        spawns.put("misc_teleporter", MiscEntitiesKt::miscTeleporter);
+        spawns.put("misc_teleporter_dest", MiscEntitiesKt::miscTeleporterDest);
         spawns.put("misc_blackhole", MiscEntitiesKt::miscBlackhole);
         addSpawnAdapter("misc_eastertank", new EntThinkAdapter() {
             public String getID() {

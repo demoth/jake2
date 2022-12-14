@@ -26,7 +26,10 @@ import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntTouchAdapter;
 import jake2.game.adapters.EntUseAdapter;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointTEMessage;
 import jake2.qcommon.util.Lib;
@@ -182,44 +185,7 @@ public class GameMisc {
     //=====================================================
 
 
-    /**
-     * QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) Stepping onto
-     * this disc will teleport players to the targeted misc_teleporter_dest
-     * object.
-     */
-    static void SP_misc_teleporter(SubgameEntity ent, GameExportsImpl gameExports) {
 
-        if (ent.target == null) {
-            gameExports.gameImports.dprintf("teleporter without a target.\n");
-            gameExports.freeEntity(ent);
-            return;
-        }
-
-        gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
-        ent.s.skinnum = 1;
-        ent.s.effects = Defines.EF_TELEPORTER;
-        ent.s.sound = gameExports.gameImports.soundindex("world/amb10.wav");
-        ent.solid = Defines.SOLID_BBOX;
-
-        Math3D.VectorSet(ent.mins, -32, -32, -24);
-        Math3D.VectorSet(ent.maxs, 32, 32, -16);
-        gameExports.gameImports.linkentity(ent);
-
-        SubgameEntity trig = gameExports.G_Spawn();
-        trig.touch = teleporter_touch;
-        trig.solid = Defines.SOLID_TRIGGER;
-        trig.target = ent.target;
-        trig.setOwner(ent);
-        Math3D.VectorCopy(ent.s.origin, trig.s.origin);
-        Math3D.VectorSet(trig.mins, -8, -8, 8);
-        Math3D.VectorSet(trig.maxs, 8, 8, 24);
-        gameExports.gameImports.linkentity(trig);
-    }
-
-    /**
-     * QUAKED func_group (0 0 0) ? Used to group brushes together just for
-     * editor convenience.
-     */
 
     private static void VelocityForDamage(int damage, float[] v) {
         v[0] = 100.0f * Lib.crandom();
@@ -663,77 +629,6 @@ public class GameMisc {
         }
     };
 
-    private static EntTouchAdapter teleporter_touch = new EntTouchAdapter() {
-        public String getID() { return "teleporter_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf, GameExportsImpl gameExports) {
-            edict_t dest;
-            int i;
-
-            gclient_t client = other.getClient();
-            if (client == null)
-                return;
-
-            EdictIterator es = null;
-            dest = GameBase.G_Find(null, GameBase.findByTargetName, self.target, gameExports).o;
-
-            if (dest == null) {
-                gameExports.gameImports.dprintf("Couldn't find destination\n");
-                return;
-            }
-
-            // unlink to make sure it can't possibly interfere with KillBox
-            gameExports.gameImports.unlinkentity(other);
-
-            Math3D.VectorCopy(dest.s.origin, other.s.origin);
-            Math3D.VectorCopy(dest.s.origin, other.s.old_origin);
-            other.s.origin[2] += 10;
-
-            // clear the velocity and hold them in place briefly
-            Math3D.VectorClear(other.velocity);
-            client.getPlayerState().pmove.pm_time = 160 >> 3; // hold time
-            client.getPlayerState().pmove.pm_flags |= Defines.PMF_TIME_TELEPORT;
-
-            // draw the teleport splash at source and on the player
-            self.getOwner().s.event = Defines.EV_PLAYER_TELEPORT;
-            other.s.event = Defines.EV_PLAYER_TELEPORT;
-
-            // set angles
-            for (i = 0; i < 3; i++) {
-                client.getPlayerState().pmove.delta_angles[i] = (short) Math3D
-                        .ANGLE2SHORT(dest.s.angles[i]
-                                - client.resp.cmd_angles[i]);
-            }
-
-            Math3D.VectorClear(other.s.angles);
-            Math3D.VectorClear(client.getPlayerState().viewangles);
-            Math3D.VectorClear(client.v_angle);
-
-            // kill anything at the destination
-            GameUtil.KillBox(other, gameExports);
-
-            gameExports.gameImports.linkentity(other);
-        }
-    };
-
-    /*
-     * QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16) Point
-     * teleporters at these.
-     */
-
-    static EntThinkAdapter SP_misc_teleporter_dest = new EntThinkAdapter() {
-        public String getID() { return "SP_misc_teleporter_dest";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
-            ent.s.skinnum = 0;
-            ent.solid = Defines.SOLID_BBOX;
-            //	ent.s.effects |= EF_FLIES;
-            Math3D.VectorSet(ent.mins, -32, -32, -24);
-            Math3D.VectorSet(ent.maxs, 32, 32, -16);
-            gameExports.gameImports.linkentity(ent);
-            return true;
-        }
-    };
 
     private static EntThinkAdapter gib_think = new EntThinkAdapter() {
         public String getID() { return "gib_think";}

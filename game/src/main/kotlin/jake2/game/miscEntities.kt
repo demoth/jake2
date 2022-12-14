@@ -365,3 +365,88 @@ fun miscBigViper(self: SubgameEntity, game: GameExportsImpl) {
     game.gameImports.linkentity(self)
 }
 
+/**
+ * QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
+ * Stepping onto this disc will teleport player to the targeted misc_teleporter_dest object.
+ */
+fun miscTeleporter(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.target == null) {
+        game.gameImports.dprintf("teleporter without a target.\n")
+        game.freeEntity(self)
+        return
+    }
+    game.gameImports.setmodel(self, "models/objects/dmspot/tris.md2")
+    self.s.skinnum = 1
+    self.s.effects = Defines.EF_TELEPORTER
+    self.s.sound = game.gameImports.soundindex("world/amb10.wav")
+    self.solid = Defines.SOLID_BBOX
+    Math3D.VectorSet(self.mins, -32f, -32f, -24f)
+    Math3D.VectorSet(self.maxs, 32f, 32f, -16f)
+    game.gameImports.linkentity(self)
+
+    val trigger = game.G_Spawn()
+    trigger.touch = teleporterTriggerTouch
+    trigger.solid = Defines.SOLID_TRIGGER
+    trigger.target = self.target
+    trigger.owner = self
+    Math3D.VectorCopy(self.s.origin, trigger.s.origin)
+    Math3D.VectorSet(trigger.mins, -8f, -8f, 8f)
+    Math3D.VectorSet(trigger.maxs, 8f, 8f, 24f)
+    game.gameImports.linkentity(trigger)
+}
+
+private val teleporterTriggerTouch = registerTouch("teleporter_touch") { self, other, plane, surf, game ->
+    val client = other.client ?: return@registerTouch
+
+    val dest = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)?.o
+
+    if (dest == null) {
+        game.gameImports.dprintf("Couldn't find destination\n")
+        return@registerTouch
+    }
+
+    // unlink to make sure it can't possibly interfere with KillBox
+    game.gameImports.unlinkentity(other)
+
+    Math3D.VectorCopy(dest.s.origin, other.s.origin)
+    Math3D.VectorCopy(dest.s.origin, other.s.old_origin)
+    other.s.origin[2] += 10f
+
+    // clear the velocity and hold them in place briefly
+    Math3D.VectorClear(other.velocity)
+    client.playerState.pmove.pm_time = (160 shr 3).toByte() // hold time
+
+    client.playerState.pmove.pm_flags = (client.playerState.pmove.pm_flags.toInt() or Defines.PMF_TIME_TELEPORT).toByte()
+
+    // draw the teleport splash at source and on the player
+    self.owner.s.event = Defines.EV_PLAYER_TELEPORT
+    other.s.event = Defines.EV_PLAYER_TELEPORT
+
+    // set angles
+    for (i in 0..2) {
+        client.playerState.pmove.delta_angles[i] = Math3D.ANGLE2SHORT(dest.s.angles[i]- client.resp.cmd_angles[i]).toShort()
+    }
+
+    Math3D.VectorClear(other.s.angles)
+    Math3D.VectorClear(client.playerState.viewangles)
+    Math3D.VectorClear(client.v_angle)
+
+    // kill anything at the destination
+    GameUtil.KillBox(other, game)
+
+    game.gameImports.linkentity(other)
+}
+
+/*
+ * QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
+ * Point teleporters at these.
+ */
+fun miscTeleporterDest(self: SubgameEntity, game: GameExportsImpl) {
+    game.gameImports.setmodel(self, "models/objects/dmspot/tris.md2")
+    self.s.skinnum = 0
+    self.solid = Defines.SOLID_BBOX
+    Math3D.VectorSet(self.mins, -32f, -32f, -24f)
+    Math3D.VectorSet(self.maxs, 32f, 32f, -16f)
+    game.gameImports.linkentity(self)
+
+}
