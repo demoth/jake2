@@ -7,6 +7,7 @@ import jake2.qcommon.Globals
 import jake2.qcommon.network.MulticastTypes
 import jake2.qcommon.network.messages.server.PointTEMessage
 import jake2.qcommon.network.messages.server.SplashTEMessage
+import jake2.qcommon.trace_t
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
@@ -640,6 +641,9 @@ private const val BLUE = 8
 private const val YELLOW = 16
 private const val ORANGE = 32
 private const val FAT = 64
+
+// fixme: find a better name
+private const val LASER_SPARK_FLAG = Int.MIN_VALUE // highest bit
 fun targetLaser(self: SubgameEntity, game: GameExportsImpl) {
     // let everything else get spawned before we start firing
     self.think.action = laserInit
@@ -685,8 +689,8 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
         }
     }
 
-    self.use = GameTarget.target_laser_use
-    self.think.action = GameTarget.target_laser_think
+    self.use = laserUse
+    self.think.action = laserThink
 
 
     if (self.dmg == 0)
@@ -697,9 +701,96 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
     game.gameImports.linkentity(self)
 
     if (self.hasSpawnFlag(START_ON))
-        GameTarget.target_laser_on(self, game)
+        laserOn(self, game)
     else
-        GameTarget.target_laser_off(self)
+        laserOff(self)
+
+    true
+}
+
+private val laserUse = registerUse("target_laser_use") { self, other, activator, game ->
+    self.activator = activator
+    if (self.hasSpawnFlag(START_ON))
+        laserOff(self)
+    else
+        laserOn(self, game)
+}
+
+fun laserOn(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.activator == null)
+        self.activator = self
+    self.setSpawnFlag(START_ON)
+    self.setSpawnFlag(LASER_SPARK_FLAG)
+    self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
+    laserThink.think(self, game)
+}
+
+fun laserOff(self: SubgameEntity) {
+    self.unsetSpawnFlag(START_ON)
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.think.nextTime = 0f
+}
+
+/**
+ * Fires a raycast check until hit an entity that is immune to damage
+ */
+private val laserThink = registerThink("target_laser_think") { self, game ->
+    val sparksCount = if (self.hasSpawnFlag(LASER_SPARK_FLAG)) 8 else 4
+
+    if (self.enemy != null) {
+        val lastMoveDir = floatArrayOf(0f, 0f, 0f)
+        Math3D.VectorCopy(self.movedir, lastMoveDir)
+        val point = floatArrayOf(0f, 0f, 0f)
+        Math3D.VectorMA(self.enemy.absmin, 0.5f, self.enemy.size, point)
+        Math3D.VectorSubtract(point, self.s.origin, self.movedir)
+        Math3D.VectorNormalize(self.movedir)
+        if (!Math3D.VectorEquals(self.movedir, lastMoveDir)) {
+            self.setSpawnFlag(LASER_SPARK_FLAG)
+        }
+    }
+
+    var ignore = self
+    val start = floatArrayOf(0f, 0f, 0f)
+    Math3D.VectorCopy(self.s.origin, start)
+    val end = floatArrayOf(0f, 0f, 0f)
+    Math3D.VectorMA(start, 2048f, self.movedir, end)
+    var tr: trace_t
+    while (true) {
+        tr = game.gameImports.trace(
+            start,
+            null,
+            null,
+            end,
+            ignore,
+            Defines.CONTENTS_SOLID or Defines.CONTENTS_MONSTER or Defines.CONTENTS_DEADMONSTER
+        )
+        val target = tr.ent as SubgameEntity
+
+        // hurt it if we can
+        if (target.takedamage != 0 && 0 == target.flags and GameDefines.FL_IMMUNE_LASER)
+            GameCombat.T_Damage(
+            target, self, self.activator,
+            self.movedir, tr.endpos, Globals.vec3_origin,
+            self.dmg, 1, DamageFlags.DAMAGE_ENERGY,
+            GameDefines.MOD_TARGET_LASER, game
+        )
+
+        // if we hit something that's not a monster or player or is
+        // immune to lasers, we're done
+        if (target.svflags and Defines.SVF_MONSTER == 0 && target.client == null) {
+            if (self.hasSpawnFlag(LASER_SPARK_FLAG)) {
+                self.unsetSpawnFlag(LASER_SPARK_FLAG)
+                game.gameImports.multicastMessage(tr.endpos, SplashTEMessage(Defines.TE_LASER_SPARKS, sparksCount, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS)
+            }
+            break
+        }
+        ignore = target
+        Math3D.VectorCopy(tr.endpos, start)
+    }
+
+    Math3D.VectorCopy(tr.endpos, self.s.old_origin)
+
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
 
     true
 }
