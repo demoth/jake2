@@ -620,3 +620,86 @@ private val targetCrosslevelTargetThink = registerThink("target_crosslevel_targe
     }
     true
 }
+
+/**
+ * QUAKED target_laser (0 .5 .8) (-8 -8 -8) (8 8 8)
+ * START_ON
+ * RED
+ * GREEN
+ * BLUE
+ * YELLOW
+ * ORANGE
+ * FAT
+ * When triggered, fires a laser.
+ * You can either set a target or a direction.
+ */
+private const val START_ON = 1
+private const val RED = 2
+private const val GREEN = 4
+private const val BLUE = 8
+private const val YELLOW = 16
+private const val ORANGE = 32
+private const val FAT = 64
+fun targetLaser(self: SubgameEntity, game: GameExportsImpl) {
+    // let everything else get spawned before we start firing
+    self.think.action = laserInit
+    self.think.nextTime = game.level.time + 1
+}
+
+private val laserInit = registerThink("target_laser_start") { self, game ->
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_NOT
+    self.s.renderfx = self.s.renderfx or (Defines.RF_BEAM or Defines.RF_TRANSLUCENT)
+    self.s.modelindex = 1 // must be non-zero
+
+    // set the beam diameter
+    if (self.hasSpawnFlag(FAT))
+        self.s.frame = 16
+    else
+        self.s.frame = 4
+
+    // set the color
+    if (self.hasSpawnFlag(RED))
+        self.s.skinnum = -0xd0d0f10
+    else if (self.hasSpawnFlag(GREEN))
+        self.s.skinnum = -0x2f2e2d2d
+    else if (self.hasSpawnFlag(BLUE))
+        self.s.skinnum = -0xc0c0e0f
+    else if (self.hasSpawnFlag(YELLOW))
+        self.s.skinnum = -0x23222121
+    else if (self.hasSpawnFlag(ORANGE))
+        self.s.skinnum = -0x1f1e1d1d
+
+    // target or direction
+    if (self.enemy == null) {
+        if (self.target != null) {
+            val target = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)
+            if (target != null) {
+                self.enemy = target.o
+            } else {
+                game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)}: ${self.target} is a bad target\n")
+                // fixme: free such entity?
+            }
+        } else {
+            GameBase.G_SetMovedir(self.s.angles, self.movedir)
+        }
+    }
+
+    self.use = GameTarget.target_laser_use
+    self.think.action = GameTarget.target_laser_think
+
+
+    if (self.dmg == 0)
+        self.dmg = 1
+
+    Math3D.VectorSet(self.mins, -8f, -8f, -8f)
+    Math3D.VectorSet(self.maxs, 8f, 8f, 8f)
+    game.gameImports.linkentity(self)
+
+    if (self.hasSpawnFlag(START_ON))
+        GameTarget.target_laser_on(self, game)
+    else
+        GameTarget.target_laser_off(self)
+
+    true
+}

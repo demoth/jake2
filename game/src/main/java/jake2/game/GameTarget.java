@@ -35,7 +35,7 @@ import jake2.qcommon.util.Math3D;
 
 class GameTarget {
 
-    private static void target_laser_on(SubgameEntity self, GameExportsImpl gameExports) {
+    static void target_laser_on(SubgameEntity self, GameExportsImpl gameExports) {
         if (null == self.activator)
             self.activator = self;
         self.spawnflags |= 0x80000001;
@@ -43,28 +43,17 @@ class GameTarget {
         target_laser_think.think(self, gameExports);
     }
 
-    private static void target_laser_off(SubgameEntity self) {
+    static void target_laser_off(SubgameEntity self) {
         self.spawnflags &= ~1;
         self.svflags |= Defines.SVF_NOCLIENT;
         self.think.nextTime = 0;
     }
 
-    static void SP_target_laser(SubgameEntity self, GameExportsImpl gameExports) {
-        // let everything else get spawned before we start firing
-        self.think.action = target_laser_start;
-        self.think.nextTime = gameExports.level.time + 1;
-    }
 
-    /**
-     * QUAKED target_laser (0 .5 .8) (-8 -8 -8) (8 8 8) START_ON RED GREEN BLUE
-     * YELLOW ORANGE FAT When triggered, fires a laser. You can either set a
-     * target or a direction.
-     */
-    private static EntThinkAdapter target_laser_think = new EntThinkAdapter() {
+    static EntThinkAdapter target_laser_think = new EntThinkAdapter() {
     	public String getID() { return "target_laser_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(SubgameEntity self, GameExportsImpl game) {
 
-            edict_t ignore;
             float[] start = { 0, 0, 0 };
             float[] end = { 0, 0, 0 };
             trace_t tr;
@@ -86,11 +75,11 @@ class GameTarget {
                     self.spawnflags |= 0x80000000;
             }
 
-            ignore = self;
+            edict_t ignore = self;
             Math3D.VectorCopy(self.s.origin, start);
             Math3D.VectorMA(start, 2048, self.movedir, end);
             while (true) {
-                tr = gameExports.gameImports.trace(start, null, null, end, ignore,
+                tr = game.gameImports.trace(start, null, null, end, ignore,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_DEADMONSTER);
 
@@ -104,7 +93,7 @@ class GameTarget {
                     GameCombat.T_Damage((SubgameEntity) target, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, DamageFlags.DAMAGE_ENERGY,
-                            GameDefines.MOD_TARGET_LASER, gameExports);
+                            GameDefines.MOD_TARGET_LASER, game);
 
                 // if we hit something that's not a monster or player or is
                 // immune to lasers, we're done
@@ -112,7 +101,7 @@ class GameTarget {
                         && (null == target.getClient())) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
-                        gameExports.gameImports.multicastMessage(tr.endpos, new SplashTEMessage(Defines.TE_LASER_SPARKS, count, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS);
+                        game.gameImports.multicastMessage(tr.endpos, new SplashTEMessage(Defines.TE_LASER_SPARKS, count, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS);
                     }
                     break;
                 }
@@ -123,12 +112,12 @@ class GameTarget {
 
             Math3D.VectorCopy(tr.endpos, self.s.old_origin);
 
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
+            self.think.nextTime = game.level.time + Defines.FRAMETIME;
             return true;
         }
     };
 
-    private static EntUseAdapter target_laser_use = new EntUseAdapter() {
+    static EntUseAdapter target_laser_use = new EntUseAdapter() {
     	public String getID() { return "target_laser_use"; }
 
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
@@ -142,7 +131,7 @@ class GameTarget {
 
     private static EntThinkAdapter target_laser_start = new EntThinkAdapter() {
     	public String getID() { return "target_laser_start"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(SubgameEntity self, GameExportsImpl game) {
 
             self.movetype = GameDefines.MOVETYPE_NONE;
             self.solid = Defines.SOLID_NOT;
@@ -167,14 +156,11 @@ class GameTarget {
             else if ((self.spawnflags & 32) != 0)
                 self.s.skinnum = 0xe0e1e2e3;
 
-            if (null == self.enemy) {
+            if (self.enemy == null) {
                 if (self.target != null) {
-                    EdictIterator edit = GameBase.G_Find(null, GameBase.findByTargetName,
-                            self.target, gameExports);
-                    if (edit == null)
-                        gameExports.gameImports.dprintf(self.classname + " at "
-                                + Lib.vtos(self.s.origin) + ": " + self.target
-                                + " is a bad target\n");
+                    EdictIterator edit = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game);
+                    if (null == edit)
+                        game.gameImports.dprintf(self.classname + " at " + Lib.vtos(self.s.origin) + ": " + self.target + " is a bad target\n");
                     self.enemy = edit.o;
                 } else {
                     GameBase.G_SetMovedir(self.s.angles, self.movedir);
@@ -188,10 +174,10 @@ class GameTarget {
 
             Math3D.VectorSet(self.mins, -8, -8, -8);
             Math3D.VectorSet(self.maxs, 8, 8, 8);
-            gameExports.gameImports.linkentity(self);
+            game.gameImports.linkentity(self);
 
             if ((self.spawnflags & 1) != 0)
-                target_laser_on(self, gameExports);
+                target_laser_on(self, game);
             else
                 target_laser_off(self);
             return true;

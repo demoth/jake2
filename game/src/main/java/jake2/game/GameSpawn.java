@@ -359,16 +359,7 @@ public class GameSpawn {
         spawns.put("target_blaster", TargetEntitiesKt::targetBlaster);
         spawns.put("target_crosslevel_trigger", TargetEntitiesKt::targetCrosslevelTrigger);
         spawns.put("target_crosslevel_target", TargetEntitiesKt::targetCrosslevelTarget);
-        addSpawnAdapter("target_laser", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_laser";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_laser(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_laser", TargetEntitiesKt::targetLaser);
         spawns.put("target_help", TargetEntitiesKt::targetHelp);
         spawns.put("target_lightramp", TargetEntitiesKt::targetLightramp);
         spawns.put("target_earthquake", TargetEntitiesKt::targetEarthquake);
