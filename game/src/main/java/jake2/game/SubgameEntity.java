@@ -88,17 +88,18 @@ public class SubgameEntity extends edict_t {
     public String combattarget = null;
 
 
-    public float speed, accel, decel;
-
+    // Movement related
+    public float speed;
+    public float accel;
+    public float decel;
     public float[] movedir = { 0, 0, 0 };
-
     public float[] pos1 = { 0, 0, 0 };
-
     public float[] pos2 = { 0, 0, 0 };
-
     public float[] velocity = { 0, 0, 0 };
-
     public float[] avelocity = { 0, 0, 0 };
+    public float[] move_origin = { 0, 0, 0 };
+    public float[] move_angles = { 0, 0, 0 };
+    public moveinfo_t moveinfo = new moveinfo_t();
 
     public int mass;
 
@@ -211,9 +212,6 @@ public class SubgameEntity extends edict_t {
      */
     public int waterlevel;
 
-    public float[] move_origin = { 0, 0, 0 };
-
-    public float[] move_angles = { 0, 0, 0 };
 
     /** move this to clientinfo? . */
     public int light_level;
@@ -224,7 +222,6 @@ public class SubgameEntity extends edict_t {
     public GameItem item; // for bonus items
 
     /** common integrated data blocks. */
-    public moveinfo_t moveinfo = new moveinfo_t();
 
     public monsterinfo_t monsterinfo = new monsterinfo_t();
 
