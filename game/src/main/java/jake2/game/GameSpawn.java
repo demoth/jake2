@@ -376,37 +376,9 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("light", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_light";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_light(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("light_mine1", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_light_mine1";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_light_mine1(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("light_mine2", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_light_mine2";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_light_mine2(ent, gameExports);
-                return true;
-            }
-        });
-
+        spawns.put("light", LightKt::light);
+        spawns.put("light_mine1", LightKt::lightMine1);
+        spawns.put("light_mine2", LightKt::lightMine2);
         /*
          * QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
          * Used as a positional target for spotlights, etc.
@@ -650,6 +622,8 @@ public class GameSpawn {
                 return true;
             }
         });
+
+
         addSpawnAdapter("turret_breach", new EntThinkAdapter() {
             public String getID() {
                 return "SP_turret_breach";
