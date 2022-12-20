@@ -320,6 +320,14 @@ public class GameSpawn {
         spawns.put("info_player_start", InfoEntitiesKt::infoPlayerStart);
         spawns.put("info_player_deathmatch", InfoEntitiesKt::infoPlayerDeathmatch);
         spawns.put("info_player_coop", InfoEntitiesKt::infoPlayerCoop);
+        /*
+         * QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
+         * The deathmatch intermission point will be at one of these Use 'angles'
+         * instead of 'angle', so you can set pitch or roll as well as yaw.
+         * 'pitch yaw roll'
+         *
+         * Does not contain any special code
+         */
         spawns.put("info_player_intermission", (self, game) -> {});
         spawns.put("func_plat", PlatKt::funcPlat);
         spawns.put("func_button", ButtonKt::funcButton);
@@ -390,26 +398,8 @@ public class GameSpawn {
          */
         spawns.put("func_group", (self, game) -> game.freeEntity(self));
         spawns.put("info_notnull", InfoEntitiesKt::infoNotNull);
-        addSpawnAdapter("path_corner", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_path_corner";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_path_corner(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("point_combat", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_point_combat";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_point_combat(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("path_corner", PathKt::pathCorner);
+        spawns.put("point_combat", PathKt::pointCombat);
         spawns.put("misc_explobox", MiscEntitiesKt::miscExplobox);
         spawns.put("misc_banner", MiscEntitiesKt::miscBanner);
         spawns.put("misc_satellite_dish", MiscEntitiesKt::miscSatelliteDish);
