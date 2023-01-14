@@ -22,13 +22,11 @@
 
 package jake2.game;
 
-import jake2.game.adapters.EntBlockedAdapter;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Infantry;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -54,83 +52,8 @@ public class GameTurret {
         return 0.125f * (int) x;
     }
 
-    /**
-     * QUAKED turret_breach (0 0 0) ? This portion of the turret can change both
-     * pitch and yaw. The model should be made with a flat pitch. It (and the
-     * associated base) need to be oriented towards 0. Use "angle" to set the
-     * starting angle.
-     * 
-     * "speed" default 50 "dmg" default 10 "angle" point this forward "target"
-     * point this at an info_notnull at the muzzle tip "minpitch" min acceptable
-     * pitch angle : default -30 "maxpitch" max acceptable pitch angle : default
-     * 30 "minyaw" min acceptable yaw angle : default 0 "maxyaw" max acceptable
-     * yaw angle : default 360
-     */
 
-    public static void turret_breach_fire(SubgameEntity self, GameExportsImpl gameExports) {
-        float[] f = { 0, 0, 0 }, r = { 0, 0, 0 }, u = { 0, 0, 0 };
-        float[] start = { 0, 0, 0 };
-        int damage;
-        int speed;
 
-        Math3D.AngleVectors(self.s.angles, f, r, u);
-        Math3D.VectorMA(self.s.origin, self.move_origin[0], f, start);
-        Math3D.VectorMA(start, self.move_origin[1], r, start);
-        Math3D.VectorMA(start, self.move_origin[2], u, start);
-
-        damage = (int) (100 + Lib.random() * 50);
-        speed = (int) (550 + 50 * gameExports.gameCvars.skill.value);
-        GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
-                damage, gameExports);
-        gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
-                gameExports.gameImports.soundindex("weapons/rocklf1a.wav"), 1,
-                Defines.ATTN_NORM, 0);
-    }
-
-    public static void SP_turret_breach(SubgameEntity self, GameExportsImpl gameExports) {
-        self.solid = Defines.SOLID_BSP;
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-        gameExports.gameImports.setmodel(self, self.model);
-
-        if (self.speed == 0)
-            self.speed = 50;
-        if (self.dmg == 0)
-            self.dmg = 10;
-
-        if (self.st.minpitch == 0)
-            self.st.minpitch = -30;
-        if (self.st.maxpitch == 0)
-            self.st.maxpitch = 30;
-        if (self.st.maxyaw == 0)
-            self.st.maxyaw = 360;
-
-        self.pos1[Defines.PITCH] = -1 * self.st.minpitch;
-        self.pos1[Defines.YAW] = self.st.minyaw;
-        self.pos2[Defines.PITCH] = -1 * self.st.maxpitch;
-        self.pos2[Defines.YAW] = self.st.maxyaw;
-
-        self.ideal_yaw = self.s.angles[Defines.YAW];
-        self.move_angles[Defines.YAW] = self.ideal_yaw;
-
-        self.blocked = turret_blocked;
-
-        self.think.action = turret_breach_finish_init;
-        self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-        gameExports.gameImports.linkentity(self);
-    }
-
-    /**
-     * QUAKED turret_base (0 0 0) ? This portion of the turret changes yaw only.
-     * MUST be teamed with a turret_breach.
-     */
-
-    public static void SP_turret_base(SubgameEntity self, GameExportsImpl gameExports) {
-        self.solid = Defines.SOLID_BSP;
-        self.movetype = GameDefines.MOVETYPE_PUSH;
-        gameExports.gameImports.setmodel(self, self.model);
-        self.blocked = turret_blocked;
-        gameExports.gameImports.linkentity(self);
-    }
 
     public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
@@ -178,156 +101,6 @@ public class GameTurret {
 
         gameExports.gameImports.linkentity(self);
     }
-
-    static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
-    	public String getID() { return "turret_blocked"; }
-        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
-
-            if (obstacle.takedamage != 0) {
-                SubgameEntity attacker;
-                if (self.teammaster.getOwner() != null)
-                    attacker = self.teammaster.getOwner();
-                else
-                    attacker = self.teammaster;
-                GameCombat.T_Damage(obstacle, self, attacker, Globals.vec3_origin,
-                        obstacle.s.origin, Globals.vec3_origin,
-                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH, gameExports);
-            }
-        }
-    };
-
-    static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {
-    	public String getID() { return "turret_breach_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            float[] current_angles = { 0, 0, 0 };
-            float[] delta = { 0, 0, 0 };
-
-            Math3D.VectorCopy(self.s.angles, current_angles);
-            AnglesNormalize(current_angles);
-
-            AnglesNormalize(self.move_angles);
-            if (self.move_angles[Defines.PITCH] > 180)
-                self.move_angles[Defines.PITCH] -= 360;
-
-            // clamp angles to mins & maxs
-            if (self.move_angles[Defines.PITCH] > self.pos1[Defines.PITCH])
-                self.move_angles[Defines.PITCH] = self.pos1[Defines.PITCH];
-            else if (self.move_angles[Defines.PITCH] < self.pos2[Defines.PITCH])
-                self.move_angles[Defines.PITCH] = self.pos2[Defines.PITCH];
-
-            if ((self.move_angles[Defines.YAW] < self.pos1[Defines.YAW])
-                    || (self.move_angles[Defines.YAW] > self.pos2[Defines.YAW])) {
-                float dmin, dmax;
-
-                dmin = Math.abs(self.pos1[Defines.YAW]
-                        - self.move_angles[Defines.YAW]);
-                if (dmin < -180)
-                    dmin += 360;
-                else if (dmin > 180)
-                    dmin -= 360;
-                dmax = Math.abs(self.pos2[Defines.YAW]
-                        - self.move_angles[Defines.YAW]);
-                if (dmax < -180)
-                    dmax += 360;
-                else if (dmax > 180)
-                    dmax -= 360;
-                if (Math.abs(dmin) < Math.abs(dmax))
-                    self.move_angles[Defines.YAW] = self.pos1[Defines.YAW];
-                else
-                    self.move_angles[Defines.YAW] = self.pos2[Defines.YAW];
-            }
-
-            Math3D.VectorSubtract(self.move_angles, current_angles, delta);
-            if (delta[0] < -180)
-                delta[0] += 360;
-            else if (delta[0] > 180)
-                delta[0] -= 360;
-            if (delta[1] < -180)
-                delta[1] += 360;
-            else if (delta[1] > 180)
-                delta[1] -= 360;
-            delta[2] = 0;
-
-            if (delta[0] > self.speed * Defines.FRAMETIME)
-                delta[0] = self.speed * Defines.FRAMETIME;
-            if (delta[0] < -1 * self.speed * Defines.FRAMETIME)
-                delta[0] = -1 * self.speed * Defines.FRAMETIME;
-            if (delta[1] > self.speed * Defines.FRAMETIME)
-                delta[1] = self.speed * Defines.FRAMETIME;
-            if (delta[1] < -1 * self.speed * Defines.FRAMETIME)
-                delta[1] = -1 * self.speed * Defines.FRAMETIME;
-
-            Math3D.VectorScale(delta, 1.0f / Defines.FRAMETIME, self.avelocity);
-
-            self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-
-            for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
-                ent.avelocity[1] = self.avelocity[1];
-
-            // if we have adriver, adjust his velocities
-            if (self.getOwner() != null) {
-                float angle;
-                float target_z;
-                float diff;
-                float[] target = { 0, 0, 0 };
-                float[] dir = { 0, 0, 0 };
-
-                // angular is easy, just copy ours
-                self.getOwner().avelocity[0] = self.avelocity[0];
-                self.getOwner().avelocity[1] = self.avelocity[1];
-
-                // x & y
-                angle = self.s.angles[1] + self.getOwner().move_origin[1];
-                angle *= (Math.PI * 2 / 360);
-                target[0] = GameTurret.SnapToEights((float) (self.s.origin[0] + 
-                			Math.cos(angle) * self.getOwner().move_origin[0]));
-                target[1] = GameTurret.SnapToEights((float) (self.s.origin[1] + 
-                			Math.sin(angle) * self.getOwner().move_origin[0]));
-                target[2] = self.getOwner().s.origin[2];
-
-                Math3D.VectorSubtract(target, self.getOwner().s.origin, dir);
-                self.getOwner().velocity[0] = dir[0] * 1.0f / Defines.FRAMETIME;
-                self.getOwner().velocity[1] = dir[1] * 1.0f / Defines.FRAMETIME;
-
-                // z
-                angle = self.s.angles[Defines.PITCH] * (float) (Math.PI * 2f / 360f);
-                target_z = GameTurret.SnapToEights((float) (self.s.origin[2]
-                                + self.getOwner().move_origin[0] * Math.tan(angle) + self.getOwner().move_origin[2]));
-
-                diff = target_z - self.getOwner().s.origin[2];
-                self.getOwner().velocity[2] = diff * 1.0f / Defines.FRAMETIME;
-
-                if ((self.spawnflags & 65536) != 0) {
-                    turret_breach_fire(self, gameExports);
-                    self.spawnflags &= ~65536;
-                }
-            }
-            return true;
-        }
-    };
-
-    static EntThinkAdapter turret_breach_finish_init = new EntThinkAdapter() {
-    	public String getID() { return "turret_breach_finish_init"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-
-            // get and save info for muzzle location
-            if (self.target == null) {
-                gameExports.gameImports.dprintf(self.classname + " at "
-                        + Lib.vtos(self.s.origin) + " needs a target\n");
-            } else {
-                self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
-                Math3D.VectorSubtract(self.target_ent.s.origin, self.s.origin,
-                        self.move_origin);
-                gameExports.freeEntity(self.target_ent);
-            }
-
-            self.teammaster.dmg = self.dmg;
-            self.think.action = turret_breach_think;
-            self.think.action.think(self, gameExports);
-            return true;
-        }
-    };
 
     /*
      * QUAKED turret_driver (1 .5 0) (-16 -16 -24) (16 16 32) Must NOT be on the

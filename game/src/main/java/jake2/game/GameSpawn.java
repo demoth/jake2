@@ -604,26 +604,10 @@ public class GameSpawn {
         });
 
 
-        addSpawnAdapter("turret_breach", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_turret_breach";
-            }
+        spawns.put("turret_breach", TurretKt::turretBreach);
+        spawns.put("turret_base", TurretKt::turretBase);
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTurret.SP_turret_breach(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("turret_base", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_turret_base";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTurret.SP_turret_base(ent, gameExports);
-                return true;
-            }
-        });
+        // todo: move to infantry
         addSpawnAdapter("turret_driver", new EntThinkAdapter() {
             public String getID() {
                 return "SP_turret_driver";
