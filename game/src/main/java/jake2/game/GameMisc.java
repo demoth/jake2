@@ -40,21 +40,6 @@ import static jake2.qcommon.Defines.EF_FLIES;
 public class GameMisc {
 
 
-    static void SP_viewthing(SubgameEntity ent, GameExportsImpl gameExports) {
-        gameExports.gameImports.dprintf("viewthing spawned\n");
-
-        ent.movetype = GameDefines.MOVETYPE_NONE;
-        ent.solid = Defines.SOLID_BBOX;
-        ent.s.renderfx = Defines.RF_FRAMELERP;
-        Math3D.VectorSet(ent.mins, -16, -16, -24);
-        Math3D.VectorSet(ent.maxs, 16, 16, 32);
-        ent.s.modelindex = gameExports.gameImports
-                .modelindex("models/objects/banner/tris.md2");
-        gameExports.gameImports.linkentity(ent);
-        ent.think.nextTime = gameExports.level.time + 0.5f;
-        ent.think.action = TH_viewthing;
-    }
-
     static void SP_misc_eastertank(SubgameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
@@ -304,21 +289,6 @@ public class GameMisc {
         else if (ent.velocity[2] > 500)
             ent.velocity[2] = 500;
     }
-
-    /*
-     * QUAKED viewthing (0 .5 .8) (-8 -8 -8) (8 8 8) Just for the debugging
-     * level. Don't use
-     */
-    private static EntThinkAdapter TH_viewthing = new EntThinkAdapter() {
-        public String getID() { return "th_viewthing";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            ent.s.frame = (ent.s.frame + 1) % 7;
-            ent.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
-            return true;
-        }
-    };
-
-
 
     //
     // miscellaneous specialty items

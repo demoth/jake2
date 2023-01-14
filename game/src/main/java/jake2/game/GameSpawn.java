@@ -374,16 +374,6 @@ public class GameSpawn {
         spawns.put("target_character", TargetEntitiesKt::targetCharacter);
         spawns.put("target_string", TargetEntitiesKt::targetString);
         addSpawnAdapter("worldspawn", SP_worldspawn);
-        addSpawnAdapter("viewthing", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_viewthing";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_viewthing(ent, gameExports);
-                return true;
-            }
-        });
         spawns.put("light", LightKt::light);
         spawns.put("light_mine1", LightKt::lightMine1);
         spawns.put("light_mine2", LightKt::lightMine2);
