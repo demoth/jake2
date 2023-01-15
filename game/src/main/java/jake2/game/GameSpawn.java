@@ -359,16 +359,7 @@ public class GameSpawn {
         spawns.put("target_blaster", TargetEntitiesKt::targetBlaster);
         spawns.put("target_crosslevel_trigger", TargetEntitiesKt::targetCrosslevelTrigger);
         spawns.put("target_crosslevel_target", TargetEntitiesKt::targetCrosslevelTarget);
-        addSpawnAdapter("target_laser", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_target_laser";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_laser(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("target_laser", TargetEntitiesKt::targetLaser);
         spawns.put("target_help", TargetEntitiesKt::targetHelp);
         spawns.put("target_lightramp", TargetEntitiesKt::targetLightramp);
         spawns.put("target_earthquake", TargetEntitiesKt::targetEarthquake);
@@ -421,6 +412,10 @@ public class GameSpawn {
          * Used as a positional target for spotlights, etc.
          */
         spawns.put("info_null", (self, game) -> game.freeEntity(self));
+        /*
+         * QUAKED func_group (0 0 0) ? Used to group brushes together just for
+         * editor convenience.
+         */
         spawns.put("func_group", (self, game) -> game.freeEntity(self));
         spawns.put("info_notnull", InfoEntitiesKt::infoNotNull);
         addSpawnAdapter("path_corner", new EntThinkAdapter() {
@@ -443,66 +438,12 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("misc_explobox", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_explobox";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_explobox(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_banner", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_banner";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_banner(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_satellite_dish", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_satellite_dish";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_satellite_dish(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_gib_arm", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_arm";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_arm(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_gib_leg", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_leg";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_leg(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_gib_head", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_gib_head";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_gib_head(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_explobox", MiscEntitiesKt::miscExplobox);
+        spawns.put("misc_banner", MiscEntitiesKt::miscBanner);
+        spawns.put("misc_satellite_dish", MiscEntitiesKt::miscSatelliteDish);
+        spawns.put("misc_gib_arm", MiscEntitiesKt::miscGibArm);
+        spawns.put("misc_gib_leg", MiscEntitiesKt::miscGibLeg);
+        spawns.put("misc_gib_head", MiscEntitiesKt::miscGibHead);
         addSpawnAdapter("misc_insane", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_insane";
@@ -513,77 +454,14 @@ public class GameSpawn {
                 return true;
             }
         });
-        addSpawnAdapter("misc_deadsoldier", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_deadsoldier";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_deadsoldier(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_viper", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_viper";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_viper(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_viper_bomb", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_viper_bomb";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_viper_bomb(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_bigviper", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_bigviper";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_bigviper(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_strogg_ship", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_strogg_ship";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_strogg_ship(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_teleporter", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_teleporter";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_teleporter(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
-        addSpawnAdapter("misc_blackhole", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_blackhole";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_blackhole(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_deadsoldier", MiscEntitiesKt::miscDeadSoldier);
+        spawns.put("misc_viper", (self, game) -> TrainKt.miscFlyingShip(self, game, "viper"));
+        spawns.put("misc_strogg_ship", (self, game) -> TrainKt.miscFlyingShip(self, game, "strogg1"));
+        spawns.put("misc_viper_bomb", MiscEntitiesKt::miscViperBomb);
+        spawns.put("misc_bigviper", MiscEntitiesKt::miscBigViper);
+        spawns.put("misc_teleporter", MiscEntitiesKt::miscTeleporter);
+        spawns.put("misc_teleporter_dest", MiscEntitiesKt::miscTeleporterDest);
+        spawns.put("misc_blackhole", MiscEntitiesKt::miscBlackhole);
         addSpawnAdapter("misc_eastertank", new EntThinkAdapter() {
             public String getID() {
                 return "SP_misc_eastertank";

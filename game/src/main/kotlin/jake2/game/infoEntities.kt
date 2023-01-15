@@ -128,7 +128,7 @@ fun infoPlayerDeathmatch(self: SubgameEntity, game: GameExportsImpl) {
         return
     }
     // deathmatch (re)spawnpoints have a distinct model
-    GameMisc.SP_misc_teleporter_dest.think(self, game)
+    miscTeleporterDest(self, game)
 }
 
 /*

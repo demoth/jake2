@@ -7,6 +7,7 @@ import jake2.qcommon.Globals
 import jake2.qcommon.network.MulticastTypes
 import jake2.qcommon.network.messages.server.PointTEMessage
 import jake2.qcommon.network.messages.server.SplashTEMessage
+import jake2.qcommon.trace_t
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
@@ -618,5 +619,178 @@ private val targetCrosslevelTargetThink = registerThink("target_crosslevel_targe
         GameUtil.G_UseTargets(self, self, game)
         game.freeEntity(self)
     }
+    true
+}
+
+/**
+ * QUAKED target_laser (0 .5 .8) (-8 -8 -8) (8 8 8)
+ * START_ON
+ * RED
+ * GREEN
+ * BLUE
+ * YELLOW
+ * ORANGE
+ * FAT
+ * When triggered, fires a laser.
+ * You can either set a target or a direction.
+ */
+private const val START_ON = 1
+private const val RED = 2
+private const val GREEN = 4
+private const val BLUE = 8
+private const val YELLOW = 16
+private const val ORANGE = 32
+private const val FAT = 64
+
+// fixme: find a better name
+private const val LASER_SPARK_FLAG = Int.MIN_VALUE // highest bit
+fun targetLaser(self: SubgameEntity, game: GameExportsImpl) {
+    // let everything else get spawned before we start firing
+    self.think.action = laserInit
+    self.think.nextTime = game.level.time + 1
+}
+
+private val laserInit = registerThink("target_laser_start") { self, game ->
+    self.movetype = GameDefines.MOVETYPE_NONE
+    self.solid = Defines.SOLID_NOT
+    self.s.renderfx = self.s.renderfx or (Defines.RF_BEAM or Defines.RF_TRANSLUCENT)
+    self.s.modelindex = 1 // must be non-zero
+
+    // set the beam diameter
+    if (self.hasSpawnFlag(FAT))
+        self.s.frame = 16
+    else
+        self.s.frame = 4
+
+    // set the color
+    if (self.hasSpawnFlag(RED))
+        self.s.skinnum = -0xd0d0f10
+    else if (self.hasSpawnFlag(GREEN))
+        self.s.skinnum = -0x2f2e2d2d
+    else if (self.hasSpawnFlag(BLUE))
+        self.s.skinnum = -0xc0c0e0f
+    else if (self.hasSpawnFlag(YELLOW))
+        self.s.skinnum = -0x23222121
+    else if (self.hasSpawnFlag(ORANGE))
+        self.s.skinnum = -0x1f1e1d1d
+
+    // target or direction
+    if (self.enemy == null) {
+        if (self.target != null) {
+            val target = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)
+            if (target != null) {
+                self.enemy = target.o
+            } else {
+                game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)}: ${self.target} is a bad target\n")
+                // fixme: free such entity?
+            }
+        } else {
+            GameBase.G_SetMovedir(self.s.angles, self.movedir)
+        }
+    }
+
+    self.use = laserUse
+    self.think.action = laserThink
+
+
+    if (self.dmg == 0)
+        self.dmg = 1
+
+    Math3D.VectorSet(self.mins, -8f, -8f, -8f)
+    Math3D.VectorSet(self.maxs, 8f, 8f, 8f)
+    game.gameImports.linkentity(self)
+
+    if (self.hasSpawnFlag(START_ON))
+        laserOn(self, game)
+    else
+        laserOff(self)
+
+    true
+}
+
+private val laserUse = registerUse("target_laser_use") { self, other, activator, game ->
+    self.activator = activator
+    if (self.hasSpawnFlag(START_ON))
+        laserOff(self)
+    else
+        laserOn(self, game)
+}
+
+fun laserOn(self: SubgameEntity, game: GameExportsImpl) {
+    if (self.activator == null)
+        self.activator = self
+    self.setSpawnFlag(START_ON)
+    self.setSpawnFlag(LASER_SPARK_FLAG)
+    self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
+    laserThink.think(self, game)
+}
+
+fun laserOff(self: SubgameEntity) {
+    self.unsetSpawnFlag(START_ON)
+    self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.think.nextTime = 0f
+}
+
+/**
+ * Fires a raycast check until hit an entity that is immune to damage
+ */
+private val laserThink = registerThink("target_laser_think") { self, game ->
+    val sparksCount = if (self.hasSpawnFlag(LASER_SPARK_FLAG)) 8 else 4
+
+    if (self.enemy != null) {
+        val lastMoveDir = floatArrayOf(0f, 0f, 0f)
+        Math3D.VectorCopy(self.movedir, lastMoveDir)
+        val point = floatArrayOf(0f, 0f, 0f)
+        Math3D.VectorMA(self.enemy.absmin, 0.5f, self.enemy.size, point)
+        Math3D.VectorSubtract(point, self.s.origin, self.movedir)
+        Math3D.VectorNormalize(self.movedir)
+        if (!Math3D.VectorEquals(self.movedir, lastMoveDir)) {
+            self.setSpawnFlag(LASER_SPARK_FLAG)
+        }
+    }
+
+    var ignore = self
+    val start = floatArrayOf(0f, 0f, 0f)
+    Math3D.VectorCopy(self.s.origin, start)
+    val end = floatArrayOf(0f, 0f, 0f)
+    Math3D.VectorMA(start, 2048f, self.movedir, end)
+    var tr: trace_t
+    while (true) {
+        tr = game.gameImports.trace(
+            start,
+            null,
+            null,
+            end,
+            ignore,
+            Defines.CONTENTS_SOLID or Defines.CONTENTS_MONSTER or Defines.CONTENTS_DEADMONSTER
+        )
+        val target = tr.ent as SubgameEntity
+
+        // hurt it if we can
+        if (target.takedamage != 0 && 0 == target.flags and GameDefines.FL_IMMUNE_LASER)
+            GameCombat.T_Damage(
+            target, self, self.activator,
+            self.movedir, tr.endpos, Globals.vec3_origin,
+            self.dmg, 1, DamageFlags.DAMAGE_ENERGY,
+            GameDefines.MOD_TARGET_LASER, game
+        )
+
+        // if we hit something that's not a monster or player or is
+        // immune to lasers, we're done
+        if (target.svflags and Defines.SVF_MONSTER == 0 && target.client == null) {
+            if (self.hasSpawnFlag(LASER_SPARK_FLAG)) {
+                self.unsetSpawnFlag(LASER_SPARK_FLAG)
+                game.gameImports.multicastMessage(tr.endpos, SplashTEMessage(Defines.TE_LASER_SPARKS, sparksCount, tr.endpos, tr.plane.normal, self.s.skinnum), MulticastTypes.MULTICAST_PVS)
+            }
+            break
+        }
+        ignore = target
+        Math3D.VectorCopy(tr.endpos, start)
+    }
+
+    Math3D.VectorCopy(tr.endpos, self.s.old_origin)
+
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+
     true
 }
