@@ -58,7 +58,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameMisc",
                     "jake2.game.GameSVCmds",
                     "jake2.game.GameSpawn",
-                    "jake2.game.GameTurret",
                     "jake2.game.GameUtil",
                     "jake2.game.GameWeapon",
                     "jake2.qcommon.Info",

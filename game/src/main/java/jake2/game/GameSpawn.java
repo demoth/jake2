@@ -607,17 +607,7 @@ public class GameSpawn {
         spawns.put("turret_breach", TurretKt::turretBreach);
         spawns.put("turret_base", TurretKt::turretBase);
 
-        // todo: move to infantry
-        addSpawnAdapter("turret_driver", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_turret_driver";
-            }
-
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTurret.SP_turret_driver(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("turret_driver", TurretKt::turretDriver);
     }
 
     /**
