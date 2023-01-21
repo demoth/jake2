@@ -30,8 +30,11 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+// todo: decide weather to move to enforcer code or create a separate entity (non enforcer based driver?)
+// would be nice if the driver could decide to detach and then act as a regular monster
 public class GameTurret {
 
+    // todo: move to vector3f
     public static void AnglesNormalize(float[] vec) {
         while (vec[0] > 360)
             vec[0] -= 360;
@@ -42,18 +45,6 @@ public class GameTurret {
         while (vec[1] < 0)
             vec[1] += 360;
     }
-
-    public static float SnapToEights(float x) {
-        x *= 8.0;
-        if (x > 0.0)
-            x += 0.5;
-        else
-            x -= 0.5;
-        return 0.125f * (int) x;
-    }
-
-
-
 
     public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
