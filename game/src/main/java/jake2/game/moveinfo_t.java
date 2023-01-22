@@ -30,6 +30,9 @@ import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 
+/**
+ * Move info represents a fixed precalculated movement, like for buttons, door and elevators
+ */
 public class moveinfo_t {
 	// fixed data
 	public float[] start_origin= { 0, 0, 0 };

@@ -62,9 +62,9 @@ fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
     if (self.hasSpawnFlag(REVERSE))
         Math3D.VectorNegate(self.movedir, self.movedir)
 
-    if (0f == self.speed)
+    if (self.speed == 0f)
         self.speed = 100f
-    if (0 == self.dmg)
+    if (self.dmg == 0)
         self.dmg = 2
 
     //		ent.moveinfo.sound_middle = "doors/hydro1.wav";

@@ -1,13 +1,21 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.EdictIterator
+import jake2.game.GameBase
 import jake2.game.GameBase.G_SetMovedir
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -209,16 +217,16 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     self.blocked = doorBlocked
     self.use = doorOpenUse
 
-    if (0f == self.speed)
+    if (self.speed == 0f)
         self.speed = 100f
-    if (0f == self.accel)
+    if (self.accel == 0f)
         self.accel = self.speed
-    if (0f == self.decel)
+    if (self.decel == 0f)
         self.decel = self.speed
 
-    if (0f == self.wait)
+    if (self.wait == 0f)
         self.wait = 3f
-    if (0 == self.dmg)
+    if (self.dmg == 0)
         self.dmg = 2
 
     if (self.sounds != 1) {

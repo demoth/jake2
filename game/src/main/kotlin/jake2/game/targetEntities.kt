@@ -273,9 +273,9 @@ fun targetBlaster(self: SubgameEntity, game: GameExportsImpl) {
     self.use = targetBlasterUse
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.noise_index = game.gameImports.soundindex("weapons/laser2.wav")
-    if (0 == self.dmg)
+    if (self.dmg == 0)
         self.dmg = 15
-    if (0f == self.speed)
+    if (self.speed == 0f)
         self.speed = 1000f
     self.svflags = Defines.SVF_NOCLIENT
 }
