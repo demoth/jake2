@@ -5,7 +5,7 @@ abstract class BhAbstractNode(protected val nodes: List<BhAbstractNode>) {
 }
 
 /**
- * executes all nodes until a failure, then returns failure. Returns success otherwise
+ * Executes all nodes until a failure, then returns failure. Returns success otherwise
  */
 class BhSequence(vararg nodes: BhAbstractNode) : BhAbstractNode(nodes.asList()) {
     override fun run(): Boolean {
@@ -13,10 +13,10 @@ class BhSequence(vararg nodes: BhAbstractNode) : BhAbstractNode(nodes.asList()) 
         return true
     }
 }
-/**
- * executes all nodes until a success, then returns success. Returns failure otherwise
- */
 
+/**
+ * Executes all nodes until a success, then returns success. Returns failure otherwise
+ */
 class BhSelector(vararg nodes: BhAbstractNode) : BhAbstractNode(nodes.asList()) {
     override fun run(): Boolean {
         nodes.forEach { if (it.run()) return true }
@@ -25,7 +25,7 @@ class BhSelector(vararg nodes: BhAbstractNode) : BhAbstractNode(nodes.asList()) 
 }
 
 /**
- * Can be condition or action (side effect)
+ * Leaf node, Can be condition or action (side effect)
  */
 class BtNode(private val condition: () -> Boolean) : BhAbstractNode(emptyList()) {
     override fun run(): Boolean {
