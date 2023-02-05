@@ -26,8 +26,11 @@ package jake2.game.items;
 
 import jake2.game.*;
 import jake2.game.adapters.*;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import org.apache.commons.csv.CSVFormat;
@@ -1219,70 +1222,8 @@ public class GameItems {
             gameExports.gameImports.modelindex(ent.model);
     }
 
-    /*
-     * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
-     */
-    public static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            gameExports.freeEntity(self);
-        }
-    
-        self.model = "models/items/healing/medium/tris.md2";
-        self.count = 10;
-        SpawnItem(self, FindItem("Health", gameExports), gameExports);
-        gameExports.gameImports.soundindex("items/n_health.wav");
-    }
 
-    /*
-     * QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
-     */
-    public static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
-    
-        self.model = "models/items/healing/stimpack/tris.md2";
-        self.count = 2;
-        SpawnItem(self, FindItem("Health", gameExports), gameExports);
-        self.style = GameDefines.HEALTH_IGNORE_MAX;
-        gameExports.gameImports.soundindex("items/s_health.wav");
-    }
 
-    /*
-     * QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
-     */
-    public static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
-    
-        self.model = "models/items/healing/large/tris.md2";
-        self.count = 25;
-        SpawnItem(self, FindItem("Health", gameExports), gameExports);
-        gameExports.gameImports.soundindex("items/l_health.wav");
-    }
-
-    /*
-     * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
-     */
-    public static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
-    
-        self.model = "models/items/mega_h/tris.md2";
-        self.count = 100;
-        SpawnItem(self, FindItem("Health", gameExports), gameExports);
-        gameExports.gameImports.soundindex("items/m_health.wav");
-        self.style = GameDefines.HEALTH_IGNORE_MAX | GameDefines.HEALTH_TIMED;
-    }
 
     /*
      * =============== 

@@ -38,51 +38,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameSpawn {
-
-    private static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_item_health";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health(ent, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_item_health_small";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_small(ent, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_item_health_large";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_large(ent, gameExports);
-            return true;
-        }
-    };
-
-    private static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_item_health_mega";
-        }
-
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_mega(ent, gameExports);
-            return true;
-        }
-    };
-
     private static final String single_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
@@ -313,10 +268,10 @@ public class GameSpawn {
     static {
         spawns = new HashMap<>();
 
-        addSpawnAdapter("item_health", SP_item_health);
-        addSpawnAdapter("item_health_small", SP_item_health_small);
-        addSpawnAdapter("item_health_large", SP_item_health_large);
-        addSpawnAdapter("item_health_mega", SP_item_health_mega);
+        spawns.put("item_health", ItemsKt::itemHealthMedium);
+        spawns.put("item_health_small", ItemsKt::itemHealthSmall);
+        spawns.put("item_health_large", ItemsKt::itemHealthLarge);
+        spawns.put("item_health_mega", ItemsKt::itemHealthMega);
         spawns.put("info_player_start", InfoEntitiesKt::infoPlayerStart);
         spawns.put("info_player_deathmatch", InfoEntitiesKt::infoPlayerDeathmatch);
         spawns.put("info_player_coop", InfoEntitiesKt::infoPlayerCoop);
