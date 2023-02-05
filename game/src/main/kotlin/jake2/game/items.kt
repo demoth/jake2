@@ -31,6 +31,10 @@ fun itemHealthMega(self: SubgameEntity, game: GameExportsImpl) {
     spawnHealth(self, game, "models/items/mega_h/tris.md2", "items/m_health.wav", 100, GameDefines.HEALTH_IGNORE_MAX or GameDefines.HEALTH_TIMED)
 }
 
+/**
+ * @param style - type of health: 0 - normal, HEALTH_IGNORE_MAX, HEALTH_TIMED
+ * @param amount - medkit size: goes to entity.count
+ */
 private fun spawnHealth(self: SubgameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, style: Int? = null) {
     if (game.gameCvars.deathmatch.value != 0f && game.gameCvars.dmflags.value.toInt() and Defines.DF_NO_HEALTH != 0) {
         game.freeEntity(self)

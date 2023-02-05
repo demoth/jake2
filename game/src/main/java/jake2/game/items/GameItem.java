@@ -21,8 +21,8 @@
 // Created on 20.11.2003 by RST.
 package jake2.game.items;
 
-import jake2.game.*;
 import jake2.game.adapters.*;
+import jake2.game.gitem_armor_t;
 import org.apache.commons.csv.CSVRecord;
 
 import java.util.Collections;
@@ -37,7 +37,8 @@ import static jake2.qcommon.Defines.*;
  */
 public class GameItem {
 
-    public int index;
+
+    public int index; // inventory index
     public String classname; // spawning name
     public EntInteractAdapter pickup;
     public ItemUseAdapter use;
