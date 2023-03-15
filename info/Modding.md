@@ -37,6 +37,16 @@ TODO
 
 ### Skybox
 Format: `.pcx`, `.tga`
+TODO
+
+### Other resources
+TODO
+
+ * colormap
+ * font
+ * console background
+ * menu
+ * hud
 
 ## 2. Modifying game logic
 
