@@ -13,7 +13,9 @@ Format: `.bsp`
 TrenchBroom is the way to go: https://trenchbroom.github.io/
 
 ### Textures
-Format: `.wad`
+Format: `.wal`
+
+Editor: TexMex: https://quakewiki.org/wiki/TexMex
 
 Texture tools are described here very well: https://www.youtube.com/watch?v=vJzhafLwqjk
 
