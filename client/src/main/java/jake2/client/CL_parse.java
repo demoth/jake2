@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 
+import static jake2.client.CL_view.AddNetgraph;
+
 /**
  * CL_parse
  */
@@ -590,5 +592,6 @@ public class CL_parse {
                 ParseDownload((DownloadMessage) msg);
             }
         }
+        AddNetgraph();
     }
 }
