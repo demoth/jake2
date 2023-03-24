@@ -215,50 +215,44 @@ public class GameSpawn {
             gameExports.gameImports.modelindex("models/objects/gibs/chest/tris.md2");
             gameExports.gameImports.modelindex("models/objects/gibs/skull/tris.md2");
             gameExports.gameImports.modelindex("models/objects/gibs/head2/tris.md2");
-            //
-            // Setup light animation tables. 'a' is total darkness, 'z' is
-            // doublebright.
-            //
-            // 0 normal
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 0, "m");
-            // 1 FLICKER (first variety)
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 1,
-                    "mmnmmommommnonmmonqnmmo");
-            // 2 SLOW STRONG PULSE
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 2,
-                    "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
-            // 3 CANDLE (first variety)
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 3,
-                    "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
-            // 4 FAST STROBE
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 4, "mamamamamama");
-            // 5 GENTLE PULSE 1
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 5,
-                    "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
-            // 6 FLICKER (second variety)
-            gameExports.gameImports
-                    .configstring(Defines.CS_LIGHTS + 6, "nmonqnmomnmomomno");
-            // 7 CANDLE (second variety)
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 7,
-                    "mmmaaaabcdefgmmmmaaaammmaamm");
-            // 8 CANDLE (third variety)
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 8,
-                    "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
-            // 9 SLOW STROBE (fourth variety)
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
-            // 10 FLUORESCENT FLICKER
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 10,
-                    "mmamammmmammamamaaamammma");
-            // 11 SLOW PULSE NOT FADE TO BLACK
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 11,
-                    "abcdefghijklmnopqrrqponmlkjihgfedcba");
-            // styles 32-62 are assigned by the light program for switchable
-            // lights
-            // 63 testing
-            gameExports.gameImports.configstring(Defines.CS_LIGHTS + 63, "a");
+            defineLightStyles(gameExports);
             return true;
         }
     };
+
+    /**
+     * Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+     */
+    private static void defineLightStyles(GameExportsImpl game) {
+        // 0 normal
+        game.gameImports.configstring(Defines.CS_LIGHTS + 0, "m");
+        // 1 FLICKER (first variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 1, "mmnmmommommnonmmonqnmmo");
+        // 2 SLOW STRONG PULSE
+        game.gameImports.configstring(Defines.CS_LIGHTS + 2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
+        // 3 CANDLE (first variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
+        // 4 FAST STROBE
+        game.gameImports.configstring(Defines.CS_LIGHTS + 4, "mamamamamama");
+        // 5 GENTLE PULSE 1
+        game.gameImports.configstring(Defines.CS_LIGHTS + 5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
+        // 6 FLICKER (second variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 6, "nmonqnmomnmomomno");
+        // 7 CANDLE (second variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 7, "mmmaaaabcdefgmmmmaaaammmaamm");
+        // 8 CANDLE (third variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
+        // 9 SLOW STROBE (fourth variety)
+        game.gameImports.configstring(Defines.CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
+        // 10 FLUORESCENT FLICKER
+        game.gameImports.configstring(Defines.CS_LIGHTS + 10, "mmamammmmammamamaaamammma");
+        // 11 SLOW PULSE NOT FADE TO BLACK
+        game.gameImports.configstring(Defines.CS_LIGHTS + 11, "abcdefghijklmnopqrrqponmlkjihgfedcba");
+        // styles 32-62 are assigned by the light program for switchable lights
+        // 63 testing
+        game.gameImports.configstring(Defines.CS_LIGHTS + 63, "a");
+    }
+
     private static final Map<String, SpawnInterface> spawns;
 
     private static void addSpawnAdapter(String id, EntThinkAdapter adapter) {
