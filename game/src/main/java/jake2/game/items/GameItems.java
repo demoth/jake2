@@ -268,9 +268,7 @@ public class GameItems {
                 if (medkit instanceof Medkit) {
                     gameExports.gameImports.sound(other, Defines.CHAN_ITEM, ((Medkit) medkit).getSoundIndex(), 1, Defines.ATTN_NORM, 0);
                 } else if (ent.item.pickup_sound != null) {
-                    gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
-                            .soundindex(ent.item.pickup_sound), 1,
-                            Defines.ATTN_NORM, 0);
+                    gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports.soundindex(ent.item.pickup_sound), 1, Defines.ATTN_NORM, 0);
                 }
             }
     
