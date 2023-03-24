@@ -1,5 +1,7 @@
 package jake2.game
 
+import jake2.game.components.ComponentType
+import jake2.game.components.Medkit
 import jake2.game.items.GameItems
 import jake2.qcommon.Defines
 
@@ -14,7 +16,7 @@ fun itemHealthMedium(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
  */
 fun itemHealthSmall(self: SubgameEntity, game: GameExportsImpl) {
-    spawnHealth(self, game, "models/items/healing/stimpack/tris.md2", "items/s_health.wav", 2, GameDefines.HEALTH_IGNORE_MAX)
+    spawnHealth(self, game, "models/items/healing/stimpack/tris.md2", "items/s_health.wav", 2, true)
 }
 
 /*
@@ -28,23 +30,20 @@ fun itemHealthLarge(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
  */
 fun itemHealthMega(self: SubgameEntity, game: GameExportsImpl) {
-    spawnHealth(self, game, "models/items/mega_h/tris.md2", "items/m_health.wav", 100, GameDefines.HEALTH_IGNORE_MAX or GameDefines.HEALTH_TIMED)
+    spawnHealth(self, game, "models/items/mega_h/tris.md2", "items/m_health.wav", 100, true, true)
 }
 
-/**
- * @param style - type of health: 0 - normal, HEALTH_IGNORE_MAX, HEALTH_TIMED
- * @param amount - medkit size: goes to entity.count
- */
-private fun spawnHealth(self: SubgameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, style: Int? = null) {
-    if (game.gameCvars.deathmatch.value != 0f && game.gameCvars.dmflags.value.toInt() and Defines.DF_NO_HEALTH != 0) {
+
+private fun spawnHealth(self: SubgameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, ignoreHealth: Boolean = false, timed: Boolean = false) {
+    if (game.skipForDeathmatch(self)) return
+
+    if (game.gameCvars.dmflags.value.toInt() and Defines.DF_NO_HEALTH != 0) {
         game.freeEntity(self)
         return
     }
-    self.model = model
-    self.count = amount
-    if (style != null)
-        self.style = style
-    game.gameImports.soundindex(sound)
-    GameItems.SpawnItem(self, GameItems.FindItem("Health", game), game)
 
+    self.components[ComponentType.ItemHealth] = Medkit(amount, game.gameImports.soundindex(sound), ignoreHealth, timed)
+    self.model = model
+
+    GameItems.SpawnItem(self, GameItems.FindItem("Health", game), game)
 }

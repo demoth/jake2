@@ -11,7 +11,9 @@ fun <T> SubgameEntity.getComponent(type: ComponentType): T? {
     return this.components[type] as T?
 }
 
-data class ItemHealth(
+data class Medkit(
     val amount: Int,
-    val model: String
+    val soundIndex: Int,
+    val ignoreMax: Boolean = false,
+    val timed: Boolean = false // for mega-health
 )
