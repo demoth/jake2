@@ -26,6 +26,8 @@ package jake2.game.items;
 
 import jake2.game.*;
 import jake2.game.adapters.*;
+import jake2.game.components.ComponentType;
+import jake2.game.components.Medkit;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
@@ -193,30 +195,35 @@ public class GameItems {
 
     final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
         public String getID() { return "pickup_health";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
-    
-            if (0 == (ent.style & GameDefines.HEALTH_IGNORE_MAX))
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl game) {
+            Medkit medkit = (Medkit) self.components.get(ComponentType.ItemHealth);
+
+            if (medkit == null)
+                return false;
+
+            if (!medkit.getIgnoreMax())
                 if (other.health >= other.max_health)
                     return false;
     
-            other.health += ent.count;
+            other.health += medkit.getAmount();
     
-            if (0 == (ent.style & GameDefines.HEALTH_IGNORE_MAX)) {
+            if (!medkit.getIgnoreMax()) {
                 if (other.health > other.max_health)
                     other.health = other.max_health;
             }
     
-            if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
-                ent.think.action = MegaHealth_think;
-                ent.think.nextTime = gameExports.level.time + 5f;
-                ent.setOwner(other);
-                ent.flags |= GameDefines.FL_RESPAWN;
-                ent.svflags |= Defines.SVF_NOCLIENT;
-                ent.solid = Defines.SOLID_NOT;
+            if (medkit.getTimed()) {
+                self.think.action = MegaHealth_think;
+                self.think.nextTime = game.level.time + 5f;
+                self.setOwner(other);
+                self.flags |= GameDefines.FL_RESPAWN;
+                self.svflags |= Defines.SVF_NOCLIENT;
+                self.solid = Defines.SOLID_NOT;
             } else {
-                if (!((ent.spawnflags & GameDefines.DROPPED_ITEM) != 0)
-                        && (gameExports.gameCvars.deathmatch.value != 0))
-                    SetRespawn(ent, 30, gameExports);
+                // mega-health is respawned in `MegaHealth_think`, only after it is expired
+                if ((self.spawnflags & GameDefines.DROPPED_ITEM) == 0
+                        && (game.gameCvars.deathmatch.value != 0))
+                    SetRespawn(self, 30, game);
             }
     
             return true;
@@ -255,25 +262,11 @@ public class GameItems {
                 // change selected item
                 if (ent.item.use != null)
                     client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ent.item.index;
-    
-                if (ent.item.pickup == Pickup_Health) {
-                    if (ent.count == 2)
-                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
-                                .soundindex("items/s_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else if (ent.count == 10)
-                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
-                                .soundindex("items/n_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else if (ent.count == 25)
-                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
-                                .soundindex("items/l_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else
-                        // (ent.count == 100)
-                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
-                                .soundindex("items/m_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
+
+                // fixme: merge health sound with other items sounds (`pickup_sound`)
+                final Object medkit = ent.components.get(ComponentType.ItemHealth);
+                if (medkit instanceof Medkit) {
+                    gameExports.gameImports.sound(other, Defines.CHAN_ITEM, ((Medkit) medkit).getSoundIndex(), 1, Defines.ATTN_NORM, 0);
                 } else if (ent.item.pickup_sound != null) {
                     gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                             .soundindex(ent.item.pickup_sound), 1,
