@@ -1249,10 +1249,7 @@ public class M_Medic {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_medic(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_idle1 = gameExports.gameImports.soundindex("medic/idle.wav");
         sound_pain1 = gameExports.gameImports.soundindex("medic/medpain1.wav");

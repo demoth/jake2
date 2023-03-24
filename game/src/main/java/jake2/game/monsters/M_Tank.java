@@ -1471,10 +1471,7 @@ public class M_Tank {
     public static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_tank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             self.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/tank/tris.md2");

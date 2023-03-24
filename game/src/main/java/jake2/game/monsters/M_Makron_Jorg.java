@@ -1154,10 +1154,7 @@ public class M_Makron_Jorg {
      * Sight
      */
     public static void SP_monster_jorg(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("boss3/bs3pain1.wav");
         sound_pain2 = gameExports.gameImports.soundindex("boss3/bs3pain2.wav");

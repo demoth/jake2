@@ -1961,10 +1961,7 @@ public class M_Makron {
      * Trigger_Spawn Sight
      */
     static void SP_monster_makron(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         MakronPrecache(gameExports);
 

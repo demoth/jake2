@@ -22,7 +22,9 @@
 // $Id: M_Boss3.java,v 1.3 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
-import jake2.game.*;
+import jake2.game.GameDefines;
+import jake2.game.GameExportsImpl;
+import jake2.game.SubgameEntity;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
@@ -63,10 +65,7 @@ public class M_Makron_Idle {
      * Just stands and cycles in one place until targeted, then teleports away.
      */
     public static void SP_monster_boss3_stand(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;

@@ -950,10 +950,7 @@ public class M_Berserk {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_berserk(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         // pre-caches
         sound_pain = gameExports.gameImports.soundindex("berserk/berpain2.wav");

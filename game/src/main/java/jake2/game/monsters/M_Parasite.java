@@ -795,10 +795,7 @@ public class M_Parasite {
     public static EntThinkAdapter SP_monster_parasite = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_parasite"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             sound_pain1 = gameExports.gameImports.soundindex("parasite/parpain1.wav");
             sound_pain2 = gameExports.gameImports.soundindex("parasite/parpain2.wav");

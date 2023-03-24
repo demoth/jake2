@@ -1035,10 +1035,7 @@ public class M_Infantry {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_infantry(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("infantry/infpain1.wav");
         sound_pain2 = gameExports.gameImports.soundindex("infantry/infpain2.wav");

@@ -1120,10 +1120,7 @@ public class M_Brain {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_brain(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_chest_open = gameExports.gameImports.soundindex("brain/brnatck1.wav");
         sound_tentacles_extend = gameExports.gameImports.soundindex("brain/brnatck2.wav");

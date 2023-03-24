@@ -125,10 +125,7 @@ public class Monster {
 
     // ============================================================================
     public static void monster_start(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         if ((self.spawnflags & 4) != 0
                 && 0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {

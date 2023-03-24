@@ -1460,10 +1460,7 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_light"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             SP_monster_soldier_x.think(self, gameExports);
 
@@ -1488,10 +1485,7 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             SP_monster_soldier_x.think(self, gameExports);
 
@@ -1513,10 +1507,7 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_ss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             SP_monster_soldier_x.think(self, gameExports);
 

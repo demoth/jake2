@@ -81,10 +81,8 @@ private val pathCornerTouch = registerTouch("path_corner_touch") { self, other, 
  */
 private const val HOLD = 1
 fun pointCombat(self: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) {
-        game.freeEntity(self)
-        return
-    }
+    if (game.skipForDeathmatch(self)) return
+
     self.solid = Defines.SOLID_TRIGGER
     self.touch = pointCombatTouch
     Math3D.VectorSet(self.mins, -8f, -8f, -16f)

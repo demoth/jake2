@@ -1160,10 +1160,7 @@ public class M_Supertank {
     public static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_supertank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return true;
-            }
+            if (gameExports.skipForDeathmatch(self)) return true;
 
             sound_pain1 = gameExports.gameImports.soundindex("bosstank/btkpain1.wav");
             sound_pain2 = gameExports.gameImports.soundindex("bosstank/btkpain2.wav");

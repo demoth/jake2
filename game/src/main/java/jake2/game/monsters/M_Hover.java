@@ -1030,10 +1030,7 @@ public class M_Hover {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_hover(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("hover/hovpain1.wav");
         sound_pain2 = gameExports.gameImports.soundindex("hover/hovpain2.wav");

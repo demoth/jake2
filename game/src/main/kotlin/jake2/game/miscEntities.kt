@@ -13,10 +13,8 @@ import jake2.qcommon.util.Math3D
  * Large exploding barrel. You can override its mass (400), health (10), and dmg (150).
  */
 fun miscExplobox(self: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
-        game.freeEntity(self)
-        return
-    }
+    if (game.skipForDeathmatch(self)) return
+
     game.gameImports.modelindex("models/objects/debris1/tris.md2")
     game.gameImports.modelindex("models/objects/debris2/tris.md2")
     game.gameImports.modelindex("models/objects/debris3/tris.md2")
@@ -324,6 +322,7 @@ private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other,
 
 /**
  * Rotates the bomb to imitate the drag of the tail
+ * todo: why it's prethink?
  */
 private val miscViperBombPrethink = registerThink("misc_viper_bomb_prethink") { self, game ->
     self.groundentity = null

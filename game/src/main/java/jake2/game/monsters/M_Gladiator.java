@@ -609,10 +609,7 @@ public class M_Gladiator {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_gladiator(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("gladiator/pain.wav");
         sound_pain2 = gameExports.gameImports.soundindex("gladiator/gldpain2.wav");

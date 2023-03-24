@@ -1,8 +1,14 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.util.Lib
@@ -30,10 +36,7 @@ private const val ANIMATED = 2
 private const val ANIMATED_FAST = 4
 
 fun funcExplosive(self: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
-        game.freeEntity(self)
-        return
-    }
+    if (game.skipForDeathmatch(self)) return
 
     self.movetype = GameDefines.MOVETYPE_PUSH
 

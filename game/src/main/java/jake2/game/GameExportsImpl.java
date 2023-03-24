@@ -1752,4 +1752,13 @@ public class GameExportsImpl implements GameExports {
         game.autosaved = oldGameImpl.game.autosaved;
         //game.spawnpoint = spawnPoint;
     }
+
+    public boolean skipForDeathmatch(SubgameEntity entity) {
+        if (gameCvars.deathmatch.value != 0f) {
+            freeEntity(entity);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

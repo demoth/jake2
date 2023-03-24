@@ -1232,12 +1232,7 @@ public class M_Insane {
      * CRAWL CRUCIFIED STAND_GROUND ALWAYS_STAND
      */
     public static void SP_misc_insane(SubgameEntity self, GameExportsImpl gameExports) {
-        //	 static int skin = 0; //@@
-
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_fist = gameExports.gameImports.soundindex("insane/insane11.wav");
         sound_shake = gameExports.gameImports.soundindex("insane/insane5.wav");

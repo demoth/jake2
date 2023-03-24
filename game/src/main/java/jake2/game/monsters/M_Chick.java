@@ -1277,10 +1277,7 @@ public class M_Chick {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_chick(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_missile_prelaunch = gameExports.gameImports.soundindex("chick/chkatck1.wav");
         sound_missile_launch = gameExports.gameImports.soundindex("chick/chkatck2.wav");

@@ -35,23 +35,25 @@ private val lightUse = registerUse("lightUse") { self, other, activator, game ->
 }
 
 
-// fixme: not lights but just simple static models
 /*
  * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
  */
 fun lightMine1(ent: SubgameEntity, game: GameExportsImpl) {
-    ent.movetype = GameDefines.MOVETYPE_NONE
-    ent.solid = Defines.SOLID_BBOX
-    ent.s.modelindex = game.gameImports.modelindex("models/objects/minelite/light1/tris.md2")
-    game.gameImports.linkentity(ent)
+    staticModel(ent, game, "models/objects/minelite/light1/tris.md2")
 }
 
 /*
  * QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
  */
 fun lightMine2(ent: SubgameEntity, game: GameExportsImpl) {
+    staticModel(ent, game, "models/objects/minelite/light2/tris.md2")
+}
+
+// todo: expose this to the editor with as separate classname (misc_model?) and set model from a property
+// check how it is implemented in other engines
+fun staticModel(ent: SubgameEntity, game: GameExportsImpl, model: String) {
     ent.movetype = GameDefines.MOVETYPE_NONE
     ent.solid = Defines.SOLID_BBOX
-    ent.s.modelindex = game.gameImports.modelindex("models/objects/minelite/light2/tris.md2")
+    ent.s.modelindex = game.gameImports.modelindex(model)
     game.gameImports.linkentity(ent)
 }

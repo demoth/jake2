@@ -254,13 +254,12 @@ internal fun Float.snapToEights(): Float {
  * Instead, it must target the turret_breach.
  */
 fun turretDriver(self: SubgameEntity, game: GameExportsImpl) {
-    // todo: decide weather to move to enforcer code or create a separate entity (non enforcer based driver?)
-    // would be nice if the driver could decide to detach and then act as a regular monster
+    if (game.skipForDeathmatch(self)) return
 
-    if (game.gameCvars.deathmatch.value != 0f) {
-        game.freeEntity(self)
-        return
-    }
+    // todo: decide weather to move to enforcer code or create a separate entity (non enforcer based driver?)
+    // would be nice if the driver could decide to detach and then act as a regular monster,
+    // or another monster could be a driver (or take over the driver seat)
+
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BBOX
     self.s.modelindex = game.gameImports.modelindex("models/monsters/infantry/tris.md2")

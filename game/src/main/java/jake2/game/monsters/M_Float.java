@@ -1173,10 +1173,7 @@ public class M_Float {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_floater(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_attack2 = gameExports.gameImports.soundindex("floater/fltatck2.wav");
         sound_attack3 = gameExports.gameImports.soundindex("floater/fltatck3.wav");

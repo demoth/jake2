@@ -131,10 +131,8 @@ private val targetExplosionExplode = registerThink("target_explosion_explode") {
  * These are single use targets.
  */
 fun targetSecret(self: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
-        game.freeEntity(self)
-        return
-    }
+    if (game.skipForDeathmatch(self)) return
+
     self.use = targetSecretUse
     if (self.st.noise == null)
         self.st.noise = "misc/secret.wav"
@@ -166,10 +164,8 @@ private val targetSecretUse = registerUse("use_target_explosion") { self, _, act
  * These are single use targets.
  */
 fun targetGoal(self: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
-        game.freeEntity(self)
-        return
-    }
+    if (game.skipForDeathmatch(self)) return
+
     self.use = targetGoalUse
     if (self.st.noise == null)
         self.st.noise = "misc/secret.wav"
@@ -366,17 +362,15 @@ private val targetEarthquakeThink = registerThink("target_earthquake_think") { s
  * and the  message light will be set on all clients status bars.
  */
 private const val HELP1 = 1
-fun targetHelp(ent: SubgameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
-        game.freeEntity(ent)
+fun targetHelp(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.skipForDeathmatch(self)) return
+
+    if (self.message == null) {
+        game.gameImports.dprintf("${self.classname} with no message at ${Lib.vtos(self.s.origin)}\n")
+        game.freeEntity(self)
         return
     }
-    if (ent.message == null) {
-        game.gameImports.dprintf("${ent.classname} with no message at ${Lib.vtos(ent.s.origin)}\n")
-        game.freeEntity(ent)
-        return
-    }
-    ent.use = targetHelpUse
+    self.use = targetHelpUse
 }
 
 private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
@@ -398,6 +392,8 @@ private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
  */
 private const val LIGHTRAMP_TOGGLE = 1
 fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
+    if (game.skipForDeathmatch(self)) return
+
     // expect 2 letters between "a" and "z"
     if (self.message?.length != 2
         || self.message[0] < 'a' || self.message[0] > 'z'
@@ -408,10 +404,7 @@ fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
         game.freeEntity(self)
         return
     }
-    if (game.gameCvars.deathmatch.value != 0f) {
-        game.freeEntity(self)
-        return
-    }
+
     if (self.target == null) {
         game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
         game.freeEntity(self)

@@ -1009,10 +1009,7 @@ public class M_Mutant {
     public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_mutant"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value != 0) {
-                gameExports.freeEntity(self);
-                return false;
-            }
+            if (gameExports.skipForDeathmatch(self)) return false;
 
             sound_swing = gameExports.gameImports.soundindex("mutant/mutatck1.wav");
             sound_hit = gameExports.gameImports.soundindex("mutant/mutatck2.wav");

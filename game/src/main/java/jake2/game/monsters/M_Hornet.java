@@ -1038,10 +1038,7 @@ public class M_Hornet {
      * Sight
      */
     public static void SP_monster_boss2(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("bosshovr/bhvpain1.wav");
         sound_pain2 = gameExports.gameImports.soundindex("bosshovr/bhvpain2.wav");

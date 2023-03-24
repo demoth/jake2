@@ -1058,10 +1058,7 @@ public class M_Gunner {
      * Trigger_Spawn Sight
      */
     public static void SP_monster_gunner(SubgameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            gameExports.freeEntity(self);
-            return;
-        }
+        if (gameExports.skipForDeathmatch(self)) return;
 
         sound_death = gameExports.gameImports.soundindex("gunner/death1.wav");
         sound_pain = gameExports.gameImports.soundindex("gunner/gunpain2.wav");
