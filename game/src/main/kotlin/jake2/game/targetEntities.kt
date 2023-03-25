@@ -2,6 +2,9 @@ package jake2.game
 
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.ComponentType
+import jake2.game.components.LightRamp
+import jake2.game.components.getComponent
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.network.MulticastTypes
@@ -387,17 +390,17 @@ private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
  * TOGGLE
  *
  * Gradually changes intensity (aka style) of a targeted light.
- * speed - How many seconds the ramping will take message two letters;
+ * speed - How many seconds the ramping will take
  * "message" two letter string: (starting lightlevel, ending lightlevel)
  */
 private const val LIGHTRAMP_TOGGLE = 1
 fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
-    // expect 2 letters between "a" and "z"
+    // expect 2 letters between 'a' and 'z'
     if (self.message?.length != 2
-        || self.message[0] < 'a' || self.message[0] > 'z'
-        || self.message[1] < 'a' || self.message[1] > 'z'
+        || self.message[0] !in 'a'..'z'
+        || self.message[1] !in 'a'..'z'
         || self.message[0] == self.message[1]
     ) {
         game.gameImports.dprintf("target_lightramp has bad ramp (${self.message}) at ${Lib.vtos(self.s.origin)}\n")
@@ -413,30 +416,37 @@ fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
     self.use = targetLightrampUse
     self.think.action = targetLightrampThink
-    // todo: don't use movedir for storing lightramp data
-    self.movedir[0] = (self.message[0].code - 'a'.code).toFloat() // start
-    self.movedir[1] = (self.message[1].code - 'a'.code).toFloat() // end
-    self.movedir[2] = (self.movedir[1] - self.movedir[0]) / (self.speed / Defines.FRAMETIME) // speed
+    // think.nextTime is set when used
+
+    self.components[ComponentType.LightRamp] = LightRamp(
+        self.message[0].code - 'a'.code,
+        self.message[1].code - 'a'.code,
+        self.speed,
+        game.level.time + self.speed,
+        self.hasSpawnFlag(LIGHTRAMP_TOGGLE)
+    )
+
 }
 
 private val targetLightrampThink = registerThink("target_lightramp_think") { self, game ->
-    val value: Char = ('a'.code + (self.movedir[0] + (game.level.time - self.timestamp) / Defines.FRAMETIME * self.movedir[2]).toInt()).toChar()
-
-    game.gameImports.configstring(Defines.CS_LIGHTS + self.enemy.style, value.toString())
-
-    if (game.level.time - self.timestamp < self.speed) {
+    val lightRamp: LightRamp = self.getComponent(ComponentType.LightRamp) ?: return@registerThink false
+    if (lightRamp.targetTime < game.level.time) {
+        val newValue = lightRamp.update(Defines.FRAMETIME)
+        // fixme: don't call if not changed
+        game.gameImports.configstring(Defines.CS_LIGHTS + lightRamp.targetLightStyle, ('a'.code + newValue).toChar().toString())
         self.think.nextTime = game.level.time + Defines.FRAMETIME
-    } else if (self.hasSpawnFlag(LIGHTRAMP_TOGGLE)) {
-        val temp = self.movedir[0]
-        self.movedir[0] = self.movedir[1]
-        self.movedir[1] = temp
-        self.movedir[2] *= -1f
+    } else {
+        if (lightRamp.toggleable) {
+            lightRamp.toggle(game.level.time)
+        }
     }
     true
 }
 
 private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, _, game ->
-    if (self.enemy == null) {
+    val lightRamp: LightRamp = self.getComponent(ComponentType.LightRamp) ?: return@registerUse
+    // find a target by name
+    if (lightRamp.targetLightStyle == -1) {
         // check all the targets
         var es: EdictIterator? = null
         while (true) {
@@ -445,19 +455,20 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
                 break
             val entity = es.o
             if ("light" == entity.classname) {
-                self.enemy = entity
+                lightRamp.targetLightStyle = entity.style
             } else {
                 game.gameImports.dprintf(self.classname + " at "+ Lib.vtos(self.s.origin))
                 game.gameImports.dprintf(("target " + self.target + " ("+ entity.classname + " at " + Lib.vtos(entity.s.origin)+ ") is not a light\n"))
             }
         }
-        if (self.enemy == null) {
+        // couldn't find a target
+        if (lightRamp.targetLightStyle == -1) {
             game.gameImports.dprintf((self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin) + "\n"))
             game.freeEntity(self)
             return@registerUse
         }
     }
-    self.timestamp = game.level.time
+    // start the ramping
     targetLightrampThink.think(self, game)
 
 }
