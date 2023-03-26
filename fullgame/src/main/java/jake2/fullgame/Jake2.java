@@ -64,26 +64,25 @@ public final class Jake2 {
      * @param args
      */
     public static void main(String[] args) {
-    	
-    	boolean dedicated = false;
 
-    	// check if we are in dedicated mode to hide the java dialog.
-    	for (int n = 0; n <  args.length; n++)
-    	{
-    		if (args[n].equals("+set"))
-    		{
-    			if (n++ >= args.length)
-    				break;
-    			
-    			if (!args[n].equals("dedicated"))
-    				continue;
+        System.setProperty("org.lwjgl.librarypath", "C:/srdev/projects/jake2/fullgame/build/natives");
 
-    			if (n++ >= args.length)
-    				break;
+        boolean dedicated = false;
 
-    			if (args[n].equals("1") || args[n].equals("\"1\""))
-    			{
-    				Com.Printf("Starting in dedicated mode.\n");
+        // check if we are in dedicated mode to hide the java dialog.
+        for (int n = 0; n < args.length; n++) {
+            if (args[n].equals("+set")) {
+                if (n++ >= args.length)
+                    break;
+
+                if (!args[n].equals("dedicated"))
+                    continue;
+
+                if (n++ >= args.length)
+                    break;
+
+                if (args[n].equals("1") || args[n].equals("\"1\"")) {
+                    Com.Printf("Starting in dedicated mode.\n");
     				dedicated = true;
     			}
     		}    		

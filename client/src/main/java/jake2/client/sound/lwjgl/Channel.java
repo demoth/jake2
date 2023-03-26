@@ -1,6 +1,6 @@
 /*
  * Created on Jun 19, 2004
- * 
+ *
  * Copyright (C) 2003
  *
  * $Id: Channel.java,v 1.12 2006-11-23 13:31:58 cawe Exp $
@@ -38,7 +38,7 @@ import jake2.qcommon.entity_state_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.OpenALException;
+import org.lwjgl.openal.AL11;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -49,7 +49,7 @@ import java.util.Map;
 
 /**
  * Channel
- * 
+ *
  * @author dsanders/cwei
  */
 public class Channel {
@@ -90,213 +90,209 @@ public class Channel {
     private boolean volumeChanged;
 
     private Channel(int sourceId) {
-	this.sourceId = sourceId;
-	clear();
-	volumeChanged = false;
-	volume = 1.0f;
+        this.sourceId = sourceId;
+        clear();
+        volumeChanged = false;
+        volume = 1.0f;
     }
 
     private void clear() {
-	entnum = entchannel = bufferId = -1;
-	bufferChanged = false;
-	rolloff = 0;
-	autosound = false;
-	active = false;
-	modified = false;
+        entnum = entchannel = bufferId = -1;
+        bufferChanged = false;
+        rolloff = 0;
+        autosound = false;
+        active = false;
+        modified = false;
     }
 
     private static IntBuffer tmp = Lib.newIntBuffer(1);
 
     static int init(IntBuffer buffers) {
-	Channel.buffers = buffers;
-	// create channels
-	int sourceId;
-	numChannels = 0;
-	for (int i = 0; i < MAX_CHANNELS; i++) {
-	    try {
-		AL10.alGenSources(tmp);
-		sourceId = tmp.get(0);
-		// can't generate more sources 
-		if (sourceId <= 0) break;
-	    } catch (OpenALException e) {
-		// can't generate more sources 
-		break;
-	    }
+        Channel.buffers = buffers;
+        // create channels
+        int sourceId;
+        numChannels = 0;
+        for (int i = 0; i < MAX_CHANNELS; i++) {
+            AL10.alGenSources(tmp);
+            sourceId = tmp.get(0);
+            // can't generate more sources
+            if (sourceId <= 0) break;
 
-	    sources.put(i, sourceId);
+            sources.put(i, sourceId);
 
-	    channels[i] = new Channel(sourceId);
-	    numChannels++;
+            channels[i] = new Channel(sourceId);
+            numChannels++;
 
-	    // set default values for AL sources
-	    AL10.alSourcef (sourceId, AL10.AL_GAIN, 1.0f);
-	    AL10.alSourcef (sourceId, AL10.AL_PITCH, 1.0f);
-	    AL10.alSourcei (sourceId, AL10.AL_SOURCE_RELATIVE,  AL10.AL_FALSE);
-	    AL10.alSource(sourceId, AL10.AL_VELOCITY, NULLVECTOR);
-	    AL10.alSourcei (sourceId, AL10.AL_LOOPING, AL10.AL_FALSE);
-	    AL10.alSourcef (sourceId, AL10.AL_REFERENCE_DISTANCE, 200.0f);
-	    AL10.alSourcef (sourceId, AL10.AL_MIN_GAIN, 0.0005f);
-	    AL10.alSourcef (sourceId, AL10.AL_MAX_GAIN, 1.0f);
-	}
-	sources.limit(numChannels);
-	return numChannels;
+            // set default values for AL sources
+            AL10.alSourcef(sourceId, AL10.AL_GAIN, 1.0f);
+            AL10.alSourcef(sourceId, AL10.AL_PITCH, 1.0f);
+            AL10.alSourcei(sourceId, AL10.AL_SOURCE_RELATIVE, AL10.AL_FALSE);
+            float[] nullVector = new float[]{0.0f, 0.0f, 0.0f};
+            AL10.alSource3f(sourceId, AL10.AL_VELOCITY, nullVector[0], nullVector[1], nullVector[2]);
+            AL10.alSourcei(sourceId, AL10.AL_LOOPING, AL10.AL_FALSE);
+            AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, 200.0f);
+            AL10.alSourcef(sourceId, AL10.AL_MIN_GAIN, 0.0005f);
+            AL10.alSourcef(sourceId, AL10.AL_MAX_GAIN, 1.0f);
+        }
+        sources.limit(numChannels);
+        return numChannels;
     }
 
     static void reset() {
-	for (int i = 0; i < numChannels; i++) {
-	    AL10.alSourceStop(sources.get(i));
-	    AL10.alSourcei(sources.get(i), AL10.AL_BUFFER, 0);
-	    channels[i].clear();
-	}
+        for (int i = 0; i < numChannels; i++) {
+            AL11.alSourceStop(sources.get(i));
+            AL11.alSourcei(sources.get(i), AL11.AL_BUFFER, 0);
+            channels[i].clear();
+        }
     }
 
     static void shutdown() {
-	AL10.alDeleteSources(sources);
-	numChannels = 0;
+        AL11.alDeleteSources(sources);
+        numChannels = 0;
     }
 
     static void enableStreaming() {
-	if (streamingEnabled) return;
+        if (streamingEnabled) return;
 
-	// use the last source
-	numChannels--;
-	streamingEnabled = true;
-	streamQueue = 0;
+        // use the last source
+        numChannels--;
+        streamingEnabled = true;
+        streamQueue = 0;
 
-	int source = channels[numChannels].sourceId;
-	AL10.alSourcei (source, AL10.AL_SOURCE_RELATIVE,  AL10.AL_TRUE);
-	AL10.alSourcef(source, AL10.AL_GAIN, 1.0f);
-	channels[numChannels].volumeChanged = true;
+        int source = channels[numChannels].sourceId;
+        AL11.alSourcei(source, AL11.AL_SOURCE_RELATIVE, AL11.AL_TRUE);
+        AL11.alSourcef(source, AL11.AL_GAIN, 1.0f);
+        channels[numChannels].volumeChanged = true;
 
-	Com.DPrintf("streaming enabled\n");
+        Com.DPrintf("streaming enabled\n");
     }
 
     static void disableStreaming() {
-	if (!streamingEnabled) return;
-	unqueueStreams();
-	int source = channels[numChannels].sourceId;
-	AL10.alSourcei (source, AL10.AL_SOURCE_RELATIVE,  AL10.AL_FALSE);
+        if (!streamingEnabled) return;
+        unqueueStreams();
+        int source = channels[numChannels].sourceId;
+        AL11.alSourcei(source, AL11.AL_SOURCE_RELATIVE, AL11.AL_FALSE);
 
-	// free the last source
-	numChannels++;
-	streamingEnabled = false;
-	Com.DPrintf("streaming disabled\n");
+        // free the last source
+        numChannels++;
+        streamingEnabled = false;
+        Com.DPrintf("streaming disabled\n");
     }
 
     static void unqueueStreams() {
-	if (!streamingEnabled) return;
-	int source = channels[numChannels].sourceId;
+        if (!streamingEnabled) return;
+        int source = channels[numChannels].sourceId;
 
-	// stop streaming
-	AL10.alSourceStop(source);
-	int count = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
-	Com.DPrintf("unqueue " + count + " buffers\n");
-	while (count-- > 0) {
-	    AL10.alSourceUnqueueBuffers(source, tmp);
-	}
-	streamQueue = 0;
+        // stop streaming
+        AL11.alSourceStop(source);
+        int count = AL11.alGetSourcei(source, AL11.AL_BUFFERS_QUEUED);
+        Com.DPrintf("unqueue " + count + " buffers\n");
+        while (count-- > 0) {
+            AL11.alSourceUnqueueBuffers(source, tmp);
+        }
+        streamQueue = 0;
     }
 
     static void updateStream(ByteBuffer samples, int count, int format, int rate) {
-	enableStreaming();
-	int source = channels[numChannels].sourceId;
-	int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
+        enableStreaming();
+        int source = channels[numChannels].sourceId;
+        int processed = AL11.alGetSourcei(source, AL11.AL_BUFFERS_PROCESSED);
 
-	boolean playing = (AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING);
-	boolean interupted = !playing && streamQueue > 2;
+        boolean playing = (AL11.alGetSourcei(source, AL11.AL_SOURCE_STATE) == AL11.AL_PLAYING);
+        boolean interupted = !playing && streamQueue > 2;
 
-	IntBuffer buffer = tmp;
-	if (interupted) {
-	    unqueueStreams();
-	    buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
-	    Com.DPrintf("queue " + (streamQueue - 1) + '\n');
-	} else if (processed < 2) {
-	    // check queue overrun
-	    if (streamQueue >= Sound.STREAM_QUEUE) return;
-	    buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
-	    Com.DPrintf("queue " + (streamQueue - 1) + '\n');
-	} else {
-	    // reuse the buffer
-	    AL10.alSourceUnqueueBuffers(source, buffer);
-	}
+        IntBuffer buffer = tmp;
+        if (interupted) {
+            unqueueStreams();
+            buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
+            Com.DPrintf("queue " + (streamQueue - 1) + '\n');
+        } else if (processed < 2) {
+            // check queue overrun
+            if (streamQueue >= Sound.STREAM_QUEUE) return;
+            buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
+            Com.DPrintf("queue " + (streamQueue - 1) + '\n');
+        } else {
+            // reuse the buffer
+            AL11.alSourceUnqueueBuffers(source, buffer);
+        }
 
-	samples.position(0);
-	samples.limit(count);
-	AL10.alBufferData(buffer.get(0), format, samples, rate);
-	AL10.alSourceQueueBuffers(source, buffer);
+        samples.position(0);
+        samples.limit(count);
+        AL11.alBufferData(buffer.get(0), format, samples, rate);
+        AL11.alSourceQueueBuffers(source, buffer);
 
-	if (streamQueue > 1 && !playing) {
-	    Com.DPrintf("start sound\n");
-	    AL10.alSourcePlay(source);
-	}
+        if (streamQueue > 1 && !playing) {
+            Com.DPrintf("start sound\n");
+            AL11.alSourcePlay(source);
+        }
     }
 
     static void addPlaySounds() {
-	while (Channel.assign(PlaySound.nextPlayableSound()));
+        while (Channel.assign(PlaySound.nextPlayableSound())) ;
     }
 
     private static boolean assign(PlaySound ps) {
-	if (ps == null) return false;
-	Channel ch = null;
-	int i;
-	for (i = 0; i < numChannels; i++) {
-	    ch = channels[i];
+        if (ps == null) return false;
+        Channel ch = null;
+        int i;
+        for (i = 0; i < numChannels; i++) {
+            ch = channels[i];
 
-	    if (ps.entchannel != 0 && ch.entnum == ps.entnum && ch.entchannel == ps.entchannel) {
-		// always override sound from same entity
-		if (ch.bufferId != ps.bufferId) {
-		    AL10.alSourceStop(ch.sourceId);
-		}
-		break;
-	    }
+            if (ps.entchannel != 0 && ch.entnum == ps.entnum && ch.entchannel == ps.entchannel) {
+                // always override sound from same entity
+                if (ch.bufferId != ps.bufferId) {
+                    AL11.alSourceStop(ch.sourceId);
+                }
+                break;
+            }
 
-	    // don't let monster sounds override player sounds
-	    if ((ch.entnum == ClientGlobals.cl.playernum+1) && (ps.entnum != ClientGlobals.cl.playernum+1) && ch.bufferId != -1)
-		continue;
+            // don't let monster sounds override player sounds
+            if ((ch.entnum == ClientGlobals.cl.playernum + 1) && (ps.entnum != ClientGlobals.cl.playernum + 1) && ch.bufferId != -1)
+                continue;
 
-	    // looking for a free AL source
-	    if (!ch.active) {
-		break;
-	    }
-	}
+            // looking for a free AL source
+            if (!ch.active) {
+                break;
+            }
+        }
 
-	if (i == numChannels)
-	    return false;
+        if (i == numChannels)
+            return false;
 
-	ch.type = ps.type;
-	if (ps.type == Channel.FIXED)
-	    Math3D.VectorCopy(ps.origin, ch.origin);
-	ch.entnum = ps.entnum;
-	ch.entchannel = ps.entchannel;
-	ch.bufferChanged = (ch.bufferId != ps.bufferId);			
-	ch.bufferId = ps.bufferId;
-	ch.rolloff = ps.attenuation * 2;
-	ch.volumeChanged = (ch.volume != ps.volume);
-	ch.volume = ps.volume;
-	ch.active = true;
-	ch.modified = true;
-	return true;
+        ch.type = ps.type;
+        if (ps.type == Channel.FIXED)
+            Math3D.VectorCopy(ps.origin, ch.origin);
+        ch.entnum = ps.entnum;
+        ch.entchannel = ps.entchannel;
+        ch.bufferChanged = (ch.bufferId != ps.bufferId);
+        ch.bufferId = ps.bufferId;
+        ch.rolloff = ps.attenuation * 2;
+        ch.volumeChanged = (ch.volume != ps.volume);
+        ch.volume = ps.volume;
+        ch.active = true;
+        ch.modified = true;
+        return true;
     }
 
     private static Channel pickForLoop(int bufferId, float attenuation) {
-	Channel ch;
-	for (int i = 0; i < numChannels; i++) {
-	    ch = channels[i];
-	    // looking for a free AL source
-	    if (!ch.active) {
-		ch.entnum = 0;
-		ch.entchannel = 0;
-		ch.bufferChanged = (ch.bufferId != bufferId);			
-		ch.bufferId = bufferId;
-		ch.volumeChanged = (ch.volume != 1.0f);
-		ch.volume = 1.0f;
-		ch.rolloff = attenuation * 2;
-		ch.active = true;
-		ch.modified = true;
-		return ch;
-	    }
-	}
-	return null;
+        Channel ch;
+        for (int i = 0; i < numChannels; i++) {
+            ch = channels[i];
+            // looking for a free AL source
+            if (!ch.active) {
+                ch.entnum = 0;
+                ch.entchannel = 0;
+                ch.bufferChanged = (ch.bufferId != bufferId);
+                ch.bufferId = bufferId;
+                ch.volumeChanged = (ch.volume != 1.0f);
+                ch.volume = 1.0f;
+                ch.rolloff = attenuation * 2;
+                ch.active = true;
+                ch.modified = true;
+                return ch;
+            }
+        }
+        return null;
     }
 
     private static FloatBuffer sourceOriginBuffer = Lib.newFloatBuffer(3);
@@ -305,58 +301,58 @@ public class Channel {
     private static float[] entityOrigin = {0, 0, 0};
 
     static void playAllSounds(FloatBuffer listenerOrigin) {
-	FloatBuffer sourceOrigin = sourceOriginBuffer;
-	Channel ch;
-	int sourceId;
-	int state;
+        FloatBuffer sourceOrigin = sourceOriginBuffer;
+        Channel ch;
+        int sourceId;
+        int state;
 
-	for (int i = 0; i < numChannels; i++) {
-	    ch = channels[i];
-	    if (ch.active) {
-		sourceId = ch.sourceId;
-		switch (ch.type) {
-		case Channel.LISTENER:
-		    sourceOrigin.put(0, listenerOrigin.get(0));
-		    sourceOrigin.put(1, listenerOrigin.get(1));
-		    sourceOrigin.put(2, listenerOrigin.get(2));
-		    break;
-		case Channel.DYNAMIC:
-		    CL_ents.GetEntitySoundOrigin(ch.entnum, entityOrigin);
-		    convertVector(entityOrigin, sourceOrigin);
-		    break;
-		case Channel.FIXED:
-		    convertVector(ch.origin, sourceOrigin);
-		    break;
-		}
+        for (int i = 0; i < numChannels; i++) {
+            ch = channels[i];
+            if (ch.active) {
+                sourceId = ch.sourceId;
+                switch (ch.type) {
+                    case Channel.LISTENER:
+                        sourceOrigin.put(0, listenerOrigin.get(0));
+                        sourceOrigin.put(1, listenerOrigin.get(1));
+                        sourceOrigin.put(2, listenerOrigin.get(2));
+                        break;
+                    case Channel.DYNAMIC:
+                        CL_ents.GetEntitySoundOrigin(ch.entnum, entityOrigin);
+                        convertVector(entityOrigin, sourceOrigin);
+                        break;
+                    case Channel.FIXED:
+                        convertVector(ch.origin, sourceOrigin);
+                        break;
+                }
 
-		if (ch.modified) {
-		    if (ch.bufferChanged) {
-			try {
-			    AL10.alSourcei(sourceId, AL10.AL_BUFFER, ch.bufferId);
-			} catch (OpenALException e) {
-			    // fallback for buffer changing
-			    AL10.alSourceStop(sourceId);
-			    AL10.alSourcei(sourceId, AL10.AL_BUFFER, ch.bufferId);
-			}
-		    }
-		    if (ch.volumeChanged) {
-			AL10.alSourcef (sourceId, AL10.AL_GAIN, ch.volume);
-		    }
-		    AL10.alSourcef (sourceId, AL10.AL_ROLLOFF_FACTOR, ch.rolloff);
-		    AL10.alSource(sourceId, AL10.AL_POSITION, sourceOrigin);
-		    AL10.alSourcePlay(sourceId);
-		    ch.modified = false;
-		} else {
-		    state = AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE);
-		    if (state == AL10.AL_PLAYING) {
-			AL10.alSource(sourceId, AL10.AL_POSITION, sourceOrigin);
-		    } else {
-			ch.clear();
-		    }
-		}
-		ch.autosound = false;
-	    }
-	}
+                if (ch.modified) {
+                    if (ch.bufferChanged) {
+                        try {
+                            AL11.alSourcei(sourceId, AL11.AL_BUFFER, ch.bufferId);
+                        } catch (RuntimeException e) {
+                            // fallback for buffer changing
+                            AL11.alSourceStop(sourceId);
+                            AL11.alSourcei(sourceId, AL11.AL_BUFFER, ch.bufferId);
+                        }
+                    }
+                    if (ch.volumeChanged) {
+                        AL11.alSourcef(sourceId, AL11.AL_GAIN, ch.volume);
+                    }
+                    AL11.alSourcef(sourceId, AL11.AL_ROLLOFF_FACTOR, ch.rolloff);
+                    AL11.alSource3f(sourceId, AL11.AL_POSITION, entityOrigin[0], entityOrigin[1], entityOrigin[2]);
+                    AL11.alSourcePlay(sourceId);
+                    ch.modified = false;
+                } else {
+                    state = AL11.alGetSourcei(sourceId, AL11.AL_SOURCE_STATE);
+                    if (state == AL11.AL_PLAYING) {
+                        AL11.alSource3f(sourceId, AL11.AL_POSITION, entityOrigin[0], entityOrigin[1], entityOrigin[2]);
+                    } else {
+                        ch.clear();
+                    }
+                }
+                ch.autosound = false;
+            }
+        }
     }
 
     /*
@@ -367,88 +363,88 @@ public class Channel {
      */
     static void addLoopSounds() {
 
-	if ((ClientGlobals.cl_paused.value != 0.0f) || (ClientGlobals.cls.state != Globals.ca_active) || !ClientGlobals.cl.sound_prepped) {
-	    removeUnusedLoopSounds();
-	    return;
-	}
+        if ((ClientGlobals.cl_paused.value != 0.0f) || (ClientGlobals.cls.state != Globals.ca_active) || !ClientGlobals.cl.sound_prepped) {
+            removeUnusedLoopSounds();
+            return;
+        }
 
-	Channel ch;
-	sfx_t	sfx;
-	sfxcache_t sc;
-	int num;
-	entity_state_t ent;
-	Object key;
-	int sound = 0;
+        Channel ch;
+        sfx_t sfx;
+        sfxcache_t sc;
+        int num;
+        entity_state_t ent;
+        Object key;
+        int sound = 0;
 
-	for (int i = 0; i< ClientGlobals.cl.frame.num_entities ; i++) {
-	    num = (ClientGlobals.cl.frame.parse_entities + i)&(Defines.MAX_PARSE_ENTITIES-1);
-	    ent = ClientGlobals.cl_parse_entities[num];
-	    sound = ent.sound;
+        for (int i = 0; i < ClientGlobals.cl.frame.num_entities; i++) {
+            num = (ClientGlobals.cl.frame.parse_entities + i) & (Defines.MAX_PARSE_ENTITIES - 1);
+            ent = ClientGlobals.cl_parse_entities[num];
+            sound = ent.sound;
 
-	    if (sound == 0) continue;
+            if (sound == 0) continue;
 
-	    key = new Integer(ent.number);
-	    ch = (Channel)looptable.get(key);
+            key = new Integer(ent.number);
+            ch = (Channel) looptable.get(key);
 
-	    if (ch != null) {
-		// keep on looping
-		ch.autosound = true;
-		Math3D.VectorCopy(ent.origin, ch.origin);
-		continue;
-	    }
+            if (ch != null) {
+                // keep on looping
+                ch.autosound = true;
+                Math3D.VectorCopy(ent.origin, ch.origin);
+                continue;
+            }
 
-	    sfx = ClientGlobals.cl.sound_precache[sound];
-	    if (sfx == null)
-		continue;		// bad sound effect
+            sfx = ClientGlobals.cl.sound_precache[sound];
+            if (sfx == null)
+                continue;        // bad sound effect
 
-	    sc = sfx.cache;
-	    if (sc == null)
-		continue;
+            sc = sfx.cache;
+            if (sc == null)
+                continue;
 
-	    // allocate a channel
-	    ch = Channel.pickForLoop(buffers.get(sfx.bufferId), 6);
-	    if (ch == null)
-		break;
+            // allocate a channel
+            ch = Channel.pickForLoop(buffers.get(sfx.bufferId), 6);
+            if (ch == null)
+                break;
 
-	    ch.type = FIXED;
-	    Math3D.VectorCopy(ent.origin, ch.origin);
-	    ch.autosound = true;
+            ch.type = FIXED;
+            Math3D.VectorCopy(ent.origin, ch.origin);
+            ch.autosound = true;
 
-	    looptable.put(key, ch);
-	    AL10.alSourcei(ch.sourceId, AL10.AL_LOOPING, AL10.AL_TRUE);
-	}
+            looptable.put(key, ch);
+            AL11.alSourcei(ch.sourceId, AL11.AL_LOOPING, AL11.AL_TRUE);
+        }
 
-	removeUnusedLoopSounds();
+        removeUnusedLoopSounds();
 
     }
 
     private static void removeUnusedLoopSounds() {
-	Channel ch;
-	// stop unused loopsounds
-	for (Iterator iter = looptable.values().iterator(); iter.hasNext();) {
-	    ch = (Channel)iter.next();
-	    if (!ch.autosound) {
-		AL10.alSourceStop(ch.sourceId);
-		AL10.alSourcei(ch.sourceId, AL10.AL_LOOPING, AL10.AL_FALSE);
-		iter.remove();
-		ch.clear();
-	    }
-	}
+        Channel ch;
+        // stop unused loopsounds
+        for (Iterator iter = looptable.values().iterator(); iter.hasNext(); ) {
+            ch = (Channel) iter.next();
+            if (!ch.autosound) {
+                AL11.alSourceStop(ch.sourceId);
+                AL11.alSourcei(ch.sourceId, AL11.AL_LOOPING, AL11.AL_FALSE);
+                iter.remove();
+                ch.clear();
+            }
+        }
     }
 
     static void convertVector(float[] from, FloatBuffer to) {
-	to.put(0, from[0]);
-	to.put(1, from[2]);
-	to.put(2, -from[1]);
+        to.put(0, from[0]);
+        to.put(1, from[2]);
+        to.put(2, -from[1]);
     }
 
     static void convertOrientation(float[] forward, float[] up, FloatBuffer orientation) {
-	orientation.put(0, forward[0]);
-	orientation.put(1, forward[2]);
-	orientation.put(2, -forward[1]);
-	orientation.put(3, up[0]);
-	orientation.put(4, up[2]);
-	orientation.put(5, -up[1]);
+        orientation.put(0, forward[0]);
+        orientation.put(1, forward[2]);
+        orientation.put(2, -forward[1]);
+        orientation.put(3, up[0]);
+        orientation.put(4, up[2]);
+        orientation.put(5, -up[1]);
     }
 
 }

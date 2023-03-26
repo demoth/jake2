@@ -7,6 +7,7 @@
  
 package jake2.client.render;
 
+import jake2.client.DisplayMode;
 import jake2.client.KBD;
 import jake2.client.refdef_t;
 import jake2.client.refexport_t;

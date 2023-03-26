@@ -21,8 +21,6 @@ public interface GLDriver {
     void enableLogging(boolean enable);
     
     void logNewFrame();
-    
-    java.awt.DisplayMode[] getModeList();
 
     void updateScreen(Command callback);
 

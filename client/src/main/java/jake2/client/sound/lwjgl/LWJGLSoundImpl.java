@@ -18,11 +18,9 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.OpenALException;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.openal.*;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.*;
 import java.util.List;
@@ -39,97 +37,97 @@ public final class LWJGLSoundImpl implements Sound {
 	S.register(new LWJGLSoundImpl());
     };
 
-    private cvar_t s_volume;
+	private cvar_t s_volume;
 
-    // the last 4 buffers are used for cinematics streaming
-    private IntBuffer buffers = Lib.newIntBuffer(MAX_SFX + STREAM_QUEUE);
+	// the last 4 buffers are used for cinematics streaming
+	private IntBuffer buffers = Lib.newIntBuffer(MAX_SFX + STREAM_QUEUE);
 
-    // singleton 
-    private LWJGLSoundImpl() {
-    }
-
-    /* (non-Javadoc)
-     * @see jake2.client.sound.SoundImpl#Init()
-     */
-    public boolean Init() {
-
-	try {
-	    initOpenAL();
-	    checkError();	
-	} catch (OpenALException e) {
-	    Com.Printf(e.getMessage() + '\n');
-	    return false;
-	} catch (Exception e) {
-	    Com.DPrintf(e.getMessage() + '\n');
-	    return false;
+	// singleton
+	private LWJGLSoundImpl() {
 	}
 
-	// set the listerner (master) volume
-	s_volume = Cvar.getInstance().Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
-	AL10.alGenBuffers(buffers);
-	int count = Channel.init(buffers);
-	Com.Printf("... using " + count + " channels\n");
-	AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
-	Cmd.AddCommand("play", this::Play);
-	Cmd.AddCommand("stopsound", (List<String> args) -> StopAllSounds());
-	Cmd.AddCommand("soundlist", (List<String> args) -> SoundList());
-	Cmd.AddCommand("soundinfo", (List<String> args) -> SoundInfo_f());
+	/* (non-Javadoc)
+	 * @see jake2.client.sound.SoundImpl#Init()
+	 */
+	public boolean Init() {
+		try {
+			initOpenAL();
+			checkError();
+		} catch (Exception e) {
+			Com.Printf("Error initializing OpenAL: " + e.getMessage() + '\n');
+			return false;
+		}
 
-	num_sfx = 0;
+		// set the listerner (master) volume
+		s_volume = Cvar.getInstance().Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
+		AL10.alGenBuffers(buffers);
+		int count = Channel.init(buffers);
+		Com.Printf("... using " + count + " channels\n");
+		AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
+		Cmd.AddCommand("play", this::Play);
+		Cmd.AddCommand("stopsound", (List<String> args) -> StopAllSounds());
+		Cmd.AddCommand("soundlist", (List<String> args) -> SoundList());
+		Cmd.AddCommand("soundinfo", (List<String> args) -> SoundInfo_f());
 
-	Com.Printf("sound sampling rate: 44100Hz\n");
+		num_sfx = 0;
 
-	StopAllSounds();
-	Com.Printf("------------------------------------\n");
-	return true;
-    }
+		Com.Printf("sound sampling rate: 44100Hz\n");
 
-
-    private void initOpenAL() throws OpenALException 
-    {
-	try { AL.create(); } catch (LWJGLException e) { throw new OpenALException(e); }
-	String deviceName = null;
-
-	String os = System.getProperty("os.name");
-	if (os.startsWith("Windows")) {
-	    deviceName = "DirectSound3D";
+		StopAllSounds();
+		Com.Printf("------------------------------------\n");
+		return true;
 	}
 
-	String defaultSpecifier = ALC10.alcGetString(AL.getDevice(), ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
+	private void initOpenAL() {
+		long device = ALC10.alcOpenDevice((ByteBuffer) null);
+		if (device == MemoryUtil.NULL) {
+			throw new RuntimeException("Failed to open the default device");
+		}
 
-	Com.Printf(os + " using " + ((deviceName == null) ? defaultSpecifier : deviceName) + '\n');
+		ALCCapabilities deviceCaps = ALC.createCapabilities(device);
+		AL.createCapabilities(deviceCaps);
 
-	// Check for an error.
-	if (ALC10.alcGetError(AL.getDevice()) != ALC10.ALC_NO_ERROR) 
-	{
-	    Com.DPrintf("Error with SoundDevice");
+		String deviceName = null;
+
+		String os = System.getProperty("os.name");
+		if (os.startsWith("Windows")) {
+			deviceName = "DirectSound3D";
+		}
+
+		String defaultSpecifier = ALC10.alcGetString(ALC10.alcGetContextsDevice(ALC10.alcGetCurrentContext()), ALC10.ALC_DEVICE_SPECIFIER);
+
+		Com.Printf(os + " using " + ((deviceName == null) ? defaultSpecifier : deviceName) + '\n');
+
+		// Check for an error.
+		int error = ALC10.alcGetError(ALC10.alcGetContextsDevice(ALC10.alcGetCurrentContext()));
+		if (error != ALC10.ALC_NO_ERROR) {
+			Com.DPrintf("Error with SoundDevice");
+		}
 	}
-    }
 
-    void exitOpenAL() 
-    {
-	AL.destroy();
-    }
+	void exitOpenAL() {
+		ALC.destroy();
+	}
 
-    // TODO check the sfx direct buffer size
-    // 2MB sfx buffer
-    private ByteBuffer sfxDataBuffer = Lib.newByteBuffer(2 * 1024 * 1024);
+	// TODO check the sfx direct buffer size
+	// 2MB sfx buffer
+	private ByteBuffer sfxDataBuffer = Lib.newByteBuffer(2 * 1024 * 1024);
 
-    /* (non-Javadoc)
-     * @see jake2.client.sound.SoundImpl#RegisterSound(jake2.client.sound.sfx_t)
-     */
-    private void initBuffer(byte[] samples, int bufferId, int freq) {
-	ByteBuffer data = sfxDataBuffer.slice();
-	data.put(samples).flip();
-	AL10.alBufferData(buffers.get(bufferId), AL10.AL_FORMAT_MONO16,
-		data, freq);
-    }
+	/* (non-Javadoc)
+	 * @see jake2.client.sound.SoundImpl#RegisterSound(jake2.client.sound.sfx_t)
+	 */
+	private void initBuffer(byte[] samples, int bufferId, int freq) {
+		ByteBuffer data = sfxDataBuffer.slice();
+		data.put(samples).flip();
+		AL10.alBufferData(buffers.get(bufferId), AL10.AL_FORMAT_MONO16,
+				data, freq);
+	}
 
-    private void checkError() {
-	Com.DPrintf("AL Error: " + alErrorString() +'\n');
-    }
+	private void checkError() {
+		Com.DPrintf("AL Error: " + alErrorString() + '\n');
+	}
 
-    private String alErrorString(){
+	private String alErrorString() {
 	int error;
 	String message = "";
 	if ((error = AL10.alGetError()) != AL10.AL_NO_ERROR) {
@@ -178,36 +176,37 @@ public final class LWJGLSoundImpl implements Sound {
 	if (sfx.name.charAt(0) == '*')
 	    sfx = RegisterSexedSound(ClientGlobals.cl_entities[entnum].current, sfx.name);
 
-	if (LoadSound(sfx) == null)
-	    return; // can't load sound
+		if (LoadSound(sfx) == null)
+			return; // can't load sound
 
-	if (attenuation != Defines.ATTN_STATIC)
-	    attenuation *= 0.5f;
+		if (attenuation != Defines.ATTN_STATIC)
+			attenuation *= 0.5f;
 
-	PlaySound.allocate(origin, entnum, entchannel, buffers.get(sfx.bufferId), fvol, attenuation, timeofs);
-    }
+		PlaySound.allocate(origin, entnum, entchannel, buffers.get(sfx.bufferId), fvol, attenuation, timeofs);
+	}
 
-    private FloatBuffer listenerOrigin = Lib.newFloatBuffer(3);
-    private FloatBuffer listenerOrientation = Lib.newFloatBuffer(6);
+	private FloatBuffer listenerOrigin = Lib.newFloatBuffer(3);
+	private FloatBuffer listenerOrientation = Lib.newFloatBuffer(6);
 
-    /* (non-Javadoc)
-     * @see jake2.client.sound.SoundImpl#Update(float[], float[], float[], float[])
-     */
-    public void Update(float[] origin, float[] forward, float[] right, float[] up) {
+	/* (non-Javadoc)
+	 * @see jake2.client.sound.SoundImpl#Update(float[], float[], float[], float[])
+	 */
+	public void Update(float[] origin, float[] forward, float[] right, float[] up) {
 
-	Channel.convertVector(origin, listenerOrigin);		
-	AL10.alListener(AL10.AL_POSITION, listenerOrigin);
+		FloatBuffer listenerPosition = BufferUtils.createFloatBuffer(3);
+		listenerPosition.put(origin[0]).put(origin[1]).put(origin[2]).flip();
+		AL10.alListenerfv(AL10.AL_POSITION, listenerPosition);
 
-	Channel.convertOrientation(forward, up, listenerOrientation);		
-	AL10.alListener(AL10.AL_ORIENTATION, listenerOrientation);
+		FloatBuffer listenerOrientation = BufferUtils.createFloatBuffer(6);
+		listenerOrientation.put(forward[0]).put(forward[1]).put(forward[2]).put(up[0]).put(up[1]).put(up[2]).flip();
+		AL10.alListenerfv(AL10.AL_ORIENTATION, listenerOrientation);
 
-	// set the master volume
-	AL10.alListenerf(AL10.AL_GAIN, s_volume.value);
+		AL10.alListenerf(AL10.AL_GAIN, s_volume.value);
 
-	Channel.addLoopSounds();
-	Channel.addPlaySounds();
-	Channel.playAllSounds(listenerOrigin);
-    }
+		Channel.addLoopSounds();
+		Channel.addPlaySounds();
+		Channel.playAllSounds(FloatBuffer.wrap(origin));
+	}
 
     /* (non-Javadoc)
      * @see jake2.client.sound.SoundImpl#StopAllSounds()

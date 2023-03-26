@@ -28,15 +28,18 @@ import jake2.client.render.opengl.QGL;
 import jake2.client.render.opengl.QGLConst;
 import jake2.client.viddef_t;
 import jake2.qcommon.exec.cvar_t;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Base
- * 
+ *
  * @author dsanders/cwei
  */
 public abstract class Base implements QGLConst, RenderAPI {
 
     public static final int GL_COLOR_INDEX8_EXT = GL_COLOR_INDEX;
+
+    public static long window = GLFW.glfwCreateWindow(800, 600, "Jake2 (lwjgl)", GLFW.glfwGetPrimaryMonitor(), 0);
 
     public static final String REF_VERSION = "GL 0.01";
 
