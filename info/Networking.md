@@ -51,6 +51,8 @@ sequenceDiagram
     participant server
 
     Note over client: User types connect hostname
+    client->>server: getchallenge
+    server->>client: challenge
     client->>server: connect [connectionless]
     Note over server: client.state = connected
     server->>client: client_connect [connectionless]
