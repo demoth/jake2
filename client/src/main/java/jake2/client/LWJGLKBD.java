@@ -1,213 +1,296 @@
 package jake2.client;
 
-import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.Globals;
+import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.sys.Timer;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.opengl.GL;
+
+import static jake2.client.render.Base.window;
 
 /**
  * @author dsanders
  */
 public class LWJGLKBD extends KBD {
-	
-	private char[] lwjglKeycodeMap = null;
-	private int pressed[] = null;
-	
-	public void Init()
-	{
-		try
-		{
-			if (!Keyboard.isCreated()) Keyboard.create();
-			if (!Mouse.isCreated()) Mouse.create();
-						
-			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
-			if (pressed == null) pressed = new int[256];
-			
-			lastRepeat = Timer.Milliseconds();
-		} catch (Exception e) {;}	
-	}
 
-	public void Update() {
-		// get events
-		HandleEvents();
-	}
+    private char[] lwjglKeycodeMap = null;
+    private int pressed[] = null;
 
-	public void Close() {
-		Keyboard.destroy();
-		Mouse.destroy();
-		// free the memory for GC
-		lwjglKeycodeMap = null;
-		pressed = null;
-	}
-	
-	private void HandleEvents() 
-	{
-		Keyboard.poll();
-		
-		if (Display.isCloseRequested())
-		{
-			Cmd.ExecuteString("quit");
-		}
+    private long createWindow() {
+        if (!GLFW.glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
 
-		while (Keyboard.next())
-		{
-			int key = Keyboard.getEventKey();
-			char ch = Keyboard.getEventCharacter();
-			boolean down =  Keyboard.getEventKeyState();
-			
-			// fill the character translation table
-			// this is needed because the getEventCharacter() returns \0 if a key is released
-			// keycode is correct but the charachter value is not
-			if (down) {
-				lwjglKeycodeMap[key] = ch;
-				pressed[key] = Globals.sys_frame_time;
-			} else {
-				pressed[key] = 0;
-			}
-			
-			Do_Key_Event(XLateKey(key,ch), down);
-		}	
+        long window = GLFW.glfwCreateWindow(800, 600, "Jake2", 0, 0);
+        if (window == 0) {
+            throw new RuntimeException("Failed to create GLFW window");
+        }
 
-		// fixme: has a bug with repeating underscore character
-		// generateRepeats();
-		
-		if (IN.mouse_active)
-		{
-			mx =  Mouse.getDX() << 1;
-			my = -Mouse.getDY() << 1;
-		}
-		else
-		{
-			mx=0;
-			my=0;
-		}
-		
-		while (Mouse.next()) {
-			int button = Mouse.getEventButton();
-			if (button >= 0) {
-				Do_Key_Event(Key.K_MOUSE1 + button, Mouse.getEventButtonState());
-			} else {
-				button = Mouse.getEventDWheel();
-				if (button > 0) {
-					Do_Key_Event(Key.K_MWHEELUP, true);
-					Do_Key_Event(Key.K_MWHEELUP, false);
-				} else if (button < 0) {
-					Do_Key_Event(Key.K_MWHEELDOWN, true);
-					Do_Key_Event(Key.K_MWHEELDOWN, false);
-				}
-			}
-		}	
-	}
+        GLFW.glfwMakeContextCurrent(window);
+        GL.createCapabilities();
 
-	private static int lastRepeat;
-	private void generateRepeats() {
-		int time = Globals.sys_frame_time;
-		if (time - lastRepeat > 50) {
-			for (int i = 0; i < pressed.length; i++) {
-				if (pressed[i] > 0 && time - pressed[i] > 500) 
-					Do_Key_Event(XLateKey(i, lwjglKeycodeMap[i]), true);
-			}
-			lastRepeat = time;
-		}
-	}
-	
-	private int XLateKey(int code, int ch) 
-	{
-		int key = 0;
+        return window;
+    }
 
-		switch(code) 
-		{
-//	00626                 case XK_KP_Page_Up:      key = K_KP_PGUP; break;
-			case Keyboard.KEY_PRIOR: key = Key.K_PGUP; break;
- 
-//	00629                 case XK_KP_Page_Down: key = K_KP_PGDN; break;
-			case Keyboard.KEY_NEXT: key = Key.K_PGDN; break;
+    public void Init() {
+        try {
+            // Create a new window
+            if (window == 0) {
+                throw new RuntimeException("Failed to create the GLFW window");
+            }
 
-//	00632                 case XK_KP_Home: key = K_KP_HOME; break;
-			case Keyboard.KEY_HOME: key = Key.K_HOME; break;
+            // Set the current context to the new window
+            GLFW.glfwMakeContextCurrent(window);
 
-//	00635                 case XK_KP_End:  key = K_KP_END; break;
-			case Keyboard.KEY_END: key = Key.K_END; break;
- 
-			// case Keyboard.KEY_LEFT: key = Key.K_KP_LEFTARROW; break;
-			case Keyboard.KEY_LEFT: key = Key.K_LEFTARROW; break;
- 
-			// case Keyboard.KEY_RIGHT: key = Key.K_KP_RIGHTARROW; break;
-			case Keyboard.KEY_RIGHT: key = Key.K_RIGHTARROW; break;
+            // Create keyboard and mouse objects
+            GLFWKeyCallback keyCallback = new GLFWKeyCallback() {
+                @Override
+                public void invoke(long window, int key, int scancode, int action, int mods) {
+                    // Handle key events
+                }
+            };
+            GLFW.glfwSetKeyCallback(window, keyCallback);
 
-			// case Keyboard.KEY_DOWN: key = Key.K_KP_DOWNARROW; break;
-			case Keyboard.KEY_DOWN: key = Key.K_DOWNARROW; break;
+            if (pressed == null) pressed = new int[256];
 
-			// case Keyboard.KEY_UP: key = Key.K_KP_UPARROW; break;
-			case Keyboard.KEY_UP: key = Key.K_UPARROW; break; 
+            lastRepeat = Timer.Milliseconds();
+        } catch (Exception e) {
+            // Handle exception
+        }
+    }
 
-			case Keyboard.KEY_ESCAPE: key = Key.K_ESCAPE; break; 
+    public void Update() {
+        // get events
+        HandleEvents();
+    }
 
-			
-			case Keyboard.KEY_RETURN: key = Key.K_ENTER; break; 
-//	00652                 case XK_KP_Enter: key = K_KP_ENTER;     break;
+    public void Close() {
+        GLFW.glfwDestroyWindow(window);
+        GLFW.glfwTerminate();
+        // free the memory for GC
+        lwjglKeycodeMap = null;
+        pressed = null;
+    }
 
-			case Keyboard.KEY_TAB: key = Key.K_TAB; break; 
+    private void HandleEvents() {
+        GLFW.glfwPollEvents();
+        long window = GLFW.glfwGetCurrentContext();
+        if (GLFW.glfwWindowShouldClose(window)) {
+            Cmd.ExecuteString("quit");
+        }
 
-			case Keyboard.KEY_F1: key = Key.K_F1; break;
-			case Keyboard.KEY_F2: key = Key.K_F2; break;
-			case Keyboard.KEY_F3: key = Key.K_F3; break;
-			case Keyboard.KEY_F4: key = Key.K_F4; break;
-			case Keyboard.KEY_F5: key = Key.K_F5; break;
-			case Keyboard.KEY_F6: key = Key.K_F6; break;
-			case Keyboard.KEY_F7: key = Key.K_F7; break;
-			case Keyboard.KEY_F8: key = Key.K_F8; break;
-			case Keyboard.KEY_F9: key = Key.K_F9; break;
-			case Keyboard.KEY_F10: key = Key.K_F10; break;
-			case Keyboard.KEY_F11: key = Key.K_F11; break;
-			case Keyboard.KEY_F12: key = Key.K_F12; break; 
+        for (int key = GLFW.GLFW_KEY_SPACE; key <= GLFW.GLFW_KEY_LAST; key++) {
+            char ch = (char) key;
+            boolean down = GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS;
 
-			case Keyboard.KEY_BACK: key = Key.K_BACKSPACE; break; 
+            if (down) {
+                lwjglKeycodeMap[key] = ch;
+                pressed[key] = Globals.sys_frame_time;
+            } else {
+                pressed[key] = 0;
+            }
 
-			case Keyboard.KEY_DELETE: key = Key.K_DEL; break; 
-//	00683                 case XK_KP_Delete: key = K_KP_DEL; break;
+            Do_Key_Event(XLateKey(key, ch), down);
+        }
 
-			case Keyboard.KEY_PAUSE: key = Key.K_PAUSE; break; 
-	
-			case Keyboard.KEY_RSHIFT:
-			case Keyboard.KEY_LSHIFT: key = Key.K_SHIFT; break; 
-			
-			case Keyboard.KEY_RCONTROL:
-			case Keyboard.KEY_LCONTROL: key = Key.K_CTRL; break; 
-			
-			case Keyboard.KEY_LMENU:
-			case Keyboard.KEY_RMENU: key = Key.K_ALT; break;
- 
-//	00700                 case XK_KP_Begin: key = K_KP_5; break;
-//	00701
-			case Keyboard.KEY_INSERT: key = Key.K_INS; break;
-			// toggle console for DE and US keyboards
-			case Keyboard.KEY_GRAVE:
-			case Keyboard.KEY_CIRCUMFLEX: key = '`'; break;
+        if (IN.mouse_active) {
+            double[] xPos = new double[1];
+            double[] yPos = new double[1];
+            GLFW.glfwGetCursorPos(window, xPos, yPos);
+            mx = (int) xPos[0] - mx;
+            my = (int) yPos[0] - my;
+            mx = (int) xPos[0];
+            my = (int) yPos[0];
+        } else {
+            mx = 0;
+            my = 0;
+        }
 
-			default:
-				key = lwjglKeycodeMap[code];
-				if (key >= 'A' && key <= 'Z')
-						key = key - 'A' + 'a';
-			break;
-		}
-		if (key > 255) key = 0;
-		return key;
-	}	
-		
-	public void Do_Key_Event(int key, boolean down) {
-		Key.Event(key, down, Timer.Milliseconds());
-	}
-	
-	public void installGrabs()
-	{
-		Mouse.setGrabbed(true);
-	}
-	
-	public void uninstallGrabs()
-	{
-		Mouse.setGrabbed(false);
-	}
+        for (int button = GLFW.GLFW_MOUSE_BUTTON_1; button <= GLFW.GLFW_MOUSE_BUTTON_LAST; button++) {
+            boolean down = GLFW.glfwGetMouseButton(window, button) == GLFW.GLFW_PRESS;
+            if (button >= 0) {
+                Do_Key_Event(Key.K_MOUSE1 + button, down);
+            }
+        }
+
+        GLFW.glfwSetScrollCallback(window, new GLFWScrollCallback() {
+            @Override
+            public void invoke(long window, double xOffset, double yOffset) {
+                if (yOffset > 0) {
+                    Do_Key_Event(Key.K_MWHEELUP, true);
+                    Do_Key_Event(Key.K_MWHEELUP, false);
+                } else if (yOffset < 0) {
+                    Do_Key_Event(Key.K_MWHEELDOWN, true);
+                    Do_Key_Event(Key.K_MWHEELDOWN, false);
+                }
+            }
+        });
+    }
+
+    private static int lastRepeat;
+
+    private void generateRepeats() {
+        int time = Globals.sys_frame_time;
+        if (time - lastRepeat > 50) {
+            for (int i = 0; i < pressed.length; i++) {
+                if (pressed[i] > 0 && time - pressed[i] > 500)
+                    Do_Key_Event(XLateKey(i, lwjglKeycodeMap[i]), true);
+            }
+            lastRepeat = time;
+        }
+    }
+
+    private int XLateKey(int code, int ch) {
+        int key = 0;
+
+        switch (code) {
+            case GLFW.GLFW_KEY_PAGE_UP:
+                key = Key.K_PGUP;
+                break;
+
+            case GLFW.GLFW_KEY_PAGE_DOWN:
+                key = Key.K_PGDN;
+                break;
+
+            case GLFW.GLFW_KEY_HOME:
+                key = Key.K_HOME;
+                break;
+
+            case GLFW.GLFW_KEY_END:
+                key = Key.K_END;
+                break;
+
+            case GLFW.GLFW_KEY_LEFT:
+                key = Key.K_LEFTARROW;
+                break;
+
+            case GLFW.GLFW_KEY_RIGHT:
+                key = Key.K_RIGHTARROW;
+                break;
+
+            case GLFW.GLFW_KEY_DOWN:
+                key = Key.K_DOWNARROW;
+                break;
+
+            case GLFW.GLFW_KEY_UP:
+                key = Key.K_UPARROW;
+                break;
+
+            case GLFW.GLFW_KEY_ESCAPE:
+                key = Key.K_ESCAPE;
+                break;
+
+            case GLFW.GLFW_KEY_ENTER:
+                key = Key.K_ENTER;
+                break;
+
+            case GLFW.GLFW_KEY_TAB:
+                key = Key.K_TAB;
+                break;
+
+            case GLFW.GLFW_KEY_F1:
+                key = Key.K_F1;
+                break;
+
+            case GLFW.GLFW_KEY_F2:
+                key = Key.K_F2;
+                break;
+
+            case GLFW.GLFW_KEY_F3:
+                key = Key.K_F3;
+                break;
+
+            case GLFW.GLFW_KEY_F4:
+                key = Key.K_F4;
+                break;
+
+            case GLFW.GLFW_KEY_F5:
+                key = Key.K_F5;
+                break;
+
+            case GLFW.GLFW_KEY_F6:
+                key = Key.K_F6;
+                break;
+
+            case GLFW.GLFW_KEY_F7:
+                key = Key.K_F7;
+                break;
+
+            case GLFW.GLFW_KEY_F8:
+                key = Key.K_F8;
+                break;
+
+            case GLFW.GLFW_KEY_F9:
+                key = Key.K_F9;
+                break;
+
+            case GLFW.GLFW_KEY_F10:
+                key = Key.K_F10;
+                break;
+
+            case GLFW.GLFW_KEY_F11:
+                key = Key.K_F11;
+                break;
+
+            case GLFW.GLFW_KEY_F12:
+                key = Key.K_F12;
+                break;
+
+            case GLFW.GLFW_KEY_BACKSPACE:
+                key = Key.K_BACKSPACE;
+                break;
+
+            case GLFW.GLFW_KEY_DELETE:
+                key = Key.K_DEL;
+                break;
+
+            case GLFW.GLFW_KEY_PAUSE:
+                key = Key.K_PAUSE;
+                break;
+
+            case GLFW.GLFW_KEY_LEFT_SHIFT:
+            case GLFW.GLFW_KEY_RIGHT_SHIFT:
+                key = Key.K_SHIFT;
+                break;
+
+            case GLFW.GLFW_KEY_LEFT_CONTROL:
+            case GLFW.GLFW_KEY_RIGHT_CONTROL:
+                key = Key.K_CTRL;
+                break;
+
+            case GLFW.GLFW_KEY_LEFT_ALT:
+            case GLFW.GLFW_KEY_RIGHT_ALT:
+                key = Key.K_ALT;
+                break;
+
+            default:
+                key = lwjglKeycodeMap[code];
+                if (key >= 'A' && key <= 'Z') {
+                    key = key - 'A' + 'a';
+                }
+                break;
+        }
+
+        if (key > 255) {
+            key = 0;
+        }
+
+        return key;
+    }
+
+    public void Do_Key_Event(int key, boolean down) {
+        Key.Event(key, down, Timer.Milliseconds());
+    }
+
+    public void installGrabs() {
+        long window = GLFW.glfwGetCurrentContext();
+        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+    }
+
+    public void uninstallGrabs() {
+        long window = GLFW.glfwGetCurrentContext();
+        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+    }
 }

@@ -28,19 +28,21 @@ package jake2.client.render.opengl;
 import jake2.client.VID;
 import jake2.client.render.Base;
 import jake2.qcommon.Com;
-import jake2.qcommon.exec.Command;
 import jake2.qcommon.Defines;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
+import jake2.qcommon.exec.Command;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
 
 import java.awt.*;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import static jake2.client.render.Base.window;
+
 /**
  * LWJGLBase
- * 
+ *
  * @author dsanders/cwei
  */
 public abstract class LwjglDriver extends LwjglGL implements GLDriver {
@@ -51,102 +53,128 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
 
     private DisplayMode oldDisplayMode;
 
+    private static int oldBitsPerPixel = 32;
+
     // window position on the screen
     int window_xpos, window_ypos;
 
-    private java.awt.DisplayMode toAwtDisplayMode(DisplayMode m) {
-        return new java.awt.DisplayMode(m.getWidth(), m.getHeight(), m
-                .getBitsPerPixel(), m.getFrequency());
+    private java.awt.DisplayMode toAwtDisplayMode(GLFWVidMode mode) {
+        return new java.awt.DisplayMode(
+                mode.width(),
+                mode.height(),
+                mode.redBits() + mode.greenBits() + mode.blueBits(),
+                mode.refreshRate());
     }
 
-    public java.awt.DisplayMode[] getModeList() {
-	DisplayMode[] modes;
-	try {
-	    modes = Display.getAvailableDisplayModes();
-	} catch (LWJGLException e) {
-	    Com.Println(e.getMessage());
-	    return new java.awt.DisplayMode[0];
-	}
-        LinkedList l = new LinkedList();
-        l.add(toAwtDisplayMode(oldDisplayMode));
+    public jake2.client.DisplayMode[] getModeList() {
+        long monitor = GLFW.glfwGetPrimaryMonitor();
+        GLFWVidMode.Buffer modes = GLFW.glfwGetVideoModes(monitor);
 
-        for (int i = 0; i < modes.length; i++) {
-            DisplayMode m = modes[i];
+        LinkedList<jake2.client.DisplayMode> l = new LinkedList<>();
+        GLFWVidMode currentMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+        l.add(toJake2DisplayMode(currentMode));
 
-            if (m.getBitsPerPixel() != oldDisplayMode.getBitsPerPixel())
+        int oldBitsPerPixel = getCurrentDisplayMode().getBitsPerPixel();
+        int oldFrequency = getCurrentDisplayMode().getRefreshRate();
+
+        for (int i = 0; i < modes.limit(); i++) {
+            org.lwjgl.glfw.GLFWVidMode m = modes.get(i);
+
+            if (m.redBits() + m.greenBits() + m.blueBits() != oldBitsPerPixel)
                 continue;
-            if (m.getFrequency() > oldDisplayMode.getFrequency())
+            if (m.refreshRate() > oldFrequency)
                 continue;
-            if (m.getHeight() < 240 || m.getWidth() < 320)
+            if (m.height() < 240 || m.width() < 320)
                 continue;
 
             int j = 0;
-            java.awt.DisplayMode ml = null;
+            jake2.client.DisplayMode ml = null;
             for (j = 0; j < l.size(); j++) {
-                ml = (java.awt.DisplayMode) l.get(j);
-                if (ml.getWidth() > m.getWidth())
+                ml = l.get(j);
+                if (ml.getWidth() > m.width())
                     break;
-                if (ml.getWidth() == m.getWidth()
-                        && ml.getHeight() >= m.getHeight())
+                if (ml.getWidth() == m.width()
+                        && ml.getHeight() >= m.height())
                     break;
             }
+            jake2.client.DisplayMode displayMode = new jake2.client.DisplayMode(
+                    m.width(), m.height(), m.redBits() + m.greenBits() + m.blueBits(), m.refreshRate());
+
             if (j == l.size()) {
-                l.addLast(toAwtDisplayMode(m));
-            } else if (ml.getWidth() > m.getWidth()
-                    || ml.getHeight() > m.getHeight()) {
-                l.add(j, toAwtDisplayMode(m));
-            } else if (m.getFrequency() > ml.getRefreshRate()) {
+                l.addLast(displayMode);
+            } else if (ml.getWidth() > m.width()
+                    || ml.getHeight() > m.height()) {
+                l.add(j, displayMode);
+            } else if (m.refreshRate() > ml.getRefreshRate()) {
                 l.remove(j);
-                l.add(j, toAwtDisplayMode(m));
+                l.add(j, displayMode);
             }
         }
-        java.awt.DisplayMode[] ma = new java.awt.DisplayMode[l.size()];
+        jake2.client.DisplayMode[] ma = new jake2.client.DisplayMode[l.size()];
         l.toArray(ma);
         return ma;
     }
 
-    public DisplayMode[] getLWJGLModeList() {
-	DisplayMode[] modes;
-	try {
-	    modes = Display.getAvailableDisplayModes();
-	} catch (LWJGLException e) {
-	    Com.Println(e.getMessage());
-	    return new DisplayMode[0];
-	}
+    private jake2.client.DisplayMode toJake2DisplayMode(org.lwjgl.glfw.GLFWVidMode mode) {
+        return new jake2.client.DisplayMode(mode.width(), mode.height(), oldBitsPerPixel, mode.refreshRate());
+    }
 
-        LinkedList l = new LinkedList();
+    private jake2.client.DisplayMode getCurrentDisplayMode() {
+        return new jake2.client.DisplayMode(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).width(),
+                GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).height(),
+                oldBitsPerPixel, GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate());
+    }
+
+    private java.awt.DisplayMode getCurrentDisplayModeAwt() {
+        long monitor = GLFW.glfwGetPrimaryMonitor();
+        if (monitor == 0) {
+            throw new NullPointerException("Failed to get primary monitor");
+        }
+        GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+        return new DisplayMode(vidMode.width(), vidMode.height(), vidMode.refreshRate(), vidMode.redBits() + vidMode.greenBits() + vidMode.blueBits());
+    }
+
+    public DisplayMode[] getLWJGLModeList() {
+        long monitor = GLFW.glfwGetPrimaryMonitor();
+        GLFWVidMode.Buffer modes = GLFW.glfwGetVideoModes(monitor);
+
+        LinkedList<DisplayMode> l = new LinkedList<>();
         l.add(oldDisplayMode);
 
-        for (int i = 0; i < modes.length; i++) {
-            DisplayMode m = modes[i];
+        for (int i = 0; i < modes.limit(); i++) {
+            GLFWVidMode m = modes.get(i);
 
-            if (m.getBitsPerPixel() != oldDisplayMode.getBitsPerPixel())
+            int bitsPerPixel = m.redBits() + m.greenBits() + m.blueBits();
+            if (bitsPerPixel != oldDisplayMode.getBitDepth())
                 continue;
-            if (m.getFrequency() > Math.max(60, oldDisplayMode.getFrequency()))
+            if (m.refreshRate() > Math.max(60, oldDisplayMode.getRefreshRate()))
                 continue;
-            if (m.getHeight() < 240 || m.getWidth() < 320)
+            if (m.height() < 240 || m.width() < 320)
                 continue;
-            if (m.getHeight() > oldDisplayMode.getHeight() || m.getWidth() > oldDisplayMode.getWidth())
+            if (m.height() > oldDisplayMode.getHeight() || m.width() > oldDisplayMode.getWidth())
                 continue;
 
             int j = 0;
             DisplayMode ml = null;
             for (j = 0; j < l.size(); j++) {
-                ml = (DisplayMode) l.get(j);
-                if (ml.getWidth() > m.getWidth())
+                ml = l.get(j);
+                if (ml.getWidth() > m.width())
                     break;
-                if (ml.getWidth() == m.getWidth()
-                        && ml.getHeight() >= m.getHeight())
+                if (ml.getWidth() == m.width()
+                        && ml.getHeight() >= m.height())
                     break;
             }
+
+            DisplayMode lwjglDisplayMode = new DisplayMode(m.width(), m.height(), bitsPerPixel, m.refreshRate());
+
             if (j == l.size()) {
-                l.addLast(m);
-            } else if (ml.getWidth() > m.getWidth()
-                    || ml.getHeight() > m.getHeight()) {
-                l.add(j, m);
-            } else if (m.getFrequency() > ml.getFrequency()) {
+                l.addLast(lwjglDisplayMode);
+            } else if (ml.getWidth() > m.width()
+                    || ml.getHeight() > m.height()) {
+                l.add(j, lwjglDisplayMode);
+            } else if (m.refreshRate() > ml.getRefreshRate()) {
                 l.remove(j);
-                l.add(j, m);
+                l.add(j, lwjglDisplayMode);
             }
         }
         DisplayMode[] ma = new DisplayMode[l.size()];
@@ -179,9 +207,9 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
         sb.append('x');
         sb.append(m.getHeight());
         sb.append('x');
-        sb.append(m.getBitsPerPixel());
+        sb.append(m.getBitDepth());
         sb.append('@');
-        sb.append(m.getFrequency());
+        sb.append(m.getRefreshRate());
         sb.append("Hz");
         return sb.toString();
     }
@@ -193,18 +221,15 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
      * @return enum rserr_t
      */
     public int setMode(Dimension dim, int mode, boolean fullscreen) {
-
         Dimension newDim = new Dimension();
 
         Com.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
         Com.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
-        /*
-         * fullscreen handling
-         */
+        // Fullscreen handling
         if (oldDisplayMode == null) {
-            oldDisplayMode = Display.getDisplayMode();
+            oldDisplayMode = getCurrentDisplayModeAwt();
         }
 
         if (!VID.GetModeInfo(newDim, mode)) {
@@ -212,78 +237,43 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
             return Base.rserr_invalid_mode;
         }
 
-        Com.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height
-                + '\n');
+        Com.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
 
-        // destroy the existing window
+        // Destroy the existing window
         shutdown();
 
-        Display.setTitle("Jake2 (lwjgl)");
+        Base.window = GLFW.glfwCreateWindow(newDim.width, newDim.height, "Jake2 (lwjgl)", fullscreen ? GLFW.glfwGetPrimaryMonitor() : 0, 0);
 
-        DisplayMode displayMode = findDisplayMode(newDim);
-        newDim.width = displayMode.getWidth();
-        newDim.height = displayMode.getHeight();
-
-        if (fullscreen) {
-            try {
-                Display.setDisplayMode(displayMode);
-            } catch (LWJGLException e) {
-                return Base.rserr_invalid_mode;
-            }
-
-            Display.setLocation(0, 0);
-
-            try {
-                Display.setFullscreen(fullscreen);
-            } catch (LWJGLException e) {
-                return Base.rserr_invalid_fullscreen;
-            }
-
-            Com.Printf(Defines.PRINT_ALL, "...setting fullscreen "
-                    + getModeString(displayMode) + '\n');
-
-        } else {
-            try {
-                Display.setDisplayMode(displayMode);
-            } catch (LWJGLException e) {
-                return Base.rserr_invalid_mode;
-            }
-
-            try {
-                Display.setFullscreen(false);
-            } catch (LWJGLException e) {
-                return Base.rserr_invalid_fullscreen;
-            }
-            //Display.setLocation(window_xpos, window_ypos);
-        }
-
-        Base.setVid(newDim.width, newDim.height);
-
-        // vid.width = newDim.width;
-        // vid.height = newDim.height;
-
-        try {
-            Display.create();
-        } catch (LWJGLException e) {
+        if (window == 0) {
             return Base.rserr_unknown;
         }
 
-        // let the sound and input subsystems know about the new window
+        // Make the window's context current
+        GLFW.glfwMakeContextCurrent(window);
+        GL.createCapabilities();
+
+        // Set the window position if not fullscreen
+        if (!fullscreen) {
+            // GLFW.glfwSetWindowPos(window, window_xpos, window_ypos);
+        }
+
+        // Store the window handle
+        // Replace "long window;" in your class with "long windowHandle;"
+        Base.setVid(newDim.width, newDim.height);
+
+        // Let the sound and input subsystems know about the new window
         VID.NewWindow(newDim.width, newDim.height);
         return Base.rserr_ok;
     }
 
     public void shutdown() {
-        if (oldDisplayMode != null && Display.isFullscreen()) {
-            try {
-                Display.setDisplayMode(oldDisplayMode);
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (window != 0) {
+            if (GLFW.glfwGetWindowMonitor(window) != 0) {
+                GLFW.glfwSetWindowMonitor(window, 0, window_xpos, window_ypos, 800, 600, 60);
             }
-        }
 
-        while (Display.isCreated()) {
-            Display.destroy();
+            GLFW.glfwDestroyWindow(window);
+            window = 0;
         }
     }
 
@@ -303,8 +293,12 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
 
     public void endFrame() {
         glFlush();
+
         // swap buffers
-        Display.update();
+        GLFW.glfwSwapBuffers(window);
+
+        // Poll events to process input and window events
+        GLFW.glfwPollEvents();
     }
 
     public void appActivate(boolean activate) {

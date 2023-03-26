@@ -76,23 +76,20 @@ public final class Jake2 {
 
     	boolean dedicated = false;
 
-    	// check if we are in dedicated mode to hide the java dialog.
-    	for (int n = 0; n <  args.length; n++)
-    	{
-    		if (args[n].equals("+set"))
-    		{
-    			if (n++ >= args.length)
-    				break;
-    			
-    			if (!args[n].equals("dedicated"))
-    				continue;
+        // check if we are in dedicated mode to hide the java dialog.
+        for (int n = 0; n < args.length; n++) {
+            if (args[n].equals("+set")) {
+                if (n++ >= args.length)
+                    break;
 
-    			if (n++ >= args.length)
-    				break;
+                if (!args[n].equals("dedicated"))
+                    continue;
 
-    			if (args[n].equals("1") || args[n].equals("\"1\""))
-    			{
-    				Com.Printf("Starting in dedicated mode.\n");
+                if (n++ >= args.length)
+                    break;
+
+                if (args[n].equals("1") || args[n].equals("\"1\"")) {
+                    Com.Printf("Starting in dedicated mode.\n");
     				dedicated = true;
     			}
     		}    		
