@@ -44,7 +44,47 @@ see jake2.server.ClientStates
 # Connection initialization
 The following diagram illustrates client/server communication when client connectos to server.
 Starting from typing connect 'someaddress' and until client becomes connected and receives the updates from the server. 
-![Connection initialization](./connection.svg)
+
+```mermaid
+sequenceDiagram
+    participant client
+    participant server
+
+    Note over client: User types connect hostname
+    client->>server: connect [connectionless]
+    Note over server: client.state = connected
+    server->>client: client_connect [connectionless]
+    client->>server: StringCmdMessage new
+    Note over client: state = connected
+    server->>client: ServerDataMessage
+
+    loop until all config strings are transmitted
+        server->>client: StuffTextMessage cmd configstrings
+        client->>server: StringCmdMessage configstrings
+        server->>client: ConfigStringMessage
+    end
+
+    loop until all baselines are transmitted
+        server->>client: StuffTextMessage cmd baselines
+        client->>server: StringCmdMessage baselines
+        server->>client: SpawnBaselineMessage
+    end
+    Note over client: precache resources
+    loop until everything is downloaded
+        client->>server: StringCmdMessage download
+        server->>client: DownloadMessage
+    end
+
+    client->>server: StringCmdMessage begin
+    Note over server: client.state = spawned
+
+    loop Every frame
+        server->>client: FrameHeaderMessage
+        server->>client: PlayerInfoMessage
+        server->>client: PacketEntitiesMessage
+        client->>server: MoveMessage
+    end
+```
 
 # Further improvements - TODO
 
