@@ -64,7 +64,16 @@ public final class Jake2 {
      * @param args
      */
     public static void main(String[] args) {
-    	
+
+        final String libPath = "java.library.path";
+        System.out.println(libPath + "=" + System.getProperty(libPath));
+
+        final String lwjglPath = "org.lwjgl.librarypath";
+        System.out.println(lwjglPath + "=" + System.getProperty(lwjglPath));
+
+        final String currentDir = System.getProperty("user.dir");
+        System.out.println("working directory=" + currentDir);
+
     	boolean dedicated = false;
 
     	// check if we are in dedicated mode to hide the java dialog.
