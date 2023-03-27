@@ -8,8 +8,8 @@ Jake2 README
 Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
 distributed under the terms of the GPL (see LICENSE).
 
-The port is implemented completely in Java. No native libraries are used for the
-game functionality. We use the lwjgl2 for graphics rendering and for sound.
+The port is implemented in Java, but some native libraries (LWJGL) are used for the
+visual rendering, input processing and audio playback (OpenAL) functionality. 
 
 Jake2 is still under development. Feel free to send bug report if you find one.
 
@@ -17,9 +17,9 @@ Currently, Jake2 supports every Java supported platform.
 
 Requirements:
 
- * at least JDK 1.8 to build and run Jake2
+ * jdk version 11 to build and run Jake2
 
-Please note that there is an issue with more recent java versions on linux with lwjgl natives.
+Please note that there is an issue with more recent java versions (17) on linux with lwjgl natives.
 
 
 Documentation & Info
@@ -28,14 +28,14 @@ Documentation & Info
  * [BSP file format](info/BSP.md)
  * [Networking](info/Networking.md)
 
-Installation
-------------
+Installation and running
+------------------------
 
 from binary distribution:
 
 - unzip the distribution(jake2-some_version.zip)
-- go to bin folder
-- run jake2 (or jake2.bat on windows)
+- go to `bin` folder
+- run `./fullgame` (or `fullgame.bat` on windows)
 
 build from source:
 
@@ -44,16 +44,17 @@ build from source:
 
 If you don't have a gradle distribution you can use gradle wrapper, like `./gradlew run`.
 
+If you run jake from an IDE:
+  1. add dependency to `gradle installDist` task before launch
+  2. add `-Djava.library.path` VM option to point to the location of native libs (they are copied to the `fullgame/build/install/fullgame` after the task mentioned above)
+
 Installation of Quake2 data:
 ----------------------------
 
-The easiest way to run quake is to pass basedir parameter to the game
+Jake can autodetect steam installation.
+If it doesn't (when you have a non-steam version or when you install it to a custom location) pass basedir parameter to the game
 
-`+set basedir "/home/daniil/.local/share/Steam/steamapps/common/Quake 2"`
-
-If Jake2 does not detect the Quake2 files on startup you have the choice
-to select a baseq2 directory of a Quake2 installation (demo or full version)
-or to download and install the Quake2 demo files
+`+set basedir "/home/demoth/.local/share/Steam/steamapps/common/Quake 2"`
 
 If you want to have the latest experimental features you can grab the latest
 Jake2 sources from GIT.
@@ -64,6 +65,8 @@ Compatibility
 Jake2 is not compatible with the mods that have custom logic (game.dll).
 
 Jake2 is network compatible with other clients, like Yamagi, Q2pro etc.
+
+Jake2 is compatible with all map/models/sounds/textures as id Quake 2.
 
 Goals of the project
 --------------------

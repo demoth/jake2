@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.util.*;
 
 /*
@@ -781,7 +782,12 @@ public final class FS extends Globals {
         // basedir <path>
         // allows the game to run from outside the data tree
         //
-        fs_basedir = Cvar.getInstance().Get("basedir", ".", CVAR_NOSET);
+        if (new File("./baseq2").exists()) {
+            fs_basedir = Cvar.getInstance().Get("basedir", ".", CVAR_NOSET);
+        } else {
+            var autoDetectedBasedir = autodetectBasedir();
+            fs_basedir = Cvar.getInstance().Get("basedir", autoDetectedBasedir, CVAR_NOSET);
+        }
 
         //
         // cddir <path>
@@ -801,6 +807,42 @@ public final class FS extends Globals {
 
         if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
+    }
+
+    private static String autodetectBasedir() {
+        // linux
+        var home = System.getProperty("user.home");
+        if (home != null && !home.isBlank()) {
+            var steamLinuxPath = Paths.get(home, ".steam", "steam", "steamapps", "common", "Quake 2").toFile();
+            if (steamLinuxPath.exists()) {
+                System.out.println("Auto-detected steam q2 installation at :" + steamLinuxPath);
+                return steamLinuxPath.getAbsolutePath();
+            }
+
+            // Mac
+            var macSteamPath = Paths.get(home, "Library", "Application Support", "Steam", "steamapps", "common", "Quake 2").toFile();
+            if (macSteamPath.exists()) {
+                System.out.println("Auto-detected steam q2 installation at :" + macSteamPath);
+                return macSteamPath.getAbsolutePath();
+            }
+        }
+
+        // windows 32
+        var windowsProgramFiles = Paths.get("c:", "Program Files (x86)", "Steam", "steamapps", "common", "Quake 2").toFile();
+        if (windowsProgramFiles.exists()) {
+            System.out.println("Auto-detected steam q2 installation at :" + windowsProgramFiles);
+            return windowsProgramFiles.getAbsolutePath();
+        }
+
+        // windows 64
+        var windowsProgramFiles64 = Paths.get("c:", "Program Files", "Steam", "steamapps", "common", "Quake 2").toFile();
+        if (windowsProgramFiles64.exists()) {
+            System.out.println("Auto-detected steam q2 installation at :" + windowsProgramFiles64);
+            return windowsProgramFiles64.getAbsolutePath();
+        }
+
+
+        return ".";
     }
 
     /**

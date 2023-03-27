@@ -1567,8 +1567,9 @@ public abstract class Image extends Main {
 
 		LoadPCX("pics/colormap.pcx", palette, null);
 
-		if (palette[0] == null || palette[0].length != 768)
-			Com.Error(Defines.ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		if (palette[0] == null || palette[0].length != 768) {
+			Com.Error(Defines.ERR_FATAL, "Couldn't load pics/colormap.pcx, probably `basedir` is set incorrectly");
+		}
 
 		byte[] pal = palette[0];
 

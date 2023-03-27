@@ -4,8 +4,8 @@ plugins {
 
 application {
     mainClass.set("jake2.fullgame.Jake2")
-    // added to start script
-    applicationDefaultJvmArgs = listOf("-Djava.library.path=..")
+    // add library path for both cases: when we run from a shell script or from `gradle run`
+    applicationDefaultJvmArgs = listOf("-Djava.library.path=..:./build/install/fullgame/")
 
 
     distributions {
@@ -70,4 +70,4 @@ task("copyNatives") {
 tasks["installDist"].dependsOn("copyNatives")
 tasks["distZip"].dependsOn("copyNatives")
 tasks["distTar"].dependsOn("copyNatives")
-tasks["run"].dependsOn("copyNatives")
+tasks["run"].dependsOn("installDist")
