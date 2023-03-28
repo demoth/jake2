@@ -60,3 +60,5 @@ data class LightRamp(
         fraction = 0f
     }
 }
+
+data class AreaPortal(val portalNumber: Int, var open: Boolean)
