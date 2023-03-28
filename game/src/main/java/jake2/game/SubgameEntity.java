@@ -1,7 +1,6 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
-import jake2.game.components.ComponentType;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -13,7 +12,8 @@ import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SubgameEntity extends edict_t {
     public SubgameEntity(int i) {
@@ -229,7 +229,8 @@ public class SubgameEntity extends edict_t {
 
     public ExtraSpawnProperties st = new ExtraSpawnProperties();
 
-    public EnumMap<ComponentType, Object> components = new EnumMap<>(ComponentType.class);
+    // fixme: make private
+    public Map<String, Object> components = new HashMap<>();
 
     // todo: replace with a constructor call?
     void G_InitEdict(int i) {

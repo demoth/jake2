@@ -5,14 +5,13 @@ import jake2.game.SubgameEntity
 import jake2.qcommon.Defines
 import jake2.qcommon.lerpI
 
-enum class ComponentType {
-    Light,
-    LightRamp,
-    ItemHealth
+inline fun <reified T> SubgameEntity.getComponent(): T? {
+    return this.components[T::class.java.name] as? T
 }
 
-fun <T> SubgameEntity.getComponent(type: ComponentType): T? {
-    return this.components[type] as T?
+inline fun <reified T> SubgameEntity.addComponent(component: T): T{
+    this.components[T::class.java.name] = component
+    return component
 }
 
 data class Medkit(
