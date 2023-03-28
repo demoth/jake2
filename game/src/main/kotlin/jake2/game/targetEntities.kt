@@ -2,8 +2,8 @@ package jake2.game
 
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
-import jake2.game.components.ComponentType
 import jake2.game.components.LightRamp
+import jake2.game.components.addComponent
 import jake2.game.components.getComponent
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -418,18 +418,18 @@ fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
     self.think.action = targetLightrampThink
     // think.nextTime is set when used
 
-    self.components[ComponentType.LightRamp] = LightRamp(
+    self.addComponent(LightRamp(
         self.message[0].code - 'a'.code,
         self.message[1].code - 'a'.code,
         self.speed,
         game.level.time + self.speed,
         self.hasSpawnFlag(LIGHTRAMP_TOGGLE)
-    )
+    ))
 
 }
 
 private val targetLightrampThink = registerThink("target_lightramp_think") { self, game ->
-    val lightRamp: LightRamp = self.getComponent(ComponentType.LightRamp) ?: return@registerThink false
+    val lightRamp: LightRamp = self.getComponent() ?: return@registerThink false
     if (lightRamp.targetTime < game.level.time) {
         val newValue = lightRamp.update(Defines.FRAMETIME)
         // fixme: don't call if not changed
@@ -444,7 +444,7 @@ private val targetLightrampThink = registerThink("target_lightramp_think") { sel
 }
 
 private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, _, game ->
-    val lightRamp: LightRamp = self.getComponent(ComponentType.LightRamp) ?: return@registerUse
+    val lightRamp: LightRamp = self.getComponent() ?: return@registerUse
     // find a target by name
     if (lightRamp.targetLightStyle == -1) {
         // check all the targets

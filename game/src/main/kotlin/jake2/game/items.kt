@@ -1,7 +1,7 @@
 package jake2.game
 
-import jake2.game.components.ComponentType
 import jake2.game.components.Medkit
+import jake2.game.components.addComponent
 import jake2.game.items.GameItems
 import jake2.qcommon.Defines
 
@@ -42,7 +42,7 @@ private fun spawnHealth(self: SubgameEntity, game: GameExportsImpl, model: Strin
         return
     }
 
-    self.components[ComponentType.ItemHealth] = Medkit(amount, game.gameImports.soundindex(sound), ignoreHealth, timed)
+    self.addComponent(Medkit(amount, game.gameImports.soundindex(sound), ignoreHealth, timed))
     self.model = model
 
     GameItems.SpawnItem(self, GameItems.FindItem("Health", game), game)

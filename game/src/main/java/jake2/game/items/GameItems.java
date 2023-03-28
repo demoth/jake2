@@ -26,7 +26,6 @@ package jake2.game.items;
 
 import jake2.game.*;
 import jake2.game.adapters.*;
-import jake2.game.components.ComponentType;
 import jake2.game.components.Medkit;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
@@ -196,7 +195,7 @@ public class GameItems {
     final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
         public String getID() { return "pickup_health";}
         public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl game) {
-            Medkit medkit = (Medkit) self.components.get(ComponentType.ItemHealth);
+            Medkit medkit = (Medkit) self.components.get(Medkit.class.getName());
 
             if (medkit == null)
                 return false;
@@ -264,7 +263,7 @@ public class GameItems {
                     client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ent.item.index;
 
                 // fixme: merge health sound with other items sounds (`pickup_sound`)
-                final Object medkit = ent.components.get(ComponentType.ItemHealth);
+                final Object medkit = ent.components.get(Medkit.class.getName());
                 if (medkit instanceof Medkit) {
                     gameExports.gameImports.sound(other, Defines.CHAN_ITEM, ((Medkit) medkit).getSoundIndex(), 1, Defines.ATTN_NORM, 0);
                 } else if (ent.item.pickup_sound != null) {

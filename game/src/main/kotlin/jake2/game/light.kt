@@ -1,8 +1,8 @@
 package jake2.game
 
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
-import jake2.game.components.ComponentType
 import jake2.game.components.Light
+import jake2.game.components.addComponent
 import jake2.game.components.getComponent
 import jake2.qcommon.Defines
 
@@ -25,8 +25,7 @@ fun light(self: SubgameEntity, game: GameExportsImpl) {
         return
     }
 
-    val light = Light(self.style, !self.hasSpawnFlag(START_OFF))
-    self.components[ComponentType.Light] = light
+    val light = self.addComponent(Light(self.style, !self.hasSpawnFlag(START_OFF)))
 
     if (light.lightStyle >= 32) {
         self.use = lightUse
@@ -35,7 +34,7 @@ fun light(self: SubgameEntity, game: GameExportsImpl) {
 }
 
 private val lightUse = registerUse("lightUse") { self, _, _, game ->
-    val light: Light = self.getComponent(ComponentType.Light) ?: return@registerUse
+    val light: Light = self.getComponent() ?: return@registerUse
     light.switchedOn = !light.switchedOn
     light.sendLightValue(game)
 }
