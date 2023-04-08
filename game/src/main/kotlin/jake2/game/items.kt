@@ -35,8 +35,6 @@ fun itemHealthMega(self: SubgameEntity, game: GameExportsImpl) {
 
 
 private fun spawnHealth(self: SubgameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, ignoreHealth: Boolean = false, timed: Boolean = false) {
-    if (game.skipForDeathmatch(self)) return
-
     if (game.gameCvars.dmflags.value.toInt() and Defines.DF_NO_HEALTH != 0) {
         game.freeEntity(self)
         return
