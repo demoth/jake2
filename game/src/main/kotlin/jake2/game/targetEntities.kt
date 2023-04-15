@@ -2,6 +2,7 @@ package jake2.game
 
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.Earthquake
 import jake2.game.components.LightRamp
 import jake2.game.components.addComponent
 import jake2.game.components.getComponent
@@ -306,36 +307,43 @@ private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, g
  *
  * "speed" severity of the quake (default:200)
  *
- * "count" duration of the quake (default:5)
+ * "count" duration of the quake in seconds (default:5)
  */
 fun targetEarthquake(self: SubgameEntity, game: GameExportsImpl) {
     if (self.targetname == null)
         game.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
-    if (self.count == 0)
-        self.count = 5
-    if (self.speed == 0f)
-        self.speed = 200f
+
+    self.addComponent(Earthquake(
+        game.gameImports.soundindex("world/quake.wav"),
+        if (self.count != 0) self.count.toFloat() else 5f,
+        if (self.speed != 0f) self.speed else 200f
+    ))
+
+
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
     self.think.action = targetEarthquakeThink
+    // nextThink is set when used
     self.use = targetEarthquakeUse
-    self.noise_index = game.gameImports.soundindex("world/quake.wav")
 }
 
 private val targetEarthquakeUse = registerUse("target_earthquake_use") { self, other, activator, game ->
-    self.timestamp = game.level.time + self.count
+    val earthquake: Earthquake = self.getComponent() ?: return@registerUse
+    earthquake.stopTime = game.level.time + earthquake.duration
     self.think.nextTime = game.level.time + Defines.FRAMETIME
     self.activator = activator
-    self.last_move_time = 0f
+    earthquake.soundTime = 0f
 }
 
 private val targetEarthquakeThink = registerThink("target_earthquake_think") { self, game ->
-    if (self.last_move_time < game.level.time) {
+    val earthquake: Earthquake = self.getComponent() ?: return@registerThink false
+
+    if (earthquake.soundTime < game.level.time) {
         game.gameImports.positioned_sound(
             self.s.origin, self,
-            Defines.CHAN_AUTO, self.noise_index, 1.0f,
+            Defines.CHAN_AUTO, earthquake.soundIndex, 1.0f,
             Defines.ATTN_NONE.toFloat(), 0f
         )
-        self.last_move_time = game.level.time + 0.5f
+        earthquake.soundTime = game.level.time + 0.5f
     }
 
     for (i in 1 until game.num_edicts) {
@@ -349,10 +357,10 @@ private val targetEarthquakeThink = registerThink("target_earthquake_think") { s
         entity.groundentity = null
         entity.velocity[0] += Lib.crandom() * 150
         entity.velocity[1] += Lib.crandom() * 150
-        entity.velocity[2] = self.speed * (100.0f / entity.mass)
+        entity.velocity[2] = earthquake.magnitude * (100.0f / entity.mass)
     }
 
-    if (game.level.time < self.timestamp)
+    if (game.level.time < earthquake.stopTime)
         self.think.nextTime = game.level.time + Defines.FRAMETIME
 
     true

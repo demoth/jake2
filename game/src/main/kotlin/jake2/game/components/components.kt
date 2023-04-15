@@ -62,3 +62,11 @@ data class LightRamp(
 }
 
 data class AreaPortal(val portalNumber: Int, var open: Boolean)
+
+data class Earthquake(
+    val soundIndex: Int,
+    val duration: Float = 5f,
+    val magnitude: Float = 200f,
+    var soundTime: Float = 0f,
+    var stopTime: Float = 0f
+)
