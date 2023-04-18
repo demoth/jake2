@@ -1,12 +1,18 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.GameCombat
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameMisc
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
 
 /*
@@ -104,10 +110,11 @@ fun funcPlat(self: SubgameEntity, game: GameExportsImpl) {
     self.moveinfo.accel = self.accel
     self.moveinfo.decel = self.decel
     self.moveinfo.wait = self.wait
-    Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
+
+    self.moveinfo.start_origin = Vector3f(self.pos1)
+    self.moveinfo.start_angles = Vector3f(self.s.angles)
+    self.moveinfo.end_origin = Vector3f(self.pos2)
+    self.moveinfo.end_angles = Vector3f(self.s.angles)
 
     self.moveinfo.sound_start = game.gameImports.soundindex("plats/pt1_strt.wav")
     self.moveinfo.sound_middle = game.gameImports.soundindex("plats/pt1_mid.wav")

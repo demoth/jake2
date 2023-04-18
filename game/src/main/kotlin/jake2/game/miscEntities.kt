@@ -5,6 +5,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
@@ -314,10 +315,12 @@ private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other,
     if (es != null)
         viper = es.o
 
-    Math3D.VectorScale(viper!!.moveinfo.dir, viper.moveinfo.speed, self.velocity)
+    self.velocity = (viper!!.moveinfo.dir * viper.moveinfo.speed).toArray()
+    // Math3D.VectorScale(viper!!.moveinfo.dir, viper.moveinfo.speed, self.velocity)
 
     self.timestamp = game.level.time
-    Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir)
+    self.moveinfo.dir = viper.moveinfo.dir.copy()
+    // Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir)
 }
 
 /**
@@ -331,12 +334,14 @@ private val miscViperBombPrethink = registerThink("misc_viper_bomb_prethink") { 
     if (diff < -1.0)
         diff = -1.0f
 
-    val v = floatArrayOf(0f, 0f, 0f)
-    Math3D.VectorScale(self.moveinfo.dir, 1.0f + diff, v)
-    v[2] = diff
+    val result = self.moveinfo.dir * (1.0f + diff)
+    // Math3D.VectorScale(self.moveinfo.dir, 1.0f + diff, v)
+    val v = Vector3f(result.x, result.y, diff)
+    // v.z = diff
 
     diff = self.s.angles[2]
-    Math3D.vectoangles(v, self.s.angles)
+    self.s.angles =  v.toAngles()
+    // Math3D.vectoangles(v, self.s.angles)
     self.s.angles[2] = diff + 10
 
     true

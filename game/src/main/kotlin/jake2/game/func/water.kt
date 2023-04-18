@@ -7,6 +7,7 @@ import jake2.game.SubgameEntity
 import jake2.game.hasSpawnFlag
 import jake2.game.setSpawnFlag
 import jake2.qcommon.Defines
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
 
@@ -57,10 +58,10 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
         Math3D.VectorCopy(self.s.origin, self.pos1)
     }
 
-    Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
+    self.moveinfo.start_origin = Vector3f(self.pos1)
+    self.moveinfo.start_angles = Vector3f(self.s.angles)
+    self.moveinfo.end_origin = Vector3f(self.pos2)
+    self.moveinfo.end_angles = Vector3f(self.s.angles)
 
     self.moveinfo.state = MovementState.BOTTOM
 
