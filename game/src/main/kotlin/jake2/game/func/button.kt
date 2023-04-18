@@ -1,11 +1,16 @@
 package jake2.game.func
 
-import jake2.game.*
+import jake2.game.GameBase
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.GameUtil
+import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.Defines
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
 import kotlin.math.abs
 
@@ -61,6 +66,8 @@ fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
     } else if (self.targetname == null)
         self.touch = buttonTouch
 
+    // TODO: instead of following, `self.moveinfo = MoveInfo(...)`
+
     self.moveinfo.state = MovementState.BOTTOM
 
     self.moveinfo.speed = self.speed
@@ -68,10 +75,17 @@ fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
     self.moveinfo.decel = self.decel
     self.moveinfo.wait = self.wait
 
-    Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin)
-    Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
+    // Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin)
+    self.moveinfo.start_origin = Vector3f(self.pos1)
+
+    // Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles)
+    self.moveinfo.start_angles = Vector3f(self.s.angles)
+
+    // Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin)
+    self.moveinfo.end_origin = Vector3f(self.pos2)
+
+    // Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
+    self.moveinfo.end_angles = Vector3f(self.s.angles)
 
     game.gameImports.linkentity(self)
 }
@@ -91,7 +105,7 @@ private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
                 + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
         Defines.ATTN_STATIC.toFloat(), 0f
     )
-    startMovement(self, self.moveinfo.end_origin!!, buttonWait, game)
+    startMovement(self, self.moveinfo.end_origin, buttonWait, game)
     return true
 }
 

@@ -18,11 +18,13 @@ import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 import jake2.qcommon.util.Math3D.VectorCopy
 import jake2.qcommon.util.Math3D.VectorMA
 import kotlin.math.abs
+import kotlin.math.floor
 
 
 const val DOOR_START_OPEN = 1
@@ -110,14 +112,21 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
         game.gameImports.soundindex("misc/talk.wav")
         self.touch = doorTouch
     }
+    // todo: call constructor MoveInfo(...) instead of followin
     self.moveinfo.speed = self.speed
     self.moveinfo.accel = self.accel
     self.moveinfo.decel = self.decel
     self.moveinfo.wait = self.wait
-    VectorCopy(self.pos1, self.moveinfo.start_origin)
-    VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    VectorCopy(self.pos2, self.moveinfo.end_origin)
-    VectorCopy(self.s.angles, self.moveinfo.end_angles)
+
+    // VectorCopy(self.pos1, self.moveinfo.start_origin)
+    self.moveinfo.start_origin = Vector3f(self.pos1)
+    // VectorCopy(self.s.angles, self.moveinfo.start_angles)
+    self.moveinfo.start_angles = Vector3f(self.s.angles)
+    // VectorCopy(self.pos2, self.moveinfo.end_origin)
+    self.moveinfo.end_origin = Vector3f(self.pos2)
+    // VectorCopy(self.s.angles, self.moveinfo.end_angles)
+    self.moveinfo.end_angles = Vector3f(self.s.angles)
+
     if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
     if (self.hasSpawnFlag(ANIMATED_FAST))
@@ -259,10 +268,15 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     self.moveinfo.accel = self.accel
     self.moveinfo.decel = self.decel
     self.moveinfo.wait = self.wait
-    VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    VectorCopy(self.pos1, self.moveinfo.start_angles)
-    VectorCopy(self.s.origin, self.moveinfo.end_origin)
-    VectorCopy(self.pos2, self.moveinfo.end_angles)
+    // VectorCopy(self.s.origin, self.moveinfo.start_origin)
+    self.moveinfo.start_origin = Vector3f(self.s.origin)
+    // VectorCopy(self.pos1, self.moveinfo.start_angles)
+    self.moveinfo.start_angles = Vector3f(self.pos1)
+    // The rotating door does not move, only rotates
+    // VectorCopy(self.s.origin, self.moveinfo.end_origin)
+    self.moveinfo.end_origin = Vector3f(self.s.origin)
+    // VectorCopy(self.pos2, self.moveinfo.end_angles)
+    self.moveinfo.end_angles = Vector3f(self.pos2)
 
     if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
@@ -637,7 +651,7 @@ private val doorSecretOpeningBack = registerUse("door_secret_use") { self, other
     if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
         return@registerUse
 
-    startMovement(self, self.pos1!!, doorSecretOpeningWait, game)
+    startMovement(self, Vector3f(self.pos1), doorSecretOpeningWait, game)
     doorUseAreaPortals(self, true, game)
 }
 
@@ -649,7 +663,7 @@ private val doorSecretOpeningWait = registerThink("door_secret_move1") { self, g
 }
 
 private val doorSecretOpeningSideways = registerThink("door_secret_move2") { self, game ->
-    startMovement(self, self.pos2!!, doorSecretOpened, game)
+    startMovement(self, Vector3f(self.pos2), doorSecretOpened, game)
     true
 }
 
@@ -662,7 +676,7 @@ private val doorSecretOpened = registerThink("door_secret_move3") { self, game -
 }
 
 private val doorSecretClosingSideways = registerThink("door_secret_move4") { self, game ->
-    startMovement(self, self.pos1!!, doorSecretClosingWait, game)
+    startMovement(self, Vector3f(self.pos1), doorSecretClosingWait, game)
     true
 }
 
@@ -673,7 +687,7 @@ private val doorSecretClosingWait = registerThink("door_secret_move5") { self, g
 }
 
 private val doorSecretClosingBack = registerThink("door_secret_move6") { self, game ->
-    startMovement(self, Globals.vec3_origin!!, doorSecretClosed, game)
+    startMovement(self, Vector3f.zero, doorSecretClosed, game)
     true
 }
 
@@ -784,49 +798,48 @@ private fun calculateRotation(self: SubgameEntity, endFunction: EntThinkAdapter?
 }
 
 private val doorRotatingBegin = registerThink("angle_move_begin") { self, game ->
-    val destdelta = floatArrayOf(0f, 0f, 0f)
-
     // set destdelta to the vector needed to move
-    if (self.moveinfo.state == MovementState.UP)
-        Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, destdelta)
+    val destdelta = if (self.moveinfo.state == MovementState.UP)
+    //Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, destdelta)
+        self.moveinfo.end_angles - Vector3f(self.s.angles)
     else
-        Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, destdelta)
-
-    val len = Math3D.VectorLength(destdelta)
+    //Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, destdelta)
+        self.moveinfo.start_angles - Vector3f(self.s.angles)
 
     // divide by speed to get time to reach dest
-    val traveltime = len / self.moveinfo.speed
+    val traveltime = destdelta.length() / self.moveinfo.speed
 
     if (traveltime < Defines.FRAMETIME) {
         doorRotatingFinal.think(self, game)
         return@registerThink true
     }
 
-    val frames = Math.floor((traveltime / Defines.FRAMETIME).toDouble()).toFloat()
 
     // scale the destdelta vector by the time spent traveling to get velocity
-    Math3D.VectorScale(destdelta, 1.0f / traveltime, self.avelocity)
+    Math3D.VectorScale(destdelta.toArray(), 1.0f / traveltime, self.avelocity)
 
     // set nextthink to trigger a think when dest is reached
+    val frames = floor((traveltime / Defines.FRAMETIME))
     self.think.nextTime = game.level.time + frames * Defines.FRAMETIME
     self.think.action = doorRotatingFinal
     true
 }
 
 private val doorRotatingFinal = registerThink("angle_move_final") { self, game ->
-    val move = floatArrayOf(0f, 0f, 0f)
+    val move = if (self.moveinfo.state == MovementState.UP)
+        // Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, move)
+            self.moveinfo.end_angles - Vector3f(self.s.angles)
+        else
+        // Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, move)
+            self.moveinfo.start_angles - Vector3f(self.s.angles)
 
-    if (self.moveinfo.state == MovementState.UP)
-        Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, move)
-    else
-        Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, move)
-
-    if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
+    // if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
+    if (move == Vector3f.zero) {
         doorRotatingDone.think(self, game)
         return@registerThink true
     }
 
-    Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, self.avelocity)
+    Math3D.VectorScale(move.toArray(), 1.0f / Defines.FRAMETIME, self.avelocity)
 
     self.think.action = doorRotatingDone
     self.think.nextTime = game.level.time + Defines.FRAMETIME
@@ -835,6 +848,6 @@ private val doorRotatingFinal = registerThink("angle_move_final") { self, game -
 
 private val doorRotatingDone = registerThink("angle_move_final") { self, game ->
     Math3D.VectorClear(self.avelocity)
-    self.moveinfo.endfunc.think(self, game)
+    self.moveinfo.endfunc!!.think(self, game)
     true
 }

@@ -101,7 +101,7 @@ public class SubgameEntity extends edict_t {
     public float[] avelocity = { 0, 0, 0 };
     public float[] move_origin = { 0, 0, 0 };
     public float[] move_angles = { 0, 0, 0 };
-    public moveinfo_t moveinfo = new moveinfo_t();
+    public MoveInfo moveinfo = new MoveInfo(); // move to component
 
     public int mass;
 
@@ -527,8 +527,7 @@ public class SubgameEntity extends edict_t {
         f.writeInt(style);
 
         GameItems.writeItem(f, item);
-
-        moveinfo.write(f);
+        // moveinfo.write(f); // TODO
         monsterinfo.write(f);
         if (getClient() == null)
             f.writeInt(-1);
@@ -692,7 +691,7 @@ public class SubgameEntity extends edict_t {
 
         item = GameItems.readItem(f, gameExports);
 
-        moveinfo.read(f);
+//        moveinfo.read(f);
         monsterinfo.read(f);
 
         int ndx = f.readInt();

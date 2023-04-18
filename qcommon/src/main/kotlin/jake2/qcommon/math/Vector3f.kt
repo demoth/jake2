@@ -2,12 +2,14 @@ package jake2.qcommon.math
 
 import kotlin.math.abs
 import kotlin.math.acos
+import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
 data class Vector3f(val x: Float, val y: Float, val z: Float) {
+    constructor(a: FloatArray): this(a[0], a[1], a[2])
 
     companion object {
         val zero = Vector3f(0f, 0f, 0f)
@@ -74,4 +76,29 @@ data class Vector3f(val x: Float, val y: Float, val z: Float) {
     }
 
     fun toArray() = floatArrayOf(x, y ,z)
+
+    fun toAngles(): FloatArray {
+        var yaw: Float
+        var pitch: Float
+        if (y == 0f && x == 0f) {
+            yaw = 0f
+            pitch = if (z > 0) 90f else 270f
+        } else {
+            yaw = if (x != 0f) (atan2(y, x) * 180 / Math.PI).toInt().toFloat() // todo: implement proper rounding
+            else if (y > 0) 90f
+            else -90f
+
+            if (yaw < 0)
+                yaw += 360f
+            val forward = sqrt((x * x + y * y))
+            pitch = (atan2(z, forward) * 180 / Math.PI).toInt().toFloat() // todo: implement proper rounding
+            if (pitch < 0)
+                pitch += 360f
+        }
+        return floatArrayOf(-pitch, yaw, 0f)
+//        angles[Defines.PITCH] = -pitch
+//        angles[Defines.YAW] = yaw
+//        angles[Defines.ROLL] = 0f
+    }
+
 }

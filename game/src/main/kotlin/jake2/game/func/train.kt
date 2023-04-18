@@ -16,6 +16,7 @@ import jake2.game.setSpawnFlag
 import jake2.game.unsetSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 
@@ -193,9 +194,13 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
 
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
     self.moveinfo.state = MovementState.TOP
-    Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    startMovement(self, dest, trainWait, game)
+
+    //Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
+    self.moveinfo.start_origin = Vector3f(self.s.origin)
+
+    //Math3D.VectorCopy(dest, self.moveinfo.end_origin)
+    self.moveinfo.end_origin = Vector3f(dest)
+    startMovement(self, self.moveinfo.end_origin, trainWait, game)
     self.setSpawnFlag(TRAIN_START_ON)
 
     true
@@ -251,9 +256,11 @@ private fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     val ent = self.target_ent
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
     self.moveinfo.state = MovementState.TOP
-    Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    startMovement(self, dest, trainWait, game!!)
+    // Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
+    self.moveinfo.start_origin = Vector3f(self.s.origin)
+    // Math3D.VectorCopy(dest, self.moveinfo.end_origin)
+    self.moveinfo.end_origin = Vector3f(dest)
+    startMovement(self, self.moveinfo.end_origin, trainWait, game!!)
     self.setSpawnFlag(TRAIN_START_ON)
 }
 
