@@ -48,7 +48,7 @@ public final class Netchan {
      * The remote connection never knows if it missed a reliable message, the
      * local side detects that it has been dropped by seeing a sequence
      * acknowledge higher thatn the last reliable sequence, but without the
-     * correct evon/odd bit for the reliable set.
+     * correct even/odd bit for the reliable set.
      * 
      * If the sender notices that a reliable message has been dropped, it will
      * be retransmitted. It will not be retransmitted again until a message
