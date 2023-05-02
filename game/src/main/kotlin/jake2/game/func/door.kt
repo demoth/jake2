@@ -15,6 +15,9 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
+import jake2.game.components.getComponent
 import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -61,12 +64,6 @@ private const val ANIMATED_FAST = 64
  */
 fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
     // todo: split into entity property initialization & moveinfo
-    val abs_movedir = floatArrayOf(0f, 0f, 0f)
-    if (self.sounds != 1) {
-        self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
-        self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
-        self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
-    }
     G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BSP
@@ -90,12 +87,11 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
 
     // calculate second position
     VectorCopy(self.s.origin, self.pos1)
-    abs_movedir[0] = abs(self.movedir[0])
-    abs_movedir[1] = abs(self.movedir[1])
-    abs_movedir[2] = abs(self.movedir[2])
-    self.moveinfo.distance =
-        abs_movedir[0] * self.size[0] + abs_movedir[1] * self.size[1] + (abs_movedir[2] * self.size[2]) - self.st.lip
-    VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2)
+    val abs_movedir = floatArrayOf(abs(self.movedir[0]), abs(self.movedir[1]), abs(self.movedir[2]))
+    
+    // self.movedir.abs() dot self.size - lip
+    val distance = abs_movedir[0] * self.size[0] + abs_movedir[1] * self.size[1] + abs_movedir[2] * self.size[2] - self.st.lip
+    VectorMA(self.pos1, distance, self.movedir, self.pos2)
 
     // if it starts open, switch the positions
     if (self.hasSpawnFlag(DOOR_START_OPEN)) {
@@ -103,7 +99,6 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
         VectorCopy(self.pos1, self.pos2)
         VectorCopy(self.s.origin, self.pos1)
     }
-    self.moveinfo.state = MovementState.BOTTOM
     if (self.health != 0) {
         self.takedamage = Defines.DAMAGE_YES
         self.die = doorKilled
@@ -112,20 +107,22 @@ fun funcDoor(self: SubgameEntity, game: GameExportsImpl) {
         game.gameImports.soundindex("misc/talk.wav")
         self.touch = doorTouch
     }
-    // todo: call constructor MoveInfo(...) instead of followin
-    self.moveinfo.speed = self.speed
-    self.moveinfo.accel = self.accel
-    self.moveinfo.decel = self.decel
-    self.moveinfo.wait = self.wait
-
-    // VectorCopy(self.pos1, self.moveinfo.start_origin)
-    self.moveinfo.start_origin = Vector3f(self.pos1)
-    // VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    self.moveinfo.start_angles = Vector3f(self.s.angles)
-    // VectorCopy(self.pos2, self.moveinfo.end_origin)
-    self.moveinfo.end_origin = Vector3f(self.pos2)
-    // VectorCopy(self.s.angles, self.moveinfo.end_angles)
-    self.moveinfo.end_angles = Vector3f(self.s.angles)
+    
+    self.addComponent(MoveInfo(
+        state = MovementState.BOTTOM,
+        distance = distance,
+        sound_start = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_strt.wav") else 0,
+        sound_middle = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_mid.wav") else 0,
+        sound_end = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_end.wav") else 0,
+        speed = self.speed,
+        accel = self.accel,
+        decel = self.decel,
+        wait = self.wait,
+        start_origin = Vector3f(self.pos1),
+        start_angles = Vector3f(self.s.angles),
+        end_origin = Vector3f(self.pos2),
+        end_angles = Vector3f(self.s.angles)
+    ))
 
     if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
@@ -217,7 +214,6 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
 
     VectorCopy(self.s.angles, self.pos1)
     VectorMA(self.s.angles, self.st.distance.toFloat(), self.movedir, self.pos2)
-    self.moveinfo.distance = self.st.distance.toFloat()
 
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BSP
@@ -238,11 +234,6 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
     if (self.dmg == 0)
         self.dmg = 2
 
-    if (self.sounds != 1) {
-        self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
-        self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
-        self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
-    }
 
     // if it starts open, switch the positions
     if (self.hasSpawnFlag(DOOR_START_OPEN)) {
@@ -262,21 +253,23 @@ fun funcDoorRotating(self: SubgameEntity, game: GameExportsImpl) {
         game.gameImports.soundindex("misc/talk.wav")
         self.touch = doorTouch
     }
+    self.addComponent(MoveInfo(
+        state = MovementState.BOTTOM,
+        distance = self.st.distance.toFloat(),
+        sound_start = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_strt.wav") else 0,
+        sound_middle = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_mid.wav") else 0,
+        sound_end = if (self.sounds != 1) game.gameImports.soundindex("doors/dr1_end.wav") else 0,
+        speed = self.speed,
+        accel = self.accel,
+        decel = self.decel,
+        wait = self.wait,
+        start_angles = Vector3f(self.pos1),
+        end_angles = Vector3f(self.pos2),
+        // The rotating door does not move, only rotates
+        start_origin = Vector3f(self.s.origin),
+        end_origin = Vector3f(self.s.origin),
+        ))
 
-    self.moveinfo.state = MovementState.BOTTOM
-    self.moveinfo.speed = self.speed
-    self.moveinfo.accel = self.accel
-    self.moveinfo.decel = self.decel
-    self.moveinfo.wait = self.wait
-    // VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    self.moveinfo.start_origin = Vector3f(self.s.origin)
-    // VectorCopy(self.pos1, self.moveinfo.start_angles)
-    self.moveinfo.start_angles = Vector3f(self.pos1)
-    // The rotating door does not move, only rotates
-    // VectorCopy(self.s.origin, self.moveinfo.end_origin)
-    self.moveinfo.end_origin = Vector3f(self.s.origin)
-    // VectorCopy(self.pos2, self.moveinfo.end_angles)
-    self.moveinfo.end_angles = Vector3f(self.pos2)
 
     if (self.hasSpawnFlag(ANIMATED))
         self.s.effects = self.s.effects or Defines.EF_ANIM_ALL
@@ -321,9 +314,11 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
 
     // if a door has a negative wait, it would never come back if
     // blocked, so let it just squash the object to death real fast
-    if (self.moveinfo.wait >= 0) {
+    val moveInfo: MoveInfo = self.getComponent()!!
+
+    if (moveInfo.wait >= 0) {
         var team: SubgameEntity?
-        if (self.moveinfo.state == MovementState.DOWN) {
+        if (moveInfo.state == MovementState.DOWN) {
             team = self.teammaster
             while (team != null) {
                 doorOpening(team, team.activator, game)
@@ -346,7 +341,8 @@ val doorOpenUse = registerUse("door_use") { self, other, activator, game ->
         return@registerUse
 
     if (self.hasSpawnFlag(DOOR_TOGGLE)) {
-        if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP) {
+        val moveInfo: MoveInfo = self.getComponent()!!
+        if (moveInfo.state == MovementState.UP || moveInfo.state == MovementState.TOP) {
             // trigger all paired doors
             var team: SubgameEntity? = self
             while (team != null) {
@@ -461,26 +457,28 @@ private val doorTriggerTouch = registerTouch("touch_door_trigger") { self, other
 
 // Door opening/closing
 private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: GameExportsImpl) {
-    if (self.moveinfo.state == MovementState.UP)
+    val moveInfo: MoveInfo = self.getComponent()!!
+
+    if (moveInfo.state == MovementState.UP)
         return  // already going up
-    if (self.moveinfo.state == MovementState.TOP) {
+    if (moveInfo.state == MovementState.TOP) {
         // reset top wait time
-        if (self.moveinfo.wait >= 0)
-            self.think.nextTime = game.level.time + self.moveinfo.wait
+        if (moveInfo.wait >= 0)
+            self.think.nextTime = game.level.time + moveInfo.wait
         return
     }
     if (0 == self.flags and GameDefines.FL_TEAMSLAVE) {
-        if (self.moveinfo.sound_start != 0)
+        if (moveInfo.sound_start != 0)
             game.gameImports.sound(
                 self, Defines.CHAN_NO_PHS_ADD
-                        + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
+                        + Defines.CHAN_VOICE, moveInfo.sound_start, 1f,
                 Defines.ATTN_STATIC.toFloat(), 0f
             )
-        self.s.sound = self.moveinfo.sound_middle
+        self.s.sound = moveInfo.sound_middle
     }
-    self.moveinfo.state = MovementState.UP
+    moveInfo.state = MovementState.UP
     if ("func_door" == self.classname) {
-        startMovement(self, self.moveinfo.end_origin!!, doorOpened, game)
+        startMovement(self, moveInfo.end_origin!!, doorOpened, game)
     } else if ("func_door_rotating" == self.classname) {
         calculateRotation(self, doorOpened, game)
     }
@@ -489,33 +487,35 @@ private fun doorOpening(self: SubgameEntity, activator: SubgameEntity?, game: Ga
 }
 
 private val doorOpened = registerThink("door_hit_top") { self: SubgameEntity, game: GameExportsImpl ->
+    val moveInfo: MoveInfo = self.getComponent()!!
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_end != 0)
+        if (moveInfo.sound_end != 0)
             game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
-                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+                    + Defines.CHAN_VOICE, moveInfo.sound_end, 1f,
             Defines.ATTN_STATIC.toFloat(), 0f
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = MovementState.TOP
+    moveInfo.state = MovementState.TOP
 
     if (self.hasSpawnFlag(DOOR_TOGGLE))
         return@registerThink true
 
-    if (self.moveinfo.wait >= 0) {
+    if (moveInfo.wait >= 0) {
         self.think.action = doorClosing
-        self.think.nextTime = game.level.time + self.moveinfo.wait
+        self.think.nextTime = game.level.time + moveInfo.wait
     }
     true
 }
 
 private val doorClosing = registerThink("door_go_down") { self, game ->
+    val moveInfo: MoveInfo = self.getComponent()!!
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_start != 0)
+        if (moveInfo.sound_start != 0)
             game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
-                self.moveinfo.sound_start, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
+                moveInfo.sound_start, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
 
-        self.s.sound = self.moveinfo.sound_middle
+        self.s.sound = moveInfo.sound_middle
     }
 
     if (self.max_health != 0) {
@@ -523,9 +523,9 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
         self.health = self.max_health
     }
 
-    self.moveinfo.state = MovementState.DOWN
+    moveInfo.state = MovementState.DOWN
     if ("func_door" == self.classname) {
-        startMovement(self, self.moveinfo.start_origin!!, doorClosed, game)
+        startMovement(self, moveInfo.start_origin, doorClosed, game)
     } else if ("func_door_rotating" == self.classname) {
         calculateRotation(self, doorClosed, game)
     }
@@ -533,13 +533,14 @@ private val doorClosing = registerThink("door_go_down") { self, game ->
 }
 
 private val doorClosed = registerThink("door_hit_bottom") { self, game ->
+    val moveInfo: MoveInfo = self.getComponent()!!
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_end != 0)
+        if (moveInfo.sound_end != 0)
             game.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
-                self.moveinfo.sound_end, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
+                moveInfo.sound_end, 1f, Defines.ATTN_STATIC.toFloat(), 0f)
         self.s.sound = 0
     }
-    self.moveinfo.state = MovementState.BOTTOM
+    moveInfo.state = MovementState.BOTTOM
     doorUseAreaPortals(self, false, game)
     true
 }
@@ -578,9 +579,6 @@ private const val SECRET_1ST_DOWN = 4
  * TODO: add proper description
  */
 fun funcDoorSecret(self: SubgameEntity, game: GameExportsImpl) {
-    self.moveinfo.sound_start = game.gameImports.soundindex("doors/dr1_strt.wav")
-    self.moveinfo.sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav")
-    self.moveinfo.sound_end = game.gameImports.soundindex("doors/dr1_end.wav")
 
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BSP
@@ -601,9 +599,14 @@ fun funcDoorSecret(self: SubgameEntity, game: GameExportsImpl) {
     if (self.wait == 0f)
         self.wait = 5f
 
-    self.moveinfo.accel = 50f
-    self.moveinfo.speed = 50f
-    self.moveinfo.decel = 50f
+    self.addComponent(MoveInfo(
+        accel = 50f,
+        speed = 50f,
+        decel = 50f,
+        sound_start = game.gameImports.soundindex("doors/dr1_strt.wav"),
+        sound_middle = game.gameImports.soundindex("doors/dr1_mid.wav"),
+        sound_end = game.gameImports.soundindex("doors/dr1_end.wav"),
+    ))
 
     // calculate positions
     val forward = floatArrayOf(0f, 0f, 0f)
@@ -749,32 +752,35 @@ private val doorCalculateMoveSpeed = registerThink("think_calc_movespeed") { sel
     if (self.flags and GameDefines.FL_TEAMSLAVE != 0)
         return@registerThink true // only the team master does this
 
+    val moveInfo: MoveInfo = self.getComponent()!!
+
     // find the smallest distance any member of the team will be moving
-    var minDistance: Float = abs(self.moveinfo.distance)
+    var minDistance: Float = abs(moveInfo.distance)
     var entity = self.teamchain
     while (entity != null) {
-        val dist = abs(entity.moveinfo.distance)
+        val dist = abs(entity.getComponent<MoveInfo>()!!.distance)
         if (dist < minDistance)
             minDistance = dist
         entity = entity.teamchain
     }
 
-    val time = minDistance / self.moveinfo.speed
+    val time = minDistance / moveInfo.speed
 
     // adjust speeds so they will all complete at the same time
     var team: SubgameEntity? = self
     while (team != null) {
-        val newspeed = abs(team.moveinfo.distance) / time
-        val ratio = newspeed / team.moveinfo.speed
-        if (team.moveinfo.accel == team.moveinfo.speed)
-            team.moveinfo.accel = newspeed
+        val teamMoveInfo: MoveInfo = team.getComponent()!!
+        val newspeed = abs(teamMoveInfo.distance) / time
+        val ratio = newspeed / teamMoveInfo.speed
+        if (teamMoveInfo.accel == teamMoveInfo.speed)
+            teamMoveInfo.accel = newspeed
         else
-            team.moveinfo.accel *= ratio
-        if (team.moveinfo.decel == team.moveinfo.speed)
-            team.moveinfo.decel = newspeed
+            teamMoveInfo.accel *= ratio
+        if (teamMoveInfo.decel == teamMoveInfo.speed)
+            teamMoveInfo.decel = newspeed
         else
-            team.moveinfo.decel *= ratio
-        team.moveinfo.speed = newspeed
+            teamMoveInfo.decel *= ratio
+        teamMoveInfo.speed = newspeed
         team = team.teamchain
     }
 
@@ -787,7 +793,7 @@ private val doorCalculateMoveSpeed = registerThink("think_calc_movespeed") { sel
 // AngleMove_Calc
 private fun calculateRotation(self: SubgameEntity, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
     Math3D.VectorClear(self.avelocity)
-    self.moveinfo.endfunc = endFunction
+    self.getComponent<MoveInfo>()!!.endfunc = endFunction
     val teamMaster = self.flags and GameDefines.FL_TEAMSLAVE == 0
     if (game.level.current_entity === (if (teamMaster) self else self.teammaster)) {
         doorRotatingBegin.think(self, game)
@@ -799,15 +805,14 @@ private fun calculateRotation(self: SubgameEntity, endFunction: EntThinkAdapter?
 
 private val doorRotatingBegin = registerThink("angle_move_begin") { self, game ->
     // set destdelta to the vector needed to move
-    val destdelta = if (self.moveinfo.state == MovementState.UP)
-    //Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, destdelta)
-        self.moveinfo.end_angles - Vector3f(self.s.angles)
+    val moveInfo: MoveInfo = self.getComponent()!!
+    val destdelta = if (moveInfo.state == MovementState.UP)
+        moveInfo.end_angles - Vector3f(self.s.angles)
     else
-    //Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, destdelta)
-        self.moveinfo.start_angles - Vector3f(self.s.angles)
+        moveInfo.start_angles - Vector3f(self.s.angles)
 
     // divide by speed to get time to reach dest
-    val traveltime = destdelta.length() / self.moveinfo.speed
+    val traveltime = destdelta.length() / moveInfo.speed
 
     if (traveltime < Defines.FRAMETIME) {
         doorRotatingFinal.think(self, game)
@@ -826,12 +831,13 @@ private val doorRotatingBegin = registerThink("angle_move_begin") { self, game -
 }
 
 private val doorRotatingFinal = registerThink("angle_move_final") { self, game ->
-    val move = if (self.moveinfo.state == MovementState.UP)
-        // Math3D.VectorSubtract(self.moveinfo.end_angles, self.s.angles, move)
-            self.moveinfo.end_angles - Vector3f(self.s.angles)
+    val moveInfo: MoveInfo = self.getComponent()!!
+    val move = if (moveInfo.state == MovementState.UP)
+        // Math3D.VectorSubtract(moveInfo.end_angles, self.s.angles, move)
+            moveInfo.end_angles - Vector3f(self.s.angles)
         else
-        // Math3D.VectorSubtract(self.moveinfo.start_angles, self.s.angles, move)
-            self.moveinfo.start_angles - Vector3f(self.s.angles)
+        // Math3D.VectorSubtract(moveInfo.start_angles, self.s.angles, move)
+            moveInfo.start_angles - Vector3f(self.s.angles)
 
     // if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
     if (move == Vector3f.zero) {
@@ -848,6 +854,6 @@ private val doorRotatingFinal = registerThink("angle_move_final") { self, game -
 
 private val doorRotatingDone = registerThink("angle_move_final") { self, game ->
     Math3D.VectorClear(self.avelocity)
-    self.moveinfo.endfunc!!.think(self, game)
+    self.getComponent<MoveInfo>()!!.endfunc!!.think(self, game)
     true
 }
