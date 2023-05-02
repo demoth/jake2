@@ -11,6 +11,9 @@ import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
+import jake2.game.components.getComponent
 import jake2.game.hasSpawnFlag
 import jake2.game.setSpawnFlag
 import jake2.game.unsetSpawnFlag
@@ -46,17 +49,15 @@ fun funcTrain(self: SubgameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
 
-    if (self.st.noise != null)
-        self.moveinfo.sound_middle = game.gameImports.soundindex(self.st.noise)
-
     if (self.speed == 0f)
         self.speed = 100f
 
-    self.moveinfo.speed = self.speed
-
-    self.moveinfo.accel = self.moveinfo.speed
-    self.moveinfo.decel = self.moveinfo.speed
-
+    self.addComponent(MoveInfo(
+        sound_middle = if (self.st.noise != null) game.gameImports.soundindex(self.st.noise) else 0,
+        speed = self.speed,
+        accel = self.speed,
+        decel = self.speed
+    ))
     self.use = trainUse
 
     game.gameImports.linkentity(self)
@@ -179,28 +180,28 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
             dogoto = true
         }
     }
-    self.moveinfo.wait = ent!!.wait
+    val moveInfo: MoveInfo = self.getComponent()!!
+
+    moveInfo.wait = ent!!.wait
     self.target_ent = ent
 
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_start != 0)
+        if (moveInfo.sound_start != 0)
             game.gameImports.sound(
                 self, (Defines.CHAN_NO_PHS_ADD
-                        + Defines.CHAN_VOICE), self.moveinfo.sound_start, 1f,
+                        + Defines.CHAN_VOICE), moveInfo.sound_start, 1f,
                 Defines.ATTN_STATIC.toFloat(), 0f
             )
-        self.s.sound = self.moveinfo.sound_middle
+        self.s.sound = moveInfo.sound_middle
     }
 
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
-    self.moveinfo.state = MovementState.TOP
 
-    //Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    self.moveinfo.start_origin = Vector3f(self.s.origin)
+    moveInfo.state = MovementState.TOP
+    moveInfo.start_origin = Vector3f(self.s.origin)
+    moveInfo.end_origin = Vector3f(dest)
 
-    //Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    self.moveinfo.end_origin = Vector3f(dest)
-    startMovement(self, self.moveinfo.end_origin, trainWait, game)
+    startMovement(self, moveInfo.end_origin, trainWait, game)
     self.setSpawnFlag(TRAIN_START_ON)
 
     true
@@ -220,12 +221,12 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
         if (!self.inuse)
             return@registerThink true
     }
-
-    if (self.moveinfo.wait != 0f) {
-        if (self.moveinfo.wait > 0) {
-            self.think.nextTime = game.level.time + self.moveinfo.wait
+    val moveInfo: MoveInfo = self.getComponent()!!
+    if (moveInfo.wait != 0f) {
+        if (moveInfo.wait > 0) {
+            self.think.nextTime = game.level.time + moveInfo.wait
             self.think.action = trainNextGoal
-        } else if (self.hasSpawnFlag(TRAIN_TOGGLE)) // && wait < 0
+        } else if (self.hasSpawnFlag(TRAIN_TOGGLE)) // && wait <= 0
         {
             trainNextGoal.think(self, game)
             self.unsetSpawnFlag(TRAIN_START_ON)
@@ -233,11 +234,11 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
             self.think.nextTime = 0f
         }
         if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-            if (self.moveinfo.sound_end != 0)
+            if (moveInfo.sound_end != 0)
                 game.gameImports.sound(
                 self,
                 Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
-                self.moveinfo.sound_end,
+                moveInfo.sound_end,
                 1f,
                 Defines.ATTN_STATIC.toFloat(),
                 0f
@@ -253,14 +254,12 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
 
 private fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
     val dest = floatArrayOf(0f, 0f, 0f)
-    val ent = self.target_ent
-    Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
-    self.moveinfo.state = MovementState.TOP
-    // Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin)
-    self.moveinfo.start_origin = Vector3f(self.s.origin)
-    // Math3D.VectorCopy(dest, self.moveinfo.end_origin)
-    self.moveinfo.end_origin = Vector3f(dest)
-    startMovement(self, self.moveinfo.end_origin, trainWait, game!!)
+    Math3D.VectorSubtract(self.target_ent.s.origin, self.mins, dest)
+    val moveInfo: MoveInfo = self.getComponent()!!
+    moveInfo.state = MovementState.TOP
+    moveInfo.start_origin = Vector3f(self.s.origin)
+    moveInfo.end_origin = Vector3f(dest)
+    startMovement(self, moveInfo.end_origin, trainWait, game!!)
     self.setSpawnFlag(TRAIN_START_ON)
 }
 
@@ -347,9 +346,11 @@ fun miscFlyingShip(self: SubgameEntity, game: GameExportsImpl, model: String) {
     self.think.nextTime = game.level.time + Defines.FRAMETIME
     self.use = miscFlyingShipUse
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
-    self.moveinfo.speed = self.speed
-    self.moveinfo.decel = self.moveinfo.speed
-    self.moveinfo.accel = self.moveinfo.decel
+
+    val moveInfo: MoveInfo = self.getComponent()!!
+    moveInfo.speed = self.speed
+    moveInfo.decel = self.speed
+    moveInfo.accel = self.speed
     game.gameImports.linkentity(self)
 }
 

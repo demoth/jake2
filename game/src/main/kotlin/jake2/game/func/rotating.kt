@@ -49,7 +49,7 @@ fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
         self.movetype = GameDefines.MOVETYPE_PUSH
 
     // set the axis of rotation
-    Math3D.VectorClear(self.movedir)
+    Math3D.VectorClear(self.movedir) //fixme: movedir isn't really a "move"dir but a rotation axis
     if (self.hasSpawnFlag(X_AXIS))
         self.movedir[2] = 1.0f
     else if (self.hasSpawnFlag(Y_AXIS))
@@ -88,7 +88,7 @@ private val rotatingUse = registerUse("rotating_use") { self, _, _, _ ->
         Math3D.VectorClear(self.avelocity)
         self.touch = null
     } else {
-        self.s.sound = self.moveinfo.sound_middle
+        self.s.sound = self.moveinfo.sound_middle //fixme: is never set?
         Math3D.VectorScale(self.movedir, self.speed, self.avelocity)
         if (self.hasSpawnFlag(TOUCH_PAIN))
             self.touch = rotatingTouch

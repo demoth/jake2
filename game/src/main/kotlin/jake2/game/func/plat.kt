@@ -9,6 +9,9 @@ import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
+import jake2.game.components.getComponent
 import jake2.game.hasSpawnFlag
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
@@ -97,28 +100,27 @@ fun funcPlat(self: SubgameEntity, game: GameExportsImpl) {
     // the "start moving" trigger
     spawnInsideTrigger(self, game)
 
+    val targeted = self.targetname != null
 
-    if (self.targetname != null) {
-        self.moveinfo.state = MovementState.UP
-    } else {
+    if (!targeted) {
         Math3D.VectorCopy(self.pos2, self.s.origin)
         game.gameImports.linkentity(self)
-        self.moveinfo.state = MovementState.BOTTOM
     }
-
-    self.moveinfo.speed = self.speed
-    self.moveinfo.accel = self.accel
-    self.moveinfo.decel = self.decel
-    self.moveinfo.wait = self.wait
-
-    self.moveinfo.start_origin = Vector3f(self.pos1)
-    self.moveinfo.start_angles = Vector3f(self.s.angles)
-    self.moveinfo.end_origin = Vector3f(self.pos2)
-    self.moveinfo.end_angles = Vector3f(self.s.angles)
-
-    self.moveinfo.sound_start = game.gameImports.soundindex("plats/pt1_strt.wav")
-    self.moveinfo.sound_middle = game.gameImports.soundindex("plats/pt1_mid.wav")
-    self.moveinfo.sound_end = game.gameImports.soundindex("plats/pt1_end.wav")
+    
+    self.addComponent(MoveInfo(
+        state = if (targeted) MovementState.UP else MovementState.BOTTOM,
+        speed = self.speed,
+        accel = self.accel,
+        decel = self.decel,
+        wait = self.wait,
+        start_origin = Vector3f(self.pos1),
+        start_angles = Vector3f(self.s.angles),
+        end_origin = Vector3f(self.pos2),
+        end_angles = Vector3f(self.s.angles),
+        sound_start = game.gameImports.soundindex("plats/pt1_strt.wav"),
+        sound_middle = game.gameImports.soundindex("plats/pt1_mid.wav"),
+        sound_end = game.gameImports.soundindex("plats/pt1_end.wav")       
+    ))
 }
 
 private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, gameExports ->
@@ -141,9 +143,11 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
         GameDefines.MOD_CRUSH, gameExports
     )
 
-    if (self.moveinfo.state == MovementState.UP)
+    val moveInfo: MoveInfo = self.getComponent()!!
+
+    if (moveInfo.state == MovementState.UP)
         platGoDown.think(self, gameExports)
-    else if (self.moveinfo.state == MovementState.DOWN)
+    else if (moveInfo.state == MovementState.DOWN)
         platGoUp(self, gameExports)
 
 }
@@ -192,40 +196,44 @@ private val platTriggerTouch = registerTouch("touch_plat_center") { self, other,
         return@registerTouch
 
     // now point at the plat, not the trigger
-    val plat = self.enemy 
-
-    if (plat.moveinfo.state == MovementState.BOTTOM)
+    val plat = self.enemy
+    val moveInfo: MoveInfo = self.enemy.getComponent()!!
+    if (moveInfo.state == MovementState.BOTTOM)
         platGoUp(plat, game)
-    else if (plat.moveinfo.state == MovementState.TOP) {
+    else if (moveInfo.state == MovementState.TOP) {
         // the player is still on the plat, so delay going down
         plat.think.nextTime = game.level.time + 1 
     }
 }
-private fun platGoUp(ent: SubgameEntity, game: GameExportsImpl) {
-    if (ent.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (ent.moveinfo.sound_start != 0)
+private fun platGoUp(self: SubgameEntity, game: GameExportsImpl) {
+    val moveInfo: MoveInfo = self.getComponent()!!
+
+    if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
+        if (moveInfo.sound_start != 0)
             game.gameImports.sound(
-            ent, Defines.CHAN_NO_PHS_ADD
-                    + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1f,
+            self, Defines.CHAN_NO_PHS_ADD
+                    + Defines.CHAN_VOICE, moveInfo.sound_start, 1f,
             Defines.ATTN_STATIC.toFloat(), 0f
         )
-        ent.s.sound = ent.moveinfo.sound_middle
+        self.s.sound = moveInfo.sound_middle
     }
-    ent.moveinfo.state = MovementState.UP
-    startMovement(ent!!, ent.moveinfo.start_origin!!, platHitTop, game!!)
+    moveInfo.state = MovementState.UP
+    startMovement(self, moveInfo.start_origin, platHitTop, game)
 }
 
 private val platHitTop = registerThink("plat_hit_top") { self, game ->
+    val moveInfo: MoveInfo = self.getComponent()!!
+
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_end != 0)
+        if (moveInfo.sound_end != 0)
             game.gameImports.sound(
             self, Defines.CHAN_NO_PHS_ADD
-                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+                    + Defines.CHAN_VOICE, moveInfo.sound_end, 1f,
             Defines.ATTN_STATIC.toFloat(), 0f
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = MovementState.TOP
+    moveInfo.state = MovementState.TOP
 
     self.think.action = platGoDown
     self.think.nextTime = game.level.time + 3
@@ -233,30 +241,32 @@ private val platHitTop = registerThink("plat_hit_top") { self, game ->
 }
 
 private val platGoDown = registerThink("plat_go_down") { self, game ->
+    val moveInfo: MoveInfo = self.getComponent()!!
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_start != 0)
+        if (moveInfo.sound_start != 0)
             game.gameImports.sound(
             self, Defines.CHAN_NO_PHS_ADD
-                    + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
+                    + Defines.CHAN_VOICE, moveInfo.sound_start, 1f,
             Defines.ATTN_STATIC.toFloat(), 0f
         )
-        self.s.sound = self.moveinfo.sound_middle
+        self.s.sound = moveInfo.sound_middle
     }
-    self.moveinfo.state = MovementState.DOWN
-    startMovement(self!!, self.moveinfo.end_origin!!, platHitBottom, game!!)
+    moveInfo.state = MovementState.DOWN
+    startMovement(self, moveInfo.end_origin, platHitBottom, game)
     true
 }
 
 private val platHitBottom = registerThink("plat_hit_bottom") { self, game ->
+    val moveInfo: MoveInfo = self.getComponent()!!
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
-        if (self.moveinfo.sound_end != 0)
+        if (moveInfo.sound_end != 0)
             game.gameImports.sound(
             self, Defines.CHAN_NO_PHS_ADD
-                    + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1f,
+                    + Defines.CHAN_VOICE, moveInfo.sound_end, 1f,
             Defines.ATTN_STATIC.toFloat(), 0f
         )
         self.s.sound = 0
     }
-    self.moveinfo.state = MovementState.BOTTOM
+    moveInfo.state = MovementState.BOTTOM
     true
 }
