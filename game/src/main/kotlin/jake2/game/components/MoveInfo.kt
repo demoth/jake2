@@ -1,4 +1,4 @@
-package jake2.game
+package jake2.game.components
 
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.func.MovementState

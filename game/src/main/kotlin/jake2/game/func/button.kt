@@ -9,6 +9,9 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
+import jake2.game.components.getComponent
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
@@ -35,9 +38,6 @@ fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_STOP
     self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
-
-    if (self.sounds != 1)
-        self.moveinfo.sound_start = game.gameImports.soundindex("switches/butn2.wav")
 
     if (self.speed == 0f)
         self.speed = 40f
@@ -66,27 +66,19 @@ fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
     } else if (self.targetname == null)
         self.touch = buttonTouch
 
-    // TODO: instead of following, `self.moveinfo = MoveInfo(...)`
-
-    self.moveinfo.state = MovementState.BOTTOM
-
-    self.moveinfo.speed = self.speed
-    self.moveinfo.accel = self.accel
-    self.moveinfo.decel = self.decel
-    self.moveinfo.wait = self.wait
-
-    // Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin)
-    self.moveinfo.start_origin = Vector3f(self.pos1)
-
-    // Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles)
-    self.moveinfo.start_angles = Vector3f(self.s.angles)
-
-    // Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin)
-    self.moveinfo.end_origin = Vector3f(self.pos2)
-
-    // Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles)
-    self.moveinfo.end_angles = Vector3f(self.s.angles)
-
+    self.addComponent(MoveInfo(
+        sound_start = if (self.sounds != 1) game.gameImports.soundindex("switches/butn2.wav") else 0,
+        state = MovementState.BOTTOM,
+        speed = self.speed,
+        accel = self.accel,
+        decel = self.decel,
+        wait = self.wait,
+        start_origin = Vector3f(self.pos1),
+        end_origin = Vector3f(self.pos2),
+        start_angles = Vector3f(self.s.angles),
+        end_angles = Vector3f(self.s.angles) // no rotation for button
+    ))
+    
     game.gameImports.linkentity(self)
 }
 
@@ -96,20 +88,25 @@ private val buttonUse = registerUse("button_use") { self, other, activator, game
 }
 
 private fun buttonFire(self: SubgameEntity, game: GameExportsImpl) {
-    if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP)
+    val moveInfo: MoveInfo = self.getComponent()!!
+    if (moveInfo.state == MovementState.UP || moveInfo.state == MovementState.TOP)
         return
-    self.moveinfo.state = MovementState.UP
-    if (self.moveinfo.sound_start != 0 && self.flags and GameDefines.FL_TEAMSLAVE == 0)
+    moveInfo.state = MovementState.UP
+    if (moveInfo.sound_start != 0 && self.flags and GameDefines.FL_TEAMSLAVE == 0)
         game.gameImports.sound(
-        self, Defines.CHAN_NO_PHS_ADD
-                + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1f,
-        Defines.ATTN_STATIC.toFloat(), 0f
-    )
-    startMovement(self, self.moveinfo.end_origin, buttonWait, game)
+            self,
+            Defines.CHAN_NO_PHS_ADD + Defines.CHAN_VOICE,
+            moveInfo.sound_start,
+            1f,
+            Defines.ATTN_STATIC.toFloat(),
+            0f
+        )
+    startMovement(self, moveInfo.end_origin, buttonWait, game)
 }
 
 private val buttonWait = registerThink("button_wait") { self, game ->
-    self.moveinfo.state = MovementState.TOP
+    val moveInfo: MoveInfo = self.getComponent()!!
+    moveInfo.state = MovementState.TOP
 
     // EF_ANIM01 -> EF_ANIM23
     self.s.effects = self.s.effects and Defines.EF_ANIM01.inv()
@@ -117,20 +114,20 @@ private val buttonWait = registerThink("button_wait") { self, game ->
 
     GameUtil.G_UseTargets(self, self.activator, game)
     self.s.frame = 1
-    if (self.moveinfo.wait >= 0) {
-        self.think.nextTime = game.level.time + self.moveinfo.wait
+    if (moveInfo.wait >= 0) {
+        self.think.nextTime = game.level.time + moveInfo.wait
         self.think.action = buttonReturn
     }
     true
 }
 
 private val buttonReturn = registerThink("button_return") { self, game ->
-    self.moveinfo.state = MovementState.DOWN
+    val moveInfo: MoveInfo = self.getComponent()!!
+    moveInfo.state = MovementState.DOWN
 
-    startMovement(self, self.moveinfo.start_origin!!, buttonDone, game)
+    startMovement(self, moveInfo.start_origin, buttonDone, game)
 
     self.s.frame = 0
-
     if (self.health != 0) {
         // why not max_health? - because by this time health is already reset to max_health
         self.takedamage = Defines.DAMAGE_YES
@@ -139,7 +136,8 @@ private val buttonReturn = registerThink("button_return") { self, game ->
 }
 
 private val buttonDone = registerThink("button_done") { self, game ->
-    self.moveinfo.state = MovementState.BOTTOM
+    val moveInfo: MoveInfo = self.getComponent()!!
+    moveInfo.state = MovementState.BOTTOM
     // EF_ANIM23 -> EF_ANIM01
     self.s.effects = self.s.effects and Defines.EF_ANIM23.inv()
     self.s.effects = self.s.effects or Defines.EF_ANIM01
