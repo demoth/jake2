@@ -8,6 +8,7 @@ import jake2.game.adapters.SuperAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.math.toVector3f
 import jake2.qcommon.util.Math3D
 import kotlin.math.floor
 
@@ -23,13 +24,8 @@ enum class MovementState {
  */
 fun startMovement(self: SubgameEntity, dest: Vector3f, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
     Math3D.VectorClear(self.velocity)
-    // Math3D.VectorSubtract(dest, self.s.origin, self.moveinfo.dir)
-    self.moveinfo.dir = dest - Vector3f(self.s.origin)
-
-    // self.moveinfo.remaining_distance = Math3D.VectorNormalize(self.moveinfo.dir)
     self.moveinfo.remaining_distance = self.moveinfo.dir.length()
-    self.moveinfo.dir = self.moveinfo.dir.normalize()
-
+    self.moveinfo.dir = (dest - self.s.origin.toVector3f()).normalize()
     self.moveinfo.endfunc = endFunction
 
     if (self.moveinfo.speed == self.moveinfo.accel && self.moveinfo.speed == self.moveinfo.decel) {
