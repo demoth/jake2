@@ -32,7 +32,7 @@ data class Vector3f(val x: Float, val y: Float, val z: Float) {
         x * other.y - y * other.x
     )
 
-    fun length() = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+    fun length() = sqrt(x * x + y * y + z * z)
     fun normalize() = this / length()
     fun distance(other: Vector3f) = (this - other).length()
     fun angle(other: Vector3f) = acos((this dot other) / (this.length() * other.length()))
@@ -68,7 +68,7 @@ data class Vector3f(val x: Float, val y: Float, val z: Float) {
 
         // Clamp the dot product to the range [-1, 1] to avoid errors due to
         // floating-point imprecision
-        val theta = acos(max(-1.0, min(1.0, dot.toDouble()))).toFloat()
+        val theta = acos(max(-1.0f, min(1.0f, dot)))
 
         // Compute the interpolated vector using spherical linear interpolation
         val s = 1f / sin(theta)
@@ -96,9 +96,7 @@ data class Vector3f(val x: Float, val y: Float, val z: Float) {
                 pitch += 360f
         }
         return floatArrayOf(-pitch, yaw, 0f)
-//        angles[Defines.PITCH] = -pitch
-//        angles[Defines.YAW] = yaw
-//        angles[Defines.ROLL] = 0f
     }
-
 }
+
+fun FloatArray.toVector3f() = Vector3f(this[0], this[1], this[2])

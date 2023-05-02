@@ -95,9 +95,9 @@ private val buttonUse = registerUse("button_use") { self, other, activator, game
     buttonFire(self, game)
 }
 
-private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
+private fun buttonFire(self: SubgameEntity, game: GameExportsImpl) {
     if (self.moveinfo.state == MovementState.UP || self.moveinfo.state == MovementState.TOP)
-        return true
+        return
     self.moveinfo.state = MovementState.UP
     if (self.moveinfo.sound_start != 0 && self.flags and GameDefines.FL_TEAMSLAVE == 0)
         game.gameImports.sound(
@@ -106,7 +106,6 @@ private fun buttonFire(self: SubgameEntity, game: GameExportsImpl): Boolean {
         Defines.ATTN_STATIC.toFloat(), 0f
     )
     startMovement(self, self.moveinfo.end_origin, buttonWait, game)
-    return true
 }
 
 private val buttonWait = registerThink("button_wait") { self, game ->
