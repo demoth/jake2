@@ -4,6 +4,8 @@ import jake2.game.GameBase
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
 import jake2.game.SubgameEntity
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
 import jake2.game.hasSpawnFlag
 import jake2.game.setSpawnFlag
 import jake2.qcommon.Defines
@@ -33,23 +35,11 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     game.gameImports.setmodel(self, self.model)
 
-    when (self.sounds) {
-        1 -> {
-            self.moveinfo.sound_start = game.gameImports.soundindex("world/mov_watr.wav")
-            self.moveinfo.sound_end = game.gameImports.soundindex("world/stp_watr.wav")
-        }
-        // fixme: same case?
-        2 -> {
-            self.moveinfo.sound_start = game.gameImports.soundindex("world/mov_watr.wav")
-            self.moveinfo.sound_end = game.gameImports.soundindex("world/stp_watr.wav")
-        }
-    }
-
     // calculate second position
     Math3D.VectorCopy(self.s.origin, self.pos1)
     val abs_movedir = floatArrayOf(abs(self.movedir[0]), abs(self.movedir[1]), abs(self.movedir[2]))
-    self.moveinfo.distance = abs_movedir[0] * self.size[0] + abs_movedir[1] * self.size[1] + abs_movedir[2] * self.size[2] - self.st.lip
-    Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2)
+    val distance = abs_movedir[0] * self.size[0] + abs_movedir[1] * self.size[1] + abs_movedir[2] * self.size[2] - self.st.lip
+    Math3D.VectorMA(self.pos1, distance, self.movedir, self.pos2)
 
     // if it starts open, switch the positions
     if (self.hasSpawnFlag(DOOR_START_OPEN)) {
@@ -57,24 +47,26 @@ fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
         Math3D.VectorCopy(self.pos1, self.pos2)
         Math3D.VectorCopy(self.s.origin, self.pos1)
     }
-
-    self.moveinfo.start_origin = Vector3f(self.pos1)
-    self.moveinfo.start_angles = Vector3f(self.s.angles)
-    self.moveinfo.end_origin = Vector3f(self.pos2)
-    self.moveinfo.end_angles = Vector3f(self.s.angles)
-
-    self.moveinfo.state = MovementState.BOTTOM
-
     if (self.speed == 0f)
         self.speed = 25f
-    self.moveinfo.accel = self.speed
-    self.moveinfo.decel = self.speed
-    self.moveinfo.speed = self.speed
-
     if (self.wait == 0f)
         self.wait = -1f
-    self.moveinfo.wait = self.wait
 
+    self.addComponent(MoveInfo(
+        sound_start = if (self.sounds != 0) game.gameImports.soundindex("world/mov_watr.wav") else 0,
+        sound_end = if (self.sounds != 0) game.gameImports.soundindex("world/stp_watr.wav") else 0,
+        distance = distance,
+        start_origin = Vector3f(self.pos1),
+        start_angles = Vector3f(self.s.angles),
+        end_origin = Vector3f(self.pos2),
+        end_angles = Vector3f(self.s.angles),
+        state = MovementState.BOTTOM,
+        accel = self.speed,
+        decel = self.speed,
+        speed = self.speed,
+        wait = self.wait,
+    ))
+    
     self.use = doorOpenUse
 
     if (self.wait == -1f)
