@@ -22,10 +22,11 @@ enum class MovementState {
 /**
  * Move_Calc
  */
-fun startMovement(self: SubgameEntity, dest: Vector3f, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
+fun startMovement(self: SubgameEntity, destination: Vector3f, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
     Math3D.VectorClear(self.velocity)
-    self.moveinfo.remaining_distance = self.moveinfo.dir.length()
-    self.moveinfo.dir = (dest - self.s.origin.toVector3f()).normalize()
+    val delta = destination - self.s.origin.toVector3f()
+    self.moveinfo.remaining_distance = delta.length()
+    self.moveinfo.dir = delta.normalize()
     self.moveinfo.endfunc = endFunction
 
     if (self.moveinfo.speed == self.moveinfo.accel && self.moveinfo.speed == self.moveinfo.decel) {
