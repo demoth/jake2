@@ -88,7 +88,7 @@ private val rotatingUse = registerUse("rotating_use") { self, _, _, _ ->
         Math3D.VectorClear(self.avelocity)
         self.touch = null
     } else {
-        self.s.sound = self.moveinfo.sound_middle //fixme: is never set?
+        // self.s.sound = self.moveinfo.sound_middle //fixme: is never set?
         Math3D.VectorScale(self.movedir, self.speed, self.avelocity)
         if (self.hasSpawnFlag(TOUCH_PAIN))
             self.touch = rotatingTouch

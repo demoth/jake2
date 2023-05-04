@@ -147,7 +147,6 @@ private val trainFindTarget = registerThink("func_train_find") { self, game ->
 
 // Train is moving to the next stop
 private val trainNextGoal = registerThink("train_next") { self, game ->
-    val dest = floatArrayOf(0f, 0f, 0f)
 
     var first = true
 
@@ -195,6 +194,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         self.s.sound = moveInfo.sound_middle
     }
 
+    val dest = floatArrayOf(0f, 0f, 0f)
     Math3D.VectorSubtract(ent.s.origin, self.mins, dest)
 
     moveInfo.state = MovementState.TOP

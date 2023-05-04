@@ -92,7 +92,6 @@ monsterinfo       monsterinfo_t     info about the monster (see below)
 move_angles       vec3_t            the angle that the gun turret is facing
 move_origin       vec3_t            the origin of the gun turret
 movedir           vec3_t            direction currently moving in
-moveinfo          moveinfo_t        used by the ships flying overhead
 movetarget        edict_t *         entity to wark towards when not got anything better to do
                                     (such as killing the player)
 movetype          int               how the entity moves :

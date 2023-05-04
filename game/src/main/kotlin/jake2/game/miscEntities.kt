@@ -4,6 +4,9 @@ import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
+import jake2.game.components.MoveInfo
+import jake2.game.components.addComponent
+import jake2.game.components.getComponent
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Lib
@@ -297,6 +300,7 @@ fun miscViperBomb(self: SubgameEntity, game: GameExportsImpl) {
         self.dmg = 1000
     self.use = miscViperBombUse
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
+    self.addComponent(MoveInfo())
     game.gameImports.linkentity(self)
 }
 
@@ -310,17 +314,17 @@ private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other,
     self.touch = miscViperBombTouch
     self.activator = activator
 
+    // get the ship reference (so it sticks to the first found ship?)
     val es = GameBase.G_Find(null, GameBase.findByClassName, "misc_viper", game)
     var viper: SubgameEntity? = null
     if (es != null)
         viper = es.o
 
-    self.velocity = (viper!!.moveinfo.dir * viper.moveinfo.speed).toArray()
-    // Math3D.VectorScale(viper!!.moveinfo.dir, viper.moveinfo.speed, self.velocity)
-
+    // the bomb goes same direction as the viper ship
+    val viperMove: MoveInfo = viper!!.getComponent()!!
+    self.velocity = (viperMove.dir * viperMove.speed).toArray()
+    self.getComponent<MoveInfo>()!!.dir = viperMove.dir.copy()
     self.timestamp = game.level.time
-    self.moveinfo.dir = viper.moveinfo.dir.copy()
-    // Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir)
 }
 
 /**
@@ -334,14 +338,11 @@ private val miscViperBombPrethink = registerThink("misc_viper_bomb_prethink") { 
     if (diff < -1.0)
         diff = -1.0f
 
-    val result = self.moveinfo.dir * (1.0f + diff)
-    // Math3D.VectorScale(self.moveinfo.dir, 1.0f + diff, v)
+    val result = self.getComponent<MoveInfo>()!!.dir * (1.0f + diff)
     val v = Vector3f(result.x, result.y, diff)
-    // v.z = diff
 
     diff = self.s.angles[2]
     self.s.angles =  v.toAngles()
-    // Math3D.vectoangles(v, self.s.angles)
     self.s.angles[2] = diff + 10
 
     true
