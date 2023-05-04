@@ -1,7 +1,6 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
-import jake2.game.components.MoveInfo;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -102,7 +101,6 @@ public class SubgameEntity extends edict_t {
     public float[] avelocity = { 0, 0, 0 };
     public float[] move_origin = { 0, 0, 0 }; //todo: move to turret
     public float[] move_angles = { 0, 0, 0 }; //todo: move to turret
-    public MoveInfo moveinfo = new MoveInfo(); //todo: move to component
 
     public int mass;
 
