@@ -191,8 +191,8 @@ private val turretBreachThink = registerThink("turret_breach_think") { self, gam
         var angle = self.s.angles[1] + self.owner.move_origin[1]
         angle *= (Math.PI * 2 / 360).toFloat()
         val target = floatArrayOf(0f, 0f, 0f)
-        target[0] = (self.s.origin[0] + cos(angle.toDouble()) * self.owner.move_origin[0]).toFloat().snapToEights()
-        target[1] = (self.s.origin[1] + sin(angle.toDouble()) * self.owner.move_origin[0]).toFloat().snapToEights()
+        target[0] = (self.s.origin[0] + cos(angle) * self.owner.move_origin[0]).snapToEights()
+        target[1] = (self.s.origin[1] + sin(angle) * self.owner.move_origin[0]).snapToEights()
         target[2] = self.owner.s.origin[2]
         val dir = floatArrayOf(0f, 0f, 0f)
         Math3D.VectorSubtract(target, self.owner.s.origin, dir)
@@ -201,7 +201,7 @@ private val turretBreachThink = registerThink("turret_breach_think") { self, gam
 
         // z
         angle = self.s.angles[Defines.PITCH] * (Math.PI * 2f / 360f).toFloat()
-        val targetZ = (self.s.origin[2] + self.owner.move_origin[0] * tan(angle.toDouble()) + self.owner.move_origin[2]).toFloat().snapToEights()
+        val targetZ = (self.s.origin[2] + self.owner.move_origin[0] * tan(angle) + self.owner.move_origin[2]).snapToEights()
         val diff = targetZ - self.owner.s.origin[2]
         self.owner.velocity[2] = diff * 1.0f / Defines.FRAMETIME
 
