@@ -58,8 +58,7 @@ private val moveBegin = registerThink("move_begin") { self, game ->
         return@registerThink true
     }
     self.velocity = (moveInfo.dir * moveInfo.speed).toArray()
-    val frames =
-        floor((moveInfo.remaining_distance / moveInfo.speed / Defines.FRAMETIME).toDouble()).toFloat()
+    val frames = floor(moveInfo.remaining_distance / moveInfo.speed / Defines.FRAMETIME)
     moveInfo.remaining_distance -= frames * moveInfo.speed * Defines.FRAMETIME
     self.think.nextTime = game.level.time + frames * Defines.FRAMETIME
     self.think.action = moveFinal
