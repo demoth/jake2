@@ -347,10 +347,11 @@ fun miscFlyingShip(self: SubgameEntity, game: GameExportsImpl, model: String) {
     self.use = miscFlyingShipUse
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
 
-    val moveInfo: MoveInfo = self.getComponent()!!
-    moveInfo.speed = self.speed
-    moveInfo.decel = self.speed
-    moveInfo.accel = self.speed
+    self.addComponent(MoveInfo(
+        speed = self.speed, 
+        accel = self.speed, 
+        decel = self.speed))
+    
     game.gameImports.linkentity(self)
 }
 
