@@ -95,13 +95,13 @@ public class SubgameEntity extends edict_t {
     public float speed;
     public float accel;
     public float decel;
-    public float[] movedir = { 0, 0, 0 };
-    public float[] pos1 = { 0, 0, 0 };
-    public float[] pos2 = { 0, 0, 0 };
+    public float[] movedir = { 0, 0, 0 }; //todo: split, move to MoveInfo & others
+    public float[] pos1 = { 0, 0, 0 };//todo: split, move to MoveInfo & monster
+    public float[] pos2 = { 0, 0, 0 }; //todo: move to MoveInfo?
     public float[] velocity = { 0, 0, 0 };
     public float[] avelocity = { 0, 0, 0 };
-    public float[] move_origin = { 0, 0, 0 };
-    public float[] move_angles = { 0, 0, 0 };
+    public float[] move_origin = { 0, 0, 0 }; //todo: move to turret
+    public float[] move_angles = { 0, 0, 0 }; //todo: move to turret
     public MoveInfo moveinfo = new MoveInfo(); //todo: move to component
 
     public int mass;
@@ -143,9 +143,6 @@ public class SubgameEntity extends edict_t {
     /** Move to clientinfo. */
     public float fly_sound_debounce_time;
 
-    // used only for target_earthquake as sound_debounce_time
-    public float last_move_time;
-
     public int health;
     /**
      * Type of damage. Also contains friendly fire bit flag. todo: split
@@ -156,7 +153,7 @@ public class SubgameEntity extends edict_t {
 
     public int gib_health;
 
-    public int deadflag;
+    public int deadflag; // todo: switch to boolean
 
     public int show_hostile;
 
@@ -474,7 +471,6 @@ public class SubgameEntity extends edict_t {
         f.writeFloat(damage_debounce_time);
 
         f.writeFloat(fly_sound_debounce_time);
-        f.writeFloat(last_move_time);
 
         f.writeInt(health);
         f.writeInt(max_health);
@@ -635,7 +631,6 @@ public class SubgameEntity extends edict_t {
         damage_debounce_time = f.readFloat();
 
         fly_sound_debounce_time = f.readFloat();
-        last_move_time = f.readFloat();
 
         health = f.readInt();
         max_health = f.readInt();
