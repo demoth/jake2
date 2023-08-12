@@ -41,18 +41,31 @@ open class AnimationSequenceState(
     }
 }
 
-class StateMachine(var currentState: State) {
+class StateMachine(
+    states: Collection<State>,
+    initialState: String = "idle"
+) {
+    private val stateMap: Map<String, State>
+    private var currentState: State
+    init {
+        assert(states.isNotEmpty())
+        stateMap = states.associateBy { it.name }
+        currentState = stateMap[initialState] ?: throw IllegalArgumentException("initial state $initialState is not found!")
+    }
+
+
     fun update(time: Float) {
         val nextState = currentState.update(time)
         if (nextState != null)
             attemptStateChange(nextState)
     }
 
-    fun attemptStateChange(newState: State): Boolean {
-        if (currentState.canExit() && newState.canEnter()) {
+    fun attemptStateChange(nextStateName: String): Boolean {
+        val nextState = stateMap[nextStateName] ?: throw IllegalStateException("state $nextStateName is not found!")
+        if (currentState.canExit() && nextState.canEnter()) {
             currentState.exit()
-            currentState = newState
-            newState.enter()
+            currentState = nextState
+            nextState.enter()
             return true
         }
         return false
