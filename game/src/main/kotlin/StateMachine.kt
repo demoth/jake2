@@ -43,7 +43,7 @@ open class AnimationSequenceState(
 
 class StateMachine(
     states: Collection<State>,
-    initialState: String = "idle"
+    initialState: String = "stand"
 ) {
     private val stateMap: Map<String, State>
     private var currentState: State
