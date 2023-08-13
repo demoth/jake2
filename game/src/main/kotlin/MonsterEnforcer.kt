@@ -3,7 +3,8 @@ package org.demoth
 import jake2.qcommon.math.Vector3f
 
 
-fun readSequences(): Collection<AnimationSequence> {
+fun createSequences(name: String): Collection<AnimationSequence> {
+    // hardcoded or parsed from json file or something
     TODO("Not yet implemented")
 }
 
@@ -24,13 +25,13 @@ attack1
 attack2
 
  */
-class GameCharacter : AnimationEventProcessor {
+class GameCharacter(name: String) : AnimationEventProcessor {
 
     private var health = 100f
     // other properties follow
 
     private val stateMachine: StateMachine = StateMachine(
-        readSequences().map {
+        createSequences(name).map {
             // other possible states?
             AnimationSequenceState(it.name, it, this)
             // "stand" state should have a random chance to transition into the "fidget" state
