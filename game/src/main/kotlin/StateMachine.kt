@@ -22,14 +22,12 @@ open class AnimationSequenceState(
     val animationSequence: AnimationSequence,
     eventProcessor: AnimationEventProcessor
 ) : State(name, eventProcessor) {
-    override fun canExit(): Boolean {
-        // if it's pain animation: problem: cannot die
-        return animationSequence.finished
-    }
 
-    override fun enter() {
-        animationSequence.reset()
-    }
+    // fixme: if it's pain animation: problem: cannot die
+    // return animationSequence.finished
+    override fun canExit() = true
+
+    override fun enter() = animationSequence.reset()
 
     override fun update(time: Float): String? {
         val events = animationSequence.update(time)
@@ -61,6 +59,9 @@ class StateMachine(
     }
 
     fun attemptStateChange(nextStateName: String): Boolean {
+        if (currentState.name == nextStateName)
+            return true
+
         val nextState = stateMap[nextStateName] ?: throw IllegalStateException("state $nextStateName is not found!")
         if (currentState.canExit() && nextState.canEnter()) {
             currentState.exit()

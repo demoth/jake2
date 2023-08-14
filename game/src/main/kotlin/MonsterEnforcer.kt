@@ -28,9 +28,12 @@ attack2
 class GameCharacter(name: String) : AnimationEventProcessor {
 
     private var health = 100f
+    private var stunThreshold = 0.5f
+    private var stunTime = 1f
+
     // other properties follow
 
-    private val stateMachine: StateMachine = StateMachine(
+    private val stateMachine = StateMachine(
         createSequences(name).map {
             // other possible states?
             AnimationSequenceState(it.name, it, this)
@@ -61,14 +64,19 @@ class GameCharacter(name: String) : AnimationEventProcessor {
         health -= amount
         if (health < 0f) {
             stateMachine.attemptStateChange("dead") // hesdeadjim
-        } else if (amount / health > 0.5f) {
-            // pain state will automatically transition to the "stand" state in the end of animation
-            stateMachine.attemptStateChange("pain")
+            // GameLogic.die(..)
+        } else {
+            if (amount / health > stunThreshold) {
+                // pain state will automatically transition to the "stand" state in the end of animation.
+                // fixme: what if we want pain to take less time (adjust stun time)
+                stateMachine.attemptStateChange("pain")
+            }
         }
     }
 
     //
-    // these commands are called either by AI or a Player
+    // these commands are called either by AI or a Player.
+    // could be called continuously
     //
     fun aim(to: Vector3f) {
         TODO()
@@ -77,7 +85,6 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
             // GameLogic.moveCharacter(...)
-
             // fixme: if called continuously, continue the same animation sequence
         }
     }
@@ -85,7 +92,7 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     fun jump() {
         if (stateMachine.attemptStateChange("jump")) {
             // GameLogic.tossCharacter(...)
-            // transitions to "stand" once hit the ground
+            // transitions to "stand" once hit the ground // todo: where is this code?
         }
     }
 
