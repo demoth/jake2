@@ -1,5 +1,7 @@
 package org.demoth
 
+import kotlin.random.Random
+
 fun interface AnimationEventProcessor {
     fun process(events: Collection<String>)
 }
@@ -23,8 +25,6 @@ open class AnimationSequenceState(
     eventProcessor: AnimationEventProcessor
 ) : State(name, eventProcessor) {
 
-    // fixme: if it's pain animation: problem: cannot die
-    // return animationSequence.finished
     override fun canExit() = true
 
     override fun enter() = animationSequence.reset()
@@ -76,9 +76,15 @@ class StateMachine(
 class StateMachine2(
     var states: Collection<State>,
     // from, to, check
-    var transitionMap: Map<String, Map<String, () -> Boolean>>, // can or should????
+    var transitionMap: MutableMap<String, Map<String, () -> Boolean>>, // should
 ) {
     var currentState = states.first()
+
+    init {
+        transitionMap["stand"] = mapOf(
+            "fidget" to { Random.nextFloat() < 0.15f } // cooldown, reset on enter stand
+        )
+    }
 
     fun attemptChange(name: String) {
         // check rules

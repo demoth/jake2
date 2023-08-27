@@ -1,6 +1,7 @@
 package org.demoth
 
 import jake2.qcommon.math.Vector3f
+import kotlin.random.Random
 
 
 fun createSequences(name: String): Collection<AnimationSequence> {
@@ -49,6 +50,10 @@ class GameCharacter(name: String) : AnimationEventProcessor {
                 }
                 "fart" -> {
                     // make funny sound
+                }
+                "try-fidget" -> {
+                    if (Random.nextFloat() < 0.15f)
+                        stateMachine.attemptStateChange("fidget")
                 }
                 else -> {
                     // whatever
