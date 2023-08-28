@@ -33,6 +33,7 @@ import jake2.qcommon.EntityParserKt;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import org.demoth.GameCharacterKt;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -261,7 +262,7 @@ public class GameSpawn {
     
     static {
         spawns = new HashMap<>();
-
+        spawns.put("new_monster", GameCharacterKt::spawnNewMonster);
         spawns.put("item_health", ItemsKt::itemHealthMedium);
         spawns.put("item_health_small", ItemsKt::itemHealthSmall);
         spawns.put("item_health_large", ItemsKt::itemHealthLarge);

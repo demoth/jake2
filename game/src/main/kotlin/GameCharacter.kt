@@ -1,6 +1,11 @@
 package org.demoth
 
+import jake2.game.GameDefines
+import jake2.game.GameExportsImpl
+import jake2.game.SubgameEntity
+import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.util.Math3D
 import kotlin.random.Random
 
 
@@ -104,5 +109,28 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     fun attack() {
         stateMachine.attemptStateChange("attack")
     }
+
+}
+
+
+fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
+
+    val entity = game.G_Spawn()
+    self.movetype = GameDefines.MOVETYPE_STEP
+    self.solid = Defines.SOLID_BBOX
+    self.s.modelindex = game.gameImports.modelindex("models/monsters/infantry/tris.md2")
+    self.svflags = self.svflags or Defines.SVF_MONSTER
+    self.s.renderfx = self.s.renderfx or Defines.RF_FRAMELERP
+    self.clipmask = Defines.MASK_MONSTERSOLID
+    self.s.skinnum = 0
+    self.deadflag = GameDefines.DEAD_NO
+    self.svflags = self.svflags and Defines.SVF_DEADMONSTER.inv()
+
+    Math3D.VectorSet(self.mins, -16f, -16f, -24f)
+    Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
+
+
+
+    game.gameImports.linkentity(entity)
 
 }

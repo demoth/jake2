@@ -10,6 +10,7 @@ import jake2.qcommon.edict_t;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
+import org.demoth.GameCharacter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -227,6 +228,8 @@ public class SubgameEntity extends edict_t {
 
     // fixme: make private
     public Map<String, Object> components = new HashMap<>();
+
+    public GameCharacter character; // todo: move to a component
 
     // todo: replace with a constructor call?
     void G_InitEdict(int i) {

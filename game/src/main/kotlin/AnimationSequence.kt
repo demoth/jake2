@@ -57,10 +57,11 @@ data class AnimationSequence(
             // Avoid eager list creation because mostly result will be empty
             events[nextFrameIndex]?.let {
                 if (eventsThisUpdate == null) {
-                    eventsThisUpdate = mutableListOf()
+                    eventsThisUpdate = mutableListOf(it)
+                } else {
+                    // If we have an event for the next frame, add it to the collection.
+                    eventsThisUpdate!!.add(it)
                 }
-                // If we have an event for the next frame, add it to the collection.
-                eventsThisUpdate!!.add(it)
             }
 
             // If the sequence is not looping, and we reach the end, mark it as finished
