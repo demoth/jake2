@@ -28,12 +28,17 @@ data class AnimationSequence(
     private var currentFrameIndex = 0
     private var interFrameTime = 0f // for inter frame interpolation between 0, and 0.1 (FRAME_TIME)
 
+    val currentFrame: Int
+        get() = frames[currentFrameIndex]
+
+
     fun reset() {
         currentSpeed = 1f
         currentFrameIndex = 0
         interFrameTime = 0f
         finished = false
     }
+
 
     /**
      * @param time - elapsed time, can cover multiple frames. In this case return all events associated with skipped frames

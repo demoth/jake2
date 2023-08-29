@@ -12,6 +12,8 @@ abstract class State(
     val nextState: String? = null
 ) {
 
+    abstract val currentFrame: Int // meh.. need to rethink the applicability of OOP here
+
     open fun canEnter() = true
     open fun canExit() = true
     open fun enter() {}
@@ -37,6 +39,9 @@ open class AnimationSequenceState(
 
         return null
     }
+
+    override val currentFrame: Int
+        get() = animationSequence.currentFrame
 }
 
 class StateMachine(
@@ -44,7 +49,7 @@ class StateMachine(
     initialState: String = "stand"
 ) {
     private val stateMap: Map<String, State>
-    private var currentState: State
+    var currentState: State
     init {
         assert(states.isNotEmpty())
         stateMap = states.associateBy { it.name }

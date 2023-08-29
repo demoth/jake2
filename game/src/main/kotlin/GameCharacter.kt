@@ -3,6 +3,8 @@ package org.demoth
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
 import jake2.game.SubgameEntity
+import jake2.game.adapters.SuperAdapter.Companion.registerThink
+import jake2.game.components.ThinkComponent
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
@@ -11,6 +13,8 @@ import kotlin.random.Random
 
 fun createSequences(name: String): Collection<AnimationSequence> {
     // hardcoded or parsed from json file or something
+    if (name == "enforcer")
+        return listOf(AnimationSequence("stand", (50..71).toList(), emptyMap(), true))
     TODO("Not yet implemented")
 }
 
@@ -36,6 +40,9 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     private var health = 100f
     private var stunThreshold = 0.5f
     private var stunTime = 1f
+    val currentFrame: Int
+        get() = stateMachine.currentState.currentFrame
+
 
     // other properties follow
 
@@ -129,7 +136,17 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
 
+    self.character = GameCharacter("enforcer") // new stuff!!
 
+    self.think = ThinkComponent().apply {
+        nextTime = game.level.time + Defines.FRAMETIME
+        action = registerThink("") { self, game ->
+            self.character.update(Defines.FRAMETIME) // YES!
+            self.s.frame = self.character.currentFrame
+            self.think.nextTime = game.level.time + Defines.FRAMETIME
+            true
+        }
+    }
 
     game.gameImports.linkentity(entity)
 
