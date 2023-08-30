@@ -1,49 +1,6 @@
-package org.demoth
+package jake2.game.character
 
 import kotlin.random.Random
-
-fun interface AnimationEventProcessor {
-    fun process(events: Collection<String>)
-}
-
-abstract class State(
-    val name: String,
-    val eventProcessor: AnimationEventProcessor,
-    val nextState: String? = null
-) {
-
-    abstract val currentFrame: Int // meh.. need to rethink the applicability of OOP here
-
-    open fun canEnter() = true
-    open fun canExit() = true
-    open fun enter() {}
-    open fun update(time: Float): String? = null
-    open fun exit() = true
-}
-
-open class AnimationSequenceState(
-    name: String,
-    val animationSequence: AnimationSequence,
-    eventProcessor: AnimationEventProcessor,
-    nextState: String? = null
-) : State(name, eventProcessor, nextState) {
-
-    override fun canExit() = true
-
-    override fun enter() = animationSequence.reset()
-
-    override fun update(time: Float): String? {
-        val events = animationSequence.update(time)
-        eventProcessor.process(events)
-        if (animationSequence.finished)
-            return nextState
-
-        return null
-    }
-
-    override val currentFrame: Int
-        get() = animationSequence.currentFrame
-}
 
 class StateMachine(
     states: Collection<State>,

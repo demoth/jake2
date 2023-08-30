@@ -1,4 +1,4 @@
-package org.demoth
+package org.demoth.jake2.game.character
 
 abstract class BhAbstractNode(protected val nodes: List<BhAbstractNode>) {
     abstract fun run(): Boolean

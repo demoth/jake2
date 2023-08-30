@@ -1,6 +1,7 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
+import jake2.game.character.GameCharacter;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -10,7 +11,6 @@ import jake2.qcommon.edict_t;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
-import org.demoth.GameCharacter;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -23,6 +23,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.character.GameCharacterKt;
 import jake2.game.func.*;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -33,7 +34,6 @@ import jake2.qcommon.EntityParserKt;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import org.demoth.GameCharacterKt;
 
 import java.util.*;
 import java.util.stream.Collectors;

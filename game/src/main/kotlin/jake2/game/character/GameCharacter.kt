@@ -1,4 +1,4 @@
-package org.demoth
+package jake2.game.character
 
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
@@ -12,6 +12,21 @@ import kotlin.random.Random
 
 
 fun createSequences(name: String): Collection<AnimationSequence> {
+    // Enforcer states:
+    //
+    // stand
+    // fidget
+    // walk
+    // run
+    // pain1
+    // pain2
+    // duck
+    // death1
+    // death2
+    // death3
+    // attack1
+    // attack2
+
     // hardcoded or parsed from json file or something
     if (name == "enforcer")
         return listOf(
@@ -32,23 +47,6 @@ fun createSequences(name: String): Collection<AnimationSequence> {
     TODO("Not yet implemented")
 }
 
-/*
-Enforcer states:
-
-stand
-fidget
-walk
-run
-pain1
-pain2
-duck
-death1
-death2
-death3
-attack1
-attack2
-
- */
 class GameCharacter(name: String) : AnimationEventProcessor {
 
     private var health = 100f
@@ -136,7 +134,6 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     }
 
 }
-
 
 fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 

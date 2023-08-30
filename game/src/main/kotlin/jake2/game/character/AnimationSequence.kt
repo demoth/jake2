@@ -1,4 +1,4 @@
-package org.demoth
+package jake2.game.character
 
 import java.lang.Integer.min
 

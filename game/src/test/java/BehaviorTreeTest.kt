@@ -1,6 +1,6 @@
-import org.demoth.BhSelector
-import org.demoth.BhSequence
-import org.demoth.BtNode
+import org.demoth.jake2.game.character.BhSelector
+import org.demoth.jake2.game.character.BhSequence
+import org.demoth.jake2.game.character.BtNode
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
