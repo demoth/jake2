@@ -24,8 +24,9 @@ abstract class State(
 open class AnimationSequenceState(
     name: String,
     val animationSequence: AnimationSequence,
-    eventProcessor: AnimationEventProcessor
-) : State(name, eventProcessor) {
+    eventProcessor: AnimationEventProcessor,
+    nextState: String? = null
+) : State(name, eventProcessor, nextState) {
 
     override fun canExit() = true
 

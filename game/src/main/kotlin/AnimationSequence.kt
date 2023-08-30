@@ -20,6 +20,7 @@ data class AnimationSequence(
     // frame -> event name
     val events: Map<Int, String>,
     val loop: Boolean,
+    val nextState: String? = null // next state after the animation is finished (only in case of non looped)
 ) {
 
     var currentSpeed: Float = 1f // time multiplier

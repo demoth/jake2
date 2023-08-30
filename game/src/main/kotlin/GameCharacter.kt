@@ -14,7 +14,21 @@ import kotlin.random.Random
 fun createSequences(name: String): Collection<AnimationSequence> {
     // hardcoded or parsed from json file or something
     if (name == "enforcer")
-        return listOf(AnimationSequence("stand", (50..71).toList(), emptyMap(), true))
+        return listOf(
+            AnimationSequence(
+                name = "stand",
+                frames = (50..71).toList(),
+                events = mapOf(1 to "try-fidget"),
+                loop = true
+            ),
+            AnimationSequence(
+                name = "fidget",
+                frames = (1..49).toList(),
+                events = emptyMap(),
+                loop = false,
+                nextState = "stand"
+            )
+        )
     TODO("Not yet implemented")
 }
 
@@ -49,25 +63,29 @@ class GameCharacter(name: String) : AnimationEventProcessor {
     private val stateMachine = StateMachine(
         createSequences(name).map {
             // other possible states?
-            AnimationSequenceState(it.name, it, this)
-            // "stand" state should have a random chance to transition into the "fidget" state
+            AnimationSequenceState(it.name, it, this, it.nextState)
         }
     )
 
     override fun process(events: Collection<String>) {
         events.forEach {
+            println("processing event: $it")
             when (it) {
                 "fire" -> {
                     // GameLogic.createProjectile(...)
                 }
+
                 "fart" -> {
                     // make funny sound
                 }
+
                 "try-fidget" -> {
-                    if (Random.nextFloat() < 0.15f)
+                    if (Random.nextFloat() < 0.5f)
                         stateMachine.attemptStateChange("fidget")
                 }
+
                 else -> {
+                    println("unexpected event: $it")
                     // whatever
                 }
             }
