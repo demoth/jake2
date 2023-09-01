@@ -47,7 +47,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
     TODO("Not yet implemented")
 }
 
-class GameCharacter(name: String) : AnimationEventProcessor {
+class GameCharacter(name: String, var soundPlayer: (soundName: String) -> Unit) : AnimationEventProcessor {
 
     private var health = 100f
     private var stunThreshold = 0.5f
@@ -78,8 +78,10 @@ class GameCharacter(name: String) : AnimationEventProcessor {
                 }
 
                 "try-fidget" -> {
-                    if (Random.nextFloat() < 0.5f)
+                    if (Random.nextFloat() < 0.2f) {
+                        soundPlayer.invoke("fidget")
                         stateMachine.attemptStateChange("fidget")
+                    }
                 }
 
                 else -> {
@@ -151,7 +153,19 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
 
-    self.character = GameCharacter("enforcer") // new stuff!!
+    // todo: cleanup
+    val soundIdle = game.gameImports.soundindex("infantry/infidle1.wav")
+
+    self.character = GameCharacter("enforcer") {
+        // todo: create a better interface game <-> character
+        when (it) {
+            "fidget" ->
+                game.gameImports.sound(
+                    self, Defines.CHAN_VOICE, soundIdle, 1f,
+                    Defines.ATTN_IDLE.toFloat(), 0f
+                )
+        }
+    } // new stuff!!
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME
