@@ -42,12 +42,19 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 events = emptyMap(),
                 loop = false,
                 nextState = "stand"
+            ),
+            AnimationSequence(
+                name="pain",
+                frames = (100..109).toList(),
+                events = mapOf(1 to "sound-pain-event"),
+                loop = false,
+                nextState = "stand"
             )
         )
     TODO("Not yet implemented")
 }
 
-class GameCharacter(name: String, var soundPlayer: (soundName: String) -> Unit) : AnimationEventProcessor {
+class GameCharacter(name: String, private var soundPlayer: (soundName: String) -> Unit) : AnimationEventProcessor {
 
     private var health = 100f
     private var stunThreshold = 0.5f
@@ -73,10 +80,6 @@ class GameCharacter(name: String, var soundPlayer: (soundName: String) -> Unit) 
                     // GameLogic.createProjectile(...)
                 }
 
-                "fart" -> {
-                    // make funny sound
-                }
-
                 "try-fidget" -> {
                     if (Random.nextFloat() < 0.2f) {
                         soundPlayer.invoke("fidget")
@@ -84,9 +87,10 @@ class GameCharacter(name: String, var soundPlayer: (soundName: String) -> Unit) 
                     }
                 }
 
+                "sound-pain-event" -> soundPlayer.invoke("sound-pain")
+
                 else -> {
                     println("unexpected event: $it")
-                    // whatever
                 }
             }
         }
@@ -135,6 +139,10 @@ class GameCharacter(name: String, var soundPlayer: (soundName: String) -> Unit) 
         stateMachine.attemptStateChange("attack")
     }
 
+    fun reactToDamage(damage: Int) {
+        stateMachine.attemptStateChange("pain")
+    }
+
 }
 
 fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
@@ -149,12 +157,15 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     self.s.skinnum = 0
     self.deadflag = GameDefines.DEAD_NO
     self.svflags = self.svflags and Defines.SVF_DEADMONSTER.inv()
+    self.takedamage = Defines.DAMAGE_YES
+    self.health = 500
 
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
 
     // todo: cleanup
     val soundIdle = game.gameImports.soundindex("infantry/infidle1.wav")
+    val soundPain = game.gameImports.soundindex("infantry/infpain1.wav")
 
     self.character = GameCharacter("enforcer") {
         // todo: create a better interface game <-> character
@@ -164,6 +175,12 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
                     self, Defines.CHAN_VOICE, soundIdle, 1f,
                     Defines.ATTN_IDLE.toFloat(), 0f
                 )
+            "sound-pain" ->
+                    game.gameImports.sound(
+                        self, Defines.CHAN_VOICE, soundPain, 1f,
+                        Defines.ATTN_IDLE.toFloat(), 0f
+                    )
+
         }
     } // new stuff!!
 

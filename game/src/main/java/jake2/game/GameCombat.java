@@ -392,7 +392,7 @@ public class GameCombat {
 
     /**
      *
-     * Calculates damage, plays sounds and sents network updates.
+     * Calculates damage, plays sounds and sends network updates.
      * TODO: split?
      *
      * @param target - entity receiving damage
@@ -404,7 +404,7 @@ public class GameCombat {
      * @param damage - amount of damage
      * @param knockback - amount of knowback
      * @param damageFlags - {@link DamageFlags}
-     * @param mod - means of death
+     * @param mod - means of death ( + friendly fire flag)
      * todo: infer nullify
      */
     public static void T_Damage(SubgameEntity target, SubgameEntity inflictor, SubgameEntity attacker,
@@ -418,7 +418,7 @@ public class GameCombat {
         // if enabled you can't hurt teammates (but you can hurt yourself)
         // knockback still occurs
         final GameCvars cvars = gameExports.gameCvars;
-        if ((target != attacker)
+        if (target != attacker
                 && ((cvars.deathmatch.value != 0 && 0 != ((int) (cvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.value != 0)) {
             if (GameUtil.OnSameTeam(target, attacker, gameExports.gameCvars.dmflags.value)) {
                 if (((int) (cvars.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
@@ -507,11 +507,7 @@ public class GameCombat {
     
         // treat cheat/powerup savings the same as armor
         armorSaved += saved;
-    
-        // team damage avoidance
-        if (0 == (damageFlags & DamageFlags.DAMAGE_NO_PROTECTION) && CheckTeamDamage(target, attacker))
-            return;
-    
+
         // do the damage
         if (received != 0) {
             if (0 != (target.svflags & Defines.SVF_MONSTER) || targetClient != null)
@@ -529,6 +525,11 @@ public class GameCombat {
             }
         }
 
+        if (target.character != null) {
+            target.character.reactToDamage(damage);
+            return;
+        }
+
         // React to the received damage
         if ((target.svflags & Defines.SVF_MONSTER) != 0) {
             M_ReactToDamage(target, attacker, gameExports);
@@ -538,10 +539,7 @@ public class GameCombat {
                 if (cvars.skill.value == 3)
                     target.pain_debounce_time = gameExports.level.time + 5;
             }
-        } else if (targetClient != null) {
-            if (((target.flags & GameDefines.FL_GODMODE) == 0) && received != 0)
-                target.pain.pain(target, attacker, knockback, received, gameExports);
-        } else if (received != 0) {
+        }  else if (received != 0) {
             if (target.pain != null)
                 target.pain.pain(target, attacker, knockback, received, gameExports);
         }
