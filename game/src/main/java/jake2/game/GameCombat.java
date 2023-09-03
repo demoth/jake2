@@ -515,6 +515,11 @@ public class GameCombat {
             else
                 SpawnDamage(sparks, point, normal, received, gameExports);
 
+            if (target.character != null) {
+                target.character.reactToDamage(damage);
+                return;
+            }
+
             target.health -= received;
     
             if (target.health <= 0) {
@@ -525,10 +530,6 @@ public class GameCombat {
             }
         }
 
-        if (target.character != null) {
-            target.character.reactToDamage(damage);
-            return;
-        }
 
         // React to the received damage
         if ((target.svflags & Defines.SVF_MONSTER) != 0) {

@@ -49,6 +49,12 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 events = mapOf(1 to "sound-pain-event"),
                 loop = false,
                 nextState = "stand"
+            ),
+            AnimationSequence(
+                name="dead",
+                frames = (125..144).toList(),
+                events = mapOf(1 to "sound-dead-event"),
+                loop = false
             )
         )
     TODO("Not yet implemented")
@@ -89,6 +95,8 @@ class GameCharacter(name: String, private var soundPlayer: (soundName: String) -
 
                 "sound-pain-event" -> soundPlayer.invoke("sound-pain")
 
+                "sound-dead-event" -> soundPlayer.invoke("sound-dead")
+
                 else -> {
                     println("unexpected event: $it")
                 }
@@ -97,21 +105,6 @@ class GameCharacter(name: String, private var soundPlayer: (soundName: String) -
     }
 
     fun update(time: Float) = stateMachine.update(time)
-
-    // called by the GameLogic
-    fun applyDamage(amount: Float) {
-        health -= amount
-        if (health < 0f) {
-            stateMachine.attemptStateChange("dead") // hesdeadjim
-            // GameLogic.die(..)
-        } else {
-            if (amount / health > stunThreshold) {
-                // pain state will automatically transition to the "stand" state in the end of animation.
-                // fixme: what if we want pain to take less time (adjust stun time)
-                stateMachine.attemptStateChange("pain")
-            }
-        }
-    }
 
     //
     // these commands are called either by AI or a Player.
@@ -140,7 +133,11 @@ class GameCharacter(name: String, private var soundPlayer: (soundName: String) -
     }
 
     fun reactToDamage(damage: Int) {
-        stateMachine.attemptStateChange("pain")
+        health -= damage
+        if (health > 0)
+            stateMachine.attemptStateChange("pain")
+        else
+            stateMachine.attemptStateChange("dead")
     }
 
 }
@@ -158,7 +155,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     self.deadflag = GameDefines.DEAD_NO
     self.svflags = self.svflags and Defines.SVF_DEADMONSTER.inv()
     self.takedamage = Defines.DAMAGE_YES
-    self.health = 500
+    self.health = 100
 
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
@@ -166,6 +163,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     // todo: cleanup
     val soundIdle = game.gameImports.soundindex("infantry/infidle1.wav")
     val soundPain = game.gameImports.soundindex("infantry/infpain1.wav")
+    val soundDead = game.gameImports.soundindex("infantry/infdeth1.wav")
 
     self.character = GameCharacter("enforcer") {
         // todo: create a better interface game <-> character
@@ -180,13 +178,18 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
                         self, Defines.CHAN_VOICE, soundPain, 1f,
                         Defines.ATTN_IDLE.toFloat(), 0f
                     )
+            "sound-dead" ->
+                game.gameImports.sound(
+                    self, Defines.CHAN_VOICE, soundDead, 1f,
+                    Defines.ATTN_IDLE.toFloat(), 0f
+                )
 
         }
     } // new stuff!!
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME
-        action = registerThink("") { self, game ->
+        action = registerThink("new_monster_think") { self, game ->
             self.character.update(Defines.FRAMETIME) // YES!
             self.s.frame = self.character.currentFrame
             self.think.nextTime = game.level.time + Defines.FRAMETIME
