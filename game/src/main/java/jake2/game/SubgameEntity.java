@@ -1,6 +1,7 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
+import jake2.game.character.GameCharacter;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -227,6 +228,8 @@ public class SubgameEntity extends edict_t {
 
     // fixme: make private
     public Map<String, Object> components = new HashMap<>();
+
+    public GameCharacter character; // todo: move to a component
 
     // todo: replace with a constructor call?
     void G_InitEdict(int i) {

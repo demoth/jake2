@@ -23,6 +23,7 @@
 package jake2.game;
 
 import jake2.game.adapters.EntThinkAdapter;
+import jake2.game.character.GameCharacterKt;
 import jake2.game.func.*;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
@@ -261,7 +262,7 @@ public class GameSpawn {
     
     static {
         spawns = new HashMap<>();
-
+        spawns.put("new_monster", GameCharacterKt::spawnNewMonster);
         spawns.put("item_health", ItemsKt::itemHealthMedium);
         spawns.put("item_health_small", ItemsKt::itemHealthSmall);
         spawns.put("item_health_large", ItemsKt::itemHealthLarge);
