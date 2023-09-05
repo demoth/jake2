@@ -39,7 +39,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
             AnimationSequence(
                 name = "fidget",
                 frames = (1..49).toList(),
-                events = emptyMap(),
+                events = mapOf(1 to "sound-fidget-event"),
                 loop = false,
                 nextState = "stand"
             ),
@@ -60,7 +60,22 @@ fun createSequences(name: String): Collection<AnimationSequence> {
     TODO("Not yet implemented")
 }
 
-class GameCharacter(name: String, private var soundPlayer: (soundName: String) -> Unit) : AnimationEventProcessor {
+class GameCharacter(
+    private val self: SubgameEntity,
+    private val game: GameExportsImpl,
+    name: String,
+//    private var soundPlayer: (soundName: String) -> Unit
+) : AnimationEventProcessor {
+    val soundFidget: Int
+    val soundPain: Int
+    val soundDead: Int
+
+    init {
+        // fixme: come up with a better resource precache approach
+        soundFidget = game.gameImports.soundindex("infantry/infidle1.wav")
+        soundPain = game.gameImports.soundindex("infantry/infpain1.wav")
+        soundDead = game.gameImports.soundindex("infantry/infdeth1.wav")
+    }
 
     private var health = 100f
     private var stunThreshold = 0.5f
@@ -81,21 +96,16 @@ class GameCharacter(name: String, private var soundPlayer: (soundName: String) -
     override fun process(events: Collection<String>) {
         events.forEach {
             println("processing event: $it")
-            when (it) {
-                "fire" -> {
-                    // GameLogic.createProjectile(...)
-                }
 
+            when (it) {
                 "try-fidget" -> {
                     if (Random.nextFloat() < 0.2f) {
-                        soundPlayer.invoke("fidget")
                         stateMachine.attemptStateChange("fidget")
                     }
                 }
-
-                "sound-pain-event" -> soundPlayer.invoke("sound-pain")
-
-                "sound-dead-event" -> soundPlayer.invoke("sound-dead")
+                "sound-fidget-event" -> sound(soundFidget)
+                "sound-pain-event" -> sound(soundPain)
+                "sound-dead-event" -> sound(soundDead)
 
                 else -> {
                     println("unexpected event: $it")
@@ -140,6 +150,14 @@ class GameCharacter(name: String, private var soundPlayer: (soundName: String) -
             stateMachine.attemptStateChange("dead")
     }
 
+    private fun sound(soundIndex: Int,
+                      channel: Int = Defines.CHAN_VOICE,
+                      volume: Float = 1f,
+                      attenuation: Float = Defines.ATTN_IDLE.toFloat(),
+                      timeOffset: Float = 0f) {
+        game.gameImports.sound(self, channel, soundIndex, volume, attenuation, timeOffset)
+    }
+
 }
 
 fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
@@ -160,35 +178,11 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
 
-    // todo: cleanup
-    val soundIdle = game.gameImports.soundindex("infantry/infidle1.wav")
-    val soundPain = game.gameImports.soundindex("infantry/infpain1.wav")
-    val soundDead = game.gameImports.soundindex("infantry/infdeth1.wav")
-
-    self.character = GameCharacter("enforcer") {
-        // todo: create a better interface game <-> character
-        when (it) {
-            "fidget" ->
-                game.gameImports.sound(
-                    self, Defines.CHAN_VOICE, soundIdle, 1f,
-                    Defines.ATTN_IDLE.toFloat(), 0f
-                )
-            "sound-pain" ->
-                    game.gameImports.sound(
-                        self, Defines.CHAN_VOICE, soundPain, 1f,
-                        Defines.ATTN_IDLE.toFloat(), 0f
-                    )
-            "sound-dead" ->
-                game.gameImports.sound(
-                    self, Defines.CHAN_VOICE, soundDead, 1f,
-                    Defines.ATTN_IDLE.toFloat(), 0f
-                )
-
-        }
-    } // new stuff!!
+    self.character = GameCharacter(self, game, "enforcer") // new stuff!!
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME
+        // fixme: register think should be called before level loading (due to de/serialization)
         action = registerThink("new_monster_think") { self, game ->
             self.character.update(Defines.FRAMETIME) // YES!
             self.s.frame = self.character.currentFrame
