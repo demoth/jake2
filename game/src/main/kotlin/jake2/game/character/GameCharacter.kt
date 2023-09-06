@@ -150,6 +150,8 @@ class GameCharacter(
 
     fun reactToDamage(damage: Int) {
         health -= damage
+        if (health < 50) // injured skin threshold
+            self.s.skinnum = 1
         if (health > 0)
             stateMachine.attemptStateChange("pain")
         else
