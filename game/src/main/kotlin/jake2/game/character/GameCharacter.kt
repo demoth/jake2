@@ -55,6 +55,12 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 frames = (125..144).toList(),
                 events = mapOf(1 to "sound-dead-event"),
                 loop = false
+            ),
+            AnimationSequence(
+                name="walk",
+                frames = (74..85).toList(),
+                events = emptyMap(),
+                loop = true
             )
         )
     TODO("Not yet implemented")
