@@ -96,7 +96,7 @@ public class SubgameEntity extends edict_t {
     public float accel;
     public float decel;
     public float[] movedir = { 0, 0, 0 }; //todo: split, move to MoveInfo & others
-    public float[] pos1 = { 0, 0, 0 };//todo: split, move to MoveInfo & monster
+    public float[] pos1 = { 0, 0, 0 };//todo: split, move to MoveInfo & monster // todo: used by railgun mobs to shoot at players previous position
     public float[] pos2 = { 0, 0, 0 }; //todo: move to MoveInfo?
     public float[] velocity = { 0, 0, 0 };
     public float[] avelocity = { 0, 0, 0 };
