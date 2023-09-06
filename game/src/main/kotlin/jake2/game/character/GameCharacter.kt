@@ -76,6 +76,8 @@ class GameCharacter(
     val soundPain: Int
     val soundDead: Int
 
+    var walkFrames = 30
+
     init {
         // fixme: come up with a better resource precache approach
         soundFidget = game.gameImports.soundindex("infantry/infidle1.wav")
@@ -107,6 +109,9 @@ class GameCharacter(
                 "try-fidget" -> {
                     if (Random.nextFloat() < 0.2f) {
                         stateMachine.attemptStateChange("fidget")
+                    } else if (Random.nextFloat() < 0.2f) {
+                        // walk: todo: remove
+                        stateMachine.attemptStateChange("walk")
                     }
                 }
                 "sound-fidget-event" -> sound(soundFidget)
