@@ -85,7 +85,7 @@ class GameCharacter(
         soundDead = game.gameImports.soundindex("infantry/infdeth1.wav")
     }
 
-    private var health = 100f
+    var health = 100f
     private var stunThreshold = 0.5f
     private var stunTime = 1f
     val currentFrame: Int
@@ -109,9 +109,6 @@ class GameCharacter(
                 "try-fidget" -> {
                     if (Random.nextFloat() < 0.2f) {
                         stateMachine.attemptStateChange("fidget")
-                    } else if (Random.nextFloat() < 0.2f) {
-                        // walk: todo: remove
-                        stateMachine.attemptStateChange("walk")
                     }
                 }
                 "sound-fidget-event" -> sound(soundFidget)
@@ -140,6 +137,11 @@ class GameCharacter(
             // GameLogic.moveCharacter(...)
             // fixme: if called continuously, continue the same animation sequence
         }
+    }
+
+    fun stand() {
+        if (stateMachine.currentState.name != "fidget" && stateMachine.currentState.name != "stand")
+            stateMachine.attemptStateChange("stand")
     }
 
     fun jump() {
@@ -192,6 +194,16 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
 
     self.character = GameCharacter(self, game, "enforcer") // new stuff!!
+
+    self.controller = BhSelector(
+        BhSequence (
+            BtNode { self.character.health < 50 },
+            BtNode { self.character.walk(); true }
+        ),
+        BhSequence (
+            BtNode { self.character.stand(); true }
+        )
+    )
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME

@@ -1,7 +1,11 @@
-package org.demoth.jake2.game.character
+package jake2.game.character
 
-abstract class BhAbstractNode(protected val nodes: List<BhAbstractNode>) {
-    abstract fun run(): Boolean
+
+interface BehaviorTree {
+    fun run(): Boolean
+}
+abstract class BhAbstractNode(protected val nodes: List<BhAbstractNode>): BehaviorTree {
+    abstract override fun run(): Boolean
 }
 
 /**
