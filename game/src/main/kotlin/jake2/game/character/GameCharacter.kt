@@ -201,9 +201,9 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         sequence(
             node { self.character.health < 50 },
             // look for a medkit
-            node { medkitLocation = Vector3f.one; true },
+            node { medkitLocation = Vector3f.one; medkitLocation != null }, // MonsterAiHelper.find(game, "medkit")
             // aim
-            node { if (medkitLocation != null) false else {self.character.aim(medkitLocation!!); true } },
+            node { self.character.aim(medkitLocation!!); true }, // if cannot aim (frozen/stunned) -> exit
             // walk forward
             finish { self.character.walk() }
         ),
