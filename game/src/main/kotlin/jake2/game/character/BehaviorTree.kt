@@ -37,27 +37,12 @@ class BtNode(private val condition: () -> Boolean) : BhAbstractNode(emptyList())
     }
 }
 
-fun main() {
-    // example of usage:
-    val controller: Map<String, () -> Boolean> = hashMapOf()
-    val blackboard = hashMapOf("health" to 100, "enemy-found" to 0)
 
-    val simpleMonster = BhSelector(
-        BhSequence(
-            // check if we can attack
-            BtNode { blackboard["enemy-found"] != 0 },
-            BtNode { controller["attack"]!!.invoke() }
-        ),
-        BhSequence(
-            // heal
-            BtNode { blackboard["health"]!! < 25 },
-            BtNode { controller["find-medkit"]!!.invoke() }
+// short names (come up with better names?)
+fun selector(vararg nodes: BhAbstractNode) = BhSelector(*nodes)
 
-        ),
-        BhSequence(
-            // try to find a target
-            BtNode { controller["search-target"]!!.invoke() }
-        )
-    )
-    simpleMonster.run()
-}
+fun sequence(vararg nodes: BhAbstractNode) = BhSequence(*nodes)
+
+fun node(condition: () -> Boolean) = BtNode(condition)
+
+fun finish(condition: () -> Unit) = BtNode { condition.invoke(); true }

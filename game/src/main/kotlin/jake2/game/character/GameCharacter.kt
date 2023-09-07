@@ -139,7 +139,7 @@ class GameCharacter(
         }
     }
 
-    fun stand() {
+    fun doNothing() {
         if (stateMachine.currentState.name != "fidget" && stateMachine.currentState.name != "stand")
             stateMachine.attemptStateChange("stand")
     }
@@ -184,7 +184,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     self.svflags = self.svflags or Defines.SVF_MONSTER
     self.s.renderfx = self.s.renderfx or Defines.RF_FRAMELERP
     self.clipmask = Defines.MASK_MONSTERSOLID
-    self.s.skinnum = 0
+    self.s.skinnum = 0 // healthy
     self.deadflag = GameDefines.DEAD_NO
     self.svflags = self.svflags and Defines.SVF_DEADMONSTER.inv()
     self.takedamage = Defines.DAMAGE_YES
@@ -195,13 +195,20 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
     self.character = GameCharacter(self, game, "enforcer") // new stuff!!
 
-    self.controller = BhSelector(
-        BhSequence (
-            BtNode { self.character.health < 50 },
-            BtNode { self.character.walk(); true }
+    var medkitLocation: Vector3f? = null
+
+    self.controller = selector(
+        sequence(
+            node { self.character.health < 50 },
+            // look for a medkit
+            node { medkitLocation = Vector3f.one; true },
+            // aim
+            node { if (medkitLocation != null) false else {self.character.aim(medkitLocation!!); true } },
+            // walk forward
+            finish { self.character.walk() }
         ),
-        BhSequence (
-            BtNode { self.character.stand(); true }
+        sequence(
+            finish { self.character.doNothing() }
         )
     )
 
@@ -209,7 +216,11 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         nextTime = game.level.time + Defines.FRAMETIME
         // fixme: register think should be called before level loading (due to de/serialization)
         action = registerThink("new_monster_think") { self, game ->
-            self.character.update(Defines.FRAMETIME) // YES!
+            // YES! new good stuff
+            self.controller.run()
+            self.character.update(Defines.FRAMETIME)
+
+            // leftovers
             self.s.frame = self.character.currentFrame
             self.think.nextTime = game.level.time + Defines.FRAMETIME
             true
