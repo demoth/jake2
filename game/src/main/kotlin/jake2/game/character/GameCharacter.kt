@@ -2,6 +2,7 @@ package jake2.game.character
 
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
+import jake2.game.M
 import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
@@ -201,11 +202,14 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         sequence(
             node { self.character.health < 50 },
             // look for a medkit
-            node { medkitLocation = Vector3f.one; medkitLocation != null }, // MonsterAiHelper.find(game, "medkit")
+//            node { medkitLocation = Vector3f.one; medkitLocation != null }, // MonsterAiHelper.find(game, "medkit")
             // aim
-            node { self.character.aim(medkitLocation!!); true }, // if cannot aim (frozen/stunned) -> exit
+//            node { self.character.aim(medkitLocation!!); true }, // if cannot aim (frozen/stunned) -> exit
             // walk forward
-            finish { self.character.walk() }
+            finish {
+                M.M_walkmove(self, 0f, 5f, game)
+                self.character.walk()
+            }
         ),
         sequence(
             finish { self.character.doNothing() }
