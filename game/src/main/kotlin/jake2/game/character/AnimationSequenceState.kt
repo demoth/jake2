@@ -4,10 +4,9 @@ open class AnimationSequenceState(
     name: String,
     private val animationSequence: AnimationSequence,
     eventProcessor: AnimationEventProcessor,
-    nextState: String? = null
-) : State(name, eventProcessor, nextState) {
-
-    override fun canExit() = true
+    nextState: String?,
+    type: StateType
+) : State(name, eventProcessor, nextState, type) {
 
     override fun enter() = animationSequence.reset()
 

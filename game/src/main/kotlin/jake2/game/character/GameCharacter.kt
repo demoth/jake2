@@ -14,17 +14,26 @@ import kotlin.random.Random
 
 fun createSequences(name: String): Collection<AnimationSequence> {
     // Enforcer states:
-    //
+
+    // IDLE states:
     // stand
     // fidget
+
+    // MOVEMENT states:
+    // duck
     // walk
     // run
+
+    // PAIN states:
     // pain1
     // pain2
-    // duck
+
+    // DEAD states
     // death1
     // death2
     // death3
+
+    // ATTACK states
     // attack1
     // attack2
 
@@ -33,12 +42,14 @@ fun createSequences(name: String): Collection<AnimationSequence> {
         return listOf(
             AnimationSequence(
                 name = "stand",
+                type = StateType.IDLE,
                 frames = (50..71).toList(),
                 events = mapOf(1 to "try-fidget"),
                 loop = true
             ),
             AnimationSequence(
                 name = "fidget",
+                type = StateType.IDLE,
                 frames = (1..49).toList(),
                 events = mapOf(1 to "sound-fidget-event"),
                 loop = false,
@@ -46,6 +57,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
             ),
             AnimationSequence(
                 name="pain",
+                type = StateType.PAIN,
                 frames = (100..109).toList(),
                 events = mapOf(1 to "sound-pain-event"),
                 loop = false,
@@ -53,12 +65,14 @@ fun createSequences(name: String): Collection<AnimationSequence> {
             ),
             AnimationSequence(
                 name="dead",
+                type = StateType.DEAD,
                 frames = (125..144).toList(),
                 events = mapOf(1 to "sound-dead-event"),
                 loop = false
             ),
             AnimationSequence(
                 name="walk",
+                type = StateType.MOVEMENT,
                 frames = (74..85).toList(),
                 events = emptyMap(),
                 loop = true
@@ -72,35 +86,23 @@ class GameCharacter(
     private val game: GameExportsImpl,
     name: String,
 //    private var soundPlayer: (soundName: String) -> Unit
-) : AnimationEventProcessor {
-    val soundFidget: Int
-    val soundPain: Int
-    val soundDead: Int
-
-    var walkFrames = 30
-
-    init {
-        // fixme: come up with a better resource precache approach
-        soundFidget = game.gameImports.soundindex("infantry/infidle1.wav")
-        soundPain = game.gameImports.soundindex("infantry/infpain1.wav")
-        soundDead = game.gameImports.soundindex("infantry/infdeth1.wav")
-    }
+) : AnimationEventProcessor, StateTransitionRules {
+    // fixme: come up with a better resource precache approach
+    private val soundFidget: Int = game.gameImports.soundindex("infantry/infidle1.wav")
+    private val soundPain: Int = game.gameImports.soundindex("infantry/infpain1.wav")
+    private val soundDead: Int = game.gameImports.soundindex("infantry/infdeth1.wav")
 
     var health = 100f
-    private var stunThreshold = 0.5f
-    private var stunTime = 1f
     val currentFrame: Int
         get() = stateMachine.currentState.currentFrame
 
 
     // other properties follow
 
-    private val stateMachine = StateMachine(
-        createSequences(name).map {
-            // other possible states?
-            AnimationSequenceState(it.name, it, this, it.nextState)
-        }
-    )
+    private val stateMachine = StateMachine(createSequences(name).map {
+        // other possible states?
+        AnimationSequenceState(it.name, it, this, it.nextState, it.type)
+    }, this)
 
     override fun process(events: Collection<String>) {
         events.forEach {
@@ -123,6 +125,18 @@ class GameCharacter(
         }
     }
 
+    // ai wants to walk, currently stunned
+    // ai wants to walk, currently idle
+    override fun transitionAllowed(from: StateType, to: StateType): Boolean {
+        return when (from) {
+            StateType.DEAD -> false
+            StateType.PAIN -> to == StateType.DEAD // automatically transitions to IDLE
+            StateType.IDLE -> true
+            StateType.MOVEMENT -> true
+            StateType.ATTACK -> true
+        }
+    }
+
     fun update(time: Float) = stateMachine.update(time)
 
     //
@@ -135,13 +149,12 @@ class GameCharacter(
 
     fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
-            // GameLogic.moveCharacter(...)
-            // fixme: if called continuously, continue the same animation sequence
+            M.M_walkmove(self, 0f, 5f, game)
         }
     }
 
-    fun doNothing() {
-        if (stateMachine.currentState.name != "fidget" && stateMachine.currentState.name != "stand")
+    fun idle() {
+        if (stateMachine.currentState.type != StateType.IDLE) // not to interrupt the fidget animation
             stateMachine.attemptStateChange("stand")
     }
 
@@ -196,23 +209,15 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
     self.character = GameCharacter(self, game, "enforcer") // new stuff!!
 
-    var medkitLocation: Vector3f? = null
-
     self.controller = selector(
         sequence(
             node { self.character.health < 50 },
-            // look for a medkit
-//            node { medkitLocation = Vector3f.one; medkitLocation != null }, // MonsterAiHelper.find(game, "medkit")
-            // aim
-//            node { self.character.aim(medkitLocation!!); true }, // if cannot aim (frozen/stunned) -> exit
-            // walk forward
             finish {
-                M.M_walkmove(self, 0f, 5f, game)
                 self.character.walk()
             }
         ),
         sequence(
-            finish { self.character.doNothing() }
+            finish { self.character.idle() }
         )
     )
 

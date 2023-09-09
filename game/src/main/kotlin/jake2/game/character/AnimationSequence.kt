@@ -10,6 +10,7 @@ private const val FRAME_TIME = 0.1f
 data class AnimationSequence(
 
     val name: String,
+    val type: StateType,
 
     /*
     List of frame indices, which current animation sequence loops through.

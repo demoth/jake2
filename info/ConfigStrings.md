@@ -1,4 +1,4 @@
-#Config strings
+# Config strings
 
 Config strings are a general means of communication from the server to all connected clients.
 

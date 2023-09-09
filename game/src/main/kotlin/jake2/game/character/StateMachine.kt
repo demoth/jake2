@@ -1,9 +1,8 @@
 package jake2.game.character
 
-import kotlin.random.Random
-
 class StateMachine(
     states: Collection<State>,
+    private val transitionRules: StateTransitionRules,
     initialState: String = "stand"
 ) {
     private val stateMap: Map<String, State>
@@ -18,15 +17,15 @@ class StateMachine(
     fun update(time: Float) {
         val nextState = currentState.update(time)
         if (nextState != null)
-            attemptStateChange(nextState)
+            attemptStateChange(nextState, true)
     }
 
-    fun attemptStateChange(nextStateName: String): Boolean {
+    fun attemptStateChange(nextStateName: String, force: Boolean = false): Boolean {
         if (currentState.name == nextStateName)
             return true
 
         val nextState = stateMap[nextStateName] ?: throw IllegalStateException("state $nextStateName is not found!")
-        if (currentState.canExit() && nextState.canEnter()) {
+        if (force || transitionRules.transitionAllowed(currentState.type, nextState.type)) {
             currentState.exit()
             currentState = nextState
             nextState.enter()
@@ -36,32 +35,3 @@ class StateMachine(
     }
 }
 
-class StateMachine2(
-    var states: Collection<State>,
-    // from, to, check
-    var transitionMap: MutableMap<String, Map<String, () -> Boolean>>, // should
-) {
-    var currentState = states.first()
-
-    init {
-        transitionMap["stand"] = mapOf(
-            "fidget" to { Random.nextFloat() < 0.15f } // cooldown, reset on enter stand
-        )
-    }
-
-    fun attemptChange(name: String) {
-        // check rules
-    }
-    fun update(time: Float) {
-        currentState.update(time)
-        val targetStates = transitionMap[currentState.name] ?: return
-        targetStates.forEach { (stateName, func) ->
-            if (func.invoke()) {
-                attemptChange(stateName)
-                return@forEach
-            }
-        }
-    }
-}
-// ai wants to walk, currently stunned
-// ai wants to walk, currently idle
