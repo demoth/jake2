@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Jake2 fullgame (steam autodetect) q2dm1" type="Application" factoryName="Application" singleton="false">
+    <option name="MAIN_CLASS_NAME" value="jake2.fullgame.Jake2" />
+    <module name="jake2.fullgame.main" />
+    <option name="PROGRAM_PARAMETERS" value="+map q2dm1" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=$PROJECT_DIR$/fullgame/build/install/fullgame" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="jake2.fullgame.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="installDist" externalProjectPath="$PROJECT_DIR$/fullgame" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>
