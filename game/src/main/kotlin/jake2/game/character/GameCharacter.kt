@@ -76,6 +76,13 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 frames = (74..85).toList(),
                 events = emptyMap(),
                 loop = true
+            ),
+            AnimationSequence(
+                name="run",
+                type = StateType.MOVEMENT,
+                frames = (92..99).toList(),
+                events = emptyMap(),
+                loop = true
             )
         )
     TODO("Not yet implemented")
@@ -145,10 +152,17 @@ class GameCharacter(
         TODO()
     }
 
-    fun walk(yaw: Float) {
+    fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
             M.rotateToIdealYaw(self)
-            M.M_walkmove(self, yaw, 5f, game)
+            M.M_walkmove(self, self.ideal_yaw, 5f, game)
+        }
+    }
+
+    fun run() {
+        if (stateMachine.attemptStateChange("run")) {
+            M.rotateToIdealYaw(self)
+            M.M_walkmove(self, self.ideal_yaw, 15f, game)
         }
     }
 
@@ -215,12 +229,15 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             node {
                 val distance = floatArrayOf(0f, 0f, 0f)
                 Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
-                val enemy_yaw = Math3D.vectoyaw(distance)
-                self.ideal_yaw = enemy_yaw
+                val enemyYaw = Math3D.vectoyaw(distance)
+                self.ideal_yaw = enemyYaw
                 true
             },
             finish {
-                self.character.walk(self.ideal_yaw)
+                if (self.character.health >= 50)
+                    self.character.walk()
+                else
+                    self.character.run()
             }
         ),
         sequence(
