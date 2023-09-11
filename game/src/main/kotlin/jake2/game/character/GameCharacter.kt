@@ -3,7 +3,6 @@ package jake2.game.character
 import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
-import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Math3D
 import kotlin.random.Random
@@ -80,6 +79,14 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 frames = (92..99).toList(),
                 events = emptyMap(),
                 loop = true
+            ),
+            AnimationSequence(
+                name="attack-melee",
+                type = StateType.ATTACK,
+                frames = (199..206).toList(),
+                events = mapOf(3 to "sound-swing-event", 6 to "attack-melee-event"),
+                loop = false,
+                nextState = "stand"
             )
         )
     TODO("Not yet implemented")
@@ -95,6 +102,7 @@ class GameCharacter(
     private val soundFidget: Int = game.gameImports.soundindex("infantry/infidle1.wav")
     private val soundPain: Int = game.gameImports.soundindex("infantry/infpain1.wav")
     private val soundDead: Int = game.gameImports.soundindex("infantry/infdeth1.wav")
+    private val soundSwing = game.gameImports.soundindex("infantry/infatck2.wav")
 
     var health = 100f
     val currentFrame: Int
@@ -118,9 +126,13 @@ class GameCharacter(
                         stateMachine.attemptStateChange("fidget")
                     }
                 }
+                "attack-melee-event" -> {
+                    game.gameImports.dprintf("Hit!")
+                }
                 "sound-fidget-event" -> sound(soundFidget)
                 "sound-pain-event" -> sound(soundPain)
                 "sound-dead-event" -> sound(soundDead)
+                "sound-swing-event" -> sound(soundSwing)
 
                 else -> {
                     println("unexpected event: $it")
@@ -135,7 +147,8 @@ class GameCharacter(
         return when (from) {
             StateType.DEAD -> false
             StateType.PAIN -> to == StateType.DEAD // automatically transitions to IDLE
-            StateType.IDLE, StateType.MOVEMENT, StateType.ATTACK -> true
+            StateType.ATTACK -> to == StateType.DEAD || to == StateType.PAIN // automatically transitions to IDLE
+            StateType.IDLE, StateType.MOVEMENT -> true
         }
     }
 
@@ -181,7 +194,7 @@ class GameCharacter(
     }
 
     fun attack() {
-        stateMachine.attemptStateChange("attack")
+        stateMachine.attemptStateChange("attack-melee")
     }
 
     fun reactToDamage(damage: Int) {
@@ -242,15 +255,12 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             },
             // move towards the enemy
             finish {
-                if (SV.SV_CloseEnough(self, self.enemy, 50f)) {
-                    // idle
-                    Com.dprintln("SV_CloseEnough: idle")
-                    self.character.idle()
-                } else if (SV.SV_CloseEnough(self, self.enemy, 200f)) {
-                    Com.dprintln("SV_CloseEnough: walk")
+                // todo: see jake2.game.GameUtil.range
+                if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
+                    self.character.attack()
+                } else if (SV.SV_CloseEnough(self, self.enemy, 100f)) {
                     self.character.walk()
                 } else {
-                    Com.dprintln("SV_CloseEnough: run")
                     self.character.run()
                 }
             }
