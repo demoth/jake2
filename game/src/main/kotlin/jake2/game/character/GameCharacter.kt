@@ -1,13 +1,10 @@
 package jake2.game.character
 
-import jake2.game.GameDefines
-import jake2.game.GameExportsImpl
-import jake2.game.M
-import jake2.game.SubgameEntity
+import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
+import jake2.qcommon.Com
 import jake2.qcommon.Defines
-import jake2.qcommon.math.Vector3f
 import jake2.qcommon.util.Math3D
 import kotlin.random.Random
 
@@ -148,20 +145,25 @@ class GameCharacter(
     // these commands are called either by AI or a Player.
     // could be called continuously
     //
-    fun aim(to: Vector3f) {
-        TODO()
+    // todo: all these actions should check if character is not dead or somehow disabled
+    // usually it's verified by the state machine, but when it's not used (like in the aim() method) - should be checked explicitly
+
+    fun aim(enemyYaw: Float) {
+        if (notDisabled()) {
+            self.ideal_yaw = enemyYaw
+            M.rotateToIdealYaw(self)
+        }
     }
+
 
     fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
-            M.rotateToIdealYaw(self)
             M.M_walkmove(self, self.ideal_yaw, 5f, game)
         }
     }
 
     fun run() {
         if (stateMachine.attemptStateChange("run")) {
-            M.rotateToIdealYaw(self)
             M.M_walkmove(self, self.ideal_yaw, 15f, game)
         }
     }
@@ -174,7 +176,7 @@ class GameCharacter(
     fun jump() {
         if (stateMachine.attemptStateChange("jump")) {
             // GameLogic.tossCharacter(...)
-            // transitions to "stand" once hit the ground // todo: where is this code?
+            // transitions to "stand" once hit the ground // todo: where is this code? in the M_CheckGround?
         }
     }
 
@@ -192,13 +194,16 @@ class GameCharacter(
             stateMachine.attemptStateChange("dead")
     }
 
+    private fun notDisabled() =
+        stateMachine.currentState.type != StateType.PAIN && stateMachine.currentState.type != StateType.DEAD
+
     private fun sound(soundIndex: Int,
                       channel: Int = Defines.CHAN_VOICE,
                       volume: Float = 1f,
                       attenuation: Float = Defines.ATTN_IDLE.toFloat(),
-                      timeOffset: Float = 0f) {
+                      timeOffset: Float = 0f) =
         game.gameImports.sound(self, channel, soundIndex, volume, attenuation, timeOffset)
-    }
+
 
 }
 
@@ -225,19 +230,29 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
     self.controller = selector(
         sequence(
+            // should hunt the enemy?
             node { self.enemy != null },
-            node {
+            // rotate towards the enemy
+            finish {
                 val distance = floatArrayOf(0f, 0f, 0f)
                 Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
                 val enemyYaw = Math3D.vectoyaw(distance)
-                self.ideal_yaw = enemyYaw
-                true
+
+                self.character.aim(enemyYaw)
             },
+            // move towards the enemy
             finish {
-                if (self.character.health >= 50)
+                if (SV.SV_CloseEnough(self, self.enemy, 50f)) {
+                    // idle
+                    Com.dprintln("SV_CloseEnough: idle")
+                    self.character.idle()
+                } else if (SV.SV_CloseEnough(self, self.enemy, 200f)) {
+                    Com.dprintln("SV_CloseEnough: walk")
                     self.character.walk()
-                else
+                } else {
+                    Com.dprintln("SV_CloseEnough: run")
                     self.character.run()
+                }
             }
         ),
         sequence(

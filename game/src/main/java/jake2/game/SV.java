@@ -33,7 +33,7 @@ import jake2.qcommon.util.Math3D;
 /**
  * SV
  */
-final class SV {
+final public class SV {
 
     private final cvar_t sv_maxvelocity;
 
@@ -1069,7 +1069,7 @@ final class SV {
      * SV_CloseEnough - returns true if distance between 2 ents is smaller than
      * given dist.  
      */
-    static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
+    public static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
         int i;
 
         for (i = 0; i < 3; i++) {
