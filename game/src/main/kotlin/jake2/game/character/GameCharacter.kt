@@ -131,9 +131,7 @@ class GameCharacter(
         return when (from) {
             StateType.DEAD -> false
             StateType.PAIN -> to == StateType.DEAD // automatically transitions to IDLE
-            StateType.IDLE -> true
-            StateType.MOVEMENT -> true
-            StateType.ATTACK -> true
+            StateType.IDLE, StateType.MOVEMENT, StateType.ATTACK -> true
         }
     }
 
@@ -149,7 +147,7 @@ class GameCharacter(
 
     fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
-            M.M_walkmove(self, 0f, 5f, game)
+            M.M_walkmove(self, self.s.angles[Defines.YAW], 5f, game)
         }
     }
 
