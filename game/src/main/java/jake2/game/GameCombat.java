@@ -516,6 +516,7 @@ public class GameCombat {
                 SpawnDamage(sparks, point, normal, received, gameExports);
 
             if (target.character != null) {
+                target.enemy = attacker; // todo
                 target.character.reactToDamage(damage);
                 return;
             }

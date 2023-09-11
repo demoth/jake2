@@ -145,9 +145,9 @@ class GameCharacter(
         TODO()
     }
 
-    fun walk() {
+    fun walk(yaw: Float) {
         if (stateMachine.attemptStateChange("walk")) {
-            M.M_walkmove(self, self.s.angles[Defines.YAW], 5f, game)
+            M.M_walkmove(self, yaw, 5f, game)
         }
     }
 
@@ -209,9 +209,16 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
     self.controller = selector(
         sequence(
-            node { self.character.health < 50 },
+            node { self.enemy != null },
+            node {
+                val distance = floatArrayOf(0f, 0f, 0f)
+                Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
+                val enemy_yaw = Math3D.vectoyaw(distance)
+                self.ideal_yaw = enemy_yaw
+                true
+            },
             finish {
-                self.character.walk()
+                self.character.walk(self.ideal_yaw)
             }
         ),
         sequence(
