@@ -147,6 +147,7 @@ class GameCharacter(
 
     fun walk(yaw: Float) {
         if (stateMachine.attemptStateChange("walk")) {
+            M.rotateToIdealYaw(self)
             M.M_walkmove(self, yaw, 5f, game)
         }
     }
@@ -201,6 +202,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
     self.svflags = self.svflags and Defines.SVF_DEADMONSTER.inv()
     self.takedamage = Defines.DAMAGE_YES
     self.health = 100
+    self.yaw_speed = 40f
 
     Math3D.VectorSet(self.mins, -16f, -16f, -24f)
     Math3D.VectorSet(self.maxs, 16f, 16f, 32f)
