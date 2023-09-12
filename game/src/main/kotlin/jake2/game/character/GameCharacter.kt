@@ -3,7 +3,9 @@ package jake2.game.character
 import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
+import jake2.game.monsters.M_Infantry
 import jake2.qcommon.Defines
+import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 import kotlin.random.Random
 
@@ -103,6 +105,7 @@ class GameCharacter(
     private val soundPain: Int = game.gameImports.soundindex("infantry/infpain1.wav")
     private val soundDead: Int = game.gameImports.soundindex("infantry/infdeth1.wav")
     private val soundSwing = game.gameImports.soundindex("infantry/infatck2.wav")
+    private val soundHit = game.gameImports.soundindex("infantry/melee2.wav")
 
     var health = 100f
     val currentFrame: Int
@@ -127,7 +130,11 @@ class GameCharacter(
                     }
                 }
                 "attack-melee-event" -> {
-                    game.gameImports.dprintf("Hit!")
+                    val aim = floatArrayOf(GameDefines.MELEE_DISTANCE.toFloat(), 0f, 0f)
+                    if (GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 5, 50, game)) { // fixme: assumes self.enemy is set
+                        game.gameImports.sound(self, Defines.CHAN_WEAPON, soundHit, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+                    }
+
                 }
                 "sound-fidget-event" -> sound(soundFidget)
                 "sound-pain-event" -> sound(soundPain)

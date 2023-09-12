@@ -521,10 +521,9 @@ public class GameWeapon {
             SubgameEntity target = (SubgameEntity) tr.ent;
             if (0 == target.takedamage)
                 return false;
-            // if it will hit any client/monster then hit the one we wanted to
-            // hit
-            if ((tr.ent.svflags & Defines.SVF_MONSTER) != 0
-                    || (tr.ent.getClient() != null))
+            // fixme WTF???
+            // if it will hit any client/monster then hit the one we wanted to hit
+            if ((tr.ent.svflags & Defines.SVF_MONSTER) != 0 || tr.ent.getClient() != null)
                 tr.ent = self.enemy;
         }
     
