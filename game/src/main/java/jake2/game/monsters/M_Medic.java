@@ -533,20 +533,20 @@ public class M_Medic {
 
     static SubgameEntity medic_FindDeadMonster(SubgameEntity self, GameExportsImpl gameExports) {
         SubgameEntity ent;
-        SubgameEntity best = null;
+        SubgameEntity best = null; // best match is the monster with the biggest max health
         EdictIterator edit = null;
 
         while ((edit = GameBase.findradius(edit, self.s.origin, 1024, gameExports)) != null) {
             ent = edit.o;
             if (ent == self)
                 continue;
-            if (0 == (ent.svflags & Defines.SVF_MONSTER))
+            if (0 == (ent.svflags & Defines.SVF_MONSTER)) // only monsters
                 continue;
-            if ((ent.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0)
+            if ((ent.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0) // avoid insane marines
                 continue;
-            if (ent.getOwner() == null)
+            if (ent.getOwner() == null) // avoid dead players
                 continue;
-            if (ent.health > 0)
+            if (ent.health > 0) // avoid alive monsters
                 continue;
             if (ent.think.nextTime == 0)
                 continue;

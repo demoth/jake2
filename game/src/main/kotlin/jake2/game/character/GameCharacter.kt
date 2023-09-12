@@ -3,7 +3,6 @@ package jake2.game.character
 import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
-import jake2.game.monsters.M_Infantry
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Lib
@@ -205,7 +204,7 @@ class GameCharacter(
         }
     }
 
-    fun attack() {
+    fun attackMelee() {
         stateMachine.attemptStateChange("attack-melee")
     }
 
@@ -269,7 +268,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             finish {
                 // todo: see jake2.game.GameUtil.range
                 if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
-                    self.character.attack()
+                    self.character.attackMelee()
                 } else if (SV.SV_CloseEnough(self, self.enemy, 100f)) {
                     self.character.walk()
                 } else {

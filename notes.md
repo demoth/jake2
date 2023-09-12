@@ -1,0 +1,12 @@
+character rework:
+ - idle states - fidget/stand
+ - react to damage - pain/dead state
+ - walking/running
+ - melee attack
+ - TODO: ranged attack
+ - TODO: "sliding"
+ - TODO: jump
+ - TODO: flying / swimming
+ - TODO: specials (medic)
+ - TODO: path target and combat target
+ - TODO: bosses

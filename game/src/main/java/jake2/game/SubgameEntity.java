@@ -194,6 +194,7 @@ public class SubgameEntity extends edict_t {
     /** before firing targets... */
     public float delay;
 
+    @Deprecated // todo: move to spawn_temp, introduce a separate Timer component
     public float random;
 
     public float teleport_time;
