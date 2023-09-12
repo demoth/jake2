@@ -4,6 +4,7 @@ import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
 import jake2.game.monsters.M_Infantry
+import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
@@ -49,7 +50,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name = "fidget",
                 type = StateType.IDLE,
                 frames = (1..49).toList(),
-                events = mapOf(1 to "sound-fidget-event"),
+                events = mapOf(1 to "sound-fidget"),
                 loop = false,
                 nextState = "stand"
             ),
@@ -57,7 +58,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name="pain",
                 type = StateType.PAIN,
                 frames = (100..109).toList(),
-                events = mapOf(1 to "sound-pain-event"),
+                events = mapOf(1 to "sound-pain"),
                 loop = false,
                 nextState = "stand"
             ),
@@ -65,7 +66,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name="dead",
                 type = StateType.DEAD,
                 frames = (125..144).toList(),
-                events = mapOf(1 to "sound-dead-event"),
+                events = mapOf(1 to "sound-death"),
                 loop = false
             ),
             AnimationSequence(
@@ -86,7 +87,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name="attack-melee",
                 type = StateType.ATTACK,
                 frames = (199..206).toList(),
-                events = mapOf(3 to "sound-swing-event", 6 to "attack-melee-event"),
+                events = mapOf(3 to "sound-swing", 6 to "attack-melee-event"),
                 loop = false,
                 nextState = "stand"
             )
@@ -101,11 +102,14 @@ class GameCharacter(
 //    private var soundPlayer: (soundName: String) -> Unit
 ) : AnimationEventProcessor, StateTransitionRules {
     // fixme: come up with a better resource precache approach
-    private val soundFidget: Int = game.gameImports.soundindex("infantry/infidle1.wav")
-    private val soundPain: Int = game.gameImports.soundindex("infantry/infpain1.wav")
-    private val soundDead: Int = game.gameImports.soundindex("infantry/infdeth1.wav")
-    private val soundSwing = game.gameImports.soundindex("infantry/infatck2.wav")
-    private val soundHit = game.gameImports.soundindex("infantry/melee2.wav")
+
+    private val sounds = mapOf(
+        "fidget" to game.gameImports.soundindex("infantry/infidle1.wav"),
+        "pain" to game.gameImports.soundindex("infantry/infpain1.wav"),
+        "death" to game.gameImports.soundindex("infantry/infdeth1.wav"),
+        "swing" to game.gameImports.soundindex("infantry/infatck2.wav"),
+        "hit" to game.gameImports.soundindex("infantry/melee2.wav")
+    )
 
     var health = 100f
     val currentFrame: Int
@@ -123,24 +127,25 @@ class GameCharacter(
         events.forEach {
             println("processing event: $it")
 
-            when (it) {
-                "try-fidget" -> {
+            when {
+                it == "try-fidget" -> {
                     if (Random.nextFloat() < 0.2f) {
                         stateMachine.attemptStateChange("fidget")
                     }
                 }
-                "attack-melee-event" -> {
+                it == "attack-melee-event" -> {
                     val aim = floatArrayOf(GameDefines.MELEE_DISTANCE.toFloat(), 0f, 0f)
                     if (GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 5, 50, game)) { // fixme: assumes self.enemy is set
-                        game.gameImports.sound(self, Defines.CHAN_WEAPON, soundHit, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+                        game.gameImports.sound(self, Defines.CHAN_WEAPON, sounds["hit"]!!, 1f, Defines.ATTN_NORM.toFloat(), 0f)
                     }
-
                 }
-                "sound-fidget-event" -> sound(soundFidget)
-                "sound-pain-event" -> sound(soundPain)
-                "sound-dead-event" -> sound(soundDead)
-                "sound-swing-event" -> sound(soundSwing)
-
+                it.startsWith("sound-") -> {
+                    val soundIndex = sounds[it.replace("sound-", "")]
+                    if (soundIndex != null)
+                        sound(soundIndex)
+                    else
+                        Com.Error(1, "sound $it not found or not precached")
+                }
                 else -> {
                     println("unexpected event: $it")
                 }
