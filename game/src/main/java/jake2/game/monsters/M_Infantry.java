@@ -939,13 +939,10 @@ public class M_Infantry {
     static EntThinkAdapter infantry_cock_gun = new EntThinkAdapter() {
     	public String getID() { return "infantry_cock_gun"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            int n;
 
-            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_weapon_cock, 1,
-                    Defines.ATTN_NORM, 0);
-            n = (Lib.rand() & 15) + 3 + 7;
-            self.monsterinfo.pausetime = gameExports.level.time + n
-                    * Defines.FRAMETIME;
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_weapon_cock, 1, Defines.ATTN_NORM, 0);
+            int n = (Lib.rand() & 15) + 3 + 7;
+            self.monsterinfo.pausetime = gameExports.level.time + n * Defines.FRAMETIME;
             return true;
         }
     };

@@ -102,12 +102,12 @@ class GameCharacter(
 ) : AnimationEventProcessor, StateTransitionRules {
     // fixme: come up with a better resource precache approach
 
-    private val sounds = mapOf(
-        "fidget" to game.gameImports.soundindex("infantry/infidle1.wav"),
-        "pain" to game.gameImports.soundindex("infantry/infpain1.wav"),
-        "death" to game.gameImports.soundindex("infantry/infdeth1.wav"),
-        "swing" to game.gameImports.soundindex("infantry/infatck2.wav"),
-        "hit" to game.gameImports.soundindex("infantry/melee2.wav")
+    private val sounds: Map<String, Pair<Int, Int>> = mapOf(
+        "fidget" to (game.gameImports.soundindex("infantry/infidle1.wav") to Defines.CHAN_VOICE),
+        "pain" to (game.gameImports.soundindex("infantry/infpain1.wav") to Defines.CHAN_VOICE),
+        "death" to (game.gameImports.soundindex("infantry/infdeth1.wav") to Defines.CHAN_VOICE),
+        "swing" to (game.gameImports.soundindex("infantry/infatck2.wav") to Defines.CHAN_WEAPON),
+        "hit" to (game.gameImports.soundindex("infantry/melee2.wav") to Defines.CHAN_WEAPON)
     )
 
     var health = 100f
@@ -135,13 +135,14 @@ class GameCharacter(
                 it == "attack-melee-event" -> {
                     val aim = floatArrayOf(GameDefines.MELEE_DISTANCE.toFloat(), 0f, 0f)
                     if (GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 5, 50, game)) { // fixme: assumes self.enemy is set
-                        game.gameImports.sound(self, Defines.CHAN_WEAPON, sounds["hit"]!!, 1f, Defines.ATTN_NORM.toFloat(), 0f)
+                        val soundIndex = sounds["hit"]!!
+                        sound(soundIndex.first, soundIndex.second)
                     }
                 }
                 it.startsWith("sound-") -> {
                     val soundIndex = sounds[it.replace("sound-", "")]
                     if (soundIndex != null)
-                        sound(soundIndex)
+                        sound(soundIndex.first, soundIndex.second)
                     else
                         Com.Error(1, "sound $it not found or not precached")
                 }
@@ -222,7 +223,7 @@ class GameCharacter(
         stateMachine.currentState.type != StateType.PAIN && stateMachine.currentState.type != StateType.DEAD
 
     private fun sound(soundIndex: Int,
-                      channel: Int = Defines.CHAN_VOICE,
+                      channel: Int,
                       volume: Float = 1f,
                       attenuation: Float = Defines.ATTN_IDLE.toFloat(),
                       timeOffset: Float = 0f) =

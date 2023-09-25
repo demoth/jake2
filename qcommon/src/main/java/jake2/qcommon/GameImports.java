@@ -17,6 +17,7 @@ public interface GameImports {
 
     void centerprintf(edict_t ent, String s);
 
+    @Deprecated // fixme: extract NO_PHS and RELIABLE flags from the channel into separate booleans
     void sound(edict_t ent, int channel, int soundindex, float volume,
                float attenuation, float timeofs);
 
