@@ -5,6 +5,7 @@ import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
+import jake2.qcommon.M_Flash
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 import kotlin.random.Random
@@ -93,13 +94,33 @@ fun createSequences(name: String): Collection<AnimationSequence> {
             AnimationSequence(
                 name="attack-ranged",
                 type = StateType.ATTACK,
-                frames = (184..194).toList() // wind up
-                        + listOf(194, 194, 194, 194) // firing
-                        + (195..198).toList(), // wind down
+                frames = (184..194).toList(), // ready gun
+                events = mapOf(3 to "sound-cock-gun"),
+                loop = false,
+                nextState = "attack-ranged-middle"
+            ),
+            AnimationSequence(
+                name="attack-ranged-middle",
+                type = StateType.ATTACK,
+                frames = listOf(194, 194, 194, 194), // firing
+                events = mapOf(
+                    1 to "attack-ranged-event",
+                    2 to "attack-ranged-event",
+                    3 to "attack-ranged-event",
+                    4 to "attack-ranged-event",
+                ),
+                loop = false, //todo: loop single frame
+                nextState = "attack-ranged-finish"
+            ),
+            AnimationSequence(
+                name="attack-ranged-finish",
+                type = StateType.ATTACK, // recover
+                frames = (195..198).toList(),
                 events = mapOf(3 to "sound-cock-gun"),
                 loop = false,
                 nextState = "stand"
-            )
+            ),
+
         )
     TODO("Not yet implemented")
 }
@@ -149,6 +170,39 @@ class GameCharacter(
                         val soundIndex = sounds["hit"]!!
                         sound(soundIndex.first, soundIndex.second)
                     }
+                }
+                it == "attack-ranged-event" -> {
+                    // todo: this piece is awful
+                    val start = floatArrayOf(0f, 0f, 0f)
+                    val target = floatArrayOf(0f, 0f, 0f)
+                    val forward = floatArrayOf(0f, 0f, 0f)
+                    val right = floatArrayOf(0f, 0f, 0f)
+                    val vec = floatArrayOf(0f, 0f, 0f)
+                    val flash_number = Defines.MZ2_INFANTRY_MACHINEGUN_1
+
+                    Math3D.AngleVectors(self.s.angles, forward, right, null)
+                    Math3D.G_ProjectSource(
+                        self.s.origin,
+                        M_Flash.monster_flash_offset[flash_number], forward,
+                        right, start
+                    )
+                    if (self.enemy != null) {
+                        Math3D.VectorMA(
+                            self.enemy.s.origin, -0.2f,
+                            self.enemy.velocity, target
+                        )
+                        target[2] += self.enemy.viewheight.toFloat()
+                        Math3D.VectorSubtract(target, start, forward)
+                        Math3D.VectorNormalize(forward)
+                    } else {
+                        Math3D.AngleVectors(self.s.angles, forward, right, null)
+                    }
+
+                    Monster.monster_fire_bullet(
+                        self, start, forward, 3, 4,
+                        GameDefines.DEFAULT_BULLET_HSPREAD,
+                        GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, game
+                    )
                 }
                 it.startsWith("sound-") -> {
                     val soundIndex = sounds[it.replace("sound-", "")]
