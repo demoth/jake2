@@ -221,7 +221,8 @@ class GameCharacter(
     }
 
     fun attackRanged() {
-        stateMachine.attemptStateChange("attack-ranged")
+        if (stateMachine.currentState.type != StateType.ATTACK)
+            stateMachine.attemptStateChange("attack-ranged")
     }
 
     fun reactToDamage(damage: Int) {
@@ -249,8 +250,6 @@ class GameCharacter(
 }
 
 fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
-
-    val entity = game.G_Spawn()
     self.movetype = GameDefines.MOVETYPE_STEP
     self.solid = Defines.SOLID_BBOX
     self.s.modelindex = game.gameImports.modelindex("models/monsters/infantry/tris.md2")
@@ -285,7 +284,11 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             finish {
                 // todo: see jake2.game.GameUtil.range
                 if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
-                    self.character.attackRanged()
+                    if (Random.nextBoolean()) {
+                        self.character.attackRanged()
+                    } else {
+                        self.character.attackMelee()
+                    }
                 } else if (SV.SV_CloseEnough(self, self.enemy, 100f)) {
                     self.character.walk()
                 } else {
@@ -313,6 +316,6 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         }
     }
 
-    game.gameImports.linkentity(entity)
+    game.gameImports.linkentity(self)
 
 }
