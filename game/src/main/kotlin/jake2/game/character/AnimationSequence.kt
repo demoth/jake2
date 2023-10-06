@@ -10,7 +10,7 @@ private const val FRAME_TIME = 0.1f
 data class AnimationSequence(
 
     val name: String,
-    val type: StateType,
+    val type: StateType, // for convenience. Actually type is a property of a State, not Sequence
 
     /*
     List of frame indices, which current animation sequence loops through.

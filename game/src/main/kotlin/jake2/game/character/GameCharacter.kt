@@ -89,6 +89,16 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 events = mapOf(3 to "sound-swing", 6 to "attack-melee-event"),
                 loop = false,
                 nextState = "stand"
+            ),
+            AnimationSequence(
+                name="attack-ranged",
+                type = StateType.ATTACK,
+                frames = (184..194).toList() // wind up
+                        + listOf(194, 194, 194, 194) // firing
+                        + (195..198).toList(), // wind down
+                events = mapOf(3 to "sound-cock-gun"),
+                loop = false,
+                nextState = "stand"
             )
         )
     TODO("Not yet implemented")
@@ -107,7 +117,8 @@ class GameCharacter(
         "pain" to (game.gameImports.soundindex("infantry/infpain1.wav") to Defines.CHAN_VOICE),
         "death" to (game.gameImports.soundindex("infantry/infdeth1.wav") to Defines.CHAN_VOICE),
         "swing" to (game.gameImports.soundindex("infantry/infatck2.wav") to Defines.CHAN_WEAPON),
-        "hit" to (game.gameImports.soundindex("infantry/melee2.wav") to Defines.CHAN_WEAPON)
+        "hit" to (game.gameImports.soundindex("infantry/melee2.wav") to Defines.CHAN_WEAPON),
+        "cock-gun" to (game.gameImports.soundindex("infantry/infatck3.wav") to Defines.CHAN_WEAPON),
     )
 
     var health = 100f
@@ -209,6 +220,10 @@ class GameCharacter(
         stateMachine.attemptStateChange("attack-melee")
     }
 
+    fun attackRanged() {
+        stateMachine.attemptStateChange("attack-ranged")
+    }
+
     fun reactToDamage(damage: Int) {
         health -= damage
         if (health < 50) // injured skin threshold
@@ -222,6 +237,7 @@ class GameCharacter(
     private fun notDisabled() =
         stateMachine.currentState.type != StateType.PAIN && stateMachine.currentState.type != StateType.DEAD
 
+    // todo: refactor to SoundEvent
     private fun sound(soundIndex: Int,
                       channel: Int,
                       volume: Float = 1f,
@@ -269,7 +285,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             finish {
                 // todo: see jake2.game.GameUtil.range
                 if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
-                    self.character.attackMelee()
+                    self.character.attackRanged()
                 } else if (SV.SV_CloseEnough(self, self.enemy, 100f)) {
                     self.character.walk()
                 } else {
