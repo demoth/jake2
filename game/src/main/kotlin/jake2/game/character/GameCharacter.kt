@@ -105,9 +105,9 @@ fun createSequences(name: String): Collection<AnimationSequence> {
             AnimationSequence(
                 name="attack-ranged-middle",
                 type = StateType.ATTACK,
-                frames = listOf(194, 194), // firing
+                frames = listOf(194), // firing
                 events = mapOf(
-                    1 to "attack-ranged-fire-event",
+                    0 to "attack-ranged-fire-event",
                 ),
                 loop = true,
                 nextState = "attack-ranged-finish"
@@ -116,7 +116,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name="attack-ranged-finish",
                 type = StateType.ATTACK, // recover
                 frames = (195..198).toList(),
-                events = mapOf(3 to "sound-cock-gun"),
+                events = emptyMap(),
                 loop = false,
                 nextState = "stand"
             ),
