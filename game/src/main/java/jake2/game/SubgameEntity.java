@@ -2,7 +2,6 @@ package jake2.game;
 
 import jake2.game.adapters.*;
 import jake2.game.character.BehaviorTree;
-import jake2.game.character.BehaviorTreeKt;
 import jake2.game.character.GameCharacter;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
@@ -144,7 +143,7 @@ public class SubgameEntity extends edict_t {
     /** Move to clientinfo. */
     public float fly_sound_debounce_time;
 
-    public int health;
+    public int health; // todo: separate into different components
     /**
      * Type of damage. Also contains friendly fire bit flag. todo: split
      */

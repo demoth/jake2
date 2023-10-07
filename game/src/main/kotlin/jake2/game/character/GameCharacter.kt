@@ -95,21 +95,21 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name="attack-ranged",
                 type = StateType.ATTACK,
                 frames = (184..194).toList(), // ready gun
-                events = mapOf(3 to "sound-cock-gun"),
+                events = mapOf(
+                    1 to "attack-ranged-prepare-event",
+                    3 to "sound-cock-gun"
+                ),
                 loop = false,
                 nextState = "attack-ranged-middle"
             ),
             AnimationSequence(
                 name="attack-ranged-middle",
                 type = StateType.ATTACK,
-                frames = listOf(194, 194, 194, 194), // firing
+                frames = listOf(194, 194), // firing
                 events = mapOf(
-                    1 to "attack-ranged-event",
-                    2 to "attack-ranged-event",
-                    3 to "attack-ranged-event",
-                    4 to "attack-ranged-event",
+                    1 to "attack-ranged-fire-event",
                 ),
-                loop = false, //todo: loop single frame
+                loop = true,
                 nextState = "attack-ranged-finish"
             ),
             AnimationSequence(
@@ -142,7 +142,8 @@ class GameCharacter(
         "cock-gun" to (game.gameImports.soundindex("infantry/infatck3.wav") to Defines.CHAN_WEAPON),
     )
 
-    var health = 100f
+    var fireFrames = 0 // how many frames to fire
+
     val currentFrame: Int
         get() = stateMachine.currentState.currentFrame
 
@@ -171,7 +172,16 @@ class GameCharacter(
                         sound(soundIndex.first, soundIndex.second)
                     }
                 }
-                it == "attack-ranged-event" -> {
+                it == "attack-ranged-prepare-event" -> {
+                    fireFrames =  Random.nextInt(15) + 10
+                }
+                it == "attack-ranged-fire-event" -> {
+                    if (fireFrames-- < 0) {
+                        fireFrames = 0
+                        stateMachine.attemptStateChange("attack-ranged-finish", true) // othewise transition rules disallow ATTACK -> ATTACK states
+                        println("finished firing")
+                        return@forEach
+                    }
                     // todo: this piece is awful
                     val start = floatArrayOf(0f, 0f, 0f)
                     val target = floatArrayOf(0f, 0f, 0f)
@@ -275,15 +285,15 @@ class GameCharacter(
     }
 
     fun attackRanged() {
-        if (stateMachine.currentState.type != StateType.ATTACK)
+        if (stateMachine.currentState.type != StateType.ATTACK) // to avoid resetting the attack cycle
             stateMachine.attemptStateChange("attack-ranged")
     }
 
     fun reactToDamage(damage: Int) {
-        health -= damage
-        if (health < 50) // injured skin threshold
+        self.health -= damage
+        if (self.health < 50) // injured skin threshold
             self.s.skinnum = 1
-        if (health > 0)
+        if (self.health > 0)
             stateMachine.attemptStateChange("pain")
         else
             stateMachine.attemptStateChange("dead")

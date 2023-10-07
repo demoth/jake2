@@ -45,6 +45,8 @@ data class AnimationSequence(
     /**
      * @param time - elapsed time, can cover multiple frames. In this case return all events associated with skipped frames
      * @return events, emitted during the update
+     *
+     * fixme: the very first event is not triggered
      */
     fun update(time: Float): Collection<String>  {
         if (finished)
