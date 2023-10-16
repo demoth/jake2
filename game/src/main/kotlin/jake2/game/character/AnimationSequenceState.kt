@@ -8,7 +8,10 @@ open class AnimationSequenceState(
     type: StateType
 ) : State(name, eventProcessor, nextState, type) {
 
-    override fun enter() = animationSequence.reset()
+    override fun enter() {
+        val zeroEvent = animationSequence.reset() ?: return
+        eventProcessor.process(listOf(zeroEvent))
+    }
 
     override fun update(time: Float): String? {
         val events = animationSequence.update(time)

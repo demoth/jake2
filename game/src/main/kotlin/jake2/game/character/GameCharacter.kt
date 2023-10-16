@@ -50,7 +50,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 name = "fidget",
                 type = StateType.IDLE,
                 frames = (1..49).toList(),
-                events = mapOf(1 to "sound-fidget"),
+                events = mapOf(0 to "sound-fidget"),
                 loop = false,
                 nextState = "stand"
             ),
@@ -96,7 +96,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 type = StateType.ATTACK,
                 frames = (184..194).toList(), // ready gun
                 events = mapOf(
-                    1 to "attack-ranged-prepare-event",
+                    1 to "attack-ranged-prepare-event", // should be 0
                     3 to "sound-cock-gun"
                 ),
                 loop = false,
@@ -107,7 +107,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 type = StateType.ATTACK,
                 frames = listOf(194), // firing
                 events = mapOf(
-                    0 to "attack-ranged-fire-event",
+                    0 to "attack-ranged-fire-event", // since 0 index event is not triggered while entering the animation sequence, it is triggered after the first animation loop
                 ),
                 loop = true,
                 nextState = "attack-ranged-finish"

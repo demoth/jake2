@@ -34,11 +34,16 @@ data class AnimationSequence(
         get() = frames[currentFrameIndex]
 
 
-    fun reset() {
+    /**
+     * @return todo:
+     */
+    fun reset() : String? {
         currentSpeed = 1f
-        currentFrameIndex = 0
+        currentFrameIndex = 0 // todo: think: if was different from 0 - should emit 0 frame event
         interFrameTime = 0f
         finished = false
+        
+        return events[0]
     }
 
 
