@@ -142,7 +142,7 @@ class GameCharacter(
         "cock-gun" to (game.gameImports.soundindex("infantry/infatck3.wav") to Defines.CHAN_WEAPON),
     )
 
-    var fireFrames = 0 // how many frames to fire
+    private var fireFrames = 0 // how many frames to fire
 
     val currentFrame: Int
         get() = stateMachine.currentState.currentFrame
@@ -332,12 +332,21 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
     self.character = GameCharacter(self, game, "enforcer") // new stuff!!
 
+    /*
+        1. if triggered & has combat point -> go to combat point
+        2. if triggered & see enemy & fired at -> duck
+        3. if triggered & see enemy -> attack enemy
+        4. if triggered & !see enemy -> chase
+        5. if !triggered & has path-target -> goto path-target
+        6. else: Idle
+     */
     self.controller = selector(
+        // triggered (attacked or activated from another entity)
         sequence(
             // should hunt the enemy?
-            node { self.enemy != null },
+            check { self.enemy != null },
             // rotate towards the enemy
-            finish {
+            run {
                 val distance = floatArrayOf(0f, 0f, 0f)
                 Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
                 val enemyYaw = Math3D.vectoyaw(distance)
@@ -345,7 +354,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
                 self.character.aim(enemyYaw)
             },
             // move towards the enemy
-            finish {
+            run {
                 // todo: see jake2.game.GameUtil.range
                 if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
                     if (Random.nextBoolean()) {
@@ -361,7 +370,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             }
         ),
         sequence(
-            finish { self.character.idle() }
+            run { self.character.idle() }
         )
     )
 
@@ -370,7 +379,7 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         // fixme: register think should be called before level loading (due to de/serialization)
         action = registerThink("new_monster_think") { self, game ->
             // YES! new good stuff
-            self.controller.run()
+            self.controller.run() // todo: don't need to run the controller every frame. Sometimes can be paused
             self.character.update(Defines.FRAMETIME)
 
             // leftovers

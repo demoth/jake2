@@ -43,6 +43,6 @@ fun selector(vararg nodes: BhAbstractNode) = BhSelector(*nodes)
 
 fun sequence(vararg nodes: BhAbstractNode) = BhSequence(*nodes)
 
-fun node(condition: () -> Boolean) = BtNode(condition)
+fun check(condition: () -> Boolean) = BtNode(condition)
 
-fun finish(condition: () -> Unit) = BtNode { condition.invoke(); true }
+fun run(condition: () -> Unit) = BtNode { condition.invoke(); true }

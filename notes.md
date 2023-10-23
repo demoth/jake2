@@ -3,7 +3,7 @@ character rework:
  - react to damage - pain/dead state
  - walking/running
  - melee attack
- - TODO: ranged attack
+ - ranged attack
  - TODO: "sliding"
  - TODO: jump
  - TODO: flying / swimming
