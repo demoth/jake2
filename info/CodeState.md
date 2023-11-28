@@ -14,6 +14,6 @@ A high level (and subjective) overview of the code state at the moment of 2022.
 | Client | Input                    | Todo                     | Review & possibly migrate to an existing engine (LibGDX? JmonkeyEngine?)   |
 | Game   | Entity framework         | Not great                | Not terrible though, other alternatives (like ECS) will also have drawbacks |
 | Game   | Character animation      | Todo                     | Decouple from AI and Monster logic                                         |
-| Game   | AI                       | Todo                     | Decouple from animation                                                    |
+| Game   | AI                       | In Progress              | Decouple from animation                                                    |
 | Game   | Weapon/Item logic        | Todo                     | Review & restructure                                                       |
 | Server | Overall structure        | Todo                     | Review & restructure                                                       |
