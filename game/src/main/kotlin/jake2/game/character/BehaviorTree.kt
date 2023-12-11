@@ -1,8 +1,13 @@
 package jake2.game.character
 
 
+enum class DesicionAction {
+    
+}
+
+
 interface BehaviorTree {
-    fun run(): Boolean
+    fun run(): Boolean // todo: change to DecisionAction
 }
 abstract class BhAbstractNode(protected val nodes: List<BhAbstractNode>): BehaviorTree {
     abstract override fun run(): Boolean
