@@ -1,7 +1,7 @@
 import jake2.game.character.BhSelector
 import jake2.game.character.BhSequence
 import jake2.game.character.BtNode
-import org.junit.Assert.assertFalse
+import jake2.game.character.BtNodeState
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -15,7 +15,7 @@ class BehaviorTreeTest {
 
         val result = sequence.run()
 
-        assertTrue(result)
+        assertTrue(result == BtNodeState.Success)
     }
 
     @Test
@@ -27,7 +27,7 @@ class BehaviorTreeTest {
 
         val result = sequence.run()
 
-        assertFalse(result)
+        assertTrue(result == BtNodeState.Failure)
     }
 
     @Test
@@ -39,7 +39,7 @@ class BehaviorTreeTest {
 
         val result = selector.run()
 
-        assertTrue(result)
+        assertTrue(result == BtNodeState.Success)
     }
 
     @Test
@@ -51,6 +51,6 @@ class BehaviorTreeTest {
 
         val result = selector.run()
 
-        assertFalse(result)
+        assertTrue(result == BtNodeState.Failure)
     }
 }

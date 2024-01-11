@@ -173,7 +173,7 @@ class GameCharacter(
                     }
                 }
                 it == "attack-ranged-prepare-event" -> {
-                    fireFrames =  Random.nextInt(15) + 10
+                    //fireFrames =  Random.nextInt(15) + 10
                 }
                 it == "attack-ranged-fire-event" -> {
                     if (fireFrames-- < 0) {
@@ -234,7 +234,7 @@ class GameCharacter(
         return when (from) {
             StateType.DEAD -> false
             StateType.PAIN -> to == StateType.DEAD // automatically transitions to IDLE
-            StateType.ATTACK -> to == StateType.DEAD || to == StateType.PAIN // automatically transitions to IDLE
+            StateType.ATTACK -> to == StateType.DEAD || to == StateType.PAIN // automatically transitions to IDLE // fixme: cannot intentionally exit attack state earlier
             StateType.IDLE, StateType.MOVEMENT -> true
         }
     }
@@ -284,9 +284,12 @@ class GameCharacter(
         stateMachine.attemptStateChange("attack-melee")
     }
 
-    fun attackRanged() {
-        if (stateMachine.currentState.type != StateType.ATTACK) // to avoid resetting the attack cycle
+    fun attackRanged(framesToAttack: Int) {
+        // to avoid resetting the attack cycle
+        if (stateMachine.currentState.type != StateType.ATTACK) {
+            fireFrames = framesToAttack
             stateMachine.attemptStateChange("attack-ranged")
+        }
     }
 
     fun reactToDamage(damage: Int) {
@@ -353,21 +356,25 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
 
                 self.character.aim(enemyYaw)
             },
-            // move towards the enemy
-            run {
-                // todo: see jake2.game.GameUtil.range
-                if (SV.SV_CloseEnough(self, self.enemy, 16f)) {
-                    if (Random.nextBoolean()) {
-                        self.character.attackRanged()
-                    } else {
-                        self.character.attackMelee()
+            // attack or chase
+            selector(
+                sequence(
+                    check { SV.SV_CloseEnough(self, self.enemy, 16f) }, // todo: see jake2.game.GameUtil.range
+                    run { self.character.attackMelee() }
+                ),
+                sequence(
+                    check { SV.SV_CloseEnough(self, self.enemy, 32f) },
+                    runUntil("attack-finished") {
+                        val framesToAttack = Random.nextInt(15) + 10
+                        self.character.attackRanged(framesToAttack)
                     }
-                } else if (SV.SV_CloseEnough(self, self.enemy, 100f)) {
-                    self.character.walk()
-                } else {
-                    self.character.run()
-                }
-            }
+                ),
+                sequence(
+                    check { SV.SV_CloseEnough(self, self.enemy, 100f) },
+                    run { self.character.walk() }
+                ),
+                run { self.character.run() }
+            ),
         ),
         sequence(
             run { self.character.idle() }
