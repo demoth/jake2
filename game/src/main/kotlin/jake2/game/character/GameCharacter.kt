@@ -157,7 +157,7 @@ class GameCharacter(
 
     override fun process(events: Collection<String>) {
         events.forEach {
-            println("processing event: $it")
+            println("Character: processing event: $it")
 
             when {
                 it == "try-fidget" -> {
@@ -182,31 +182,10 @@ class GameCharacter(
                         println("finished firing")
                         return@forEach
                     }
-                    // todo: this piece is awful
-                    val start = floatArrayOf(0f, 0f, 0f)
-                    val target = floatArrayOf(0f, 0f, 0f)
-                    val forward = floatArrayOf(0f, 0f, 0f)
-                    val right = floatArrayOf(0f, 0f, 0f)
-                    val vec = floatArrayOf(0f, 0f, 0f)
-                    val flash_number = Defines.MZ2_INFANTRY_MACHINEGUN_1
 
-                    Math3D.AngleVectors(self.s.angles, forward, right, null)
-                    Math3D.G_ProjectSource(
-                        self.s.origin,
-                        M_Flash.monster_flash_offset[flash_number], forward,
-                        right, start
-                    )
-                    if (self.enemy != null) {
-                        Math3D.VectorMA(
-                            self.enemy.s.origin, -0.2f,
-                            self.enemy.velocity, target
-                        )
-                        target[2] += self.enemy.viewheight.toFloat()
-                        Math3D.VectorSubtract(target, start, forward)
-                        Math3D.VectorNormalize(forward)
-                    } else {
-                        Math3D.AngleVectors(self.s.angles, forward, right, null)
-                    }
+                    aimAtEnemy()
+
+                    val (start, forward, flash_number) = monsterFirePrepare()
 
                     Monster.monster_fire_bullet(
                         self, start, forward, 3, 4,
@@ -228,6 +207,35 @@ class GameCharacter(
         }
     }
 
+    private fun monsterFirePrepare(): Triple<FloatArray, FloatArray, Int> {
+        // todo: this piece is awful
+        val start = floatArrayOf(0f, 0f, 0f)
+        val target = floatArrayOf(0f, 0f, 0f)
+        val forward = floatArrayOf(0f, 0f, 0f)
+        val right = floatArrayOf(0f, 0f, 0f)
+        val vec = floatArrayOf(0f, 0f, 0f)
+        val flash_number = Defines.MZ2_INFANTRY_MACHINEGUN_1
+
+        Math3D.AngleVectors(self.s.angles, forward, right, null)
+        Math3D.G_ProjectSource(
+            self.s.origin,
+            M_Flash.monster_flash_offset[flash_number], forward,
+            right, start
+        )
+        if (self.enemy != null) {
+            Math3D.VectorMA(
+                self.enemy.s.origin, -0.2f,
+                self.enemy.velocity, target
+            )
+            target[2] += self.enemy.viewheight.toFloat()
+            Math3D.VectorSubtract(target, start, forward)
+            Math3D.VectorNormalize(forward)
+        } else {
+            Math3D.AngleVectors(self.s.angles, forward, right, null)
+        }
+        return Triple(start, forward, flash_number)
+    }
+
     // ai wants to walk, currently stunned
     // ai wants to walk, currently idle
     override fun transitionAllowed(from: StateType, to: StateType): Boolean {
@@ -239,7 +247,7 @@ class GameCharacter(
         }
     }
 
-    fun update(time: Float) = stateMachine.update(time)
+    fun updateStateMachine(time: Float): Collection<String> = stateMachine.update(time)
 
     //
     // these commands are called either by AI or a Player.
@@ -248,9 +256,13 @@ class GameCharacter(
     // todo: all these actions should check if character is not dead or somehow disabled
     // usually it's verified by the state machine, but when it's not used (like in the aim() method) - should be checked explicitly
 
-    fun aim(enemyYaw: Float) {
+    fun aimAtEnemy() {
         if (notDisabled()) {
-            self.ideal_yaw = enemyYaw
+            if (self.enemy != null) {
+                val distance = floatArrayOf(0f, 0f, 0f)
+                Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
+                self.ideal_yaw = Math3D.vectoyaw(distance)
+            }
             M.rotateToIdealYaw(self)
         }
     }
@@ -258,12 +270,14 @@ class GameCharacter(
 
     fun walk() {
         if (stateMachine.attemptStateChange("walk")) {
+            self.character.aimAtEnemy()
             M.M_walkmove(self, self.ideal_yaw, 5f, game)
         }
     }
 
     fun run() {
         if (stateMachine.attemptStateChange("run")) {
+            self.character.aimAtEnemy()
             M.M_walkmove(self, self.ideal_yaw, 15f, game)
         }
     }
@@ -302,7 +316,7 @@ class GameCharacter(
             stateMachine.attemptStateChange("dead")
     }
 
-    private fun notDisabled() =
+    fun notDisabled() =
         stateMachine.currentState.type != StateType.PAIN && stateMachine.currentState.type != StateType.DEAD
 
     // todo: refactor to SoundEvent
@@ -313,7 +327,25 @@ class GameCharacter(
                       timeOffset: Float = 0f) =
         game.gameImports.sound(self, channel, soundIndex, volume, attenuation, timeOffset)
 
-
+    fun executeAction(action: Any) {
+        when (action as? EnforcerActions) {
+            EnforcerActions.ATTACK_AIM_RANGED -> {
+                self.character.attackRanged(Random.nextInt(15) + 10)
+            }
+            EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
+            EnforcerActions.WALK -> self.character.walk()
+            EnforcerActions.RUN -> self.character.run()
+            EnforcerActions.IDLE -> self.character.idle()
+            null -> TODO()
+        }
+    }
+}
+enum class EnforcerActions {
+    ATTACK_AIM_RANGED,
+    ATTACK_MELEE,
+    WALK,
+    RUN,
+    IDLE
 }
 
 fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
@@ -343,51 +375,49 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
         5. if !triggered & has path-target -> goto path-target
         6. else: Idle
      */
-    self.controller = selector(
+    self.btContext = BtContext(selector(
         // triggered (attacked or activated from another entity)
         sequence(
             // should hunt the enemy?
-            check { self.enemy != null },
-            // rotate towards the enemy
-            run {
-                val distance = floatArrayOf(0f, 0f, 0f)
-                Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
-                val enemyYaw = Math3D.vectoyaw(distance)
-
-                self.character.aim(enemyYaw)
-            },
+            check { self.enemy != null && self.enemy.health > 0 },
             // attack or chase
             selector(
                 sequence(
                     check { SV.SV_CloseEnough(self, self.enemy, 16f) }, // todo: see jake2.game.GameUtil.range
-                    run { self.character.attackMelee() }
+                    run { BtWaitingTask(EnforcerActions.ATTACK_MELEE, "finished-attack-melee") }
                 ),
                 sequence(
                     check { SV.SV_CloseEnough(self, self.enemy, 32f) },
-                    runUntil("attack-finished") {
-                        val framesToAttack = Random.nextInt(15) + 10
-                        self.character.attackRanged(framesToAttack)
-                    }
+                    run { BtWaitingTask(EnforcerActions.ATTACK_AIM_RANGED, "finished-attack-ranged-finish") }
                 ),
                 sequence(
                     check { SV.SV_CloseEnough(self, self.enemy, 100f) },
-                    run { self.character.walk() }
+                    run { BtActionTask(EnforcerActions.WALK) }
                 ),
-                run { self.character.run() }
+                run { BtActionTask(EnforcerActions.RUN) }
             ),
         ),
         sequence(
-            run { self.character.idle() }
+            run { BtActionTask(EnforcerActions.IDLE) }
         )
-    )
+    ))
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME
         // fixme: register think should be called before level loading (due to de/serialization)
         action = registerThink("new_monster_think") { self, game ->
             // YES! new good stuff
-            self.controller.run() // todo: don't need to run the controller every frame. Sometimes can be paused
-            self.character.update(Defines.FRAMETIME)
+            val events = self.character.updateStateMachine(Defines.FRAMETIME)
+
+            // think (run BT) only if not disabled
+            if (self.character.notDisabled()) {
+                val task = self.btContext.update(events)
+                if (task is BtTask<*>)
+                    self.character.executeAction(task.action!!)
+                // fixme: else -> throw an error because all leafs should be tasks
+            } else {
+                self.btContext.reset()
+            }
 
             // leftovers
             self.s.frame = self.character.currentFrame

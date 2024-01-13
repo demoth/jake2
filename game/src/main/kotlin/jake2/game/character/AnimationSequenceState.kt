@@ -13,13 +13,13 @@ open class AnimationSequenceState(
         eventProcessor.process(listOf(zeroEvent))
     }
 
-    override fun update(time: Float): String? {
+    override fun update(time: Float): Pair<String?, Collection<String>> {
         val events = animationSequence.update(time)
         eventProcessor.process(events)
         if (animationSequence.finished)
-            return nextState
+            return nextState to events
 
-        return null
+        return null to emptySet()
     }
 
     override val currentFrame: Int

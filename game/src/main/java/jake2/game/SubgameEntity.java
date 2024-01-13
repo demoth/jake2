@@ -1,7 +1,7 @@
 package jake2.game;
 
 import jake2.game.adapters.*;
-import jake2.game.character.BehaviorTree;
+import jake2.game.character.BtContext;
 import jake2.game.character.GameCharacter;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
@@ -232,7 +232,7 @@ public class SubgameEntity extends edict_t {
     public Map<String, Object> components = new HashMap<>();
 
     public GameCharacter character; // todo: move to a component
-    public BehaviorTree controller; // todo: move to a component?
+    public BtContext btContext; // todo: move to a component?
 
     // todo: replace with a constructor call?
     void G_InitEdict(int i) {

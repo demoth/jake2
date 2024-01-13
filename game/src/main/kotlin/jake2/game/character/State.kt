@@ -19,6 +19,11 @@ abstract class State(
     abstract val currentFrame: Int // meh.. need to rethink the applicability of OOP here
 
     open fun enter() {}
-    open fun update(time: Float): String? = null
+
+    /**
+     * returns a pair of next state name and the set of events (passed to the BT)
+     */
+    open fun update(time: Float): Pair<String?, Collection<String>> = null to emptySet()
+
     open fun exit() = true
 }

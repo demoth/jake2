@@ -14,10 +14,16 @@ class StateMachine(
     }
 
 
-    fun update(time: Float) {
-        val nextState = currentState.update(time)
-        if (nextState != null)
+    /**
+     * returns a set of events executed during the timeframe [time]
+     */
+    fun update(time: Float): Collection<String> {
+        var (nextState, events) = currentState.update(time)
+        if (nextState != null) {
+            events += "finished-" + currentState.name
             attemptStateChange(nextState, true)
+        }
+        return events
     }
 
     fun attemptStateChange(nextStateName: String, force: Boolean = false): Boolean {
