@@ -26,6 +26,9 @@ class StateMachine(
         return events
     }
 
+    /**
+     * returns true if the transition is allowed or if already in [nextStateName]
+     */
     fun attemptStateChange(nextStateName: String, force: Boolean = false): Boolean {
         if (currentState.name == nextStateName)
             return true

@@ -1070,9 +1070,7 @@ final public class SV {
      * given dist.  
      */
     public static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
-        int i;
-
-        for (i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             if (goal.absmin[i] > ent.absmax[i] + dist)
                 return false;
             if (goal.absmax[i] < ent.absmin[i] - dist)

@@ -222,25 +222,21 @@ public class GameUtil {
     }
 
     /**
-     * Returns true if the entity is in front (in sight) of self
+     * Returns true if the other entity is in front (in sight) of self
      */
     public static boolean infront(SubgameEntity self, edict_t other) {
         float[] vec = { 0, 0, 0 };
-        float dot;
         float[] forward = { 0, 0, 0 };
 
         Math3D.AngleVectors(self.s.angles, forward, null, null);
         Math3D.VectorSubtract(other.s.origin, self.s.origin, vec);
         Math3D.VectorNormalize(vec);
-        dot = Math3D.DotProduct(vec, forward);
 
-        if (dot > 0.3)
-            return true;
-        return false;
+        return Math3D.DotProduct(vec, forward) > 0.3; // todo: introduce a config for the field of view
     }
 
     /**
-     * Returns 1 if the entity is visible to self, even if not infront().
+     * Returns true if the other entity is visible to self, even if not infront().
      */
     public static boolean visible(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
         if (other == null)

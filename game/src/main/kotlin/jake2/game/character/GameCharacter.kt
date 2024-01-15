@@ -96,7 +96,6 @@ fun createSequences(name: String): Collection<AnimationSequence> {
                 type = StateType.ATTACK,
                 frames = (184..194).toList(), // ready gun
                 events = mapOf(
-                    1 to "attack-ranged-prepare-event", // should be 0
                     3 to "sound-cock-gun"
                 ),
                 loop = false,
@@ -142,7 +141,7 @@ class GameCharacter(
         "cock-gun" to (game.gameImports.soundindex("infantry/infatck3.wav") to Defines.CHAN_WEAPON),
     )
 
-    private var fireFrames = 0 // how many frames to fire
+    private var fireFrames = 0 // how many frames to fire, fixme: ideally should be part of the attack state
 
     val currentFrame: Int
         get() = stateMachine.currentState.currentFrame
@@ -172,18 +171,13 @@ class GameCharacter(
                         sound(soundIndex.first, soundIndex.second)
                     }
                 }
-                it == "attack-ranged-prepare-event" -> {
-                    //fireFrames =  Random.nextInt(15) + 10
-                }
                 it == "attack-ranged-fire-event" -> {
                     if (fireFrames-- < 0) {
                         fireFrames = 0
-                        stateMachine.attemptStateChange("attack-ranged-finish", true) // othewise transition rules disallow ATTACK -> ATTACK states
+                        stateMachine.attemptStateChange("attack-ranged-finish", true) // otherwise transition rules disallow ATTACK -> ATTACK change
                         println("finished firing")
                         return@forEach
                     }
-
-                    aimAtEnemy()
 
                     val (start, forward, flash_number) = monsterFirePrepare()
 
@@ -250,10 +244,10 @@ class GameCharacter(
     fun updateStateMachine(time: Float): Collection<String> = stateMachine.update(time)
 
     //
-    // these commands are called either by AI or a Player.
-    // could be called continuously
+    // These commands are called either by AI or a Player.
+    // Should be idempotent so could be called continuously.
     //
-    // todo: all these actions should check if character is not dead or somehow disabled
+    // IMPORTANT: all these actions should check if the character is not dead or somehow disabled;
     // usually it's verified by the state machine, but when it's not used (like in the aim() method) - should be checked explicitly
 
     fun aimAtEnemy() {
@@ -330,8 +324,11 @@ class GameCharacter(
     fun executeAction(action: Any) {
         when (action as? EnforcerActions) {
             EnforcerActions.ATTACK_AIM_RANGED -> {
+                aimAtEnemy()
+                // even though called every frame, it doesn't do anything if already firing
                 self.character.attackRanged(Random.nextInt(15) + 10)
             }
+
             EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
             EnforcerActions.WALK -> self.character.walk()
             EnforcerActions.RUN -> self.character.run()
@@ -383,16 +380,22 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
             // attack or chase
             selector(
                 sequence(
+                    check { GameUtil.infront(self, self.enemy) },
                     check { SV.SV_CloseEnough(self, self.enemy, 16f) }, // todo: see jake2.game.GameUtil.range
+                    check { GameUtil.visible(self, self.enemy, game) },
                     run { BtWaitingTask(EnforcerActions.ATTACK_MELEE, "finished-attack-melee") }
                 ),
-                sequence(
-                    check { SV.SV_CloseEnough(self, self.enemy, 32f) },
-                    run { BtWaitingTask(EnforcerActions.ATTACK_AIM_RANGED, "finished-attack-ranged-finish") }
-                ),
-                sequence(
-                    check { SV.SV_CloseEnough(self, self.enemy, 100f) },
-                    run { BtActionTask(EnforcerActions.WALK) }
+                selector(
+                    // run or shoot
+                    sequence(
+                        check { GameUtil.infront(self, self.enemy) },
+                        check { Random.nextFloat() < 0.33f },
+                        check { GameUtil.visible(self, self.enemy, game) },
+                        run { BtWaitingTask(EnforcerActions.ATTACK_AIM_RANGED, "finished-attack-ranged-finish") }
+                    ),
+                    sequence(
+                        run { BtActionTask(EnforcerActions.RUN, duration = 20 + Random.nextInt(5)) }
+                    ),
                 ),
                 run { BtActionTask(EnforcerActions.RUN) }
             ),
