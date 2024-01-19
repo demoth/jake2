@@ -71,23 +71,24 @@ public class GameAI {
 
     /**
      * Strafe sideways, but stay at aproximately the same range.
+     * Change the direction when movement is blocked.
      */
     public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
-        float ofs;
 
         self.ideal_yaw = gameExports.enemy_yaw;
         M.rotateToIdealYaw(self);
 
+        final float angle;
         if (self.monsterinfo.lefty != 0)
-            ofs = 90;
+            angle = 90;
         else
-            ofs = -90;
+            angle = -90;
 
-        if (M.M_walkmove(self, self.ideal_yaw + ofs, distance, gameExports))
+        if (M.M_walkmove(self, self.ideal_yaw + angle, distance, gameExports))
             return;
 
         self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
-        M.M_walkmove(self, self.ideal_yaw - ofs, distance, gameExports);
+        M.M_walkmove(self, self.ideal_yaw - angle, distance, gameExports);
     }
 
     /**
@@ -123,7 +124,7 @@ public class GameAI {
                 return false;
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
-                if ((gameExports.level.time - self.enemy.teleport_time) > 5.0) {
+                if ((gameExports.level.time - self.enemy.last_sound_time) > 5.0) {
                     if (self.goalentity == self.enemy)
                         if (self.movetarget != null)
                             self.goalentity = self.movetarget;
@@ -271,7 +272,7 @@ public class GameAI {
         
         // wait a while before first attack
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND))
-            GameUtil.AttackFinished(self, gameExports.level.time + 1);
+            self.monsterinfo.attack_finished = gameExports.level.time + 1;
     }
 
     

@@ -1,6 +1,7 @@
 package jake2.game.character
 
 import jake2.game.*
+import jake2.game.GameAI.ai_run_slide
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
 import jake2.qcommon.Com
@@ -328,10 +329,10 @@ class GameCharacter(
                 // even though called every frame, it doesn't do anything if already firing
                 self.character.attackRanged(Random.nextInt(15) + 10)
             }
-
+            EnforcerActions.SLIDE -> ai_run_slide(self, 15f, game) // fixme: relies on game.enemy_yaw
             EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
             EnforcerActions.WALK -> self.character.walk()
-            EnforcerActions.RUN -> self.character.run()
+            EnforcerActions.CHASE -> self.character.run()
             EnforcerActions.IDLE -> self.character.idle()
             null -> TODO()
         }
@@ -341,7 +342,8 @@ enum class EnforcerActions {
     ATTACK_AIM_RANGED,
     ATTACK_MELEE,
     WALK,
-    RUN,
+    CHASE, // run and rotate towards a visible enemy
+    SLIDE, // bump left and right around the target
     IDLE
 }
 
@@ -394,10 +396,17 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
                         run { BtWaitingTask(EnforcerActions.ATTACK_AIM_RANGED, "finished-attack-ranged-finish") }
                     ),
                     sequence(
-                        run { BtActionTask(EnforcerActions.RUN, duration = 20 + Random.nextInt(5)) }
+                        check { GameUtil.infront(self, self.enemy) },
+                        check { GameUtil.visible(self, self.enemy, game) },
+                        run {
+                            BtActionTask(EnforcerActions.SLIDE, duration = 20 + Random.nextInt(5))
+                        }
+                    ),
+                    sequence(
+                        run { BtActionTask(EnforcerActions.CHASE, duration = 20 + Random.nextInt(5)) }
                     ),
                 ),
-                run { BtActionTask(EnforcerActions.RUN) }
+                run { BtActionTask(EnforcerActions.CHASE) }
             ),
         ),
         sequence(

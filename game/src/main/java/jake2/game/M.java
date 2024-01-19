@@ -201,10 +201,13 @@ public final class M {
     }
 
     /**
-     * M_walkmove.
+     * Moves the entity in a straight line based on the specified yaw angle and distance.
+     * If the entity is falling or swimming and cannot fly or swim, the method will return false.
      *
-     * @param yaw  - where the entitiy is looking at (in degrees)
-     * @param dist - distance to travel during this frame
+     * @param ent The entity to move.
+     * @param yaw The yaw angle in degrees.
+     * @param dist The distance to move.
+     * @return true if the entity was moved successfully, false otherwise.
      */
     public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
 

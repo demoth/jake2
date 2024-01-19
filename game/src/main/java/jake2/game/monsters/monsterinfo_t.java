@@ -53,7 +53,10 @@ public class monsterinfo_t {
 
 	public EntThinkAdapter checkattack;
 
+	// used to freeze animation (while ducking or shooting)
 	public float pausetime;
+
+	// don't attack until this time
 	public float attack_finished;
 
 	public float[] saved_goal= { 0, 0, 0 };

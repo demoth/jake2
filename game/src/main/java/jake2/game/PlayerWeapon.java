@@ -1493,7 +1493,7 @@ public class PlayerWeapon {
         Math3D.VectorCopy(where, noise.s.origin);
         Math3D.VectorSubtract(where, noise.maxs, noise.absmin);
         Math3D.VectorAdd(where, noise.maxs, noise.absmax);
-        noise.teleport_time = gameExports.level.time;
+        noise.last_sound_time = gameExports.level.time;
         gameExports.gameImports.linkentity(noise);
     }
 }

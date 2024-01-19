@@ -768,12 +768,13 @@ final public class SV {
     }
 
     /**
-     * Called by monster program code. The move will be adjusted for slopes and
-     * stairs, but if the move isn't possible, no move is done, false is
-     * returned, and pr_global_struct.trace_normal is set to the normal of the
-     * blocking wall.
-     * <p>
-     * FIXME: since we need to test end position contents here, can we avoid doing it again later in catagorize position?
+     * Moves the given entity in the game world by the specified amount.
+     * This method checks for collisions with other entities and the environment, and handles steps and water behavior for the entity.
+     *
+     * @param ent          the entity to move
+     * @param move         the amount to move the entity by in the form of a 3D vector [x, y, z]
+     * @param relink       indicates whether to relink the entity after the move
+     * @return true if the move is successful and false otherwise
      */
     static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink, GameExportsImpl gameExports) {
         float dz;

@@ -196,7 +196,7 @@ public class SubgameEntity extends edict_t {
     @Deprecated // todo: move to spawn_temp, introduce a separate Timer component
     public float random;
 
-    public float teleport_time;
+    public float last_sound_time;
 
     public int watertype;
 
@@ -517,7 +517,7 @@ public class SubgameEntity extends edict_t {
         f.writeFloat(delay);
         f.writeFloat(random);
 
-        f.writeFloat(teleport_time);
+        f.writeFloat(last_sound_time);
 
         f.writeInt(watertype);
         f.writeInt(waterlevel);
@@ -679,7 +679,7 @@ public class SubgameEntity extends edict_t {
         delay = f.readFloat();
         random = f.readFloat();
 
-        teleport_time = f.readFloat();
+        last_sound_time = f.readFloat();
 
         watertype = f.readInt();
         waterlevel = f.readInt();

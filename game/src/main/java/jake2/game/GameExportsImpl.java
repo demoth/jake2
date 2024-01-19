@@ -118,9 +118,13 @@ public class GameExportsImpl implements GameExports {
 
     // Monster knowledge about the enemy
     // todo: move to separate class
+    @Deprecated
     boolean enemy_vis;
+    @Deprecated
     boolean enemy_infront;
+    @Deprecated
     int enemy_range;
+    @Deprecated
     float enemy_yaw;
 
     // Game Items related

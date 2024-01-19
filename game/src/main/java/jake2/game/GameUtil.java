@@ -217,10 +217,6 @@ public class GameUtil {
         return GameDefines.RANGE_FAR;
     }
 
-    static void AttackFinished(SubgameEntity self, float attack_finished) {
-        self.monsterinfo.attack_finished = attack_finished;
-    }
-
     /**
      * Returns true if the other entity is in front (in sight) of self
      */
@@ -553,8 +549,7 @@ public class GameUtil {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                AttackFinished(self, gameExports.level.time + 2
-                        * Lib.random());
+                self.monsterinfo.attack_finished = gameExports.level.time + 2 * Lib.random();
                 return true;
             }
 
