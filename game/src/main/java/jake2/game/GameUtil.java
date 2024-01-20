@@ -486,7 +486,7 @@ public class GameUtil {
             float[] spot1 = { 0, 0, 0 };
 
             float[] spot2 = { 0, 0, 0 };
-            float chance;
+            float rangedAttackChance;
             trace_t tr;
 
             if (self.enemy.health > 0) {
@@ -508,7 +508,7 @@ public class GameUtil {
             }
 
             // melee attack
-            if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
+            if (self.monsterinfo.enemyRange == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
                 if (gameExports.gameCvars.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
@@ -526,28 +526,28 @@ public class GameUtil {
             if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (gameExports.enemy_range == GameDefines.RANGE_FAR)
+            if (self.monsterinfo.enemyRange == GameDefines.RANGE_FAR)
                 return false;
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
-                chance = 0.4f;
-            } else if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
-                chance = 0.2f;
-            } else if (gameExports.enemy_range == GameDefines.RANGE_NEAR) {
-                chance = 0.1f;
-            } else if (gameExports.enemy_range == GameDefines.RANGE_MID) {
-                chance = 0.02f;
+                rangedAttackChance = 0.4f;
+            } else if (self.monsterinfo.enemyRange == GameDefines.RANGE_MELEE) {
+                rangedAttackChance = 0.2f;
+            } else if (self.monsterinfo.enemyRange == GameDefines.RANGE_NEAR) {
+                rangedAttackChance = 0.1f;
+            } else if (self.monsterinfo.enemyRange == GameDefines.RANGE_MID) {
+                rangedAttackChance = 0.02f;
             } else {
                 // chance = 0f
                 return false;
             }
 
             if (gameExports.gameCvars.skill.value == 0)
-                chance *= 0.5;
+                rangedAttackChance *= 0.5f;
             else if (gameExports.gameCvars.skill.value >= 2)
-                chance *= 2;
+                rangedAttackChance *= 2;
 
-            if (Lib.random() < chance) {
+            if (Lib.random() < rangedAttackChance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 self.monsterinfo.attack_finished = gameExports.level.time + 2 * Lib.random();
                 return true;

@@ -47,7 +47,7 @@ public class GameAI {
      * Turn and close until within an angle to launch a melee attack.
      */
     public static void ai_run_melee(SubgameEntity self, GameExportsImpl gameExports) {
-        self.ideal_yaw = gameExports.enemy_yaw;
+        self.ideal_yaw = self.monsterinfo.enemyYaw;
         M.rotateToIdealYaw(self);
 
         if (FacingIdeal(self)) {
@@ -60,7 +60,7 @@ public class GameAI {
      * Turn in place until within an angle to launch a missile attack.
      */
     public static void ai_run_missile(SubgameEntity self, GameExportsImpl gameExports) {
-        self.ideal_yaw = gameExports.enemy_yaw;
+        self.ideal_yaw = self.monsterinfo.enemyYaw;
         M.rotateToIdealYaw(self);
 
         if (FacingIdeal(self)) {
@@ -75,7 +75,7 @@ public class GameAI {
      */
     public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
 
-        self.ideal_yaw = gameExports.enemy_yaw;
+        self.ideal_yaw = self.monsterinfo.enemyYaw;
         M.rotateToIdealYaw(self);
 
         final float angle;
@@ -114,9 +114,7 @@ public class GameAI {
      * 
      * walkmove(angle, speed) primitive is all or nothing
      */
-    public static boolean ai_checkattack(SubgameEntity self, float dist, GameExportsImpl gameExports) {
-
-        boolean hesDeadJim;
+    public static boolean ai_checkattack(SubgameEntity self, GameExportsImpl gameExports) {
 
         // this causes monsters to run blindly to the combat point w/o firing
         if (self.goalentity != null) {
@@ -140,10 +138,10 @@ public class GameAI {
             }
         }
 
-        gameExports.enemy_vis = false;
+        self.monsterinfo.enemyVisible = false;
 
         // see if the enemy is dead
-        hesDeadJim = false;
+        boolean hesDeadJim = false;
         if ((null == self.enemy) || (!self.enemy.inuse)) {
             hesDeadJim = true;
         } else if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0) {
@@ -188,20 +186,17 @@ public class GameAI {
         
         // gather knowledge of enemy
         // todo: put (into a structure and keep) in the monsterinfo
-        gameExports.enemy_vis = GameUtil.visible(self, self.enemy, gameExports);
-        if (gameExports.enemy_vis) {
+        self.monsterinfo.enemyVisible = GameUtil.visible(self, self.enemy, gameExports);
+        if (self.monsterinfo.enemyVisible) {
             self.monsterinfo.search_time = gameExports.level.time + 5;
             Math3D.VectorCopy(self.enemy.s.origin,
                     self.monsterinfo.last_sighting);
         }
 
-        gameExports.enemy_infront = GameUtil.infront(self, self.enemy);
-        gameExports.enemy_range = GameUtil.range(self, self.enemy);
+        self.monsterinfo.enemyRange = GameUtil.range(self, self.enemy);
         float[] temp = {0, 0, 0};
         Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-        gameExports.enemy_yaw = Math3D.vectoyaw(temp);
-
-        // JDC self.ideal_yaw = enemy_yaw;
+        self.monsterinfo.enemyYaw = Math3D.vectoyaw(temp);
 
         if (self.monsterinfo.attack_state == GameDefines.AS_MISSILE) {
             ai_run_missile(self, gameExports);
@@ -213,7 +208,7 @@ public class GameAI {
         }
 
         // if enemy is not currently visible, we will never attack
-        if (!gameExports.enemy_vis)
+        if (!self.monsterinfo.enemyVisible)
             return false;
 
         return self.monsterinfo.checkattack.think(self, gameExports);
@@ -439,7 +434,7 @@ public class GameAI {
                         self.monsterinfo.run.think(self, gameExports);
                     }
                     M.rotateToIdealYaw(self);
-                    ai_checkattack(self, 0, gameExports);
+                    ai_checkattack(self, gameExports);
                 } else
                     GameUtil.FindTarget(self, gameExports);
                 return;
@@ -520,7 +515,7 @@ public class GameAI {
                                 
             }
 
-            if (ai_checkattack(self, dist, gameExports))
+            if (ai_checkattack(self, gameExports))
                 return;
 
             if (self.monsterinfo.attack_state == GameDefines.AS_SLIDING) {
@@ -528,7 +523,7 @@ public class GameAI {
                 return;
             }
 
-            if (gameExports.enemy_vis) {
+            if (self.monsterinfo.enemyVisible) {
                 //if (self.aiflags & AI_LOST_SIGHT)
                 //   dprint("regained sight\n");
                 M.M_MoveToGoal(self, dist, gameExports);

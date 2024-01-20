@@ -116,17 +116,6 @@ public class GameExportsImpl implements GameExports {
     // todo: remove and use result of gi.BoxEdicts
     SubgameEntity[] touch = new SubgameEntity[Defines.MAX_EDICTS];
 
-    // Monster knowledge about the enemy
-    // todo: move to separate class
-    @Deprecated
-    boolean enemy_vis;
-    @Deprecated
-    boolean enemy_infront;
-    @Deprecated
-    int enemy_range;
-    @Deprecated
-    float enemy_yaw;
-
     // Game Items related
     public List<GameItem> items;
     // todo: move to appropriate places

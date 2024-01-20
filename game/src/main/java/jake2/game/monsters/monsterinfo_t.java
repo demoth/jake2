@@ -26,7 +26,6 @@ import jake2.game.adapters.EntDodgeAdapter;
 import jake2.game.adapters.EntInteractAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.SuperAdapter;
-import jake2.game.monsters.mmove_t;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
@@ -70,6 +69,10 @@ public class monsterinfo_t {
 
 	public int power_armor_type;
 	public int power_armor_power;
+
+	public boolean enemyVisible = false;
+	public int enemyRange =  0;
+	public float enemyYaw = 0f;
 
 	/** Writes the monsterinfo to the file.*/
 	public void write(QuakeFile f) throws IOException

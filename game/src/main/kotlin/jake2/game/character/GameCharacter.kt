@@ -329,7 +329,7 @@ class GameCharacter(
                 // even though called every frame, it doesn't do anything if already firing
                 self.character.attackRanged(Random.nextInt(15) + 10)
             }
-            EnforcerActions.SLIDE -> ai_run_slide(self, 15f, game) // fixme: relies on game.enemy_yaw
+            EnforcerActions.SLIDE -> ai_run_slide(self, 15f, game)
             EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
             EnforcerActions.WALK -> self.character.walk()
             EnforcerActions.CHASE -> self.character.run()
