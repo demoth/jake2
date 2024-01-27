@@ -277,6 +277,12 @@ class GameCharacter(
         }
     }
 
+    fun runNoAim() {
+        if (stateMachine.attemptStateChange("run")) {
+            //M.M_walkmove(self, self.ideal_yaw, 15f, game)
+        }
+    }
+
     fun idle() {
         if (stateMachine.currentState.type != StateType.IDLE) // not to interrupt the fidget animation
             stateMachine.attemptStateChange("stand")
@@ -329,7 +335,16 @@ class GameCharacter(
                 // even though called every frame, it doesn't do anything if already firing
                 self.character.attackRanged(Random.nextInt(15) + 10)
             }
-            EnforcerActions.SLIDE -> ai_run_slide(self, 15f, game)
+            EnforcerActions.SLIDE -> {
+
+                val distance = floatArrayOf(0f, 0f, 0f)
+                Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
+                self.monsterinfo.enemyYaw = Math3D.vectoyaw(distance)
+
+
+                ai_run_slide(self, 15f, game)
+                self.character.runNoAim()
+            }
             EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
             EnforcerActions.WALK -> self.character.walk()
             EnforcerActions.CHASE -> self.character.run()
