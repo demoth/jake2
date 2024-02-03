@@ -436,6 +436,9 @@ public class Math3D {
 			}
 		}
 	}
+	/**
+	 * Projects a point onto a plane defined by a distance and direction vectors.
+	 */
 	public static void G_ProjectSource(
 		float[] point,
 		float[] distance,

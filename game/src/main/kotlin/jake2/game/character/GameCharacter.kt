@@ -328,6 +328,9 @@ class GameCharacter(
                       timeOffset: Float = 0f) =
         game.gameImports.sound(self, channel, soundIndex, volume, attenuation, timeOffset)
 
+    /**
+     * Run every frame for continuous actions
+     */
     fun executeAction(action: Any) {
         when (action as? EnforcerActions) {
             EnforcerActions.ATTACK_AIM_RANGED -> {
