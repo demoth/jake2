@@ -78,8 +78,7 @@ public final class M {
     }
     
     /**
-     * Returns false if any part of the bottom of the entity is off an edge that
-     * is not a staircase.
+     * Returns false if any part of the bottom of the entity is off an edge that is not a staircase.
      */
     public static boolean M_CheckBottom(edict_t ent, GameExportsImpl gameExports) {
         float[] mins = { 0, 0, 0 };
@@ -166,7 +165,7 @@ public final class M {
                 deltaYaw = deltaYaw + 360;
         }
 
-        // normalize to (-ent.yaw_speed, ent.yaw_speed)
+        // normalize deltaYaw to (-ent.yaw_speed, ent.yaw_speed)
         if (deltaYaw > 0) {
             if (deltaYaw > ent.yaw_speed)
                 deltaYaw = ent.yaw_speed;
@@ -182,8 +181,6 @@ public final class M {
      * M_MoveToGoal.
      */
     public static void M_MoveToGoal(SubgameEntity ent, float dist, GameExportsImpl gameExports) {
-        SubgameEntity goal = ent.goalentity;
-
         // if we are (helplessly) falling and cannot fly -> return
         if (ent.groundentity == null
                 && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
@@ -196,7 +193,7 @@ public final class M {
         //	   bump around...
         if ((Lib.rand() & 3) == 1 || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist, gameExports)) {
             if (ent.inuse)
-                SV.SV_NewChaseDir(ent, goal, dist, gameExports);
+                SV.SV_NewChaseDir(ent, ent.goalentity, dist, gameExports);
         }
     }
 
@@ -216,7 +213,7 @@ public final class M {
                 && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
             return false;
 
-        float yaw_radian = (float) (yaw * Math.PI * 2 / 360);
+        float yaw_radian = (float) (yaw * Math.PI / 180);
 
         float[] move = {
                 (float) Math.cos(yaw_radian) * dist,

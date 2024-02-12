@@ -277,7 +277,17 @@ class GameCharacter(
         }
     }
 
-    fun runNoAim() {
+    fun bumpAround() {
+
+        val distance = floatArrayOf(0f, 0f, 0f)
+        Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
+        self.monsterinfo.enemyYaw = Math3D.vectoyaw(distance)
+
+        self.goalentity = self.enemy // todo: how to manage goal entities?
+
+        ai_run_slide(self, 15f, game)
+        M.M_MoveToGoal(self, 15f, game) // fixme this function not only bumps around, but also runs towards the actual goal
+
         if (stateMachine.attemptStateChange("run")) {
             //M.M_walkmove(self, self.ideal_yaw, 15f, game)
         }
@@ -299,7 +309,8 @@ class GameCharacter(
         stateMachine.attemptStateChange("attack-melee")
     }
 
-    fun attackRanged(framesToAttack: Int) {
+    fun attackAimRanged(framesToAttack: Int) {
+        aimAtEnemy()
         // to avoid resetting the attack cycle
         if (stateMachine.currentState.type != StateType.ATTACK) {
             fireFrames = framesToAttack
@@ -333,21 +344,8 @@ class GameCharacter(
      */
     fun executeAction(action: Any) {
         when (action as? EnforcerActions) {
-            EnforcerActions.ATTACK_AIM_RANGED -> {
-                aimAtEnemy()
-                // even though called every frame, it doesn't do anything if already firing
-                self.character.attackRanged(Random.nextInt(15) + 10)
-            }
-            EnforcerActions.SLIDE -> {
-
-                val distance = floatArrayOf(0f, 0f, 0f)
-                Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, distance)
-                self.monsterinfo.enemyYaw = Math3D.vectoyaw(distance)
-
-
-                ai_run_slide(self, 15f, game)
-                self.character.runNoAim()
-            }
+            EnforcerActions.ATTACK_AIM_RANGED -> self.character.attackAimRanged(Random.nextInt(15) + 10)
+            EnforcerActions.BUMP_AROUND -> self.character.bumpAround()
             EnforcerActions.ATTACK_MELEE -> self.character.attackMelee()
             EnforcerActions.WALK -> self.character.walk()
             EnforcerActions.CHASE -> self.character.run()
@@ -361,7 +359,7 @@ enum class EnforcerActions {
     ATTACK_MELEE,
     WALK,
     CHASE, // run and rotate towards a visible enemy
-    SLIDE, // bump left and right around the target
+    BUMP_AROUND, // bump left and right around the target
     IDLE
 }
 
@@ -413,15 +411,16 @@ fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
                         check { GameUtil.visible(self, self.enemy, game) },
                         run { BtWaitingTask(EnforcerActions.ATTACK_AIM_RANGED, "finished-attack-ranged-finish") }
                     ),
+                    // fixme: both of these 2 sequences make the character stuck when hitting the obstacles.
                     sequence(
                         check { GameUtil.infront(self, self.enemy) },
                         check { GameUtil.visible(self, self.enemy, game) },
                         run {
-                            BtActionTask(EnforcerActions.SLIDE, duration = 20 + Random.nextInt(5))
+                            BtActionTask(EnforcerActions.BUMP_AROUND, duration = 10 + Random.nextInt(5))
                         }
                     ),
                     sequence(
-                        run { BtActionTask(EnforcerActions.CHASE, duration = 20 + Random.nextInt(5)) }
+                        run { BtActionTask(EnforcerActions.CHASE, duration = 10 + Random.nextInt(5)) }
                     ),
                 ),
                 run { BtActionTask(EnforcerActions.CHASE) }

@@ -777,30 +777,26 @@ final public class SV {
      * @return true if the move is successful and false otherwise
      */
     static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink, GameExportsImpl gameExports) {
-        float dz;
-        float[] oldorg = { 0, 0, 0 };
-        float[] neworg = { 0, 0, 0 };
-        float[] end = { 0, 0, 0 };
-
-        trace_t trace = null; // = new trace_t();
-        int i;
-        float stepsize;
-        float[] test = { 0, 0, 0 };
-        int contents;
 
         //	   try the move
+        float[] oldorg = {0, 0, 0};
         Math3D.VectorCopy(ent.s.origin, oldorg);
+        float[] neworg = {0, 0, 0};
         Math3D.VectorAdd(ent.s.origin, move, neworg);
 
-        //	   flying monsters don't step up
+        trace_t trace;
+        float[] test = {0, 0, 0};
+        int contents;
+
+        // flying and swimming monsters don't step up
         if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0) {
             // try one move with vertical motion, then one without
-            for (i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; i++) {
                 Math3D.VectorAdd(ent.s.origin, move, neworg);
                 if (i == 0 && ent.enemy != null) {
                     if (ent.goalentity == null)
                         ent.goalentity = ent.enemy;
-                    dz = ent.s.origin[2] - ent.goalentity.s.origin[2];
+                    float dz = ent.s.origin[2] - ent.goalentity.s.origin[2];
                     if (ent.goalentity.getClient() != null) {
                         if (dz > 40)
                             neworg[2] -= 8;
@@ -862,30 +858,32 @@ final public class SV {
         }
 
         //	   push down from a step height above the wished position
-        if ((ent.monsterinfo.aiflags & GameDefines.AI_NOSTEP) == 0)
+        final float stepsize;
+        if ((ent.monsterinfo.aiflags & GameDefines.AI_NOSTEP) != 0) {
+            // for example, misc_explobox cannot ascend the stairs
+            stepsize = 1; // but can ascend the ramp
+        } else {
             stepsize = GameBase.STEPSIZE;
-        else
-            stepsize = 1;
+        }
 
         neworg[2] += stepsize;
+        float[] end = {0, 0, 0};
         Math3D.VectorCopy(neworg, end);
-        end[2] -= stepsize * 2;
+        end[2] -= stepsize * 2; // why * 2
 
-        trace = gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent,
-                Defines.MASK_MONSTERSOLID);
+        trace = gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent, Defines.MASK_MONSTERSOLID);
 
         if (trace.allsolid)
             return false;
 
         if (trace.startsolid) {
-            neworg[2] -= stepsize;
-            trace = gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent,
-                    Defines.MASK_MONSTERSOLID);
+            neworg[2] -= stepsize; // horizontally
+            trace = gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent, Defines.MASK_MONSTERSOLID);
             if (trace.allsolid || trace.startsolid)
                 return false;
         }
 
-        // don't go in to water
+        // don't go in to water if not in the water already
         if (ent.waterlevel == 0) {
             test[0] = trace.endpos[0];
             test[1] = trace.endpos[1];
@@ -917,7 +915,7 @@ final public class SV {
         if (!M.M_CheckBottom(ent, gameExports)) {
             if ((ent.flags & GameDefines.FL_PARTIALGROUND) != 0) {
                 // entity had floor mostly pulled out from underneath it
-                // and is trying to correct
+                // and is trying to correct // fixme WHO is trying to correct?
                 if (relink) {
                     gameExports.gameImports.linkentity(ent);
                     GameBase.G_TouchTriggers(ent, gameExports);
@@ -943,34 +941,35 @@ final public class SV {
     }
 
     /** 
-     * Turns to the movement direction, and walks the current distance if facing
-     * it.
+     * Turns to the movement direction, and walks the current distance if facing it.
      */
-    static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
-        float[] move = { 0, 0, 0 };
-        float[] oldorigin = { 0, 0, 0 };
+    static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist, GameExportsImpl game) {
 
         ent.ideal_yaw = yaw;
         M.rotateToIdealYaw(ent);
 
-        yaw = (float) (yaw * Math.PI * 2 / 360);
-        move[0] = (float) Math.cos(yaw) * dist;
-        move[1] = (float) Math.sin(yaw) * dist;
-        move[2] = 0;
+        float yawRadians = (float) (ent.ideal_yaw * Math.PI / 180);
+        float[] move = {
+                (float) Math.cos(yawRadians) * dist,
+                (float) Math.sin(yawRadians) * dist,
+                0
+        };
 
+        float[] oldorigin = {0, 0, 0};
         Math3D.VectorCopy(ent.s.origin, oldorigin);
-        if (SV_movestep(ent, move, false, gameExports)) {
+
+        if (SV_movestep(ent, move, false, game)) {
             float delta = ent.s.angles[Defines.YAW] - ent.ideal_yaw;
             if (delta > 45 && delta < 315) {
                 // not turned far enough, so don't take the step
                 Math3D.VectorCopy(oldorigin, ent.s.origin);
             }
-            gameExports.gameImports.linkentity(ent);
-            GameBase.G_TouchTriggers(ent, gameExports);
+            game.gameImports.linkentity(ent);
+            GameBase.G_TouchTriggers(ent, game);
             return true;
         }
-        gameExports.gameImports.linkentity(ent);
-        GameBase.G_TouchTriggers(ent, gameExports);
+        game.gameImports.linkentity(ent);
+        GameBase.G_TouchTriggers(ent, game);
         return false;
     }
 
@@ -982,43 +981,49 @@ final public class SV {
         ent.flags |= GameDefines.FL_PARTIALGROUND;
     }
 
-    static void SV_NewChaseDir(SubgameEntity actor, SubgameEntity enemy, float dist, GameExportsImpl gameExports) {
-        float deltax, deltay;
-        float d[] = { 0, 0, 0 };
-        float tdir, olddir, turnaround;
+    static void SV_NewChaseDir(SubgameEntity self, SubgameEntity enemy, float dist, GameExportsImpl game) {
 
         //FIXME: how did we get here with no enemy
         if (enemy == null) {
-            gameExports.gameImports.dprintf("SV_NewChaseDir without enemy!\n");
+            game.gameImports.dprintf("SV_NewChaseDir without enemy!\n");
             return;
         }
-        olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);
-        turnaround = Math3D.anglemod(olddir - 180);
 
-        deltax = enemy.s.origin[0] - actor.s.origin[0];
-        deltay = enemy.s.origin[1] - actor.s.origin[1];
+
+        float olddir = Math3D.anglemod((int) (self.ideal_yaw / 45) * 45); // snap to 45 degrees
+        float turnaround = Math3D.anglemod(olddir - 180);
+
+        float deltax = enemy.s.origin[0] - self.s.origin[0];
+        float deltay = enemy.s.origin[1] - self.s.origin[1];
         int DI_NODIR = -1;
-        if (deltax > 10)
+
+        float[] d = {0, 0, 0};
+
+        int DELTA_THRESHOLD = 10;
+
+        if (deltax > DELTA_THRESHOLD)
             d[1] = 0;
-        else if (deltax < -10)
+        else if (deltax < -DELTA_THRESHOLD)
             d[1] = 180;
         else
             d[1] = DI_NODIR;
-        if (deltay < -10)
+
+        if (deltay < -DELTA_THRESHOLD)
             d[2] = 270;
-        else if (deltay > 10)
+        else if (deltay > DELTA_THRESHOLD)
             d[2] = 90;
         else
             d[2] = DI_NODIR;
 
-        //	   try direct route
+        // try direct route
+        float tdir;
         if (d[1] != DI_NODIR && d[2] != DI_NODIR) {
             if (d[1] == 0)
                 tdir = d[2] == 90 ? 45 : 315;
             else
                 tdir = d[2] == 90 ? 135 : 215;
 
-            if (tdir != turnaround && SV_StepDirection(actor, tdir, dist, gameExports))
+            if (tdir != turnaround && SV_StepDirection(self, tdir, dist, game))
                 return;
         }
 
@@ -1030,45 +1035,44 @@ final public class SV {
         }
 
         if (d[1] != DI_NODIR && d[1] != turnaround
-                && SV_StepDirection(actor, d[1], dist, gameExports))
+                && SV_StepDirection(self, d[1], dist, game))
             return;
 
         if (d[2] != DI_NODIR && d[2] != turnaround
-                && SV_StepDirection(actor, d[2], dist, gameExports))
+                && SV_StepDirection(self, d[2], dist, game))
             return;
 
         /* there is no direct path to the player, so pick another direction */
 
         if (olddir != DI_NODIR
-                && SV_StepDirection(actor, olddir, dist, gameExports))
+                && SV_StepDirection(self, olddir, dist, game))
             return;
 
         if ((Lib.rand() & 1) != 0) /* randomly determine direction of search */{
             for (tdir = 0; tdir <= 315; tdir += 45)
-                if (tdir != turnaround && SV_StepDirection(actor, tdir, dist, gameExports))
+                if (tdir != turnaround && SV_StepDirection(self, tdir, dist, game))
                     return;
         } else {
             for (tdir = 315; tdir >= 0; tdir -= 45)
-                if (tdir != turnaround && SV_StepDirection(actor, tdir, dist, gameExports))
+                if (tdir != turnaround && SV_StepDirection(self, tdir, dist, game))
                     return;
         }
 
         if (turnaround != DI_NODIR
-                && SV_StepDirection(actor, turnaround, dist, gameExports))
+                && SV_StepDirection(self, turnaround, dist, game))
             return;
 
-        actor.ideal_yaw = olddir; // can't move
+        self.ideal_yaw = olddir; // can't move
 
         // if a bridge was pulled out from underneath a monster, it may not have
         // a valid standing position at all
 
-        if (!M.M_CheckBottom(actor, gameExports))
-            SV_FixCheckBottom(actor);
+        if (!M.M_CheckBottom(self, game))
+            SV_FixCheckBottom(self);
     }
 
     /**
-     * SV_CloseEnough - returns true if distance between 2 ents is smaller than
-     * given dist.  
+     * SV_CloseEnough - returns true if the AABB distance between two entities is smaller than the given dist.
      */
     public static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
         for (int i = 0; i < 3; i++) {

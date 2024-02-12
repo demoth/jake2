@@ -466,8 +466,18 @@ public class Math3D {
 	public static float DEG2RAD(float in) {
 		return (in * (float) Math.PI) / 180.0f;
 	}
-	public static float anglemod(float a) {
-		return (float) (shortratio) * ((int) (a / (shortratio)) & 65535);
+
+	// fixme: return short
+
+	/**
+	 * Fit the given angle in degrees to the java short range.
+	 * (-180, 180) -> (Short.MIN_VALUE, Short.MAX_VALUE)
+	 *
+	 * @param angle in degrees
+	 */
+	public static float anglemod(float angle) {
+		int intDegrees = (int) (angle / (shortratio));
+		return shortratio * (intDegrees & 65535);
 	}
 	public static int ANGLE2SHORT(float x) {
 		return ((int) ((x) / shortratio) & 65535);

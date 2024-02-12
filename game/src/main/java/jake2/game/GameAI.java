@@ -70,8 +70,10 @@ public class GameAI {
     };
 
     /**
-     * Strafe sideways, but stay at aproximately the same range.
+     * Strafe sideways, but stay at approximately the same range.
+     * Look in the direction of the enemy.
      * Change the direction when movement is blocked.
+     * Used by flying monsters.
      */
     public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
 
@@ -413,8 +415,8 @@ public class GameAI {
 
     
     /**
-     * Used for standing around and looking for players Distance is for slight
-     * position adjustments needed by the animations. 
+     * Used for standing around and looking for players.
+     * Distance is for slight position adjustments needed by the animations.
      */
     public static AIAdapter ai_stand = new AIAdapter() {
         public String getID() { return "ai_stand";}
@@ -451,7 +453,7 @@ public class GameAI {
             if (0 == (self.spawnflags & 1) && (self.monsterinfo.idle != null)
                     && (gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
-                    self.monsterinfo.idle.think(self, gameExports);
+                    self.monsterinfo.idle.think(self, gameExports); // fidget animation
                     self.monsterinfo.idle_time = gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
                     self.monsterinfo.idle_time = gameExports.level.time + Globals.rnd.nextFloat() * 15;
