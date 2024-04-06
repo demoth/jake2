@@ -187,15 +187,6 @@ public interface QGLConst {
 
     public static final int GL_REPLACE = 0x1E01;
 
-    /*
-     * string names
-     */
-    public static final int GL_VENDOR = 0x1F00;
-
-    public static final int GL_RENDERER = 0x1F01;
-
-    public static final int GL_VERSION = 0x1F02;
-
     public static final int GL_EXTENSIONS = 0x1F03;
 
     /*

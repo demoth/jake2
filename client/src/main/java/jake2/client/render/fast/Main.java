@@ -40,6 +40,8 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
+import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL30C;
 
 import java.awt.*;
 import java.nio.FloatBuffer;
@@ -1019,12 +1021,14 @@ public abstract class Main extends Base {
 	 * R_SetMode
 	 */
 	protected boolean R_SetMode() {
-		boolean fullscreen = (vid_fullscreen.value > 0.0f);
+		boolean fullscreen = false;
+//		boolean fullscreen = (vid_fullscreen.value > 0.0f);
 
 		vid_fullscreen.modified = false;
 		gl_mode.modified = false;
 
-		Dimension dim = new Dimension(vid.getWidth(), vid.getHeight());
+//		Dimension dim = new Dimension(vid.getWidth(), vid.getHeight());
+		Dimension dim = new Dimension(1024, 768);
 
 		int err; //  enum rserr_t
 		if ((err = glImpl.setMode(dim, (int) gl_mode.value, fullscreen)) == rserr_ok) {
@@ -1099,13 +1103,20 @@ public abstract class Main extends Base {
 		/*
 		** get our various GL strings
 		*/
-		gl_config.vendor_string = gl.glGetString(GL_VENDOR);
+		gl_config.vendor_string = gl.glGetString(GL11C.GL_VENDOR);
 		Com.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
-		gl_config.renderer_string = gl.glGetString(GL_RENDERER);
+		gl_config.renderer_string = gl.glGetString(GL11C.GL_RENDERER);
 		Com.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
-		gl_config.version_string = gl.glGetString(GL_VERSION);
+		gl_config.version_string = gl.glGetString(GL11C.GL_VERSION);
 		Com.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
-		gl_config.extensions_string = gl.glGetString(GL_EXTENSIONS);
+
+		int extensions = GL30C.glGetInteger(GL30C.GL_NUM_EXTENSIONS);
+
+		StringBuilder extensionsString = new StringBuilder();
+		for (int i = 0; i < extensions; i++) {
+			extensionsString.append(GL30C.glGetStringi(GL_EXTENSIONS, i)).append("|");
+		}
+		gl_config.extensions_string = extensionsString.toString();
 		Com.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 		
 		gl_config.parseOpenGLVersion();

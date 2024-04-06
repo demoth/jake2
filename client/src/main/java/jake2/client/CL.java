@@ -45,6 +45,7 @@ import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
+import org.lwjgl.system.Configuration;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -1422,6 +1423,7 @@ public final class CL {
     public static void Frame(int msec) {
         extratime += msec;
 
+
         if (ClientGlobals.cl_timedemo.value == 0.0f) {
             if (ClientGlobals.cls.state == Defines.ca_connected && extratime < 100) {
                 return; // don't flood packets out while connecting
@@ -1563,7 +1565,7 @@ public final class CL {
     public static void Init() {
         if (Globals.dedicated.value != 0.0f)
             return; // nothing running on the client
-
+        Configuration.DEBUG.set(true);
         // all archived variables will now be loaded
 
         Console.Init(); //ok

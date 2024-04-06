@@ -27,18 +27,19 @@ package jake2.client.render.opengl;
 
 import jake2.client.VID;
 import jake2.client.render.Base;
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
 import jake2.qcommon.exec.Command;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import java.awt.*;
 import java.util.Collections;
 import java.util.LinkedList;
 
 import static jake2.client.render.Base.window;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * LWJGLBase
@@ -128,7 +129,7 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
     private java.awt.DisplayMode getCurrentDisplayModeAwt() {
         long monitor = GLFW.glfwGetPrimaryMonitor();
         if (monitor == 0) {
-            throw new NullPointerException("Failed to get primary monitor");
+            throw new IllegalStateException("Failed to get primary monitor");
         }
         GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
         return new DisplayMode(vidMode.width(), vidMode.height(), vidMode.refreshRate(), vidMode.redBits() + vidMode.greenBits() + vidMode.blueBits());
@@ -213,6 +214,37 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
         sb.append("Hz");
         return sb.toString();
     }
+    /**
+     * A reference to the error callback so it doesn't get GCd.
+     */
+    private GLFWErrorCallback errorCallback;
+
+    private long createWindow() {
+        if (!GLFW.glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
+
+        //Setup an error callback to print GLFW errors to the console.
+        glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
+
+        //Set resizable
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        //Request an OpenGL 3.3 Core context.
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+
+
+        long window = GLFW.glfwCreateWindow(800, 600, "Jake2", 0, 0);
+        if (window == 0) {
+            throw new RuntimeException("Failed to create GLFW window");
+        }
+
+        GLFW.glfwMakeContextCurrent(window);
+        GLCapabilities glCapabilities = GL.createCapabilities();
+
+        return window;
+    }
 
     /**
      * @param dim
@@ -221,36 +253,38 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
      * @return enum rserr_t
      */
     public int setMode(Dimension dim, int mode, boolean fullscreen) {
-        Dimension newDim = new Dimension();
+//        Dimension newDim = new Dimension();
+//
+//        Com.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
+//
+//        Com.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
-        Com.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
+//        // Fullscreen handling
+//        if (oldDisplayMode == null) {
+//
+//            oldDisplayMode = getCurrentDisplayModeAwt();
+//        }
 
-        Com.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
-
-        // Fullscreen handling
-        if (oldDisplayMode == null) {
-            oldDisplayMode = getCurrentDisplayModeAwt();
-        }
-
+/*
         if (!VID.GetModeInfo(newDim, mode)) {
             Com.Printf(Defines.PRINT_ALL, " invalid mode\n");
             return Base.rserr_invalid_mode;
         }
 
-        Com.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
-
+*/
         // Destroy the existing window
-        shutdown();
+//        shutdown();
 
-        Base.window = GLFW.glfwCreateWindow(newDim.width, newDim.height, "Jake2 (lwjgl)", fullscreen ? GLFW.glfwGetPrimaryMonitor() : 0, 0);
+        Base.window = createWindow();
+//        Base.window = GLFW.glfwCreateWindow(newDim.width, newDim.height, "Jake2 (lwjgl)", fullscreen ? GLFW.glfwGetPrimaryMonitor() : 0, 0);
 
         if (window == 0) {
             return Base.rserr_unknown;
         }
 
         // Make the window's context current
-        GLFW.glfwMakeContextCurrent(window);
-        GL.createCapabilities();
+//        GLFW.glfwMakeContextCurrent(window);
+//        GL.createCapabilities();
 
         // Set the window position if not fullscreen
         if (!fullscreen) {
@@ -259,10 +293,10 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
 
         // Store the window handle
         // Replace "long window;" in your class with "long windowHandle;"
-        Base.setVid(newDim.width, newDim.height);
+        Base.setVid(800, 600);
 
         // Let the sound and input subsystems know about the new window
-        VID.NewWindow(newDim.width, newDim.height);
+        VID.NewWindow(800, 600);
         return Base.rserr_ok;
     }
 

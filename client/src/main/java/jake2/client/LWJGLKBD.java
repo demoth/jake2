@@ -6,7 +6,6 @@ import jake2.qcommon.sys.Timer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
-import org.lwjgl.opengl.GL;
 
 import static jake2.client.render.Base.window;
 
@@ -15,24 +14,9 @@ import static jake2.client.render.Base.window;
  */
 public class LWJGLKBD extends KBD {
 
-    private char[] lwjglKeycodeMap = null;
+    private char[] lwjglKeycodeMap = new char[512];
     private int pressed[] = null;
 
-    private long createWindow() {
-        if (!GLFW.glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
-
-        long window = GLFW.glfwCreateWindow(800, 600, "Jake2", 0, 0);
-        if (window == 0) {
-            throw new RuntimeException("Failed to create GLFW window");
-        }
-
-        GLFW.glfwMakeContextCurrent(window);
-        GL.createCapabilities();
-
-        return window;
-    }
 
     public void Init() {
         try {
@@ -53,7 +37,7 @@ public class LWJGLKBD extends KBD {
             };
             GLFW.glfwSetKeyCallback(window, keyCallback);
 
-            if (pressed == null) pressed = new int[256];
+            if (pressed == null) pressed = new int[512];
 
             lastRepeat = Timer.Milliseconds();
         } catch (Exception e) {
