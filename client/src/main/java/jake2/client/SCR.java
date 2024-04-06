@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static jake2.client.ClientGlobals.cls;
+import static jake2.client.render.fast.Main.checkGlError;
 
 /**
  * SCR
@@ -1194,6 +1195,7 @@ public final class SCR extends Globals {
         }
 
         for (i = 0; i < numframes; i++) {
+            checkGlError();
             ClientGlobals.re.BeginFrame(separation[i]);
 
             if (scr_draw_loading == 2) { //  loading plaque over black screen
@@ -1233,34 +1235,42 @@ public final class SCR extends Globals {
 
                 // do 3D refresh drawing, and then update the screen
                 CalcVrect();
+                checkGlError();
 
                 // clear any dirty part of the background
                 TileClear();
 
                 V.RenderView(separation[i]);
+                checkGlError();
 
                 DrawStats();
+                checkGlError();
 
                 if ((ClientGlobals.cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) != 0)
                     DrawLayout();
                 if ((ClientGlobals.cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) != 0)
                     CL_inv.DrawInventory();
+                checkGlError();
 
                 DrawNet();
                 CheckDrawCenterString();
                 DrawFPS();
 
+                checkGlError();
 
                 if (scr_timegraph.value > 0f)
                     DebugGraph(cls.frametime*300, 0);
 
                 if (scr_debuggraph.value > 0f || scr_timegraph.value > 0 || scr_netgraph.value > 0)
                     DrawDebugGraph();
+                checkGlError();
 
                 DrawPause();
                 DrawConsole();
                 Menu.Draw();
                 DrawLoading();
+                checkGlError();
+
             }
         }
 

@@ -1298,15 +1298,19 @@ public abstract class Main extends Base {
 		R_InitParticleTexture();
 		Draw_InitLocal();
 
-		int err = gl.glGetError();
-		if (err != GL_NO_ERROR)
-			Com.Printf(
-				Defines.PRINT_ALL,
-				"gl.glGetError() = 0x%x\n\t%s\n",
-				new Vargs(2).add(err).add("" + gl.glGetString(err)));
+		checkGlError();
 
-        glImpl.endFrame();
+		glImpl.endFrame();
 		return true;
+	}
+
+	public static void checkGlError() {
+		int err = GL11C.glGetError();
+		if (err != GL_NO_ERROR) {
+            Com.Printf(Defines.PRINT_ALL, "gl.glGetError() = " + err);
+			System.out.println("GL ERROR: " + err);
+			new Throwable().printStackTrace();
+		}
 	}
 
 	/**
