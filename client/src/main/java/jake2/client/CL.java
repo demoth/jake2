@@ -58,6 +58,7 @@ import static jake2.qcommon.exec.Cmd.getArguments;
 
 /**
  * CL
+ * Main entrypoint for the client module
  */
 public final class CL {
     

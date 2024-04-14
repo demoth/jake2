@@ -331,8 +331,8 @@ public final class Menu extends Key {
      * and will be centered on higher res screens. ================
      */
     private static void DrawCharacter(int cx, int cy, int num) {
-        ClientGlobals.re.DrawChar(cx + ((ClientGlobals.viddef.getWidth() - 320) >> 1), cy
-                + ((ClientGlobals.viddef.getHeight() - 240) >> 1), num);
+        ClientGlobals.re.DrawChar(cx + ((ClientGlobals.viddef.getWidth() - 320) / 2),
+                cy + ((ClientGlobals.viddef.getHeight() - 240) / 2), num);
     }
 
     public static void Print(int cx, int cy, String str) {
@@ -1787,11 +1787,11 @@ public final class Menu extends Key {
          * * draw the credits
          */
         for (i = 0, y = (int) (ClientGlobals.viddef.getHeight() - ((ClientGlobals.cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
-                && y < ClientGlobals.viddef.getHeight(); y += 10, i++) {
+                && y < ClientGlobals.viddef.getHeight(); y += (Console.CHAR_SIZE_PX + 2), i++) {
             int j, stringoffset = 0;
             boolean bold = false;
 
-            if (y <= -8)
+            if (y <= -Console.CHAR_SIZE_PX)
                 continue;
 
             if (credits[i].length() > 0 && credits[i].charAt(0) == '+') {
@@ -1803,10 +1803,9 @@ public final class Menu extends Key {
             }
 
             for (j = 0; j + stringoffset < credits[i].length(); j++) {
-                int x;
 
-                x = (ClientGlobals.viddef.getWidth() - credits[i].length() * 8 - stringoffset * 8)
-                        / 2 + (j + stringoffset) * 8;
+                int x = (ClientGlobals.viddef.getWidth() - credits[i].length() * Console.CHAR_SIZE_PX - stringoffset * Console.CHAR_SIZE_PX)
+                        / 2 + (j + stringoffset) * Console.CHAR_SIZE_PX;
 
                 if (bold)
                     ClientGlobals.re
@@ -4513,19 +4512,17 @@ public final class Menu extends Key {
     }
 
     private static void Menu_DrawStringDark(int x, int y, String string) {
-        int i;
 
-        for (i = 0; i < string.length(); i++) {
-            ClientGlobals.re.DrawChar((x + i * 8), y, string.charAt(i) + 128);
+        for (int i = 0; i < string.length(); i++) {
+            ClientGlobals.re.DrawChar((x + i * Console.CHAR_SIZE_PX), y, string.charAt(i) + 128);
         }
     }
 
     private static void Menu_DrawStringR2L(int x, int y, String string) {
-        int i;
 
         int l = string.length();
-        for (i = 0; i < l; i++) {
-            ClientGlobals.re.DrawChar((x - i * 8), y, string.charAt(l - i - 1));
+        for (int i = 0; i < l; i++) {
+            ClientGlobals.re.DrawChar((x - i * Console.CHAR_SIZE_PX), y, string.charAt(l - i - 1));
         }
     }
 
@@ -4534,7 +4531,7 @@ public final class Menu extends Key {
 
         int l = string.length();
         for (i = 0; i < l; i++) {
-            ClientGlobals.re.DrawChar((x - i * 8), y, string.charAt(l - i - 1) + 128);
+            ClientGlobals.re.DrawChar((x - i * Console.CHAR_SIZE_PX), y, string.charAt(l - i - 1) + 128);
         }
     }
 

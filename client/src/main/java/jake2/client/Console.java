@@ -35,7 +35,6 @@ import jake2.qcommon.exec.Command;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -43,12 +42,20 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Console
+ * Console related functions, todo: merge with console_t
  */
-// TODO move to client
 public final class Console extends Globals {
+	// ---------
+	// console.h
+	public static final int NUM_CON_TIMES = 4;
+	public static final int CON_TEXTSIZE = 32768;
+	// size of the console character on the screen in px
+	public static final int CHAR_SIZE_PX = 8;
+	// conchars.pcx is 16 by 16
+	public static final int CON_CHAR_GRID_SIZE = 16;
 
-    static Command ToggleConsole_f = (List<String> args) -> {
+
+	static Command ToggleConsole_f = (List<String> args) -> {
 		SCR.EndLoadingPlaque(); // get rid of loading plaque
 
 		if (ClientGlobals.cl.attractloop) {
@@ -186,13 +193,12 @@ public final class Console extends Globals {
 
 	CheckResize();
 
-	Com.Printf("Console initialized.\n");
 
-	//
-	// register our commands
-	//
 	ClientGlobals.con_notifytime = Cvar.getInstance().Get("con_notifytime", "3", 0);
 
+		//
+		// register our commands
+		//
 	Cmd.AddCommand("toggleconsole", ToggleConsole_f);
 	Cmd.AddCommand("togglechat", ToggleChat_f);
 	Cmd.AddCommand("messagemode", MessageMode_f);
@@ -201,7 +207,9 @@ public final class Console extends Globals {
 	Cmd.AddCommand("condump", Dump_f);
 	Cmd.AddCommand("console_print", args -> Console.Print(args.get(0)));
 	ClientGlobals.con.initialized = true;
-    }
+		Com.Printf("Console initialized.\n");
+
+	}
 
     /**
      * If the line width has changed, reformat the buffer.
@@ -219,7 +227,7 @@ public final class Console extends Globals {
 	    width = 38;
 	    ClientGlobals.con.linewidth = width;
 	    ClientGlobals.con.backedit = 0; // sfranzyshen
-	    ClientGlobals.con.totallines = Defines.CON_TEXTSIZE
+	    ClientGlobals.con.totallines = CON_TEXTSIZE
 		    / ClientGlobals.con.linewidth;
 	    Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 	} else {
@@ -227,7 +235,7 @@ public final class Console extends Globals {
 	    ClientGlobals.con.linewidth = width;
 	    ClientGlobals.con.backedit = 0; // sfranzyshen
 	    int oldtotallines = ClientGlobals.con.totallines;
-	    ClientGlobals.con.totallines = Defines.CON_TEXTSIZE
+	    ClientGlobals.con.totallines = CON_TEXTSIZE
 		    / ClientGlobals.con.linewidth;
 	    int numlines = oldtotallines;
 
@@ -239,10 +247,10 @@ public final class Console extends Globals {
 	    if (ClientGlobals.con.linewidth < numchars)
 		numchars = ClientGlobals.con.linewidth;
 
-	    byte[] tbuf = new byte[Defines.CON_TEXTSIZE];
+	    byte[] tbuf = new byte[CON_TEXTSIZE];
 	    System
 		    .arraycopy(ClientGlobals.con.text, 0, tbuf, 0,
-			    Defines.CON_TEXTSIZE);
+			    CON_TEXTSIZE);
 	    Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 
 	    for (int i = 0; i < numlines; i++) {
@@ -261,23 +269,23 @@ public final class Console extends Globals {
 	ClientGlobals.con.display = ClientGlobals.con.current;
     }
 
-    static void ClearNotify() {
-	int i;
-	for (i = 0; i < Defines.NUM_CON_TIMES; i++)
-	    ClientGlobals.con.times[i] = 0;
-    }
+	static void ClearNotify() {
+		for (int i = 0; i < NUM_CON_TIMES; i++) {
+            ClientGlobals.con.times[i] = 0;
+        }
+	}
 
     static void DrawString(int x, int y, String s) {
 	for (int i = 0; i < s.length(); i++) {
 	    ClientGlobals.re.DrawChar(x, y, s.charAt(i));
-	    x += 8;
+	    x += Console.CHAR_SIZE_PX;
 	}
     }
 
     static void DrawAltString(int x, int y, String s) {
 	for (int i = 0; i < s.length(); i++) {
 	    ClientGlobals.re.DrawChar(x, y, s.charAt(i) ^ 0x80);
-	    x += 8;
+	    x += Console.CHAR_SIZE_PX;
 	}
     }
 
@@ -401,11 +409,11 @@ public final class Console extends Globals {
 
 	// sfranzyshen --start
 	for (i = 0; i < ClientGlobals.con.linewidth; i++) {
-		//old:re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
+		//old:re.DrawChar((i + 1) * CHAR_SIZE_PX, con.vislines - 22, text[i]);
 		if (ClientGlobals.con.backedit == ClientGlobals.key_linepos-i && (((int)(ClientGlobals.cls.realtime >> 8)&1) !=0))
-			ClientGlobals.re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, (char)11);
+			ClientGlobals.re.DrawChar ((i + 1) * CHAR_SIZE_PX, ClientGlobals.con.vislines - 22, (char)11);
 		else
-			ClientGlobals.re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, text[i]);
+			ClientGlobals.re.DrawChar ((i + 1) * CHAR_SIZE_PX, ClientGlobals.con.vislines - 22, text[i]);
 	}
 	// sfranzyshen - stop
     
@@ -444,22 +452,22 @@ public final class Console extends Globals {
 	    text = (i % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
 	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
-		ClientGlobals.re.DrawChar((x + 1) << 3, v, ClientGlobals.con.text[text + x]);
+		ClientGlobals.re.DrawChar((x + 1) * CHAR_SIZE_PX, v, ClientGlobals.con.text[text + x]);
 
-	    v += 8;
+	    v += Console.CHAR_SIZE_PX;
 	}
 
 	if (ClientGlobals.cls.key_dest == key_message) {
 	    if (ClientGlobals.chat_team) {
-		DrawString(8, v, "say_team:");
+		DrawString(Console.CHAR_SIZE_PX, v, "say_team:");
 		skip = 11;
 	    } else {
-		DrawString(8, v, "say:");
+		DrawString(Console.CHAR_SIZE_PX, v, "say:");
 		skip = 5;
 	    }
 
 	    s = ClientGlobals.chat_buffer;
-	    if (ClientGlobals.chat_bufferlen > (ClientGlobals.viddef.getWidth() >> 3) - (skip + 1))
+	    if (ClientGlobals.chat_bufferlen > (ClientGlobals.viddef.getWidth() / CHAR_SIZE_PX) - (skip + 1))
 		//s = s.substring(chat_bufferlen
 		//	- ((viddef.getWidth() >> 3) - (skip + 1)));
 	    
@@ -468,14 +476,14 @@ public final class Console extends Globals {
 
 	    for (x = 0; x < s.length(); x++) {
 	    	if (ClientGlobals.chat_backedit > 0 && ClientGlobals.chat_backedit == ClientGlobals.chat_buffer.length() -x && ((int)(ClientGlobals.cls.realtime>>8)&1) !=0) {
-	    		ClientGlobals.re.DrawChar((x + skip) << 3, v, (char)11);
+	    		ClientGlobals.re.DrawChar((x + skip) * CHAR_SIZE_PX, v, (char)11);
 	    	} else {
-	    		ClientGlobals.re.DrawChar((x + skip) << 3, v, s.charAt(x));
+	    		ClientGlobals.re.DrawChar((x + skip) * CHAR_SIZE_PX, v, s.charAt(x));
 	    	}
 	    }
 	    
 	    if (ClientGlobals.chat_backedit == 0)
-	    	ClientGlobals.re.DrawChar((x + skip) << 3, v, (int) (10 + ((ClientGlobals.cls.realtime >> 8) & 1)));
+	    	ClientGlobals.re.DrawChar((x + skip) * CHAR_SIZE_PX, v, (int) (10 + ((ClientGlobals.cls.realtime >> 8) & 1)));
 	    // sfranzyshen -stop        
 
 	    v += 8;
@@ -507,11 +515,9 @@ public final class Console extends Globals {
 	SCR.AddDirtyPoint(0, 0);
 	SCR.AddDirtyPoint(width - 1, lines - 1);
 
-	String version = Com.sprintf("v%4.2f", new Vargs(1).add(VERSION));
-	for (int x = 0; x < 5; x++)
-	    ClientGlobals.re
-		    .DrawChar(width - 44 + x * 8, lines - 12, 128 + version
-			    .charAt(x));
+		String version = "v" + VERSION;
+	for (int x = 0; x < version.length(); x++)
+	    ClientGlobals.re.DrawChar(width - 44 + x * Console.CHAR_SIZE_PX, lines - 12, 128 + version.charAt(x));
 
 	// draw the text
 	ClientGlobals.con.vislines = lines;
@@ -524,16 +530,16 @@ public final class Console extends Globals {
 	if (ClientGlobals.con.display != ClientGlobals.con.current) {
 	    // draw arrows to show the buffer is backscrolled
 	    for (int x = 0; x < ClientGlobals.con.linewidth; x += 4)
-		ClientGlobals.re.DrawChar((x + 1) << 3, y, '^');
+		ClientGlobals.re.DrawChar((x + 1) * CHAR_SIZE_PX, y, '^');
 
-	    y -= 8;
+	    y -= Console.CHAR_SIZE_PX;
 	    rows--;
 	}
 
 	int i, j, x, n;
 
 	int row = ClientGlobals.con.display;
-	for (i = 0; i < rows; i++, y -= 8, row--) {
+	for (i = 0; i < rows; i++, y -= Console.CHAR_SIZE_PX, row--) {
 	    if (row < 0)
 		break;
 	    if (ClientGlobals.con.current - row >= ClientGlobals.con.totallines)
@@ -542,7 +548,7 @@ public final class Console extends Globals {
 	    int first = (row % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
 	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
-		ClientGlobals.re.DrawChar((x + 1) << 3, y, ClientGlobals.con.text[x + first]);
+		ClientGlobals.re.DrawChar((x + 1) * CHAR_SIZE_PX, y, ClientGlobals.con.text[x + first]);
 	}
 
 	// ZOID
@@ -589,7 +595,7 @@ public final class Console extends Globals {
 	    // draw it
 	    y = ClientGlobals.con.vislines - 12;
 	    for (i = 0; i < dlbar.length(); i++)
-		ClientGlobals.re.DrawChar((i + 1) << 3, y, dlbar.charAt(i));
+		ClientGlobals.re.DrawChar((i + 1) * CHAR_SIZE_PX, y, dlbar.charAt(i));
 	}
 	// ZOID
 

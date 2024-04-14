@@ -929,10 +929,6 @@ public class Defines {
 
 	public static final int MAX_MSGLEN = 1400;
 
-	// ---------
-	// console.h
-	public static final int NUM_CON_TIMES = 4;
-	public static final int CON_TEXTSIZE = 32768;
 
 	public final static int BSPVERSION = 38;
 

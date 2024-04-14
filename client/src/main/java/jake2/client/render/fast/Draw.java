@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client.render.fast;
 
+import jake2.client.Console;
 import jake2.client.render.image_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
@@ -55,29 +56,24 @@ public abstract class Draw extends Image {
 		gl.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
-	/*
-	================
-	Draw_Char
-
-	Draws one 8*8 graphics character with 0 being transparent.
-	It can be clipped to the top of the screen to allow the console to be
-	smoothly scrolled off.
-	================
-	*/
 	public void Draw_Char(int x, int y, int num) {
 
-		num &= 255;
+
+		num &= 255; // fixme: change to `char`
 	
 		if ( (num&127) == 32 ) return; // space
 
-		if (y <= -8) return; // totally off screen
+        if (y <= -Console.CHAR_SIZE_PX) return; // totally off screen
 
-		int row = num>>4;
-		int col = num&15;
+		// find character place in the char sheet
+		int row = num / Console.CON_CHAR_GRID_SIZE;
+		int col = num % Console.CON_CHAR_GRID_SIZE;
 
-		float frow = row*0.0625f;
-		float fcol = col*0.0625f;
-		float size = 0.0625f;
+		// character texture coordinates
+		float frow = row / (float) Console.CON_CHAR_GRID_SIZE;
+		float fcol = col / (float) Console.CON_CHAR_GRID_SIZE;
+		// relative size of the character in the conchars.pcx sheet.
+		float size = 1 / (float) Console.CON_CHAR_GRID_SIZE;
 
 		GL_Bind(draw_chars.texnum);
 
@@ -85,11 +81,11 @@ public abstract class Draw extends Image {
 		gl.glTexCoord2f (fcol, frow);
 		gl.glVertex2f (x, y);
 		gl.glTexCoord2f (fcol + size, frow);
-		gl.glVertex2f (x+8, y);
+		gl.glVertex2f (x+ Console.CHAR_SIZE_PX, y);
 		gl.glTexCoord2f (fcol + size, frow + size);
-		gl.glVertex2f (x+8, y+8);
+		gl.glVertex2f (x+ Console.CHAR_SIZE_PX, y+ Console.CHAR_SIZE_PX);
 		gl.glTexCoord2f (fcol, frow + size);
-		gl.glVertex2f (x, y+8);
+		gl.glVertex2f (x, y+ Console.CHAR_SIZE_PX);
 		gl.glEnd ();
 	}
 
