@@ -336,89 +336,73 @@ public final class Menu extends Key {
     }
 
     public static void Print(int cx, int cy, String str) {
-        //while (*str)
         for (int n = 0; n < str.length(); n++) {
-            DrawCharacter(cx, cy, str.charAt(n) + 128);
-            //str++;
-            cx += 8;
+            DrawCharacter(cx, cy, str.charAt(n) + 128); // alt character
+            cx += Console.CHAR_SIZE_PX;
         }
     }
 
-    public static void PrintWhite(int cx, int cy, String str) {
-        for (int n = 0; n < str.length(); n++) {
-            DrawCharacter(cx, cy, str.charAt(n));
-            //str++;
-            cx += 8;
-        }
-    }
 
-    public static void DrawPic(int x, int y, String pic) {
-        ClientGlobals.re.DrawPic(x + ((ClientGlobals.viddef.getWidth() - 320) >> 1), y
-                + ((ClientGlobals.viddef.getHeight() - 240) >> 1), pic);
-    }
+    private static boolean cursorCached;
 
     /*
-     * ============= DrawCursor
-     * 
-     * Draws an animating cursor with the point at x,y. The pic will extend to
-     * the left of x, and both above and below y. =============
+     *  DrawCursor
+     *
+     * Draws an animating cursor (rotating Quake logo) with the point at x,y.
+     *  The pic will extend to the left of x, and both above and below y.
      */
-    private static boolean cached;
-
     private static void DrawCursor(int x, int y, int f) {
         assert (f >= 0) : "negative time and cursor bug";
 
         f = Math.abs(f);
 
-        if (!cached) {
+        if (!cursorCached) {
             for (int i = 0; i < NUM_CURSOR_FRAMES; i++) {
                 ClientGlobals.re.RegisterPic("m_cursor" + i);
             }
-            cached = true;
+            cursorCached = true;
         }
         ClientGlobals.re.DrawPic(x, y, "m_cursor" + f);
     }
 
     private static void DrawTextBox(int x, int y, int width, int lines) {
-        int cx, cy;
-        int n;
 
         // draw left side
-        cx = x;
-        cy = y;
-        DrawCharacter(cx, cy, 1);
+        int cx = x;
+        int cy = y;
+        DrawCharacter(cx, cy, 1); // ┌
 
-        for (n = 0; n < lines; n++) {
-            cy += 8;
-            DrawCharacter(cx, cy, 4);
+        for (int n = 0; n < lines; n++) {
+            cy += Console.CHAR_SIZE_PX;
+            DrawCharacter(cx, cy, 4); // left │
         }
-        DrawCharacter(cx, cy + 8, 7);
+        DrawCharacter(cx, cy + Console.CHAR_SIZE_PX, 7); // └
 
         // draw middle
-        cx += 8;
+        cx += Console.CHAR_SIZE_PX;
         while (width > 0) {
             cy = y;
-            DrawCharacter(cx, cy, 2);
+            DrawCharacter(cx, cy, 2); // ─ top
 
-            for (n = 0; n < lines; n++) {
-                cy += 8;
-                DrawCharacter(cx, cy, 5);
+            for (int n = 0; n < lines; n++) {
+                cy += Console.CHAR_SIZE_PX;
+                DrawCharacter(cx, cy, 5); // fill
             }
-            DrawCharacter(cx, cy + 8, 8);
+            DrawCharacter(cx, cy + Console.CHAR_SIZE_PX, 8); // ─ bottom
 
             width -= 1;
-            cx += 8;
+            cx += Console.CHAR_SIZE_PX;
         }
 
         // draw right side
         cy = y;
-        DrawCharacter(cx, cy, 3);
-        for (n = 0; n < lines; n++) {
-            cy += 8;
-            DrawCharacter(cx, cy, 6);
+        DrawCharacter(cx, cy, 3); // ┐
+        for (int n = 0; n < lines; n++) {
+            cy += Console.CHAR_SIZE_PX;
+            DrawCharacter(cx, cy, 6); // right │
 
         }
-        DrawCharacter(cx, cy + 8, 9);
+        DrawCharacter(cx, cy + Console.CHAR_SIZE_PX, 9); // ┘
 
     }
 
@@ -762,20 +746,17 @@ public final class Menu extends Key {
         if (keys[0] == -1) {
             Menu_DrawString(a.x + a.parent.x + 16, a.y + a.parent.y, "???");
         } else {
-            int x;
-            String name;
 
-            name = Key.KeynumToString(keys[0]);
+            String name = Key.KeynumToString(keys[0]);
 
             Menu_DrawString(a.x + a.parent.x + 16, a.y + a.parent.y, name);
 
-            x = name.length() * 8;
+            int x = name.length() * Console.CHAR_SIZE_PX;
 
+            // fixme: wrong alignment when 2 keys are bound
             if (keys[1] != -1) {
-                Menu_DrawString(a.x + a.parent.x + 24 + x, a.y + a.parent.y,
-                        "or");
-                Menu_DrawString(a.x + a.parent.x + 48 + x, a.y + a.parent.y,
-                        Key.KeynumToString(keys[1]));
+                Menu_DrawString(a.x + a.parent.x + 24 + x, a.y + a.parent.y, "or");
+                Menu_DrawString(a.x + a.parent.x + 48 + x, a.y + a.parent.y, Key.KeynumToString(keys[1]));
             }
         }
     }
@@ -1146,12 +1127,8 @@ public final class Menu extends Key {
 
         if (bind_grab) {
             if (key != K_ESCAPE && key != '`') {
-                //char cmd[1024];
-                String cmd;
 
-                //Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
-                // Key_KeynumToString(key), bindnames[item.localdata[0]][0]);
-                cmd = "bind \"" + Key.KeynumToString(key) + "\" \""
+                String cmd = "bind \"" + Key.KeynumToString(key) + "\" \""
                         + bindnames[item.localdata[0]][0] + "\"";
                 Cbuf.InsertText(cmd);
             }
@@ -4422,23 +4399,19 @@ public final class Menu extends Key {
     }
 
     static void Menu_Center(menuframework_s menu) {
-        int height;
 
-        height = ((menucommon_s) menu.items[menu.nitems - 1]).y;
-        height += 10;
+        int height = menu.items[menu.nitems - 1].y;
+        height += Console.CHAR_SIZE_PX * 2; // todo: proper scaling
 
         menu.y = (ClientGlobals.viddef.getHeight() - height) / 2;
     }
 
     static void Menu_Draw(menuframework_s menu) {
-        int i;
-        menucommon_s item;
-
         /*
          * * draw contents
          */
-        for (i = 0; i < menu.nitems; i++) {
-            switch (((menucommon_s) menu.items[i]).type) {
+        for (int i = 0; i < menu.nitems; i++) {
+            switch (menu.items[i].type) {
             case MTYPE_FIELD:
                 Field_Draw((menufield_s) menu.items[i]);
                 break;
@@ -4460,20 +4433,23 @@ public final class Menu extends Key {
             }
         }
 
-        item = Menu_ItemAtCursor(menu);
+        menucommon_s item = Menu_ItemAtCursor(menu);
 
         if (item != null && item.cursordraw != null) {
             item.cursordraw.execute(item);
         } else if (menu.cursordraw != null) {
             menu.cursordraw.execute(menu);
         } else if (item != null && item.type != MTYPE_FIELD) {
+            int character = 12 + ((Timer.Milliseconds() / 250) & 1); // 12,13: blinking >
+            final int positionX;
+
             if ((item.flags & QMF_LEFT_JUSTIFY) != 0) {
-                ClientGlobals.re.DrawChar(menu.x + item.x - 24 + item.cursor_offset, menu.y
-                        + item.y, 12 + ((int) (Timer.Milliseconds() / 250) & 1));
+                positionX = menu.x + item.cursor_offset + item.x - 24;
             } else {
-                ClientGlobals.re.DrawChar(menu.x + item.cursor_offset, menu.y + item.y,
-                        12 + ((int) (Timer.Milliseconds() / 250) & 1));
+                positionX = menu.x + item.cursor_offset;
             }
+            ClientGlobals.re.DrawChar(positionX, menu.y + item.y, character);
+
         }
 
         if (item != null) {
@@ -4490,36 +4466,33 @@ public final class Menu extends Key {
     }
 
     private static void Menu_DrawStatusBar(String string) {
+        int charSize = Console.CHAR_SIZE_PX;
         if (string != null) {
             int l = string.length();
-            int maxrow = ClientGlobals.viddef.getHeight() / 8;
-            int maxcol = ClientGlobals.viddef.getWidth() / 8;
+            int maxrow = ClientGlobals.viddef.getHeight() / charSize;
+            int maxcol = ClientGlobals.viddef.getWidth() / charSize;
             int col = maxcol / 2 - l / 2;
 
-            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 4);
-            Menu_DrawString(col * 8, ClientGlobals.viddef.getHeight() - 8, string);
+            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - charSize, ClientGlobals.viddef.getWidth(), charSize, 4);
+            Menu_DrawString(col * charSize, ClientGlobals.viddef.getHeight() - charSize, string);
         } else {
-            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 0);
+            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - charSize, ClientGlobals.viddef.getWidth(), charSize, 0);
         }
     }
 
     private static void Menu_DrawString(int x, int y, String string) {
-        int i;
-
-        for (i = 0; i < string.length(); i++) {
-            ClientGlobals.re.DrawChar((x + i * 8), y, string.charAt(i));
+        for (int i = 0; i < string.length(); i++) {
+            ClientGlobals.re.DrawChar(x + i * Console.CHAR_SIZE_PX, y, string.charAt(i));
         }
     }
 
     private static void Menu_DrawStringDark(int x, int y, String string) {
-
         for (int i = 0; i < string.length(); i++) {
-            ClientGlobals.re.DrawChar((x + i * Console.CHAR_SIZE_PX), y, string.charAt(i) + 128);
+            ClientGlobals.re.DrawChar((x + (i * Console.CHAR_SIZE_PX)), y, string.charAt(i) + 128);
         }
     }
 
     private static void Menu_DrawStringR2L(int x, int y, String string) {
-
         int l = string.length();
         for (int i = 0; i < l; i++) {
             ClientGlobals.re.DrawChar((x - i * Console.CHAR_SIZE_PX), y, string.charAt(l - i - 1));
@@ -4527,10 +4500,8 @@ public final class Menu extends Key {
     }
 
     private static void Menu_DrawStringR2LDark(int x, int y, String string) {
-        int i;
-
         int l = string.length();
-        for (i = 0; i < l; i++) {
+        for (int i = 0; i < l; i++) {
             ClientGlobals.re.DrawChar((x - i * Console.CHAR_SIZE_PX), y, string.charAt(l - i - 1) + 128);
         }
     }
@@ -4658,25 +4629,26 @@ public final class Menu extends Key {
     private static void Slider_Draw(menuslider_s s) {
         int i;
 
-        Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y
-                + s.parent.y, s.name);
+        int sliderY = s.y + s.parent.y;
+        Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, sliderY, s.name);
 
-        s.range = (s.curvalue - s.minvalue) / (float) (s.maxvalue - s.minvalue);
+        s.range = (s.curvalue - s.minvalue) / (s.maxvalue - s.minvalue);
 
         if (s.range < 0)
             s.range = 0;
         if (s.range > 1)
             s.range = 1;
-        ClientGlobals.re.DrawChar(s.x + s.parent.x + RCOLUMN_OFFSET, s.y + s.parent.y, 128);
-        for (i = 0; i < SLIDER_RANGE; i++)
-            ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
-                    + s.parent.y, 129);
-        ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
-                + s.parent.y, 130);
-        ClientGlobals.re
-                .DrawChar(
-                        (int) (8 + RCOLUMN_OFFSET + s.parent.x + s.x + (SLIDER_RANGE - 1)
-                                * 8 * s.range), s.y + s.parent.y, 131);
+        ClientGlobals.re.DrawChar(s.x + s.parent.x + RCOLUMN_OFFSET, sliderY, 128); // head
+        int charSize = Console.CHAR_SIZE_PX;
+        // draw middle
+        for (i = 0; i < SLIDER_RANGE; i++) {
+            ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * charSize + s.parent.x + charSize, sliderY, 129);
+        }
+        // draw tail
+        ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * charSize + s.parent.x + charSize, sliderY, 130);
+        // draw slider
+        int sliderX = (int) (charSize + RCOLUMN_OFFSET + s.parent.x + s.x + (SLIDER_RANGE - 1) * charSize * s.range);
+        ClientGlobals.re.DrawChar(sliderX, sliderY, 131);
     }
 
     public static void SpinControl_DoEnter(menulist_s s) {
