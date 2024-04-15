@@ -81,8 +81,8 @@ public class VID extends Globals {
 	============
 	*/
 	static void Restart_f() {
-		vid_modes[11].width = (int) vid_width.value;
-		vid_modes[11].height = (int) vid_height.value;
+		vid_modes[12].width = (int) vid_width.value;
+		vid_modes[12].height = (int) vid_height.value;
 
 		vid_ref.modified = true;
 	}
@@ -103,7 +103,8 @@ public class VID extends Globals {
 			new vidmode_t("Mode 8: 1280x1024", 1280, 1024, 8),
 			new vidmode_t("Mode 9: 1600x1200", 1600, 1200, 9),
 			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10),
-			new vidmode_t("Mode 11: user", 640, 480, 11)};
+			new vidmode_t("Mode 11: 2560x1440", 2560, 1440, 11),
+			new vidmode_t("Mode 12: user", 640, 480, 12)};
 	static vidmode_t fs_modes[];
 
 	public static boolean GetModeInfo(Dimension dim, int mode) {
@@ -289,8 +290,8 @@ public class VID extends Globals {
 		vid_fullscreen = Cvar.getInstance().Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 		vid_gamma = Cvar.getInstance().Get( "vid_gamma", "1", CVAR_ARCHIVE );
 
-		vid_modes[11].width = (int)vid_width.value;
-		vid_modes[11].height = (int)vid_height.value;
+		vid_modes[12].width = (int)vid_width.value;
+		vid_modes[12].height = (int)vid_height.value;
 		
 		/* Add some console commands that we want to handle */
 		Cmd.AddCommand ("vid_restart", (List<String> args) -> Restart_f());

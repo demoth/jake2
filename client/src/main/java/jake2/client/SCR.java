@@ -48,6 +48,7 @@ import static jake2.client.ClientGlobals.cls;
 
 /**
  * SCR
+ * Responsible for drawing 2D UI elements, like HUD, graphs, cinematics, fps counter, etc..
  */
 public final class SCR extends Globals {
 

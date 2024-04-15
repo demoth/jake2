@@ -25,7 +25,6 @@
  */
 package jake2.client;
 
-import jake2.client.render.fast.Main;
 import jake2.client.sound.S;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.*;
@@ -1433,7 +1432,7 @@ public final class CL {
         }
 
         // let the mouse activate or deactivate
-        IN.Frame();
+        IN.checkMouseGrab();
 
         // decide the simulation time
         ClientGlobals.cls.frametime = extratime / 1000.0f;
@@ -1468,49 +1467,6 @@ public final class CL {
             if (ClientGlobals.cl.cinematictime == 0) System.gc();
         }
 
-        boolean changed = false;
-        
-        if (Main.r_worldmodel != null)
-        {
-            if (numleafs != Main.r_worldmodel.numleafs)
-            {
-        	numleafs = Main.r_worldmodel.numleafs;
-        	changed = true;
-            }
-        }
-        if (x != ClientGlobals.cl.frame.playerstate.pmove.origin[0])
-        {
-            x = ClientGlobals.cl.frame.playerstate.pmove.origin[0];
-            changed = true;
-        }
-        
-        if (y != ClientGlobals.cl.frame.playerstate.pmove.origin[1])
-        {
-            y = ClientGlobals.cl.frame.playerstate.pmove.origin[1];
-            changed = true;
-        }
-        
-        if (z != ClientGlobals.cl.frame.playerstate.pmove.origin[2])
-        {
-            z = ClientGlobals.cl.frame.playerstate.pmove.origin[2];
-            changed = true;
-        }
-        
-        if (viewcluster != Main.r_viewcluster)
-        {
-            viewcluster = Main.r_viewcluster;
-            changed = true;
-        }
-        
-        if (changed)
-        {
-            String tmp = " x=" + x + ", y=" + y + 
-            	", z=" + z + ", leaf=" + viewcluster + "/" +
-            	numleafs +"\n";
-            
-            Com.DPrintf(tmp);
-        }
-        
         SCR.UpdateScreen();
 
         // update audio
