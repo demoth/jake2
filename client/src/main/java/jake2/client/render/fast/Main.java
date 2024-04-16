@@ -1106,7 +1106,8 @@ public abstract class Main extends Base {
 		gl_config.version_string = gl.glGetString(GL_VERSION);
 		Com.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
 		gl_config.extensions_string = gl.glGetString(GL_EXTENSIONS);
-		Com.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		// it's just too damn long string!
+		//Com.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 		
 		gl_config.parseOpenGLVersion();
 

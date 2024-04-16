@@ -53,7 +53,7 @@ public class CL_inv {
 	static void Inv_DrawString(int x, int y, String string) {
 		for (int i = 0; i < string.length(); i++) {
 			ClientGlobals.re.DrawChar(x, y, string.charAt(i));
-			x += 8;
+			x += Console.CHAR_SIZE_PX;
 		}
 	}
 
@@ -112,8 +112,8 @@ public class CL_inv {
 		y += 24;
 		x += 24;
 		Inv_DrawString(x, y, "hotkey ### item");
-		Inv_DrawString(x, y + 8, "------ --- ----");
-		y += 16;
+		Inv_DrawString(x, y + Console.CHAR_SIZE_PX, "------ --- ----");
+		y += 2 * Console.CHAR_SIZE_PX;
 		for (i = top; i < num && i < top + DISPLAY_ITEMS; i++) {
 			item = index[i];
 			// search for a binding
@@ -137,7 +137,7 @@ public class CL_inv {
 					ClientGlobals.re.DrawChar(x - 8, y, 15);
 			}
 			Inv_DrawString(x, y, string);
-			y += 8;
+			y += Console.CHAR_SIZE_PX;
 		}
 
 	}

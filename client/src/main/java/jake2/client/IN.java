@@ -137,7 +137,7 @@ public final class IN extends Globals {
 		IN.mouse_oldbuttonstate = IN.mouse_buttonstate;		
     }
 
-    public static void Frame() {
+    public static void checkMouseGrab() {
 
         if (!ClientGlobals.cl.cinematicpalette_active && (!ClientGlobals.cl.refresh_prepped || ClientGlobals.cls.key_dest == key_console
                 || ClientGlobals.cls.key_dest == key_menu))

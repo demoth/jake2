@@ -48,6 +48,7 @@ import static jake2.client.ClientGlobals.cls;
 
 /**
  * SCR
+ * Responsible for drawing 2D UI elements, like HUD, graphs, cinematics, fps counter, etc..
  */
 public final class SCR extends Globals {
 
@@ -313,15 +314,15 @@ public final class SCR extends Globals {
                 if (start + l == cs.length() - 1
                         || cs.charAt(start + l) == '\n')
                     break;
-            x = (ClientGlobals.viddef.getWidth() - l * 8) / 2;
+            x = (ClientGlobals.viddef.getWidth() - l * Console.CHAR_SIZE_PX) / 2;
             SCR.AddDirtyPoint(x, y);
-            for (j = 0; j < l; j++, x += 8) {
+            for (j = 0; j < l; j++, x += Console.CHAR_SIZE_PX) {
                 ClientGlobals.re.DrawChar(x, y, cs.charAt(start + j));
                 if (remaining == 0)
                     return;
                 remaining--;
             }
-            SCR.AddDirtyPoint(x, y + 8);
+            SCR.AddDirtyPoint(x, y + Console.CHAR_SIZE_PX);
 
             y += 8;
 
@@ -784,12 +785,12 @@ public final class SCR extends Globals {
                 x = margin;
             for (i = 0; i < line.length(); i++) {
                 ClientGlobals.re.DrawChar(x, y, line.charAt(i) ^ xor);
-                x += 8;
+                x += Console.CHAR_SIZE_PX;
             }
             if (l < string.length()) {
                 l++; // skip the \n
                 x = margin;
-                y += 8;
+                y += Console.CHAR_SIZE_PX;
             }
         }
     }
@@ -1328,10 +1329,10 @@ public final class SCR extends Globals {
                 lastframes = cls.framecount;
                 lasttime = cls.realtime;
             }
-            int x = ClientGlobals.viddef.getWidth() - 8 * fpsvalue.length() - 2;
+            int x = ClientGlobals.viddef.getWidth() - Console.CHAR_SIZE_PX * fpsvalue.length() - 2;
             for (int i = 0; i < fpsvalue.length(); i++) {
                 ClientGlobals.re.DrawChar(x, 2, fpsvalue.charAt(i));
-                x += 8;
+                x += Console.CHAR_SIZE_PX;
             }
         } else if (fps.modified) {
             fps.modified = false;

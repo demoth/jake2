@@ -31,7 +31,7 @@ public class ClientGlobals {
     static boolean chat_team = false;
     static String chat_buffer = "";
     static byte[][] key_lines;
-    static int key_linepos;
+    static int key_linepos; // current cursor position in the console
     static int edit_line;
     static cvar_t crosshair;
 

@@ -25,14 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.qcommon.Defines;
-
 /**
  * console_t
  */
 public final class console_t {
 	boolean initialized;
-	byte[] text = new byte[Defines.CON_TEXTSIZE];
+	byte[] text = new byte[Console.CON_TEXTSIZE];
 	int current;	// line where next message will be printed
 	int x;			// offset in current line for next print
 	int display;	// bottom of console displays this line
@@ -48,6 +46,6 @@ public final class console_t {
 
 	int vislines;
 
-	float[] times = new float[Defines.NUM_CON_TIMES];	// cls.realtime time the line was generated
+	float[] times = new float[Console.NUM_CON_TIMES];	// cls.realtime time the line was generated
 										// for transparent notify lines	
 }

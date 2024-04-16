@@ -42,7 +42,7 @@ public class image_t {
 	public int registration_sequence; // 0 = free
 	public msurface_t texturechain; // for sort-by-texture world drawing
 	public int texnum; // gl texture binding
-	public float sl, tl, sh, th; // 0,0 - 1,1 unless part of the scrap
+	public float sl, tl, sh, th; // texture coordinates, 0,0 - 1,1 unless part of the scrap
 	public boolean scrap;
 	public boolean has_alpha;
 

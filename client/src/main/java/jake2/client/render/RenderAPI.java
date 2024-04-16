@@ -35,6 +35,12 @@ public interface RenderAPI {
 
     void Draw_StretchPic(int x, int y, int w, int h, String name);
 
+    /**
+     * Draw_Char
+     * Draws one 8*8 graphics character with 0 being transparent.
+     * It can be clipped to the top of the screen to allow the console to be smoothly scrolled off.
+     * @param num - 8-bit ASCII, which is also the index of the character in the 'conchars.pcx' (16x16 grid)
+     */
     void Draw_Char(int x, int y, int num);
 
     void Draw_TileClear(int x, int y, int w, int h, String name);
