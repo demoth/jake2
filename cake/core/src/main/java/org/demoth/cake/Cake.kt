@@ -1,25 +1,49 @@
 package org.demoth.cake
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.StretchViewport
+import jake2.qcommon.exec.Cmd
+import jake2.qcommon.exec.Cvar
 import ktx.app.KtxApplicationAdapter
 import ktx.scene2d.Scene2DSkin
+import org.demoth.cake.stages.ConsoleStage
+import org.demoth.cake.stages.MainMenuStage
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
+/**
+ * Entrypoint for the client application
+ *
+ */
 class Cake : KtxApplicationAdapter {
     private lateinit var batch: SpriteBatch
     private lateinit var image: Texture
     private lateinit var menuStage: MainMenuStage
+    private lateinit var consoleStage: ConsoleStage
+    private var consoleVisible = false
+    private var menuVisible = true
+
+    init {
+        Cmd.Init()
+        Cvar.Init()
+    }
 
     override fun create() {
         Scene2DSkin.defaultSkin = Skin(Gdx.files.internal("ui/uiskin.json"))
         batch = SpriteBatch()
         image = Texture("libgdx.png")
-        menuStage = MainMenuStage(StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())) // fixme: cvar
+        val viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        menuStage = MainMenuStage(viewport) // fixme: cvar
+        consoleStage = ConsoleStage(viewport)
+
+        Gdx.input.inputProcessor = InputMultiplexer(
+            consoleStage,
+            menuStage
+        )
     }
 
     override fun render() {
@@ -28,13 +52,36 @@ class Cake : KtxApplicationAdapter {
         batch.begin()
         batch.draw(image, 140f, 210f)
         batch.end()
-        menuStage.act()
-        menuStage.draw()
+
+
+        if (consoleVisible) {
+            consoleStage.act()
+            consoleStage.draw()
+        } else {
+            consoleStage.unfocusAll()
+        }
+
+        if (menuVisible) {
+            menuStage.act()
+            menuStage.draw()
+            menuStage.unfocusAll()
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.GRAVE)) {
+            menuVisible = false
+            consoleVisible = !consoleVisible
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            consoleVisible = false
+            menuVisible = !menuVisible
+        }
     }
 
     override fun dispose() {
         batch.dispose()
         image.dispose()
         menuStage.dispose()
+        consoleStage.dispose()
     }
 }
