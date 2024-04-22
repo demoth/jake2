@@ -44,6 +44,10 @@ class Cake : KtxApplicationAdapter {
             consoleStage,
             menuStage
         )
+
+        Cmd.AddCommand("quit") {
+            Gdx.app.exit()
+        }
     }
 
     override fun render() {
@@ -70,6 +74,9 @@ class Cake : KtxApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.GRAVE)) {
             menuVisible = false
             consoleVisible = !consoleVisible
+            if (consoleVisible) {
+                consoleStage.focus()
+            }
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
