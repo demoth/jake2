@@ -23,7 +23,9 @@ object Lwjgl3Launcher {
             // todo: load displaymode from the configuration
             useVsync(true)
             setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
+            setResizable(false)
             setWindowedMode(640, 480)
+//            setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
             setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
         }
     }

@@ -1448,11 +1448,13 @@ public final class CL {
         if (msec > 5000)
             ClientGlobals.cls.netchan.last_received = Timer.Milliseconds();
 
+        //todo
         // fetch results from server
         CL_ReadPackets();
 
         // send a new command message to the server
         SendCommand();
+        //todo
 
         // predict all unacknowledged movements
         CL_pred.PredictMovement();

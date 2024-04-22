@@ -920,9 +920,9 @@ public class Defines {
 
 	public static final int ca_uninitialized = 0;
 	public static final int ca_disconnected = 1;
-	public static final int ca_connecting = 2;
-	public static final int ca_connected = 3;
-	public static final int ca_active = 4;
+	public static final int ca_connecting = 2; // handshaking
+	public static final int ca_connected = 3; // precaching/loading
+	public static final int ca_active = 4; // playing
 
 	public static final int MAX_ALIAS_NAME = 32;
 	public static final int MAX_NUM_ARGVS = 50;

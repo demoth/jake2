@@ -22,7 +22,7 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
     init {
         actors {
             table {
-                defaults().growX()
+                defaults().pad(8f).growX()
                 setFillParent(true)
                 container {
                     it.growY()
@@ -36,9 +36,13 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                         override fun keyUp(event: InputEvent, keycode: Int): Boolean {
                             if (keycode == Input.Keys.ENTER) {
                                 println("Executing console input: ${consoleInput.text}")
-                                consoleOutput.appendText("${consoleInput.text}\n")
-                                Cbuf.AddText(consoleInput.text)
-                                Cbuf.Execute()
+                                consoleOutput.appendText(">${consoleInput.text}\n")
+                                try {
+                                    Cbuf.AddText(consoleInput.text)
+                                    Cbuf.Execute()
+                                } catch (e: Exception) {
+                                    consoleOutput.appendText(">" + e.message)
+                                }
                                 consoleInput.text = ""
                                 return true
                             }
@@ -55,7 +59,7 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
         }
 
         Cmd.AddCommand("console_print") { args: List<String?> ->
-            consoleOutput.appendText(args.first())
+            consoleOutput.appendText("<${args.first()}")
         }
     }
 }
