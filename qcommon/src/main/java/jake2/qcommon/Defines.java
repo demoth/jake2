@@ -98,7 +98,7 @@ public class Defines {
 	public final static int SFF_SYSTEM = 0x10;
 
 	public final static int CVAR_ARCHIVE = 1; // set to cause it to be saved to vars.rc 
-	public final static int CVAR_USERINFO = 2; // added to userinfo when changed 
+	public final static int CVAR_USERINFO = 2; // added to userinfo on establishing a connection to server
 	public final static int CVAR_SERVERINFO = 4; // added to serverinfo when changed 
 	public final static int CVAR_NOSET = 8; // don't allow change from console at all, 
 	// but can be set from the command line

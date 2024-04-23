@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Cvar implements console variables. The original code is located in cvar.c
@@ -44,6 +46,9 @@ import java.util.function.Consumer;
 public class Cvar extends Globals {
 
     private static final Cvar instance = new Cvar();
+    // Symbols \ ; " are not allowed in the info strings
+    private static final Pattern INFO_DISALLOWED_CHARS = Pattern.compile("[\\\\;\"]");
+
 
     public static Cvar getInstance() {
         return instance;
@@ -61,7 +66,7 @@ public class Cvar extends Globals {
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
             if (invalidInfoString(var_name)) {
-                Com.Printf("invalid info cvar name\n");
+                Com.Printf("invalid info cvar name:'" + var_name + "'\n");
                 return null;
             }
         }
@@ -77,7 +82,7 @@ public class Cvar extends Globals {
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
             if (invalidInfoString(defaultValue)) {
-                Com.Printf("invalid info cvar value\n");
+                Com.Printf("invalid info cvar default value:'" + defaultValue + "'\n");
                 return null;
             }
         }
@@ -178,7 +183,7 @@ public class Cvar extends Globals {
         var.modified = true;
 
         if ((var.flags & CVAR_USERINFO) != 0)
-            Globals.userinfo_modified = true; // transmit at next oportunity
+            Globals.userinfo_modified = true; // transmit at next opportunity
 
         var.string = value;
         var.value = Lib.atof(var.string);
@@ -325,14 +330,24 @@ public class Cvar extends Globals {
         return true;
     }
 
+    /**
+     * Returns a string of \key\value pairs for all cvars with the given flags.
+     */
     private String BitInfo(int flags) {
-        String info = "";
 
-        for (cvar_t var : cvarMap.values()) {
-            if ((var.flags & flags) != 0)
-                info = Info.Info_SetValueForKey(info, var.name, var.string);
+        String keyValuePairs = cvarMap.values().stream()
+                .filter(cv -> (cv.flags & flags) != 0)
+                .filter(cv -> (!INFO_DISALLOWED_CHARS.matcher(cv.name).find()))
+                .filter(cv -> (!INFO_DISALLOWED_CHARS.matcher(cv.string).find()))
+                .map(cv -> "\\" + cv.name + "\\" + cv.string)
+                .collect(Collectors.joining());
+
+        if (keyValuePairs.length() >= Defines.MAX_INFO_STRING) {
+            // fixme: in vanilla q2 in such case the result was not discarded but rather trimmed to fit into MAX_INFO_STRING
+            return "";
+        } else {
+            return keyValuePairs;
         }
-        return info;
     }
 
     /**
@@ -426,6 +441,6 @@ public class Cvar extends Globals {
      * Some characters are invalid for info strings.
      */
     private static boolean invalidInfoString(String s) {
-        return s.contains("\\") || s.contains("\"") || s.contains(";");
+        return INFO_DISALLOWED_CHARS.matcher(s).find();
     }
 }

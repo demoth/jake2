@@ -36,12 +36,12 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                         override fun keyUp(event: InputEvent, keycode: Int): Boolean {
                             if (keycode == Input.Keys.ENTER) {
                                 println("Executing console input: ${consoleInput.text}")
-                                consoleOutput.appendText(">${consoleInput.text}\n")
+                                consoleOutput.appendText("${consoleInput.text}\n")
                                 try {
                                     Cbuf.AddText(consoleInput.text)
                                     Cbuf.Execute()
                                 } catch (e: Exception) {
-                                    consoleOutput.appendText(">" + e.message)
+                                    consoleOutput.appendText("" + e.message)
                                 }
                                 consoleInput.text = ""
                                 return true
@@ -59,7 +59,7 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
         }
 
         Cmd.AddCommand("console_print") { args: List<String?> ->
-            consoleOutput.appendText("<${args.first()}")
+            consoleOutput.appendText("${args.first()}")
         }
     }
 }

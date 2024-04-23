@@ -7,7 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
 import jake2.qcommon.Com
-import jake2.qcommon.Defines
+import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
@@ -49,6 +49,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cmd.Init()
         Cvar.Init()
         Cbuf.AddText("set thinclient 1")
+        initUserInfoCvars()
     }
 
     override fun create() {
@@ -135,7 +136,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         if (networkState != ClientNetworkState.CONNECTING)
             return
 
-        val adr = netadr_t.fromString(servername, Defines.PORT_SERVER)
+        val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
             Com.Printf("Bad server address\n")
             networkState = ClientNetworkState.DISCONNECTED
@@ -144,11 +145,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         Com.Printf("${"Connecting to $servername"}...\n")
 
-        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+        Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
     }
 
     private fun SendConnectPacket() {
-        val adr = netadr_t.fromString(servername, Defines.PORT_SERVER)
+        val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
             Com.Printf("Bad server address\n")
 //            ClientGlobals.cls.connect_time = 0
@@ -159,19 +160,19 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Globals.userinfo_modified = false
 
         Netchan.sendConnectionlessPacket(
-            Defines.NS_CLIENT,
+            NS_CLIENT,
             adr,
             ConnectionlessCommand.connect,
-            "${Defines.PROTOCOL_VERSION} $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
+            " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
         )
     }
 
     fun CL_ReadPackets() {
         while (true) {
             val networkPacket = NET.receiveNetworkPacket(
-                NET.ip_sockets[Defines.NS_CLIENT],
-                NET.ip_channels[Defines.NS_CLIENT],
-                NET.loopbacks[Defines.NS_CLIENT],
+                NET.ip_sockets[NS_CLIENT],
+                NET.ip_channels[NS_CLIENT],
+                NET.loopbacks[NS_CLIENT],
                 false
             )
 
@@ -204,6 +205,21 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             }
 
         }
+    }
+
+    /**
+     * populate default userinfo values - required for connecting to the server
+     */
+    private fun initUserInfoCvars() {
+        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
+        Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO)
+        Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("rate", "25000", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE)
     }
 
 }

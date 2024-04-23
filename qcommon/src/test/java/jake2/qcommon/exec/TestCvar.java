@@ -27,6 +27,8 @@ package jake2.qcommon.exec;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static jake2.qcommon.Defines.CVAR_USERINFO;
+
 public class TestCvar {
 
 	@Test
@@ -89,5 +91,26 @@ public class TestCvar {
 		Assert.assertEquals("10.6", rene6.string);
 		Assert.assertTrue(rene6.value > 0.5f);
 
+	}
+
+	@Test
+	public void testUserInfo() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("name", "unnamed", CVAR_USERINFO );
+		cvar.Get("skin", "male/grunt", CVAR_USERINFO);
+		cvar.Get("rate", "25000", CVAR_USERINFO);
+		cvar.Get("msg", "1", CVAR_USERINFO );
+		cvar.Get("hand", "0", CVAR_USERINFO );
+		cvar.Get("fov", "90", CVAR_USERINFO );
+		cvar.Get("gender", "male", CVAR_USERINFO );
+
+		cvar.Get("wrongcharacter1", "value;", CVAR_USERINFO);
+		cvar.Get("wrongcharacter2", "value\"", CVAR_USERINFO);
+		cvar.Get("wrongcharacter3", "value\\", CVAR_USERINFO);
+		cvar.Get("wrongcharacter4;", "value1", CVAR_USERINFO);
+		cvar.Get("wrongcharacter5\"", "value2", CVAR_USERINFO);
+		cvar.Get("wrongcharacter6\\", "value3", CVAR_USERINFO);
+
+		Assert.assertEquals("\\msg\\1\\gender\\male\\rate\\25000\\name\\unnamed\\skin\\male/grunt\\fov\\90\\hand\\0", cvar.Userinfo());
 	}
 }

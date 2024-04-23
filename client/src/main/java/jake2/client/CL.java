@@ -1249,22 +1249,14 @@ public final class CL {
         // userinfo
         //
         ClientGlobals.info_password = Cvar.getInstance().Get("password", "", Defines.CVAR_USERINFO);
-        ClientGlobals.info_spectator = Cvar.getInstance().Get("spectator", "0",
-                Defines.CVAR_USERINFO);
-        ClientGlobals.name = Cvar.getInstance().Get("name", "unnamed", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
-        ClientGlobals.skin = Cvar.getInstance().Get("skin", "male/grunt", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
-        ClientGlobals.rate = Cvar.getInstance().Get("rate", "25000", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE); // FIXME
-        ClientGlobals.msg = Cvar.getInstance().Get("msg", "1", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
-        ClientGlobals.hand = Cvar.getInstance().Get("hand", "0", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
-        ClientGlobals.fov = Cvar.getInstance().Get("fov", "90", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
-        ClientGlobals.gender = Cvar.getInstance().Get("gender", "male", Defines.CVAR_USERINFO
-                | Defines.CVAR_ARCHIVE);
+        ClientGlobals.info_spectator = Cvar.getInstance().Get("spectator", "0", Defines.CVAR_USERINFO);
+        ClientGlobals.name = Cvar.getInstance().Get("name", "unnamed", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+        ClientGlobals.skin = Cvar.getInstance().Get("skin", "male/grunt", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+        ClientGlobals.rate = Cvar.getInstance().Get("rate", "25000", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE); // FIXME
+        ClientGlobals.msg = Cvar.getInstance().Get("msg", "1", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+        ClientGlobals.hand = Cvar.getInstance().Get("hand", "0", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+        ClientGlobals.fov = Cvar.getInstance().Get("fov", "90", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
+        ClientGlobals.gender = Cvar.getInstance().Get("gender", "male", Defines.CVAR_USERINFO | Defines.CVAR_ARCHIVE);
         ClientGlobals.gender_auto = Cvar.getInstance().Get("gender_auto", "1", Defines.CVAR_ARCHIVE);
         ClientGlobals.gender.modified = false; // clear this so we know when user sets
                                          // it manually

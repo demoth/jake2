@@ -2,7 +2,7 @@
   "resources":{
   "includes":[
     {
-      "pattern": ".*(\\Qfont-subtitle.fnt\\E|\\Qfont-list.fnt\\E|\\Quiskin.atlas\\E|\\Qfont-window.fnt\\E|\\Quiskin.json\\E|\\Quiskin.png\\E|\\Qfont.fnt\\E|\\Qlibgdx.png\\E|\\Qassets.txt\\E|libgdx.+\\.png|lsans.+)"
+      "pattern": ".*(\\Qlibgdx.png\\E|\\Qassets.txt\\E|\\Quiskin.png\\E|\\Quiskin.atlas\\E|\\Qfont-list.fnt\\E|\\Quiskin.json\\E|\\Qfont-window.fnt\\E|\\Qfont.fnt\\E|\\Qfont-subtitle.fnt\\E|libgdx.+\\.png|lsans.+)"
     }
   ]},
   "bundles":[]

@@ -24,6 +24,7 @@
 
 package jake2.qcommon;
 
+import java.util.Set;
 import java.util.StringTokenizer;
 
 public class Info {
@@ -52,40 +53,39 @@ public class Info {
     }
 
     /**
-     * Sets a value for a key in the user info string.
+     * Append (or update if the key-value pair is already in the info string) \key\value to the given info string.
      */
-    public static String Info_SetValueForKey(String s, String key, String value) {
+    public static String Info_SetValueForKey(String info, String key, String value) {
 
-        if (value == null || value.length() == 0)
-            return s;
+        if (value == null || value.isEmpty())
+            return info;
 
         if (key.indexOf('\\') != -1 || value.indexOf('\\') != -1) {
             Com.Printf("Can't use keys or values with a \\\n");
-            return s;
+            return info;
         }
 
         if (key.indexOf(';') != -1) {
             Com.Printf("Can't use keys or values with a semicolon\n");
-            return s;
+            return info;
         }
 
         if (key.indexOf('"') != -1 || value.indexOf('"') != -1) {
             Com.Printf("Can't use keys or values with a \"\n");
-            return s;
+            return info;
         }
 
         if (key.length() > Defines.MAX_INFO_KEY - 1
                 || value.length() > Defines.MAX_INFO_KEY - 1) {
             Com.Printf("Keys and values must be < 64 characters.\n");
-            return s;
+            return info;
         }
 
-        StringBuffer sb = new StringBuffer(Info_RemoveKey(s, key));
+        StringBuilder sb = new StringBuilder(Info_RemoveKey(info, key));
 
         if (sb.length() + 2 + key.length() + value.length() > Defines.MAX_INFO_STRING) {
-
             Com.Printf("Info string length exceeded\n");
-            return s;
+            return info;
         }
 
         sb.append('\\').append(key).append('\\').append(value);
