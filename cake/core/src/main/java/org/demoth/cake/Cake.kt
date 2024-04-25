@@ -6,9 +6,8 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
-import jake2.qcommon.Com
+import jake2.qcommon.*
 import jake2.qcommon.Defines.*
-import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
@@ -16,12 +15,18 @@ import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
+import jake2.qcommon.network.messages.client.MoveMessage
+import jake2.qcommon.network.messages.client.StringCmdMessage
+import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.netchan_t
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.scene2d.Scene2DSkin
+import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.MainMenuStage
+import java.util.List
 
 enum class ClientNetworkState {
     DISCONNECTED,
@@ -40,17 +45,28 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var consoleVisible = false
     private var menuVisible = true
 
-
-    private var networkState = ClientNetworkState.DISCONNECTED
+    // network
+    private var networkState = DISCONNECTED
     private var servername = "localhost"
     private var challenge = 0
     private var reconnectTimeout = 1f // todo: use proper timer
+    private val netchan = netchan_t()
+
+    // game state
+    private var gameName: String = "baseq2"
+    private var spawnCount = 0
+    private var playercount = 1
+    private var levelString: String = ""
+    private var refresh_prepped: Boolean = false
+
+
 
     init {
         Cmd.Init()
         Cvar.Init()
         Cbuf.AddText("set thinclient 1")
         initUserInfoCvars()
+        Netchan.Netchan_Init()
     }
 
     override fun create() {
@@ -75,12 +91,17 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cmd.AddCommand("connect") {
             NET.Config(true) // allow remote
             servername = it[1]
-            networkState = ClientNetworkState.CONNECTING
+            networkState = CONNECTING
         }
 
         Cmd.AddCommand("disconnect") {
+            // send a disconnect message to the server
+            val buf = sizebuf_t(128)
+            StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf)
+            netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+
             NET.Config(false)
-            networkState = ClientNetworkState.DISCONNECTED
+            networkState = DISCONNECTED
             challenge = 0
 
         }
@@ -89,10 +110,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             val userInfo = Cvar.getInstance().Userinfo()
             Com.Println("Userinfo: $userInfo")
         }
+
+        Cmd.AddCommand("cbuf") {
+            Com.Println(Cbuf.contents())
+        }
     }
 
     override fun render() {
         val deltaSeconds = Gdx.graphics.deltaTime
+        Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f)
 
         if (consoleVisible) {
@@ -105,6 +131,26 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         CheckForResend(deltaSeconds)
         CL_ReadPackets()
+        SendCommands()
+
+        if (!refresh_prepped) {
+            // todo: load level and other resources into refresher/renderer
+        }
+    }
+
+    private fun SendCommands() {
+        if (networkState == CONNECTING || networkState == DISCONNECTED )
+            return
+
+        if (networkState == CONNECTED){
+            if (netchan.reliablePending.isNotEmpty()) {
+                if (Globals.curtime - netchan.last_sent > 1000) // fixme: proper timers
+                    netchan.transmit(null)
+            }
+            return
+        }
+        // todo: assemble the inputs and commands, then transmit them
+
     }
 
     // handle ESC for menu and F1 for console
@@ -139,13 +185,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      */
     private fun CheckForResend(deltaSeconds: Float) {
         // resend if we haven't gotten a reply yet
-        if (networkState != ClientNetworkState.CONNECTING)
+        if (networkState != CONNECTING)
             return
 
         val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
             Com.Printf("Bad server address\n")
-            networkState = ClientNetworkState.DISCONNECTED
+            networkState = DISCONNECTED
+            reconnectTimeout = 0f
             return
         }
         if (reconnectTimeout < 0) {
@@ -161,7 +208,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
             Com.Printf("Bad server address\n")
-//            ClientGlobals.cls.connect_time = 0
+            networkState = DISCONNECTED
+            reconnectTimeout = 0f
             return
         }
 
@@ -192,9 +240,77 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 continue
             }
 
-            // else
-            // TODO
+            if (networkState == CONNECTING || networkState == DISCONNECTED) {
+                // dump it if not connected
+                continue
+            }
+            //
+            // packet from server
+            //
+            if (!networkPacket.from.compareIp(netchan.remote_address)) {
+                Com.Printf(networkPacket.from.toString() + ": sequenced packet without connection\n")
+                continue
+            }
+
+            if (netchan.accept(networkPacket)) {
+                parseServerMessage(networkPacket.parseBodyFromServer())
+            } //else wasn't accepted for some reason
+
+
         }
+    }
+
+    /*
+     * ===================== CL_ParseServerMessage =====================
+     */
+    private fun parseServerMessage(messages: Collection<ServerMessage>) {
+        messages.forEach { msg ->
+            Com.Printf("Received ${msg}\n")
+            when (msg) {
+                is DisconnectMessage -> {
+                    Com.Error(ERR_DISCONNECT, "Server disconnected\n")
+                }
+                is ReconnectMessage -> {
+                    networkState = CONNECTING
+                    // CheckForResend() will fire immediately
+                    reconnectTimeout = 0f
+                }
+
+                is ServerDataMessage -> {
+                    Cbuf.Execute()
+                    parseServerDataMessage(msg)
+                }
+
+                is StuffTextMessage -> {
+                    Cbuf.AddText(msg.text)
+                }
+
+                else -> {
+                    Com.Printf("Received ${msg.javaClass.name} message\n")
+                }
+            }
+        }
+    }
+
+    /*
+     * ================== CL_ParseServerData ==================
+     */
+    private fun parseServerDataMessage(msg: ServerDataMessage) {
+        //
+        //	   wipe the client_state_t struct
+        //
+        clearState()
+        gameName = msg.gameName
+        levelString = msg.levelString
+        playercount = msg.playerNumber
+        spawnCount = msg.spawnCount
+        refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
+    }
+
+    private fun clearState() {
+        // todo: stop all effects
+        // todo: clear all client entities
+        netchan.reliablePending.clear()
     }
 
     private fun CL_ConnectionlessPacket(packet: NetworkPacket) {
@@ -210,8 +326,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 SendConnectPacket()
             }
             ConnectionlessCommand.client_connect -> {
-                networkState = ClientNetworkState.CONNECTED
-                Com.Println("Connected!")
+                if (networkState == CONNECTED) {
+                    Com.Printf("Dup connect received.  Ignored.\n")
+
+                } else {
+                    networkState = CONNECTED // Defines.ca_connected
+                    netchan.setup(Defines.NS_CLIENT, packet.from, packet.qport) // fixme: port isn't needed? should it be Netchan.qport?
+                    netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW));
+                    Com.Println("Connected!")
+                }
             }
             else -> {
                 println("not yet implemented, no need")

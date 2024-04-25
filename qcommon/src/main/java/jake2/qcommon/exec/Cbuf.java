@@ -192,6 +192,10 @@ public final class Cbuf {
         }
     }
 
+    public static String contents() {
+        return String.join("\n", buffer);
+    }
+
     /**
      * Puts all remaining commands from main buffer to deferredBuffer.
      * Used to delay command execution before loading map (like map q2dm1; give all)
