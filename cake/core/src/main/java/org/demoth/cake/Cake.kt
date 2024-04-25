@@ -6,27 +6,29 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
-import jake2.qcommon.*
+import jake2.qcommon.Com
+import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
+import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
+import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
-import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
+import jake2.qcommon.sizebuf_t
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.MainMenuStage
-import java.util.List
 
 enum class ClientNetworkState {
     DISCONNECTED,
@@ -58,6 +60,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var playercount = 1
     private var levelString: String = ""
     private var refresh_prepped: Boolean = false
+
+    private val configStrings = Array(MAX_CONFIGSTRINGS) {""}
+
 
 
 
@@ -114,6 +119,17 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cmd.AddCommand("cbuf") {
             Com.Println(Cbuf.contents())
         }
+
+        Cmd.AddCommand("cmd") {
+            if (networkState != CONNECTED && networkState != ACTIVE) {
+                Com.Println("Cannot cmd '${it}', not connected")
+            } else {
+                if (it.size > 1)
+                    netchan.reliablePending.add(StringCmdMessage(getArguments(it)))
+                else
+                    Com.Println("Empty cmd")
+            }
+        }
     }
 
     override fun render() {
@@ -133,6 +149,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         CL_ReadPackets()
         SendCommands()
 
+        Cbuf.Execute()
         if (!refresh_prepped) {
             // todo: load level and other resources into refresher/renderer
         }
@@ -283,6 +300,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                 is StuffTextMessage -> {
                     Cbuf.AddText(msg.text)
+                }
+
+                is ConfigStringMessage -> {
+                    configStrings[msg.index] = msg.config
                 }
 
                 else -> {
