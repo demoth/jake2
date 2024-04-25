@@ -44,6 +44,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var networkState = ClientNetworkState.DISCONNECTED
     private var servername = "localhost"
     private var challenge = 0
+    private var reconnectTimeout = 1f // todo: use proper timer
 
     init {
         Cmd.Init()
@@ -80,10 +81,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cmd.AddCommand("disconnect") {
             NET.Config(false)
             networkState = ClientNetworkState.DISCONNECTED
+            challenge = 0
+
+        }
+
+        Cmd.AddCommand("userinfo") {
+            val userInfo = Cvar.getInstance().Userinfo()
+            Com.Println("Userinfo: $userInfo")
         }
     }
 
     override fun render() {
+        val deltaSeconds = Gdx.graphics.deltaTime
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f)
 
         if (consoleVisible) {
@@ -94,11 +103,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuStage.draw()
         } // todo: else draw IngameScreen
 
-        CheckForResend()
+        CheckForResend(deltaSeconds)
         CL_ReadPackets()
-//        if (networkState == ClientNetworkState.CONNECTING) {
-//            SendConnectPacket()
-//        }
     }
 
     // handle ESC for menu and F1 for console
@@ -131,7 +137,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      *
      * Resend a connect message if the last one has timed out.
      */
-    private fun CheckForResend() {
+    private fun CheckForResend(deltaSeconds: Float) {
         // resend if we haven't gotten a reply yet
         if (networkState != ClientNetworkState.CONNECTING)
             return
@@ -142,10 +148,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             networkState = ClientNetworkState.DISCONNECTED
             return
         }
-
-        Com.Printf("${"Connecting to $servername"}...\n")
-
-        Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+        if (reconnectTimeout < 0) {
+            Com.Printf("${"Connecting to $servername"}...\n")
+            Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+            reconnectTimeout = 1f
+        } else {
+            reconnectTimeout -= deltaSeconds
+        }
     }
 
     private fun SendConnectPacket() {
@@ -199,6 +208,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             ConnectionlessCommand.challenge -> {
                 challenge = args[1].toInt()
                 SendConnectPacket()
+            }
+            ConnectionlessCommand.client_connect -> {
+                networkState = ClientNetworkState.CONNECTED
+                Com.Println("Connected!")
             }
             else -> {
                 println("not yet implemented, no need")

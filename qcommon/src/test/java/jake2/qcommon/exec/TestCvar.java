@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon.exec;
 
 
+import jake2.qcommon.Info;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -110,6 +111,9 @@ public class TestCvar {
 		cvar.Get("wrongcharacter4;", "value1", CVAR_USERINFO);
 		cvar.Get("wrongcharacter5\"", "value2", CVAR_USERINFO);
 		cvar.Get("wrongcharacter6\\", "value3", CVAR_USERINFO);
+		cvar.Get("non_userinfo", "asdf", 0);
+
+		Info.Print(cvar.Userinfo());
 
 		Assert.assertEquals("\\msg\\1\\gender\\male\\rate\\25000\\name\\unnamed\\skin\\male/grunt\\fov\\90\\hand\\0", cvar.Userinfo());
 	}

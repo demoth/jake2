@@ -40,7 +40,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Printf("MISSING VALUE\n");
+                Com.Printf("MISSING VALUE for key: " + key1 +"\n"); // fixme: returns the input string when required key is not found
                 return s;
             }
             String value1 = tk.nextToken();
@@ -111,7 +111,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Printf("MISSING VALUE\n");
+                Com.Printf("cannot remove key: MISSING VALUE for key: " + key1 +"\n");
                 return s;
             }
             String value1 = tk.nextToken();
@@ -144,7 +144,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Printf("MISSING VALUE\n");
+                Com.Printf("cannot print: MISSING VALUE for key: " + key1 +"\n");
                 return;
             }
 
