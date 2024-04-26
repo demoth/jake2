@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 27.11.2003 by RST.
 // $Id: centity_t.java,v 1.2 2004-07-08 20:56:50 hzi Exp $
 
-package jake2.client;
+package org.demoth.cake;
 
 import jake2.qcommon.entity_state_t;
 

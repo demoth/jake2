@@ -63,6 +63,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private val configStrings = Array(MAX_CONFIGSTRINGS) {""}
 
+    private val cl_entities = Array(MAX_EDICTS) { centity_t()}
+
+    private var precache_spawncount = 0
 
 
 
@@ -129,6 +132,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 else
                     Com.Println("Empty cmd")
             }
+        }
+
+        Cmd.AddCommand("precache") {
+            // todo: load all resources
+            precache_spawncount = it[1].toInt()
+            // no udp downloads anymore!!
+
+            // we are ready to start the game!
+            netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
         }
     }
 
@@ -304,6 +316,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                 is ConfigStringMessage -> {
                     configStrings[msg.index] = msg.config
+                }
+
+                is SpawnBaselineMessage -> {
+                    cl_entities[msg.entityState.number].baseline.set(msg.entityState)
                 }
 
                 else -> {
