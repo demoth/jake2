@@ -28,6 +28,7 @@ import ktx.app.KtxInputAdapter
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
+import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
 enum class ClientNetworkState {
@@ -44,6 +45,8 @@ enum class ClientNetworkState {
 class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var menuStage: MainMenuStage
     private lateinit var consoleStage: ConsoleStage
+    private lateinit var viewport: StretchViewport
+
     private var consoleVisible = false
     private var menuVisible = true
 
@@ -67,6 +70,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private var precache_spawncount = 0
 
+    private var game3dScreen: Game3dScreen? = null
+
 
 
     init {
@@ -80,7 +85,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun create() {
         Scene2DSkin.defaultSkin = Skin(Gdx.files.internal("ui/uiskin.json"))
         // doesn't really stretch because we don't yet allow the window to freely resize
-        val viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         menuStage = MainMenuStage(viewport) // fixme: cvar
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
@@ -91,6 +96,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleStage,
             menuStage
         )
+
 
         Cmd.AddCommand("quit") {
             Gdx.app.exit()
@@ -164,6 +170,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cbuf.Execute()
         if (!refresh_prepped) {
             // todo: load level and other resources into refresher/renderer
+            game3dScreen = Game3dScreen(viewport.camera) // load the level
+            refresh_prepped = true
+        }
+
+        if (game3dScreen != null) {
+            game3dScreen?.render(deltaSeconds)
         }
     }
 
@@ -342,6 +354,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         playercount = msg.playerNumber
         spawnCount = msg.spawnCount
         refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
+        consoleVisible = false
+        menuVisible = false
     }
 
     private fun clearState() {
