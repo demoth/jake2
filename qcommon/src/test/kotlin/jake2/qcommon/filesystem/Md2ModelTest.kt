@@ -1,6 +1,5 @@
 package jake2.qcommon.filesystem
 
-import jake2.qcommon.filesystem.qfiles.*
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -17,10 +16,8 @@ class Md2ModelTest {
         val buffer = ByteBuffer.wrap(bytes)
         buffer.order(ByteOrder.LITTLE_ENDIAN)
 
-        val model = Md2Model(buffer, fileName)
+        val model = Md2Model(buffer)
 
-        assertEquals(Md2Model.ALIAS_VERSION, model.version)
-        assertEquals(Md2Model.IDALIASHEADER, model.ident)
         assertArrayEquals(arrayOf("players/tekk-blade/blade.pcx", "players/tekk-blade/blograde.pcx"), model.skinNames)
         assertEquals(4145, model.glCmds.size)
         assertEquals(200, model.frames.size)
@@ -28,6 +25,6 @@ class Md2ModelTest {
 
         val frame = model.frames.first()
         assertEquals("stand0", frame.name)
-        assertEquals(model.num_vertices, frame.verts.size)
+        assertEquals(model.num_vertices, frame.points.size)
     }
 }

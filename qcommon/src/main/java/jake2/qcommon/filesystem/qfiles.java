@@ -31,8 +31,6 @@ import jake2.qcommon.lump_t;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 /**
  * qfiles
@@ -161,186 +159,12 @@ public class qfiles {
 
 	}
 	
-	/*
-	========================================================================
-	
-	.MD2 triangle model file format
-	
-	========================================================================
-	*/
 
 	public static final int MAX_TRIANGLES = 4096;
 	public static final int MAX_VERTS = 2048;
 	public static final int MAX_FRAMES = 512;
 	public static final int MAX_MD2SKINS = 32;
 	public static final int MAX_SKINNAME = 64;
-	
-	/**
-	 * daliasframe_t
-	 * A frame in the MD2 model
-	 */
-	public static class Md2Frame {
-		public float[] scale = {0, 0, 0}; // multiply byte verts by this
-		public float[] translate = {0, 0, 0};    // then add this
-		public String name; // frame name from grabbing (size 16)
-		// 4 bytes:
-		// hightest - normal index
-		// x y z
-		public int[] verts;
-
-		public Md2Frame(ByteBuffer buffer, int num_xyz) {
-			scale[0] = buffer.getFloat();
-			scale[1] = buffer.getFloat();
-			scale[2] = buffer.getFloat();
-			translate[0] = buffer.getFloat();
-			translate[1] = buffer.getFloat();
-			translate[2] = buffer.getFloat();
-			byte[] nameBuf = new byte[16];
-			buffer.get(nameBuf);
-			name = new String(nameBuf).trim();
-
-			// vertices are all 8 bit, so no swapping needed
-			verts = new int[num_xyz];
-			for (int k = 0; k < num_xyz; k++) {
-				verts[k] = buffer.getInt();
-			}
-		}
-	}
-
-	/**
-	 * MD2 (quake2) model (previously named dmdl_t)
-	 * <p/>
-	 * Also known as "alias model" in the code - named after the model editor originally used (PowerAnimator)
-	 * <p/>
-	 * Header section contains size information (how many vertices, frames, skins, etc)
-	 * and byte offsets to the respective sections.
-	 * Body section are the data arrays.
-	 * <p/>
-	 * The GL commands (glcmd) format:
-	 * <ul>
-	 *   <li> positive integer starts a triangle strip command, followed by that many vertex structures.</li>
-	 * 	 <li> negative integer starts a triangle fan command, followed by -x vertexes</li>
-	 * 	 <li> zero indicates the end of the command list.</li>
-	 * </ul>
-	 * <p/>
-	 * A vertex consists of a floating point s, a floating point and an integer vertex index.
-	 */
-	public static class Md2Model {
-		// Little Endian IDP2
-		public static final int IDALIASHEADER =	(('2'<<24)+('P'<<16)+('D'<<8)+'I');
-		public static final int ALIAS_VERSION = 8;
-		// Header
-		public int ident;
-		public int version;
-		public int num_skins;
-		public int num_vertices;
-
-		public int num_tris;
-		public int num_glcmds; // dwords in strip/fan command list
-		public int num_frames;
-
-		// each skin is a MAX_SKINNAME string
-		public int skinsOffset;
-		public int firstFrameOffset;
-		public int glCommandsOffset;
-		int endOfFileOffset; // end of file
-
-		// Body
-		public String[] skinNames;
-		public int[] glCmds;
-		// all frames have vertex array of equal size (num_xyz)
-		public Md2Frame[] frames;
-
-
-		/**
-		 * Reads md2 header
-		 */
-		public Md2Model(ByteBuffer b) {
-			ident = b.getInt();
-			version = b.getInt();
-
-			b.getInt(); // skinwidth
-			b.getInt(); // skinheight
-			b.getInt(); // framesize: byte size of each frame
-
-			num_skins = b.getInt();
-			num_vertices = b.getInt();
-			b.getInt(); //num_st: greater than num_xyz for seams, parsed into dstvert_t
-			num_tris = b.getInt();
-			num_glcmds = b.getInt(); // dwords in strip/fan command list
-			num_frames = b.getInt();
-
-			skinsOffset = b.getInt(); // each skin is a MAX_SKINNAME string
-			b.getInt(); // offset from start until dstvert_t[]
-			b.getInt(); // offset from start until dtriangles[]
-			firstFrameOffset = b.getInt(); // offset for first frame
-			glCommandsOffset = b.getInt();
-			endOfFileOffset = b.getInt(); // end of file
-		}
-
-		public Md2Model(ByteBuffer b, String modelName) {
-			this(b);
-			validateMd2Header(modelName);
-			loadBody(b);
-		}
-
-		/*
-		 * new members for vertex array handling
-		 */
-		public FloatBuffer textureCoordBuf = null;
-		public IntBuffer vertexIndexBuf = null;
-		public int[] counts = null;
-		public IntBuffer[] indexElements = null;
-
-		/**
-		 * Loads the bulk of the data
-		 */
-		private void loadBody(ByteBuffer buffer) {
-			//
-			//	   load the frames
-			//
-			frames = new qfiles.Md2Frame[num_frames];
-			buffer.position(firstFrameOffset);
-			for (int i = 0; i < num_frames; i++) {
-				frames[i] = new qfiles.Md2Frame(buffer, num_vertices);
-			}
-
-			//
-			// load the glcmds
-			// STRIP or FAN
-			glCmds = new int[num_glcmds];
-			buffer.position(glCommandsOffset);
-			for (int i = 0; i < num_glcmds; i++) {
-				glCmds[i] = buffer.getInt();
-			}
-
-			skinNames = new String[num_skins];
-			byte[] nameBuf = new byte[qfiles.MAX_SKINNAME];
-			buffer.position(skinsOffset);
-			for (int i = 0; i < num_skins; i++) {
-				buffer.get(nameBuf);
-				skinNames[i] = new String(nameBuf);
-				int n = skinNames[i].indexOf('\0');
-				if (n > -1) {
-					skinNames[i] = skinNames[i].substring(0, n);
-				}
-			}
-		}
-
-		private void validateMd2Header(String modelName) {
-			// todo: switch to exceptions instead
-			if (ident != IDALIASHEADER)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong magic number " + version + ", expected: " + IDALIASHEADER);
-			if (version != ALIAS_VERSION)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has wrong version number " + version + ", expected: " + ALIAS_VERSION);
-			if (num_vertices <= 0)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has no vertices");
-			if (num_vertices > MAX_VERTS)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has too many vertices");
-			if (num_frames <= 0)
-				Com.Error(Defines.ERR_DROP, "model " + modelName + " has no frames");
-		}
-	}
 
 	public static class Sp2SpriteFrame {
 		public int width;
