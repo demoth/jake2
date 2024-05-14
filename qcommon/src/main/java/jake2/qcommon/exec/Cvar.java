@@ -26,7 +26,10 @@
 
 package jake2.qcommon.exec;
 
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
 
@@ -442,5 +445,12 @@ public class Cvar extends Globals {
      */
     private static boolean invalidInfoString(String s) {
         return INFO_DISALLOWED_CHARS.matcher(s).find();
+    }
+
+    /**
+     * Clear all cvars
+     */
+    public void clear() {
+        cvarMap.clear();
     }
 }

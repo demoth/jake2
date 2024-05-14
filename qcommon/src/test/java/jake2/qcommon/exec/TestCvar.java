@@ -26,6 +26,7 @@ package jake2.qcommon.exec;
 
 import jake2.qcommon.Info;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import static jake2.qcommon.Defines.CVAR_USERINFO;
@@ -34,7 +35,12 @@ public class TestCvar {
 
 	@Test
 	public void testInit() {
-		Cvar.getInstance().Init();
+		Cvar.Init();
+	}
+
+	@Before
+	public void setUp() {
+		Cvar.getInstance().clear();
 	}
 
 	@Test
