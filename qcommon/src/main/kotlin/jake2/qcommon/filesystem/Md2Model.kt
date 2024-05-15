@@ -125,9 +125,9 @@ class Md2Model(buffer: ByteBuffer) {
             val vertices = ArrayList<Md2VertexInfo>(numVertices)
 
             repeat(numVertices) {
-                val vertexIndex = commandQueue.removeFirst()
                 val s = intBitsToFloat(commandQueue.removeFirst())
                 val t = intBitsToFloat(commandQueue.removeFirst())
+                val vertexIndex = commandQueue.removeFirst()
                 vertices.add(Md2VertexInfo(vertexIndex, s, t))
             }
             glCommands.add(Md2GlCmd(cmdType, vertices))
@@ -149,9 +149,49 @@ enum class Md2GlCmdType {
     TRIANGLE_FAN,
 }
 
-data class Md2VertexInfo(val index: Int, val s: Float, val t: Float)
+data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
+    /**
+     * create a vertex buffer part for this particular vertex (x y z s t)
+     */
+    fun toFloats(points: List<Point>): List<Float> {
+        val p = points[index].position // todo: check bounds
+        return listOf(p.x, p.y, p.z, s, t)
+    }
+}
 
 data class Md2GlCmd(
     val type: Md2GlCmdType,
     val vertices: List<Md2VertexInfo>,
-)
+) {
+    /**
+     * Convert triangle strips and fans into sets of independent triangles.
+     * It may waste a bit of VRAM, but makes it much easier to draw,
+     * using a single drawElements(GL_TRIANGLES, ...) call.
+     */
+    fun toFloatArray(points: List<Point>): FloatArray {
+        val result = when (type) {
+            Md2GlCmdType.TRIANGLE_STRIP -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
+                // when converting a triangle strip into a set of separate triangles,
+                // need to alternate the winding direction
+                var clockwise = true
+                vertices.windowed(3).flatMap { strip ->
+                    clockwise = !clockwise
+                    if (clockwise) {
+                        strip[0].toFloats(points) + strip[1].toFloats(points) + strip[2].toFloats(points)
+                    } else {
+                        strip[2].toFloats(points) + strip[1].toFloats(points) + strip[0].toFloats(points)
+                    }
+                }
+            }
+
+            Md2GlCmdType.TRIANGLE_FAN -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
+                vertices.drop(1).windowed(2).flatMap { strip ->
+                    vertices.first().toFloats(points) + strip[0].toFloats(points) + strip[1].toFloats(points)
+                }
+            }
+        }
+        return result.toFloatArray()
+    }
+}
