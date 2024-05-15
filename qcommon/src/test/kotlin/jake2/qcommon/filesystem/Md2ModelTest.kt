@@ -1,6 +1,5 @@
 package jake2.qcommon.filesystem
 
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -18,13 +17,12 @@ class Md2ModelTest {
 
         val model = Md2Model(buffer)
 
-        assertArrayEquals(arrayOf("players/tekk-blade/blade.pcx", "players/tekk-blade/blograde.pcx"), model.skinNames)
-        assertEquals(4145, model.glCmds.size)
+        assertEquals(listOf("players/tekk-blade/blade.pcx", "players/tekk-blade/blograde.pcx"), model.skinNames)
+        assertEquals(268, model.glCommands.size)
         assertEquals(200, model.frames.size)
-        assertEquals(429, model.num_vertices)
 
         val frame = model.frames.first()
         assertEquals("stand0", frame.name)
-        assertEquals(model.num_vertices, frame.points.size)
+        assertEquals(model.verticesCount, frame.points.size)
     }
 }

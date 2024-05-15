@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem
 
+import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
 
 const val IDALIASHEADER: Int = (('2'.code shl 24) + ('P'.code shl 16) + ('D'.code shl 8) + 'I'.code)
@@ -8,14 +9,11 @@ const val ALIAS_VERSION: Int = 8
 /**
  * MD2 (quake2) model (previously named dmdl_t)
  *
- *
  * Also known as "alias model" in the code - named after the model editor originally used (PowerAnimator)
- *
  *
  * Header section contains size information (how many vertices, frames, skins, etc)
  * and byte offsets to the respective sections.
  * Body section are the data arrays.
- *
  *
  * The GL commands (glcmd) format:
  *
@@ -23,122 +21,126 @@ const val ALIAS_VERSION: Int = 8
  *  *  negative integer starts a triangle fan command, followed by -x vertexes
  *  *  zero indicates the end of the command list.
  *
- *
- *
  * A vertex consists of a floating point s, a floating point and an integer vertex index.
  */
-class Md2Model(b: ByteBuffer) {
-    // Header
-    val ident: Int
-    val version: Int
-    val num_skins: Int
-    val num_vertices: Int
-
-    val num_tris: Int
-    val num_glcmds: Int // dwords in strip/fan command list
-    val num_frames: Int
-
-    // each skin is a MAX_SKINNAME string
-    val skinsOffset: Int
-    val firstFrameOffset: Int
-    val glCommandsOffset: Int
-    val endOfFileOffset: Int // end of file
-
+class Md2Model(buffer: ByteBuffer) {
+    // public info
     // Body
-    val skinNames: Array<String?>
-    val glCmds: IntArray
+    val skinNames: List<String>
     val glCommands: List<Md2GlCmd>
 
     // all frames have vertex array of equal size (num_xyz)
     val frames: List<Md2Frame>
+    val verticesCount: Int
+
+
+    // private fields
+    private val skinCount: Int
+
+    private val trisCount: Int
+    private val glcmdCount: Int
+    private val framesCount: Int
+
+    private val skinsOffset: Int
+    private val firstFrameOffset: Int
+    private val glCommandsOffset: Int
+    private val endOfFileOffset: Int // end of file
+    private val glCommandIntegers: List<Int>
+
 
     init {
-        ident = b.getInt()
-        check (ident == IDALIASHEADER) {
-            "Wrong .md2 identifier: $ident"
+        //
+        // region: HEADER
+        //
+        val fileIdentifier = buffer.getInt()
+
+        check(fileIdentifier == IDALIASHEADER) {
+            "Wrong .md2 identifier: $fileIdentifier"
         }
 
-        version = b.getInt()
+        val version = buffer.getInt()
         check(version == ALIAS_VERSION) {
             "Wrong .md2 version: $version"
         }
 
-        b.getInt() // skinwidth
-        b.getInt() // skinheight
-        b.getInt() // framesize: byte size of each frame
+        // some properties are ignored by q2 engine
+        buffer.getInt() // skinwidth
+        buffer.getInt() // skinheight
+        buffer.getInt() // framesize: byte size of each frame
 
-        num_skins = b.getInt()
-        num_vertices = b.getInt()
-        b.getInt() //num_st: greater than num_xyz for seams, parsed into dstvert_t
-        num_tris = b.getInt()
-        num_glcmds = b.getInt() // dwords in strip/fan command list
-        num_frames = b.getInt()
+        skinCount = buffer.getInt()
+        verticesCount = buffer.getInt()
+        // actual vertex coordinates are parsed from glcmd, so these are unused in q2
+        buffer.getInt() //num_st: greater than num_xyz for seams, parsed into dstvert_t
+        trisCount = buffer.getInt()
+        glcmdCount = buffer.getInt() // dwords in strip/fan command list
+        framesCount = buffer.getInt()
 
-        skinsOffset = b.getInt() // each skin is a MAX_SKINNAME string
-        b.getInt() // offset from start until dstvert_t[]
-        b.getInt() // offset from start until dtriangles[]
-        firstFrameOffset = b.getInt() // offset for first frame
-        glCommandsOffset = b.getInt()
-        endOfFileOffset = b.getInt() // end of file
+        skinsOffset = buffer.getInt() // each skin is a MAX_SKINNAME string
+        buffer.getInt() // offset from start until dstvert_t[]
+        buffer.getInt() // offset from start until dtriangles[]
+        firstFrameOffset = buffer.getInt() // offset for first frame
+        glCommandsOffset = buffer.getInt()
+        endOfFileOffset = buffer.getInt() // end of file
 
         //
-        //	   load the frames
+        // Parsing the BODY
         //
-        frames = ArrayList(num_frames)
-        b.position(firstFrameOffset)
-        for (i in 0 until num_frames) {
-            frames.add(Md2Frame(b, num_vertices))
+
+        // FRAMES
+        frames = ArrayList(framesCount)
+        buffer.position(firstFrameOffset)
+        repeat(framesCount) {
+            // parse frame from the buffer
+            frames.add(Md2Frame(buffer, verticesCount))
         }
 
-        //
-        // load the glcmds
-        // STRIP or FAN
-        glCmds = IntArray(num_glcmds)
-        b.position(glCommandsOffset)
-        for (i in 0 until num_glcmds) {
-            glCmds[i] = b.getInt()
+        // GL COMMANDS
+        glCommandIntegers = ArrayList(glcmdCount)
+        buffer.position(glCommandsOffset)
+        repeat(glcmdCount) {
+            glCommandIntegers.add(buffer.getInt())
         }
 
+        // unpack gl integer commands into the structured list of vertices
         glCommands = ArrayList()
-        var i = 0
-        while (true) {
-            val command = glCmds[i]
-            if (command == 0)
-                break
+        val commandQueue = ArrayDeque(glCommandIntegers.toList())
+        while (commandQueue.isNotEmpty()) {
+            // the first value tells the type of the gl command (it's sign) and number of vertices
+            val command = commandQueue.removeFirst()
+
             val cmdType = if (command > 0)
                 Md2GlCmdType.TRIANGLE_STRIP
-            else
+            else if (command < 0)
                 Md2GlCmdType.TRIANGLE_FAN
+            else {
+                // == 0
+                check(commandQueue.isEmpty()) { "unexpected glcmds found after reaching command 0" }
+                break
+            }
+
 
             val numVertices = if (command > 0) command else -command
 
             val vertices = ArrayList<Md2VertexInfo>(numVertices)
 
-            for (j: Int in 0 until numVertices) {
-                val vertexIndex = b.getInt()
-                val s = b.getFloat()
-                val t = b.getFloat()
+            repeat(numVertices) {
+                val vertexIndex = commandQueue.removeFirst()
+                val s = intBitsToFloat(commandQueue.removeFirst())
+                val t = intBitsToFloat(commandQueue.removeFirst())
                 vertices.add(Md2VertexInfo(vertexIndex, s, t))
             }
             glCommands.add(Md2GlCmd(cmdType, vertices))
-
-            i++
-
         }
 
-
-        skinNames = arrayOfNulls(num_skins)
+        // SKINS
+        skinNames = ArrayList()
         val nameBuf = ByteArray(qfiles.MAX_SKINNAME)
-        b.position(skinsOffset)
-        for (i in 0 until num_skins) {
-            b[nameBuf]
-            skinNames[i] = String(nameBuf)
-            val n = skinNames[i]!!.indexOf('\u0000')
-            if (n > -1) {
-                skinNames[i] = skinNames[i]!!.substring(0, n)
-            }
+        buffer.position(skinsOffset)
+        repeat(skinCount) {
+            buffer.get(nameBuf)
+            skinNames.add(String(nameBuf).trim { it < ' ' })
         }
-
     }
 }
 

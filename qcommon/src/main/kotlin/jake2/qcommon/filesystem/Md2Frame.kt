@@ -34,7 +34,7 @@ class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
         name = String(nameBuf).trim { it < ' '}
 
         points = ArrayList(vertexCount)
-        for (k in 0 until vertexCount) {
+        repeat(vertexCount) {
             // vertices are all 8 bit, so no swapping needed
             // 4 bytes:
             // hightest - normal index
