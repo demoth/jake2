@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
