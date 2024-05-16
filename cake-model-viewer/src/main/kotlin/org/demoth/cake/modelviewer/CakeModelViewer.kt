@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.UBJsonReader
+import jake2.qcommon.filesystem.PCX
 import ktx.graphics.use
 
 
@@ -29,7 +30,7 @@ class CakeModelViewer : ApplicationAdapter() {
 
     override fun create() {
         batch = SpriteBatch()
-        image = Texture("libgdx.png")
+        image = Texture(PCXTextureData(fromPCX(PCX(Gdx.files.internal("pain.pcx").readBytes()))))
         modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, -5f);
@@ -39,13 +40,13 @@ class CakeModelViewer : ApplicationAdapter() {
 
         Gdx.input.inputProcessor = CameraInputController(camera)
         modelBatch = ModelBatch()
-        val md2Model = Md2ModelLoader().loadMd2Model("tris.md2", "viper.png")
+//        val md2Model = Md2ModelLoader().loadMd2Model("tris.md2")
         models = mutableListOf(
 //            ModelInstance(createModel()),
 //            loadObjModel(),
 //            loadG3dModel(),
 //            loadMeshModel(),
-            md2Model
+//            md2Model
         )
 
         environment = Environment()
