@@ -168,7 +168,7 @@ data class Md2GlCmd(
      * It may waste a bit of VRAM, but makes it much easier to draw,
      * using a single drawElements(GL_TRIANGLES, ...) call.
      */
-    fun toFloatArray(points: List<Point>): FloatArray {
+    fun toFloats(points: List<Point>): List<Float> {
         val result = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
@@ -192,6 +192,6 @@ data class Md2GlCmd(
                 }
             }
         }
-        return result.toFloatArray()
+        return result
     }
 }

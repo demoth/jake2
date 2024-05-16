@@ -29,6 +29,7 @@ java.sourceCompatibility = 11
 java.targetCompatibility = 11
 
 dependencies {
+  api project(":qcommon")
   api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
