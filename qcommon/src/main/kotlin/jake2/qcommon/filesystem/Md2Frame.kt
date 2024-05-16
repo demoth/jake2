@@ -19,12 +19,12 @@ class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
     val name: String // frame name from grabbing (size 16)
 
     init {
-        val translate = Vector3f(
+        val scale = Vector3f(
             buffer.getFloat(),
             buffer.getFloat(),
             buffer.getFloat()
         )
-        val scale = Vector3f(
+        val translate = Vector3f(
             buffer.getFloat(),
             buffer.getFloat(),
             buffer.getFloat()

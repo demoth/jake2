@@ -188,7 +188,7 @@ data class Md2GlCmd(
             Md2GlCmdType.TRIANGLE_FAN -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
                 vertices.drop(1).windowed(2).flatMap { strip ->
-                    vertices.first().toFloats(points) + strip[0].toFloats(points) + strip[1].toFloats(points)
+                    strip[1].toFloats(points) + strip[0].toFloats(points) + vertices.first().toFloats(points)
                 }
             }
         }
