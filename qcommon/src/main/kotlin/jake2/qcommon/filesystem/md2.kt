@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem
 
+import jake2.qcommon.math.Vector3f
 import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
 
@@ -11,17 +12,19 @@ const val ALIAS_VERSION: Int = 8
  *
  * Also known as "alias model" in the code - named after the model editor originally used (PowerAnimator)
  *
- * Header section contains size information (how many vertices, frames, skins, etc)
+ * The Header section contains size information (how many vertices, frames, skins, etc)
  * and byte offsets to the respective sections.
- * Body section are the data arrays.
+ * Body sections are the data arrays - frames, glCommands, skin names.
  *
- * The GL commands (glcmd) format:
+ * The GL commands (glCmd) format:
  *
- *  *  positive integer starts a triangle strip command, followed by that many vertex structures.
- *  *  negative integer starts a triangle fan command, followed by -x vertexes
- *  *  zero indicates the end of the command list.
+ *  * positive integer starts a triangle strip command, followed by that many vertex structures.
+ *  * negative integer starts a triangle fan command, followed by -x vertexes
+ *  * zero indicates the end of the command list.
  *
- * A vertex consists of a floating point s, a floating point and an integer vertex index.
+ * A vertex consists of the texture coordinates (float s, float t) and an integer vertex index.
+ *
+ * Actual vertex positions are contained in the frames (Md2Frame).
  */
 class Md2Model(buffer: ByteBuffer) {
     // public info
@@ -153,7 +156,7 @@ data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
     /**
      * create a vertex buffer part for this particular vertex (x y z s t)
      */
-    fun toFloats(points: List<Point>): List<Float> {
+    fun toFloats(points: List<Md2Point>): List<Float> {
         val p = points[index].position // todo: check bounds
         return listOf(p.x, p.y, p.z, s, t)
     }
@@ -164,11 +167,13 @@ data class Md2GlCmd(
     val vertices: List<Md2VertexInfo>,
 ) {
     /**
-     * Convert triangle strips and fans into sets of independent triangles.
+     * Convert indexed vertices into actual vertex buffer data.
+     *
+     * Also convert triangle strips and fans into sets of independent triangles.
      * It may waste a bit of VRAM, but makes it much easier to draw,
      * using a single drawElements(GL_TRIANGLES, ...) call.
      */
-    fun toFloats(points: List<Point>): List<Float> {
+    fun toFloats(points: List<Md2Point>): List<Float> {
         val result = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
@@ -195,3 +200,62 @@ data class Md2GlCmd(
         return result
     }
 }
+
+/**
+ * daliasframe_t
+ * A frame in the MD2 model, represents a frame in the model animation, contains coordinates and normals of all vertices
+ *
+ * Frame header:
+ *   - 3 floats: scale(xyz)
+ *   - 3 floats: translation(xyz)
+ *   - 16 bytes: name
+ *   - number of vertices:
+ *      - 4 bytes: packed normal index + x, y, z position
+ */
+class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
+    val points: List<Md2Point>
+    val name: String // frame name from grabbing (size 16)
+
+    init {
+        val scale = Vector3f(
+            buffer.getFloat(),
+            buffer.getFloat(),
+            buffer.getFloat()
+        )
+        val translate = Vector3f(
+            buffer.getFloat(),
+            buffer.getFloat(),
+            buffer.getFloat()
+        )
+        val nameBuf = ByteArray(16)
+        buffer.get(nameBuf)
+        name = String(nameBuf).trim { it < ' '}
+
+        points = ArrayList(vertexCount)
+        repeat(vertexCount) {
+            // vertices are all 8 bit, so no swapping needed
+            // 4 bytes:
+            // hightest - normal index
+            // x y z
+            val vertexData = buffer.getInt()
+            // unpack vertex data
+            points.add(
+                Md2Point(
+                    Vector3f(
+                        scale.x * (vertexData ushr 0 and 0xFF),
+                        scale.y * (vertexData ushr 8 and 0xFF),
+                        scale.z * (vertexData ushr 16 and 0xFF)
+                    ) + translate,
+                    vertexData ushr 24 and 0xFF
+                )
+            )
+
+        }
+    }
+
+    override fun toString(): String {
+        return name
+    }
+}
+
+data class Md2Point(val position: Vector3f, val normalIndex: Int)
