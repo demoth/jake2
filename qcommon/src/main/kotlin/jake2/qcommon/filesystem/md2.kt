@@ -138,11 +138,12 @@ class Md2Model(buffer: ByteBuffer) {
 
         // SKINS
         skinNames = ArrayList()
-        val nameBuf = ByteArray(qfiles.MAX_SKINNAME)
         buffer.position(skinsOffset)
         repeat(skinCount) {
+            val nameBuf = ByteArray(qfiles.MAX_SKINNAME)
             buffer.get(nameBuf)
-            skinNames.add(String(nameBuf).trim { it < ' ' })
+            val skinName = String(nameBuf)
+            skinNames.add(skinName.substring(0, skinName.indexOf(".pcx")) + ".pcx")
         }
     }
 }

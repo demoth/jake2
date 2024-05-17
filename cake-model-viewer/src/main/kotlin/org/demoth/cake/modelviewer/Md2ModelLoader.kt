@@ -27,7 +27,7 @@ class Md2ModelLoader {
             File(modelFile.parentFile, name)
         }
 
-        val first = md2Model.frames.random()
+        val first = md2Model.frames.first()
 
         val vertexBuffer = md2Model.glCommands.flatMap {
             it.toFloats(first.points)
