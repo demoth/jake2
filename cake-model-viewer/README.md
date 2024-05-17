@@ -1,13 +1,16 @@
 # Model viewer for Cake engine
 
-This app can display .md2 and .pcx files (provided as an argument)
+![screenshot](cake-model-viewer-screenshot.png)
+
+This small app can display .md2 and .pcx files (provided as an argument)
 
 To build run `gradle :cake-model-viewer:nativeBuild` (requires graalvm jdk 17)
 
 You will find the executable in `cake-model-viewer/build/native/nativeCompile`
 
 ## List of feature
- - renders .md2 model in the 1st animation frame with the first referenced skin (looks in the same folder as the .mdl file)
+ - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .mdl file)
+ - can also render a .pcx image
  - TODO: change skins
  - TODO: render animation
  - TODO: display .md2 information - like number of triangles, vertices, frames, etc
