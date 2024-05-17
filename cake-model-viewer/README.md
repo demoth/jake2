@@ -2,7 +2,7 @@
 
 This app can display .md2 and .pcx files (provided as an argument)
 
-To build run `gradle :cake-model-viewer:build` (requires graalvm jdk 17)
+To build run `gradle :cake-model-viewer:nativeBuild` (requires graalvm jdk 17)
 
 You will find the executable in `cake-model-viewer/build/native/nativeCompile`
 
