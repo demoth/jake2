@@ -17,10 +17,10 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import ktx.graphics.use
-
+import java.io.File
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
-class CakeModelViewer : ApplicationAdapter() {
+class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private lateinit var image: Texture
     private lateinit var modelBatch: ModelBatch
@@ -29,8 +29,9 @@ class CakeModelViewer : ApplicationAdapter() {
     private lateinit var environment: Environment
 
     override fun create() {
+
         batch = SpriteBatch()
-        image = Texture(PCXTextureData(fromPCX(PCX(Gdx.files.internal("pain.pcx").readBytes()))))
+        image = Texture(PCXTextureData(fromPCX(PCX(File(args.first()).readBytes()))))
         modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, -5f);

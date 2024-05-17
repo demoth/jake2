@@ -8,12 +8,12 @@ object Lwjgl3Launcher {
     fun main(args: Array<String>) {
         if (StartupHelper.startNewJvmIfRequired()) return  // This handles macOS support and helps on Windows.
 
-        createApplication()
+        createApplication(args)
     }
 }
 
-private fun createApplication(): Lwjgl3Application {
-    return Lwjgl3Application(CakeModelViewer(), defaultConfiguration)
+private fun createApplication(args: Array<String>): Lwjgl3Application {
+    return Lwjgl3Application(CakeModelViewer(args), defaultConfiguration)
 }
 
 private val defaultConfiguration: Lwjgl3ApplicationConfiguration

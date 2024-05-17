@@ -51,13 +51,17 @@ class PCXTextureData(private var pixmap: Pixmap) : TextureData {
     }
 }
 
-internal fun fromPCX(pcx: PCX): Pixmap {
+/**
+ * @param externalPalette RBBA8888 format, used instexd of [pcx.colors] if provided
+ */
+internal fun fromPCX(pcx: PCX, externalPalette: IntArray? = null): Pixmap {
     val pixmap = Pixmap(pcx.width, pcx.height, Pixmap.Format.RGBA8888)
     var offset = 0
     for (y in 0 until pcx.height) {
         for (x in 0 until pcx.width) {
             val colorIndex = 0xFF and pcx.imageData[offset++].toInt() // unsigned
-            pixmap.drawPixel(x, y, pcx.colors[colorIndex])
+            val color = if (externalPalette != null) externalPalette[colorIndex] else pcx.colors[colorIndex]
+            pixmap.drawPixel(x, y, color)
         }
     }
     return pixmap

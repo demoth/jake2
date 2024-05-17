@@ -139,16 +139,12 @@ class PCX(buffer: ByteBuffer) {
         data = buffer.slice()
 
         // Q2 supports only a subset of all possible formats fixme: why not support all?
-        check(
-            (manufacturer == 0x0a.toByte()
-                    && version == 5.toByte()
-                    && encoding == 1.toByte()
-                    && bits_per_pixel == 8.toByte()
-                    && xmax < 640
-                    && ymax < 480)
-        ) {
-            "Bad pcx file"
-        }
+        check(manufacturer ==  0x0a.toByte()) { "Bad .pcx file: wrong manufacturer: $manufacturer"}
+        check(version == 5.toByte()) { "Bad .pcx file: wrong version: $version"}
+        check(encoding == 1.toByte()) { "Bad .pcx file: wrong encoding: $encoding"}
+        check(bits_per_pixel == 8.toByte()) { "Bad .pcx file: wrong bits_per_pixel: $bits_per_pixel"}
+        check(xmax < 640) { "Bad .pcx file: wrong xmax: $xmax"}
+        check(ymax < 480) { "Bad .pcx file: wrong ymax: $ymax"}
 
         // parse image data
         width = xmax - xmin + 1
@@ -174,6 +170,8 @@ class PCX(buffer: ByteBuffer) {
         // read the palette, located at the end of the file
         // skip to byte -769
         data.position(data.limit() - PCX_PALETTE_SIZE - 1)
+        val paletteMarker = data.get().toInt() and 0xFF
+        check(paletteMarker == 0x0C) { "Unexpected pcx palette marker" }
         data.get(palette)
 
         // read colors
