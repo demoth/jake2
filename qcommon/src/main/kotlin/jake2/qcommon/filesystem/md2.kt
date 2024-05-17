@@ -235,7 +235,7 @@ class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
         repeat(vertexCount) {
             // vertices are all 8 bit, so no swapping needed
             // 4 bytes:
-            // hightest - normal index
+            // highest - normal index
             // x y z
             val vertexData = buffer.getInt()
             // unpack vertex data

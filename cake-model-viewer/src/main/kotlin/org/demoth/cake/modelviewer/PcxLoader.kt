@@ -52,7 +52,7 @@ class PCXTextureData(private var pixmap: Pixmap) : TextureData {
 }
 
 /**
- * @param externalPalette RBBA8888 format, used instexd of [pcx.colors] if provided
+ * @param externalPalette RBBA8888 format, used instead of [pcx.colors] if provided
  */
 internal fun fromPCX(pcx: PCX, externalPalette: IntArray? = null): Pixmap {
     val pixmap = Pixmap(pcx.width, pcx.height, Pixmap.Format.RGBA8888)
