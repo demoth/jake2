@@ -27,7 +27,6 @@ package jake2.qcommon.filesystem;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.lump_t;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -224,26 +223,9 @@ public class qfiles {
 	==============================================================================
 	*/
 
-	public static final int IDBSPHEADER = (('P'<<24)+('S'<<16)+('B'<<8)+'I');
 
 	// =============================================================================
 
-	public static class dheader_t {
-
-		public dheader_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-			this.ident = bb.getInt();
-			this.version = bb.getInt();
-
-			for (int n = 0; n < Defines.HEADER_LUMPS; n++)
-				lumps[n] = new lump_t(bb.getInt(), bb.getInt());
-
-		}
-
-		int ident;
-		public int version;
-		public lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
-	}
 
 	public static class dmodel_t {
 

@@ -23,6 +23,8 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.filesystem.BspHeader;
+import jake2.qcommon.filesystem.BspLump;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
@@ -187,7 +189,7 @@ public class CM {
     public cmodel_t CM_LoadMap(String name, boolean clientload, int[] checksum) {
         Com.DPrintf("CM_LoadMap(" + name + ")...\n");
         byte buf[];
-        qfiles.dheader_t header;
+        BspHeader header;
         int length;
 
         map_noareas = Cvar.getInstance().Get("map_noareas", "0", 0);
@@ -237,7 +239,7 @@ public class CM {
         last_checksum = MD4.Com_BlockChecksum(buf, length);
         checksum[0] = last_checksum;
 
-        header = new qfiles.dheader_t(bbuf.slice());
+        header = new BspHeader(bbuf.slice());
 
         if (header.version != Defines.BSPVERSION)
             Com.Error(Defines.ERR_DROP, "CMod_LoadBrushModel: " + name
@@ -273,16 +275,16 @@ public class CM {
     }
 
     /** Loads Submodels. */
-    public void CMod_LoadSubmodels(lump_t l) {
+    public void CMod_LoadSubmodels(BspLump l) {
         Com.DPrintf("CMod_LoadSubmodels()\n");
         qfiles.dmodel_t in;
         cmodel_t out;
         int i, j, count;
 
-        if ((l.filelen % qfiles.dmodel_t.SIZE) != 0)
+        if ((l.length % qfiles.dmodel_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "CMod_LoadBmodel: funny lump size");
 
-        count = l.filelen / qfiles.dmodel_t.SIZE;
+        count = l.length / qfiles.dmodel_t.SIZE;
 
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map with no models");
@@ -297,7 +299,7 @@ public class CM {
         }
         for (i = 0; i < count; i++) {
             in = new qfiles.dmodel_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.dmodel_t.SIZE + l.fileofs, qfiles.dmodel_t.SIZE));
+                    * qfiles.dmodel_t.SIZE + l.offset, qfiles.dmodel_t.SIZE));
             out = map_cmodels[i];
 
             for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
@@ -320,16 +322,16 @@ public class CM {
     boolean debugloadmap = false;
 
     /** Loads surfaces. */
-    public void CMod_LoadSurfaces(lump_t l) {
+    public void CMod_LoadSurfaces(BspLump l) {
         Com.DPrintf("CMod_LoadSurfaces()\n");
         texinfo_t in;
         mapsurface_t out;
         int i, count;
 
-        if ((l.filelen % texinfo_t.SIZE) != 0)
+        if ((l.length % texinfo_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / texinfo_t.SIZE;
+        count = l.length / texinfo_t.SIZE;
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map with no surfaces");
         if (count > Defines.MAX_MAP_TEXINFO)
@@ -342,7 +344,7 @@ public class CM {
 
         for (i = 0; i < count; i++) {
             out = map_surfaces[i] = new mapsurface_t();
-            in = new texinfo_t(cmod_base, l.fileofs + i * texinfo_t.SIZE,
+            in = new texinfo_t(cmod_base, l.offset + i * texinfo_t.SIZE,
                     texinfo_t.SIZE);
 
             out.c.name = in.texture;
@@ -360,17 +362,17 @@ public class CM {
     }
 
     /** Loads nodes. */
-    public void CMod_LoadNodes(lump_t l) {
+    public void CMod_LoadNodes(BspLump l) {
         Com.DPrintf("CMod_LoadNodes()\n");
         qfiles.dnode_t in;
         int child;
         cnode_t out;
         int i, j, count;
 
-        if ((l.filelen % qfiles.dnode_t.SIZE) != 0)
+        if ((l.length % qfiles.dnode_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size:"
-                    + l.fileofs + "," + qfiles.dnode_t.SIZE);
-        count = l.filelen / qfiles.dnode_t.SIZE;
+                    + l.offset + "," + qfiles.dnode_t.SIZE);
+        count = l.length / qfiles.dnode_t.SIZE;
 
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map has no nodes");
@@ -386,7 +388,7 @@ public class CM {
 
         for (i = 0; i < count; i++) {
             in = new qfiles.dnode_t(ByteBuffer.wrap(cmod_base,
-                    qfiles.dnode_t.SIZE * i + l.fileofs, qfiles.dnode_t.SIZE));
+                    qfiles.dnode_t.SIZE * i + l.offset, qfiles.dnode_t.SIZE));
             out = map_nodes[i];
 
             out.plane = map_planes[in.planenum];
@@ -402,16 +404,16 @@ public class CM {
     }
 
     /** Loads brushes.*/
-    public void CMod_LoadBrushes(lump_t l) {
+    public void CMod_LoadBrushes(BspLump l) {
         Com.DPrintf("CMod_LoadBrushes()\n");
         qfiles.dbrush_t in;
         cbrush_t out;
         int i, count;
 
-        if ((l.filelen % qfiles.dbrush_t.SIZE) != 0)
+        if ((l.length % qfiles.dbrush_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / qfiles.dbrush_t.SIZE;
+        count = l.length / qfiles.dbrush_t.SIZE;
 
         if (count > Defines.MAX_MAP_BRUSHES)
             Com.Error(Defines.ERR_DROP, "Map has too many brushes");
@@ -423,7 +425,7 @@ public class CM {
         }
         for (i = 0; i < count; i++) {
             in = new qfiles.dbrush_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.dbrush_t.SIZE + l.fileofs, qfiles.dbrush_t.SIZE));
+                    * qfiles.dbrush_t.SIZE + l.offset, qfiles.dbrush_t.SIZE));
             out = map_brushes[i];
             out.firstbrushside = in.firstside;
             out.numsides = in.numsides;
@@ -438,17 +440,17 @@ public class CM {
     }
 
     /** Loads leafs.   */
-    public void CMod_LoadLeafs(lump_t l) {
+    public void CMod_LoadLeafs(BspLump l) {
         Com.DPrintf("CMod_LoadLeafs()\n");
         int i;
         cleaf_t out;
         qfiles.dleaf_t in;
         int count;
 
-        if ((l.filelen % qfiles.dleaf_t.SIZE) != 0)
+        if ((l.length % qfiles.dleaf_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / qfiles.dleaf_t.SIZE;
+        count = l.length / qfiles.dleaf_t.SIZE;
 
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map with no leafs");
@@ -465,7 +467,7 @@ public class CM {
             Com.DPrintf("cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
         for (i = 0; i < count; i++) {
             in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE
-                    + l.fileofs, qfiles.dleaf_t.SIZE);
+                    + l.offset, qfiles.dleaf_t.SIZE);
 
             out = map_leafs[i];
 
@@ -506,7 +508,7 @@ public class CM {
     }
 
     /** Loads planes. */
-    public void CMod_LoadPlanes(lump_t l) {
+    public void CMod_LoadPlanes(BspLump l) {
         Com.DPrintf("CMod_LoadPlanes()\n");
         int i, j;
         cplane_t out;
@@ -514,10 +516,10 @@ public class CM {
         int count;
         int bits;
 
-        if ((l.filelen % qfiles.dplane_t.SIZE) != 0)
+        if ((l.length % qfiles.dplane_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / qfiles.dplane_t.SIZE;
+        count = l.length / qfiles.dplane_t.SIZE;
 
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map with no planes");
@@ -536,7 +538,7 @@ public class CM {
 
         for (i = 0; i < count; i++) {
             in = new qfiles.dplane_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.dplane_t.SIZE + l.fileofs, qfiles.dplane_t.SIZE));
+                    * qfiles.dplane_t.SIZE + l.offset, qfiles.dplane_t.SIZE));
 
             out = map_planes[i];
 
@@ -562,13 +564,13 @@ public class CM {
     }
 
     /** Loads leaf brushes. */
-    public void CMod_LoadLeafBrushes(lump_t l) {
+    public void CMod_LoadLeafBrushes(BspLump l) {
         Com.DPrintf("CMod_LoadLeafBrushes()\n");
 
-        if ((l.filelen % 2) != 0)
+        if ((l.length % 2) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        int count = l.filelen / 2;
+        int count = l.length / 2;
 
         Com.DPrintf(" numbrushes=" + count + "\n");
 
@@ -582,7 +584,7 @@ public class CM {
         int[] out = map_leafbrushes;
         numleafbrushes = count;
 
-        ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, count * 2).order(
+        ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.offset, count * 2).order(
                 ByteOrder.LITTLE_ENDIAN);
 
         if (debugloadmap) {
@@ -598,7 +600,7 @@ public class CM {
     }
 
     /** Loads brush sides. */
-    public void CMod_LoadBrushSides(lump_t l) {
+    public void CMod_LoadBrushSides(BspLump l) {
         Com.DPrintf("CMod_LoadBrushSides()\n");
         int i, j;
         cbrushside_t out;
@@ -606,9 +608,9 @@ public class CM {
         int count;
         int num;
 
-        if ((l.filelen % qfiles.dbrushside_t.SIZE) != 0)
+        if ((l.length % qfiles.dbrushside_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
-        count = l.filelen / qfiles.dbrushside_t.SIZE;
+        count = l.length / qfiles.dbrushside_t.SIZE;
 
         // need to save space for box planes
         if (count > Defines.MAX_MAP_BRUSHSIDES)
@@ -624,7 +626,7 @@ public class CM {
         for (i = 0; i < count; i++) {
 
             in = new qfiles.dbrushside_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.dbrushside_t.SIZE + l.fileofs,
+                    * qfiles.dbrushside_t.SIZE + l.offset,
                     qfiles.dbrushside_t.SIZE));
 
             out = map_brushsides[i];
@@ -651,17 +653,17 @@ public class CM {
     }
 
     /** Loads areas. */
-    public void CMod_LoadAreas(lump_t l) {
+    public void CMod_LoadAreas(BspLump l) {
         Com.DPrintf("CMod_LoadAreas()\n");
         int i;
         carea_t out;
         qfiles.darea_t in;
         int count;
 
-        if ((l.filelen % qfiles.darea_t.SIZE) != 0)
+        if ((l.length % qfiles.darea_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / qfiles.darea_t.SIZE;
+        count = l.length / qfiles.darea_t.SIZE;
 
         if (count > Defines.MAX_MAP_AREAS)
             Com.Error(Defines.ERR_DROP, "Map has too many areas");
@@ -676,7 +678,7 @@ public class CM {
         for (i = 0; i < count; i++) {
 
             in = new qfiles.darea_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.darea_t.SIZE + l.fileofs, qfiles.darea_t.SIZE));
+                    * qfiles.darea_t.SIZE + l.offset, qfiles.darea_t.SIZE));
             out = map_areas[i];
 
             out.numareaportals = in.numareaportals;
@@ -691,16 +693,16 @@ public class CM {
     }
 
     /** Loads area portals. */
-    public void CMod_LoadAreaPortals(lump_t l) {
+    public void CMod_LoadAreaPortals(BspLump l) {
         Com.DPrintf("CMod_LoadAreaPortals()\n");
         int i;
         qfiles.dareaportal_t out;
         qfiles.dareaportal_t in;
         int count;
 
-        if ((l.filelen % qfiles.dareaportal_t.SIZE) != 0)
+        if ((l.length % qfiles.dareaportal_t.SIZE) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
-        count = l.filelen / qfiles.dareaportal_t.SIZE;
+        count = l.length / qfiles.dareaportal_t.SIZE;
 
         if (count > Defines.MAX_MAP_AREAS)
             Com.Error(Defines.ERR_DROP, "Map has too many areas");
@@ -712,7 +714,7 @@ public class CM {
         }
         for (i = 0; i < count; i++) {
             in = new qfiles.dareaportal_t(ByteBuffer.wrap(cmod_base, i
-                    * qfiles.dareaportal_t.SIZE + l.fileofs,
+                    * qfiles.dareaportal_t.SIZE + l.offset,
                     qfiles.dareaportal_t.SIZE));
 
             out = map_areaportals[i];
@@ -728,19 +730,19 @@ public class CM {
     }
 
     /** Loads visibility data. */
-    public void CMod_LoadVisibility(lump_t l) {
+    public void CMod_LoadVisibility(BspLump l) {
         Com.DPrintf("CMod_LoadVisibility()\n");
 
-        numvisibility = l.filelen;
+        numvisibility = l.length;
 
         Com.DPrintf(" numvisibility=" + numvisibility + "\n");
 
-        if (l.filelen > Defines.MAX_MAP_VISIBILITY)
+        if (l.length > Defines.MAX_MAP_VISIBILITY)
             Com.Error(Defines.ERR_DROP, "Map has too large visibility lump");
 
-        System.arraycopy(cmod_base, l.fileofs, map_visibility, 0, l.filelen);
+        System.arraycopy(cmod_base, l.offset, map_visibility, 0, l.length);
 
-        ByteBuffer bb = ByteBuffer.wrap(map_visibility, 0, l.filelen);
+        ByteBuffer bb = ByteBuffer.wrap(map_visibility, 0, l.length);
         bb.order(ByteOrder.LITTLE_ENDIAN);
 
         map_vis = new qfiles.dvis_t(bb);
@@ -748,18 +750,18 @@ public class CM {
     }
 
     /** Loads entity strings. */
-    public void CMod_LoadEntityString(lump_t l) {
+    public void CMod_LoadEntityString(BspLump l) {
         Com.DPrintf("CMod_LoadEntityString()\n");
 
-        numentitychars = l.filelen;
+        numentitychars = l.length;
 
-        if (l.filelen > Defines.MAX_MAP_ENTSTRING)
+        if (l.length > Defines.MAX_MAP_ENTSTRING)
             Com.Error(Defines.ERR_DROP, "Map has too large entity lump");
 
         int x = 0;
-        for (; x < l.filelen && cmod_base[x + l.fileofs] != 0; x++);
+        for (; x < l.length && cmod_base[x + l.offset] != 0; x++);
 
-        map_entitystring = new String(cmod_base, l.fileofs, x).trim();
+        map_entitystring = new String(cmod_base, l.offset, x).trim();
         Com.dprintln("entitystring=" + map_entitystring.length() + 
                 " bytes, [" + map_entitystring.substring(0, Math.min (
                         map_entitystring.length(), 15)) + "...]" );

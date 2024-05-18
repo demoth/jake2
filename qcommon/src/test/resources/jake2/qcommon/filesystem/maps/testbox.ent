@@ -1,0 +1,72 @@
+{
+"_tb_textures" "textures/e3u1"
+"classname" "worldspawn"
+}
+{
+"origin" "-336 -0 24"
+"classname" "info_player_start"
+}
+{
+"angle" "-0"
+"origin" "360 -312 136"
+"classname" "light"
+}
+{
+"origin" "376 152 40"
+"classname" "light"
+}
+{
+"origin" "-88 328 88"
+"classname" "light"
+}
+{
+"angle" "-0"
+"origin" "-328 8 40"
+"classname" "light"
+}
+{
+"origin" "-0 -0 24"
+"classname" "monster_gunner"
+}
+{
+"angle" "-0"
+"origin" "360 696 120"
+"classname" "light"
+}
+{
+"angle" "-0"
+"origin" "-360 -424 104"
+"classname" "light"
+}
+{
+"origin" "320 176 16"
+"classname" "ammo_rockets"
+}
+{
+"origin" "336 240 16"
+"classname" "item_armor_shard"
+}
+{
+"origin" "224 160 16"
+"classname" "item_quad"
+}
+{
+"origin" "272 208 16"
+"classname" "item_health"
+}
+{
+"origin" "64 208 16"
+"classname" "item_adrenaline"
+}
+{
+"origin" "96 352 16"
+"classname" "ammo_slugs"
+}
+{
+"origin" "160 224 16"
+"classname" "weapon_chaingun"
+}
+{
+"origin" "256 -0 24"
+"classname" "monster_soldier"
+}
