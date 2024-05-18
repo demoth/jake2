@@ -10,5 +10,6 @@ class BspTest {
         val map = Bsp(ByteBuffer.wrap(this.javaClass.getResourceAsStream("maps/testbox.bsp")!!.readAllBytes()))
         val expectedEntities = String(this.javaClass.getResourceAsStream("maps/testbox.ent")!!.readAllBytes())
         assertEquals(expectedEntities, map.entities)
+        assertEquals(168, map.vertices.size)
     }
 }
