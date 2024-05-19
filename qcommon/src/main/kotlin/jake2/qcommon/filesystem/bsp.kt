@@ -15,6 +15,7 @@ class Bsp(buffer: ByteBuffer) {
     val vertices = readVertices(buffer, header.lumps[2])
     val edges = readEdges(buffer, header.lumps[11])
     val faceEdges = readFaceEdges(buffer, header.lumps[12])
+    val faces = readFaces(buffer, header.lumps[6])
 
     private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
         buffer.position(bspLump.offset)
@@ -63,6 +64,29 @@ class Bsp(buffer: ByteBuffer) {
         }
         return faceEdges.toTypedArray()
     }
+
+    private fun readFaces(buffer: ByteBuffer, bspLump: BspLump): Array<BspFace> {
+        check(bspLump.length % 20 == 0) {
+            "Unexpected face lump size: ${bspLump.length}, should be divisible by 20"
+        }
+        buffer.position(bspLump.offset)
+        val faces = mutableListOf<BspFace>()
+        repeat(bspLump.length / 20) {
+            val styles = ByteArray(4)
+            faces.add(
+                BspFace(
+                    plane = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    planeSide = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    firstEdgeIndex = buffer.getInt(),
+                    numEdges = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    textureInfoIndex = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    lightMapStyles = styles.also { buffer.get(it) },
+                    lightMapOffset = buffer.getInt(),
+                ))
+
+        }
+        return faces.toTypedArray()
+    }
 }
 
 class BspHeader(buffer: ByteBuffer) {
@@ -107,7 +131,7 @@ data class BspFace(
     val firstEdgeIndex: Int, // unsigned
     val numEdges: Int, // unsigned short
     val textureInfoIndex: Int, // unsigned short
-    val lightMapStyles: ByteArray = ByteArray(4),
+    val lightMapStyles: ByteArray, //size 4
     val lightMapOffset: Int // unsigned
 )
 
