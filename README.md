@@ -28,6 +28,22 @@ Documentation & Info
  * [BSP file format](info/BSP.md)
  * [Networking](info/Networking.md)
 
+What is Cake? Important note about client side code
+---------------------------------------------------
+
+Jake2 client in its vanilla form is archived in `jake2-legacy` branch and will not be maintained.
+Even though one of the core ideas of this project was to reuse and improve (rather than reimplement from scratch) - 
+the client side code was particularly hard to maintain and develop. 
+Firstly, because it is written on top of the unmaintained and obsolete second LWJGL version,
+which is incompatible with the current LWJGL version.
+Secondly, jake2 rendering is implemented in OpenGL immediate mode and had to be rewritten on a modern shader pipeline anyway.
+And lastly, there is a libGDX framework that can provide a lot of useful functionality, and ditch a lot of code (yes, `Menu.java`, I am looking at you)
+
+The `client` and `fullgame` modules are excluded from the build. 
+The new `cake` module is introduced for the client side part (WIP).
+
+TODO: update readme
+
 Installation and running
 ------------------------
 
