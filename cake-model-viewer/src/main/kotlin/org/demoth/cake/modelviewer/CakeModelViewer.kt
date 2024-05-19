@@ -13,7 +13,9 @@ import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import ktx.graphics.use
@@ -21,6 +23,8 @@ import java.io.File
 
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
+
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2")
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
 class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
@@ -34,8 +38,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
     override fun create() {
 
-        if (args.isEmpty() || (!args.first().endsWith(".pcx") && !args.first().endsWith(".md2"))) {
-            println("Usage: provide .md2 or .pcx file as the first argument")
+        if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().endsWith(it) }) {
+            println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
         }
         val file = File(args[0])
@@ -47,7 +51,9 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (file.extension == "pcx") {
             image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
         } else if (file.extension == "md2") {
-            models.add(Md2ModelLoader().loadMd2Model(file))
+            models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
+        } else if (file.extension == "bsp") {
+            models.add(BspLoader().loadBSPModel(file).transformQ2toLibgdx())
         }
 
         batch = SpriteBatch()
@@ -56,10 +62,13 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, -50f);
         camera.lookAt(0f, 0f, 0f);
-        camera.near = 0.1f;
-        camera.far = 300f;
+        camera.near = 0.1f
+        camera.far = 4096f
 
-        Gdx.input.inputProcessor = CameraInputController(camera)
+        Gdx.input.inputProcessor = CameraInputController(camera).also {
+            it.scrollFactor = -1.5f
+            it.translateUnits = 100f
+        }
         modelBatch = ModelBatch()
         models.add(createOriginArrows(GRID_SIZE))
         models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
@@ -139,6 +148,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         return ModelInstance(origin)
     }
 
+    private fun drawLines(): ModelInstance {
+        val modelBuilder = ModelBuilder()
+        modelBuilder.begin()
+        val partBuilder: MeshPartBuilder = modelBuilder.part("lines", GL20.GL_LINES, Usage.Position.toLong(), Material())
+        partBuilder.line(0f, 0f, 0f, 64f, 64f, 64f)
+        return ModelInstance(modelBuilder.end())
+    }
+
     override fun render() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
@@ -168,4 +185,12 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         models.forEach { it.model.dispose() }
         modelBatch.dispose()
     }
+}
+
+// fix axis difference between q2 (z up) and libGDX (y up)
+fun ModelInstance.transformQ2toLibgdx(): ModelInstance {
+//    this.transform.scale(0.25f, 0.25f, 0.25f)
+    this.transform.rotate(Vector3(1f, 0f, 0f), -90f)
+    this.transform.rotate(Vector3(0f, 0f, 1f), 90f)
+    return this
 }

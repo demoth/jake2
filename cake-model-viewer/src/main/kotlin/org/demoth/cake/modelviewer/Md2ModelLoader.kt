@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.PCX
 import java.io.File
@@ -40,19 +39,17 @@ class Md2ModelLoader {
             GL_TRIANGLES,
             VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
             Material(
-                TextureAttribute(TextureAttribute.Diffuse,
-                    Texture(PCXTextureData(fromPCX(PCX(skins.first().readBytes())))),)
+                TextureAttribute(
+                    TextureAttribute.Diffuse,
+                    Texture(PCXTextureData(fromPCX(PCX(skins.first().readBytes())))),
+                )
             )
         )
         val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
         meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
 
         val model = modelBuilder.end()
-        val modelInstance = ModelInstance(model)
-        // fix axis difference between q2 (z up) and libGDX (y up)
-        modelInstance.transform.rotate(Vector3(1f, 0f, 0f), -90f)
-        modelInstance.transform.rotate(Vector3(0f, 0f, 1f), 90f)
-        return modelInstance
+        return ModelInstance(model)
     }
 
     fun readMd2Model(modelPath: String): Md2Model {

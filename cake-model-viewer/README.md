@@ -1,11 +1,16 @@
 # Model viewer for Cake engine
 
-![screenshot](cake-model-viewer-screenshot.png)
+![screenshot](screens/md2-viewer.png)
+![screenshot](screens/bsp-viewer.png)
 
-This small app can display .md2 and .pcx files (provided as an argument)
+This small app can display .md2, .bsp and .pcx files (provided as an argument)
 
-To build run `gradle :cake-model-viewer:nativeBuild` (requires graalvm jdk 17)
+### How to build
+To build run `gradle :cake-model-viewer:build`.
 
+### Native build
+Alternatively, you can build a native (so you have easier time to associate with the files in OS)
+`gradle :cake-model-viewer:nativeBuild` (requires graalvm jdk 17)
 You will find the executable in `cake-model-viewer/build/native/nativeCompile`
 
 ## List of feature
