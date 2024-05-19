@@ -53,7 +53,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         } else if (file.extension == "md2") {
             models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
         } else if (file.extension == "bsp") {
-            models.add(BspLoader().loadBSPModel(file).transformQ2toLibgdx())
+            models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
         }
 
         batch = SpriteBatch()

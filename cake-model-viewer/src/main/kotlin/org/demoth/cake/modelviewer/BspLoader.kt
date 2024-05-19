@@ -13,7 +13,7 @@ import java.io.File
 import java.nio.ByteBuffer
 
 class BspLoader {
-    fun loadBSPModel(file: File): ModelInstance {
+    fun loadBSPModelWireFrame(file: File): ModelInstance {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
 
         val modelBuilder = ModelBuilder()
