@@ -14,11 +14,13 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder
 import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import ktx.graphics.use
 import java.io.File
+
+private const val GRID_SIZE = 16f
+private const val GRID_DIVISIONS = 8
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
 class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
@@ -28,6 +30,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var camera: Camera
     private val models: MutableList<ModelInstance> = mutableListOf()
     private lateinit var environment: Environment
+
 
     override fun create() {
 
@@ -58,8 +61,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         Gdx.input.inputProcessor = CameraInputController(camera)
         modelBatch = ModelBatch()
-        models.add(createOriginArrows(10f))
-        models.add(createGrid(10))
+        models.add(createOriginArrows(GRID_SIZE))
+        models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
 
         environment = Environment()
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
@@ -120,39 +123,20 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         return crateInstance
     }
 
-    private fun createGrid(gridSize: Int): ModelInstance {
+    private fun createGrid(size: Float, divisions: Int): ModelInstance {
         val modelBuilder = ModelBuilder()
         val lineGrid = modelBuilder.createLineGrid(
-            10, 10, gridSize.toFloat(), gridSize.toFloat(), Material(ColorAttribute.createDiffuse(Color.WHITE)), Usage.Position.toLong()
+            divisions, divisions, size, size, Material(
+                ColorAttribute.createDiffuse(Color.DARK_GRAY)
+            ), (Usage.Position or Usage.ColorUnpacked).toLong()
         )
         return ModelInstance(lineGrid)
     }
 
     private fun createOriginArrows(size: Float): ModelInstance {
-        val builder = ModelBuilder()
-        builder.begin()
-        var meshBuilder = builder.part(
-            "arrowX",
-            GL_TRIANGLES,
-            Usage.Position.toLong(),
-            Material(ColorAttribute.createDiffuse(Color.RED))
-        )
-        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, size, 0f, 0f, 0.1f, 0.1f, 3)
-        meshBuilder = builder.part(
-            "arrowY",
-            GL_TRIANGLES,
-            Usage.Position.toLong(),
-            Material(ColorAttribute.createDiffuse(Color.GREEN))
-        )
-        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, 0f, size, 0f, 0.1f, 0.1f, 3)
-        meshBuilder = builder.part(
-            "arrowZ",
-            GL_TRIANGLES,
-            Usage.Position.toLong(),
-            Material(ColorAttribute.createDiffuse(Color.BLUE))
-        )
-        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, 0f, 0f, size, 0.1f, 0.1f, 3)
-        return ModelInstance(builder.end())
+        val modelBuilder = ModelBuilder()
+        val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
+        return ModelInstance(origin)
     }
 
     override fun render() {
