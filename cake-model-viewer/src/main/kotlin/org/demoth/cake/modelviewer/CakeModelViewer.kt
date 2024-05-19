@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder
 import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import ktx.graphics.use
@@ -57,10 +58,11 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         Gdx.input.inputProcessor = CameraInputController(camera)
         modelBatch = ModelBatch()
-
+        models.add(createOriginArrows(10f))
+        models.add(createGrid(10))
 
         environment = Environment()
-//        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
+        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f))
     }
 
@@ -118,7 +120,40 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         return crateInstance
     }
 
+    private fun createGrid(gridSize: Int): ModelInstance {
+        val modelBuilder = ModelBuilder()
+        val lineGrid = modelBuilder.createLineGrid(
+            10, 10, gridSize.toFloat(), gridSize.toFloat(), Material(ColorAttribute.createDiffuse(Color.WHITE)), Usage.Position.toLong()
+        )
+        return ModelInstance(lineGrid)
+    }
 
+    private fun createOriginArrows(size: Float): ModelInstance {
+        val builder = ModelBuilder()
+        builder.begin()
+        var meshBuilder = builder.part(
+            "arrowX",
+            GL_TRIANGLES,
+            Usage.Position.toLong(),
+            Material(ColorAttribute.createDiffuse(Color.RED))
+        )
+        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, size, 0f, 0f, 0.1f, 0.1f, 3)
+        meshBuilder = builder.part(
+            "arrowY",
+            GL_TRIANGLES,
+            Usage.Position.toLong(),
+            Material(ColorAttribute.createDiffuse(Color.GREEN))
+        )
+        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, 0f, size, 0f, 0.1f, 0.1f, 3)
+        meshBuilder = builder.part(
+            "arrowZ",
+            GL_TRIANGLES,
+            Usage.Position.toLong(),
+            Material(ColorAttribute.createDiffuse(Color.BLUE))
+        )
+        ArrowShapeBuilder.build(meshBuilder, 0f, 0f, 0f, 0f, 0f, size, 0.1f, 0.1f, 3)
+        return ModelInstance(builder.end())
+    }
 
     override fun render() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
