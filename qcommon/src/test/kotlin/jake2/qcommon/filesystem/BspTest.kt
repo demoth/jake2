@@ -14,8 +14,8 @@ class BspTest {
         assertEquals(296, map.edges.size)
         assertEquals(590, map.faceEdges.size)
         map.faces.forEach { f ->
-            val edgeIndices = (f.firstEdgeIndex..<(f.firstEdgeIndex + f.numEdges)).map { edgeIndex ->
-                map.faceEdges[edgeIndex]
+            val edgeIndices = (0..<f.numEdges).map { edgeIndex ->
+                map.faceEdges[f.firstEdgeIndex + edgeIndex]
             }
             val vertices = edgeIndices.flatMap { edgeIndex ->
                 if (edgeIndex > 0) {
@@ -30,5 +30,6 @@ class BspTest {
                 "Edges ($edgeIndices) of the face$f do not form a closed loop"
             }
         }
+        assertEquals(17, map.textures.size)
     }
 }

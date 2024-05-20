@@ -16,6 +16,7 @@ class Bsp(buffer: ByteBuffer) {
     val edges = readEdges(buffer, header.lumps[11])
     val faceEdges = readFaceEdges(buffer, header.lumps[12])
     val faces = readFaces(buffer, header.lumps[6])
+    val textures = readTextures(buffer, header.lumps[5])
 
     private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
         buffer.position(bspLump.offset)
@@ -87,6 +88,28 @@ class Bsp(buffer: ByteBuffer) {
         }
         return faces.toTypedArray()
     }
+
+    private fun readTextures(buffer: ByteBuffer, bspLump: BspLump): Array<BspTextureInfo> {
+        check(bspLump.length % 76 == 0) {
+            "Unexpected texture lump size: ${bspLump.length}, should be divisible by 76"
+        }
+        buffer.position(bspLump.offset)
+        val textures = mutableListOf<BspTextureInfo>()
+        repeat(bspLump.length / 76) {
+            val nameBytes = ByteArray(32)
+            textures.add(BspTextureInfo(
+                uAxis = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
+                uOffset = buffer.getFloat(),
+                vAxis = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
+                vOffset = buffer.getFloat(),
+                flags = buffer.getInt(),
+                value = buffer.getInt(),
+                name = String(nameBytes.also { buffer.get(it) }),
+                next = buffer.getInt()
+            ))
+        }
+        return textures.toTypedArray()
+    }
 }
 
 class BspHeader(buffer: ByteBuffer) {
@@ -128,144 +151,34 @@ data class BspFace(
     val plane: Int, // unsigned short
     val planeSide: Int, // unsigned short
 
-    val firstEdgeIndex: Int, // unsigned
+    val firstEdgeIndex: Int, // fixme: unsigned
     val numEdges: Int, // unsigned short
     val textureInfoIndex: Int, // unsigned short
     val lightMapStyles: ByteArray, //size 4
-    val lightMapOffset: Int // unsigned
+    val lightMapOffset: Int // fixme: unsigned
 )
 
-////////////////////////////
-/*
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+data class BspTextureInfo(
+    val uAxis: Vector3f,
+    val uOffset: Float,
+    val vAxis: Vector3f,
+    val vOffset: Float,
 
-data class Vec3(val x: Float, val y: Float, val z: Float)
-data class Edge(val vertex0: UShort, val vertex1: UShort)
-data class Face(
-    val planeId: UShort,
-    val side: UShort,
-    val ledgeId: Int,
-    val ledgeNum: UShort,
-    val texinfoId: UShort
-)
-data class TexInfo(
-    val vectorS: Vec3,
-    val distS: Float,
-    val vectorT: Vec3,
-    val distT: Float,
-    val textureId: Int
-)
-data class MipTex(
-    val name: String,
-    val width: Int,
-    val height: Int,
-    val offsets: IntArray
-)
+    val flags: Int,
+    val value: Int, // fixme: unsigned
 
-fun main(args: Array<String>) {
-    if (args.size != 1) {
-        println("usage: <program> <map.bsp>")
-        return
+    val name: String, // max size 32 bytes
+    val next: Int // fixme: unsigned
+) {
+
+    // need to know the texture size to calculate the uv
+    fun calculateUV(p: Vector3f, textureWidth: Int, textureHeight: Int): List<Float> {
+        val u = (p.x * uAxis.x + p.y * uAxis.y + p.z * uAxis.z + uOffset) / textureWidth.toFloat()
+        val v = (p.x * vAxis.x + p.y * vAxis.y + p.z * vAxis.z + vOffset) / textureHeight.toFloat()
+
+        // Normalize to the range [0, 1]
+        val normalizedU = u % 1.0f
+        val normalizedV = v % 1.0f
+        return listOf(if (normalizedU < 0) normalizedU + 1.0f else normalizedU, (if (normalizedV < 0) normalizedV + 1.0f else normalizedV))
     }
-
-    val filePath = Paths.get(args[0])
-    val buf = Files.readAllBytes(filePath)
-    val byteBuffer = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN)
-
-    // Parse header and entries (skipped for brevity)
-    val header = Bsp(byteBuffer)
-    // Load vertices
-    val vertices = Array(header.vertices.size.toInt() / 12) {
-        Vec3(byteBuffer.getFloat(), byteBuffer.getFloat(), byteBuffer.getFloat())
-    }
-
-    // Load edges
-    val edges = Array(header.edges.size.toInt() / 4) { Edge(byteBuffer.getUShort(), byteBuffer.getUShort()) }
-
-    // Load faces
-    val faces = Array(header.faces.size.toInt() / 20) {
-        Face(
-            byteBuffer.getUShort(),
-            byteBuffer.getUShort(),
-            byteBuffer.getInt(),
-            byteBuffer.getUShort(),
-            byteBuffer.getUShort()
-        )
-    }
-
-    // Load texinfo
-    val texInfos = Array(header.texinfo.size.toInt() / 40) {
-        TexInfo(
-            Vec3(byteBuffer.getFloat(), byteBuffer.getFloat(), byteBuffer.getFloat()),
-            byteBuffer.getFloat(),
-            Vec3(byteBuffer.getFloat(), byteBuffer.getFloat(), byteBuffer.getFloat()),
-            byteBuffer.getFloat(),
-            byteBuffer.getInt()
-        )
-    }
-
-    // Load miptex (texture) data
-    byteBuffer.position(header.miptex.offset.toInt())
-    val numMiptex = byteBuffer.getInt()
-    val miptexOffsets = IntArray(numMiptex) { byteBuffer.getInt() }
-
-    val miptexes = miptexOffsets.map { offset ->
-        byteBuffer.position(header.miptex.offset.toInt() + offset)
-        val name = ByteArray(16).let { byteBuffer.get(it); String(it).trim('\u0000') }
-        val width = byteBuffer.getInt()
-        val height = byteBuffer.getInt()
-        val offsets = IntArray(4) { byteBuffer.getInt() }
-        MipTex(name, width, height, offsets)
-    }
-
-    // Prepare data for rendering
-    val vertexBuffer = mutableListOf<Float>()
-    val texCoordBuffer = mutableListOf<Float>()
-    val indexBuffer = mutableListOf<Int>()
-
-    for (face in faces) {
-        for (i in 0 until face.ledgeNum - 2) {
-            val edge1 = edges[edgesList[face.ledgeId + i].let { if (it < 0) -it else it }]
-            val edge2 = edges[edgesList[face.ledgeId + i + 1].let { if (it < 0) -it else it }]
-            val edge3 = edges[edgesList[face.ledgeId + i + 2].let { if (it < 0) -it else it }]
-
-            val vertices = listOf(
-                vertices[edge1.vertex0.toInt()],
-                vertices[edge2.vertex0.toInt()],
-                vertices[edge3.vertex0.toInt()]
-            )
-
-            val texInfo = texInfos[face.texinfoId.toInt()]
-            val miptex = miptexes[texInfo.textureId]
-
-            vertices.forEach { vertex ->
-                val u = vertex.x * texInfo.vectorS.x + vertex.y * texInfo.vectorS.y + vertex.z * texInfo.vectorS.z + texInfo.distS
-                val v = vertex.x * texInfo.vectorT.x + vertex.y * texInfo.vectorT.y + vertex.z * texInfo.vectorT.z + texInfo.distT
-
-                vertexBuffer.add(vertex.x)
-                vertexBuffer.add(vertex.y)
-                vertexBuffer.add(vertex.z)
-
-                texCoordBuffer.add(u / miptex.width)
-                texCoordBuffer.add(v / miptex.height)
-            }
-
-            indexBuffer.add(vertexBuffer.size / 3 - 3)
-            indexBuffer.add(vertexBuffer.size / 3 - 2)
-            indexBuffer.add(vertexBuffer.size / 3 - 1)
-        }
-    }
-
-    println("Vertex Buffer:")
-    vertexBuffer.chunked(3).forEach { println("v ${it[0]} ${it[1]} ${it[2]}") }
-
-    println("Texture Coordinate Buffer:")
-    texCoordBuffer.chunked(2).forEach { println("vt ${it[0]} ${it[1]}") }
-
-    println("Index Buffer:")
-    indexBuffer.chunked(3).forEach { println("f ${it[0] + 1} ${it[1] + 1} ${it[2] + 1}") }
 }
-*/
