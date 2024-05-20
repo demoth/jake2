@@ -2,7 +2,7 @@ package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN
+import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -23,7 +23,7 @@ class BspLoader {
         val texture = Texture(Gdx.files.internal("tile1.png"))
         val meshBuilder = modelBuilder.part(
             "part1",
-            GL_TRIANGLE_FAN,
+            GL_TRIANGLES,
             VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
             Material(
                 TextureAttribute(
@@ -32,7 +32,8 @@ class BspLoader {
                 )
             )
         )
-        val vertexBuffer = bsp.faces.flatMap { f ->
+
+        val vertexBuffer = bsp.faces.forEach { f ->
             val edgeIndices = (0..<f.numEdges).map { edgeIndex ->
                 bsp.faceEdges[f.firstEdgeIndex + edgeIndex]
             }
@@ -49,14 +50,23 @@ class BspLoader {
             }
             val textureInfo = bsp.textures[f.textureInfoIndex]
 
-            vertices.flatMap { vi ->
-                val v = bsp.vertices[vi]
-                listOf(v.x, v.y, v.z) + textureInfo.calculateUV(v, 1024, 1024) // fixme: get real texture info size
-            }
-        }
 
-        val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
-        meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
+            val vertexBuffer = vertices.drop(1).windowed(2).flatMap { (i1, i2) ->
+                val v0 = bsp.vertices[vertices.first()]
+                val v1 = bsp.vertices[i1]
+                val v2 = bsp.vertices[i2]
+                val uv0 = textureInfo.calculateUV(v0, 1024, 1024)
+                val uv1 = textureInfo.calculateUV(v1, 1024, 1024)
+                val uv2 = textureInfo.calculateUV(v2, 1024, 1024)
+                listOf(
+                    v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
+                    v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
+                    v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
+                    )
+            }
+            val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
+            meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
+        }
 
         val model = modelBuilder.end()
         return ModelInstance(model)
