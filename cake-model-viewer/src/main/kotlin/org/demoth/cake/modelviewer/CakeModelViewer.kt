@@ -18,13 +18,14 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
+import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import java.io.File
 
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal")
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
 class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
@@ -48,13 +49,21 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.app.exit()
         }
 
-        if (file.extension == "pcx") {
-            image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
-        } else if (file.extension == "md2") {
-            models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
-        } else if (file.extension == "bsp") {
-//            models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
-            models.add(BspLoader().loadBspModelTextured(file).transformQ2toLibgdx())
+        when (file.extension) {
+            "pcx" -> {
+                image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
+            }
+            "wal" -> {
+                val colorMap = PCX(File("/home/daniil/GameDev/quake/q2/quake2/baseq2/pics/colormap.pcx").readBytes())
+                image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), colorMap.colors)))
+            }
+            "md2" -> {
+                models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
+            }
+            "bsp" -> {
+    //            models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
+                models.add(BspLoader().loadBspModelTextured(file).transformQ2toLibgdx())
+            }
         }
 
         batch = SpriteBatch()

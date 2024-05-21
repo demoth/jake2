@@ -1,6 +1,7 @@
 package jake2.qcommon.filesystem
 
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * Quake2 WAL texture image format (miptex_t)
@@ -52,7 +53,9 @@ class WAL(buffer: ByteBuffer) {
     //
     // BODY
     //
-    val pixelData: ByteArray
+    val imageData: ByteArray
+
+    constructor(byteArray: ByteArray): this(ByteBuffer.wrap(byteArray).also { it.order(ByteOrder.LITTLE_ENDIAN) })
 
     init {
         name = String(ByteArray(32).also { buffer.get(it) }).trim { it < ' '}
@@ -66,8 +69,8 @@ class WAL(buffer: ByteBuffer) {
 
         // read the largest MIP
         buffer.position(offsets.first())
-        pixelData = ByteArray(width * height)
-        buffer.get(pixelData)
+        imageData = ByteArray(width * height)
+        buffer.get(imageData)
     }
 }
 

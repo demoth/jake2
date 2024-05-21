@@ -20,6 +20,6 @@ class WalTest {
         assertEquals(0, wal.flags)
         assertEquals(0, wal.contents)
         assertEquals(0, wal.value)
-        assertEquals(128 * 32, wal.pixelData.size)
+        assertEquals(128 * 32, wal.imageData.size)
     }
 }
