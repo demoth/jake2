@@ -178,7 +178,10 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         if (image != null) {
             batch.use {
-                it.draw(image, 0f, 0f)
+                // draw image in the center of the screen
+                val x = (Gdx.graphics.width - image!!.width) / 2f
+                val y = (Gdx.graphics.height - image!!.height) / 2f
+                it.draw(image, x, y)
             }
         }
 

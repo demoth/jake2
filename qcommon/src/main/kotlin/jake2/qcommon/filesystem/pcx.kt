@@ -149,7 +149,7 @@ class PCX(buffer: ByteBuffer) {
         // parse image data
         width = xmax - xmin + 1
         height = ymax - ymin + 1
-        imageData = ByteArray(bytes_per_line * height) // same as width * height?
+        imageData = ByteArray(bytes_per_line * height) // fixme: fix padding issue when bytes_per_line != width
         var index = 0
         while (index < imageData.size) {
             val dataByte = data.get().toInt() and 0xFF // unsigned
