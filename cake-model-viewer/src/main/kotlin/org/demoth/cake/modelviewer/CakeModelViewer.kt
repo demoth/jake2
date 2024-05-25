@@ -63,7 +63,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
-    //            models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
+                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
                 models.add(BspLoader().loadBspModelTextured(file).transformQ2toLibgdx())
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))

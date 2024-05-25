@@ -104,7 +104,7 @@ class Bsp(buffer: ByteBuffer) {
                 vOffset = buffer.getFloat(),
                 flags = buffer.getInt(),
                 value = buffer.getInt(),
-                name = String(nameBytes.also { buffer.get(it) }),
+                name = String(nameBytes.also { buffer.get(it) }).trim { it < ' ' },
                 next = buffer.getInt()
             ))
         }
@@ -170,15 +170,19 @@ data class BspTextureInfo(
     val name: String, // max size 32 bytes
     val next: Int // fixme: unsigned
 ) {
-
     // need to know the texture size to calculate the uv
     fun calculateUV(p: Vector3f, textureWidth: Int, textureHeight: Int): List<Float> {
-        val u = (p.x * uAxis.x + p.y * uAxis.y + p.z * uAxis.z + uOffset) / textureWidth.toFloat()
-        val v = (p.x * vAxis.x + p.y * vAxis.y + p.z * vAxis.z + vOffset) / textureHeight.toFloat()
+        val uRaw = (p.x * uAxis.x + p.y * uAxis.y + p.z * uAxis.z + uOffset)
+        val vRaw = (p.x * vAxis.x + p.y * vAxis.y + p.z * vAxis.z + vOffset)
 
         // Normalize to the range [0, 1]
-        val normalizedU = u % 1.0f
-        val normalizedV = v % 1.0f
-        return listOf(if (normalizedU < 0) normalizedU + 1.0f else normalizedU, (if (normalizedV < 0) normalizedV + 1.0f else normalizedV))
+        val normalizedU = (uRaw / textureWidth) % 1
+        val normalizedV = (vRaw / textureHeight) % 1
+
+        // Handle negative values to ensure they are within [0, 1] range
+        val finalU = if (normalizedU < 0) normalizedU + 1.0f else normalizedU
+        val finalV = if (normalizedV < 0) normalizedV + 1.0f else normalizedV
+
+        return listOf(finalU, finalV)
     }
 }
