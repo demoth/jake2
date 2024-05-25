@@ -2,6 +2,7 @@ package org.demoth.cake.modelviewer
 
 import jake2.qcommon.filesystem.PCX
 import java.io.File
+import java.io.InputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
@@ -13,13 +14,13 @@ fun writePaletteFile() {
     }
 }
 
-fun readPaletteFile(paletteFile: String): IntArray {
-    ObjectInputStream(File(paletteFile).inputStream()).use {
+fun readPaletteFile(input: InputStream): IntArray {
+    ObjectInputStream(input).use {
         return it.readObject() as IntArray
     }
 }
 
 fun main() {
     writePaletteFile()
-    readPaletteFile("assets/q2palette.bin")
+    readPaletteFile(File("assets/q2palette.bin").inputStream())
 }

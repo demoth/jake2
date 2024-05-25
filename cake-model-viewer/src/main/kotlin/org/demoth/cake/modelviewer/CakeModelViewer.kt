@@ -55,7 +55,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
             }
             "wal" -> {
-                image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile("assets/q2palette.bin"))))
+                image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
                 models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
