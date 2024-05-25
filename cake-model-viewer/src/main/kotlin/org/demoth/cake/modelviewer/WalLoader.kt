@@ -60,8 +60,14 @@ internal fun fromWal(wal: WAL, palette: IntArray): Pixmap {
     var offset = 0
     for (y in 0 until wal.height) {
         for (x in 0 until wal.width) {
-            val colorIndex = 0xFF and wal.imageData[offset++].toInt() // unsigned
+            val intPixelValue = wal.imageData[offset++].toInt()
+            val colorIndex = 0xFF and intPixelValue // unsigned
             val color = palette[colorIndex]
+            // split color packed RGBA8888 into separate components for debug
+            val r = color shr 24 and 0xFF
+            val g = color shr 16 and 0xFF
+            val b = color shr 8 and 0xFF
+            val a = color and 0xFF
             pixmap.drawPixel(x, y, color)
         }
     }
