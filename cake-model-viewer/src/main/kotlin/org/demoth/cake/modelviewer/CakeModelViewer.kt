@@ -58,10 +58,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "md2" -> {
                 models.add(Md2ModelLoader().loadMd2Model(file).transformQ2toLibgdx())
+                models.add(createOriginArrows(GRID_SIZE))
+                models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
     //            models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
                 models.add(BspLoader().loadBspModelTextured(file).transformQ2toLibgdx())
+                models.add(createOriginArrows(GRID_SIZE))
+                models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
         }
 
@@ -79,8 +83,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             it.translateUnits = 100f
         }
         modelBatch = ModelBatch()
-        models.add(createOriginArrows(GRID_SIZE))
-        models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
 
         environment = Environment()
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
