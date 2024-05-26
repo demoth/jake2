@@ -63,7 +63,7 @@ class BspLoader {
                 }
                 val textureInfo = bsp.textures[f.textureInfoIndex]
 
-
+                // draw face using triangle fan
                 val vertexBuffer = vertices.drop(1).windowed(2).flatMap { (i1, i2) ->
                     val v0 = bsp.vertices[vertices.first()]
                     val v1 = bsp.vertices[i1]

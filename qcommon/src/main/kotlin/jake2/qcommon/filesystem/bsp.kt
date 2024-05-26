@@ -175,14 +175,9 @@ data class BspTextureInfo(
         val uRaw = (p.x * uAxis.x + p.y * uAxis.y + p.z * uAxis.z + uOffset)
         val vRaw = (p.x * vAxis.x + p.y * vAxis.y + p.z * vAxis.z + vOffset)
 
-        // Normalize to the range [0, 1]
         val normalizedU = uRaw / textureWidth
         val normalizedV = vRaw / textureHeight
 
-        // Handle negative values to ensure they are within [0, 1] range
-        val finalU = if (normalizedU < 0) normalizedU + 1.0f else normalizedU
-        val finalV = if (normalizedV < 0) normalizedV + 1.0f else normalizedV
-
-        return listOf(finalU, finalV)
+        return listOf(normalizedU, normalizedV)
     }
 }
