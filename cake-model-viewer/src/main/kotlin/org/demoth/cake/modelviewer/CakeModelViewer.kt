@@ -34,6 +34,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var image: Texture? = null
     private lateinit var modelBatch: ModelBatch
     private lateinit var camera: Camera
+    private lateinit var cameraInputController: CameraInputController
     private val models: MutableList<ModelInstance> = mutableListOf()
     private lateinit var environment: Environment
 
@@ -63,7 +64,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
-                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
+//                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
                 models.add(BspLoader().loadBspModelTextured(file).transformQ2toLibgdx())
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
@@ -79,10 +80,11 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         camera.near = 0.1f
         camera.far = 4096f
 
-        Gdx.input.inputProcessor = CameraInputController(camera).also {
+        cameraInputController = CameraInputController(camera).also {
             it.scrollFactor = -1.5f
             it.translateUnits = 100f
         }
+        Gdx.input.inputProcessor = cameraInputController
         modelBatch = ModelBatch()
 
         environment = Environment()
@@ -194,7 +196,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         }
 
-
+        cameraInputController.update()
     }
 
     override fun dispose() {
