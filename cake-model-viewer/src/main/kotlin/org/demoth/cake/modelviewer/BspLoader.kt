@@ -30,7 +30,7 @@ class BspLoader {
 
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
         facesByTexture.forEach { (textureName, faces) ->
-            val walTexture = WAL(File(prefix + textureName + ".wal").readBytes())
+            val walTexture = WAL(findFile(textureName).readBytes())
             val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
             // bsp level textures always wrap?
             texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
@@ -87,6 +87,16 @@ class BspLoader {
 
         val model = modelBuilder.end()
         return ModelInstance(model)
+    }
+
+    private fun findFile(textureName: String): File {
+        val file = File("$prefix$textureName.wal")
+        return if (file.exists()) {
+            file
+        } else {
+            println("Warn: $textureName was found by lowercase name")
+            File("$prefix${textureName.lowercase()}.wal")
+        }
     }
 
 

@@ -19,7 +19,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
 private val defaultConfiguration: Lwjgl3ApplicationConfiguration
     get() {
         val configuration = Lwjgl3ApplicationConfiguration()
-        configuration.setTitle("Cake Model Viewer 1.1")
+        configuration.setTitle("Cake Model Viewer 1.2")
         configuration.useVsync(true)
         //// Limits FPS to the refresh rate of the currently active monitor.
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
