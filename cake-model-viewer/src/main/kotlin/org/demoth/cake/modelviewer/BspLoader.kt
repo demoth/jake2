@@ -32,6 +32,8 @@ class BspLoader {
         facesByTexture.forEach { (textureName, faces) ->
             val walTexture = WAL(File(prefix + textureName + ".wal").readBytes())
             val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
+            // bsp level textures always wrap?
+            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
             val meshBuilder = modelBuilder.part(
                 "part1",
                 GL_TRIANGLES,
