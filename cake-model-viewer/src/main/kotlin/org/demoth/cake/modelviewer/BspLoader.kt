@@ -18,20 +18,22 @@ import java.nio.ByteBuffer
 private const val prefix = "/home/daniil/GameDev/quake/q2/quake2/baseq2/textures/"
 
 class BspLoader {
-    fun loadBspModelTextured(file: File): ModelInstance {
+    fun loadBspModelTextured(file: File): List<ModelInstance> {
+        val result = mutableListOf<ModelInstance>()
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
-
-        val modelBuilder = ModelBuilder()
-        modelBuilder.begin()
+        val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
 
         // split all faces by texture name
 
         bsp.models.forEach { model ->
+            val modelBuilder = ModelBuilder()
+            modelBuilder.begin()
+
+
             val modelFaces = (0..<model.faceCount).map { it + model.firstFace }.map { bsp.faces[it] }
 
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
-            val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
             facesByTexture.forEach { (textureName, faces) ->
                 val walTexture = WAL(findFile(textureName).readBytes())
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
@@ -87,9 +89,13 @@ class BspLoader {
 
             }
 
+            val instance = ModelInstance(modelBuilder.end())
+            val origin = (model.maxs - model.mins).times(0.5f)
+            instance.transform.translate(origin.x, origin.y, origin.z)
+            result.add(instance)
+
         }
-        val model = modelBuilder.end()
-        return ModelInstance(model)
+        return result
     }
 
     private fun findFile(textureName: String): File {

@@ -124,7 +124,7 @@ class Bsp(buffer: ByteBuffer) {
                     mins = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
                     maxs = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
                     origin = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
-                    head = buffer.getInt(),
+                    headNode = buffer.getInt(),
                     firstFace = buffer.getInt(),
                     faceCount = buffer.getInt()
                 )
@@ -208,7 +208,7 @@ data class BspModel(
     val mins: Vector3f,
     val maxs: Vector3f,
     val origin: Vector3f,
-    val head: Int,
+    val headNode: Int,
     val firstFace: Int, // unsigned
     val faceCount: Int, // unsigned
 )
