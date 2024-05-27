@@ -17,6 +17,7 @@ class Bsp(buffer: ByteBuffer) {
     val faceEdges = readFaceEdges(buffer, header.lumps[12])
     val faces = readFaces(buffer, header.lumps[6])
     val textures = readTextures(buffer, header.lumps[5])
+    val models = readModels(buffer, header.lumps[13])
 
     private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
         buffer.position(bspLump.offset)
@@ -110,6 +111,27 @@ class Bsp(buffer: ByteBuffer) {
         }
         return textures.toTypedArray()
     }
+
+    private fun readModels(buffer: ByteBuffer, bspLump: BspLump): Array<BspModel> {
+        check(bspLump.length % 48 == 0) {
+            "Unexpected model lump size: ${bspLump.length}, should be divisible by 48"
+        }
+        buffer.position(bspLump.offset)
+        val models = mutableListOf<BspModel>()
+        repeat(bspLump.length / 48) {
+            models.add(
+                BspModel(
+                    mins = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
+                    maxs = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
+                    origin = Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat()),
+                    head = buffer.getInt(),
+                    firstFace = buffer.getInt(),
+                    faceCount = buffer.getInt()
+                )
+            )
+        }
+        return models.toTypedArray()
+    }
 }
 
 class BspHeader(buffer: ByteBuffer) {
@@ -181,3 +203,12 @@ data class BspTextureInfo(
         return listOf(normalizedU, normalizedV)
     }
 }
+
+data class BspModel(
+    val mins: Vector3f,
+    val maxs: Vector3f,
+    val origin: Vector3f,
+    val head: Int,
+    val firstFace: Int, // unsigned
+    val faceCount: Int, // unsigned
+)

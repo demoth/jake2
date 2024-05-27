@@ -26,65 +26,68 @@ class BspLoader {
 
         // split all faces by texture name
 
-        val facesByTexture = bsp.faces.groupBy { bsp.textures[it.textureInfoIndex].name }
+        bsp.models.forEach { model ->
+            val modelFaces = (0..<model.faceCount).map { it + model.firstFace }.map { bsp.faces[it] }
 
-        val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
-        facesByTexture.forEach { (textureName, faces) ->
-            val walTexture = WAL(findFile(textureName).readBytes())
-            val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
-            // bsp level textures always wrap?
-            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
-            val meshBuilder = modelBuilder.part(
-                "part1",
-                GL_TRIANGLES,
-                VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
-                Material(
-                    TextureAttribute(
-                        TextureAttribute.Diffuse,
-                        texture,
+            val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
+
+            val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
+            facesByTexture.forEach { (textureName, faces) ->
+                val walTexture = WAL(findFile(textureName).readBytes())
+                val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
+                // bsp level textures always wrap?
+                texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
+                val meshBuilder = modelBuilder.part(
+                    "part1",
+                    GL_TRIANGLES,
+                    VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
+                    Material(
+                        TextureAttribute(
+                            TextureAttribute.Diffuse,
+                            texture,
+                        )
                     )
                 )
-            )
 
-            faces.forEach { f ->
-                val edgeIndices = (0..<f.numEdges).map { edgeIndex ->
-                    bsp.faceEdges[f.firstEdgeIndex + edgeIndex]
-                }
-
-                // list of vertex indices in clockwise order, forming a triangle fan
-                val vertices = edgeIndices.map { edgeIndex ->
-                    if (edgeIndex > 0) {
-                        val edge = bsp.edges[edgeIndex]
-                        edge.v2
-                    } else {
-                        val edge = bsp.edges[-edgeIndex]
-                        edge.v1
+                faces.forEach { f ->
+                    val edgeIndices = (0..<f.numEdges).map { edgeIndex ->
+                        bsp.faceEdges[f.firstEdgeIndex + edgeIndex]
                     }
-                }
-                val textureInfo = bsp.textures[f.textureInfoIndex]
 
-                // draw face using triangle fan
-                val vertexBuffer = vertices.drop(1).windowed(2).flatMap { (i1, i2) ->
-                    val v0 = bsp.vertices[vertices.first()]
-                    val v1 = bsp.vertices[i1]
-                    val v2 = bsp.vertices[i2]
-                    val uv0 = textureInfo.calculateUV(v0, walTexture.width, walTexture.height)
-                    val uv1 = textureInfo.calculateUV(v1, walTexture.width, walTexture.height)
-                    val uv2 = textureInfo.calculateUV(v2, walTexture.width, walTexture.height)
-                    listOf(
-                        v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
-                        v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
-                        v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
-                    )
+                    // list of vertex indices in clockwise order, forming a triangle fan
+                    val vertices = edgeIndices.map { edgeIndex ->
+                        if (edgeIndex > 0) {
+                            val edge = bsp.edges[edgeIndex]
+                            edge.v2
+                        } else {
+                            val edge = bsp.edges[-edgeIndex]
+                            edge.v1
+                        }
+                    }
+                    val textureInfo = bsp.textures[f.textureInfoIndex]
+
+                    // draw face using triangle fan
+                    val vertexBuffer = vertices.drop(1).windowed(2).flatMap { (i1, i2) ->
+                        val v0 = bsp.vertices[vertices.first()]
+                        val v1 = bsp.vertices[i1]
+                        val v2 = bsp.vertices[i2]
+                        val uv0 = textureInfo.calculateUV(v0, walTexture.width, walTexture.height)
+                        val uv1 = textureInfo.calculateUV(v1, walTexture.width, walTexture.height)
+                        val uv2 = textureInfo.calculateUV(v2, walTexture.width, walTexture.height)
+                        listOf(
+                            v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
+                            v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
+                            v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
+                        )
+                    }
+                    val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
+                    meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
                 }
-                val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
-                meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
+
+
             }
 
-
         }
-
-
         val model = modelBuilder.end()
         return ModelInstance(model)
     }
