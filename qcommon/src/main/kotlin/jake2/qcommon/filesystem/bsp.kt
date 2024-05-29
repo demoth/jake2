@@ -2,9 +2,12 @@ package jake2.qcommon.filesystem
 
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.parseEntities
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.experimental.and
+import kotlin.math.abs
+import kotlin.math.max
 
 const val IDBSPHEADER = (('P'.code shl 24) + ('S'.code shl 16) + ('B'.code shl 8) + 'I'.code)
 
@@ -19,11 +22,12 @@ class Bsp(buffer: ByteBuffer) {
     val textures = readTextures(buffer, header.lumps[5])
     val models = readModels(buffer, header.lumps[13])
 
-    private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
+    private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): List<Map<String, String>> {
         buffer.position(bspLump.offset)
         val bytes = ByteArray(bspLump.length)
         buffer.get(bytes)
-        return String(bytes).substring(0, bytes.size - 2) // skip last 0 byte
+        val entityString = String(bytes).dropLast(1)  // skip last 0 byte
+        return parseEntities(entityString)
     }
 
     private fun readVertices(buffer: ByteBuffer, bspLump: BspLump): Array<Vector3f> {
@@ -211,4 +215,23 @@ data class BspModel(
     val headNode: Int,
     val firstFace: Int, // unsigned
     val faceCount: Int, // unsigned
-)
+) {
+    val radius = radiusFromBounds(mins, maxs)
+
+    /**
+     * Calculates the radius of a bounding box using the minimum and maximum coordinates.
+     * The bounding radius is the distance from the center of the bounding box to the furthest corner of the bounding box.
+     * This is useful for various spatial queries, such as frustum culling, collision detection, etc.
+     */
+    private fun radiusFromBounds(mins: Vector3f, maxs: Vector3f): Float {
+        val corner = Vector3f(
+            x = max(abs(mins.x), abs(maxs.x)),
+            y = max(abs(mins.y), abs(maxs.y)),
+            z = max(abs(mins.z), abs(maxs.z))
+        )
+
+        return corner.length()
+    }
+}
+
+
