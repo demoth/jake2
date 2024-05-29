@@ -65,7 +65,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> {
 //                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
-                models.addAll(BspLoader().loadBspModelTextured(file).map { it.transformQ2toLibgdx(); it })
+                models.addAll(BspLoader().loadBspModelTextured(file))
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -209,7 +209,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
 // fix axis difference between q2 (z up) and libGDX (y up)
 fun ModelInstance.transformQ2toLibgdx(): ModelInstance {
-//    this.transform.scale(0.25f, 0.25f, 0.25f)
     this.transform.rotate(Vector3(1f, 0f, 0f), -90f)
     this.transform.rotate(Vector3(0f, 0f, 1f), 90f)
     return this

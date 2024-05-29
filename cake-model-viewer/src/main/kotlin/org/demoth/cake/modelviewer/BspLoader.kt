@@ -19,25 +19,23 @@ private const val prefix = "/home/daniil/GameDev/quake/q2/quake2/baseq2/textures
 
 class BspLoader {
     fun loadBspModelTextured(file: File): List<ModelInstance> {
-        val result = mutableListOf<ModelInstance>()
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
 
-        // split all faces by texture name
-
-        bsp.models.forEach { model ->
+        // create libgdx model instances from bsp models
+        return bsp.models.mapIndexed { i, model ->
             val modelBuilder = ModelBuilder()
             modelBuilder.begin()
 
-
             val modelFaces = (0..<model.faceCount).map { it + model.firstFace }.map { bsp.faces[it] }
 
+            // split all faces by texture name
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
             facesByTexture.forEach { (textureName, faces) ->
-                val walTexture = WAL(findFile(textureName).readBytes())
+                val walTexture = WAL(findFile(textureName).readBytes()) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
-                // bsp level textures always wrap?
+                // todo: bsp level textures always wrap?
                 texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
                 val meshBuilder = modelBuilder.part(
                     "part1",
@@ -85,17 +83,22 @@ class BspLoader {
                     val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
                     meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
                 }
-
-
             }
 
             val instance = ModelInstance(modelBuilder.end())
-            val origin = (model.maxs - model.mins).times(0.5f)
-            instance.transform.translate(origin.x, origin.y, origin.z)
-            result.add(instance)
+            instance.transformQ2toLibgdx()
 
+            // some brush models need their position to be adjusted based on the origin of the respective entity
+            if (i != 0) { // skip worldspawn
+                // find an entity by model index
+                val entity = bsp.entities.find { it.entries.any { (k,v) -> k == "model" && v == "*$i" } }
+                val origin = entity?.get("origin")?.split(" ")?.map { it.toFloat() }
+                if (origin != null) {
+                    instance.transform.translate(origin[0], origin[1], origin[2])
+                }
+            }
+            instance
         }
-        return result
     }
 
     private fun findFile(textureName: String): File {
