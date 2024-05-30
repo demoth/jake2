@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -22,6 +23,7 @@ import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
@@ -37,6 +39,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var cameraInputController: CameraInputController
     private val models: MutableList<ModelInstance> = mutableListOf()
     private lateinit var environment: Environment
+    private lateinit var font: BitmapFont
+    private var frameTime = 0f
 
 
     override fun create() {
@@ -50,6 +54,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
         }
+        font = BitmapFont()
 
         when (file.extension) {
             "pcx" -> {
@@ -82,7 +87,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         cameraInputController = CameraInputController(camera).also {
             it.scrollFactor = -1.5f
-            it.translateUnits = 100f
+            it.translateUnits = 500f
         }
         Gdx.input.inputProcessor = cameraInputController
         modelBatch = ModelBatch()
@@ -171,32 +176,39 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun render() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit()
-        }
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-        camera.update();
+        frameTime = measureTimeMillis {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                Gdx.app.exit()
+            }
+            Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+            camera.update();
 
-        if (image != null) {
+
+            if (models.isNotEmpty()) {
+                modelBatch.begin(camera)
+                models.forEach {
+                    modelBatch.render(it, environment)
+                }
+                modelBatch.end()
+
+            }
+
             batch.use {
-                // draw image in the center of the screen
-                val x = (Gdx.graphics.width - image!!.width) / 2f
-                val y = (Gdx.graphics.height - image!!.height) / 2f
-                it.draw(image, x, y)
+                // draw frame time in the bottom left corner
+                font.draw(batch, "Frame time ms: $frameTime", 0f, font.lineHeight)
+
+                if (image != null) {
+                    // draw image in the center of the screen
+                    val x = (Gdx.graphics.width - image!!.width) / 2f
+                    val y = (Gdx.graphics.height - image!!.height) / 2f
+                    it.draw(image, x, y)
+                }
+
             }
-        }
 
-        if (models.isNotEmpty()) {
-            modelBatch.begin(camera)
-            models.forEach {
-                modelBatch.render(it, environment)
-            }
-            modelBatch.end()
-
-        }
-
-        cameraInputController.update()
+            cameraInputController.update()
+        }.toFloat()
     }
 
     override fun dispose() {
