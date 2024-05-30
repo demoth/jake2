@@ -82,10 +82,36 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, -50f);
         camera.lookAt(0f, 0f, 0f);
-        camera.near = 0.1f
+        camera.near = 1f
         camera.far = 4096f
 
-        cameraInputController = CameraInputController(camera).also {
+        cameraInputController = object : CameraInputController(camera) {
+            val movementDirection = Vector3()
+
+            override fun update() {
+                // WASD movement
+                if (rotateRightPressed || rotateLeftPressed || forwardPressed || backwardPressed) {
+                    movementDirection.set(0f, 0f, 0f)
+                    if (rotateRightPressed) {
+                        movementDirection.set(camera.direction)
+                        movementDirection.crs(camera.up)
+                        movementDirection.scl(-1f)
+                    } else if (rotateLeftPressed) {
+                        movementDirection.set(camera.direction)
+                        movementDirection.crs(camera.up)
+                    }
+                    if (forwardPressed) {
+                        movementDirection.add(camera.direction)
+                    } else if (backwardPressed) {
+                        movementDirection.add(-camera.direction.x, -camera.direction.y, -camera.direction.z)
+                    }
+                    movementDirection.nor()//malize
+                    camera.translate(movementDirection.scl(Gdx.graphics.deltaTime * translateUnits))
+                    target.add(movementDirection)
+
+                }
+            }
+        }.also {
             it.scrollFactor = -1.5f
             it.translateUnits = 500f
         }
