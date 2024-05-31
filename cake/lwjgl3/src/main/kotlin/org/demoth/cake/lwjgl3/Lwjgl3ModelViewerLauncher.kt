@@ -1,12 +1,13 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
+import org.demoth.cake.modelviewer.CakeModelViewer
 
-object Lwjgl3Launcher {
+object Lwjgl3ModelViewerLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
-        if (StartupHelper.startNewJvmIfRequired()) return  // This handles macOS support and helps on Windows.
+        if (startNewJvmIfRequired()) return  // This handles macOS support and helps on Windows.
 
         createApplication(args)
     }

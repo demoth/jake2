@@ -13,7 +13,7 @@ const val IDBSPHEADER = (('P'.code shl 24) + ('S'.code shl 16) + ('B'.code shl 8
 
 class Bsp(buffer: ByteBuffer) {
     val header = BspHeader(buffer)
-    val entities = readEntities(buffer, header.lumps[0])
+    val entityString = readEntities(buffer, header.lumps[0])
     // planes lump skipped
     val vertices = readVertices(buffer, header.lumps[2])
     val edges = readEdges(buffer, header.lumps[11])
@@ -21,13 +21,13 @@ class Bsp(buffer: ByteBuffer) {
     val faces = readFaces(buffer, header.lumps[6])
     val textures = readTextures(buffer, header.lumps[5])
     val models = readModels(buffer, header.lumps[13])
+    val entities = parseEntities(entityString)
 
-    private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): List<Map<String, String>> {
+    private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
         buffer.position(bspLump.offset)
         val bytes = ByteArray(bspLump.length)
         buffer.get(bytes)
-        val entityString = String(bytes).dropLast(1)  // skip last 0 byte
-        return parseEntities(entityString)
+        return String(bytes).dropLast(1) // drop terminating 0 char
     }
 
     private fun readVertices(buffer: ByteBuffer, bspLump: BspLump): Array<Vector3f> {
