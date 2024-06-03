@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static jake2.qcommon.Defines.CVAR_USERINFO;
+import static org.junit.Assert.assertTrue;
 
 public class TestCvar {
 
@@ -84,7 +85,7 @@ public class TestCvar {
 		cvar_t rene5 = Cvar.getInstance().FindVar("rene5");
 		Assert.assertNotNull(rene5);
 		Assert.assertEquals("0.56", rene5.string);
-		Assert.assertTrue(rene5.value > 0.5f);
+		assertTrue(rene5.value > 0.5f);
 	}
 
 	@Test
@@ -94,9 +95,9 @@ public class TestCvar {
 
 		cvar_t rene6 = Cvar.getInstance().FindVar("rene6");
 		Assert.assertNotNull(rene6);
-		Assert.assertTrue(rene6.modified);
+		assertTrue(rene6.modified);
 		Assert.assertEquals("10.6", rene6.string);
-		Assert.assertTrue(rene6.value > 0.5f);
+		assertTrue(rene6.value > 0.5f);
 
 	}
 
@@ -122,5 +123,16 @@ public class TestCvar {
 		Info.Print(cvar.Userinfo());
 
 		Assert.assertEquals("\\msg\\1\\gender\\male\\rate\\25000\\name\\unnamed\\skin\\male/grunt\\fov\\90\\hand\\0", cvar.Userinfo());
+	}
+
+	@Test
+	public void testEmptyValue() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("name", "asdf", CVAR_USERINFO );
+		cvar.Get("password", "", CVAR_USERINFO );
+
+		String userinfo = cvar.Userinfo();
+		String empty = Info.Info_ValueForKey(userinfo, "password");
+		assertTrue(empty.isEmpty());
 	}
 }

@@ -15,7 +15,7 @@ import jake2.qcommon.filesystem.WAL
 import java.io.File
 import java.nio.ByteBuffer
 
-private const val prefix = "/home/Daniil.Bubnov/.steam/steam/steamapps/common/Quake 2/baseq2/textures/"
+private val prefix = System.getProperty("basedir") + "/baseq2/textures/"
 
 class BspLoader {
     fun loadBspModelTextured(file: File): List<ModelInstance> {

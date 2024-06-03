@@ -3,13 +3,13 @@ package org.demoth.cake
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
-import jake2.qcommon.Com
-import jake2.qcommon.Defines
+import jake2.qcommon.*
 import jake2.qcommon.Defines.*
-import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
@@ -18,11 +18,11 @@ import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
+import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
-import jake2.qcommon.sizebuf_t
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.scene2d.Scene2DSkin
@@ -30,6 +30,8 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
+import java.io.File
+import kotlin.experimental.or
 
 enum class ClientNetworkState {
     DISCONNECTED,
@@ -37,6 +39,10 @@ enum class ClientNetworkState {
     CONNECTED,
     ACTIVE
 }
+
+private val basedir = System.getProperty("basedir")
+
+data class Config(var value: String, var resource: Disposable? = null)
 
 /**
  * Entrypoint for the client application
@@ -64,13 +70,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var levelString: String = ""
     private var refresh_prepped: Boolean = false
 
-    private val configStrings = Array(MAX_CONFIGSTRINGS) {""}
+    private val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") }
 
     private val cl_entities = Array(MAX_EDICTS) { centity_t()}
 
     private var precache_spawncount = 0
 
     private var game3dScreen: Game3dScreen? = null
+
+    private val serverFrameHeaderMessage = FrameHeaderMessage()
+
+    private var CMD_BACKUP: Int = 64 // allow a lot of command backups for very fast systems
+    private val usercommands = Array(CMD_BACKUP) { usercmd_t() }
 
 
 
@@ -99,21 +110,27 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
 
         Cmd.AddCommand("quit") {
+            Cbuf.AddText("disconnect")
+            Cbuf.Execute()
+
             Gdx.app.exit()
         }
 
         Cmd.AddCommand("connect") {
+            // todo: disconnect first
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
+            // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
         Cmd.AddCommand("disconnect") {
+            // todo: clear the game state and release resources
+
             // send a disconnect message to the server
             val buf = sizebuf_t(128)
             StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf)
             netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
-
             NET.Config(false)
             networkState = DISCONNECTED
             challenge = 0
@@ -145,8 +162,34 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
+            // load resources referenced in the config strings
+            val mapName = configStrings[CS_MODELS + 1]
+
+            // load sounds starting from CS_SOUNDS until MAX_SOUNDS
+            for (i in 1 until MAX_SOUNDS) {
+                configStrings[CS_SOUNDS + i]?.let {s ->
+                    if (s.value.isNotEmpty() && !s.value.startsWith("*")) { // skip sexed sounds for now
+                        println("precache sound ${s.value}: ")
+                        val soundPath = "$basedir/baseq2/sound/${s.value}"
+                        if (File(soundPath).exists()) {
+                            s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
+                        } else {
+                            println("TODO: Find sound case insensitive: ${s.value}") //
+                        }
+                    }
+                }
+            }
+
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
+        }
+
+        Cmd.AddCommand("configs") {
+            configStrings.forEachIndexed { i, c ->
+                if (c != null) {
+                    Com.Printf("ConfigString[$i] = ${c.value}, resource = ${c.resource != null}\n")
+                }
+            }
         }
     }
 
@@ -180,17 +223,48 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun SendCommands() {
-        if (networkState == CONNECTING || networkState == DISCONNECTED )
-            return
-
-        if (networkState == CONNECTED){
-            if (netchan.reliablePending.isNotEmpty()) {
-                if (Globals.curtime - netchan.last_sent > 1000) // fixme: proper timers
-                    netchan.transmit(null)
+        when (networkState) {
+            CONNECTING, DISCONNECTED -> return
+            CONNECTED -> {
+                if (netchan.reliablePending.isNotEmpty()) {
+                    if (Globals.curtime - netchan.last_sent > 1000) // fixme: proper timers
+                        netchan.transmit(null)
+                }
+                return
             }
-            return
+            ACTIVE -> {
+                // assemble the inputs and commands, then transmit them
+                val cmdIndex: Int = (netchan.outgoing_sequence) and (Defines.CMD_BACKUP - 1)
+                val oldCmdIndex: Int = (netchan.outgoing_sequence - 1) and (Defines.CMD_BACKUP - 1)
+                val oldestCmdIndex: Int = (netchan.outgoing_sequence - 2) and (Defines.CMD_BACKUP - 1)
+
+                val cmd = usercommands[cmdIndex]
+                cmd.clear()
+
+                // todo: implement proper input mapping
+                if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+                    cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
+                }
+
+                if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+                    cmd.forwardmove = 100 // todo: calculate based on client prediction
+                }
+                cmd.msec = 16 // todo: calculate
+                // deliver the message
+                netchan.transmit(
+                    listOf(
+                        MoveMessage(
+                            false, // todo
+                            serverFrameHeaderMessage.frameNumber,
+                            usercommands[oldestCmdIndex],
+                            usercommands[oldCmdIndex],
+                            usercommands[cmdIndex],
+                            netchan.outgoing_sequence
+                        )
+                    )
+                )
+            }
         }
-        // todo: assemble the inputs and commands, then transmit them
 
     }
 
@@ -306,7 +380,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      */
     private fun parseServerMessage(messages: Collection<ServerMessage>) {
         messages.forEach { msg ->
-            Com.Printf("Received ${msg}\n")
             when (msg) {
                 is DisconnectMessage -> {
                     Com.Error(ERR_DISCONNECT, "Server disconnected\n")
@@ -316,7 +389,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     // CheckForResend() will fire immediately
                     reconnectTimeout = 0f
                 }
-
+                is FrameHeaderMessage -> {
+                    serverFrameHeaderMessage.frameNumber = msg.frameNumber
+                    // todo: parse the rest
+                }
                 is ServerDataMessage -> {
                     Cbuf.Execute()
                     parseServerDataMessage(msg)
@@ -327,15 +403,25 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
 
                 is ConfigStringMessage -> {
-                    configStrings[msg.index] = msg.config
+                    configStrings[msg.index]!!.value = msg.config
+                }
+
+                is SoundMessage -> {
+                    val sound = configStrings[msg.soundIndex]?.resource as? Sound
+                    println("Playing sound ${msg.soundIndex} ${sound}")
+                    sound?.play() // todo: use msg.volume, attenuation, etc
                 }
 
                 is SpawnBaselineMessage -> {
                     cl_entities[msg.entityState.number].baseline.set(msg.entityState)
                 }
-
+                is PacketEntitiesMessage -> {
+                    // todo: parse
+                    if (networkState != ACTIVE)
+                        networkState = ACTIVE
+                }
                 else -> {
-                    Com.Printf("Received ${msg.javaClass.name} message\n")
+//                    Com.Printf("Received ${msg.javaClass.name} message\n")
                 }
             }
         }
@@ -349,13 +435,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         //	   wipe the client_state_t struct
         //
         clearState()
-        gameName = msg.gameName
+        gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
         playercount = msg.playerNumber
         spawnCount = msg.spawnCount
-        refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
         consoleVisible = false
         menuVisible = false
+
+        refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
+
     }
 
     private fun clearState() {
@@ -398,7 +486,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * populate default userinfo values - required for connecting to the server
      */
     private fun initUserInfoCvars() {
-        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
+//        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
         Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO)
         Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)

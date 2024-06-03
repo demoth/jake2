@@ -5,7 +5,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import org.demoth.cake.Cake
 
 /** Launches the desktop (LWJGL3) application. */
-object Lwjgl3Launcher {
+object Lwjgl3GameLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
         if (startNewJvmIfRequired()) return
