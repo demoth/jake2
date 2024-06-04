@@ -30,7 +30,6 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
-import java.io.File
 import kotlin.experimental.or
 
 enum class ClientNetworkState {
@@ -39,10 +38,6 @@ enum class ClientNetworkState {
     CONNECTED,
     ACTIVE
 }
-
-private val basedir = System.getProperty("basedir")
-
-data class Config(var value: String, var resource: Disposable? = null)
 
 /**
  * Entrypoint for the client application
@@ -70,8 +65,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var levelString: String = ""
     private var refresh_prepped: Boolean = false
 
-    private val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") }
-
     private val cl_entities = Array(MAX_EDICTS) { centity_t()}
 
     private var precache_spawncount = 0
@@ -82,8 +75,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private var CMD_BACKUP: Int = 64 // allow a lot of command backups for very fast systems
     private val usercommands = Array(CMD_BACKUP) { usercmd_t() }
-
-
 
     init {
         Cmd.Init()
@@ -117,15 +108,21 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         Cmd.AddCommand("connect") {
-            // todo: disconnect first
+            // first disconnect
+            Cbuf.AddText("disconnect")
+            Cbuf.Execute()
+
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
+            game3dScreen = Game3dScreen()
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
         Cmd.AddCommand("disconnect") {
             // todo: clear the game state and release resources
+            game3dScreen?.dispose() // or reset?
+            game3dScreen = null
 
             // send a disconnect message to the server
             val buf = sizebuf_t(128)
@@ -162,30 +159,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
-            // load resources referenced in the config strings
-            val mapName = configStrings[CS_MODELS + 1]
-
-            // load sounds starting from CS_SOUNDS until MAX_SOUNDS
-            for (i in 1 until MAX_SOUNDS) {
-                configStrings[CS_SOUNDS + i]?.let {s ->
-                    if (s.value.isNotEmpty() && !s.value.startsWith("*")) { // skip sexed sounds for now
-                        println("precache sound ${s.value}: ")
-                        val soundPath = "$basedir/baseq2/sound/${s.value}"
-                        if (File(soundPath).exists()) {
-                            s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
-                        } else {
-                            println("TODO: Find sound case insensitive: ${s.value}") //
-                        }
-                    }
-                }
-            }
-
+            game3dScreen?.precache()
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
         }
 
         Cmd.AddCommand("configs") {
-            configStrings.forEachIndexed { i, c ->
+            game3dScreen?.configStrings?.forEachIndexed { i, c ->
                 if (c != null) {
                     Com.Printf("ConfigString[$i] = ${c.value}, resource = ${c.resource != null}\n")
                 }
@@ -403,11 +383,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
 
                 is ConfigStringMessage -> {
-                    configStrings[msg.index]!!.value = msg.config
+                    game3dScreen?.updateConfig(msg)
                 }
 
                 is SoundMessage -> {
-                    val sound = configStrings[msg.soundIndex]?.resource as? Sound
+                    val sound = game3dScreen?.configStrings[msg.soundIndex]?.resource as? Sound
                     println("Playing sound ${msg.soundIndex} ${sound}")
                     sound?.play() // todo: use msg.volume, attenuation, etc
                 }
