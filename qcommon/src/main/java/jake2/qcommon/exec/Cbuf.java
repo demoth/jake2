@@ -176,6 +176,11 @@ public final class Cbuf {
         buffer.addAll(splitCommandLine(text));
     }
 
+    public static void AddAndExecute(String text) {
+        buffer.addAll(splitCommandLine(text));
+        Execute();
+    }
+
     /**
      *  Execute all command is the buffer
      */

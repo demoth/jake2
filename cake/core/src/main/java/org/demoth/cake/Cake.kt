@@ -3,9 +3,9 @@ package org.demoth.cake
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
-import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
 import jake2.qcommon.*
@@ -18,7 +18,6 @@ import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
-import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
@@ -30,7 +29,6 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
-import kotlin.experimental.or
 
 enum class ClientNetworkState {
     DISCONNECTED,
@@ -58,23 +56,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var reconnectTimeout = 1f // todo: use proper timer
     private val netchan = netchan_t()
 
-    // game state
-    private var gameName: String = "baseq2"
-    private var spawnCount = 0
-    private var playercount = 1
-    private var levelString: String = ""
-    private var refresh_prepped: Boolean = false
-
     private val cl_entities = Array(MAX_EDICTS) { centity_t()}
 
-    private var precache_spawncount = 0
-
     private var game3dScreen: Game3dScreen? = null
-
-    private val serverFrameHeaderMessage = FrameHeaderMessage()
-
-    private var CMD_BACKUP: Int = 64 // allow a lot of command backups for very fast systems
-    private val usercommands = Array(CMD_BACKUP) { usercmd_t() }
 
     init {
         Cmd.Init()
@@ -96,26 +80,25 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Gdx.input.inputProcessor = InputMultiplexer(
             this, // global input processor to control console and menu
             consoleStage,
-            menuStage
+            menuStage,
+            object: InputProcessor by game3dScreen {}
         )
 
 
         Cmd.AddCommand("quit") {
-            Cbuf.AddText("disconnect")
-            Cbuf.Execute()
+            Cbuf.AddAndExecute("disconnect")
 
             Gdx.app.exit()
         }
 
         Cmd.AddCommand("connect") {
             // first disconnect
-            Cbuf.AddText("disconnect")
-            Cbuf.Execute()
+            Cbuf.AddAndExecute("disconnect")
 
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
-            game3dScreen = Game3dScreen()
+            game3dScreen = Game3dScreen(viewport.camera)
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
@@ -125,9 +108,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             game3dScreen = null
 
             // send a disconnect message to the server
-            val buf = sizebuf_t(128)
-            StringCmdMessage(StringCmdMessage.DISCONNECT).writeTo(buf)
             netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+
+            // reset network state
             NET.Config(false)
             networkState = DISCONNECTED
             challenge = 0
@@ -139,7 +122,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Println("Userinfo: $userInfo")
         }
 
-        Cmd.AddCommand("cbuf") {
+        Cmd.AddCommand("print_cbuf") {
             Com.Println(Cbuf.contents())
         }
 
@@ -155,16 +138,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         Cmd.AddCommand("precache") {
-            // todo: load all resources
-            precache_spawncount = it[1].toInt()
+            val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
             game3dScreen?.precache()
+
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
         }
 
-        Cmd.AddCommand("configs") {
+        Cmd.AddCommand("print_configs") {
             game3dScreen?.configStrings?.forEachIndexed { i, c ->
                 if (c != null) {
                     Com.Printf("ConfigString[$i] = ${c.value}, resource = ${c.resource != null}\n")
@@ -188,67 +171,41 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         CheckForResend(deltaSeconds)
         CL_ReadPackets()
-        SendCommands()
+        sendUpdates()
 
         Cbuf.Execute()
-        if (!refresh_prepped) {
-            // todo: load level and other resources into refresher/renderer
-            game3dScreen = Game3dScreen(viewport.camera) // load the level
-            refresh_prepped = true
-        }
 
         if (game3dScreen != null) {
             game3dScreen?.render(deltaSeconds)
         }
     }
 
-    private fun SendCommands() {
+    /**
+     * SendCommands
+     */
+    private fun sendUpdates() {
         when (networkState) {
             CONNECTING, DISCONNECTED -> return
             CONNECTED -> {
                 if (netchan.reliablePending.isNotEmpty()) {
-                    if (Globals.curtime - netchan.last_sent > 1000) // fixme: proper timers
+                    if (Globals.curtime - netchan.last_sent > 1000) {
+                        // fixme: proper timers
                         netchan.transmit(null)
+                    }
                 }
-                return
             }
             ACTIVE -> {
-                // assemble the inputs and commands, then transmit them
-                val cmdIndex: Int = (netchan.outgoing_sequence) and (Defines.CMD_BACKUP - 1)
-                val oldCmdIndex: Int = (netchan.outgoing_sequence - 1) and (Defines.CMD_BACKUP - 1)
-                val oldestCmdIndex: Int = (netchan.outgoing_sequence - 2) and (Defines.CMD_BACKUP - 1)
-
-                val cmd = usercommands[cmdIndex]
-                cmd.clear()
-
-                // todo: implement proper input mapping
-                if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-                    cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
+                game3dScreen?.gatherInput(netchan.outgoing_sequence)?.let {
+                    netchan.transmit(listOf(it))
                 }
-
-                if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-                    cmd.forwardmove = 100 // todo: calculate based on client prediction
-                }
-                cmd.msec = 16 // todo: calculate
-                // deliver the message
-                netchan.transmit(
-                    listOf(
-                        MoveMessage(
-                            false, // todo
-                            serverFrameHeaderMessage.frameNumber,
-                            usercommands[oldestCmdIndex],
-                            usercommands[oldCmdIndex],
-                            usercommands[cmdIndex],
-                            netchan.outgoing_sequence
-                        )
-                    )
-                )
             }
         }
 
     }
 
-    // handle ESC for menu and F1 for console
+    /**
+     * Global input handling: Console and Menu
+     */
     override fun keyUp(keycode: Int): Boolean {
         when (keycode) {
             Input.Keys.F1 -> {
@@ -271,6 +228,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun dispose() {
         menuStage.dispose()
         consoleStage.dispose()
+        game3dScreen?.dispose()
     }
 
     /**
@@ -364,18 +322,27 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is DisconnectMessage -> {
                     Com.Error(ERR_DISCONNECT, "Server disconnected\n")
                 }
+
                 is ReconnectMessage -> {
                     networkState = CONNECTING
                     // CheckForResend() will fire immediately
                     reconnectTimeout = 0f
                 }
+
                 is FrameHeaderMessage -> {
-                    serverFrameHeaderMessage.frameNumber = msg.frameNumber
-                    // todo: parse the rest
+                    game3dScreen?.parseServerFrameHeader(msg)
                 }
+
                 is ServerDataMessage -> {
+                    // new game is starting
                     Cbuf.Execute()
-                    parseServerDataMessage(msg)
+                    netchan.reliablePending.clear()
+
+                    game3dScreen?.parseServerDataMessage(msg)
+
+                    consoleVisible = false
+                    menuVisible = false
+
                 }
 
                 is StuffTextMessage -> {
@@ -395,11 +362,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is SpawnBaselineMessage -> {
                     cl_entities[msg.entityState.number].baseline.set(msg.entityState)
                 }
+
                 is PacketEntitiesMessage -> {
                     // todo: parse
                     if (networkState != ACTIVE)
                         networkState = ACTIVE
                 }
+
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
                 }
@@ -407,30 +376,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
-    /*
-     * ================== CL_ParseServerData ==================
-     */
-    private fun parseServerDataMessage(msg: ServerDataMessage) {
-        //
-        //	   wipe the client_state_t struct
-        //
-        clearState()
-        gameName = msg.gameName.ifBlank { "baseq2" }
-        levelString = msg.levelString
-        playercount = msg.playerNumber
-        spawnCount = msg.spawnCount
-        consoleVisible = false
-        menuVisible = false
-
-        refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
-
-    }
-
-    private fun clearState() {
-        // todo: stop all effects
-        // todo: clear all client entities
-        netchan.reliablePending.clear()
-    }
 
     private fun CL_ConnectionlessPacket(packet: NetworkPacket) {
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
