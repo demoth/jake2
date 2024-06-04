@@ -203,16 +203,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         Cbuf.Execute()
 
-        if (consoleVisible) {
-            consoleStage.act()
-            consoleStage.draw()
-        } else if (menuVisible) {
+        if (game3dScreen != null) {
+            game3dScreen?.render(deltaSeconds)
+        }
+
+        if (menuVisible) {
             menuStage.act()
             menuStage.draw()
         }
 
-        if (game3dScreen != null) {
-            game3dScreen?.render(deltaSeconds)
+        if (consoleVisible) {
+            consoleStage.act()
+            consoleStage.draw()
         }
     }
 
