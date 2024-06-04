@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -12,13 +13,19 @@ import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.CS_SOUNDS
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
+import jake2.qcommon.Defines.MAX_EDICTS
 import jake2.qcommon.Defines.MAX_SOUNDS
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
+import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
+import jake2.qcommon.network.messages.server.SoundMessage
+import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.usercmd_t
+import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
+import org.demoth.cake.ClientEntity
 import java.io.File
 import kotlin.experimental.or
 
@@ -29,7 +36,8 @@ data class Config(var value: String, var resource: Disposable? = null)
  * This class is responsible for drawing 3d models, hud, process inputs and play sounds.
  * Also, it is responsible for loading/disposing of the required resources
  */
-class Game3dScreen(var cam: Camera) : KtxScreen {
+class Game3dScreen(var cam: Camera) : KtxScreen, KtxInputAdapter {
+    // enitity id -> model
     val models: MutableMap<Int, ModelInstance> = mutableMapOf()
     val modelBatch: ModelBatch
 
@@ -47,7 +55,7 @@ class Game3dScreen(var cam: Camera) : KtxScreen {
     private var spawnCount = 0
     private var playercount = 1
     private var levelString: String = ""
-    private var refresh_prepped: Boolean = false
+    private val clientEntities = Array(MAX_EDICTS) { ClientEntity() }
 
     init {
         // create camera
@@ -67,7 +75,7 @@ class Game3dScreen(var cam: Camera) : KtxScreen {
     override fun dispose() {
         modelBatch.dispose()
         // clear the config strings
-        for (i in 0 until MAX_CONFIGSTRINGS) {configStrings[i] = Config("")}
+        configStrings.forEach { it?.resource?.dispose() }
     }
 
     fun updateConfig(msg: ConfigStringMessage) {
@@ -100,9 +108,9 @@ class Game3dScreen(var cam: Camera) : KtxScreen {
 
     fun gatherInput(outgoingSequence: Int): MoveMessage {
         // assemble the inputs and commands, then transmit them
-        val cmdIndex: Int = outgoingSequence and (Defines.CMD_BACKUP - 1)
-        val oldCmdIndex: Int = (outgoingSequence - 1) and (Defines.CMD_BACKUP - 1)
-        val oldestCmdIndex: Int = (outgoingSequence - 2) and (Defines.CMD_BACKUP - 1)
+        val cmdIndex: Int = outgoingSequence and (userCommands.size - 1)
+        val oldCmdIndex: Int = (outgoingSequence - 1) and (userCommands.size - 1)
+        val oldestCmdIndex: Int = (outgoingSequence - 2) and (userCommands.size - 1)
 
         val cmd = userCommands[cmdIndex]
         cmd.clear()
@@ -125,7 +133,6 @@ class Game3dScreen(var cam: Camera) : KtxScreen {
             userCommands[cmdIndex],
             outgoingSequence
         )
-
     }
 
     fun parseServerFrameHeader(message: FrameHeaderMessage) {
@@ -133,16 +140,28 @@ class Game3dScreen(var cam: Camera) : KtxScreen {
     }
 
     /*
-     * ================== CL_ParseServerData ==================
+     * CL_ParseServerData
      */
     fun parseServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
         playercount = msg.playerNumber
         spawnCount = msg.spawnCount
+    }
 
-        refresh_prepped = false // force reloading of all "refresher" (visual) resources, most importantly the level
+    fun playSound(msg: SoundMessage) {
+        val sound = configStrings[msg.soundIndex]?.resource as? Sound
+        println("Playing sound ${msg.soundIndex} ${sound}")
+        sound?.play() // todo: use msg.volume, attenuation, etc
 
+    }
+
+    fun parseEntities(msg: PacketEntitiesMessage) {
+        // todo:
+    }
+
+    fun parseBaseline(msg: SpawnBaselineMessage) {
+        clientEntities[msg.entityState.number].baseline.set(msg.entityState)
     }
 }
 

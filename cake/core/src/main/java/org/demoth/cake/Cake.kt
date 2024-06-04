@@ -30,11 +30,11 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
-enum class ClientNetworkState {
+private enum class ClientNetworkState {
     DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    ACTIVE
+    CONNECTING, // started the connection procedure
+    CONNECTED, // connection established, preparing resources
+    ACTIVE // game is running
 }
 
 /**
@@ -55,8 +55,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var challenge = 0
     private var reconnectTimeout = 1f // todo: use proper timer
     private val netchan = netchan_t()
-
-    private val cl_entities = Array(MAX_EDICTS) { centity_t()}
 
     private var game3dScreen: Game3dScreen? = null
 
@@ -81,7 +79,44 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             this, // global input processor to control console and menu
             consoleStage,
             menuStage,
-            object: InputProcessor by game3dScreen {}
+            // delegate the rest to the current 3d screen
+            object: InputProcessor {
+                override fun keyDown(keycode: Int): Boolean {
+                    return game3dScreen?.keyDown(keycode) ?: false
+                }
+
+                override fun keyUp(keycode: Int): Boolean {
+                    return game3dScreen?.keyUp(keycode) ?: false
+                }
+
+                override fun keyTyped(character: Char): Boolean {
+                    return game3dScreen?.keyTyped(character) ?: false
+                }
+
+                override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                    return game3dScreen?.touchDown(screenX, screenY, pointer, button) ?: false
+                }
+
+                override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                    return game3dScreen?.touchUp(screenX, screenY, pointer, button) ?: false
+                }
+
+                override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                    return game3dScreen?.touchCancelled(screenX, screenY, pointer, button) ?: false
+                }
+
+                override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+                    return game3dScreen?.touchDragged(screenX, screenY, pointer) ?: false
+                }
+
+                override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+                    return game3dScreen?.mouseMoved(screenX, screenY) ?: false
+                }
+
+                override fun scrolled(amountX: Float, amountY: Float): Boolean {
+                    return game3dScreen?.scrolled(amountX, amountY) ?: false
+                }
+            }
         )
 
 
@@ -161,19 +196,19 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f)
 
+        CheckForResend(deltaSeconds)
+        CL_ReadPackets()
+        sendUpdates()
+
+        Cbuf.Execute()
+
         if (consoleVisible) {
             consoleStage.act()
             consoleStage.draw()
         } else if (menuVisible) {
             menuStage.act()
             menuStage.draw()
-        } // todo: else draw IngameScreen
-
-        CheckForResend(deltaSeconds)
-        CL_ReadPackets()
-        sendUpdates()
-
-        Cbuf.Execute()
+        }
 
         if (game3dScreen != null) {
             game3dScreen?.render(deltaSeconds)
@@ -195,6 +230,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
             }
             ACTIVE -> {
+                // fixme: send only at client rate, not every client frame
                 game3dScreen?.gatherInput(netchan.outgoing_sequence)?.let {
                     netchan.transmit(listOf(it))
                 }
@@ -329,8 +365,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     reconnectTimeout = 0f
                 }
 
-                is FrameHeaderMessage -> {
-                    game3dScreen?.parseServerFrameHeader(msg)
+                is StuffTextMessage -> {
+                    Cbuf.AddText(msg.text)
                 }
 
                 is ServerDataMessage -> {
@@ -345,30 +381,24 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                 }
 
-                is StuffTextMessage -> {
-                    Cbuf.AddText(msg.text)
+                // delegate all game-related updates to the game screen
+                is FrameHeaderMessage -> {
+                    game3dScreen?.parseServerFrameHeader(msg)
                 }
-
                 is ConfigStringMessage -> {
                     game3dScreen?.updateConfig(msg)
                 }
-
                 is SoundMessage -> {
-                    val sound = game3dScreen?.configStrings[msg.soundIndex]?.resource as? Sound
-                    println("Playing sound ${msg.soundIndex} ${sound}")
-                    sound?.play() // todo: use msg.volume, attenuation, etc
+                    game3dScreen?.playSound(msg)
                 }
-
                 is SpawnBaselineMessage -> {
-                    cl_entities[msg.entityState.number].baseline.set(msg.entityState)
+                    game3dScreen?.parseBaseline(msg)
                 }
-
                 is PacketEntitiesMessage -> {
-                    // todo: parse
                     if (networkState != ACTIVE)
                         networkState = ACTIVE
+                    game3dScreen?.parseEntities(msg)
                 }
-
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
                 }

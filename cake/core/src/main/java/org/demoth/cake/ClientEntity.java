@@ -25,8 +25,11 @@ package org.demoth.cake;
 
 import jake2.qcommon.entity_state_t;
 
-public class centity_t {
-	entity_state_t baseline= new entity_state_t(null); // delta from this if not from a previous frame
+/**
+ * centity_t
+ */
+public class ClientEntity {
+	public entity_state_t baseline= new entity_state_t(null); // delta from this if not from a previous frame
 	public entity_state_t current= new entity_state_t(null);
 	entity_state_t prev= new entity_state_t(null); // will always be valid, but might just be a copy of current
 
