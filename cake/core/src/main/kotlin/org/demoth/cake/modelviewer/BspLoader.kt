@@ -15,9 +15,7 @@ import jake2.qcommon.filesystem.WAL
 import java.io.File
 import java.nio.ByteBuffer
 
-private val prefix = System.getProperty("basedir") + "/baseq2/textures/"
-
-class BspLoader {
+class BspLoader(val gameDir: String) {
     fun loadBspModelTextured(file: File): List<ModelInstance> {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
@@ -102,12 +100,12 @@ class BspLoader {
     }
 
     private fun findFile(textureName: String): File {
-        val file = File("$prefix$textureName.wal")
+        val file = File("$gameDir/textures/$textureName.wal")
         return if (file.exists()) {
             file
         } else {
             println("Warn: $textureName was found by lowercase name")
-            File("$prefix${textureName.lowercase()}.wal")
+            File("$gameDir/textures/${textureName.lowercase()}.wal")
         }
     }
 

@@ -133,7 +133,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
-            game3dScreen = Game3dScreen(viewport.camera)
+            game3dScreen = Game3dScreen()
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
@@ -173,6 +173,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         Cmd.AddCommand("precache") {
+            Com.Printf("precache - loading resources\n")
             val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
@@ -194,7 +195,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun render() {
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f)
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f, true)
 
         CheckForResend(deltaSeconds)
         CL_ReadPackets()
@@ -370,6 +371,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
 
                 is ServerDataMessage -> {
+                    Com.Printf("joining ${msg.levelString}\n")
+
                     // new game is starting
                     Cbuf.Execute()
                     netchan.reliablePending.clear()
@@ -395,9 +398,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     game3dScreen?.parseBaseline(msg)
                 }
                 is PacketEntitiesMessage -> {
-                    if (networkState != ACTIVE)
+                    if (networkState != ACTIVE) {
                         networkState = ACTIVE
+                        Com.Printf("Game started!\n")
+                    }
                     game3dScreen?.parseEntities(msg)
+                }
+                is PlayerInfoMessage -> {
+                    game3dScreen?.parsePlayerInfo(msg)
                 }
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")

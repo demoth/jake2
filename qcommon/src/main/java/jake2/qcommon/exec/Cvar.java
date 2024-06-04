@@ -342,6 +342,7 @@ public class Cvar extends Globals {
                 .filter(cv -> (cv.flags & flags) != 0)
                 .filter(cv -> (!INFO_DISALLOWED_CHARS.matcher(cv.name).find()))
                 .filter(cv -> (!INFO_DISALLOWED_CHARS.matcher(cv.string).find()))
+                .filter(cv -> !cv.string.isBlank())
                 .map(cv -> "\\" + cv.name + "\\" + cv.string)
                 .collect(Collectors.joining());
 

@@ -30,6 +30,8 @@ private const val GRID_DIVISIONS = 8
 
 private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal")
 
+private val gameDir = System.getProperty("basedir") + "/baseq2/"
+
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
 class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
@@ -70,7 +72,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> {
 //                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
-                models.addAll(BspLoader().loadBspModelTextured(file))
+                models.addAll(BspLoader(gameDir).loadBspModelTextured(file))
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -80,8 +82,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        camera.position.set(0f, 0f, -50f);
-        camera.lookAt(0f, 0f, 0f);
+        camera.position.set(0f, 64f, 0f);
+        camera.lookAt(64f, 32f, 64f);
         camera.near = 1f
         camera.far = 4096f
 
@@ -177,21 +179,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         return crateInstance
     }
 
-    private fun createGrid(size: Float, divisions: Int): ModelInstance {
-        val modelBuilder = ModelBuilder()
-        val lineGrid = modelBuilder.createLineGrid(
-            divisions, divisions, size, size, Material(
-                ColorAttribute.createDiffuse(Color.DARK_GRAY)
-            ), (Usage.Position or Usage.ColorUnpacked).toLong()
-        )
-        return ModelInstance(lineGrid)
-    }
-
-    private fun createOriginArrows(size: Float): ModelInstance {
-        val modelBuilder = ModelBuilder()
-        val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
-        return ModelInstance(origin)
-    }
 
     private fun drawLines(): ModelInstance {
         val modelBuilder = ModelBuilder()
@@ -243,6 +230,21 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         models.forEach { it.model.dispose() }
         modelBatch.dispose()
     }
+}
+fun createGrid(size: Float, divisions: Int): ModelInstance {
+    val modelBuilder = ModelBuilder()
+    val lineGrid = modelBuilder.createLineGrid(
+        divisions, divisions, size, size, Material(
+            ColorAttribute.createDiffuse(Color.GREEN)
+        ), (Usage.Position or Usage.ColorUnpacked).toLong()
+    )
+    return ModelInstance(lineGrid)
+}
+
+fun createOriginArrows(size: Float): ModelInstance {
+    val modelBuilder = ModelBuilder()
+    val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
+    return ModelInstance(origin)
 }
 
 // fix axis difference between q2 (z up) and libGDX (y up)

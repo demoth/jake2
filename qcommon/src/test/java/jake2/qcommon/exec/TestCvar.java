@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static jake2.qcommon.Defines.CVAR_USERINFO;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class TestCvar {
@@ -132,6 +133,8 @@ public class TestCvar {
 		cvar.Get("password", "", CVAR_USERINFO );
 
 		String userinfo = cvar.Userinfo();
+		assertFalse(userinfo.contains("password")); // empty cvars should be ignored
+
 		String empty = Info.Info_ValueForKey(userinfo, "password");
 		assertTrue(empty.isEmpty());
 	}
