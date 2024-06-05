@@ -27,20 +27,23 @@ import jake2.qcommon.player_state_t;
 
 import java.util.Arrays;
 
-public class frame_t {
+/**
+ * frame_t
+ */
+public class ClientFrame {
 		
-	public static final int MAX_MAP_AREAS = 256; 
-		
-	boolean		valid;			// cleared if delta parsing was invalid
-	int				serverframe;
+	public static final int MAX_MAP_AREAS = 256;
+
+	public boolean		valid;			// cleared if delta parsing was invalid
+	public int				serverframe;
 	public int servertime;		// server time the message is valid for (in msec)
-	int				deltaframe;
-	byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
+	public int				deltaframe;
+	public byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
 	public 		player_state_t playerstate = new player_state_t(); // mem
 	public int				num_entities;
 	public int				parse_entities;	// non-masked index into cl_parse_entities array
 		
-	public void set(frame_t from) {
+	public void set(ClientFrame from) {
 		valid = from.valid;
 		serverframe = from.serverframe;
 		deltaframe = from.deltaframe;

@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.utils.Disposable
+import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.CMD_BACKUP
@@ -31,6 +32,7 @@ import jake2.qcommon.usercmd_t
 import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
 import org.demoth.cake.ClientEntity
+import org.demoth.cake.ClientFrame
 import org.demoth.cake.modelviewer.BspLoader
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
@@ -59,7 +61,6 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
     val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") }
 
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
-    private var serverFrame: Int = 0
     val environment = Environment()
 
     // game state
@@ -68,6 +69,14 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
     private var playercount = 1
     private var levelString: String = ""
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity() }
+
+    private var previousFrame: ClientFrame? = ClientFrame()
+    private val currentFrame = ClientFrame()
+    private var surpressCount = 0 // number of messages rate supressed
+    private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
+    private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
+    private var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
+
 
     init {
         camera.position.set(0f, 64f, 0f);
@@ -164,7 +173,7 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
         // deliver the message
         return MoveMessage(
             false, // todo
-            serverFrame,
+            currentFrame.serverframe,
             userCommands[oldestCmdIndex],
             userCommands[oldCmdIndex],
             userCommands[cmdIndex],
@@ -173,7 +182,44 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
     }
 
     fun parseServerFrameHeader(message: FrameHeaderMessage) {
-        serverFrame = message.frameNumber
+        // update current frame
+        currentFrame.reset()
+        currentFrame.serverframe = message.frameNumber
+        currentFrame.deltaframe = message.lastFrame
+        currentFrame.servertime = currentFrame.serverframe * 100
+        surpressCount = message.suppressCount
+
+        // If the frame is delta compressed from data that we
+        // no longer have available, we must suck up the rest of
+        // the frame, but not use it, then ask for a non-compressed
+        // message
+
+        // determine delta frame:
+        val deltaFrame: ClientFrame?
+        if (currentFrame.deltaframe <= 0) {
+            currentFrame.valid = true // uncompressed frame
+            deltaFrame = null
+        } else {
+            deltaFrame = frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
+            if (!deltaFrame.valid) { // should never happen
+                Com.Printf("Delta from invalid frame (not supposed to happen!).\n")
+            }
+            if (deltaFrame.serverframe != currentFrame.deltaframe) {
+                // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
+                Com.Printf("Delta frame too old.\n")
+            } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
+                Com.Printf("Delta parse_entities too old.\n")
+            } else {
+                currentFrame.valid = true  // valid delta parse
+            }
+        }
+        previousFrame = deltaFrame
+
+        // clamp time
+        time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
+
+        // read areabits
+        System.arraycopy(message.areaBits, 0, currentFrame.areabits, 0, message.areaBits.size);
     }
 
     /*
