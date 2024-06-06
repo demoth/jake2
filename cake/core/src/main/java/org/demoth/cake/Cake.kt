@@ -380,7 +380,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     netchan.reliablePending.clear()
 
                     game3dScreen?.parseServerDataMessage(msg)
-
+                    // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
                     menuVisible = false
 

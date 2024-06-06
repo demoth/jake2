@@ -70,8 +70,8 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
     private var levelString: String = ""
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity() }
 
-    private var previousFrame: ClientFrame? = ClientFrame()
-    private val currentFrame = ClientFrame()
+    private var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
+    private val currentFrame = ClientFrame() // latest frame information received from the server
     private var surpressCount = 0 // number of messages rate supressed
     private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
     private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
@@ -222,7 +222,7 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
         System.arraycopy(message.areaBits, 0, currentFrame.areabits, 0, message.areaBits.size);
     }
 
-    /*
+    /**
      * CL_ParseServerData
      */
     fun parseServerDataMessage(msg: ServerDataMessage) {
@@ -247,14 +247,67 @@ class Game3dScreen : KtxScreen, KtxInputAdapter {
         clientEntities[msg.entityState.number].baseline.set(msg.entityState)
     }
 
+    /**
+     * CL_ParsePlayerstate
+     */
     fun parsePlayerInfo(msg: PlayerInfoMessage) {
-        if ((msg.deltaFlags and Defines.PS_M_ORIGIN) != 0) {
-            msg.currentState?.pmove?.origin?.let { pos ->
-                camera.position.set(
-                    pos[0].toFloat(),
-                    pos[2].toFloat(),
-                    pos[1].toFloat()
-                )
+        val state = msg.currentState
+
+        // clear to old value before delta parsing
+        if (previousFrame == null) {
+            state.clear()
+        } else {
+            state.set(previousFrame!!.playerstate)
+        }
+
+        //
+        // parse the pmove_state_t
+        //
+        if ((msg.deltaFlags and Defines.PS_M_TYPE) != 0)
+            state.pmove.pm_type = msg.currentState.pmove.pm_type;
+
+//        if (ClientGlobals.cl.attractloop)
+//            state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
+
+        if ((msg.deltaFlags and Defines.PS_M_ORIGIN) != 0)
+        state.pmove.origin = msg.currentState.pmove.origin;
+        if ((msg.deltaFlags and Defines.PS_M_VELOCITY) != 0)
+        state.pmove.velocity = msg.currentState.pmove.velocity;
+        if ((msg.deltaFlags and Defines.PS_M_TIME) != 0)
+        state.pmove.pm_time = msg.currentState.pmove.pm_time;
+        if ((msg.deltaFlags and Defines.PS_M_FLAGS) != 0)
+        state.pmove.pm_flags = msg.currentState.pmove.pm_flags;
+        if ((msg.deltaFlags and Defines.PS_M_GRAVITY) != 0)
+        state.pmove.gravity = msg.currentState.pmove.gravity;
+        if ((msg.deltaFlags and Defines.PS_M_DELTA_ANGLES) != 0)
+        state.pmove.delta_angles = msg.currentState.pmove.delta_angles;
+        //
+        // parse the rest of the player_state_t
+        //
+        if ((msg.deltaFlags and Defines.PS_VIEWOFFSET) != 0)
+        state.viewoffset = msg.currentState.viewoffset;
+        if ((msg.deltaFlags and Defines.PS_VIEWANGLES) != 0)
+        state.viewangles = msg.currentState.viewangles;
+        if ((msg.deltaFlags and Defines.PS_KICKANGLES) != 0)
+        state.kick_angles = msg.currentState.kick_angles;
+        if ((msg.deltaFlags and Defines.PS_WEAPONINDEX) != 0)
+        state.gunindex = msg.currentState.gunindex;
+        if ((msg.deltaFlags and Defines.PS_WEAPONFRAME) != 0) {
+            state.gunframe = msg.currentState.gunframe;
+            state.gunoffset = msg.currentState.gunoffset;
+            state.gunangles = msg.currentState.gunangles;
+        }
+        if ((msg.deltaFlags and Defines.PS_BLEND) != 0)
+        state.blend = msg.currentState.blend;
+        if ((msg.deltaFlags and Defines.PS_FOV) != 0)
+        state.fov = msg.currentState.fov;
+        if ((msg.deltaFlags and Defines.PS_RDFLAGS) != 0)
+        state.rdflags = msg.currentState.rdflags;
+
+        // copy only changed stats
+        for (i in (0 ..< Defines.MAX_STATS)) {
+            if ((msg.statbits and (1 shl i)) != 0) {
+                state.stats[i] = msg.currentState.stats[i];
             }
         }
     }
