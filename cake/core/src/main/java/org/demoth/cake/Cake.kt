@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -352,8 +351,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
-    /*
-     * ===================== CL_ParseServerMessage =====================
+    /**
+     * CL_ParseServerMessage
      */
     private fun parseServerMessage(messages: Collection<ServerMessage>) {
         messages.forEach { msg ->
@@ -379,7 +378,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     Cbuf.Execute()
                     netchan.reliablePending.clear()
 
-                    game3dScreen?.parseServerDataMessage(msg)
+                    game3dScreen?.processServerDataMessage(msg)
                     // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
                     menuVisible = false
@@ -388,26 +387,26 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                 // delegate all game-related updates to the game screen
                 is FrameHeaderMessage -> {
-                    game3dScreen?.parseServerFrameHeader(msg)
+                    game3dScreen?.processServerFrameHeader(msg)
                 }
                 is ConfigStringMessage -> {
-                    game3dScreen?.updateConfig(msg)
+                    game3dScreen?.processConfigStringMessage(msg)
                 }
                 is SoundMessage -> {
-                    game3dScreen?.playSound(msg)
+                    game3dScreen?.processSoundMessage(msg)
                 }
                 is SpawnBaselineMessage -> {
-                    game3dScreen?.parseBaseline(msg)
+                    game3dScreen?.processBaselineMessage(msg)
                 }
                 is PacketEntitiesMessage -> {
                     if (networkState != ACTIVE) {
                         networkState = ACTIVE
                         Com.Printf("Game started!\n")
                     }
-                    game3dScreen?.parseEntities(msg)
+                    game3dScreen?.processPacketEntitiesMessage(msg)
                 }
                 is PlayerInfoMessage -> {
-                    game3dScreen?.parsePlayerInfo(msg)
+                    game3dScreen?.processPlayerInfoMessage(msg)
                 }
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
