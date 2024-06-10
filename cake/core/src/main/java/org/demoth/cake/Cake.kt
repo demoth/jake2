@@ -399,11 +399,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     game3dScreen?.processBaselineMessage(msg)
                 }
                 is PacketEntitiesMessage -> {
-                    if (networkState != ACTIVE) {
-                        networkState = ACTIVE
-                        Com.Printf("Game started!\n")
+                    if (game3dScreen?.processPacketEntitiesMessage(msg) == true) {
+                        if (networkState != ACTIVE) {
+                            networkState = ACTIVE
+                            Com.Printf("Game started!\n")
+
+                            // todo: check the rest of the player view related code from jake2.client.CL_ents#parsePacketEntities
+                        }
                     }
-                    game3dScreen?.processPacketEntitiesMessage(msg)
                 }
                 is PlayerInfoMessage -> {
                     game3dScreen?.processPlayerInfoMessage(msg)

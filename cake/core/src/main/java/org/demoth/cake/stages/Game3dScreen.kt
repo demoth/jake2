@@ -308,7 +308,7 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
      * CL_ParsePacketEntities
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments
      */
-    override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage) {
+    override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
         currentFrame.parse_entities = parse_entities
         currentFrame.num_entities = 0
 
@@ -394,6 +394,13 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
 
         }
 
+        // save the frame off in the backup array for later delta comparisons
+        frames[currentFrame.serverframe and Defines.UPDATE_MASK].set(currentFrame)
+
+        // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
+
+        // getting a valid frame message ends the connection process
+        return currentFrame.valid
     }
 
     override fun processSoundMessage(msg: SoundMessage) {

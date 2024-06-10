@@ -21,7 +21,7 @@ interface ServerMessageProcessor {
     // These messages are sent every frame
     fun processServerFrameHeader(msg: FrameHeaderMessage)
     fun processPlayerInfoMessage(msg: PlayerInfoMessage)
-    fun processPacketEntitiesMessage(msg: PacketEntitiesMessage)
+    fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean
 
     // These messages are sent occasionally
     fun processSoundMessage(msg: SoundMessage)
