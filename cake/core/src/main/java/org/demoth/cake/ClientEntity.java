@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package org.demoth.cake;
 
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import jake2.qcommon.entity_state_t;
 
 /**
@@ -39,4 +40,6 @@ public class ClientEntity {
 	public float[] lerp_origin = { 0, 0, 0 }; // for trails (variable hz)
 
 	int fly_stoptime;
+
+	public ModelInstance modelInstance;
 }

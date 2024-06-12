@@ -48,6 +48,7 @@ public class Globals extends Defines {
 	/*
 	 * global variables
 	 */
+	// ms, used for networking
 	public static int curtime = 0;
 	public static boolean cmd_wait;
 

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g3d.Environment
+import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -52,21 +53,23 @@ data class Config(var value: String, var resource: Disposable? = null)
  * Also, it is responsible for loading/disposing of the required resources
  */
 class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
-    // enitity id -> model
-    val models: MutableMap<Int, ModelInstance> = mutableMapOf()
-    val modelBatch: ModelBatch
+    private var precached: Boolean = false
 
-    val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-    val cameraInputController = CameraInputController(camera)
+    // enitity id -> model
+    private val models: MutableMap<Int, ModelInstance> = mutableMapOf()
+    private val modelBatch: ModelBatch
+
+    private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+    private val cameraInputController = CameraInputController(camera)
 
     /**
      * Store all configuration related to the current map.
      * Updated from server
      */
-    val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") }
+    val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") } // fixme: decide if nullable or blank value
 
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
-    val environment = Environment()
+    private val environment = Environment()
 
     // game state
     private var gameName: String = "baseq2"
@@ -80,8 +83,12 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
     private var surpressCount = 0 // number of messages rate supressed
     private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
     private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
+
     private var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
-    private val cl_parse_entities = Array<entity_state_t>(Defines.MAX_PARSE_ENTITIES) { entity_state_t(null) }
+    // entity states - updated during processing of [PacketEntitiesMessage]
+    private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t(null) }
+
+    private var lerpFrac: Float = 0f
 
     init {
         camera.position.set(0f, 64f, 0f);
@@ -100,9 +107,37 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
     }
 
     override fun render(delta: Float) {
+        if (!precached)
+            return
+
         modelBatch.begin(camera)
-        models.forEach { (_, model) ->
-            modelBatch.render(model, environment);
+
+        // draw client entities, check jake2.client.CL_ents#AddPacketEntities
+        repeat(currentFrame.num_entities) {
+            val s1 = cl_parse_entities[parse_entities + it]
+            val cent = clientEntities[s1.number]
+            // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
+            // fixme: shouldn't be done on every from for every entity. Store in the entity_state_t?
+            if (cent.modelInstance == null) {
+                val modelIndex = s1.modelindex
+                if (modelIndex != 0) {
+                    val model = configStrings[CS_MODELS + modelIndex + 1]?.resource as? Model
+                    if (model != null) {
+                        cent.modelInstance = ModelInstance(model)
+                    }
+                }
+            }
+            val modelInstance = cent.modelInstance
+            if (modelInstance != null) {
+                val origin = s1.origin
+                val angles = s1.angles
+                modelInstance.transform.translate(origin[0], origin[1], origin[2])
+                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
+            }
+        }
+
+        clientEntities.filter { it.modelInstance != null }.forEach {
+            modelBatch.render(it.modelInstance, environment);
         }
         modelBatch.end()
         cameraInputController.update()
@@ -143,6 +178,7 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
                 }
             }
         }
+        precached = true
     }
 
     fun gatherInput(outgoingSequence: Int): MoveMessage {
@@ -409,53 +445,56 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
         sound?.play() // todo: use msg.volume, attenuation, etc
     }
 
+    /**
+     * Update entity based on the delta [update] received from server and it's previous state.
+     */
     private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
-        val ent: ClientEntity = clientEntities[newnum]
-        val state: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
+        val entity: ClientEntity = clientEntities[newnum]
+        val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
         parse_entities++
         frame.num_entities++
 
-        state.set(old)
-        state.number = newnum
-        state.event = 0
-        Math3D.VectorCopy(old.origin, state.old_origin)
+        newState.set(old)
+        newState.number = newnum
+        newState.event = 0
+        Math3D.VectorCopy(old.origin, newState.old_origin)
 
         if (update != null) {
-            state.setByFlags(update.newState, update.header.flags)
+            newState.setByFlags(update.newState, update.header.flags)
         }
 
         // some data changes will force no lerping
-        if (state.modelindex != ent.current.modelindex
-            || state.modelindex2 != ent.current.modelindex2
-            || state.modelindex3 != ent.current.modelindex3
-            || state.modelindex4 != ent.current.modelindex4
-            || abs(state.origin[0] - ent.current.origin[0]) > 512
-            || abs(state.origin[1] - ent.current.origin[1]) > 512
-            || abs(state.origin[2] - ent.current.origin[2]) > 512
-            || state.event == Defines.EV_PLAYER_TELEPORT
-            || state.event == Defines.EV_OTHER_TELEPORT) {
-            ent.serverframe = -99
+        if (newState.modelindex != entity.current.modelindex
+            || newState.modelindex2 != entity.current.modelindex2
+            || newState.modelindex3 != entity.current.modelindex3
+            || newState.modelindex4 != entity.current.modelindex4
+            || abs(newState.origin[0] - entity.current.origin[0]) > 512
+            || abs(newState.origin[1] - entity.current.origin[1]) > 512
+            || abs(newState.origin[2] - entity.current.origin[2]) > 512
+            || newState.event == Defines.EV_PLAYER_TELEPORT
+            || newState.event == Defines.EV_OTHER_TELEPORT) {
+            entity.serverframe = -99
         }
 
-        if (ent.serverframe != currentFrame.serverframe - 1) {
-            // wasn't in last update, so initialize some things
-            ent.trailcount = 1024 // for diminishing rocket / grenade trails
-            // duplicate the current state so lerping doesn't hurt anything
-            ent.prev.set(state)
-            if (state.event == Defines.EV_OTHER_TELEPORT) {
-                Math3D.VectorCopy(state.origin, ent.prev.origin)
-                Math3D.VectorCopy(state.origin, ent.lerp_origin)
-            } else {
-                Math3D.VectorCopy(state.old_origin, ent.prev.origin)
-                Math3D.VectorCopy(state.old_origin, ent.lerp_origin)
-            }
-        } else { // shuffle the last state to previous
+        if (entity.serverframe == currentFrame.serverframe - 1) { // shuffle the last state to previous
             // Copy !
-            ent.prev.set(ent.current)
+            entity.prev.set(entity.current)
+        } else {
+            // wasn't in last update, so initialize some things
+            entity.trailcount = 1024 // for diminishing rocket / grenade trails
+            // duplicate the current state so lerping doesn't hurt anything
+            entity.prev.set(newState)
+            if (newState.event == Defines.EV_OTHER_TELEPORT) {
+                Math3D.VectorCopy(newState.origin, entity.prev.origin)
+                Math3D.VectorCopy(newState.origin, entity.lerp_origin)
+            } else {
+                Math3D.VectorCopy(newState.old_origin, entity.prev.origin)
+                Math3D.VectorCopy(newState.old_origin, entity.lerp_origin)
+            }
         }
-        ent.serverframe = currentFrame.serverframe
+        entity.serverframe = currentFrame.serverframe
         // Copy !
-        ent.current.set(state)
+        entity.current.set(newState) // fixme: use assignment instead of copying fields?
     }
 }
 
