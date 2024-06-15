@@ -110,34 +110,36 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
         if (!precached)
             return
 
-        modelBatch.begin(camera)
+        models.clear()
 
         // draw client entities, check jake2.client.CL_ents#AddPacketEntities
-        repeat(currentFrame.num_entities) {
+        repeat(currentFrame.num_entities) { // clientEntities.forEach {...
             val s1 = cl_parse_entities[parse_entities + it]
             val cent = clientEntities[s1.number]
             // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
             // fixme: shouldn't be done on every from for every entity. Store in the entity_state_t?
-            if (cent.modelInstance == null) {
+            if (cent.modelInstance == null) { // fixme: move to post packet entities
                 val modelIndex = s1.modelindex
                 if (modelIndex != 0) {
                     val model = configStrings[CS_MODELS + modelIndex + 1]?.resource as? Model
                     if (model != null) {
                         cent.modelInstance = ModelInstance(model)
+                        // todo: apply entity transform to the model instance
                     }
                 }
             }
             val modelInstance = cent.modelInstance
             if (modelInstance != null) {
-                val origin = s1.origin
-                val angles = s1.angles
-                modelInstance.transform.translate(origin[0], origin[1], origin[2])
+                models[cent.current.number] = modelInstance
+//                val origin = s1.origin
+//                val angles = s1.angles
+//                modelInstance.transform.translate(origin[0], origin[1], origin[2])
                 // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
             }
         }
-
-        clientEntities.filter { it.modelInstance != null }.forEach {
-            modelBatch.render(it.modelInstance, environment);
+        modelBatch.begin(camera)
+        models.forEach {
+            modelBatch.render(it.value, environment);
         }
         modelBatch.end()
         cameraInputController.update()
@@ -160,8 +162,9 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
         val mapName = configStrings[CS_MODELS + 1]?.value
         // mapName already has 'maps/' prefix
         val mapFile = File("$basedir/$gameName/$mapName") // todo: cache
-        val brushModels = BspLoader("$basedir/$gameName/").loadBspModelTextured(mapFile)
-        models[0] = brushModels.first()
+        val brushModels = BspLoader("$basedir/$gameName/").loadBspModels(mapFile)
+        // models[0] = ModelInstance(brushModels.first())
+        // fixme: where are entities are instantiated?
         // todo: use other models
 
         // load sounds starting from CS_SOUNDS until MAX_SOUNDS
@@ -345,71 +348,71 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments
      */
     override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
-        currentFrame.parse_entities = parse_entities
+        currentFrame.parse_entities = parse_entities // save ring buffer head
         currentFrame.num_entities = 0
 
         // delta from the entities present in oldframe
         val oldFrame = previousFrame
-        var oldnum = 99999
+        var entityIdOldFrame = 99999
         var oldstate: entity_state_t? = null
 
         if (oldFrame != null) {
             oldstate = cl_parse_entities[oldFrame.parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
-            oldnum = oldstate.number
+            entityIdOldFrame = oldstate.number
         } else {
             // uncompressed frame: no delta required
         }
         var oldindex = 0
         msg.updates.forEach { update ->
             // while we haven't reached entities in the new frame
-            val newEntityIndex = update.header.number
-            while (oldnum < newEntityIndex) {
+            val entityIdNewFrame = update.header.number
+            while (entityIdOldFrame < entityIdNewFrame) {
                 // one or more entities from the old packet are unchanged,
                 // copy them to the new frame
-                DeltaEntity(currentFrame, oldnum, oldstate!!, null)
+                DeltaEntity(currentFrame, entityIdOldFrame, oldstate!!, null)
                 // fixme: same piece of code asdf123
                 oldindex++
                 if (oldindex >= previousFrame!!.num_entities) {
-                    oldnum = 99999
+                    entityIdOldFrame = 99999
                 } else {
                     oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    oldnum = oldstate!!.number
+                    entityIdOldFrame = oldstate!!.number
                 }
             }
 
             // oldnum is either 99999 or has reached newnum value
             if ((update.header.flags and Defines.U_REMOVE) != 0) {
                 // the entity present in oldframe is not in the current frame
-                // fixme: assert oldnum == u.header.number
+                // fixme: assert entityIdOldFrame == u.header.number
                 // otherwise we are removing (=not including it in the new frame) an entity that wasn't there O_o
 
                 // fixme: same piece of code asdf123
                 oldindex++
                 if (oldindex >= previousFrame!!.num_entities) {
-                    oldnum = 99999
+                    entityIdOldFrame = 99999
                 } else {
                     oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    oldnum = oldstate!!.number
+                    entityIdOldFrame = oldstate!!.number
                 }
-                return@forEach
+                return@forEach //
             }
 
-            if (oldnum == newEntityIndex) {
+            if (entityIdOldFrame == entityIdNewFrame) {
                 // delta from previous state
 
-                DeltaEntity(currentFrame, newEntityIndex, oldstate!!, update)
+                DeltaEntity(currentFrame, entityIdNewFrame, oldstate!!, update)
                 // fixme: same piece of code asdf123
                 oldindex++
                 if (oldindex >= previousFrame!!.num_entities) {
-                    oldnum = 99999
+                    entityIdOldFrame = 99999
                 } else {
                     oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    oldnum = oldstate!!.number
+                    entityIdOldFrame = oldstate!!.number
                 }
 
-            } else if (oldnum > newEntityIndex) {
+            } else if (entityIdOldFrame > entityIdNewFrame) {
                 // delta from baseline
-                DeltaEntity(currentFrame, newEntityIndex, clientEntities[newEntityIndex].baseline, update)
+                DeltaEntity(currentFrame, entityIdNewFrame, clientEntities[entityIdNewFrame].baseline, update)
             }
         }
 
@@ -417,15 +420,15 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
          any remaining entities in the old frame are copied over,
          one or more entities from the old packet are unchanged
         */
-        while (oldnum != 99999) {
-            DeltaEntity(currentFrame, oldnum, oldstate!!, null);
+        while (entityIdOldFrame != 99999) {
+            DeltaEntity(currentFrame, entityIdOldFrame, oldstate!!, null);
             // fixme: same piece of code asdf123
             oldindex++
             if (oldindex >= previousFrame!!.num_entities) {
-                oldnum = 99999
+                entityIdOldFrame = 99999
             } else {
                 oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                oldnum = oldstate!!.number
+                entityIdOldFrame = oldstate!!.number
             }
 
         }
@@ -450,8 +453,9 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
      */
     private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
         val entity: ClientEntity = clientEntities[newnum]
+        // parse_entities now points to the last state from last frame
         val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
-        parse_entities++
+        parse_entities++ // we will need this for the next frame
         frame.num_entities++
 
         newState.set(old)
@@ -495,6 +499,14 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
         entity.serverframe = currentFrame.serverframe
         // Copy !
         entity.current.set(newState) // fixme: use assignment instead of copying fields?
+    }
+
+    // create/modify model instances
+    // apply entity transform to the model instance
+    fun postReceive() {
+        // entities in the current frame
+        
+        // todo
     }
 }
 

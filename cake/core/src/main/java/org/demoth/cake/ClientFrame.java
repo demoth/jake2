@@ -23,9 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package org.demoth.cake;
 
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.player_state_t;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * frame_t
@@ -42,6 +44,8 @@ public class ClientFrame {
 	public 		player_state_t playerstate = new player_state_t(); // mem
 	public int				num_entities;
 	public int				parse_entities;	// non-masked index into cl_parse_entities array
+	public List<entity_state_t> entityStates; // todo
+	// num_entities = entityStates.size
 		
 	public void set(ClientFrame from) {
 		valid = from.valid;

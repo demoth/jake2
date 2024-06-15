@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g3d.Material
+import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
@@ -16,7 +17,28 @@ import java.io.File
 import java.nio.ByteBuffer
 
 class BspLoader(val gameDir: String) {
-    fun loadBspModelTextured(file: File): List<ModelInstance> {
+
+    fun loadBspModelInstances(file: File): List<ModelInstance> {
+/*
+        return loadBspModels(file).mapIndexed { i, it ->
+            val instance = ModelInstance(it)
+            instance.transformQ2toLibgdx()
+
+            // some brush models need their position to be adjusted based on the origin of the respective entity
+            if (i != 0) { // skip worldspawn
+                // find an entity by model index
+                val entity = bsp.entities.find { it.entries.any { (k, v) -> k == "model" && v == "*$i" } }
+                val origin = entity?.get("origin")?.split(" ")?.map { it.toFloat() }
+                if (origin != null) {
+                    instance.transform.translate(origin[0], origin[1], origin[2])
+                }
+            }
+            instance
+        }
+*/
+    }
+
+    fun loadBspModels(file: File): List<Model> {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
 
@@ -82,20 +104,7 @@ class BspLoader(val gameDir: String) {
                     meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
                 }
             }
-
-            val instance = ModelInstance(modelBuilder.end())
-            instance.transformQ2toLibgdx()
-
-            // some brush models need their position to be adjusted based on the origin of the respective entity
-            if (i != 0) { // skip worldspawn
-                // find an entity by model index
-                val entity = bsp.entities.find { it.entries.any { (k,v) -> k == "model" && v == "*$i" } }
-                val origin = entity?.get("origin")?.split(" ")?.map { it.toFloat() }
-                if (origin != null) {
-                    instance.transform.translate(origin[0], origin[1], origin[2])
-                }
-            }
-            instance
+            modelBuilder.end()
         }
     }
 

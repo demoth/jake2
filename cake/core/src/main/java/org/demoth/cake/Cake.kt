@@ -407,6 +407,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                             // todo: check the rest of the player view related code from jake2.client.CL_ents#parsePacketEntities
                         }
                     }
+                    game3dScreen?.postReceive()
                 }
                 is PlayerInfoMessage -> {
                     game3dScreen?.processPlayerInfoMessage(msg)
