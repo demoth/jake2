@@ -52,7 +52,7 @@ data class Config(var value: String, var resource: Disposable? = null)
  * This class is responsible for drawing 3d models, hud, process inputs and play sounds.
  * Also, it is responsible for loading/disposing of the required resources
  */
-class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
+class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var precached: Boolean = false
 
     // enitity id -> model
@@ -507,6 +507,43 @@ class Game3dScreen : KtxScreen, KtxInputAdapter, ServerMessageProcessor {
         // entities in the current frame
         
         // todo
+    }
+
+    // client only movement: temporary
+    override fun keyDown(keycode: Int): Boolean {
+        return cameraInputController.keyDown(keycode)
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        return cameraInputController.keyUp(keycode)
+    }
+
+    override fun keyTyped(character: Char): Boolean {
+        return cameraInputController.keyTyped(character)
+    }
+
+    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return cameraInputController.touchDown(screenX, screenY, pointer, button)
+    }
+
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return cameraInputController.touchUp(screenX, screenY, pointer, button)
+    }
+
+    override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return cameraInputController.touchCancelled(screenX, screenY, pointer, button)
+    }
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        return cameraInputController.touchDragged(screenX, screenY, pointer)
+    }
+
+    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        return cameraInputController.mouseMoved(screenX, screenY)
+    }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        return cameraInputController.scrolled(amountX, amountY)
     }
 }
 
