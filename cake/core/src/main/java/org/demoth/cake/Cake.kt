@@ -7,8 +7,10 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
-import jake2.qcommon.*
+import jake2.qcommon.Com
+import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
+import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
@@ -74,49 +76,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
 
-        Gdx.input.inputProcessor = InputMultiplexer(
-            this, // global input processor to control console and menu
-            consoleStage,
-            menuStage,
-            // delegate the rest to the current 3d screen
-            object: InputProcessor {
-                override fun keyDown(keycode: Int): Boolean {
-                    return game3dScreen?.keyDown(keycode) ?: false
-                }
-
-                override fun keyUp(keycode: Int): Boolean {
-                    return game3dScreen?.keyUp(keycode) ?: false
-                }
-
-                override fun keyTyped(character: Char): Boolean {
-                    return game3dScreen?.keyTyped(character) ?: false
-                }
-
-                override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchDown(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchUp(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchCancelled(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-                    return game3dScreen?.touchDragged(screenX, screenY, pointer) ?: false
-                }
-
-                override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-                    return game3dScreen?.mouseMoved(screenX, screenY) ?: false
-                }
-
-                override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                    return game3dScreen?.scrolled(amountX, amountY) ?: false
-                }
-            }
-        )
+        updateInputHandlers(false, true, false)
 
 
         Cmd.AddCommand("quit") {
@@ -191,6 +151,62 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
+    private fun updateInputHandlers(console: Boolean, menu: Boolean, game: Boolean) {
+        val handlers = ArrayList<InputProcessor>()
+        if (console) {
+            handlers.add(consoleStage)
+        }
+        if (menu) {
+            handlers.add(menuStage)
+        }
+        // delegate the rest to the current 3d screen
+        if (game) {
+            handlers.add(
+                object : InputProcessor {
+                    override fun keyDown(keycode: Int): Boolean {
+                        return game3dScreen?.keyDown(keycode) ?: false
+                    }
+
+                    override fun keyUp(keycode: Int): Boolean {
+                        return game3dScreen?.keyUp(keycode) ?: false
+                    }
+
+                    override fun keyTyped(character: Char): Boolean {
+                        return game3dScreen?.keyTyped(character) ?: false
+                    }
+
+                    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                        return game3dScreen?.touchDown(screenX, screenY, pointer, button) ?: false
+                    }
+
+                    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                        return game3dScreen?.touchUp(screenX, screenY, pointer, button) ?: false
+                    }
+
+                    override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                        return game3dScreen?.touchCancelled(screenX, screenY, pointer, button) ?: false
+                    }
+
+                    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+                        return game3dScreen?.touchDragged(screenX, screenY, pointer) ?: false
+                    }
+
+                    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+                        return game3dScreen?.mouseMoved(screenX, screenY) ?: false
+                    }
+
+                    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+                        return game3dScreen?.scrolled(amountX, amountY) ?: false
+                    }
+                }
+            )
+        }
+        Gdx.input.inputProcessor = InputMultiplexer(
+            this, // global input processor to control console and menu
+            *handlers.toTypedArray()
+        )
+    }
+
     override fun render() {
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
@@ -252,15 +268,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 if (consoleVisible) {
                     consoleStage.focus()
                 }
-                return true
             }
             Input.Keys.ESCAPE -> {
                 consoleVisible = false
                 menuVisible = !menuVisible
-                return true
             }
             else -> return false
         }
+        updateInputHandlers(consoleVisible, menuVisible, game3dScreen != null)
+        return true
     }
 
     override fun dispose() {

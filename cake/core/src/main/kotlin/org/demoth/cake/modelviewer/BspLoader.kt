@@ -36,6 +36,7 @@ class BspLoader(val gameDir: String) {
             instance
         }
 */
+        TODO()
     }
 
     fun loadBspModels(file: File): List<Model> {
