@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g3d.Environment
@@ -14,26 +15,12 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
-import jake2.qcommon.Defines.BUTTON_ATTACK
-import jake2.qcommon.Defines.CMD_BACKUP
-import jake2.qcommon.Defines.CS_MODELS
-import jake2.qcommon.Defines.CS_SOUNDS
-import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
-import jake2.qcommon.Defines.MAX_EDICTS
-import jake2.qcommon.Defines.MAX_SOUNDS
+import jake2.qcommon.Defines.*
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.network.messages.client.MoveMessage
-import jake2.qcommon.network.messages.server.ConfigStringMessage
-import jake2.qcommon.network.messages.server.EntityUpdate
-import jake2.qcommon.network.messages.server.FrameHeaderMessage
-import jake2.qcommon.network.messages.server.PacketEntitiesMessage
-import jake2.qcommon.network.messages.server.PlayerInfoMessage
-import jake2.qcommon.network.messages.server.ServerDataMessage
-import jake2.qcommon.network.messages.server.SoundMessage
-import jake2.qcommon.network.messages.server.SpawnBaselineMessage
+import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
-import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
@@ -55,8 +42,8 @@ data class Config(var value: String, var resource: Disposable? = null)
 class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var precached: Boolean = false
 
-    // enitity id -> model
-    private val models: MutableMap<Int, ModelInstance> = mutableMapOf()
+    // model instances to be drawn - updated on every server frame
+    private val models = ArrayList<ModelInstance>()
     private val modelBatch: ModelBatch
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
@@ -102,44 +89,17 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // create camera
         camera.update()
         modelBatch = ModelBatch()
-        models[100] = createGrid(16f, 8)
-        models[101] = createOriginArrows(16f)
     }
 
     override fun render(delta: Float) {
         if (!precached)
             return
 
-        models.clear()
 
-        // draw client entities, check jake2.client.CL_ents#AddPacketEntities
-        repeat(currentFrame.num_entities) { // clientEntities.forEach {...
-            val s1 = cl_parse_entities[parse_entities + it]
-            val cent = clientEntities[s1.number]
-            // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
-            // fixme: shouldn't be done on every from for every entity. Store in the entity_state_t?
-            if (cent.modelInstance == null) { // fixme: move to post packet entities
-                val modelIndex = s1.modelindex
-                if (modelIndex != 0) {
-                    val model = configStrings[CS_MODELS + modelIndex + 1]?.resource as? Model
-                    if (model != null) {
-                        cent.modelInstance = ModelInstance(model)
-                        // todo: apply entity transform to the model instance
-                    }
-                }
-            }
-            val modelInstance = cent.modelInstance
-            if (modelInstance != null) {
-                models[cent.current.number] = modelInstance
-//                val origin = s1.origin
-//                val angles = s1.angles
-//                modelInstance.transform.translate(origin[0], origin[1], origin[2])
-                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
-            }
-        }
+
         modelBatch.begin(camera)
         models.forEach {
-            modelBatch.render(it.value, environment);
+            modelBatch.render(it, environment);
         }
         modelBatch.end()
         cameraInputController.update()
@@ -163,7 +123,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // mapName already has 'maps/' prefix
         val mapFile = File("$basedir/$gameName/$mapName") // todo: cache
         val brushModels = BspLoader("$basedir/$gameName/").loadBspModels(mapFile)
-        // models[0] = ModelInstance(brushModels.first())
+        brushModels.forEachIndexed { index, model ->
+            val configString = configStrings[CS_MODELS + index + 1]
+            check(configString != null) { "Missing brush model for ${configStrings[CS_MODELS + index + 1]?.value}" }
+            if (index != 0)
+                check(configString.value == "*$index") { "Wrong config string value for inline model" }
+            configString.resource = model
+        }
         // fixme: where are entities are instantiated?
         // todo: use other models
 
@@ -503,9 +469,42 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // create/modify model instances
     // apply entity transform to the model instance
+    // AddPacketEntities
     fun postReceive() {
+        models.clear()
+        // todo: put to a persistent client entities list?
+        models += createGrid(16f, 8)
+        models += createOriginArrows(16f)
+
         // entities in the current frame
-        
+        // draw client entities, check jake2.client.CL_ents#AddPacketEntities
+        (0..<currentFrame.num_entities).forEach { // todo: clientEntities.forEach {...
+            val s1 = cl_parse_entities[parse_entities + it and (Defines.MAX_PARSE_ENTITIES - 1)]
+            val cent = clientEntities[s1.number]
+            // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
+            // fixme: shouldn't be done on every from for every entity.
+            // Store in the entity_state_t?
+            if (cent.modelInstance == null) {
+                val modelIndex = s1.modelindex
+                if (modelIndex != 0) {
+                    val model = configStrings[CS_MODELS + modelIndex + 1]?.resource as? Model
+                    if (model != null) {
+                        cent.modelInstance = ModelInstance(model)
+                        // todo: apply entity transform to the model instance
+                    }
+                }
+            }
+            val modelInstance = cent.modelInstance
+            if (modelInstance != null) {
+                val origin = s1.origin
+                modelInstance.transform.translate(origin[0], origin[1], origin[2])
+
+                models += modelInstance
+//                val angles = s1.angles
+                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
+            }
+        }
+
         // todo
     }
 
