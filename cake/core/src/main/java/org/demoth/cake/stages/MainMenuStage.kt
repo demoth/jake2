@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cbuf
@@ -31,7 +30,7 @@ class MainMenuStage(viewport: Viewport) : Stage(viewport) {
                 row()
                 textButton("Exit") {
                     onClick {
-                        Gdx.app.exit()
+                        Cbuf.AddText("quit")
                     }
                 }
             }
