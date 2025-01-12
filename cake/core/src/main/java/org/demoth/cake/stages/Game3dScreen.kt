@@ -167,6 +167,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             cmd.forwardmove = 100 // todo: calculate based on client prediction
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+            cmd.forwardmove = -100 // todo: calculate based on client prediction
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            cmd.sidemove = -100 // todo: calculate based on client prediction
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            cmd.sidemove = 100 // todo: calculate based on client prediction
+        }
         cmd.msec = 16 // todo: calculate
         // deliver the message
         return MoveMessage(
