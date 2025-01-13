@@ -418,8 +418,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val sound = configStrings[msg.soundIndex]?.resource as? Sound
-        println("Playing sound ${msg.soundIndex} ${sound}")
+        val config = configStrings[Defines.CS_SOUNDS + msg.soundIndex]
+        val sound = config?.resource as? Sound
+        println("Playing sound ${msg.soundIndex} (${config?.value}")
         sound?.play() // todo: use msg.volume, attenuation, etc
     }
 
