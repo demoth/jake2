@@ -116,6 +116,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Println("Userinfo: $userInfo")
         }
 
+        Cmd.AddCommand("jvm_info") {
+            Com.Println("Version: ${Runtime.version()}")
+            val rt = Runtime.getRuntime()
+            Com.Println("Free: ${rt.freeMemory() / 1024 / 1024} MB")
+            Com.Println("Used: ${(rt.totalMemory() - rt.freeMemory()) / 1024 / 1024} MB")
+            Com.Println("Total: ${rt.totalMemory() / 1024 / 1024} MB")
+            Com.Println("Max: ${rt.maxMemory() / 1024 / 1024} MB")
+        }
+
+
         Cmd.AddCommand("print_cbuf") {
             Com.Println(Cbuf.contents())
         }
