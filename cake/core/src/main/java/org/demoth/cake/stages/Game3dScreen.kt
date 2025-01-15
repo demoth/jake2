@@ -489,7 +489,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // entities in the current frame
         // draw client entities, check jake2.client.CL_ents#AddPacketEntities
         (0..<currentFrame.num_entities).forEach { // todo: clientEntities.forEach {...
-            val s1 = cl_parse_entities[parse_entities + it and (Defines.MAX_PARSE_ENTITIES - 1)]
+            val s1 = cl_parse_entities[currentFrame.parse_entities + it and (MAX_PARSE_ENTITIES - 1)]
             val cent = clientEntities[s1.number]
             // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
             // fixme: shouldn't be done on every from for every entity.
