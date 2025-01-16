@@ -26,12 +26,12 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                 setFillParent(true)
                 container {
                     it.growY()
-                    consoleOutput = textArea("console text")
+                    consoleOutput = textArea()
                     fill()
                 }
                 row()
                 container {
-                    consoleInput = textField("connect 127.0.0.1")
+                    consoleInput = textField()
                     consoleInput.addListener(object : InputListener() {
                         override fun keyUp(event: InputEvent, keycode: Int): Boolean {
                             if (keycode == Input.Keys.ENTER) {
