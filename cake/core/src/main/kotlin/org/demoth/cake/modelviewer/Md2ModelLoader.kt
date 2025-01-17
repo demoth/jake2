@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class Md2ModelLoader {
-    fun loadMd2Model(modelFile: File): ModelInstance {
+    fun loadMd2Model(modelFile: File): ModelInstance { // fixme: should return Model instead, model instance can be created externally
         val md2Model: Md2Model = readMd2Model(modelFile.absolutePath)
         // strip skin names and expect them to be located along with the .md2 file
         val skins = md2Model.skinNames.map {

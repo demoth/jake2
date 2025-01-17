@@ -130,8 +130,25 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
         }
-        // fixme: where are entities are instantiated?
-        // todo: use other models
+
+        // load md2 models
+        // index of md2 models in the config string
+        val startIndex = CS_MODELS + brushModels.size // +1 and -1
+        for (i in 1 until MAX_MODELS) {
+            configStrings[startIndex + i]?.let { s ->
+                if (s.value.isNotEmpty()) {
+                    if (s.value.startsWith("#")) {
+                        // TODO: handle view models separately
+                    } else {
+                        // /models/ is already part of the value (in contrast to sounds)
+                        val file = File("$basedir/$gameName/${s.value}")
+                        println("Model for $s exists: ${file.exists()}")
+                        // TODO: load the model
+                        // s.resource = Md2ModelLoader().loadMd2Model(file)
+                    }
+                }
+            }
+        }
 
         // load sounds starting from CS_SOUNDS until MAX_SOUNDS
         for (i in 1 until MAX_SOUNDS) {
