@@ -28,6 +28,7 @@ import org.demoth.cake.ServerMessageProcessor
 import org.demoth.cake.modelviewer.BspLoader
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
+import org.demoth.cake.modelviewer.transformQ2toLibgdx
 import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
@@ -45,6 +46,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // model instances to be drawn - updated on every server frame
     private val models = ArrayList<ModelInstance>()
     private val modelBatch: ModelBatch
+    private var levelModel: ModelInstance? = null
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
     private val cameraInputController = CameraInputController(camera)
@@ -130,6 +132,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
         }
+
+        // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
+        levelModel = ModelInstance(brushModels.first()).transformQ2toLibgdx()
 
         // load md2 models
         // index of md2 models in the config string
@@ -502,6 +507,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // todo: put to a persistent client entities list?
         models += createGrid(16f, 8)
         models += createOriginArrows(16f)
+        if (levelModel != null) {
+            models += levelModel!!
+        }
 
         // entities in the current frame
         // draw client entities, check jake2.client.CL_ents#AddPacketEntities

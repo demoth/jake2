@@ -43,7 +43,7 @@ class BspLoader(val gameDir: String) {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
 
-        // create libgdx model instances from bsp models
+        // create libgdx models from bsp models
         return bsp.models.mapIndexed { i, model ->
             val modelBuilder = ModelBuilder()
             modelBuilder.begin()
