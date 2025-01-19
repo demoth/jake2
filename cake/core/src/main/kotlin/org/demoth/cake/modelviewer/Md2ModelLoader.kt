@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttribute
 import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.g3d.Material
-import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Md2Model
@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class Md2ModelLoader {
-    fun loadMd2Model(modelFile: File): ModelInstance { // fixme: should return Model instead, model instance can be created externally
+    fun loadMd2Model(modelFile: File): Model { // fixme: should return Model instead, model instance can be created externally
         val md2Model: Md2Model = readMd2Model(modelFile.absolutePath)
         // strip skin names and expect them to be located along with the .md2 file
         val skins = md2Model.skinNames.map {
@@ -47,9 +47,7 @@ class Md2ModelLoader {
         )
         val size = vertexBuffer.size / 5 // 5 floats per vertex : fixme: not great
         meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
-
-        val model = modelBuilder.end()
-        return ModelInstance(model)
+        return modelBuilder.end()
     }
 
     fun readMd2Model(modelPath: String): Md2Model {

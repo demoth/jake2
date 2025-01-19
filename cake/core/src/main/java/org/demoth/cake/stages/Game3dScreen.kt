@@ -25,10 +25,7 @@ import ktx.app.KtxScreen
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.ServerMessageProcessor
-import org.demoth.cake.modelviewer.BspLoader
-import org.demoth.cake.modelviewer.createGrid
-import org.demoth.cake.modelviewer.createOriginArrows
-import org.demoth.cake.modelviewer.transformQ2toLibgdx
+import org.demoth.cake.modelviewer.*
 import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
@@ -149,7 +146,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                         val file = File("$basedir/$gameName/${s.value}")
                         println("Model for $s exists: ${file.exists()}")
                         // TODO: load the model
-                        // s.resource = Md2ModelLoader().loadMd2Model(file)
+                        s.resource = Md2ModelLoader().loadMd2Model(file)
                     }
                 }
             }
@@ -522,9 +519,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             if (cent.modelInstance == null) {
                 val modelIndex = s1.modelindex
                 if (modelIndex != 0) {
-                    val model = configStrings[CS_MODELS + modelIndex + 1]?.resource as? Model
+                    val model = configStrings[CS_MODELS + modelIndex]?.resource as? Model
                     if (model != null) {
-                        cent.modelInstance = ModelInstance(model)
+                        cent.modelInstance = ModelInstance(model).transformQ2toLibgdx()
                         // todo: apply entity transform to the model instance
                     }
                 }
@@ -532,11 +529,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val modelInstance = cent.modelInstance
             if (modelInstance != null) {
                 val origin = s1.origin
-                modelInstance.transform.translate(origin[0], origin[1], origin[2])
+                // set the model instance potision as origin
+                modelInstance.transform.setTranslation(origin[0], origin[2], origin[1])
 
-                models += modelInstance
+                models += modelInstance // .transformQ2toLibgdx()
 //                val angles = s1.angles
-                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
+//                modelInstance.transform.rotate(angles[0], angles[1], angles[2])
             }
         }
 
