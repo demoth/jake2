@@ -249,7 +249,6 @@ fun createOriginArrows(size: Float): ModelInstance {
 
 // fix axis difference between q2 (z up) and libGDX (y up)
 fun ModelInstance.transformQ2toLibgdx(): ModelInstance {
-    this.transform.rotate(Vector3(1f, 0f, 0f), -90f)
-    this.transform.rotate(Vector3(0f, 0f, 1f), 90f)
+    this.transform.rotate(Vector3.X, -90f)
     return this
 }

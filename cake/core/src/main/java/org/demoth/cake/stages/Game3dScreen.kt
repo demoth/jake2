@@ -529,12 +529,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val modelInstance = cent.modelInstance
             if (modelInstance != null) {
                 val origin = s1.origin
-                // set the model instance potision as origin
-                modelInstance.transform.setTranslation(origin[0], origin[2], origin[1])
-
-                models += modelInstance // .transformQ2toLibgdx()
-//                val angles = s1.angles
-//                modelInstance.transform.rotate(angles[0], angles[1], angles[2])
+                // set the model instance position as origin
+                // transform the translation vector from q2 to libgdx
+                modelInstance.transform.setTranslation(origin[0], origin[2], -origin[1])
+                // todo: apply rotation
+                // val angles = s1.angles
+                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
+                models += modelInstance
             }
         }
 
