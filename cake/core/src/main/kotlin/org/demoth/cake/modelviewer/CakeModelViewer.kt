@@ -66,7 +66,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                models.add(ModelInstance(Md2ModelLoader().loadMd2Model(file)).transformQ2toLibgdx())
+                models.add(ModelInstance(Md2ModelLoader().loadMd2Model(file)))
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -233,22 +233,20 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 }
 fun createGrid(size: Float, divisions: Int): ModelInstance {
     val modelBuilder = ModelBuilder()
+    // grid is in XZ plane
     val lineGrid = modelBuilder.createLineGrid(
         divisions, divisions, size, size, Material(
             ColorAttribute.createDiffuse(Color.GREEN)
         ), (Usage.Position or Usage.ColorUnpacked).toLong()
     )
-    return ModelInstance(lineGrid)
+    return ModelInstance(lineGrid).apply {
+        // rotate into XY plane
+        transform.rotate(Vector3.X, -90f)
+    }
 }
 
 fun createOriginArrows(size: Float): ModelInstance {
     val modelBuilder = ModelBuilder()
     val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
     return ModelInstance(origin)
-}
-
-// fix axis difference between q2 (z up) and libGDX (y up)
-fun ModelInstance.transformQ2toLibgdx(): ModelInstance {
-    //this.transform.rotate(Vector3.X, -90f)
-    return this
 }
