@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
+import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -46,7 +47,27 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var levelModel: ModelInstance? = null
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-    private val cameraInputController = CameraInputController(camera)
+
+    // todo: extract into a separate class, will be useful for the model viewer
+    private val cameraInputController = object : CameraInputController(camera) {
+        private val tmpV1 = Vector3()
+        init {
+            translateUnits = 500f
+        }
+
+        override fun process(deltaX: Float, deltaY: Float, button: Int): Boolean {
+            if (button == rotateButton) {
+                // PITCH: rotate around local "right" axis
+                tmpV1.set(camera.direction).crs(camera.up).nor()
+                camera.rotateAround(target, tmpV1, deltaY * rotateAngle)
+
+                // YAW: rotate around global Z (which we've set as up)
+                camera.rotateAround(target, Vector3.Z, -deltaX * rotateAngle)
+                if (autoUpdate) camera.update()
+            } else super.process(deltaX, deltaY, button)
+            return true
+        }
+    }
 
     /**
      * Store all configuration related to the current map.
@@ -77,13 +98,14 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var lerpFrac: Float = 0f
 
     init {
-        camera.position.set(0f, 64f, 0f);
-        camera.lookAt(64f, 32f, 64f);
+        camera.position.set(0f, 0f, 0f);
         camera.near = 1f
         camera.far = 4096f
+        camera.up.set(0f, 0f, 1f) // make z up
+        camera.direction.set(0f, 1f, 0f) // make y forward
 
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
-        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f))
+        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
         // create camera
         camera.update()
@@ -145,7 +167,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                         // /models/ is already part of the value (in contrast to sounds)
                         val file = File("$basedir/$gameName/${s.value}")
                         println("Model for $s exists: ${file.exists()}")
-                        // TODO: load the model
                         s.resource = Md2ModelLoader().loadMd2Model(file)
                     }
                 }
@@ -531,7 +552,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 val origin = s1.origin
                 // set the model instance position as origin
                 // transform the translation vector from q2 to libgdx
-                modelInstance.transform.setTranslation(origin[0], origin[2], -origin[1])
+                modelInstance.transform.setTranslation(origin[0], origin[1], origin[2])
                 // todo: apply rotation
                 // val angles = s1.angles
                 // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
