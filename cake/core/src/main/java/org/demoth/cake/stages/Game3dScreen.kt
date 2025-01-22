@@ -153,7 +153,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
-        levelModel = ModelInstance(brushModels.first()).transformQ2toLibgdx()
+        levelModel = ModelInstance(brushModels.first())
 
         // load md2 models
         // index of md2 models in the config string
@@ -542,7 +542,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 if (modelIndex != 0) {
                     val model = configStrings[CS_MODELS + modelIndex]?.resource as? Model
                     if (model != null) {
-                        cent.modelInstance = ModelInstance(model).transformQ2toLibgdx()
+                        cent.modelInstance = ModelInstance(model)
                         // todo: apply entity transform to the model instance
                     }
                 }
