@@ -219,6 +219,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun render() {
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
+        game3dScreen?.deltaTime = deltaSeconds
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f, true)
 
         CheckForResend(deltaSeconds)

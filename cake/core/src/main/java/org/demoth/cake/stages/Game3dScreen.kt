@@ -26,7 +26,10 @@ import ktx.app.KtxScreen
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.ServerMessageProcessor
-import org.demoth.cake.modelviewer.*
+import org.demoth.cake.modelviewer.BspLoader
+import org.demoth.cake.modelviewer.Md2ModelLoader
+import org.demoth.cake.modelviewer.createGrid
+import org.demoth.cake.modelviewer.createOriginArrows
 import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
@@ -42,11 +45,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var precached: Boolean = false
 
     // model instances to be drawn - updated on every server frame
-    private val models = ArrayList<ModelInstance>()
+    private val models = ArrayList<ClientEntity>()
     private val modelBatch: ModelBatch
-    private var levelModel: ModelInstance? = null
+    private var levelModel: ClientEntity? = null
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+
+    var deltaTime: Float = 0f
 
     // todo: extract into a separate class, will be useful for the model viewer
     private val cameraInputController = object : CameraInputController(camera) {
@@ -120,7 +125,14 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         modelBatch.begin(camera)
         models.forEach {
-            modelBatch.render(it, environment);
+
+            // apply client side effects
+            if (it.current.effects and EF_ROTATE != 0) {
+                // rotate the model Instance, should to 180 degrees in 1 second
+                it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
+            }
+
+            modelBatch.render(it.modelInstance, environment);
         }
         modelBatch.end()
         cameraInputController.update()
@@ -153,7 +165,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
-        levelModel = ModelInstance(brushModels.first())
+        levelModel = ClientEntity().apply {
+            modelInstance = ModelInstance(brushModels.first())
+        }
 
         // load md2 models
         // index of md2 models in the config string
@@ -523,8 +537,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     fun postReceive() {
         models.clear()
         // todo: put to a persistent client entities list?
-        models += createGrid(16f, 8)
-        models += createOriginArrows(16f)
+        models += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
+        models += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
         if (levelModel != null) {
             models += levelModel!!
         }
@@ -556,7 +570,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 // todo: apply rotation
                 // val angles = s1.angles
                 // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
-                models += modelInstance
+                models += cent
             }
         }
 
