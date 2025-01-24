@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
@@ -50,7 +49,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
-    private val cameraRotationSpeed = 30f // degrees per second
+    private val cameraRotationSpeed = 140f // degrees per second
+    private var localYaw: Float? = null
 
     var deltaTime: Float = 0f
 
@@ -208,26 +208,31 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             cmd.forwardmove = -100 // todo: calculate based on client prediction
         }
 
+        // degrees
+        // If we haven't initialized yet, do so
+        if (localYaw == null) {
+            localYaw = currentFrame.playerstate.viewangles[YAW]
+        }
+
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             var delta = deltaTime * cameraRotationSpeed
-            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
                 delta *= -1
             }
 
-            // degrees
-            var yaw = MathUtils.atan2(camera.direction.y, camera.direction.x) * MathUtils.radiansToDegrees
+            localYaw = localYaw!! + delta
 
-            yaw += delta
+            // wrap
+            if (localYaw!! <= 0f)    localYaw = localYaw!! + 360f
+            if (localYaw!! >= 360f)  localYaw = localYaw!! - 360f
 
-            if (yaw < 0)
-                yaw += 360f
-            else if (yaw >= 360f)
-                yaw -= 360f
-
-            cmd.angles[1] = Math3D.ANGLE2SHORT(yaw).toShort()
-
-            println("Current yaw=${yaw}, delta=${delta}, short=${cmd.angles[1]}")
+            println("Current yaw=${localYaw!!}, delta=${delta}, serverYaw=${currentFrame.playerstate.viewangles[YAW]}")
         }
+
+        cmd.angles[PITCH] = 0
+        cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw!!).toShort()
+        cmd.angles[ROLL] = 0
+
         cmd.msec = 16 // todo: calculate
         // deliver the message
         return MoveMessage(
@@ -243,19 +248,16 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     fun updatePlayerView() {
         // move camera to current player state origin
 
-
         val x = currentFrame.playerstate.viewoffset[0] + (currentFrame.playerstate.pmove.origin[0]) * 0.125f
         val y = currentFrame.playerstate.viewoffset[1] + (currentFrame.playerstate.pmove.origin[1]) * 0.125f
         val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
         camera.position.set(x, y, z)
 
-        // update camera
-        val pitch = currentFrame.playerstate.viewangles[PITCH]
-        val yaw = currentFrame.playerstate.viewangles[YAW]
-        val roll = currentFrame.playerstate.viewangles[ROLL]
-
-        val rotation: Vector3 = quakeForward(pitch, yaw, roll)
-        camera.direction.set(rotation)
+        if (localYaw != null) {
+            val yaw = localYaw!!
+            val rotation: Vector3 = quakeForward(0f, yaw, 0f)
+            camera.direction.set(rotation)
+        }
 
         camera.update()
     }
@@ -510,7 +512,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun processSoundMessage(msg: SoundMessage) {
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound // else warning?
-        println("Playing sound ${msg.soundIndex} (${config?.value}")
+        println("Playing sound ${msg.soundIndex} (${config?.value})")
         sound?.play() // todo: use msg.volume, attenuation, etc
     }
 
