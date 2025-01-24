@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
+import org.demoth.cake.clientcommon.FlyingCameraController
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -82,41 +83,12 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        camera.position.set(0f, 64f, 0f);
+        camera.position.set(0f, 0f, 0f);
         camera.lookAt(64f, 32f, 64f);
         camera.near = 1f
         camera.far = 4096f
 
-        cameraInputController = object : CameraInputController(camera) {
-            val movementDirection = Vector3()
-
-            override fun update() {
-                // WASD movement
-                if (rotateRightPressed || rotateLeftPressed || forwardPressed || backwardPressed) {
-                    movementDirection.set(0f, 0f, 0f)
-                    if (rotateRightPressed) {
-                        movementDirection.set(camera.direction)
-                        movementDirection.crs(camera.up)
-                        movementDirection.scl(-1f)
-                    } else if (rotateLeftPressed) {
-                        movementDirection.set(camera.direction)
-                        movementDirection.crs(camera.up)
-                    }
-                    if (forwardPressed) {
-                        movementDirection.add(camera.direction)
-                    } else if (backwardPressed) {
-                        movementDirection.add(-camera.direction.x, -camera.direction.y, -camera.direction.z)
-                    }
-                    movementDirection.nor()//malize
-                    camera.translate(movementDirection.scl(Gdx.graphics.deltaTime * translateUnits))
-                    target.add(movementDirection)
-
-                }
-            }
-        }.also {
-            it.scrollFactor = -1.5f
-            it.translateUnits = 500f
-        }
+        cameraInputController = FlyingCameraController(camera)
         Gdx.input.inputProcessor = cameraInputController
         modelBatch = ModelBatch()
 

@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -23,6 +22,7 @@ import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import org.demoth.cake.*
+import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.BspLoader
 import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.createGrid
@@ -48,26 +48,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     var deltaTime: Float = 0f
 
-    // todo: extract into a separate class, will be useful for the model viewer
-    private val cameraInputController = object : CameraInputController(camera) {
-        private val tmpV1 = Vector3()
-        init {
-            translateUnits = 500f
-        }
-
-        override fun process(deltaX: Float, deltaY: Float, button: Int): Boolean {
-            if (button == rotateButton) {
-                // PITCH: rotate around local "right" axis
-                tmpV1.set(camera.direction).crs(camera.up).nor()
-                camera.rotateAround(target, tmpV1, deltaY * rotateAngle)
-
-                // YAW: rotate around global Z (which we've set as up)
-                camera.rotateAround(target, Vector3.Z, -deltaX * rotateAngle)
-                if (autoUpdate) camera.update()
-            } else super.process(deltaX, deltaY, button)
-            return true
-        }
-    }
+    private val cameraInputController = FlyingCameraController(camera)
 
     private val gameConfig = GameConfiguration()
 
@@ -111,8 +92,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun render(delta: Float) {
         if (!precached)
             return
-
-
 
         modelBatch.begin(camera)
         models.forEach {
