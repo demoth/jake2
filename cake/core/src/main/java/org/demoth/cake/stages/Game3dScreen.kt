@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -30,6 +31,8 @@ import org.demoth.cake.modelviewer.createOriginArrows
 import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Represents the 3d screen where the game is actually happening.
@@ -226,8 +229,35 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             currentFrame.playerstate.pmove.origin[1] * 0.125f,
             currentFrame.playerstate.pmove.origin[2] * 0.125f
         )
+
+        // update camera
+        val pitch = currentFrame.playerstate.viewangles[PITCH]
+        val yaw = currentFrame.playerstate.viewangles[YAW]
+        val roll = currentFrame.playerstate.viewangles[ROLL]
+
+        val rotation: Vector3 = quakeForward(pitch, yaw, roll)
+        camera.direction.set(rotation)
+
         camera.update()
     }
+
+    private fun quakeForward(pitchDeg: Float, yawDeg: Float, rollDeg: Float): Vector3 {
+        val pitch = pitchDeg * degRad
+        val yaw = yawDeg * degRad
+        // roll not used in forward direction
+
+        val cp = cos(pitch)
+        val sp = sin(pitch)
+        val cy = cos(yaw)
+        val sy = sin(yaw)
+
+        return Vector3(
+            cp * cy,
+            cp * sy,
+            -sp
+        )
+    }
+
 
     /**
      * CL_ParseServerData
