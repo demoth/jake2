@@ -152,13 +152,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
         }
 
-        Cmd.AddCommand("print_configs") {
-            game3dScreen?.configStrings?.forEachIndexed { i, c ->
-                if (c != null) {
-                    Com.Printf("ConfigString[$i] = ${c.value}, resource = ${c.resource != null}\n")
-                }
-            }
-        }
     }
 
     private fun updateInputHandlers(console: Boolean, menu: Boolean) {

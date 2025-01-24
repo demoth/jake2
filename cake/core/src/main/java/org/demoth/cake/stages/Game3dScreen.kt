@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
@@ -23,9 +22,7 @@ import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
-import org.demoth.cake.ClientEntity
-import org.demoth.cake.ClientFrame
-import org.demoth.cake.ServerMessageProcessor
+import org.demoth.cake.*
 import org.demoth.cake.modelviewer.BspLoader
 import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.createGrid
@@ -33,8 +30,6 @@ import org.demoth.cake.modelviewer.createOriginArrows
 import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
-
-data class Config(var value: String, var resource: Disposable? = null)
 
 /**
  * Represents the 3d screen where the game is actually happening.
@@ -74,11 +69,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
     }
 
-    /**
-     * Store all configuration related to the current map.
-     * Updated from server
-     */
-    val configStrings = Array<Config?>(MAX_CONFIGSTRINGS) { Config("") } // fixme: decide if nullable or blank value
+    private val gameConfig = GameConfiguration()
 
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
     private val environment = Environment()
@@ -140,8 +131,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     override fun dispose() {
         modelBatch.dispose()
-        // clear the config strings
-        configStrings.forEach { it?.resource?.dispose() }
+        // should we dispose the model instances first?
+        gameConfig.dispose()
     }
 
     /**
@@ -149,16 +140,17 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
      */
     fun precache() {
         // load resources referenced in the config strings
-        val configStrings = configStrings
 
-        // load the level and inline bmodels
-        val mapName = configStrings[CS_MODELS + 1]?.value
+        // load the level
+        val mapName = gameConfig[CS_MODELS + 1]?.value
         // mapName already has 'maps/' prefix
         val mapFile = File("$basedir/$gameName/$mapName") // todo: cache
         val brushModels = BspLoader("$basedir/$gameName/").loadBspModels(mapFile)
+
+        // load inline bmodels
         brushModels.forEachIndexed { index, model ->
-            val configString = configStrings[CS_MODELS + index + 1]
-            check(configString != null) { "Missing brush model for ${configStrings[CS_MODELS + index + 1]?.value}" }
+            val configString = gameConfig[CS_MODELS + index + 1]
+            check(configString != null) { "Missing brush model for ${gameConfig[CS_MODELS + index + 1]?.value}" }
             if (index != 0)
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
@@ -173,7 +165,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // index of md2 models in the config string
         val startIndex = CS_MODELS + brushModels.size // +1 and -1
         for (i in 1 until MAX_MODELS) {
-            configStrings[startIndex + i]?.let { s ->
+            gameConfig[startIndex + i]?.let { s ->
                 if (s.value.isNotEmpty()) {
                     if (s.value.startsWith("#")) {
                         // TODO: handle view models separately
@@ -187,9 +179,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
         }
 
-        // load sounds starting from CS_SOUNDS until MAX_SOUNDS
-        for (i in 1 until MAX_SOUNDS) {
-            configStrings[CS_SOUNDS + i]?.let {s ->
+        gameConfig.getSounds().forEach { s ->
+            if (s != null) {
                 if (s.value.isNotEmpty()) {
                     if (s.value.startsWith("*")) { // skip sexed sounds for now
                         // TODO: implement male/female/cyborg sounds
@@ -259,7 +250,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
-        configStrings[msg.index]!!.value = msg.config
+        gameConfig[msg.index]?.resource?.dispose() // todo: check if it can even happen?
+        gameConfig[msg.index] = Config(msg.config)
     }
 
     override fun processBaselineMessage(msg: SpawnBaselineMessage) {
@@ -477,8 +469,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val config = configStrings[Defines.CS_SOUNDS + msg.soundIndex]
-        val sound = config?.resource as? Sound
+        val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
+        val sound = config?.resource as? Sound // else warning?
         println("Playing sound ${msg.soundIndex} (${config?.value}")
         sound?.play() // todo: use msg.volume, attenuation, etc
     }
@@ -559,7 +551,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             if (cent.modelInstance == null) {
                 val modelIndex = s1.modelindex
                 if (modelIndex != 0) {
-                    val model = configStrings[CS_MODELS + modelIndex]?.resource as? Model
+                    //configStrings[CS_MODELS + modelIndex]?.resource as? Model
+                    val model = gameConfig[CS_MODELS + modelIndex]?.resource as? Model
                     if (model != null) {
                         cent.modelInstance = ModelInstance(model)
                         // todo: apply entity transform to the model instance
