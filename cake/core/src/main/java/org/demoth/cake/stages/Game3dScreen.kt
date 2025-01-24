@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
@@ -224,11 +225,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     fun updatePlayerView() {
         // move camera to current player state origin
-        camera.position.set(
-            currentFrame.playerstate.pmove.origin[0] * 0.125f,
-            currentFrame.playerstate.pmove.origin[1] * 0.125f,
-            currentFrame.playerstate.pmove.origin[2] * 0.125f
-        )
+
+
+        val x = currentFrame.playerstate.viewoffset[0] + (currentFrame.playerstate.pmove.origin[0]) * 0.125f
+        val y = currentFrame.playerstate.viewoffset[1] + (currentFrame.playerstate.pmove.origin[1]) * 0.125f
+        val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
+        camera.position.set(x, y, z)
 
         // update camera
         val pitch = currentFrame.playerstate.viewangles[PITCH]
