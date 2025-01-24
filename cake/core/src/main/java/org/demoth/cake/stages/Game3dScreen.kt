@@ -93,6 +93,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (!precached)
             return
 
+        updatePlayerView()
+
         modelBatch.begin(camera)
         models.forEach {
 
@@ -217,6 +219,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
     }
 
+    fun updatePlayerView() {
+        // move camera to current player state origin
+        camera.position.set(
+            currentFrame.playerstate.pmove.origin[0] * 0.125f,
+            currentFrame.playerstate.pmove.origin[1] * 0.125f,
+            currentFrame.playerstate.pmove.origin[2] * 0.125f
+        )
+        camera.update()
+    }
 
     /**
      * CL_ParseServerData
