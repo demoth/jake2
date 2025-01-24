@@ -142,9 +142,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         // load md2 models
         // index of md2 models in the config string
-        val startIndex = CS_MODELS + brushModels.size // +1 and -1
-        for (i in 1 until MAX_MODELS) {
-            gameConfig[startIndex + i]?.let { s ->
+        val startIndex = CS_MODELS + 1 + brushModels.size
+        for (i in startIndex .. MAX_MODELS) {
+            gameConfig[i]?.let { s ->
                 if (s.value.isNotEmpty()) {
                     if (s.value.startsWith("#")) {
                         // TODO: handle view models separately

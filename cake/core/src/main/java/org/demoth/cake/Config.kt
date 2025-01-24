@@ -43,7 +43,7 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
      */
     fun getModels(): Array<Config?> {
         // todo: avoid copying
-        return configStrings.sliceArray(CS_MODELS + 1 until CS_MODELS + MAX_MODELS)
+        return configStrings.sliceArray(CS_MODELS + 1 .. CS_MODELS + MAX_MODELS)
     }
 
     /**
@@ -51,7 +51,7 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
      */
     fun getSounds(): Array<Config?> {
         // todo: avoid copying
-        return configStrings.sliceArray(CS_SOUNDS + 1 until CS_SOUNDS + MAX_SOUNDS)
+        return configStrings.sliceArray(CS_SOUNDS + 1 .. CS_SOUNDS + MAX_SOUNDS)
     }
 
     fun dispose() {
