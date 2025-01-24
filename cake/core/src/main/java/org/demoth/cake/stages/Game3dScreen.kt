@@ -50,6 +50,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
+    private val cameraRotationSpeed = 30f // degrees per second
+
     var deltaTime: Float = 0f
 
     private val cameraInputController = FlyingCameraController(camera)
@@ -205,11 +207,26 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             cmd.forwardmove = -100 // todo: calculate based on client prediction
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            cmd.sidemove = -100 // todo: calculate based on client prediction
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            cmd.sidemove = 100 // todo: calculate based on client prediction
+
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            var delta = deltaTime * cameraRotationSpeed
+            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                delta *= -1
+            }
+
+            // degrees
+            var yaw = MathUtils.atan2(camera.direction.y, camera.direction.x) * MathUtils.radiansToDegrees
+
+            yaw += delta
+
+            if (yaw < 0)
+                yaw += 360f
+            else if (yaw >= 360f)
+                yaw -= 360f
+
+            cmd.angles[1] = Math3D.ANGLE2SHORT(yaw).toShort()
+
+            println("Current yaw=${yaw}, delta=${delta}, short=${cmd.angles[1]}")
         }
         cmd.msec = 16 // todo: calculate
         // deliver the message
