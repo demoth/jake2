@@ -190,13 +190,18 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // load sounds starting from CS_SOUNDS until MAX_SOUNDS
         for (i in 1 until MAX_SOUNDS) {
             configStrings[CS_SOUNDS + i]?.let {s ->
-                if (s.value.isNotEmpty() && !s.value.startsWith("*")) { // skip sexed sounds for now
-                    println("precache sound ${s.value}: ")
-                    val soundPath = "$basedir/$gameName/sound/${s.value}"
-                    if (File(soundPath).exists()) {
-                        s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
+                if (s.value.isNotEmpty()) {
+                    if (s.value.startsWith("*")) { // skip sexed sounds for now
+                        // TODO: implement male/female/cyborg sounds
                     } else {
-                        println("TODO: Find sound case insensitive: ${s.value}") //
+                        println("precache sound ${s.value}: ")
+                        val soundPath = "$basedir/$gameName/sound/${s.value}"
+                        if (File(soundPath).exists()) {
+                            s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
+                        } else {
+                            // TODO: Find sound case insensitive
+                            println("TODO: Find sound case insensitive: ${s.value}") //
+                        }
                     }
                 }
             }
