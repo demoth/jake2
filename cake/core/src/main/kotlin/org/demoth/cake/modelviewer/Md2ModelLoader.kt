@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class Md2ModelLoader {
-    fun loadMd2Model(modelFile: File): Model { // fixme: should return Model instead, model instance can be created externally
+    fun loadMd2Model(modelFile: File, playerSkin: String? = null): Model {
         val md2Model: Md2Model = readMd2Model(modelFile.absolutePath)
         // strip skin names and expect them to be located along with the .md2 file
         val skins = md2Model.skinNames.map {
@@ -34,6 +34,13 @@ class Md2ModelLoader {
 
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
+        val modelSkin = if (skins.isNotEmpty()) {
+            skins.first()
+        } else {
+            if (playerSkin != null) {
+                File(playerSkin)
+            } else throw IllegalStateException("No skin found in the model, no player skin provided")
+        }
         val meshBuilder = modelBuilder.part(
             "part1",
             GL_TRIANGLES,
@@ -41,7 +48,7 @@ class Md2ModelLoader {
             Material(
                 TextureAttribute(
                     TextureAttribute.Diffuse,
-                    Texture(PCXTextureData(fromPCX(PCX(skins.first().readBytes())))),
+                    Texture(PCXTextureData(fromPCX(PCX(modelSkin.readBytes())))),
                 )
             )
         )

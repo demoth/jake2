@@ -80,6 +80,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     private var lerpFrac: Float = 0f
 
+    // todo: make proper player loader
+    private val playerModelPath = "players/male/tris.md2"
+    private val playerSkinPath = "players/male/grunt.pcx"
+    private lateinit var playerModel: Model
+
     init {
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
@@ -165,6 +170,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 }
             }
         }
+
+        // temporary: load one fixed player model
+        playerModel = Md2ModelLoader().loadMd2Model(
+            modelFile = File("$basedir/$gameName/$playerModelPath"),
+            playerSkin = "$basedir/$gameName/$playerSkinPath"
+        )
 
         gameConfig.getSounds().forEach { s ->
             if (s != null) {
@@ -591,7 +602,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             // Store in the entity_state_t?
             if (cent.modelInstance == null) {
                 val modelIndex = s1.modelindex
-                if (modelIndex != 0) {
+                if (modelIndex == 255) { // this is a player
+                    // fixme: how to get which skin does the player have?
+                    cent.modelInstance = ModelInstance(playerModel)
+                } else if (modelIndex != 0) {
                     //configStrings[CS_MODELS + modelIndex]?.resource as? Model
                     val model = gameConfig[CS_MODELS + modelIndex]?.resource as? Model
                     if (model != null) {
