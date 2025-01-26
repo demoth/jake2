@@ -183,14 +183,58 @@ public class CM {
 
     public int last_checksum;
 
-    /** 
+    public cmodel_t CM_LoadMapFile(byte[] buf, String name, int[] checksum) {
+
+        if (buf == null)
+            Com.Error(Defines.ERR_DROP, "Couldn't load " + name);
+
+        int length = buf.length;
+
+        ByteBuffer bbuf = ByteBuffer.wrap(buf);
+
+        last_checksum = MD4.Com_BlockChecksum(buf, length);
+        checksum[0] = last_checksum;
+
+        BspHeader header = new BspHeader(bbuf.slice());
+
+        if (header.version != Defines.BSPVERSION)
+            Com.Error(Defines.ERR_DROP, "CMod_LoadBrushModel: " + name
+                    + " has wrong version number (" + header.version
+                    + " should be " + Defines.BSPVERSION + ")");
+
+        cmod_base = buf;
+
+        // load into heap
+        CMod_LoadSurfaces(header.lumps[Defines.LUMP_TEXINFO]); // ok
+        CMod_LoadLeafs(header.lumps[Defines.LUMP_LEAFS]);
+        CMod_LoadLeafBrushes(header.lumps[Defines.LUMP_LEAFBRUSHES]);
+        CMod_LoadPlanes(header.lumps[Defines.LUMP_PLANES]);
+        CMod_LoadBrushes(header.lumps[Defines.LUMP_BRUSHES]);
+        CMod_LoadBrushSides(header.lumps[Defines.LUMP_BRUSHSIDES]);
+        CMod_LoadSubmodels(header.lumps[Defines.LUMP_MODELS]);
+
+        CMod_LoadNodes(header.lumps[Defines.LUMP_NODES]);
+        CMod_LoadAreas(header.lumps[Defines.LUMP_AREAS]);
+        CMod_LoadAreaPortals(header.lumps[Defines.LUMP_AREAPORTALS]);
+        CMod_LoadVisibility(header.lumps[Defines.LUMP_VISIBILITY]);
+        CMod_LoadEntityString(header.lumps[Defines.LUMP_ENTITIES]);
+
+        CM_InitBoxHull();
+
+        Arrays.fill(portalopen, false);
+
+        FloodAreaConnections();
+
+        map_name = name;
+
+        return map_cmodels[0];
+    }
+
+    /**
      * Loads in the map and all submodels.
      */
     public cmodel_t CM_LoadMap(String name, boolean clientload, int[] checksum) {
         Com.DPrintf("CM_LoadMap(" + name + ")...\n");
-        byte buf[];
-        BspHeader header;
-        int length;
 
         map_noareas = Cvar.getInstance().Get("map_noareas", "0", 0);
 
@@ -227,51 +271,9 @@ public class CM {
         //
         // load the file
         //
-        buf = FS.LoadFile(name);
+        byte[] buf = FS.LoadFile(name);
 
-        if (buf == null)
-            Com.Error(Defines.ERR_DROP, "Couldn't load " + name);
-
-        length = buf.length;
-
-        ByteBuffer bbuf = ByteBuffer.wrap(buf);
-
-        last_checksum = MD4.Com_BlockChecksum(buf, length);
-        checksum[0] = last_checksum;
-
-        header = new BspHeader(bbuf.slice());
-
-        if (header.version != Defines.BSPVERSION)
-            Com.Error(Defines.ERR_DROP, "CMod_LoadBrushModel: " + name
-                    + " has wrong version number (" + header.version
-                    + " should be " + Defines.BSPVERSION + ")");
-
-        cmod_base = buf;
-
-        // load into heap
-        CMod_LoadSurfaces(header.lumps[Defines.LUMP_TEXINFO]); // ok        
-        CMod_LoadLeafs(header.lumps[Defines.LUMP_LEAFS]);
-        CMod_LoadLeafBrushes(header.lumps[Defines.LUMP_LEAFBRUSHES]);
-        CMod_LoadPlanes(header.lumps[Defines.LUMP_PLANES]);
-        CMod_LoadBrushes(header.lumps[Defines.LUMP_BRUSHES]);
-        CMod_LoadBrushSides(header.lumps[Defines.LUMP_BRUSHSIDES]);
-        CMod_LoadSubmodels(header.lumps[Defines.LUMP_MODELS]);
-
-        CMod_LoadNodes(header.lumps[Defines.LUMP_NODES]);
-        CMod_LoadAreas(header.lumps[Defines.LUMP_AREAS]);    
-        CMod_LoadAreaPortals(header.lumps[Defines.LUMP_AREAPORTALS]);       
-        CMod_LoadVisibility(header.lumps[Defines.LUMP_VISIBILITY]);
-        CMod_LoadEntityString(header.lumps[Defines.LUMP_ENTITIES]);
-
-        CM_InitBoxHull();
-
-        Arrays.fill(portalopen, false);
-
-        FloodAreaConnections();
-
-        map_name = name;
-
-        return map_cmodels[0];
+        return CM_LoadMapFile(buf, name, checksum);
     }
 
     /** Loads Submodels. */

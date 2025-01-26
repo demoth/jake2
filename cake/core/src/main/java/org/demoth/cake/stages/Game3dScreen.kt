@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
+import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
@@ -46,6 +47,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val models = ArrayList<ClientEntity>()
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
+    private val collisionModel = CM()
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -152,6 +154,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         levelModel = ClientEntity().apply {
             modelInstance = ModelInstance(brushModels.first())
         }
+
+        collisionModel.CM_LoadMapFile(mapFile.readBytes(), mapName, IntArray(1) {0})
 
         // load md2 models
         // index of md2 models in the config string
