@@ -40,7 +40,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var precached: Boolean = false
 
     // model instances to be drawn - updated on every server frame
-    private val models = ArrayList<ClientEntity>()
+    private val visibleEntities = ArrayList<ClientEntity>()
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
     private val collisionModel = CM()
@@ -105,7 +105,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         updatePlayerView()
 
         modelBatch.begin(camera)
-        models.forEach {
+        visibleEntities.forEach {
 
             // apply client side effects
             if (it.current.effects and EF_ROTATE != 0) {
@@ -584,12 +584,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // apply entity transform to the model instance
     // AddPacketEntities
     fun postReceive() {
-        models.clear()
+        visibleEntities.clear()
         // todo: put to a persistent client entities list?
-        models += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
-        models += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
+        visibleEntities += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
+        visibleEntities += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
         if (levelModel != null) {
-            models += levelModel!!
+            visibleEntities += levelModel!!
         }
 
         // entities in the current frame
@@ -619,11 +619,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 val origin = s1.origin
                 // set the model instance position as origin
                 // transform the translation vector from q2 to libgdx
-                modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
-                modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
+                if (cent.current.effects and EF_ROTATE == 0) {
+                    modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
+                    modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
+                } else {
+                    // will be autorotated in render loop on the client
+                }
                 // todo apply roll
                 modelInstance.transform.setTranslation(origin[0], origin[1], origin[2])
-                models += cent
+                visibleEntities += cent
             }
         }
 
