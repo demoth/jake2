@@ -13,14 +13,10 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
-import jake2.qcommon.CM
-import jake2.qcommon.Com
-import jake2.qcommon.Defines
+import jake2.qcommon.*
 import jake2.qcommon.Defines.*
-import jake2.qcommon.entity_state_t
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import org.demoth.cake.*
@@ -623,10 +619,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 val origin = s1.origin
                 // set the model instance position as origin
                 // transform the translation vector from q2 to libgdx
+                modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
+                modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
+                // todo apply roll
                 modelInstance.transform.setTranslation(origin[0], origin[1], origin[2])
-                // todo: apply rotation
-                // val angles = s1.angles
-                // modelInstance.transform.rotate(angles[0], angles[1], angles[2])
                 models += cent
             }
         }
