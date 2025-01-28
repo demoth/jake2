@@ -62,7 +62,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // game state
     private var gameName: String = "baseq2"
     private var spawnCount = 0
-    private var playercount = 1
+
+    /**
+     * id of the player in the game. can be used to determine if the entity is the current player
+     */
+    private var playerNumber = 1
     private var levelString: String = ""
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity() }
 
@@ -297,7 +301,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun processServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
-        playercount = msg.playerNumber
+        playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
     }
 
@@ -600,6 +604,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
             // fixme: shouldn't be done on every from for every entity.
             // Store in the entity_state_t?
+
+            // instantiate model if not yet done
             if (cent.modelInstance == null) {
                 val modelIndex = s1.modelindex
                 if (modelIndex == 255) { // this is a player
@@ -614,18 +620,20 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                     }
                 }
             }
+
+            // update the model instance
             val modelInstance = cent.modelInstance
-            if (modelInstance != null) {
+            if (modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
                 val origin = s1.origin
                 // set the model instance position as origin
                 // transform the translation vector from q2 to libgdx
                 if (cent.current.effects and EF_ROTATE == 0) {
                     modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
                     modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
+                    // todo apply roll
                 } else {
                     // will be autorotated in render loop on the client
                 }
-                // todo apply roll
                 modelInstance.transform.setTranslation(origin[0], origin[1], origin[2])
                 visibleEntities += cent
             }
