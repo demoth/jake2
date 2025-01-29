@@ -28,4 +28,22 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
             return File("$baseDir/$gameName/$modelName")
         }
     }
+
+    fun loadSound(soundName: String): File? {
+        if (soundName.isEmpty()) {
+            return null
+        } else if (soundName.startsWith("*")) {
+            // TODO: implement male/female/cyborg sounds
+            return null
+        } else {
+            val soundFile = File("$baseDir/$gameName/sound/$soundName")
+            if (soundFile.exists()) {
+                return soundFile
+            } else {
+                // TODO: Find sound case insensitive
+                println("TODO: Find sound case insensitive: $soundName")
+                return null
+            }
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
@@ -25,7 +26,6 @@ import org.demoth.cake.modelviewer.BspLoader
 import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
-import java.io.File
 import kotlin.experimental.or
 import kotlin.math.abs
 import kotlin.math.cos
@@ -175,21 +175,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             playerSkin = "${locator.baseDir}/$gameName/$playerSkinPath"
         )
 
-        gameConfig.getSounds().forEach { s ->
-            if (s != null) {
-                if (s.value.isNotEmpty()) {
-                    if (s.value.startsWith("*")) { // skip sexed sounds for now
-                        // TODO: implement male/female/cyborg sounds
-                    } else {
-                        println("precache sound ${s.value}: ")
-                        val soundPath = "${locator.baseDir}/$gameName/sound/${s.value}"
-                        if (File(soundPath).exists()) {
-                            s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
-                        } else {
-                            // TODO: Find sound case insensitive
-                            println("TODO: Find sound case insensitive: ${s.value}") //
-                        }
-                    }
+        gameConfig.getSounds().forEach { config ->
+            if (config != null) {
+                val soundFile = locator.loadSound(config.value)
+                if (soundFile != null) {
+                    config.resource = Gdx.audio.newSound(FileHandle(soundFile))
                 }
             }
         }
