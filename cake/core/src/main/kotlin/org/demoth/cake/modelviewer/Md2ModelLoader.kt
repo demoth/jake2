@@ -57,7 +57,7 @@ class Md2ModelLoader {
         return modelBuilder.end()
     }
 
-    fun readMd2Model(modelPath: String): Md2Model {
+    private fun readMd2Model(modelPath: String): Md2Model {
         val byteBuffer = ByteBuffer
             .wrap(File(modelPath).readBytes())
             .order(ByteOrder.LITTLE_ENDIAN)

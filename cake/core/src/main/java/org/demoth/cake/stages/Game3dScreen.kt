@@ -44,6 +44,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
     private val collisionModel = CM()
+    private val locator = ResourceLocator(System.getProperty("basedir"), "baseq2")
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -136,10 +137,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // load resources referenced in the config strings
 
         // load the level
-        val mapName = gameConfig[CS_MODELS + 1]?.value
+        val mapName = gameConfig[CS_MODELS + 1]?.value // fixme: disconnect with an error if is null
         // mapName already has 'maps/' prefix
-        val mapFile = File("$basedir/$gameName/$mapName") // todo: cache
-        val brushModels = BspLoader("$basedir/$gameName/").loadBspModels(mapFile)
+        val mapFile = locator.loadMap(mapName!!) // todo: cache
+        val brushModels = BspLoader("${locator.baseDir}/$gameName/").loadBspModels(mapFile) // todo: merge BspLoader with locator
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
@@ -161,24 +162,17 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // index of md2 models in the config string
         val startIndex = CS_MODELS + 1 + brushModels.size
         for (i in startIndex .. MAX_MODELS) {
-            gameConfig[i]?.let { s ->
-                if (s.value.isNotEmpty()) {
-                    if (s.value.startsWith("#")) {
-                        // TODO: handle view models separately
-                    } else {
-                        // /models/ is already part of the value (in contrast to sounds)
-                        val file = File("$basedir/$gameName/${s.value}")
-                        println("Model for $s exists: ${file.exists()}")
-                        s.resource = Md2ModelLoader().loadMd2Model(file)
-                    }
+            gameConfig[i]?.let { config ->
+                locator.loadModel(config.value)?.let {
+                    config.resource = Md2ModelLoader().loadMd2Model(it)
                 }
             }
         }
 
         // temporary: load one fixed player model
         playerModel = Md2ModelLoader().loadMd2Model(
-            modelFile = File("$basedir/$gameName/$playerModelPath"),
-            playerSkin = "$basedir/$gameName/$playerSkinPath"
+            modelFile = locator.loadModel(playerModelPath)!!,
+            playerSkin = "${locator.baseDir}/$gameName/$playerSkinPath"
         )
 
         gameConfig.getSounds().forEach { s ->
@@ -188,7 +182,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                         // TODO: implement male/female/cyborg sounds
                     } else {
                         println("precache sound ${s.value}: ")
-                        val soundPath = "$basedir/$gameName/sound/${s.value}"
+                        val soundPath = "${locator.baseDir}/$gameName/sound/${s.value}"
                         if (File(soundPath).exists()) {
                             s.resource = Gdx.audio.newSound(Gdx.files.absolute(soundPath))
                         } else {
@@ -248,7 +242,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw!!).toShort()
         cmd.angles[ROLL] = 0
 
-        cmd.msec = 16 // todo: calculate
+        cmd.msec = 16 // todo: calculate based on time between client frames (actually between "sending" frames)
         // deliver the message
         return MoveMessage(
             false, // todo
@@ -303,6 +297,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         levelString = msg.levelString
         playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
+
+        locator.gameName = gameName
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -316,6 +312,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     /**
      * CL_ParsePlayerstate
+     * todo: move to common?
      */
     override fun processPlayerInfoMessage(msg: PlayerInfoMessage) {
         val state = currentFrame.playerstate
@@ -679,5 +676,3 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         return cameraInputController.scrolled(amountX, amountY)
     }
 }
-
-private val basedir = System.getProperty("basedir")
