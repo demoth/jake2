@@ -40,8 +40,16 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
             if (soundFile.exists()) {
                 return soundFile
             } else {
-                // TODO: Find sound case insensitive
-                println("TODO: Find sound case insensitive: $soundName")
+                val soundDir = File("$baseDir/$gameName/sound")
+                // Search for the file ignoring case sensitivity, todo: make an index?
+                val matchingFile = soundDir.walkTopDown().find { file ->
+                    file.isFile && file.name.equals(soundName.substring(soundName.lastIndexOf('/') + 1), ignoreCase = true)
+                }
+
+                if (matchingFile != null) {
+                    return matchingFile
+                }
+                println("ERROR! could now find file: $soundName")
                 return null
             }
         }
