@@ -13,10 +13,11 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.WAL
+import org.demoth.cake.ResourceLocator
 import java.io.File
 import java.nio.ByteBuffer
 
-class BspLoader(val gameDir: String) {
+class BspLoader(val locator: ResourceLocator) {
 
     fun loadBspModelInstances(file: File): List<ModelInstance> {
 /*
@@ -54,7 +55,7 @@ class BspLoader(val gameDir: String) {
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
             facesByTexture.forEach { (textureName, faces) ->
-                val walTexture = WAL(findFile(textureName).readBytes()) // todo: cache
+                val walTexture = WAL(locator.loadTexture(textureName).readBytes()) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
                 // todo: bsp level textures always wrap?
                 texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
@@ -108,17 +109,6 @@ class BspLoader(val gameDir: String) {
             modelBuilder.end()
         }
     }
-
-    private fun findFile(textureName: String): File {
-        val file = File("$gameDir/textures/$textureName.wal")
-        return if (file.exists()) {
-            file
-        } else {
-            println("Warn: $textureName was found by lowercase name")
-            File("$gameDir/textures/${textureName.lowercase()}.wal")
-        }
-    }
-
 
     fun loadBSPModelWireFrame(file: File): ModelInstance {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))

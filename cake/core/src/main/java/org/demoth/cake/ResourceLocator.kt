@@ -54,4 +54,14 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
             }
         }
     }
+
+    fun loadTexture(textureName: String): File {
+        val file = File("$baseDir/$gameName/textures/$textureName.wal")
+        return if (file.exists()) {
+            file
+        } else {
+            println("Warn: $textureName was found by lowercase name")
+            File("$baseDir/$gameName/textures/${textureName.lowercase()}.wal")
+        }
+    }
 }

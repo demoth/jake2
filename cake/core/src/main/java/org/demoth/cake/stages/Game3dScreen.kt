@@ -140,7 +140,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val mapName = gameConfig[CS_MODELS + 1]?.value // fixme: disconnect with an error if is null
         // mapName already has 'maps/' prefix
         val mapFile = locator.loadMap(mapName!!) // todo: cache
-        val brushModels = BspLoader("${locator.baseDir}/$gameName/").loadBspModels(mapFile) // todo: merge BspLoader with locator
+        val brushModels = BspLoader(locator).loadBspModels(mapFile) // todo: merge BspLoader with locator
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
