@@ -55,7 +55,7 @@ class BspLoader(val locator: ResourceLocator) {
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
             facesByTexture.forEach { (textureName, faces) ->
-                val walTexture = WAL(locator.loadTexture(textureName).readBytes()) // todo: cache
+                val walTexture = WAL(locator.findTexture(textureName).readBytes()) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
                 // todo: bsp level textures always wrap?
                 texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)

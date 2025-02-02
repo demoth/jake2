@@ -139,7 +139,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // load the level
         val mapName = gameConfig[CS_MODELS + 1]?.value // fixme: disconnect with an error if is null
         // mapName already has 'maps/' prefix
-        val mapFile = locator.loadMap(mapName!!) // todo: cache
+        val mapFile = locator.findMap(mapName!!) // todo: cache
         val brushModels = BspLoader(locator).loadBspModels(mapFile) // todo: merge BspLoader with locator
 
         // load inline bmodels
@@ -163,7 +163,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val startIndex = CS_MODELS + 1 + brushModels.size
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
-                locator.loadModel(config.value)?.let {
+                locator.findModel(config.value)?.let {
                     config.resource = Md2ModelLoader().loadMd2Model(it)
                 }
             }
@@ -171,13 +171,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         // temporary: load one fixed player model
         playerModel = Md2ModelLoader().loadMd2Model(
-            modelFile = locator.loadModel(playerModelPath)!!,
+            modelFile = locator.findModel(playerModelPath)!!,
             playerSkin = "${locator.baseDir}/$gameName/$playerSkinPath"
         )
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {
-                val soundFile = locator.loadSound(config.value)
+                val soundFile = locator.findSound(config.value)
                 if (soundFile != null) {
                     config.resource = Gdx.audio.newSound(FileHandle(soundFile))
                 }

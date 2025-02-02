@@ -12,11 +12,11 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
     /**
      * [mapName] already has 'maps/' prefix
      */
-    fun loadMap(mapName: String): File {
+    fun findMap(mapName: String): File {
         return File("$baseDir/$gameName/$mapName")
     }
 
-    fun loadModel(modelName: String): File? {
+    fun findModel(modelName: String): File? {
         if (modelName.isEmpty()) {
             // todo: throw error?
             return null
@@ -29,7 +29,7 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
         }
     }
 
-    fun loadSound(soundName: String): File? {
+    fun findSound(soundName: String): File? {
         if (soundName.isEmpty()) {
             return null
         } else if (soundName.startsWith("*")) {
@@ -55,12 +55,13 @@ class ResourceLocator(val baseDir: String, var gameName: String) {
         }
     }
 
-    fun loadTexture(textureName: String): File {
+    fun findTexture(textureName: String): File {
         val file = File("$baseDir/$gameName/textures/$textureName.wal")
         return if (file.exists()) {
             file
         } else {
             println("Warn: $textureName was found by lowercase name")
+            // fixme: use proper case insensitive search
             File("$baseDir/$gameName/textures/${textureName.lowercase()}.wal")
         }
     }
