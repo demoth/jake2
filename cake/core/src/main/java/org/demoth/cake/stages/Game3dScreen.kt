@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
-import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
@@ -44,7 +43,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
     private val collisionModel = CM()
-    private val locator = ResourceLocator(System.getProperty("basedir"), "baseq2")
+    private val locator = ResourceLocator(System.getProperty("basedir"))
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -139,8 +138,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // load the level
         val mapName = gameConfig[CS_MODELS + 1]?.value // fixme: disconnect with an error if is null
         // mapName already has 'maps/' prefix
-        val mapFile = locator.findMap(mapName!!) // todo: cache
-        val brushModels = BspLoader(locator).loadBspModels(mapFile) // todo: merge BspLoader with locator
+        val bsp = locator.findMap(mapName!!) // todo: cache
+        val brushModels = BspLoader(locator).loadBspModels(bsp)
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
@@ -156,30 +155,30 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             modelInstance = ModelInstance(brushModels.first())
         }
 
-        collisionModel.CM_LoadMapFile(mapFile.readBytes(), mapName, IntArray(1) {0})
+        collisionModel.CM_LoadMapFile(bsp, mapName, IntArray(1) {0})
 
         // load md2 models
         // index of md2 models in the config string
         val startIndex = CS_MODELS + 1 + brushModels.size
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
-                locator.findModel(config.value)?.let {
-                    config.resource = Md2ModelLoader().loadMd2Model(it)
+                config.value.let {
+                    config.resource = Md2ModelLoader(locator).loadMd2Model(it)
                 }
             }
         }
 
         // temporary: load one fixed player model
-        playerModel = Md2ModelLoader().loadMd2Model(
-            modelFile = locator.findModel(playerModelPath)!!,
-            playerSkin = "${locator.baseDir}/$gameName/$playerSkinPath"
-        )
+        playerModel = Md2ModelLoader(locator).loadMd2Model(
+            playerModelPath,
+            playerSkin = playerSkinPath
+        )!!
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {
                 val soundFile = locator.findSound(config.value)
                 if (soundFile != null) {
-                    config.resource = Gdx.audio.newSound(FileHandle(soundFile))
+                    config.resource = Gdx.audio.newSound(ByteArrayFileHandle(soundFile, config.value))
                 }
             }
         }

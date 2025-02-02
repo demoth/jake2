@@ -40,8 +40,8 @@ class BspLoader(val locator: ResourceLocator) {
         TODO()
     }
 
-    fun loadBspModels(file: File): List<Model> {
-        val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
+    fun loadBspModels(bsdData: ByteArray): List<Model> {
+        val bsp = Bsp(ByteBuffer.wrap(bsdData))
         val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
 
         // create libgdx models from bsp models
@@ -55,7 +55,7 @@ class BspLoader(val locator: ResourceLocator) {
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
             facesByTexture.forEach { (textureName, faces) ->
-                val walTexture = WAL(locator.findTexture(textureName).readBytes()) // todo: cache
+                val walTexture = WAL(locator.findTexture(textureName)) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
                 // todo: bsp level textures always wrap?
                 texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)

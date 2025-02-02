@@ -10,20 +10,21 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.PCX
-import java.io.File
+import org.demoth.cake.ResourceLocator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class Md2ModelLoader {
-    fun loadMd2Model(modelFile: File, playerSkin: String? = null): Model {
-        val md2Model: Md2Model = readMd2Model(modelFile.absolutePath)
-        // strip skin names and expect them to be located along with the .md2 file
+class Md2ModelLoader(val locator: ResourceLocator) {
+    fun loadMd2Model(
+        modelName: String,
+        playerSkin: String? = null,
+    ): Model? {
+        val findModel = locator.findModel(modelName)
+            ?: return null
+        val md2Model: Md2Model = readMd2Model(findModel)
+
         val skins = md2Model.skinNames.map {
-            val name = if (it.contains("/"))
-                it.substring(it.lastIndexOf("/") + 1)
-            else
-                it
-            File(modelFile.parentFile, name)
+            locator.findSkin(it)
         }
 
         val first = md2Model.frames.first()
@@ -34,11 +35,11 @@ class Md2ModelLoader {
 
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
-        val modelSkin = if (skins.isNotEmpty()) {
+        val modelSkin: ByteArray = if (skins.isNotEmpty()) {
             skins.first()
         } else {
             if (playerSkin != null) {
-                File(playerSkin)
+                locator.findSkin(playerSkin)
             } else throw IllegalStateException("No skin found in the model, no player skin provided")
         }
         val meshBuilder = modelBuilder.part(
@@ -48,7 +49,7 @@ class Md2ModelLoader {
             Material(
                 TextureAttribute(
                     TextureAttribute.Diffuse,
-                    Texture(PCXTextureData(fromPCX(PCX(modelSkin.readBytes())))),
+                    Texture(PCXTextureData(fromPCX(PCX(modelSkin)))),
                 )
             )
         )
@@ -57,9 +58,9 @@ class Md2ModelLoader {
         return modelBuilder.end()
     }
 
-    private fun readMd2Model(modelPath: String): Md2Model {
+    private fun readMd2Model(modelData: ByteArray): Md2Model {
         val byteBuffer = ByteBuffer
-            .wrap(File(modelPath).readBytes())
+            .wrap(modelData)
             .order(ByteOrder.LITTLE_ENDIAN)
         return Md2Model(byteBuffer)
     }
