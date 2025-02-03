@@ -1,12 +1,6 @@
 package org.demoth.cake
 
-import jake2.qcommon.network.messages.server.ConfigStringMessage
-import jake2.qcommon.network.messages.server.FrameHeaderMessage
-import jake2.qcommon.network.messages.server.PacketEntitiesMessage
-import jake2.qcommon.network.messages.server.PlayerInfoMessage
-import jake2.qcommon.network.messages.server.ServerDataMessage
-import jake2.qcommon.network.messages.server.SoundMessage
-import jake2.qcommon.network.messages.server.SpawnBaselineMessage
+import jake2.qcommon.network.messages.server.*
 
 /**
  * Handle updates from server
@@ -25,4 +19,5 @@ interface ServerMessageProcessor {
 
     // These messages are sent occasionally
     fun processSoundMessage(msg: SoundMessage)
+    fun processWeaponSoundMessage(msg: WeaponSoundMessage)
 }

@@ -31,7 +31,7 @@ class ResourceLocator(private val baseDir: String) {
         }
     }
 
-    fun findSound(soundName: String): ByteArray? {
+    fun findSound(soundName: String): ByteArrayFileHandle? {
         if (soundName.isEmpty()) {
             return null
         } else if (soundName.startsWith("*")) {
@@ -40,7 +40,7 @@ class ResourceLocator(private val baseDir: String) {
         } else {
             val soundFile = File("$baseDir/$gameName/sound/$soundName")
             if (soundFile.exists()) {
-                return soundFile.readBytes()
+                return ByteArrayFileHandle(soundFile.readBytes(), soundName)
             } else {
                 val soundDir = File("$baseDir/$gameName/sound")
                 // Search for the file ignoring case sensitivity, todo: make an index?
@@ -49,7 +49,7 @@ class ResourceLocator(private val baseDir: String) {
                 }
 
                 if (matchingFile != null) {
-                    return matchingFile.readBytes()
+                    return ByteArrayFileHandle(matchingFile.readBytes(), soundName)
                 }
                 println("ERROR! could now find file: $soundName")
                 return null

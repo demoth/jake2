@@ -417,6 +417,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is SpawnBaselineMessage -> {
                     game3dScreen?.processBaselineMessage(msg)
                 }
+                is WeaponSoundMessage -> {
+                    game3dScreen?.processWeaponSoundMessage(msg)
+                }
                 is PacketEntitiesMessage -> {
                     if (game3dScreen?.processPacketEntitiesMessage(msg) == true) {
                         if (networkState != ACTIVE) {

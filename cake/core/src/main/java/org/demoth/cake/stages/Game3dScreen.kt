@@ -87,6 +87,40 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val playerSkinPath = "players/male/grunt.pcx"
     private lateinit var playerModel: Model
 
+    // todo: think about designing an extendable client side effect system
+    private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
+    private val weaponSoundPaths = mapOf(
+        MZ_BLASTER to "weapons/blastf1a.wav",
+        MZ_MACHINEGUN to "weapons/machgf1b.wav", // todo: random
+        MZ_SHOTGUN to "weapons/shotgf1b.wav",
+        MZ_CHAINGUN1 to "weapons/machgf1b.wav",
+        MZ_CHAINGUN2 to "weapons/machgf1b.wav",
+        MZ_CHAINGUN3 to "weapons/machgf1b.wav",
+        MZ_RAILGUN to "weapons/railgf1a.wav",
+        MZ_ROCKET to "weapons/rocklf1a.wav",
+        MZ_GRENADE to "weapons/grenlf1a.wav",
+        MZ_LOGIN to "weapons/grenlf1a.wav",
+        MZ_LOGOUT to "weapons/grenlf1a.wav",
+        MZ_RESPAWN to "weapons/grenlf1a.wav",
+        MZ_BFG to "weapons/bfg__f1y.wav",
+        MZ_SSHOTGUN to "weapons/sshotf1b.wav",
+        MZ_HYPERBLASTER to "weapons/hyprbf1a.wav",
+        MZ_ITEMRESPAWN to null,
+        MZ_IONRIPPER to "weapons/rippfire.wav",
+        MZ_BLUEHYPERBLASTER to "weapons/hyprbf1a.wav",
+        MZ_PHALANX to "weapons/plasshot.wav",
+        MZ_ETF_RIFLE to "weapons/nail1.wav",
+        MZ_UNUSED to null,
+        MZ_SHOTGUN2 to "weapons/shotg2.wav",
+        MZ_HEATBEAM to null,
+        MZ_BLASTER2 to "weapons/blastf1a.wav",
+        MZ_TRACKER to "weapons/disint2.wav",
+        MZ_NUKE1 to null,
+        MZ_NUKE2 to null,
+        MZ_NUKE4 to null,
+        MZ_NUKE8 to null,
+    )
+
     init {
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
@@ -178,10 +212,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             if (config != null) {
                 val soundFile = locator.findSound(config.value)
                 if (soundFile != null) {
-                    config.resource = Gdx.audio.newSound(ByteArrayFileHandle(soundFile, config.value))
+                    config.resource = Gdx.audio.newSound(soundFile)
                 }
             }
         }
+
+        weaponSoundPaths.forEach { (index, path) ->
+            if (path != null) {
+                locator.findSound(path)?.let {
+                    weaponSounds[index] = Gdx.audio.newSound(it)
+                }
+            }
+        }
+
         precached = true
     }
 
@@ -510,11 +553,23 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         return currentFrame.valid
     }
 
+
     override fun processSoundMessage(msg: SoundMessage) {
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound // else warning?
         println("Playing sound ${msg.soundIndex} (${config?.value})")
         sound?.play() // todo: use msg.volume, attenuation, etc
+    }
+
+    override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
+        // weapon type is stored in last 7 bits of the msg.type
+        val weaponType = msg.type and 0x7F
+        val sound = weaponSounds[weaponType]
+        if (sound != null) {
+            sound.play()
+        } else {
+            // todo: warning!
+        }
     }
 
     /**
