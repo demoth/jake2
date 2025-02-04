@@ -564,9 +564,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
         // weapon type is stored in last 7 bits of the msg.type
         val weaponType = msg.type and 0x7F
+        // the silenced flag is stored in the first bit
+        val silenced = (msg.type and 0x80) != 0
         val sound = weaponSounds[weaponType]
         if (sound != null) {
-            sound.play()
+            sound.play(if (silenced) 0.2f else 1f)
         } else {
             // todo: warning!
         }
