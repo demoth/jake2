@@ -434,6 +434,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is PlayerInfoMessage -> {
                     game3dScreen?.processPlayerInfoMessage(msg)
                 }
+                is PrintMessage -> {
+                    Com.Printf("${msg.text}\n")
+                }
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
                 }
