@@ -48,7 +48,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
     private val cameraRotationSpeed = 140f // degrees per second
-    private var localYaw: Float? = null
+
+    // the angle that the player spawned with
+    private var initialYaw: Float? = null
+
+    // local camera angle
+    private var localYaw: Float = 0f
 
     var deltaTime: Float = 0f
 
@@ -243,16 +248,17 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            cmd.forwardmove = 100 // todo: calculate based on client prediction
+            cmd.forwardmove = 100
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            cmd.forwardmove = -100 // todo: calculate based on client prediction
+            cmd.forwardmove = -100
         }
 
         // degrees
         // If we haven't initialized yet, do so
-        if (localYaw == null) {
-            localYaw = currentFrame.playerstate.viewangles[YAW]
+        if (initialYaw == null) {
+            initialYaw = currentFrame.playerstate.viewangles[YAW]
+            localYaw = initialYaw!!
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
@@ -261,17 +267,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 delta *= -1
             }
 
-            localYaw = localYaw!! + delta
+            localYaw += delta
 
             // wrap
-            if (localYaw!! <= 0f)    localYaw = localYaw!! + 360f
-            if (localYaw!! >= 360f)  localYaw = localYaw!! - 360f
-
-            println("Current yaw=${localYaw!!}, delta=${delta}, serverYaw=${currentFrame.playerstate.viewangles[YAW]}")
+            if (localYaw <= -180f) localYaw = localYaw + 360f
+            if (localYaw >= 180f) localYaw = localYaw - 360f
         }
 
         cmd.angles[PITCH] = 0
-        cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw!!).toShort()
+        cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
 
         cmd.msec = 16 // todo: calculate based on time between client frames (actually between "sending" frames)
@@ -294,12 +298,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
         camera.position.set(x, y, z)
 
-        if (localYaw != null) {
-            val yaw = localYaw!!
-            val rotation: Vector3 = quakeForward(0f, yaw, 0f)
-            camera.direction.set(rotation)
-        }
+        val rotation: Vector3 = quakeForward(0f, localYaw, 0f)
 
+        camera.direction.set(rotation)
         camera.update()
     }
 
