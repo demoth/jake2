@@ -57,14 +57,22 @@ class ResourceLocator(private val baseDir: String) {
         }
     }
 
-    fun findTexture(textureName: String): ByteArray {
-        val file = File("$baseDir/$gameName/textures/$textureName.wal")
+    /**
+     * [imageName] should contain the file extension
+     */
+    fun findImage(imageName: String, location: String = "textures"): ByteArray? {
+        val file = File("$baseDir/$gameName/$location/$imageName")
         return if (file.exists()) {
             file.readBytes()
         } else {
-            println("Warn: $textureName was found by lowercase name")
             // fixme: use proper case insensitive search
-            File("$baseDir/$gameName/textures/${textureName.lowercase()}.wal").readBytes()
+            val lowercaseFile = File("$baseDir/$gameName/textures/${imageName.lowercase()}.wal")
+            if (lowercaseFile.exists()) {
+                println("Warn: $imageName was found by lowercase name")
+                lowercaseFile.readBytes()
+            } else {
+                null
+            }
         }
     }
 

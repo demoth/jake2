@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -15,16 +16,14 @@ import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
+import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import org.demoth.cake.*
 import org.demoth.cake.clientcommon.FlyingCameraController
-import org.demoth.cake.modelviewer.BspLoader
-import org.demoth.cake.modelviewer.Md2ModelLoader
-import org.demoth.cake.modelviewer.createGrid
-import org.demoth.cake.modelviewer.createOriginArrows
+import org.demoth.cake.modelviewer.*
 import kotlin.experimental.or
 import kotlin.math.abs
 import kotlin.math.cos
@@ -222,6 +221,16 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
         }
 
+        gameConfig.getImages().forEach { config ->
+            if (config != null) {
+                val textureFile = locator.findImage("${config.value}.pcx", "pics")
+                if (textureFile != null) {
+                    config.resource = Texture(fromPCX(PCX(textureFile)))
+                }
+            }
+        }
+
+        // these are expected to be loaded
         weaponSoundPaths.forEach { (index, path) ->
             if (path != null) {
                 locator.findSound(path)?.let {

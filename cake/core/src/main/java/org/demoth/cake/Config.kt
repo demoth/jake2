@@ -54,6 +54,11 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
         return configStrings.sliceArray(CS_SOUNDS + 1 .. CS_SOUNDS + MAX_SOUNDS)
     }
 
+    fun getImages(): Array<Config?> {
+        // todo: avoid copying
+        return configStrings.sliceArray(CS_IMAGES + 1 .. CS_IMAGES + MAX_IMAGES)
+    }
+
     fun dispose() {
         configStrings.forEach { it?.resource?.dispose() }
     }
