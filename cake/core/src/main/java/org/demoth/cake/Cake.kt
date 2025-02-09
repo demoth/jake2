@@ -154,6 +154,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     }
 
+    // whenever we change the visibility of the console or the menu, we should update the set of input handlers
+    // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(console: Boolean, menu: Boolean) {
         val handlers = ArrayList<InputProcessor>()
         if (console) {
@@ -170,7 +172,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
 
                 override fun keyUp(keycode: Int): Boolean {
-                    Com.Printf("KeyUp: $keycode\n")
                     return game3dScreen?.keyUp(keycode) ?: false
                 }
 

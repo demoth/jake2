@@ -145,7 +145,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (!precached)
             return
 
-        updatePlayerView()
+        updatePlayerCamera()
 
         modelBatch.begin(camera)
         visibleEntities.forEach {
@@ -169,7 +169,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     /**
-     * Load resources referenced in the config strings into the memory
+     * Load resources into the memory, that are referenced in the config strings or assumed always required (like weapon sounds)
      */
     fun precache() {
         // load resources referenced in the config strings
@@ -261,6 +261,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             localYaw = initialYaw!!
         }
 
+        // update camera direction right on the client side and sent to the server
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             var delta = deltaTime * cameraRotationSpeed
             if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
@@ -290,15 +291,16 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
     }
 
-    fun updatePlayerView() {
-        // move camera to current player state origin
+    fun updatePlayerCamera() {
 
+        // move camera to current player state origin
         val x = currentFrame.playerstate.viewoffset[0] + (currentFrame.playerstate.pmove.origin[0]) * 0.125f
         val y = currentFrame.playerstate.viewoffset[1] + (currentFrame.playerstate.pmove.origin[1]) * 0.125f
         val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
         camera.position.set(x, y, z)
 
         val rotation: Vector3 = quakeForward(0f, localYaw, 0f)
+        // todo: pitch and roll
 
         camera.direction.set(rotation)
         camera.update()
@@ -637,6 +639,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         visibleEntities += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
         if (levelModel != null) {
+            // todo: use area visibility to draw only part of the map (visible clusters)
             visibleEntities += levelModel!!
         }
 
@@ -645,15 +648,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         (0..<currentFrame.num_entities).forEach { // todo: clientEntities.forEach {...
             val s1 = cl_parse_entities[currentFrame.parse_entities + it and (MAX_PARSE_ENTITIES - 1)]
             val cent = clientEntities[s1.number]
-            // if modelIndex != 0, grab a model from the corresponding config string and make a model instance from it
-            // fixme: shouldn't be done on every from for every entity.
-            // Store in the entity_state_t?
 
             // instantiate model if not yet done
             if (cent.modelInstance == null) {
                 val modelIndex = s1.modelindex
                 if (modelIndex == 255) { // this is a player
-                    // fixme: how to get which skin does the player have?
+                    // fixme: how to get which model/skin does the player have?
                     cent.modelInstance = ModelInstance(playerModel)
                 } else if (modelIndex != 0) {
                     //configStrings[CS_MODELS + modelIndex]?.resource as? Model
@@ -669,8 +669,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val modelInstance = cent.modelInstance
             if (modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
                 val origin = s1.origin
-                // set the model instance position as origin
-                // transform the translation vector from q2 to libgdx
                 if (cent.current.effects and EF_ROTATE == 0) {
                     modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
                     modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
@@ -682,8 +680,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 visibleEntities += cent
             }
         }
-
-        // todo
     }
 
     // client only movement: temporary
