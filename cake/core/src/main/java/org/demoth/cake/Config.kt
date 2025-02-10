@@ -46,6 +46,10 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
         return configStrings.sliceArray(CS_MODELS + 1 .. CS_MODELS + MAX_MODELS)
     }
 
+    fun getMapName(): String? {
+        return configStrings[CS_MODELS + 1]?.value
+    }
+
     /**
      * an array slice starting from CS_SOUNDS up to CS_SOUNDS + MAX_SOUNDS
      */

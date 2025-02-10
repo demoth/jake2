@@ -169,13 +169,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     /**
      * Load resources into the memory, that are referenced in the config strings or assumed always required (like weapon sounds)
+     * todo: move to assetManager, make resource loading asynchronous
      */
     fun precache() {
         // load resources referenced in the config strings
 
         // load the level
-        val mapName = gameConfig[CS_MODELS + 1]?.value // fixme: disconnect with an error if is null
-        // mapName already has 'maps/' prefix
+        val mapName = gameConfig.getMapName() // fixme: disconnect with an error if is null
         val bsp = locator.findMap(mapName!!) // todo: cache
         val brushModels = BspLoader(locator).loadBspModels(bsp)
 
