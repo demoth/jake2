@@ -1,45 +1,49 @@
-package org.demoth.cake.stages;
+package org.demoth.cake.stages
+
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import jake2.qcommon.Defines
+import org.demoth.cake.GameConfiguration
 
 /**
  * A simplified and more readable function that consumes a layout string and a stats array.
- * It outputs draw calls (here represented as {@code drawImage(...)} and {@code drawText(...)})
+ * It outputs draw calls (here represented as `drawImage(...)` and `drawText(...)`)
  * while ignoring "dirty" calls or error handling.
- * <p>
+ *
+ *
  * The idea is to parse layout instructions to place images or text on the screen.
- * The function no longer depends on external global structures like {@code ClientGlobals}.
+ * The function no longer depends on external global structures like `ClientGlobals`.
  */
-public class LayoutExecutor {
-
-    // Example indexes for reference.
-    private static final int STAT_HEALTH = 0;
-    private static final int STAT_AMMO = 1;
-    private static final int STAT_ARMOR = 2;
-    private static final int STAT_FLASHES = 3;
-    // Our parser instance.
-    private static final LayoutParser layoutParser = new LayoutParser();
-
+class LayoutExecutor(
+    val spriteBatch: SpriteBatch,
+) {
     // Example stub for an image-drawing operation.
     // In real code, you might pass in your own rendering or context.
-    private static void drawImage(int x, int y, String imageName) {
-        // Implementation stub.
+    private fun drawImage(x: Int, y: Int, texture: Texture?) {
+        if (texture == null) {
+            return
+        }
+        spriteBatch.draw(texture, x.toFloat() , y.toFloat())
     }
 
     // Example stub for a text-drawing operation.
-    private static void drawText(int x, int y, String text, boolean alt) {
-        // If alt==true, you might render a different font.
+    private fun drawText(x: Int, y: Int, text: String?, alt: Boolean) {
+        println("Drawing $text at $x, $y alt=$alt")
     }
 
     // Example stub for drawing a numeric field.
-    private static void drawNumber(int x, int y, int value, int width, int color) {
-        // Implementation stub.
+    private fun drawNumber(x: Int, y: Int, value: Short, width: Int, color: Int) {
+        println("Drawing $value at $x, $y width=$width color=$color")
     }
 
     /**
      * Simplified layout execution that:
      * 1) Reads positional tokens (xl, xr, xv, yt, yb, yv)
      * 2) Handles draw commands (like pic, picn, num, etc.)
-     * 3) Relies on the provided {@code stats} array for values.
+     * 3) Relies on the provided `stats` array for values.
      * 4) Ignores any global or dirty calls.
+     *
+     * Should be run inside a spriteBatch begin/end
      *
      * @param layout       The layout string containing drawing instructions
      * @param serverFrame  The current server frame for blinking logic
@@ -47,207 +51,122 @@ public class LayoutExecutor {
      * @param screenWidth  Width of the screen
      * @param screenHeight Height of the screen
      */
-    public static void executeLayoutString(
-            String layout,
-            int serverFrame,
-            int[] stats,
-            int screenWidth,
-            int screenHeight) {
+    fun executeLayoutString(
+        layout: String?,
+        serverFrame: Int, // used for blinking
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        gameConfig: GameConfiguration
+    ) {
         // If layout is invalid, do nothing.
         if (layout == null || layout.isEmpty()) {
-            return;
+            return
         }
 
+        println("Executing layout: $layout")
+
         // Variables to track current position and field width.
-        int x = 0;
-        int y = 0;
-        int width = 3;
+        var x = 0
+        var y = 0
+        var width = 3
 
-        layoutParser.init(layout);
+        val tokens = ArrayDeque(layout.split("\\s+".toRegex()))
 
-        while (layoutParser.hasNext()) {
-            layoutParser.next();
-            String token = layoutParser.getToken();
+        while (tokens.isNotEmpty()) {
+            when (tokens.removeFirst()) {
+                // left
+                "xl" -> x = tokens.removeFirst().toInt()
+                // right
+                "xr" -> x = screenWidth + tokens.removeFirst().toInt()
+                // center
+                "xv" -> x = (screenWidth / 2) - 160 + tokens.removeFirst().toInt()
 
-            switch (token) {
-                case "xl":
-                    // Next token is integer X.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        x = layoutParser.tokenAsInt();
-                    }
-                    break;
+                // top
+                "yt" -> y = screenHeight - tokens.removeFirst().toInt()
+                // bottom - had to mirror the vertical coordinate because of the difference in quake / libgdx
+                "yb" -> y = -tokens.removeFirst().toInt()
+                // center
+                "yv" -> y = (screenHeight / 2) - 120 + tokens.removeFirst().toInt()
 
-                case "xr":
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        x = screenWidth + layoutParser.tokenAsInt();
-                    }
-                    break;
-
-                case "xv":
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        x = (screenWidth / 2) - 160 + layoutParser.tokenAsInt();
-                    }
-                    break;
-
-                case "yt":
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        y = layoutParser.tokenAsInt();
-                    }
-                    break;
-
-                case "yb":
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        y = screenHeight + layoutParser.tokenAsInt();
-                    }
-                    break;
-
-                case "yv":
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        y = (screenHeight / 2) - 120 + layoutParser.tokenAsInt();
-                    }
-                    break;
-
-                case "pic": {
+                // draw a pic from a stat number
+                "pic" -> {
                     // Next token is a stat index used as an image reference.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        int statIndex = layoutParser.tokenAsInt();
-                        int imageIndex = stats[statIndex];
-                        // We'll do a simple name: e.g. "image_" + imageIndex.
-                        // In real code, you might map imageIndex => actual image.
-                        String imageName = "image_" + imageIndex;
-                        drawImage(x, y, imageName);
+                    val statIndex = tokens.removeFirst().toInt()
+                    val imageIndex = stats[statIndex]
+                    gameConfig[Defines.CS_IMAGES + imageIndex.toInt()]?.let {
+                        println("Drawing ${it.value} at $x, $y")
+                        drawImage(x, y, it.resource as? Texture)
                     }
-                    break;
                 }
 
-                case "picn": {
+                "picn" -> {
                     // Next token is a string name for an image.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        String imageName = layoutParser.getToken();
-                        drawImage(x, y, imageName);
-                    }
-                    break;
+                    // drawImage(x, y, tokens.removeFirst())
                 }
 
-                case "num": {
+                "num" -> {
                     // Expect 2 subsequent tokens: width, statIndex.
                     // Then draw that number.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        width = layoutParser.tokenAsInt();
-                    }
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        int statIndex = layoutParser.tokenAsInt();
-                        int value = stats[statIndex];
-                        // color 0 for now.
-                        drawNumber(x, y, value, width, 0);
-                    }
-                    break;
+                    width = tokens.removeFirst().toInt()
+                    val statIndex = tokens.removeFirst().toInt()
+                    // color 0 for now.
+                    drawNumber(x, y, stats[statIndex], width, 0)
                 }
 
-                case "hnum": {
+                "hnum" -> {
                     // Health number.
-                    int health = stats[STAT_HEALTH];
-                    int color;
-                    if (health > 25) {
-                        color = 0; // green.
+                    val health = stats[Defines.STAT_HEALTH]
+                    val color: Int = if (health > 25) {
+                        0 // green.
                     } else if (health > 0) {
                         // flash.
-                        color = (serverFrame >> 2) & 1;
+                        (serverFrame shr 2) and 1
                     } else {
-                        color = 1; // e.g., red.
+                        1 // e.g., red.
                     }
-                    drawNumber(x, y, health, 3, color);
-                    break;
+                    drawNumber(x, y, health, 3, color)
                 }
 
-                case "anum": {
+                "anum" -> {
                     // Ammo.
-                    int ammo = stats[STAT_AMMO];
+                    val ammo = stats[Defines.STAT_AMMO]
                     if (ammo < 0) {
                         // do not draw.
-                        break;
+                        break
                     }
-                    int color = (ammo > 5) ? 0 : ((serverFrame >> 2) & 1);
-                    drawNumber(x, y, ammo, 3, color);
-                    break;
+                    val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
+                    drawNumber(x, y, ammo, 3, color)
                 }
 
-                case "rnum": {
+                "rnum" -> {
                     // Armor.
-                    int armor = stats[STAT_ARMOR];
+                    val armor = stats[Defines.STAT_ARMOR]
                     if (armor < 1) {
-                        break;
+                        break
                     }
-                    drawNumber(x, y, armor, 3, 0);
-                    break;
+                    drawNumber(x, y, armor, 3, 0)
                 }
 
-                case "string": {
+                "string" -> {
                     // Next token is the text to display.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        String text = layoutParser.getToken();
-                        drawText(x, y, text, false);
+                    if (tokens.isNotEmpty()) {
+                        val text = tokens.removeFirst()
+                        drawText(x, y, text, false)
                     }
-                    break;
                 }
 
-                case "string2": {
+                "string2" -> {
                     // Next token is the text to display in alt mode.
-                    if (layoutParser.hasNext()) {
-                        layoutParser.next();
-                        String text = layoutParser.getToken();
-                        drawText(x, y, text, true);
+                    if (tokens.isNotEmpty()) {
+                        val text = tokens.removeFirst()
+                        drawText(x, y, text, true)
                     }
-                    break;
                 }
 
-                // Additional tokens like "if", "client", etc. omitted for simplicity.
-
-                default:
-                    // unhandled token.
-                    break;
+                else -> {}
             }
         }
     }
 
-    // Minimal layout parser.
-    private static class LayoutParser {
-        private String[] tokens;
-        private int index;
-
-        void init(String layout) {
-            tokens = layout.split("\\s+");
-            index = 0;
-        }
-
-        boolean hasNext() {
-            return tokens != null && index < tokens.length;
-        }
-
-        void next() {
-            index++;
-        }
-
-        String getToken() {
-            return tokens[index];
-        }
-
-        /**
-         * For convenience, we expect a token that is an integer.
-         */
-        int tokenAsInt() {
-            return Integer.parseInt(getToken());
-        }
-    }
 }

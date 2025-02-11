@@ -66,4 +66,8 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
     fun dispose() {
         configStrings.forEach { it?.resource?.dispose() }
     }
+
+    fun getLayout(): String? {
+        return configStrings[CS_STATUSBAR]?.value
+    }
 }

@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -21,6 +22,7 @@ import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
+import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.*
@@ -79,6 +81,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var surpressCount = 0 // number of messages rate supressed
     private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
     private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
+    private val spriteBatch = SpriteBatch()
+    private val layoutExecutor = LayoutExecutor(spriteBatch)
 
     private var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
@@ -159,9 +163,22 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
         modelBatch.end()
         cameraInputController.update()
+
+        // draw hud
+        spriteBatch.use {
+            layoutExecutor.executeLayoutString(
+                layout = gameConfig.getLayout(),
+                serverFrame = currentFrame.serverframe,
+                stats = currentFrame.playerstate.stats,
+                screenWidth = Gdx.graphics.width,
+                screenHeight = Gdx.graphics.height,
+                gameConfig = gameConfig
+            )
+        }
     }
 
     override fun dispose() {
+        spriteBatch.dispose()
         modelBatch.dispose()
         // should we dispose the model instances first?
         gameConfig.dispose()
