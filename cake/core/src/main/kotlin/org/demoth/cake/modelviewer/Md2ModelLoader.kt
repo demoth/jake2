@@ -18,6 +18,7 @@ class Md2ModelLoader(val locator: ResourceLocator) {
     fun loadMd2Model(
         modelName: String,
         playerSkin: String? = null,
+        skinIndex: Int,
     ): Model? {
         val findModel = locator.findModel(modelName)
             ?: return null
@@ -36,7 +37,7 @@ class Md2ModelLoader(val locator: ResourceLocator) {
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
         val modelSkin: ByteArray = if (skins.isNotEmpty()) {
-            skins.first()
+            skins[skinIndex]
         } else {
             if (playerSkin != null) {
                 locator.findSkin(playerSkin)

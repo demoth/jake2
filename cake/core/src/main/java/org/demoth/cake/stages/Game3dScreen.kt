@@ -218,7 +218,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    config.resource = Md2ModelLoader(locator).loadMd2Model(it)
+                    config.resource = Md2ModelLoader(locator).loadMd2Model(it, skinIndex = 0)
                 }
             }
         }
@@ -226,7 +226,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // temporary: load one fixed player model
         playerModel = Md2ModelLoader(locator).loadMd2Model(
             playerModelPath,
-            playerSkin = playerSkinPath
+            playerSkin = playerSkinPath,
+            0
         )!!
 
         gameConfig.getSounds().forEach { config ->
