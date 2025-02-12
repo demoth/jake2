@@ -19,6 +19,7 @@ class Md2ModelLoader(val locator: ResourceLocator) {
         modelName: String,
         playerSkin: String? = null,
         skinIndex: Int,
+        frameIndex: Int,
     ): Model? {
         val findModel = locator.findModel(modelName)
             ?: return null
@@ -28,7 +29,7 @@ class Md2ModelLoader(val locator: ResourceLocator) {
             locator.findSkin(it)
         }
 
-        val first = md2Model.frames.first()
+        val first = md2Model.frames[frameIndex]
 
         val vertexBuffer = md2Model.glCommands.flatMap {
             it.toFloats(first.points)
