@@ -218,7 +218,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    config.resource = Md2ModelLoader(locator).loadMd2Model(it, skinIndex = 0, frameIndex = 0)
+                    config.resource = try { CakeMd2Model(locator, it) } catch (e: Exception) { null}
                 }
             }
         }
@@ -689,6 +689,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                     if (model != null) {
                         cent.modelInstance = ModelInstance(model)
                         // todo: apply entity transform to the model instance
+                    }
+                    val cakeMd2Model = gameConfig[CS_MODELS + modelIndex]?.resource as? CakeMd2Model
+                    if (cakeMd2Model != null) {
+                        cent.modelInstance = ModelInstance(cakeMd2Model.model)
+                        // todo:
+                        cakeMd2Model.setFrame(s1.frame)
                     }
                 }
             }
