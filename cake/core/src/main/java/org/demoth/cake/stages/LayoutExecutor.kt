@@ -23,17 +23,20 @@ class LayoutExecutor(
         if (texture == null) {
             return
         }
-        spriteBatch.draw(texture, x.toFloat() , y.toFloat())
+        // fixme: quake hud coordinates have different texture origin
+        spriteBatch.draw(texture, x.toFloat() , y.toFloat() - texture.height)
     }
 
     // Example stub for a text-drawing operation.
     private fun drawText(x: Int, y: Int, text: String?, alt: Boolean) {
-        println("Drawing $text at $x, $y alt=$alt")
+//        println("Drawing $text at $x, $y alt=$alt")
+        // todo
     }
 
     // Example stub for drawing a numeric field.
     private fun drawNumber(x: Int, y: Int, value: Short, width: Int, color: Int) {
-        println("Drawing $value at $x, $y width=$width color=$color")
+//        println("Drawing $value at $x, $y width=$width color=$color")
+        // todo
     }
 
     /**
@@ -64,8 +67,6 @@ class LayoutExecutor(
             return
         }
 
-        println("Executing layout: $layout")
-
         // Variables to track current position and field width.
         var x = 0
         var y = 0
@@ -95,7 +96,6 @@ class LayoutExecutor(
                     val statIndex = tokens.removeFirst().toInt()
                     val imageIndex = stats[statIndex]
                     gameConfig[Defines.CS_IMAGES + imageIndex.toInt()]?.let {
-                        println("Drawing ${it.value} at $x, $y")
                         drawImage(x, y, it.resource as? Texture)
                     }
                 }
