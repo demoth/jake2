@@ -274,7 +274,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
         }
-
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             cmd.forwardmove = 100
         }
@@ -716,8 +715,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
     }
 
-    // client only movement: temporary
+    // todo: extract into separate class
     override fun keyDown(keycode: Int): Boolean {
+        // toggle debug (fly) camera controller
+        if (keycode == Input.Keys.F2) {
+            cameraInputController.enabled = !cameraInputController.enabled
+        }
         return cameraInputController.keyDown(keycode)
     }
 

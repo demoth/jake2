@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector3
 
 class FlyingCameraController(camera: Camera): CameraInputController(camera) {
     private val right = Vector3()
+    var enabled = false
     val movementDirection = Vector3()
 
     init {
@@ -14,6 +15,7 @@ class FlyingCameraController(camera: Camera): CameraInputController(camera) {
     }
 
     override fun process(deltaX: Float, deltaY: Float, button: Int): Boolean {
+        if (!enabled) return false
         if (button == rotateButton) {
             // PITCH: rotate around local "right" axis
             right.set(camera.direction).crs(camera.up).nor()
@@ -30,6 +32,7 @@ class FlyingCameraController(camera: Camera): CameraInputController(camera) {
     }
 
     override fun update() {
+        if (!enabled) return
         // WASD movement
         if (rotateRightPressed || rotateLeftPressed || forwardPressed || backwardPressed) {
             movementDirection.set(0f, 0f, 0f)
