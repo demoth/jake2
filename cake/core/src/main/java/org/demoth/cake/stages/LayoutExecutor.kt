@@ -164,6 +164,16 @@ class LayoutExecutor(
                     }
                 }
 
+                "if" -> {
+                    val statIndex = tokens.removeFirst().toInt()
+                    val value = stats[statIndex]
+                    if (value == 0.toShort()) {
+                        // skip to endif
+                        do {
+                            val token = tokens.removeFirst()
+                        } while (token != "endif")
+                    }
+                }
                 else -> {}
             }
         }
