@@ -1,8 +1,11 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Defines
+import jake2.qcommon.Defines.MAX_STATS
 import org.demoth.cake.GameConfiguration
 
 /**
@@ -16,6 +19,8 @@ import org.demoth.cake.GameConfiguration
  */
 class LayoutExecutor(
     val spriteBatch: SpriteBatch,
+    val skin: Skin
+
 ) {
     // Example stub for an image-drawing operation.
     // In real code, you might pass in your own rendering or context.
@@ -24,13 +29,13 @@ class LayoutExecutor(
             return
         }
         // fixme: quake hud coordinates have different texture origin
-        spriteBatch.draw(texture, x.toFloat() , y.toFloat() - texture.height)
+        spriteBatch.draw(texture, x.toFloat(), y.toFloat() - texture.height)
     }
 
     // Example stub for a text-drawing operation.
-    private fun drawText(x: Int, y: Int, text: String?, alt: Boolean) {
-//        println("Drawing $text at $x, $y alt=$alt")
-        // todo
+    private fun drawText(x: Int, y: Int, text: String, alt: Boolean) {
+        val skinFont = skin.getFont("default") as BitmapFont
+        skinFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
     }
 
     // Example stub for drawing a numeric field.
@@ -147,6 +152,18 @@ class LayoutExecutor(
                     }
                     drawNumber(x, y, armor, 3, 0)
                 }
+
+                "stat_string" -> {
+                    val statIndex = tokens.removeFirst().toInt()
+                    if (statIndex !in (0..MAX_STATS)) {
+                        throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                    }
+                    val configIndex = stats[statIndex]
+                    val value = gameConfig.get(configIndex.toInt())?.value ?: ""
+                    drawText(x, y, value, false)
+                }
+
+
 
                 "string" -> {
                     // Next token is the text to display.

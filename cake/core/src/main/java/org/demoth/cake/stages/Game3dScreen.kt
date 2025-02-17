@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
 import jake2.qcommon.filesystem.PCX
@@ -82,7 +83,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
     private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
     private val spriteBatch = SpriteBatch()
-    private val layoutExecutor = LayoutExecutor(spriteBatch)
+    private val skin = Skin(Gdx.files.internal("ui/uiskin.json"))
+    private val layoutExecutor = LayoutExecutor(spriteBatch, skin)
 
     private var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
