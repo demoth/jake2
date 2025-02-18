@@ -142,6 +142,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         Cmd.AddCommand("precache") {
+            // todo: check the game state first, do not precache in the middle of the game
             Com.Printf("precache - loading resources\n")
             val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
@@ -165,45 +166,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             handlers.add(menuStage)
         }
         // delegate the rest to the current 3d screen
-        handlers.add(
-            object : InputProcessor {
-                override fun keyDown(keycode: Int): Boolean {
-                    return game3dScreen?.keyDown(keycode) ?: false
-                }
-
-                override fun keyUp(keycode: Int): Boolean {
-                    return game3dScreen?.keyUp(keycode) ?: false
-                }
-
-                override fun keyTyped(character: Char): Boolean {
-                    return game3dScreen?.keyTyped(character) ?: false
-                }
-
-                override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchDown(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchUp(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                    return game3dScreen?.touchCancelled(screenX, screenY, pointer, button) ?: false
-                }
-
-                override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-                    return game3dScreen?.touchDragged(screenX, screenY, pointer) ?: false
-                }
-
-                override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-                    return game3dScreen?.mouseMoved(screenX, screenY) ?: false
-                }
-
-                override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                    return game3dScreen?.scrolled(amountX, amountY) ?: false
-                }
-            }
-        )
+        game3dScreen?.let { screen ->
+            handlers.add(object : InputProcessor by screen {})
+        }
         Gdx.input.inputProcessor = InputMultiplexer(
             this, // global input processor to control console and menu
             *handlers.toTypedArray()
