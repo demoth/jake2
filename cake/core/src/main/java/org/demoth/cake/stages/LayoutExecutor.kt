@@ -18,10 +18,11 @@ import org.demoth.cake.GameConfiguration
  * The function no longer depends on external global structures like `ClientGlobals`.
  */
 class LayoutExecutor(
-    val spriteBatch: SpriteBatch,
-    val skin: Skin
-
+    private val spriteBatch: SpriteBatch,
+    private val skin: Skin
 ) {
+    private val skinFont = skin.getFont("default") as BitmapFont
+
     // Example stub for an image-drawing operation.
     // In real code, you might pass in your own rendering or context.
     private fun drawImage(x: Int, y: Int, texture: Texture?) {
@@ -34,14 +35,12 @@ class LayoutExecutor(
 
     // Example stub for a text-drawing operation.
     private fun drawText(x: Int, y: Int, text: String, alt: Boolean) {
-        val skinFont = skin.getFont("default") as BitmapFont
         skinFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
     }
 
     // Example stub for drawing a numeric field.
     private fun drawNumber(x: Int, y: Int, value: Short, width: Int, color: Int) {
-//        println("Drawing $value at $x, $y width=$width color=$color")
-        // todo
+        skinFont.draw(spriteBatch, "$value", x.toFloat(), y.toFloat())
     }
 
     /**
@@ -105,9 +104,18 @@ class LayoutExecutor(
                     }
                 }
 
+                "client" -> { // draw a deathmatch client block
+                    // todo
+                }
+
+                "ctf" -> { // draw a ctf client block
+                    // todo
+                }
+
                 "picn" -> {
                     // Next token is a string name for an image.
                     // drawImage(x, y, tokens.removeFirst())
+                    // todo
                 }
 
                 "num" -> {
@@ -163,24 +171,17 @@ class LayoutExecutor(
                     drawText(x, y, value, false)
                 }
 
-
-
-                "string" -> {
-                    // Next token is the text to display.
-                    if (tokens.isNotEmpty()) {
-                        val text = tokens.removeFirst()
-                        drawText(x, y, text, false)
-                    }
+                // what is a 'cstring' here?
+                "cstring", "string" -> {
+                    drawText(x, y, tokens.removeFirst(), false)
                 }
 
-                "string2" -> {
-                    // Next token is the text to display in alt mode.
-                    if (tokens.isNotEmpty()) {
-                        val text = tokens.removeFirst()
-                        drawText(x, y, text, true)
-                    }
+                // same but with alternate font
+                "cstring2", "string2" -> {
+                    drawText(x, y, tokens.removeFirst(), true)
                 }
 
+                // conditional statement based on a player stat
                 "if" -> {
                     val statIndex = tokens.removeFirst().toInt()
                     val value = stats[statIndex]
@@ -191,7 +192,10 @@ class LayoutExecutor(
                         } while (token != "endif")
                     }
                 }
-                else -> {}
+
+                else -> {
+                    // todo: warning
+                }
             }
         }
     }
