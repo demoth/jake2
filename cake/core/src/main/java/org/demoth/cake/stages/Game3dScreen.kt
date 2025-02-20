@@ -90,7 +90,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // entity states - updated during processing of [PacketEntitiesMessage]
     private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t(null) }
 
+    // interpolation factor between two server frames
     private var lerpFrac: Float = 0f
+    private var lerpAcc: Float = 0f
 
     // todo: make proper player loader
     private val playerModelPath = "players/male/tris.md2"
@@ -152,6 +154,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         updatePlayerCamera()
 
+        val serverFrameTime = 1f/10f // 10Hz server updates
+        lerpFrac = (lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+
         modelBatch.begin(camera)
         visibleEntities.forEach {
 
@@ -159,7 +164,16 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             if (it.current.effects and EF_ROTATE != 0) {
                 // rotate the model Instance, should to 180 degrees in 1 second
                 it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
+            } else {
+                // todo interpolate rotation
             }
+
+            // interpolate position
+            val x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
+            val y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
+            val z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
+
+            it.modelInstance.transform.setTranslation(x, y, z)
 
             modelBatch.render(it.modelInstance, environment);
         }
@@ -177,6 +191,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 gameConfig = gameConfig
             )
         }
+
+        lerpAcc += delta
     }
 
     override fun dispose() {
@@ -660,9 +676,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     // create/modify model instances
-    // apply entity transform to the model instance
     // AddPacketEntities
+    // update visible entities based on informatino from server
     fun postReceive() {
+        lerpAcc = 0f // reset lerp between server frames
+
         visibleEntities.clear()
         // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
@@ -703,7 +721,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             // update the model instance
             val modelInstance = cent.modelInstance
             if (modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
-                val origin = s1.origin
                 if (cent.current.effects and EF_ROTATE == 0) {
                     modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
                     modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
@@ -711,7 +728,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 } else {
                     // will be autorotated in render loop on the client
                 }
-                modelInstance.transform.setTranslation(origin[0], origin[1], origin[2])
                 visibleEntities += cent
             }
         }
