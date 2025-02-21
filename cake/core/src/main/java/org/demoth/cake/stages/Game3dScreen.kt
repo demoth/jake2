@@ -147,6 +147,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         camera.update()
         modelBatch = ModelBatch()
     }
+    private fun lerpAngle(a1: Float, a2: Float, lerpFrac: Float): Float {
+        var delta = a2 - a1
+        if (delta > 180) delta -= 360
+        if (delta < -180) delta += 360
+        return a1 + delta * lerpFrac
+    }
 
     override fun render(delta: Float) {
         if (!precached)
@@ -165,7 +171,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 // rotate the model Instance, should to 180 degrees in 1 second
                 it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
             } else {
-                // todo interpolate rotation
+                val pitch = lerpAngle(it.prev.angles[PITCH], it.current.angles[PITCH], lerpFrac)
+                val yaw = lerpAngle(it.prev.angles[YAW], it.current.angles[YAW], lerpFrac)
+                // todo: roll
+
+                it.modelInstance.transform.setToRotation(Vector3.X, pitch)
+                it.modelInstance.transform.rotate(Vector3.Z, yaw)
+
             }
 
             // interpolate position
@@ -722,8 +734,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val modelInstance = cent.modelInstance
             if (modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
                 if (cent.current.effects and EF_ROTATE == 0) {
-                    modelInstance.transform.setToRotation(Vector3.X, s1.angles[PITCH])
-                    modelInstance.transform.rotate(Vector3.Z, s1.angles[YAW])
                     // todo apply roll
                 } else {
                     // will be autorotated in render loop on the client
