@@ -27,6 +27,7 @@ import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.*
+import java.util.*
 import kotlin.experimental.or
 import kotlin.math.abs
 import kotlin.math.cos
@@ -132,6 +133,24 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         MZ_NUKE4 to null,
         MZ_NUKE8 to null,
     )
+
+    private val inputMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
+        Input.Keys.W to ClientCommands.forward,
+        Input.Keys.S to ClientCommands.back,
+        Input.Keys.A to ClientCommands.moveleft,
+        Input.Keys.D to ClientCommands.moveright,
+        Input.Keys.SPACE to ClientCommands.moveup,
+        Input.Keys.C to ClientCommands.movedown,
+        Input.Keys.LEFT to ClientCommands.left,
+        Input.Keys.RIGHT to ClientCommands.right,
+        Input.Keys.UP to ClientCommands.lookup,
+        Input.Keys.DOWN to ClientCommands.lookdown,
+        Input.Keys.CONTROL_LEFT to ClientCommands.attack,
+    )
+
+    // true means down
+    // false means up
+    private val commandsState: EnumMap<ClientCommands, Boolean?> = EnumMap(ClientCommands::class.java)
 
     init {
         camera.position.set(0f, 0f, 0f);
@@ -745,6 +764,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // todo: extract into separate class
     override fun keyDown(keycode: Int): Boolean {
+
+        val command = inputMappings[keycode]
+        if (command == null) {
+            println("Unknown keycode: $keycode")
+        }
+
         // toggle debug (fly) camera controller
         if (keycode == Input.Keys.F2) {
             cameraInputController.enabled = !cameraInputController.enabled
@@ -783,4 +808,22 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
         return cameraInputController.scrolled(amountX, amountY)
     }
+}
+
+enum class ClientCommands {
+    moveup,
+    movedown,
+    left,
+    right,
+    forward,
+    back,
+    lookup,
+    lookdown,
+    strafe,
+    moveleft,
+    moveright,
+    speed,
+    attack,
+    use,
+    klook,
 }
