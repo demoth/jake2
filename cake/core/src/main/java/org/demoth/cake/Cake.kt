@@ -93,6 +93,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             servername = it[1]
             networkState = CONNECTING
             game3dScreen = Game3dScreen()
+            updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
