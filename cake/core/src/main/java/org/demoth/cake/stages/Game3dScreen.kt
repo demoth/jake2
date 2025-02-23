@@ -25,7 +25,6 @@ import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
-import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.*
 import java.util.*
 import kotlin.experimental.or
@@ -59,8 +58,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var localYaw: Float = 0f
 
     var deltaTime: Float = 0f
-
-    private val cameraInputController = FlyingCameraController(camera)
 
     private val gameConfig = GameConfiguration()
 
@@ -209,7 +206,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             modelBatch.render(it.modelInstance, environment);
         }
         modelBatch.end()
-        cameraInputController.update()
 
         // draw hud
         spriteBatch.use {
@@ -764,49 +760,39 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // todo: extract into separate class
     override fun keyDown(keycode: Int): Boolean {
-
-        val command = inputMappings[keycode]
-        if (command == null) {
-            println("Unknown keycode: $keycode")
-        }
-
-        // toggle debug (fly) camera controller
-        if (keycode == Input.Keys.F2) {
-            cameraInputController.enabled = !cameraInputController.enabled
-        }
-        return cameraInputController.keyDown(keycode)
+        return false
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        return cameraInputController.keyUp(keycode)
+        return false
     }
 
     override fun keyTyped(character: Char): Boolean {
-        return cameraInputController.keyTyped(character)
+        return false
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return cameraInputController.touchDown(screenX, screenY, pointer, button)
+        return false
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return cameraInputController.touchUp(screenX, screenY, pointer, button)
+        return false
     }
 
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return cameraInputController.touchCancelled(screenX, screenY, pointer, button)
+        return false
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        return cameraInputController.touchDragged(screenX, screenY, pointer)
+        return false
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-        return cameraInputController.mouseMoved(screenX, screenY)
+        return false
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        return cameraInputController.scrolled(amountX, amountY)
+        return false
     }
 }
 
