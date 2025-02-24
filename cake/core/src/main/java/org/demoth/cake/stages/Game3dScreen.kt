@@ -26,6 +26,7 @@ import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.modelviewer.*
+import org.demoth.cake.stages.ClientCommands.*
 import java.util.*
 import kotlin.experimental.or
 import kotlin.math.abs
@@ -132,22 +133,20 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     )
 
     private val inputMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
-        Input.Keys.W to ClientCommands.forward,
-        Input.Keys.S to ClientCommands.back,
-        Input.Keys.A to ClientCommands.moveleft,
-        Input.Keys.D to ClientCommands.moveright,
-        Input.Keys.SPACE to ClientCommands.moveup,
-        Input.Keys.C to ClientCommands.movedown,
-        Input.Keys.LEFT to ClientCommands.left,
-        Input.Keys.RIGHT to ClientCommands.right,
-        Input.Keys.UP to ClientCommands.lookup,
-        Input.Keys.DOWN to ClientCommands.lookdown,
-        Input.Keys.CONTROL_LEFT to ClientCommands.attack,
+        Input.Keys.W to in_forward,
+        Input.Keys.S to in_back,
+        Input.Keys.A to in_moveleft,
+        Input.Keys.D to in_moveright,
+        Input.Keys.SPACE to in_moveup,
+        Input.Keys.C to in_movedown,
+        Input.Keys.LEFT to in_left,
+        Input.Keys.RIGHT to in_right,
+        Input.Keys.UP to in_lookup,
+        Input.Keys.DOWN to in_lookdown,
+        Input.Keys.CONTROL_LEFT to in_attack,
     )
 
-    // true means down
-    // false means up
-    private val commandsState: EnumMap<ClientCommands, Boolean?> = EnumMap(ClientCommands::class.java)
+    private val commandsState: EnumMap<ClientCommands, Boolean> = EnumMap(ClientCommands::class.java)
 
     init {
         camera.position.set(0f, 0f, 0f);
@@ -162,6 +161,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // create camera
         camera.update()
         modelBatch = ModelBatch()
+
+        ClientCommands.entries.forEach { commandsState[it] = false }
     }
     private fun lerpAngle(a1: Float, a2: Float, lerpFrac: Float): Float {
         var delta = a2 - a1
@@ -315,15 +316,24 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val cmd = userCommands[cmdIndex]
         cmd.clear()
 
-        // todo: implement proper input mapping
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+        if (commandsState[in_attack] == true) {
             cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            cmd.forwardmove = 100
+
+        if (commandsState[in_forward] == true) {
+            cmd.forwardmove = 100;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            cmd.forwardmove = -100
+
+        if (commandsState[in_back] == true) {
+            cmd.forwardmove = -100;
+        }
+
+        if (commandsState[in_moveleft] == true) {
+            cmd.sidemove = -100;
+        }
+
+        if (commandsState[in_moveright] == true) {
+            cmd.sidemove = 100;
         }
 
         // degrees
@@ -334,9 +344,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         // update camera direction right on the client side and sent to the server
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+        if (commandsState[in_left] == true || commandsState[in_right] == true) {
             var delta = deltaTime * cameraRotationSpeed
-            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            if (commandsState[in_right] == true) {
                 delta *= -1
             }
 
@@ -797,19 +807,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 }
 
 enum class ClientCommands {
-    moveup,
-    movedown,
-    left,
-    right,
-    forward,
-    back,
-    lookup,
-    lookdown,
-    strafe,
-    moveleft,
-    moveright,
-    speed,
-    attack,
-    use,
-    klook,
+    in_moveup,
+    in_movedown,
+    in_left,
+    in_right,
+    in_forward,
+    in_back,
+    in_lookup,
+    in_lookdown,
+    in_strafe,
+    in_moveleft,
+    in_moveright,
+    in_speed,
+    in_attack,
+    in_use,
+    in_klook,
 }
