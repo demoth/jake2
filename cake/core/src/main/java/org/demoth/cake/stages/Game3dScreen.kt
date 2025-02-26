@@ -132,7 +132,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         MZ_NUKE8 to null,
     )
 
-    private val inputMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
+    private val mouseSensitivity = 100f // todo cvar
+
+    private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
         Input.Keys.W to in_forward,
         Input.Keys.S to in_back,
         Input.Keys.A to in_moveleft,
@@ -146,6 +148,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         Input.Keys.CONTROL_LEFT to in_attack,
     )
 
+    // todo: track time
     private val commandsState: EnumMap<ClientCommands, Boolean> = EnumMap(ClientCommands::class.java)
 
     init {
@@ -352,10 +355,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
             localYaw += delta
 
-            // wrap
-            if (localYaw <= -180f) localYaw = localYaw + 360f
-            if (localYaw >= 180f) localYaw = localYaw - 360f
         }
+
+        // wrap
+        if (localYaw <= -180f) localYaw = localYaw + 360f
+        if (localYaw >= 180f) localYaw = localYaw - 360f
+
+
+        // process mouse movement
+        localYaw -= deltaTime * (Gdx.input.getDeltaX(0) * mouseSensitivity)
 
         cmd.angles[PITCH] = 0
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
@@ -756,25 +764,34 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
 
             // update the model instance
-            val modelInstance = cent.modelInstance
-            if (modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
-                if (cent.current.effects and EF_ROTATE == 0) {
-                    // todo apply roll
-                } else {
-                    // will be autorotated in render loop on the client
-                }
+            if (cent.modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
                 visibleEntities += cent
             }
         }
     }
 
-    // todo: extract into separate class
+    // todo: delegate to a separate class
     override fun keyDown(keycode: Int): Boolean {
-        return false
+        // todo: detect and enable automatically
+        if (Gdx.input.isKeyPressed(Input.Keys.F2)) {
+            Gdx.input.isCursorCatched = !Gdx.input.isCursorCatched
+        }
+
+        if (inputKeyMappings[keycode] != null) {
+            commandsState[inputKeyMappings[keycode]] = true
+            return true
+        } else {
+            return false
+        }
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        return false
+        if (inputKeyMappings[keycode] != null) {
+            commandsState[inputKeyMappings[keycode]] = false
+            return true
+        } else {
+            return false
+        }
     }
 
     override fun keyTyped(character: Char): Boolean {
@@ -782,10 +799,18 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        if (button == Input.Buttons.LEFT) {
+            commandsState[in_attack] = true
+            return true
+        }
         return false
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        if (button == Input.Buttons.LEFT) {
+            commandsState[in_attack] = false
+            return true
+        }
         return false
     }
 
