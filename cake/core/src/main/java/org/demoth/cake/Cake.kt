@@ -159,6 +159,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
+        Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
+
         val inputProcessor: InputProcessor? = when {
             consoleVisible -> consoleStage
             menuVisible -> menuStage
@@ -245,6 +247,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             }
             else -> return false
         }
+
+
         updateInputHandlers(consoleVisible, menuVisible)
         return true
     }

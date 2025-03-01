@@ -772,11 +772,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // todo: delegate to a separate class
     override fun keyDown(keycode: Int): Boolean {
-        // todo: detect and enable automatically
-        if (Gdx.input.isKeyPressed(Input.Keys.F2)) {
-            Gdx.input.isCursorCatched = !Gdx.input.isCursorCatched
-        }
-
         if (inputKeyMappings[keycode] != null) {
             commandsState[inputKeyMappings[keycode]] = true
             return true
