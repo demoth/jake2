@@ -1395,7 +1395,7 @@ public class GameExportsImpl implements GameExports {
             return;
 
         switch (cmd) {
-            case "use":
+            case "use": // invoked from console/via binding to select weapon or use an item from an inventory
                 Use_f(ent, args);
                 break;
             case "drop":

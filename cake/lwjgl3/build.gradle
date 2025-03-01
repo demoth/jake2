@@ -23,7 +23,7 @@ else {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3Launcher'
+mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
 application.setMainClass(mainClassName)
 java.sourceCompatibility = 11
 java.targetCompatibility = 11
