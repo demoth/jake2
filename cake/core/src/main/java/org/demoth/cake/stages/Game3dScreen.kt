@@ -133,6 +133,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     )
 
     private val mouseSensitivity = 100f // todo cvar
+    private var mouseWasMoved = false
 
     private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
         Input.Keys.W to in_forward,
@@ -363,7 +364,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
 
         // process mouse movement
-        localYaw -= deltaTime * (Gdx.input.getDeltaX(0) * mouseSensitivity)
+        if (mouseWasMoved) {
+            localYaw -= deltaTime * (Gdx.input.getDeltaX(0) * mouseSensitivity)
+            mouseWasMoved = false
+        }
 
         cmd.angles[PITCH] = 0
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
@@ -814,10 +818,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        mouseWasMoved = true
         return false
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        mouseWasMoved = true
         return false
     }
 
