@@ -54,9 +54,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // the angle that the player spawned with
     private var initialYaw: Float? = null
+    private var initialPitch: Float? = null
 
     // local camera angle
     private var localYaw: Float = 0f
+    private var localPitch: Float = 0f
 
     var deltaTime: Float = 0f
 
@@ -347,6 +349,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             localYaw = initialYaw!!
         }
 
+        if (initialPitch == null) {
+            initialPitch = currentFrame.playerstate.viewangles[PITCH]
+            localPitch = initialPitch!!
+        }
+
         // update camera direction right on the client side and sent to the server
         if (commandsState[in_left] == true || commandsState[in_right] == true) {
             var delta = deltaTime * cameraRotationSpeed
@@ -358,18 +365,28 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         }
 
-        // wrap
-        if (localYaw <= -180f) localYaw = localYaw + 360f
-        if (localYaw >= 180f) localYaw = localYaw - 360f
-
 
         // process mouse movement
         if (mouseWasMoved) {
             localYaw -= deltaTime * (Gdx.input.getDeltaX(0) * mouseSensitivity)
+            localPitch += deltaTime * (Gdx.input.getDeltaY(0) * mouseSensitivity)
             mouseWasMoved = false
         }
 
-        cmd.angles[PITCH] = 0
+        // wrap yaw
+        if (localYaw <= -180f) localYaw += + 360f
+        if (localYaw >= 180f) localYaw -= 360f
+
+        // first wrap the pitch
+        if (localPitch <= -180f) localPitch += 360f
+        if (localPitch >= 180f) localPitch -= 360f
+
+        // clamp pitch
+        if (localPitch > 90f) localPitch = 90f
+        if (localPitch < -90f) localPitch - 90f
+
+        // set the angles
+        cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
 
@@ -393,8 +410,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
         camera.position.set(x, y, z)
 
-        val rotation: Vector3 = quakeForward(0f, localYaw, 0f)
-        // todo: pitch and roll
+        val rotation: Vector3 = quakeForward(localPitch, localYaw, 0f)
+        // todo: roll
 
         camera.direction.set(rotation)
         camera.update()
