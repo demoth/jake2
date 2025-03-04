@@ -181,10 +181,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (!precached)
             return
 
-        updatePlayerCamera()
-
         val serverFrameTime = 1f/10f // 10Hz server updates
         lerpFrac = (lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+
+        updatePlayerCamera(lerpFrac)
 
         modelBatch.begin(camera)
         visibleEntities.forEach {
@@ -402,14 +402,30 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
     }
 
-    fun updatePlayerCamera() {
+    fun updatePlayerCamera(lerp: Float) {
 
         // move camera to current player state origin
-        val x = currentFrame.playerstate.viewoffset[0] + (currentFrame.playerstate.pmove.origin[0]) * 0.125f
-        val y = currentFrame.playerstate.viewoffset[1] + (currentFrame.playerstate.pmove.origin[1]) * 0.125f
-        val z = currentFrame.playerstate.viewoffset[2] + (currentFrame.playerstate.pmove.origin[2]) * 0.125f
-        camera.position.set(x, y, z)
+        val currentState = currentFrame.playerstate
+        val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
+        val newY = currentState.viewoffset[1] + (currentState.pmove.origin[1]) * 0.125f
+        val newZ = currentState.viewoffset[2] + (currentState.pmove.origin[2]) * 0.125f
 
+        val previousState = previousFrame?.playerstate ?: currentState
+        val oldX = previousState.viewoffset[0] + (previousState.pmove.origin[0]) * 0.125f
+        val oldY = previousState.viewoffset[1] + (previousState.pmove.origin[1]) * 0.125f
+        val oldZ = previousState.viewoffset[2] + (previousState.pmove.origin[2]) * 0.125f
+
+        val interpolatedX = oldX + (newX - oldX) * lerp
+        val interpolatedY = oldY + (newY - oldY) * lerp
+        val interpolatedZ = oldZ + (newZ - oldZ) * lerp
+
+        camera.position.set(
+            interpolatedX,
+            interpolatedY,
+            interpolatedZ
+        )
+
+        // don't need to interpolate rotation because it's local based
         val rotation: Vector3 = quakeForward(localPitch, localYaw, 0f)
         // todo: roll
 
