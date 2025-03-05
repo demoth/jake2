@@ -403,17 +403,29 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     fun updatePlayerCamera(lerp: Float) {
-
-        // move camera to current player state origin
         val currentState = currentFrame.playerstate
         val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
         val newY = currentState.viewoffset[1] + (currentState.pmove.origin[1]) * 0.125f
         val newZ = currentState.viewoffset[2] + (currentState.pmove.origin[2]) * 0.125f
 
         val previousState = previousFrame?.playerstate ?: currentState
-        val oldX = previousState.viewoffset[0] + (previousState.pmove.origin[0]) * 0.125f
-        val oldY = previousState.viewoffset[1] + (previousState.pmove.origin[1]) * 0.125f
-        val oldZ = previousState.viewoffset[2] + (previousState.pmove.origin[2]) * 0.125f
+
+        var oldX = previousState.viewoffset[0] + (previousState.pmove.origin[0]) * 0.125f
+        var oldY = previousState.viewoffset[1] + (previousState.pmove.origin[1]) * 0.125f
+        var oldZ = previousState.viewoffset[2] + (previousState.pmove.origin[2]) * 0.125f
+
+        // from CL_ents.java:
+        // see if the player entity was teleported this frame
+        if (abs(oldX - newX) > 256 * 8
+            || abs(oldY - newY) > 256 * 8
+            || abs(oldZ - newZ) > 256 * 8)
+        {
+            // don't interpolate
+            // fixme: what if teleportation was for a short distance?
+            oldX = newX
+            oldY = newY
+            oldZ = newZ
+        }
 
         val interpolatedX = oldX + (newX - oldX) * lerp
         val interpolatedY = oldY + (newY - oldY) * lerp

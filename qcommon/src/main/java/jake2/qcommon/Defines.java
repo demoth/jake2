@@ -814,6 +814,7 @@ public class Defines {
 	public final static int PORT_SERVER = 27910;
 	public final static int PORT_ANY = -1;
 
+	// player state: pmove fields
 	public final static int PS_M_TYPE = (1 << 0);
 	public final static int PS_M_ORIGIN = (1 << 1);
 	public final static int PS_M_VELOCITY = (1 << 2);
@@ -822,10 +823,7 @@ public class Defines {
 	public final static int PS_M_GRAVITY = (1 << 5);
 	public final static int PS_M_DELTA_ANGLES = (1 << 6);
 
-	public final static int UPDATE_BACKUP = 16; // copies of entity_state_t to keep buffered 
-	// must be power of two
-	public final static int UPDATE_MASK = (UPDATE_BACKUP - 1);
-
+	// player state: other fields
 	public final static int PS_VIEWOFFSET = (1 << 7);
 	public final static int PS_VIEWANGLES = (1 << 8);
 	public final static int PS_KICKANGLES = (1 << 9);
@@ -835,6 +833,11 @@ public class Defines {
 	public final static int PS_WEAPONFRAME = (1 << 13);
 	public final static int PS_RDFLAGS = (1 << 14);
 
+	public final static int UPDATE_BACKUP = 16; // copies of entity_state_t to keep buffered
+	// must be power of two
+	public final static int UPDATE_MASK = (UPDATE_BACKUP - 1);
+
+	// command flags
 	public static final int CM_ANGLE1 = (1 << 0);
 	public static final int CM_ANGLE2 = (1 << 1);
 	public static final int CM_ANGLE3 = (1 << 2);
