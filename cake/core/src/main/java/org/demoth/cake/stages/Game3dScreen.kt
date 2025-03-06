@@ -437,12 +437,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             interpolatedZ
         )
 
-        // don't need to interpolate rotation because it's local based
-        val rotation: Vector3 = quakeForward(localPitch, localYaw, 0f)
-        // todo: roll
 
-        camera.direction.set(rotation)
+        if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
+            // don't need to interpolate rotation because it's local based
+            val rotation: Vector3 = quakeForward(localPitch, localYaw, 0f)
+            // todo: roll
+
+            camera.direction.set(rotation)
+        } else {
+            // no camera controls for PM_DEAD PM_GIB PM_FREEZE
+            return
+        }
         camera.update()
+
     }
 
     private fun quakeForward(pitchDeg: Float, yawDeg: Float, rollDeg: Float): Vector3 {
