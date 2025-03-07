@@ -170,6 +170,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         ClientCommands.entries.forEach { commandsState[it] = false }
     }
+
     private fun lerpAngle(a1: Float, a2: Float, lerpFrac: Float): Float {
         var delta = a2 - a1
         if (delta > 180) delta -= 360
@@ -402,6 +403,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
     }
 
+    // CL_CalcViewValues
     fun updatePlayerCamera(lerp: Float) {
         val currentState = currentFrame.playerstate
         val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
@@ -409,6 +411,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val newZ = currentState.viewoffset[2] + (currentState.pmove.origin[2]) * 0.125f
 
         val previousState = previousFrame?.playerstate ?: currentState
+        // todo: check if previousFrame.serverframe +1 = currentFrame.serverFrame
+        // todo: check if previousFrame.valid
 
         var oldX = previousState.viewoffset[0] + (previousState.pmove.origin[0]) * 0.125f
         var oldY = previousState.viewoffset[1] + (previousState.pmove.origin[1]) * 0.125f
@@ -437,17 +441,20 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             interpolatedZ
         )
 
-
-        if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
+        val rotation: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
             // don't need to interpolate rotation because it's local based
-            val rotation: Vector3 = quakeForward(localPitch, localYaw, 0f)
+           quakeForward(localPitch, localYaw, 0f)
             // todo: roll
 
-            camera.direction.set(rotation)
         } else {
-            // no camera controls for PM_DEAD PM_GIB PM_FREEZE
-            return
+            // no camera controls for PM_DEAD PM_GIB PM_FREEZE, just interpolate server values
+            quakeForward(
+                lerpAngle(currentState.viewangles[PITCH], previousState.viewangles[PITCH], lerp),
+                lerpAngle(currentState.viewangles[YAW], previousState.viewangles[YAW], lerp),
+                0f, // todo
+            )
         }
+        camera.direction.set(rotation)
         camera.update()
 
     }
