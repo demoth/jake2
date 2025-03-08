@@ -171,11 +171,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         ClientCommands.entries.forEach { commandsState[it] = false }
     }
 
-    private fun lerpAngle(a1: Float, a2: Float, lerpFrac: Float): Float {
-        var delta = a2 - a1
+    private fun lerpAngle(from: Float, to: Float, fraction: Float): Float {
+        var delta = to - from
         if (delta > 180) delta -= 360
         if (delta < -180) delta += 360
-        return a1 + delta * lerpFrac
+        return from + delta * fraction
     }
 
     override fun render(delta: Float) {
@@ -403,7 +403,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
     }
 
-    // CL_CalcViewValues
+    /**
+     * CL_CalcViewValues
+     * Updates camera transformation according to player input and player info
+     */
     fun updatePlayerCamera(lerp: Float) {
         val currentState = currentFrame.playerstate
         val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
@@ -435,26 +438,37 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val interpolatedY = oldY + (newY - oldY) * lerp
         val interpolatedZ = oldZ + (newZ - oldZ) * lerp
 
+        // todo: think about - smooth out stair climbing - is it really needed?
+
         camera.position.set(
             interpolatedX,
             interpolatedY,
             interpolatedZ
         )
 
-        val rotation: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
-            // don't need to interpolate rotation because it's local based
-           quakeForward(localPitch, localYaw, 0f)
-            // todo: roll
+        // calculate where the camera should look at on this frame
+        val direction: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
+            // calculate the camera direction based on local angles + kick angle.
+            // don't need to interpolate rotation because it is locally based
+            val kickAnglePitch = lerpAngle(previousState.kick_angles[PITCH], currentState.kick_angles[PITCH], lerp)
+            val kickAngleYaw = lerpAngle(previousState.kick_angles[YAW], currentState.kick_angles[YAW], lerp)
+            quakeForward(
+                localPitch + kickAnglePitch,
+                localYaw + kickAngleYaw,
+                0f  // todo
+            )
+
 
         } else {
             // no camera controls for PM_DEAD PM_GIB PM_FREEZE, just interpolate server values
             quakeForward(
-                lerpAngle(currentState.viewangles[PITCH], previousState.viewangles[PITCH], lerp),
-                lerpAngle(currentState.viewangles[YAW], previousState.viewangles[YAW], lerp),
+                lerpAngle(previousState.viewangles[PITCH], currentState.viewangles[PITCH], lerp),
+                lerpAngle(previousState.viewangles[YAW], currentState.viewangles[YAW], lerp),
                 0f, // todo
             )
         }
-        camera.direction.set(rotation)
+
+        camera.direction.set(direction)
         camera.update()
 
     }
