@@ -383,8 +383,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (localPitch >= 180f) localPitch -= 360f
 
         // clamp pitch
-        if (localPitch > 90f) localPitch = 90f
-        if (localPitch < -90f) localPitch - 90f
+        if (localPitch >= 89f) localPitch = 89f
+        if (localPitch <= -89f) localPitch = -89f
 
         // set the angles
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
