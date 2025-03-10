@@ -343,6 +343,14 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             cmd.sidemove = 100;
         }
 
+        if (commandsState[in_moveup] == true) {
+            cmd.upmove = +100;
+        }
+
+        if (commandsState[in_movedown] == true) {
+            cmd.upmove = -100;
+        }
+
         // degrees
         // If we haven't initialized yet, do so
         if (initialYaw == null) {
