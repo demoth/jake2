@@ -70,4 +70,8 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
     fun getLayout(): String? {
         return configStrings[CS_STATUSBAR]?.value
     }
+
+    fun getSkyname(): String? {
+        return configStrings[CS_SKY]?.value
+    }
 }
