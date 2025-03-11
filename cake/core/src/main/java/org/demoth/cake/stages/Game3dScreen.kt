@@ -100,6 +100,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val playerSkinPath = "players/male/grunt.pcx"
     private lateinit var playerModel: Model
 
+    private val clientSpeed: Short = 100 // todo: cvar
+
+
     // todo: think about designing an extendable client side effect system
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private val weaponSoundPaths = mapOf(
@@ -328,27 +331,27 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         if (commandsState[in_forward] == true) {
-            cmd.forwardmove = 100;
+            cmd.forwardmove = clientSpeed;
         }
 
         if (commandsState[in_back] == true) {
-            cmd.forwardmove = -100;
+            cmd.forwardmove = (-clientSpeed).toShort()
         }
 
         if (commandsState[in_moveleft] == true) {
-            cmd.sidemove = -100;
+            cmd.sidemove = (-clientSpeed).toShort()
         }
 
         if (commandsState[in_moveright] == true) {
-            cmd.sidemove = 100;
+            cmd.sidemove = clientSpeed
         }
 
         if (commandsState[in_moveup] == true) {
-            cmd.upmove = +100;
+            cmd.upmove = clientSpeed
         }
 
         if (commandsState[in_movedown] == true) {
-            cmd.upmove = -100;
+            cmd.upmove = (-clientSpeed).toShort()
         }
 
         // degrees
