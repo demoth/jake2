@@ -18,6 +18,7 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
+import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
@@ -137,6 +138,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         MZ_NUKE8 to null,
     )
 
+    // mappings for input command: which are sent on every client update frame
     private val mouseSensitivity = 100f // todo cvar
     private var mouseWasMoved = false
 
@@ -152,6 +154,24 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         Input.Keys.UP to in_lookup,
         Input.Keys.DOWN to in_lookdown,
         Input.Keys.CONTROL_LEFT to in_attack,
+    )
+
+    // default.cfg
+    // input mapping for string commands - sent on demand
+    private val inputBindings: MutableMap<Int, String> = mutableMapOf(
+        Input.Keys.NUM_1 to "use blaster",
+        Input.Keys.NUM_2 to "use shotgun",
+        Input.Keys.NUM_3 to "use sshotgun",
+        Input.Keys.NUM_4 to "use machinegun",
+        Input.Keys.NUM_5 to "use chaingun",
+        Input.Keys.NUM_6 to "use grenade launcher",
+        Input.Keys.NUM_7 to "use rocket launcher",
+        Input.Keys.NUM_8 to "use hyperblaster",
+        Input.Keys.NUM_9 to "use railgun",
+        Input.Keys.NUM_0 to "use bfg",
+        Input.Keys.G to "use grenades",
+        Input.Keys.TAB to "inven",
+        Input.Keys.F2 to "cmd help"
     )
 
     // todo: track time
@@ -871,6 +891,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     override fun keyUp(keycode: Int): Boolean {
         if (inputKeyMappings[keycode] != null) {
             commandsState[inputKeyMappings[keycode]] = false
+            return true
+        } else if (inputBindings[keycode] != null) {
+            val cmd = inputBindings[keycode]
+            if (cmd != null) {
+                println("Executing command: $cmd")
+                Cbuf.AddText(cmd)
+            }
             return true
         } else {
             return false
