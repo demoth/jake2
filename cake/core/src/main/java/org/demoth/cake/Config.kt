@@ -30,6 +30,13 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
 
     }
 
+
+    /**
+     * Layout for score and help screens.
+     * For some reason, it is not managed by the config strings.
+     */
+    var layout: String = ""
+
     private val configStrings = Array<Config?>(size) { null }
 
     operator fun get(index: Int) = configStrings[index]
@@ -67,7 +74,7 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
         configStrings.forEach { it?.resource?.dispose() }
     }
 
-    fun getLayout(): String? {
+    fun getStatusBarLayout(): String? {
         return configStrings[CS_STATUSBAR]?.value
     }
 }

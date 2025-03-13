@@ -241,15 +241,32 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // draw hud
         spriteBatch.use {
             layoutExecutor.executeLayoutString(
-                layout = gameConfig.getLayout(),
+                layout = gameConfig.getStatusBarLayout(),
                 serverFrame = currentFrame.serverframe,
                 stats = currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
                 gameConfig = gameConfig
             )
-        }
 
+            // draw additional layout, like help or score
+            // SRC.DrawLayout
+            if ((currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 1) != 0) {
+                layoutExecutor.executeLayoutString(
+                    layout = gameConfig.layout,
+                    serverFrame = currentFrame.serverframe,
+                    stats = currentFrame.playerstate.stats,
+                    screenWidth = Gdx.graphics.width,
+                    screenHeight = Gdx.graphics.height,
+                    gameConfig = gameConfig
+                )
+            }
+            // draw additional layout, like help or score
+            // CL_inv.DrawInventory
+            if ((currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 2) != 0) {
+                // todo: inventory is hardcoded in the quake client
+            }
+        }
         lerpAcc += delta
     }
 
@@ -773,6 +790,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         } else {
             // todo: warning!
         }
+    }
+
+    override fun processLayoutMessage(msg: LayoutMessage) {
+         gameConfig.layout = msg.layout
     }
 
     /**

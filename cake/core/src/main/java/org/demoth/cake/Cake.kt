@@ -131,6 +131,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Println(Cbuf.contents())
         }
 
+        /*
+         * Adds the current command line as a clc_stringcmd to the client message.
+         * things like godmode, noclip, etc, are commands directed to the server, so
+         * when they are typed in at the console, they will need to be forwarded.
+         *
+         * see jake2.server.SV_MAIN#SV_ExecuteUserCommand(jake2.server.client_t, java.lang.String)
+         */
         Cmd.AddCommand("cmd") {
             if (networkState != CONNECTED && networkState != ACTIVE) {
                 Com.Println("Cannot cmd '${it}', not connected")
@@ -412,6 +419,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is PrintCenterMessage -> {
                     // todo: display on the hud
                     Com.Printf("${msg.text}\n")
+                }
+                is LayoutMessage -> {
+                    game3dScreen?.processLayoutMessage(msg)
                 }
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
