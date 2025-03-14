@@ -264,7 +264,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             // draw additional layout, like help or score
             // CL_inv.DrawInventory
             if ((currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 2) != 0) {
-                // todo: inventory is hardcoded in the quake client
+                layoutExecutor.drawInventory(
+                    playerstate = currentFrame.playerstate,
+                    screenWidth = Gdx.graphics.width,
+                    screenHeight = Gdx.graphics.height,
+                    gameConfig = gameConfig
+                )
             }
         }
         lerpAcc += delta
@@ -794,6 +799,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     override fun processLayoutMessage(msg: LayoutMessage) {
          gameConfig.layout = msg.layout
+    }
+
+    override fun processInventoryMessage(msg: InventoryMessage) {
+        for (i in 0..<MAX_ITEMS) {
+            gameConfig.inventory[i] = msg.inventory[i]
+        }
     }
 
     /**

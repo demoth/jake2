@@ -423,6 +423,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is LayoutMessage -> {
                     game3dScreen?.processLayoutMessage(msg)
                 }
+                is InventoryMessage -> {
+                    game3dScreen?.processInventoryMessage(msg)
+                }
                 else -> {
 //                    Com.Printf("Received ${msg.javaClass.name} message\n")
                 }

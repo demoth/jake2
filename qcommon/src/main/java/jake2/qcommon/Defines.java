@@ -536,7 +536,13 @@ public class Defines {
 	public final static int STAT_TIMER = 10;
 	public final static int STAT_HELPICON = 11;
 	public final static int STAT_SELECTED_ITEM = 12;
-	public final static int STAT_LAYOUTS = 13;
+	/**
+     * tell client about current activated layouts in each bit:
+     * 0 – draw hud,
+     * 1 – draw help/scores,
+     * 2 – draw inventory
+     */
+    public final static int STAT_LAYOUTS = 13;
 	public final static int STAT_FRAGS = 14;
 	public final static int STAT_FLASHES = 15; // cleared each frame, 1 = health, 2 = armor 
 	public final static int STAT_CHASE = 16;

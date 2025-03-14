@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Defines
+import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_STATS
+import jake2.qcommon.player_state_t
 import org.demoth.cake.GameConfiguration
 
 /**
@@ -200,4 +202,23 @@ class LayoutExecutor(
         }
     }
 
+    /**
+     * Stub inventory implementation
+     */
+    fun drawInventory(gameConfig: GameConfiguration, screenWidth: Int, screenHeight: Int, playerstate: player_state_t) {
+        val x = screenWidth / 2
+        var y = screenHeight / 2
+        val selectedIndex = playerstate.stats[Defines.STAT_SELECTED_ITEM].toInt()
+        drawText(x, y, "Inventory:", false)
+        for (i in 0..<MAX_ITEMS) {
+            val amount = gameConfig.inventory[i]
+            if (amount > 0) {
+                y -= 16;
+                val selectedPrefix = if (i == selectedIndex) "->" else "  "
+                val amountText = amount.toString().padStart(3)
+                val text = "$selectedPrefix $amountText ${gameConfig[Defines.CS_ITEMS + i]?.value ?: ""}"
+                drawText(x, y, text, false)
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package org.demoth.cake
 
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
 
@@ -31,11 +32,14 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
     }
 
 
+
     /**
      * Layout for score and help screens.
      * For some reason, it is not managed by the config strings.
      */
     var layout: String = ""
+
+    val inventory: IntArray = IntArray(Defines.MAX_ITEMS) { 0 }
 
     private val configStrings = Array<Config?>(size) { null }
 
