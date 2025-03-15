@@ -240,6 +240,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         // draw hud
         spriteBatch.use {
+            layoutExecutor.drawCrosshair(
+                screenWidth = Gdx.graphics.width,
+                screenHeight = Gdx.graphics.height,
+            )
+
             layoutExecutor.executeLayoutString(
                 layout = gameConfig.getStatusBarLayout(),
                 serverFrame = currentFrame.serverframe,
@@ -271,6 +276,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                     gameConfig = gameConfig
                 )
             }
+
         }
         lerpAcc += delta
     }

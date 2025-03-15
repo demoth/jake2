@@ -221,4 +221,8 @@ class LayoutExecutor(
             }
         }
     }
+
+    fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
+        drawText(screenWidth / 2, screenHeight / 2, "+", false)
+    }
 }
