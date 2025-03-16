@@ -60,6 +60,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // local camera angle
     private var localYaw: Float = 0f
     private var localPitch: Float = 0f
+    private val smoothingFactor = 0.3f // Adjust for smoother transition (0 = instant, 1 = no smoothing)
+    private val sensitivityFactor = 0.1f // Adjust for better control
+    private val accelerationFactor = 2.0f // Scales up the movement when moving fast
+    private var smoothedDx = 0f
+    private var smoothedDy = 0f
+
 
     var deltaTime: Float = 0f
 
@@ -139,7 +145,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     )
 
     // mappings for input command: which are sent on every client update frame
-    private val mouseSensitivity = 100f // todo cvar
+    private val mouseSensitivity = 1f // todo cvar
     private var mouseWasMoved = false
 
     private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
@@ -425,11 +431,21 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         }
 
-
         // process mouse movement
         if (mouseWasMoved) {
-            localYaw -= deltaTime * (Gdx.input.getDeltaX(0) * mouseSensitivity)
-            localPitch += deltaTime * (Gdx.input.getDeltaY(0) * mouseSensitivity)
+            val rawDx = Gdx.input.getDeltaX(0).toFloat()
+            val rawDy = Gdx.input.getDeltaY(0).toFloat()
+            Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+            // Exponential smoothing to prevent sudden jumps
+            smoothedDx = smoothedDx * (1 - smoothingFactor) + rawDx * smoothingFactor
+            smoothedDy = smoothedDy * (1 - smoothingFactor) + rawDy * smoothingFactor
+
+            val adjustedYawChange = (smoothedDx * mouseSensitivity) * (1f + abs(smoothedDx) * sensitivityFactor * accelerationFactor)
+            val adjustedPitchChange = (smoothedDy * mouseSensitivity) * (1f + abs(smoothedDy) * sensitivityFactor * accelerationFactor)
+
+            localYaw -= adjustedYawChange
+            localPitch += adjustedPitchChange
+
             mouseWasMoved = false
         }
 
