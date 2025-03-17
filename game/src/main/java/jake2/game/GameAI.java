@@ -38,7 +38,7 @@ public class GameAI {
     /**
      * Checks, if the monster should turn left/right.
      */
-    private static boolean FacingIdeal(SubgameEntity self) {
+    static boolean FacingIdeal(SubgameEntity self) {
         float delta = Math3D.anglemod(self.s.angles[Defines.YAW] - self.ideal_yaw);
         return !(delta > 45) || !(delta < 315);
     }
