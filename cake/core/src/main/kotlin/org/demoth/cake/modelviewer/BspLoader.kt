@@ -54,7 +54,8 @@ class BspLoader(val locator: ResourceLocator) {
             // split all faces by texture name
             val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
 
-            facesByTexture.forEach { (textureName, faces) ->
+            // skies are rendered separately, see: SkyLoader
+            facesByTexture.filter { !it.key.contains("sky") }.forEach { (textureName, faces) ->
                 val walTexture = WAL(locator.findImage("$textureName.wal")!!) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
                 // todo: bsp level textures always wrap?

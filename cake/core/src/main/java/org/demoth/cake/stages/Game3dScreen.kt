@@ -78,6 +78,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var gameName: String = "baseq2"
     private var spawnCount = 0
 
+    private var skyBox: ModelInstance? = null
+
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
      */
@@ -217,6 +219,15 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         updatePlayerCamera(lerpFrac)
 
         modelBatch.begin(camera)
+
+        skyBox?.let {
+            Gdx.gl.glDepthMask(false)
+            // TODO: rotate skybox: skyBox.transform.setToRotation(...)
+            it.transform.setTranslation(camera.position) // follow the camera
+            modelBatch.render(skyBox)
+            Gdx.gl.glDepthMask(true)
+        }
+
         visibleEntities.forEach {
 
             // apply client side effects
@@ -358,6 +369,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 }
             }
         }
+
+
+        gameConfig.getSkyname()?.let { skyname ->
+            skyBox = SkyLoader(locator).load(skyname)
+        }
+
 
         // these are expected to be loaded
         weaponSoundPaths.forEach { (index, path) ->

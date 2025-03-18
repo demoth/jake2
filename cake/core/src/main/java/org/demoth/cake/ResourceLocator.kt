@@ -79,4 +79,8 @@ class ResourceLocator(private val baseDir: String) {
     fun findSkin(skinName: String): ByteArray {
         return File("$baseDir/$gameName/$skinName").readBytes()
     }
+
+    fun findSky(skyname: String): ByteArray {
+        return File("$baseDir/$gameName/env/$skyname.pcx").readBytes()
+    }
 }
