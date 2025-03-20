@@ -463,20 +463,21 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             localYaw -= adjustedYawChange
             localPitch += adjustedPitchChange
 
+            // wrap yaw
+            if (localYaw <= -180f) localYaw += 360f
+            if (localYaw >= 180f) localYaw -= 360f
+
+            // first wrap the pitch
+            if (localPitch <= -180f) localPitch += 360f
+            if (localPitch >= 180f) localPitch -= 360f
+
+            // clamp pitch
+            if (localPitch >= 89f) localPitch = 89f
+            if (localPitch <= -89f) localPitch = -89f
+
+
             mouseWasMoved = false
         }
-
-        // wrap yaw
-        if (localYaw <= -180f) localYaw += + 360f
-        if (localYaw >= 180f) localYaw -= 360f
-
-        // first wrap the pitch
-        if (localPitch <= -180f) localPitch += 360f
-        if (localPitch >= 180f) localPitch -= 360f
-
-        // clamp pitch
-        if (localPitch >= 89f) localPitch = 89f
-        if (localPitch <= -89f) localPitch = -89f
 
         // set the angles
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
