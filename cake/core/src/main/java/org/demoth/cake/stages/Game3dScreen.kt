@@ -60,12 +60,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // local camera angle
     private var localYaw: Float = 0f
     private var localPitch: Float = 0f
-    private val smoothingFactor = 0.3f // Adjust for smoother transition (0 = instant, 1 = no smoothing)
-    private val sensitivityFactor = 0.1f // Adjust for better control
-    private val accelerationFactor = 2.0f // Scales up the movement when moving fast
-    private var smoothedDx = 0f
-    private var smoothedDy = 0f
-
 
     var deltaTime: Float = 0f
 
@@ -184,6 +178,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     // todo: track time
     private val commandsState: EnumMap<ClientCommands, Boolean> = EnumMap(ClientCommands::class.java)
+    private var previousX = 0f
+    private var previousY = 0f
+    private var deltaX = 0f
+    private var deltaY = 0f
+    private val sensitivity = 25f
 
     init {
         camera.position.set(0f, 0f, 0f);
@@ -448,36 +447,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         }
 
-        // process mouse movement
-        if (mouseWasMoved) {
-            val rawDx = Gdx.input.getDeltaX(0).toFloat()
-            val rawDy = Gdx.input.getDeltaY(0).toFloat()
-            Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
-            // Exponential smoothing to prevent sudden jumps
-            smoothedDx = smoothedDx * (1 - smoothingFactor) + rawDx * smoothingFactor
-            smoothedDy = smoothedDy * (1 - smoothingFactor) + rawDy * smoothingFactor
-
-            val adjustedYawChange = (smoothedDx * mouseSensitivity) * (1f + abs(smoothedDx) * sensitivityFactor * accelerationFactor)
-            val adjustedPitchChange = (smoothedDy * mouseSensitivity) * (1f + abs(smoothedDy) * sensitivityFactor * accelerationFactor)
-
-            localYaw -= adjustedYawChange
-            localPitch += adjustedPitchChange
-
-            // wrap yaw
-            if (localYaw <= -180f) localYaw += 360f
-            if (localYaw >= 180f) localYaw -= 360f
-
-            // first wrap the pitch
-            if (localPitch <= -180f) localPitch += 360f
-            if (localPitch >= 180f) localPitch -= 360f
-
-            // clamp pitch
-            if (localPitch >= 89f) localPitch = 89f
-            if (localPitch <= -89f) localPitch = -89f
-
-
-            mouseWasMoved = false
-        }
 
         // set the angles
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
@@ -500,7 +469,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
      * CL_CalcViewValues
      * Updates camera transformation according to player input and player info
      */
-    fun updatePlayerCamera(lerp: Float) {
+    private fun updatePlayerCamera(lerp: Float) {
         val currentState = currentFrame.playerstate
         val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
         val newY = currentState.viewoffset[1] + (currentState.pmove.origin[1]) * 0.125f
@@ -539,6 +508,27 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             interpolatedZ
         )
 
+        // process mouse movement
+        if (mouseWasMoved) {
+            localYaw -= deltaX
+            localPitch += deltaY
+
+            // wrap yaw
+            if (localYaw <= -180f) localYaw += 360f
+            if (localYaw >= 180f) localYaw -= 360f
+
+            // first wrap the pitch
+            if (localPitch <= -180f) localPitch += 360f
+            if (localPitch >= 180f) localPitch -= 360f
+
+            // clamp pitch
+            if (localPitch >= 89f) localPitch = 89f
+            if (localPitch <= -89f) localPitch = -89f
+
+
+            mouseWasMoved = false
+        }
+
         // calculate where the camera should look at on this frame
         val direction: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
             // calculate the camera direction based on local angles + kick angle.
@@ -547,8 +537,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val kickAngleYaw = lerpAngle(previousState.kick_angles[YAW], currentState.kick_angles[YAW], lerp)
             quakeForward(
                 localPitch + kickAnglePitch,
-                localYaw + kickAngleYaw,
-                0f  // todo
+                localYaw + kickAngleYaw
             )
 
 
@@ -557,7 +546,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             quakeForward(
                 lerpAngle(previousState.viewangles[PITCH], currentState.viewangles[PITCH], lerp),
                 lerpAngle(previousState.viewangles[YAW], currentState.viewangles[YAW], lerp),
-                0f, // todo
             )
         }
 
@@ -566,7 +554,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     }
 
-    private fun quakeForward(pitchDeg: Float, yawDeg: Float, rollDeg: Float): Vector3 {
+    private fun quakeForward(pitchDeg: Float, yawDeg: Float): Vector3 {
         val pitch = pitchDeg * degRad
         val yaw = yawDeg * degRad
         // roll not used in forward direction
@@ -1001,11 +989,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
+        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+        previousX = screenX.toFloat()
+        previousY = screenY.toFloat()
         mouseWasMoved = true
         return false
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
+        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+        previousX = screenX.toFloat()
+        previousY = screenY.toFloat()
         mouseWasMoved = true
         return false
     }
