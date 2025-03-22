@@ -989,25 +989,25 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
-        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
-        previousX = screenX.toFloat()
-        previousY = screenY.toFloat()
-        mouseWasMoved = true
-        return false
+        return processCameraRotation(screenX, screenY)
     }
 
+
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
-        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
-        previousX = screenX.toFloat()
-        previousY = screenY.toFloat()
-        mouseWasMoved = true
-        return false
+        return processCameraRotation(screenX, screenY)
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
         return false
+    }
+
+    private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
+        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
+        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+        previousX = screenX.toFloat()
+        previousY = screenY.toFloat()
+        mouseWasMoved = true
+        return true // consume the event
     }
 }
 
