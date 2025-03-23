@@ -46,6 +46,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val visibleEntities = ArrayList<ClientEntity>()
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
+    private var drawLevel = true
+    private var drawEntities = true
     private val collisionModel = CM()
     private val locator = ResourceLocator(System.getProperty("basedir"))
 
@@ -73,6 +75,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
+    private var drawSkybox = true
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -219,13 +222,14 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         modelBatch.begin(camera)
 
-        skyBox?.let {
-            Gdx.gl.glDepthMask(false)
-            // TODO: rotate skybox: skyBox.transform.setToRotation(...)
-            it.transform.setTranslation(camera.position) // follow the camera
-            modelBatch.render(skyBox)
-            Gdx.gl.glDepthMask(true)
-        }
+        if (drawSkybox)
+            skyBox?.let {
+                Gdx.gl.glDepthMask(false)
+                // TODO: rotate skybox: skyBox.transform.setToRotation(...)
+                it.transform.setTranslation(camera.position) // follow the camera
+                modelBatch.render(skyBox)
+                Gdx.gl.glDepthMask(true)
+            }
 
         visibleEntities.forEach {
 
@@ -898,7 +902,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
-        if (levelModel != null) {
+        if (levelModel != null && drawLevel) {
             // todo: use area visibility to draw only part of the map (visible clusters)
             visibleEntities += levelModel!!
         }
@@ -932,7 +936,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
 
             // update the model instance
-            if (cent.modelInstance != null && s1.number != playerNumber + 1) { // do not draw ourselves
+            if (cent.modelInstance != null
+                && s1.number != playerNumber + 1 // do not draw ourselves
+                && drawEntities
+            ) {
                 visibleEntities += cent
             }
         }
@@ -959,9 +966,24 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 Cbuf.AddText(cmd)
             }
             return true
-        } else {
-            return false
         }
+
+        when(keycode) {
+            Input.Keys.F5 -> {
+                drawSkybox = !drawSkybox
+                return true
+            }
+            Input.Keys.F6 -> {
+                drawLevel = !drawLevel
+                return true
+            }
+            Input.Keys.F7 -> {
+                drawEntities = !drawEntities
+                return true
+            }
+
+        }
+        return false
     }
 
     override fun keyTyped(character: Char): Boolean {
