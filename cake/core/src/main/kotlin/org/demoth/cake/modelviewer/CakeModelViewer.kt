@@ -4,21 +4,17 @@ import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader
-import com.badlogic.gdx.graphics.g3d.loader.ObjLoader
-import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
+import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.graphics.g3d.utils.RenderContext
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
@@ -66,12 +62,17 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                models.add(ModelInstance(Md2ModelLoader(locator).loadMd2Model(
-                    modelName = file.path, // will be passed to the ResourceLocator
-                    playerSkin = null,
-                    skinIndex = 1,
-                    frameIndex = 1
-                )))
+                val modelInstance = ModelInstance(
+                    Md2ModelLoader(locator).loadMd2Model(
+                        modelName = file.path, // will be passed to the ResourceLocator
+                        playerSkin = null,
+                        skinIndex = 1,
+                        frameIndex = 1
+                    )
+                )
+                // todo: uncomment when implemented
+                //modelInstance.userData = "md2" // marker to use the custom shader
+                models.add(modelInstance)
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -85,7 +86,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         batch = SpriteBatch()
 
-        modelBatch = ModelBatch()
+        modelBatch = ModelBatch(CakeShaderProvider())
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
@@ -95,75 +96,12 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         cameraInputController = FlyingCameraController(camera)
         Gdx.input.inputProcessor = cameraInputController
-        modelBatch = ModelBatch()
 
         environment = Environment()
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
     }
 
-    /**
-     * Create a model programmatically using the model builder
-     */
-    private fun createModel(): Model {
-        val modelBuilder = ModelBuilder()
-        val box = modelBuilder.createBox(
-            2f, 2f, 2f,
-            Material(
-                ColorAttribute.createDiffuse(Color.BLUE)
-//                todo: add texture and check coords
-            ),
-            (Usage.Position or Usage.Normal).toLong()
-        )
-        return box
-    }
-
-    /**
-     * Load an .obj model. todo: try using a material
-     */
-    private fun loadObjModel(): ModelInstance {
-        val suzanneModel = ObjLoader().loadModel(Gdx.files.internal("suzanne.obj"))
-        val suzanne = ModelInstance(suzanneModel)
-        suzanne.transform.translate(0f, 2f, 0f)
-        return suzanne
-    }
-
-    /**
-     * Example of building the model with the mesh builder class (from geometric shapes)
-     */
-    private fun loadMeshModel(): ModelInstance {
-        val modelBuilder = ModelBuilder()
-        modelBuilder.begin()
-        var meshBuilder =
-            modelBuilder.part("part1", GL_TRIANGLES, (Usage.Position or Usage.Normal).toLong(), Material())
-        meshBuilder.cone(5f, 5f, 5f, 10)
-        val node: Node = modelBuilder.node()
-        node.translation.set(10f, 0f, 0f)
-        meshBuilder = modelBuilder.part("part2", GL_TRIANGLES, (Usage.Position or Usage.Normal).toLong(), Material())
-        meshBuilder.sphere(5f, 5f, 5f, 10, 10)
-        val model = modelBuilder.end()
-        return ModelInstance(model)
-    }
-
-    /**
-     * Load an .g3d model, created with the fbx-conv app from an .fbx file
-     */
-    private fun loadG3dModel(): ModelInstance {
-        val crateModel = G3dModelLoader(UBJsonReader()).loadModel(Gdx.files.internal("crate-wooden.g3db"))
-        val crateInstance = ModelInstance(crateModel)
-        crateInstance.transform.translate(0f, -2f, 0f)
-        crateInstance.transform.scale(0.01f, 0.01f, 0.01f)
-        return crateInstance
-    }
-
-
-    private fun drawLines(): ModelInstance {
-        val modelBuilder = ModelBuilder()
-        modelBuilder.begin()
-        val partBuilder: MeshPartBuilder = modelBuilder.part("lines", GL20.GL_LINES, Usage.Position.toLong(), Material())
-        partBuilder.line(0f, 0f, 0f, 64f, 64f, 64f)
-        return ModelInstance(modelBuilder.end())
-    }
 
     override fun render() {
         frameTime = measureTimeMillis {
@@ -178,7 +116,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             if (models.isNotEmpty()) {
                 modelBatch.begin(camera)
                 models.forEach {
-                    modelBatch.render(it, environment)
+                    modelBatch.render(it)
                 }
                 modelBatch.end()
 
@@ -227,4 +165,44 @@ fun createOriginArrows(size: Float): ModelInstance {
     val modelBuilder = ModelBuilder()
     val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
     return ModelInstance(origin)
+}
+
+class CakeShaderProvider: DefaultShaderProvider() {
+    override fun createShader(renderable: Renderable): Shader {
+        if (renderable.userData == "md2") {
+            // create my custom shader
+            return CakeMd2Shader()
+        }
+        else return super.createShader(renderable)
+    }
+}
+
+class CakeMd2Shader : Shader {
+    override fun dispose() {
+        TODO("Not yet implemented")
+    }
+
+    override fun init() {
+        TODO("Not yet implemented")
+    }
+
+    override fun compareTo(other: Shader?): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun canRender(instance: Renderable?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun begin(camera: Camera?, context: RenderContext?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun render(renderable: Renderable?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun end() {
+        TODO("Not yet implemented")
+    }
 }
