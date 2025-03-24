@@ -48,10 +48,10 @@ class SkyLoader(private val resourceLocator: ResourceLocator) {
         )
         // Right side (x = s, normal = (-1, 0, 0))
         modelBuilder.skyPart(textures, "rt").rect(
+            s, s, -s,
             s, -s, -s,
             s, -s, s,
             s, s, s,
-            s, s, -s,
             -1f, 0f, 0f
         )
         // Back side (y = -s, normal = (0, 1, 0))
@@ -64,10 +64,10 @@ class SkyLoader(private val resourceLocator: ResourceLocator) {
         )
         // Left side (x = -s, normal = (1, 0, 0))
         modelBuilder.skyPart(textures, "lf").rect(
+            -s, -s, -s,
             -s, s, -s,
             -s, s, s,
             -s, -s, s,
-            -s, -s, -s,
             1f, 0f, 0f
         )
         // Bottom side (z = -s, normal = (0, 0, 1))
