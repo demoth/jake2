@@ -50,6 +50,11 @@ class Md2Model(buffer: ByteBuffer) {
     private val endOfFileOffset: Int // end of file
     private val glCommandIntegers: List<Int>
 
+    fun getFrameVertices(frame: Int): FloatArray {
+        return glCommands.flatMap {
+            it.toFloats(frames[frame].points)
+        }.toFloatArray()
+    }
 
     init {
         //

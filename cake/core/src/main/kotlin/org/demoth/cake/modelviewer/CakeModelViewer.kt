@@ -38,6 +38,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var environment: Environment
     private lateinit var font: BitmapFont
     private var frameTime = 0f
+    private var model: Md2AnimatedModel? = null
+    private var md2AnimationTimer = 0.1f
 
 
     override fun create() {
@@ -62,17 +64,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                val modelInstance = ModelInstance(
-                    Md2ModelLoader(locator).loadMd2Model(
-                        modelName = file.path, // will be passed to the ResourceLocator
-                        playerSkin = null,
-                        skinIndex = 1,
-                        frameIndex = 1
-                    )
+                model = Md2ModelLoader(locator).loadAnimatedModel(
+                    modelName = file.path, // will be passed to the ResourceLocator
+                    playerSkin = null,
+                    skinIndex = 1,
                 )
                 // todo: uncomment when implemented
                 //modelInstance.userData = "md2" // marker to use the custom shader
-                models.add(modelInstance)
+                models.add(ModelInstance(model!!.model))
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -102,8 +101,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
     }
 
-
     override fun render() {
+        // advance the model animation (if any) each 0.1 seconds
+        md2AnimationTimer -= Gdx.graphics.deltaTime
+        if (md2AnimationTimer < 0f) {
+            md2AnimationTimer = 0.1f
+            model?.nextFrame()
+        }
+
         frameTime = measureTimeMillis {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 Gdx.app.exit()
