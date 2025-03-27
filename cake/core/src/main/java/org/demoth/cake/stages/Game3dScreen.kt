@@ -53,7 +53,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
-    private val cameraRotationSpeed = 140f // degrees per second
+    private val cameraKeyboardRotationSpeed = 140f // degrees per second
 
     // the angle that the player spawned with
     private var initialYaw: Float? = null
@@ -82,7 +82,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
      */
     private var playerNumber = 1
     private var levelString: String = ""
-    private val clientEntities = Array(MAX_EDICTS) { ClientEntity() }
+    private val clientEntities = Array(MAX_EDICTS) { ClientEntity("") }
+    private var gun: ClientEntity? = null
 
     private var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
     private val currentFrame = ClientFrame() // latest frame information received from the server
@@ -219,6 +220,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         lerpFrac = (lerpAcc / serverFrameTime).coerceIn(0f, 1f)
 
         updatePlayerCamera(lerpFrac)
+        //updatePlayerGun(lerpFrac)
 
         modelBatch.begin(camera)
 
@@ -330,7 +332,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
-        levelModel = ClientEntity().apply {
+        levelModel = ClientEntity("level").apply {
             modelInstance = ModelInstance(brushModels.first())
         }
 
@@ -342,7 +344,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    config.resource = try { CakeMd2Model(locator, it) } catch (e: Exception) { null}
+                    config.resource = Md2ModelLoader(locator).loadMd2Model(it, skinIndex = 0, frameIndex = 0)
                 }
             }
         }
@@ -374,8 +376,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
 
 
-        gameConfig.getSkyname()?.let { skyname ->
-            skyBox = SkyLoader(locator).load(skyname)
+        gameConfig.getSkyname()?.let { skyName ->
+            skyBox = SkyLoader(locator).load(skyName)
         }
 
 
@@ -442,7 +444,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         // update camera direction right on the client side and sent to the server
         if (commandsState[in_left] == true || commandsState[in_right] == true) {
-            var delta = deltaTime * cameraRotationSpeed
+            var delta = deltaTime * cameraKeyboardRotationSpeed
             if (commandsState[in_right] == true) {
                 delta *= -1
             }
@@ -556,6 +558,38 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         camera.direction.set(direction)
         camera.update()
 
+
+        // update the gun position
+        val currentGunOffsetX = currentState.gunoffset[0]
+        val currentGunOffsetY = currentState.gunoffset[1]
+        val currentGunOffsetZ = currentState.gunoffset[2]
+        val oldGunOffsetX = previousState.gunoffset[0]
+        val oldGunOffsetY = previousState.gunoffset[1]
+        val oldGunOffsetZ = previousState.gunoffset[2]
+/*
+        val interpolatedGunOffsetX = oldGunOffsetX + (currentGunOffsetX - oldGunOffsetX) * lerp
+        val interpolatedGunOffsetY = oldGunOffsetY + (currentGunOffsetY - oldGunOffsetY) * lerp
+        val interpolatedGunOffsetZ = oldGunOffsetZ + (currentGunOffsetZ - oldGunOffsetZ) * lerp
+*/
+
+/*
+        gun?.modelInstance?.transform?.setTranslation(
+            interpolatedX + interpolatedGunOffsetX,
+            interpolatedY + interpolatedGunOffsetY,
+            interpolatedZ + interpolatedGunOffsetZ
+        )
+*/
+        gun?.prev?.origin = floatArrayOf(
+            oldGunOffsetX + oldX,
+            oldGunOffsetY + oldY,
+            oldGunOffsetZ + oldZ,
+        )
+        gun?.current?.origin = floatArrayOf(
+            currentGunOffsetX + newX,
+            currentGunOffsetY + newY,
+            currentGunOffsetZ + newZ,
+        )
+        //gun?.modelInstance?.transform?.setToRotation(camera.view) // todo
     }
 
     private fun quakeForward(pitchDeg: Float, yawDeg: Float): Vector3 {
@@ -895,13 +929,14 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // create/modify model instances
     // AddPacketEntities
     // update visible entities based on informatino from server
+    // todo: this methon handles both instancing and visibility, maybe split it?
     fun postReceive() {
         lerpAcc = 0f // reset lerp between server frames
 
         visibleEntities.clear()
         // todo: put to a persistent client entities list?
-        visibleEntities += ClientEntity().apply { modelInstance = createGrid(16f, 8) }
-        visibleEntities += ClientEntity().apply { modelInstance = createOriginArrows(16f) }
+        visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
+        visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
         if (levelModel != null && drawLevel) {
             // todo: use area visibility to draw only part of the map (visible clusters)
             visibleEntities += levelModel!!
@@ -910,38 +945,47 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // entities in the current frame
         // draw client entities, check jake2.client.CL_ents#AddPacketEntities
         (0..<currentFrame.num_entities).forEach { // todo: clientEntities.forEach {...
-            val s1 = cl_parse_entities[currentFrame.parse_entities + it and (MAX_PARSE_ENTITIES - 1)]
-            val cent = clientEntities[s1.number]
+            val newState = cl_parse_entities[currentFrame.parse_entities + it and (MAX_PARSE_ENTITIES - 1)]
+            val entity = clientEntities[newState.number]
 
             // instantiate model if not yet done
-            if (cent.modelInstance == null) {
-                val modelIndex = s1.modelindex
+            if (entity.modelInstance == null) {
+                val modelIndex = newState.modelindex
                 if (modelIndex == 255) { // this is a player
                     // fixme: how to get which model/skin does the player have?
-                    cent.modelInstance = ModelInstance(playerModel)
+                    entity.modelInstance = ModelInstance(playerModel)
+                    entity.name = "player"
                 } else if (modelIndex != 0) {
-                    //configStrings[CS_MODELS + modelIndex]?.resource as? Model
-                    val model = gameConfig[CS_MODELS + modelIndex]?.resource as? Model
+                    val modelConfig = gameConfig[CS_MODELS + modelIndex]
+                    val model = modelConfig?.resource as? Model
                     if (model != null) {
-                        cent.modelInstance = ModelInstance(model)
-                        // todo: apply entity transform to the model instance
-                    }
-                    val cakeMd2Model = gameConfig[CS_MODELS + modelIndex]?.resource as? CakeMd2Model
-                    if (cakeMd2Model != null) {
-                        cent.modelInstance = ModelInstance(cakeMd2Model.model)
-                        // todo:
-                        cakeMd2Model.setFrame(s1.frame)
+                        entity.name = modelConfig.value
+                        entity.modelInstance = ModelInstance(model)
                     }
                 }
             }
 
             // update the model instance
-            if (cent.modelInstance != null
-                && s1.number != playerNumber + 1 // do not draw ourselves
+            if (entity.modelInstance != null
+                && newState.number != playerNumber + 1 // do not draw ourselves
                 && drawEntities
             ) {
-                visibleEntities += cent
+                visibleEntities += entity
             }
+        }
+
+        // update player gun model
+        if (gun == null) {
+            // try to load the model
+            val model = gameConfig[CS_MODELS + currentFrame.playerstate.gunindex]?.resource as? Model
+            if (model != null) {
+                gun = ClientEntity("gun").apply {
+                    modelInstance = ModelInstance(model)
+                }
+            }
+        }
+        gun?.let {
+            visibleEntities += it
         }
     }
 
@@ -971,14 +1015,17 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         when(keycode) {
             Input.Keys.F5 -> {
                 drawSkybox = !drawSkybox
+                println("Draw skybox: $drawSkybox")
                 return true
             }
             Input.Keys.F6 -> {
                 drawLevel = !drawLevel
+                println("Draw level: $drawLevel")
                 return true
             }
             Input.Keys.F7 -> {
                 drawEntities = !drawEntities
+                println("Draw entities: $drawEntities")
                 return true
             }
 

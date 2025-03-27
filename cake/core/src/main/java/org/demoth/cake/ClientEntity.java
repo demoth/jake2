@@ -42,4 +42,10 @@ public class ClientEntity {
 	int fly_stoptime;
 
 	public ModelInstance modelInstance;
+
+	public String name;
+
+    public ClientEntity(String name) {
+        this.name = name;
+    }
 }

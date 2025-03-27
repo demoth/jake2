@@ -20,7 +20,7 @@ class SkyLoader(private val resourceLocator: ResourceLocator) {
     private val s = 2048f // size
 
     /**
-     * [name] the name of the unit or set of the skybox images
+     * [name] the name of the unit or set of the skybox images, usually ends with an underscore
      */
     fun load(name: String): ModelInstance {
         val textures = parts.associateWith {
