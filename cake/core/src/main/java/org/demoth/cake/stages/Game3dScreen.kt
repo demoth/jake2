@@ -558,7 +558,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         camera.direction.set(direction)
         camera.update()
 
-
         // update the gun position
         val currentGunOffsetX = currentState.gunoffset[0]
         val currentGunOffsetY = currentState.gunoffset[1]
@@ -566,19 +565,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val oldGunOffsetX = previousState.gunoffset[0]
         val oldGunOffsetY = previousState.gunoffset[1]
         val oldGunOffsetZ = previousState.gunoffset[2]
-/*
-        val interpolatedGunOffsetX = oldGunOffsetX + (currentGunOffsetX - oldGunOffsetX) * lerp
-        val interpolatedGunOffsetY = oldGunOffsetY + (currentGunOffsetY - oldGunOffsetY) * lerp
-        val interpolatedGunOffsetZ = oldGunOffsetZ + (currentGunOffsetZ - oldGunOffsetZ) * lerp
-*/
 
-/*
-        gun?.modelInstance?.transform?.setTranslation(
-            interpolatedX + interpolatedGunOffsetX,
-            interpolatedY + interpolatedGunOffsetY,
-            interpolatedZ + interpolatedGunOffsetZ
-        )
-*/
+        // set the previous and current state: interpolation will happen with all other client entities
+        // ideally, we want the gun to follow the camera direction.
+        // The problem is that gun position/rotation is partially local (localYaw) and partially replicated (gun offset)
+        // todo: think of a better approach
         gun?.prev?.origin = floatArrayOf(
             oldGunOffsetX + oldX,
             oldGunOffsetY + oldY,
@@ -589,7 +580,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             currentGunOffsetY + newY,
             currentGunOffsetZ + newZ,
         )
-        //gun?.modelInstance?.transform?.setToRotation(camera.view) // todo
+        // not using pitch because the gun will not be visible at all.
+        // FIXME: change after md2 animation is implemented
+        gun?.current?.angles = floatArrayOf(0f, localYaw, 0f)
+        gun?.prev?.angles = floatArrayOf(0f, localYaw, 0f)
     }
 
     private fun quakeForward(pitchDeg: Float, yawDeg: Float): Vector3 {
