@@ -10,11 +10,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.PCX
-import org.demoth.cake.ResourceLocator
+import org.demoth.cake.GameResourceLocator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class Md2ModelLoader(val locator: ResourceLocator) {
+class Md2ModelLoader(val locator: GameResourceLocator) {
     fun loadMd2Model(
         modelName: String,
         playerSkin: String? = null,

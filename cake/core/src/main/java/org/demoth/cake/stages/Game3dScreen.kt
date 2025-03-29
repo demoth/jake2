@@ -49,7 +49,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var drawLevel = true
     private var drawEntities = true
     private val collisionModel = CM()
-    private val locator = ResourceLocator(System.getProperty("basedir"))
+    private val locator = GameResourceLocator(System.getProperty("basedir"))
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 

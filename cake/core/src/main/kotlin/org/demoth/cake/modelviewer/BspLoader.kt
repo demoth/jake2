@@ -13,11 +13,11 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.WAL
-import org.demoth.cake.ResourceLocator
+import org.demoth.cake.GameResourceLocator
 import java.io.File
 import java.nio.ByteBuffer
 
-class BspLoader(val locator: ResourceLocator) {
+class BspLoader(val locator: GameResourceLocator) {
 
     fun loadBspModelInstances(file: File): List<ModelInstance> {
 /*

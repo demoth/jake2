@@ -6,7 +6,7 @@ import java.io.File
  * Responsible for finding resources, in paks or on the filesystem.
  */
 // todo: cache? move to streams instead?
-class ResourceLocator(private val baseDir: String) {
+class GameResourceLocator(private val baseDir: String) {
 
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
     var gameName: String = "baseq2"

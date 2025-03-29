@@ -67,7 +67,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                //models.add(ModelInstance(Md2ModelLoader(locator).loadMd2Model(file))) // broke model viewer again :(
+//                models.add(ModelInstance(Md2ModelLoader(locator).loadMd2Model(file))) // broke model viewer again :(
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -84,9 +84,10 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, 0f);
-        camera.lookAt(64f, 32f, 64f);
         camera.near = 1f
         camera.far = 4096f
+        camera.up.set(0f, 0f, 1f) // make z up
+        camera.direction.set(0f, 1f, 0f) // make y forward
 
         cameraInputController = FlyingCameraController(camera)
         Gdx.input.inputProcessor = cameraInputController
@@ -94,7 +95,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         environment = Environment()
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
-        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f))
+        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
     }
 
     /**
@@ -203,6 +204,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         modelBatch.dispose()
     }
 }
+
 fun createGrid(size: Float, divisions: Int): ModelInstance {
     val modelBuilder = ModelBuilder()
     // grid is in XZ plane

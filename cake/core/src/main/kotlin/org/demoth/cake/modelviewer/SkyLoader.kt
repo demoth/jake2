@@ -9,12 +9,12 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.PCX
-import org.demoth.cake.ResourceLocator
+import org.demoth.cake.GameResourceLocator
 
 /**
  * This class is responsible for building the skybox geometry and assigning proper textures
  */
-class SkyLoader(private val resourceLocator: ResourceLocator) {
+class SkyLoader(private val resourceLocator: GameResourceLocator) {
 
     private var parts= listOf("rt", "bk", "lf", "ft", "up", "dn")
     private val s = 2048f // size
