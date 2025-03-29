@@ -18,8 +18,8 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
     fun loadMd2Model(
         modelName: String,
         playerSkin: String? = null,
-        skinIndex: Int,
-        frameIndex: Int,
+        skinIndex: Int = 0,
+        frameIndex: Int = 0,
     ): Model? {
         val findModel = locator.findModel(modelName)
             ?: return null

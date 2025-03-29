@@ -10,10 +10,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.graphics.g3d.utils.RenderContext
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
@@ -38,7 +40,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var environment: Environment
     private lateinit var font: BitmapFont
     private var frameTime = 0f
-    private var model: Md2AnimatedModel? = null
+    private var model: Model? = null
     private var md2AnimationTimer = 0.1f
 
 
@@ -64,14 +66,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                model = Md2ModelLoader(locator).loadAnimatedModel(
+                model = Md2ModelLoader(locator).loadMd2Model(
                     modelName = file.path, // will be passed to the ResourceLocator
                     playerSkin = null,
-                    skinIndex = 1,
                 )
                 // todo: uncomment when implemented
-                //modelInstance.userData = "md2" // marker to use the custom shader
-                models.add(ModelInstance(model!!.model))
+                val modelInstance = ModelInstance(model)
+                modelInstance.userData = "md2animated" // marker to use the custom shader
+                models.add(modelInstance)
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -106,7 +108,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         md2AnimationTimer -= Gdx.graphics.deltaTime
         if (md2AnimationTimer < 0f) {
             md2AnimationTimer = 0.1f
-            model?.nextFrame()
+            //model?.nextFrame()
         }
 
         frameTime = measureTimeMillis {
@@ -160,10 +162,11 @@ fun createGrid(size: Float, divisions: Int): ModelInstance {
             ColorAttribute.createDiffuse(Color.GREEN)
         ), (Usage.Position or Usage.ColorUnpacked).toLong()
     )
-    return ModelInstance(lineGrid).apply {
+    val modelInstance = ModelInstance(lineGrid).apply {
         // rotate into XY plane
         transform.rotate(Vector3.X, -90f)
     }
+    return modelInstance
 }
 
 fun createOriginArrows(size: Float): ModelInstance {
@@ -173,41 +176,58 @@ fun createOriginArrows(size: Float): ModelInstance {
 }
 
 class CakeShaderProvider: DefaultShaderProvider() {
+    private val cakeMd2Shader = CakeMd2AnimationShader()
+
     override fun createShader(renderable: Renderable): Shader {
-        if (renderable.userData == "md2") {
-            // create my custom shader
-            return CakeMd2Shader()
+        return if (renderable.userData == "md2animated") {
+            cakeMd2Shader
+        } else {
+            // return a default one for the static objects
+            super.createShader(renderable)
         }
-        else return super.createShader(renderable)
     }
 }
 
-class CakeMd2Shader : Shader {
-    override fun dispose() {
-        TODO("Not yet implemented")
+class CakeMd2AnimationShader: BaseShader() {
+    // the idea behind this shader is to calculate vertex positions on the GPU - interpolate two animation frames
+    // the fragment shader can stay the same as the default one
+    override fun init() {
+
+        /*
+        Initializes the Shader, must be called before the Shader can be used.
+        This typically compiles a ShaderProgram,
+        fetches uniform locations and performs other preparations for usage of the Shader.
+         */
+        val vertexShader = """
+            attribute vec3 a_position;
+            attribute vec2 a_texCoord0;
+
+            uniform mat4 u_worldTrans;
+            uniform mat4 u_projViewTrans;
+
+            varying vec2 v_texCoord0;
+
+            void main() {
+            	v_texCoord0 = a_texCoord0;
+            	gl_Position = u_projViewTrans * u_worldTrans * vec4(a_position, 1.0);
+            }
+        """.trimIndent()
+        this.program = ShaderProgram(DefaultShader.getDefaultVertexShader(), DefaultShader.getDefaultFragmentShader())
+        // ?
     }
 
-    override fun init() {
-        TODO("Not yet implemented")
+    override fun render(renderable: Renderable?, combinedAttributes: Attributes?) {
+        super.render(renderable, combinedAttributes)
     }
 
     override fun compareTo(other: Shader?): Int {
-        TODO("Not yet implemented")
+        if (other == null) return -1
+        if (other == this) return 0
+        return 0 // FIXME compare shaders on their impact on performance
     }
 
     override fun canRender(instance: Renderable?): Boolean {
-        TODO("Not yet implemented")
+        return true // todo
     }
 
-    override fun begin(camera: Camera?, context: RenderContext?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun render(renderable: Renderable?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun end() {
-        TODO("Not yet implemented")
-    }
 }
