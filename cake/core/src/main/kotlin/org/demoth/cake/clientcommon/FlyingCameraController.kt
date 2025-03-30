@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector3
 
 class FlyingCameraController(camera: Camera): CameraInputController(camera) {
     private val right = Vector3()
-    var enabled = false
+    var enabled = true
     val movementDirection = Vector3()
 
     init {

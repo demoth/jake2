@@ -6,7 +6,7 @@ import java.io.File
  * Responsible for finding resources, in paks or on the filesystem.
  */
 // todo: cache? move to streams instead?
-class GameResourceLocator(private val baseDir: String) {
+class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
     var gameName: String = "baseq2"
@@ -14,11 +14,11 @@ class GameResourceLocator(private val baseDir: String) {
     /**
      * [mapName] already has 'maps/' prefix
      */
-    fun findMap(mapName: String): ByteArray {
+    override fun findMap(mapName: String): ByteArray {
         return File("$baseDir/$gameName/$mapName").readBytes()
     }
 
-    fun findModel(modelName: String): ByteArray? {
+    override fun findModel(modelName: String): ByteArray? {
         if (modelName.isEmpty()) {
             // todo: throw error?
             return null
@@ -31,7 +31,7 @@ class GameResourceLocator(private val baseDir: String) {
         }
     }
 
-    fun findSound(soundName: String): ByteArrayFileHandle? {
+    override fun findSound(soundName: String): ByteArrayFileHandle? {
         if (soundName.isEmpty()) {
             return null
         } else if (soundName.startsWith("*")) {
@@ -60,7 +60,7 @@ class GameResourceLocator(private val baseDir: String) {
     /**
      * [imageName] should contain the file extension
      */
-    fun findImage(imageName: String, location: String = "textures"): ByteArray? {
+    override fun findImage(imageName: String, location: String): ByteArray? {
         val file = File("$baseDir/$gameName/$location/$imageName")
         return if (file.exists()) {
             file.readBytes()
@@ -76,11 +76,11 @@ class GameResourceLocator(private val baseDir: String) {
         }
     }
 
-    fun findSkin(skinName: String): ByteArray {
+    override fun findSkin(skinName: String): ByteArray {
         return File("$baseDir/$gameName/$skinName").readBytes()
     }
 
-    fun findSky(skyName: String): ByteArray {
+    override fun findSky(skyName: String): ByteArray {
         return File("$baseDir/$gameName/env/$skyName.pcx").readBytes()
     }
 }

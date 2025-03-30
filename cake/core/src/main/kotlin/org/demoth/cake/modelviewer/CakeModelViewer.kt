@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.UBJsonReader
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
+import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.clientcommon.FlyingCameraController
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -31,9 +32,6 @@ private const val GRID_DIVISIONS = 8
 
 private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal")
 
-private val gameDir = System.getProperty("basedir") + "/baseq2/"
-
-/** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
 class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
@@ -57,6 +55,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
         }
+        val locator = ModelViewerResourceLocator(file.parent)
         font = BitmapFont()
 
         when (file.extension) {
@@ -67,7 +66,12 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-//                models.add(ModelInstance(Md2ModelLoader(locator).loadMd2Model(file))) // broke model viewer again :(
+                models.add(ModelInstance(Md2ModelLoader(locator).loadMd2Model(
+                    modelName = file.path, // will be passed to the ResourceLocator
+                    playerSkin = null,
+                    skinIndex = 1,
+                    frameIndex = 1
+                )))
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }

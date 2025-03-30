@@ -14,31 +14,11 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.WAL
 import org.demoth.cake.GameResourceLocator
+import org.demoth.cake.ResourceLocator
 import java.io.File
 import java.nio.ByteBuffer
 
-class BspLoader(val locator: GameResourceLocator) {
-
-    fun loadBspModelInstances(file: File): List<ModelInstance> {
-/*
-        return loadBspModels(file).mapIndexed { i, it ->
-            val instance = ModelInstance(it)
-            instance.transformQ2toLibgdx()
-
-            // some brush models need their position to be adjusted based on the origin of the respective entity
-            if (i != 0) { // skip worldspawn
-                // find an entity by model index
-                val entity = bsp.entities.find { it.entries.any { (k, v) -> k == "model" && v == "*$i" } }
-                val origin = entity?.get("origin")?.split(" ")?.map { it.toFloat() }
-                if (origin != null) {
-                    instance.transform.translate(origin[0], origin[1], origin[2])
-                }
-            }
-            instance
-        }
-*/
-        TODO()
-    }
+class BspLoader(private val locator: ResourceLocator) {
 
     fun loadBspModels(bsdData: ByteArray): List<Model> {
         val bsp = Bsp(ByteBuffer.wrap(bsdData))
