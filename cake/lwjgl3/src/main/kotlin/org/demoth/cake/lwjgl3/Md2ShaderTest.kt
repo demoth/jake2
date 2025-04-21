@@ -21,8 +21,6 @@ import kotlin.math.sin
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     private lateinit var md2Shader: ShaderProgram
-    private lateinit var mesh: Mesh
-    private lateinit var vertexTexture: Texture // The Vertex Animation Texture
     private val worldTrans = Matrix4()
     private var animationTime = 0f
 
@@ -36,6 +34,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         arrayOfNulls<Vector3>(numberOfFrames)
     }
     private val textureCoords = FloatArray(numberOfVertices * 2)
+
+    private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
         // --- Dummy Data Initialization (Replace with your actual loading) ---
@@ -84,7 +84,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // For simplicity and broader compatibility with ES 2.0, we'll use RGBA8888 and
         // pack/unpack floats into bytes if necessary, but a true float texture is better.
         // Let's try using FloatTextureData which is designed for this.
-        vertexTexture = Texture(
+        val vertexTexture = Texture(
             FloatTextureData(
                 numberOfVertices,  // width (vertices)
                 numberOfFrames,  // height (frames)
@@ -99,7 +99,6 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // Set texture parameters
         vertexTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // Nearest filtering for exact frame sampling
         vertexTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
-
 
         // Create the mesh
         // We only need position (can be dummy) and texture coordinates for VAT lookup
@@ -131,12 +130,12 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             // If less than 3 vertices, just render as points for visualization
             // You would adjust the render call below to GL_POINTS
         }
-        mesh = meshBuilder.end();
+        val mesh = meshBuilder.end();
+        md2ShaderModel = Md2ShaderModel(mesh, vertexTexture)
+
 
         // Set up camera or world transformation if needed
         worldTrans.idt(); // Identity matrix for now
-
-
     }
 
     override fun render() {
@@ -148,41 +147,12 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
         // Update animation time
         animationTime += Gdx.graphics.getDeltaTime()
-
-
-        // Bind the shader
-        md2Shader.bind()
-
-        worldTrans.rotate(Vector3.Z, 1f * Gdx.graphics.deltaTime)
-        // Set uniforms
-        md2Shader.setUniformMatrix("u_worldTrans", worldTrans)
-        md2Shader.setUniformf("u_animationTime", animationTime)
-//        shader.setUniformf("u_textureWidth", numberOfVertices.toFloat())
-        md2Shader.setUniformf("u_textureHeight", numberOfFrames.toFloat())
-        md2Shader.setUniformf("u_animationDuration", animationDuration)
-
-
-        // Bind the vertex texture to a texture unit (e.g., unit 0)
-        vertexTexture.bind(0)
-        md2Shader.setUniformi("u_vertexTexture", 0) // Tell shader which texture unit to use
-
-
-        // Render the mesh
-        // Use GL_TRIANGLES, GL_TRIANGLE_STRIP, or GL_POINTS depending on your mesh topology
-        mesh.render(md2Shader, GL20.GL_TRIANGLES) // Adjust rendering primitive if needed
-
-
-        // Unbind the shader and texture
-        md2Shader.end()
-        // Texture is automatically unbound when shader ends or another texture is bound
-
-
+        md2ShaderModel.render(md2Shader, animationTime, worldTrans)
     }
 
     override fun dispose() {
         md2Shader.dispose()
-        mesh.dispose()
-        vertexTexture.dispose()
+        md2ShaderModel.dispose()
     }
 }
 
@@ -258,14 +228,36 @@ class Md2ShaderModel(
     var frame1: Int = 0,
     var frame2: Int = 0,
     var interpolation: Float = 0.5f,
-) {
-    fun render(shader: ShaderProgram) {
+    private val textureUnit: Int = 0,
+): Disposable {
+    fun render(shader: ShaderProgram, animationTime: Float, worldTrans: Matrix4) {
+        shader.bind()
+
+/*
         shader.setUniformi("u_frame1", frame1)
         shader.setUniformi("u_frame2", frame2)
         shader.setUniformf("u_interpolation", interpolation)
-        animationTexture.bind(0)
+*/
+
+        shader.setUniformMatrix("u_worldTrans", worldTrans)
+        shader.setUniformi("u_vertexAnimationTexture", textureUnit)
+
+        // TEMPORARY
+        shader.setUniformf("u_animationDuration", 2f)
+        shader.setUniformf("u_animationTime", animationTime)
+        shader.setUniformf("u_textureHeight", 60f)
+
+
+        // Bind the vertex texture to a texture unit (e.g., unit 0)
+        animationTexture.bind(textureUnit)
         mesh.render(shader, GL20.GL_TRIANGLES)
     }
+
+    override fun dispose() {
+        mesh.dispose()
+        animationTexture.dispose()
+    }
+
 }
 
 

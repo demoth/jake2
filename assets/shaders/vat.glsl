@@ -5,7 +5,7 @@ attribute vec2 a_texCoord0; // Texture coordinates (used here to determine verte
 
 uniform mat4 u_worldTrans; // World transformation matrix
 uniform float u_animationTime; // Current animation time (e.g., in seconds)
-uniform sampler2D u_vertexTexture; // Texture containing animated vertex positions (float texture)
+uniform sampler2D u_vertexAnimationTexture; // Texture containing animated vertex positions (float texture)
 //uniform float u_textureWidth; // Width of the vertex texture (number of vertices)
 uniform float u_textureHeight; // Height of the vertex texture (number of animation frames)
 uniform float u_animationDuration; // Total duration of the animation
@@ -35,8 +35,8 @@ void main() {
 
     // Sample the vertex texture to get the animated positions for the two frames
     // The texture stores vec3 positions in RGB channels (assuming float texture)
-    vec3 animatedPosition1 = texture2D(u_vertexTexture, vertexTextureCoord1).rgb;
-    vec3 animatedPosition2 = texture2D(u_vertexTexture, vertexTextureCoord2).rgb;
+    vec3 animatedPosition1 = texture2D(u_vertexAnimationTexture, vertexTextureCoord1).rgb;
+    vec3 animatedPosition2 = texture2D(u_vertexAnimationTexture, vertexTextureCoord2).rgb;
 
     // Interpolate between the two animated positions
     vec3 finalPosition = mix(animatedPosition1, animatedPosition2, interpolationFactor);

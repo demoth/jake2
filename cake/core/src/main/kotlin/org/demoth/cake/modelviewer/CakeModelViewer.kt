@@ -87,7 +87,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         batch = SpriteBatch()
 
-        modelBatch = ModelBatch(CakeShaderProvider())
+        modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
@@ -173,61 +173,4 @@ fun createOriginArrows(size: Float): ModelInstance {
     val modelBuilder = ModelBuilder()
     val origin = modelBuilder.createXYZCoordinates(size, Material(), (Usage.Position or Usage.ColorUnpacked).toLong())
     return ModelInstance(origin)
-}
-
-class CakeShaderProvider: DefaultShaderProvider() {
-    private val cakeMd2Shader = CakeMd2AnimationShader()
-
-    override fun createShader(renderable: Renderable): Shader {
-        return if (renderable.userData == "md2animated") {
-            cakeMd2Shader
-        } else {
-            // return a default one for the static objects
-            super.createShader(renderable)
-        }
-    }
-}
-
-class CakeMd2AnimationShader: BaseShader() {
-    // the idea behind this shader is to calculate vertex positions on the GPU - interpolate two animation frames
-    // the fragment shader can stay the same as the default one
-    override fun init() {
-
-        /*
-        Initializes the Shader, must be called before the Shader can be used.
-        This typically compiles a ShaderProgram,
-        fetches uniform locations and performs other preparations for usage of the Shader.
-         */
-        val vertexShader = """
-            attribute vec3 a_position;
-            attribute vec2 a_texCoord0;
-
-            uniform mat4 u_worldTrans;
-            uniform mat4 u_projViewTrans;
-
-            varying vec2 v_texCoord0;
-
-            void main() {
-            	v_texCoord0 = a_texCoord0;
-            	gl_Position = u_projViewTrans * u_worldTrans * vec4(a_position, 1.0);
-            }
-        """.trimIndent()
-        this.program = ShaderProgram(DefaultShader.getDefaultVertexShader(), DefaultShader.getDefaultFragmentShader())
-        // ?
-    }
-
-    override fun render(renderable: Renderable?, combinedAttributes: Attributes?) {
-        super.render(renderable, combinedAttributes)
-    }
-
-    override fun compareTo(other: Shader?): Int {
-        if (other == null) return -1
-        if (other == this) return 0
-        return 0 // FIXME compare shaders on their impact on performance
-    }
-
-    override fun canRender(instance: Renderable?): Boolean {
-        return true // todo
-    }
-
 }
