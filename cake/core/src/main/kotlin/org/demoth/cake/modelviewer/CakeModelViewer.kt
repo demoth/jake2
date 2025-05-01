@@ -10,10 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
-import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
@@ -36,11 +33,15 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var modelBatch: ModelBatch
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
+    // rendered with the default libgdx shader
     private val models: MutableList<ModelInstance> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var font: BitmapFont
     private var frameTime = 0f
-    private var model: Model? = null
+
+
+    private lateinit var md2Shader: ShaderProgram
+    private var md2ShaderModel: Md2ShaderModel? = null
     private var md2AnimationTimer = 0.1f
 
 
@@ -66,14 +67,22 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
             }
             "md2" -> {
-                model = Md2ModelLoader(locator).loadMd2Model(
+
+                // Create the shader program
+                val vertexShader =
+                    Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
+                val fragmentShader = "void main() { gl_FragColor = vec4(1.0); }" // Simple dummy fragment shader
+                md2Shader = ShaderProgram(vertexShader, fragmentShader)
+                if (!md2Shader.isCompiled) {
+                    Gdx.app.error("Shader Error", md2Shader.getLog())
+                    Gdx.app.exit()
+                }
+
+                md2ShaderModel = Md2ModelLoader(locator).loadAnimatedModel(
                     modelName = file.path, // will be passed to the ResourceLocator
                     playerSkin = null,
+                    skinIndex = 0
                 )
-                // todo: uncomment when implemented
-                val modelInstance = ModelInstance(model)
-                modelInstance.userData = "md2animated" // marker to use the custom shader
-                models.add(modelInstance)
                 models.add(createOriginArrows(GRID_SIZE))
                 models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
@@ -128,6 +137,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 modelBatch.end()
 
             }
+
+            md2ShaderModel?.render(md2Shader, camera.combined)
 
             batch.use {
                 // draw frame time in the bottom left corner

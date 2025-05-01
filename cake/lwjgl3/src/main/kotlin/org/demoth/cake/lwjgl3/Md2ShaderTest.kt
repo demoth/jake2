@@ -5,7 +5,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.TextureData.TextureDataType
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
@@ -13,7 +12,8 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
-import com.badlogic.gdx.utils.GdxRuntimeException
+import org.demoth.cake.modelviewer.FloatTextureData
+import org.demoth.cake.modelviewer.Md2ShaderModel
 import java.nio.FloatBuffer
 import kotlin.math.sin
 
@@ -25,31 +25,43 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private var animationTime = 0f
 
     // --- Model Data (Replace with your actual loaded data) ---
-    private val numberOfVertices = 100 // Example: 100 vertices
-    private val numberOfFrames = 60 // Example: 60 animation frames
+    private val numberOfVertices = 3 // Example: 100 vertices
+    private val numberOfFrames = 1 // Example: 60 animation frames
     private val animationDuration = 2.0f // Example: 2 seconds animation duration
 
     // Dummy model data for demonstration
     private val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
-        arrayOfNulls<Vector3>(numberOfFrames)
+        arrayOfNulls(numberOfFrames)
     }
     private val textureCoords = FloatArray(numberOfVertices * 2)
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
+    /*
+
+    0 1
+    1 1
+    1 0
+
+     */
+
     override fun create() {
-        // --- Dummy Data Initialization (Replace with your actual loading) ---
-        for (i in 0..<numberOfVertices) {
-            // Simple animation: vertices move up and down in a wave
-            for (j in 0..<numberOfFrames) {
-                val y =
-                    sin(j.toDouble() / (numberOfFrames - 1) * Math.PI * 2 + i.toDouble() / numberOfVertices * Math.PI).toFloat()
-                vertexData[i]!![j] = Vector3(i.toFloat() / numberOfVertices - 0.5f, y * 0.1f, 0f)
-            }
-            // Simple texture coordinates mapping x to vertex index
-            textureCoords[i * 2] = i.toFloat() / (numberOfVertices - 1)
-            textureCoords[i * 2 + 1] = 0.5f // Dummy y-coord
-        }
+//        for (vertexIndex in 0..<numberOfVertices) {
+//            for (frameIndex in 0..<numberOfFrames) {
+//                vertexData[vertexIndex]!![frameIndex] = Vector3(
+//                    0f,
+//                    0f,
+//                    0f
+//                )
+//            }
+//            // Simple texture coordinates mapping x to vertex index
+////            textureCoords[vertexIndex * 2] = vertexIndex.toFloat() / (numberOfVertices - 1)
+////            textureCoords[vertexIndex * 2 + 1] = 0.5f // Dummy y-coord
+//        }
+
+        vertexData[0]!![0] = Vector3(0f, 1f, -10f)
+        vertexData[1]!![0] = Vector3(1f, 1f, -10f)
+        vertexData[2]!![0] = Vector3(1f, 0f, -10f)
 
 
         // Create the shader program
@@ -104,7 +116,12 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // We only need position (can be dummy) and texture coordinates for VAT lookup
         val meshBuilder = MeshBuilder()
         meshBuilder.begin(
-            (VertexAttributes.Usage.Position or VertexAttributes.Usage.TextureCoordinates).toLong(),
+            VertexAttributes(
+                VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
+                VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_index"),
+                VertexAttribute.TexCoords(0) // 2 floats per vertex
+
+            ),
             GL20.GL_TRIANGLES
         )
 
@@ -113,8 +130,16 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // The texture coordinates are crucial as they determine which vertex's data is sampled from the VAT.
         for (i in 0..<numberOfVertices) {
             // Dummy position, the real position comes from the texture
-            val DUMMY = Vector3(0f, 0f, 0f)
-            meshBuilder.vertex(DUMMY, null, null, Vector2(textureCoords[i * 2], textureCoords[i * 2 + 1]))
+            meshBuilder.vertex( 0f, 0f, 0f, i.toFloat(), 0f, 0f)
+            /*            val DUMMY = Vector3(0f, 0f, 0f)
+
+                        meshBuilder.vertex(
+                            DUMMY,
+                            null,
+                            null,
+                            Vector2(0f, 0f))
+            */
+//                Vector2(textureCoords[i * 2], textureCoords[i * 2 + 1]))
         }
 
 
@@ -147,117 +172,13 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
         // Update animation time
         animationTime += Gdx.graphics.getDeltaTime()
-        md2ShaderModel.render(md2Shader, animationTime, worldTrans)
+        md2ShaderModel.render(md2Shader, worldTrans)
     }
 
     override fun dispose() {
         md2Shader.dispose()
         md2ShaderModel.dispose()
     }
-}
-
-// Helper class to create TextureData from a FloatBuffer
-// This is a simplified version; a more robust implementation might handle different formats
-// and potential OpenGL ES extensions for float textures.
-private class FloatTextureData(
-    private val width: Int,
-    private val height: Int,
-    private val format: Pixmap.Format?,
-    private val glInternalFormat: Int,
-    private val glType: Int,
-    private val useMipMaps: Boolean,
-    private val buffer: FloatBuffer?
-) : TextureData {
-    private var isPrepared = false
-
-    override fun getType(): TextureDataType {
-        return TextureDataType.Custom
-    }
-
-    override fun isPrepared(): Boolean {
-        return isPrepared
-    }
-
-    override fun prepare() {
-        if (isPrepared) throw GdxRuntimeException("Already prepared!")
-        isPrepared = true
-    }
-
-    override fun consumePixmap(): Pixmap? {
-        throw GdxRuntimeException("This TextureData does not return a Pixmap")
-    }
-
-    override fun disposePixmap(): Boolean {
-        return false
-    }
-
-    override fun consumeCustomData(target: Int) {
-        if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
-
-        Gdx.gl.glTexImage2D(target, 0, glInternalFormat, width, height, 0, glInternalFormat, glType, buffer)
-
-        if (useMipMaps) {
-            Gdx.gl20.glGenerateMipmap(target)
-        }
-    }
-
-    override fun getWidth(): Int {
-        return width
-    }
-
-    override fun getHeight(): Int {
-        return height
-    }
-
-    override fun getFormat(): Pixmap.Format? {
-        return format
-    }
-
-    override fun useMipMaps(): Boolean {
-        return useMipMaps
-    }
-
-    override fun isManaged(): Boolean {
-        return true // LibGDX will manage this texture
-    }
-}
-
-class Md2ShaderModel(
-    private val mesh: Mesh,
-    private val animationTexture: Texture,
-    var frame1: Int = 0,
-    var frame2: Int = 0,
-    var interpolation: Float = 0.5f,
-    private val textureUnit: Int = 0,
-): Disposable {
-    fun render(shader: ShaderProgram, animationTime: Float, worldTrans: Matrix4) {
-        shader.bind()
-
-/*
-        shader.setUniformi("u_frame1", frame1)
-        shader.setUniformi("u_frame2", frame2)
-        shader.setUniformf("u_interpolation", interpolation)
-*/
-
-        shader.setUniformMatrix("u_worldTrans", worldTrans)
-        shader.setUniformi("u_vertexAnimationTexture", textureUnit)
-
-        // TEMPORARY
-        shader.setUniformf("u_animationDuration", 2f)
-        shader.setUniformf("u_animationTime", animationTime)
-        shader.setUniformf("u_textureHeight", 60f)
-
-
-        // Bind the vertex texture to a texture unit (e.g., unit 0)
-        animationTexture.bind(textureUnit)
-        mesh.render(shader, GL20.GL_TRIANGLES)
-    }
-
-    override fun dispose() {
-        mesh.dispose()
-        animationTexture.dispose()
-    }
-
 }
 
 

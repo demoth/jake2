@@ -162,9 +162,9 @@ data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
     /**
      * create a vertex buffer part for this particular vertex (x y z s t)
      */
-    fun toFloats(points: List<Md2Point>): List<Float> {
+    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
         val p = points[index].position // todo: check bounds
-        return listOf(p.x, p.y, p.z, s, t)
+        return if (usePosition) listOf(p.x, p.y, p.z, s, t) else listOf(s, t)
     }
 }
 
@@ -179,7 +179,7 @@ data class Md2GlCmd(
      * It may waste a bit of VRAM, but makes it much easier to draw,
      * using a single drawElements(GL_TRIANGLES, ...) call.
      */
-    fun toFloats(points: List<Md2Point>): List<Float> {
+    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
         val result = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
