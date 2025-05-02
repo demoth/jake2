@@ -8,14 +8,12 @@ import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
-import org.demoth.cake.modelviewer.FloatTextureData
+import org.demoth.cake.modelviewer.CustomTextureData
 import org.demoth.cake.modelviewer.Md2ShaderModel
 import java.nio.FloatBuffer
-import kotlin.math.sin
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
@@ -26,7 +24,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     // --- Model Data (Replace with your actual loaded data) ---
     private val numberOfVertices = 3 // Example: 100 vertices
-    private val numberOfFrames = 1 // Example: 60 animation frames
+    private val numberOfFrames = 2 // Example: 60 animation frames
     private val animationDuration = 2.0f // Example: 2 seconds animation duration
 
     // Dummy model data for demonstration
@@ -37,31 +35,17 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
-    /*
-
-    0 1
-    1 1
-    1 0
-
-     */
-
     override fun create() {
-//        for (vertexIndex in 0..<numberOfVertices) {
-//            for (frameIndex in 0..<numberOfFrames) {
-//                vertexData[vertexIndex]!![frameIndex] = Vector3(
-//                    0f,
-//                    0f,
-//                    0f
-//                )
-//            }
-//            // Simple texture coordinates mapping x to vertex index
-////            textureCoords[vertexIndex * 2] = vertexIndex.toFloat() / (numberOfVertices - 1)
-////            textureCoords[vertexIndex * 2 + 1] = 0.5f // Dummy y-coord
-//        }
+        val s = 0.5f // half size of the triangle
+        // sample vertex data: 1 frame - triangle with 3 vertices
+        vertexData[0]!![0] = Vector3(-s, -s, 0f)
+        vertexData[1]!![0] = Vector3(s, -s, 0f)
+        vertexData[2]!![0] = Vector3(s, s, 0f)
 
-        vertexData[0]!![0] = Vector3(0f, 1f, -10f)
-        vertexData[1]!![0] = Vector3(1f, 1f, -10f)
-        vertexData[2]!![0] = Vector3(1f, 0f, -10f)
+        // 1 frame - mirrored triangle
+        vertexData[0]!![1] = Vector3(-s, -s, 0f)
+        vertexData[1]!![1] = Vector3(s, -s, 0f)
+        vertexData[2]!![1] = Vector3(-s, s, 0f)
 
 
         // Create the shader program
@@ -70,47 +54,39 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         val fragmentShader = "void main() { gl_FragColor = vec4(1.0); }" // Simple dummy fragment shader
         md2Shader = ShaderProgram(vertexShader, fragmentShader)
         if (!md2Shader.isCompiled) {
-            Gdx.app.error("Shader Error", md2Shader.getLog())
+            Gdx.app.error("Shader Error", md2Shader.log)
             Gdx.app.exit()
         }
 
 
-        // Create the VAT Texture
-        // We need to pack the Vector3f data into a FloatBuffer
-        val floatBuffer: FloatBuffer =
+        // Create the VAT Texture buffer
+        val vertexBuffer: FloatBuffer =
             BufferUtils.newFloatBuffer(numberOfVertices * numberOfFrames * 3) // 3 floats per Vector3
-        for (j in 0..<numberOfFrames) { // Iterate through frames (rows in texture)
-            for (i in 0..<numberOfVertices) { // Iterate through vertices (columns in texture)
-                floatBuffer.put(vertexData[i]!![j]!!.x)
-                floatBuffer.put(vertexData[i]!![j]!!.y)
-                floatBuffer.put(vertexData[i]!![j]!!.z)
+        for (frameIndex in 0..<numberOfFrames) { // Iterate through frames (rows in texture)
+            for (vertexIndex in 0..<numberOfVertices) { // Iterate through vertices (columns in texture)
+                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.x)
+                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.y)
+                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.z)
             }
         }
-        floatBuffer.flip() // Prepare buffer for reading
+        vertexBuffer.flip() // Prepare the buffer for reading
 
 
-        // Create a Pixmap with the correct format for a float texture
-        // RGBA8888 is used here as a common format, but ideally, you'd use a float format
-        // if supported by the target device and LibGDX version (e.g., Pixmap.Format.RGB888 or RGBA8888
-        // and then tell OpenGL how to interpret it as float, or use a format like RGB32F if available).
-        // For simplicity and broader compatibility with ES 2.0, we'll use RGBA8888 and
-        // pack/unpack floats into bytes if necessary, but a true float texture is better.
-        // Let's try using FloatTextureData which is designed for this.
-        val vertexTexture = Texture(
-            FloatTextureData(
+        // vertex animation texture with all positional data for all vertices and frames
+        val vat = Texture(
+            CustomTextureData(
                 numberOfVertices,  // width (vertices)
                 numberOfFrames,  // height (frames)
-                Pixmap.Format.RGB888,  // Format for the texture data (can be RGB888, RGBA8888, etc.)
-                GL20.GL_RGB,  // Internal format (e.g., GL_RGB, GL_RGBA)
-                GL20.GL_FLOAT,  // Data type (GL_FLOAT for float texture)
-                false,  // Use MipMaps
-                floatBuffer // The FloatBuffer containing the vertex data
+                GL30.GL_RGB16F,
+                GL30.GL_RGB,
+                GL20.GL_FLOAT,
+                vertexBuffer
             )
         )
 
         // Set texture parameters
-        vertexTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // Nearest filtering for exact frame sampling
-        vertexTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
+        vat.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // Nearest filtering for exact frame sampling
+        vat.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
 
         // Create the mesh
         // We only need position (can be dummy) and texture coordinates for VAT lookup
@@ -131,15 +107,6 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         for (i in 0..<numberOfVertices) {
             // Dummy position, the real position comes from the texture
             meshBuilder.vertex( 0f, 0f, 0f, i.toFloat(), 0f, 0f)
-            /*            val DUMMY = Vector3(0f, 0f, 0f)
-
-                        meshBuilder.vertex(
-                            DUMMY,
-                            null,
-                            null,
-                            Vector2(0f, 0f))
-            */
-//                Vector2(textureCoords[i * 2], textureCoords[i * 2 + 1]))
         }
 
 
@@ -156,7 +123,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             // You would adjust the render call below to GL_POINTS
         }
         val mesh = meshBuilder.end();
-        md2ShaderModel = Md2ShaderModel(mesh, vertexTexture)
+        md2ShaderModel = Md2ShaderModel(mesh, vat)
 
 
         // Set up camera or world transformation if needed
@@ -171,7 +138,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
 
         // Update animation time
-        animationTime += Gdx.graphics.getDeltaTime()
+        //animationTime += Gdx.graphics.deltaTime
+        //md2ShaderModel.interpolation = (animationTime % animationDuration) / animationDuration
         md2ShaderModel.render(md2Shader, worldTrans)
     }
 

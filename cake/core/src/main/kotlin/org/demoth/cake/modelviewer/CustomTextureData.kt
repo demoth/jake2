@@ -10,23 +10,21 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
-import java.nio.FloatBuffer
+import java.nio.Buffer
 
-// Helper class to create TextureData from a FloatBuffer
-// This is a simplified version; a more robust implementation might handle different formats
-// and potential OpenGL ES extensions for float textures.
-class FloatTextureData(
+// Helper class to create TextureData from a vertex position data buffer
+class CustomTextureData(
     private val width: Int,
     private val height: Int,
-    private val format: Pixmap.Format?,
     private val glInternalFormat: Int,
+    private val format: Int,
     private val glType: Int,
-    private val useMipMaps: Boolean,
-    private val buffer: FloatBuffer?
+    private val buffer: Buffer?
 ) : TextureData {
     private var isPrepared = false
 
     override fun getType(): TextureData.TextureDataType {
+        // means it doesn't rely on the pixmap format
         return TextureData.TextureDataType.Custom
     }
 
@@ -47,14 +45,21 @@ class FloatTextureData(
         return false
     }
 
+
     override fun consumeCustomData(target: Int) {
         if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
 
-        Gdx.gl.glTexImage2D(target, 0, glInternalFormat, width, height, 0, glInternalFormat, glType, buffer)
-
-        if (useMipMaps) {
-            Gdx.gl20.glGenerateMipmap(target)
-        }
+        Gdx.gl.glTexImage2D(
+            /* target = */ target,
+            /* level = */ 0,
+            /* internalformat = */ glInternalFormat,
+            /* width = */ width,
+            /* height = */ height,
+            /* border = */ 0,
+            /* format = */ format,
+            /* type = */ glType,
+            /* pixels = */ buffer
+        )
     }
 
     override fun getWidth(): Int {
@@ -66,11 +71,11 @@ class FloatTextureData(
     }
 
     override fun getFormat(): Pixmap.Format? {
-        return format
+        throw GdxRuntimeException("This TextureData does not use a Pixmap")
     }
 
     override fun useMipMaps(): Boolean {
-        return useMipMaps
+        return false
     }
 
     override fun isManaged(): Boolean {
@@ -82,8 +87,8 @@ class Md2ShaderModel(
     private val mesh: Mesh,
     private val animationTexture: Texture,
     var frame1: Int = 0,
-    var frame2: Int = 0,
-    var interpolation: Float = 0.5f,
+    var frame2: Int = 1,
+    var interpolation: Float = 0.0f,
     private val textureUnit: Int = 0,
 ): Disposable {
 
@@ -104,14 +109,6 @@ class Md2ShaderModel(
         shader.setUniformf("u_textureWidth", textureWidth) // number of vertices
 
 
-        /*
-                // TEMPORARY
-                shader.setUniformf("u_animationDuration", 2f)
-                shader.setUniformf("u_animationTime", animationTime)
-        */
-
-
-        // Bind the vertex texture to a texture unit (e.g., unit 0)
         animationTexture.bind(textureUnit)
         mesh.render(shader, GL20.GL_TRIANGLES)
     }
