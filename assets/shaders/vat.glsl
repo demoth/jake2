@@ -27,17 +27,6 @@ void main() {
     // Interpolate between the two animated positions
     vec3 finalPosition = mix(animatedPosition1, animatedPosition2, u_interpolation);
 
-    // troubleshooing hack: validating that the shader itself is correct
-/*
-    if (a_index == 0.0) {
-        finalPosition = vec3(-0.5, -0.5, 0.0);
-    } else if (a_index == 1.0) {
-        finalPosition = vec3(0.5, -0.5, 0.0);
-    } else if (a_index == 2.0) {
-        finalPosition = vec3(-0.5, 0.5, 0.0);
-    }
-*/
-
     // Apply the final interpolated position
     gl_Position = u_worldTrans * vec4(finalPosition, 1.0);
     v_texCoord = a_texCoord0;

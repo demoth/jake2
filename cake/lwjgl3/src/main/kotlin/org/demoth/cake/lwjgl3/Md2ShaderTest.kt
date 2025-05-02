@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Disposable
 import org.demoth.cake.modelviewer.CustomTextureData
 import org.demoth.cake.modelviewer.Md2ShaderModel
 import java.nio.FloatBuffer
+import kotlin.math.sign
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
@@ -27,6 +28,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private val numberOfFrames = 2 // Example: 60 animation frames
     private val animationDuration = 2.0f // Example: 2 seconds animation duration
 
+    private var direction = 1f
+
     // Dummy model data for demonstration
     private val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
         arrayOfNulls(numberOfFrames)
@@ -36,6 +39,9 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
+
+        ShaderProgram.pedantic = false // Disable strict checking to keep the example simple.
+
         val s = 0.5f // half size of the triangle
         // sample vertex data: 1 frame - triangle with 3 vertices
         vertexData[0]!![0] = Vector3(-s, -s, 0f)
@@ -137,9 +143,17 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
 
-        // Update animation time
-        //animationTime += Gdx.graphics.deltaTime
-        //md2ShaderModel.interpolation = (animationTime % animationDuration) / animationDuration
+        // bounce animation
+        if (animationTime <= 0f) {
+            animationTime = 0f
+            direction = 1f
+        } else if (animationTime > animationDuration) {
+            animationTime = animationDuration
+            direction = -1f
+        }
+        animationTime += Gdx.graphics.deltaTime * direction
+        val interpolation = animationTime / animationDuration
+        md2ShaderModel.interpolation = interpolation
         md2ShaderModel.render(md2Shader, worldTrans)
     }
 

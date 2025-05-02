@@ -17,7 +17,7 @@ class CustomTextureData(
     private val width: Int,
     private val height: Int,
     private val glInternalFormat: Int,
-    private val format: Int,
+    private val glFormat: Int,
     private val glType: Int,
     private val buffer: Buffer?
 ) : TextureData {
@@ -56,7 +56,7 @@ class CustomTextureData(
             /* width = */ width,
             /* height = */ height,
             /* border = */ 0,
-            /* format = */ format,
+            /* format = */ glFormat,
             /* type = */ glType,
             /* pixels = */ buffer
         )
@@ -98,8 +98,8 @@ class Md2ShaderModel(
     fun render(shader: ShaderProgram, worldTrans: Matrix4) {
         shader.bind()
 
-        shader.setUniformi("u_frame1", frame1)
-        shader.setUniformi("u_frame2", frame2)
+        shader.setUniformf("u_frame1", frame1.toFloat()) // not like!
+        shader.setUniformf("u_frame2", frame2.toFloat()) // not like!
         shader.setUniformf("u_interpolation", interpolation)
 
         shader.setUniformMatrix("u_worldTrans", worldTrans)
