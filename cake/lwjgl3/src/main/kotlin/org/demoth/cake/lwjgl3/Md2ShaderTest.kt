@@ -112,7 +112,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // The texture coordinates are crucial as they determine which vertex's data is sampled from the VAT.
         for (i in 0..<numberOfVertices) {
             // Dummy position, the real position comes from the texture
-            meshBuilder.vertex( 0f, 0f, 0f, i.toFloat(), 0f, 0f)
+            meshBuilder.vertex( 0f, 0f, 0f, 0f, 0f)
         }
 
 

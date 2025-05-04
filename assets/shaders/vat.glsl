@@ -1,7 +1,6 @@
-#version 100 // Specify OpenGL ES 2.0 or 3.0 compatibility
+#version 130 // Specify OpenGL ES 2.0 or 3.0 compatibility
 
 attribute vec3 a_position; // unused
-attribute float a_index; // vertex index
 attribute vec2 a_texCoord0; // Texture coordinates
 
 uniform mat4 u_worldTrans; // World transformation matrix
@@ -15,9 +14,10 @@ uniform float u_interpolation; // Interpolation factor between two animation fra
 varying vec2 v_texCoord;
 
 void main() {
+    float index = float(gl_VertexID);
     vec2 texelSize = vec2(1.0 / u_textureWidth, 1.0 / u_textureHeight);
-    vec2 vertexTextureCoord1 = vec2((a_index + 0.5) * texelSize.x, (u_frame1 + 0.5) * texelSize.y);
-    vec2 vertexTextureCoord2 = vec2((a_index + 0.5) * texelSize.x, (u_frame2 + 0.5) * texelSize.y);
+    vec2 vertexTextureCoord1 = vec2((index + 0.5) * texelSize.x, (u_frame1 + 0.5) * texelSize.y);
+    vec2 vertexTextureCoord2 = vec2((index + 0.5) * texelSize.x, (u_frame2 + 0.5) * texelSize.y);
 
     // Sample the vertex texture to get the animated positions for the two frames
     // The texture stores vec3 positions in RGB channels (assuming float texture)
