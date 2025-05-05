@@ -5,7 +5,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
@@ -14,7 +13,6 @@ import com.badlogic.gdx.utils.Disposable
 import org.demoth.cake.modelviewer.CustomTextureData
 import org.demoth.cake.modelviewer.Md2ShaderModel
 import java.nio.FloatBuffer
-import kotlin.math.sign
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
@@ -95,40 +93,41 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         vat.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
 
         // Create the mesh
-        // We only need position (can be dummy) and texture coordinates for VAT lookup
-        val meshBuilder = MeshBuilder()
-        meshBuilder.begin(
-            VertexAttributes(
-                VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
-                VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_index"),
-                VertexAttribute.TexCoords(0) // 2 floats per vertex
+        val vCount = numberOfVertices
+        val iCount = (vCount - 2) * 3 // one triangle fan as in the sample
+        val floatsPerVertex = 2 /*uv*/
 
-            ),
-            GL20.GL_TRIANGLES
+        val vertices = FloatArray(vCount * floatsPerVertex)
+        val indices = ShortArray(iCount)
+
+
+        /* fill vertices ---------------------------------------------------------- */
+        var p = 0
+        for (v in 0..<vCount) {
+            vertices[p++] = 0f // u
+            vertices[p++] = 0f // v  (or whatever you need)
+        }
+
+        /* fill indices ----------------------------------------------------------- */
+        p = 0
+        for (v in 0..<vCount - 2) {
+            indices[p++] = 0.toShort()
+            indices[p++] = (v + 1).toShort()
+            indices[p++] = (v + 2).toShort()
+        }
+
+
+        /* create the mesh -------------------------------------------------------- */
+        val mesh = Mesh(
+            true,
+            vCount,
+            iCount,
+            VertexAttribute.TexCoords(1) // in future, normals can also be added here
         )
 
+        mesh.setVertices(vertices)
+        mesh.setIndices(indices)
 
-        // Add vertices. We can use dummy positions here as the actual positions come from the texture.
-        // The texture coordinates are crucial as they determine which vertex's data is sampled from the VAT.
-        for (i in 0..<numberOfVertices) {
-            // Dummy position, the real position comes from the texture
-            meshBuilder.vertex( 0f, 0f, 0f, 0f, 0f)
-        }
-
-
-        // Add indices to form triangles. This depends on your model's topology.
-        // For a simple demonstration, let's assume a strip or just points.
-        // If it's a complex model, you'd load your index data here.
-        // Example: simple triangle strip (assuming numberOfVertices >= 3)
-        if (numberOfVertices >= 3) {
-            for (i in 0..<numberOfVertices - 2) {
-                meshBuilder.triangle(i.toShort(), (i + 1).toShort(), (i + 2).toShort())
-            }
-        } else if (numberOfVertices > 0) {
-            // If less than 3 vertices, just render as points for visualization
-            // You would adjust the render call below to GL_POINTS
-        }
-        val mesh = meshBuilder.end();
         md2ShaderModel = Md2ShaderModel(mesh, vat)
 
 

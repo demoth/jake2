@@ -1,6 +1,5 @@
 #version 130 // Specify OpenGL ES 2.0 or 3.0 compatibility
 
-attribute vec3 a_position; // unused
 attribute vec2 a_texCoord0; // Texture coordinates
 
 uniform mat4 u_worldTrans; // World transformation matrix
