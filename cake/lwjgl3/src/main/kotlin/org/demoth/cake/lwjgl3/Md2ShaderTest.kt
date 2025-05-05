@@ -32,7 +32,11 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
         arrayOfNulls(numberOfFrames)
     }
-    private val textureCoords = FloatArray(numberOfVertices * 2)
+    private val textureCoords = floatArrayOf(
+        0.0f, 0.0f, // bottom left
+        1.0f, 0.0f, // bottom right
+        0.5f, 1.0f, // top
+    )
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
@@ -95,21 +99,12 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         // Create the mesh
         val vCount = numberOfVertices
         val iCount = (vCount - 2) * 3 // one triangle fan as in the sample
-        val floatsPerVertex = 2 /*uv*/
 
-        val vertices = FloatArray(vCount * floatsPerVertex)
         val indices = ShortArray(iCount)
 
 
-        /* fill vertices ---------------------------------------------------------- */
-        var p = 0
-        for (v in 0..<vCount) {
-            vertices[p++] = 0f // u
-            vertices[p++] = 0f // v  (or whatever you need)
-        }
-
         /* fill indices ----------------------------------------------------------- */
-        p = 0
+        var p = 0
         for (v in 0..<vCount - 2) {
             indices[p++] = 0.toShort()
             indices[p++] = (v + 1).toShort()
@@ -125,7 +120,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             VertexAttribute.TexCoords(1) // in future, normals can also be added here
         )
 
-        mesh.setVertices(vertices)
+        mesh.setVertices(textureCoords)
         mesh.setIndices(indices)
 
         md2ShaderModel = Md2ShaderModel(mesh, vat)
