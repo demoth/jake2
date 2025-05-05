@@ -1,6 +1,6 @@
-#version 130 // Specify OpenGL ES 2.0 or 3.0 compatibility
+#version 130 // required by gl_VertexID
 
-attribute vec2 a_texCoord0; // Texture coordinates
+attribute vec2 a_texCoord1; // Texture coordinates
 
 uniform mat4 u_worldTrans; // World transformation matrix
 uniform sampler2D u_vertexAnimationTexture; // Texture containing animated vertex positions (float texture)
@@ -28,5 +28,5 @@ void main() {
 
     // Apply the final interpolated position
     gl_Position = u_worldTrans * vec4(finalPosition, 1.0);
-    v_texCoord = a_texCoord0;
+    v_texCoord = a_texCoord1;
 }

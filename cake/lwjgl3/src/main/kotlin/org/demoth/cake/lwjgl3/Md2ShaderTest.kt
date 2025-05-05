@@ -32,17 +32,19 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
         arrayOfNulls(numberOfFrames)
     }
+
+    // v (vertical) component is flipped
     private val textureCoords = floatArrayOf(
-        0.0f, 0.0f, // bottom left
-        1.0f, 0.0f, // bottom right
-        0.5f, 1.0f, // top
+        0.0f, 1.0f, // bottom left
+        1.0f, 1.0f, // bottom right
+        0.5f, 0.0f, // top
     )
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
 
-        ShaderProgram.pedantic = false // Disable strict checking to keep the example simple.
+        //ShaderProgram.pedantic = false // Disable strict checking to keep the example simple.
 
         val s = 0.5f // half size of the triangle
         // sample vertex data: 1 frame - triangle with 3 vertices
@@ -57,9 +59,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
 
         // Create the shader program
-        val vertexShader =
-            Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
-        val fragmentShader = "void main() { gl_FragColor = vec4(1.0); }" // Simple dummy fragment shader
+        val vertexShader = Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
+        val fragmentShader = Gdx.files.internal("shaders/md2-fragment.glsl").readString()
         md2Shader = ShaderProgram(vertexShader, fragmentShader)
         if (!md2Shader.isCompiled) {
             Gdx.app.error("Shader Error", md2Shader.log)
@@ -92,6 +93,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             )
         )
 
+        val diffuse = Texture(Gdx.files.internal("triangloid.png"))
+
         // Set texture parameters
         vat.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // Nearest filtering for exact frame sampling
         vat.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
@@ -123,7 +126,10 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         mesh.setVertices(textureCoords)
         mesh.setIndices(indices)
 
-        md2ShaderModel = Md2ShaderModel(mesh, vat)
+        md2ShaderModel = Md2ShaderModel(
+            mesh, vat to 0,
+            diffuse to 1
+        )
 
 
         // Set up camera or world transformation if needed

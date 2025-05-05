@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
+import jake2.qcommon.usercmd_t
 import java.nio.Buffer
 
 // Helper class to create TextureData from a vertex position data buffer
@@ -85,15 +86,15 @@ class CustomTextureData(
 
 class Md2ShaderModel(
     private val mesh: Mesh,
-    private val animationTexture: Texture,
+    private val vat: Pair<Texture, Int>,
+    private val diffuse: Pair<Texture, Int>,
     var frame1: Int = 0,
     var frame2: Int = 1,
     var interpolation: Float = 0.0f,
-    private val textureUnit: Int = 0,
 ): Disposable {
 
-    private val textureWidth = animationTexture.width.toFloat()
-    private val textureHeight = animationTexture.height.toFloat()
+    private val textureWidth = vat.first.width.toFloat()
+    private val textureHeight = vat.first.height.toFloat()
 
     fun render(shader: ShaderProgram, worldTrans: Matrix4) {
         shader.bind()
@@ -103,19 +104,22 @@ class Md2ShaderModel(
         shader.setUniformf("u_interpolation", interpolation)
 
         shader.setUniformMatrix("u_worldTrans", worldTrans)
-        shader.setUniformi("u_vertexAnimationTexture", textureUnit)
+        shader.setUniformi("u_vertexAnimationTexture", vat.second)
+        shader.setUniformi("u_diffuseTexture", diffuse.second)
 
         shader.setUniformf("u_textureHeight", textureHeight) // number of frames
         shader.setUniformf("u_textureWidth", textureWidth) // number of vertices
 
+        vat.first.bind(vat.second)
+        diffuse.first.bind(diffuse.second)
 
-        animationTexture.bind(textureUnit)
         mesh.render(shader, GL20.GL_TRIANGLES)
     }
 
     override fun dispose() {
         mesh.dispose()
-        animationTexture.dispose()
+        vat.first.dispose()
+        diffuse.first.dispose()
     }
 
 }
