@@ -28,26 +28,87 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     private var direction = 1f
 
-    // Dummy model data for demonstration
-    private val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
-        arrayOfNulls(numberOfFrames)
-    }
 
-    // v (vertical) component is flipped
-    private val textureCoords = floatArrayOf(
-        0.0f, 1.0f, // bottom left
-        1.0f, 1.0f, // bottom right
-        0.5f, 0.0f, // top
-    )
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
+        md2Shader = createShaderProgram()
 
+        // vertex animation texture with all positional data for all vertices and frames
+        val vat = createVatTexture()
+
+        val diffuse = Texture(Gdx.files.internal("triangloid.png"))
+
+        val mesh = createMesh()
+
+        md2ShaderModel = Md2ShaderModel(
+            mesh,
+            vat to 0,
+            diffuse to 1
+        )
+    }
+
+    private fun createShaderProgram(): ShaderProgram {
         //ShaderProgram.pedantic = false // Disable strict checking to keep the example simple.
 
+        val vertexShader = Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
+        val fragmentShader = Gdx.files.internal("shaders/md2-fragment.glsl").readString()
+
+        val shaderProgram = ShaderProgram(vertexShader, fragmentShader)
+        if (!shaderProgram.isCompiled) {
+            Gdx.app.error("Shader Error", md2Shader.log)
+            Gdx.app.exit()
+        }
+        return shaderProgram
+    }
+
+    /**
+     * The Mesh holds the vertex attributes, which in the VAT scenario are only texture coordinates.
+     * The indices are implicitly provided and normals are just skipped in this example.
+     *
+     */
+    private fun createMesh(): Mesh {
+
+        val iCount = (numberOfVertices - 2) * 3 // one triangle fan as in the sample
+
+        val indices = ShortArray(iCount)
+
+        /* fill indices ----------------------------------------------------------- */
+        var p = 0
+        for (v in 0..<numberOfVertices - 2) {
+            indices[p++] = 0.toShort()
+            indices[p++] = (v + 1).toShort()
+            indices[p++] = (v + 2).toShort()
+        }
+
+        val mesh = Mesh(
+            true,
+            numberOfVertices,
+            iCount,
+            VertexAttribute.TexCoords(1) // in future, normals can also be added here
+        )
+
+        // v (vertical) component is flipped
+        val textureCoords = floatArrayOf(
+            0.0f, 1.0f, // bottom left
+            1.0f, 1.0f, // bottom right
+            0.5f, 0.0f, // top
+        )
+
+        mesh.setVertices(textureCoords)
+        mesh.setIndices(indices)
+        return mesh
+    }
+
+    private fun createVatTexture(): Texture {
+        // vertex data represent a 2d array of model vertices and frames
+        val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
+            arrayOfNulls(numberOfFrames)
+        }
+
         val s = 0.5f // half size of the triangle
-        // sample vertex data: 1 frame - triangle with 3 vertices
+        // sample vertex data: 2 frame - triangle with 3 vertices
         vertexData[0]!![0] = Vector3(-s, -s, 0f)
         vertexData[1]!![0] = Vector3(s, -s, 0f)
         vertexData[2]!![0] = Vector3(s, s, 0f)
@@ -57,18 +118,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         vertexData[1]!![1] = Vector3(s, -s, 0f)
         vertexData[2]!![1] = Vector3(-s, s, 0f)
 
-
-        // Create the shader program
-        val vertexShader = Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
-        val fragmentShader = Gdx.files.internal("shaders/md2-fragment.glsl").readString()
-        md2Shader = ShaderProgram(vertexShader, fragmentShader)
-        if (!md2Shader.isCompiled) {
-            Gdx.app.error("Shader Error", md2Shader.log)
-            Gdx.app.exit()
-        }
-
-
-        // Create the VAT Texture buffer
+        // Create the VAT Texture buffer as a linear array
         val vertexBuffer: FloatBuffer =
             BufferUtils.newFloatBuffer(numberOfVertices * numberOfFrames * 3) // 3 floats per Vector3
         for (frameIndex in 0..<numberOfFrames) { // Iterate through frames (rows in texture)
@@ -80,8 +130,6 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         }
         vertexBuffer.flip() // Prepare the buffer for reading
 
-
-        // vertex animation texture with all positional data for all vertices and frames
         val vat = Texture(
             CustomTextureData(
                 numberOfVertices,  // width (vertices)
@@ -92,48 +140,15 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
                 vertexBuffer
             )
         )
-
-        val diffuse = Texture(Gdx.files.internal("triangloid.png"))
-
-        // Set texture parameters
-        vat.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // Nearest filtering for exact frame sampling
-        vat.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge); // Clamp to edge to avoid issues at boundaries
-
-        // Create the mesh
-        val vCount = numberOfVertices
-        val iCount = (vCount - 2) * 3 // one triangle fan as in the sample
-
-        val indices = ShortArray(iCount)
-
-
-        /* fill indices ----------------------------------------------------------- */
-        var p = 0
-        for (v in 0..<vCount - 2) {
-            indices[p++] = 0.toShort()
-            indices[p++] = (v + 1).toShort()
-            indices[p++] = (v + 2).toShort()
-        }
-
-
-        /* create the mesh -------------------------------------------------------- */
-        val mesh = Mesh(
-            true,
-            vCount,
-            iCount,
-            VertexAttribute.TexCoords(1) // in future, normals can also be added here
-        )
-
-        mesh.setVertices(textureCoords)
-        mesh.setIndices(indices)
-
-        md2ShaderModel = Md2ShaderModel(
-            mesh, vat to 0,
-            diffuse to 1
-        )
-
-
-        // Set up camera or world transformation if needed
-        worldTrans.idt(); // Identity matrix for now
+        vat.setFilter(
+            Texture.TextureFilter.Nearest,
+            Texture.TextureFilter.Nearest
+        ); // Nearest filtering for exact frame sampling
+        vat.setWrap(
+            Texture.TextureWrap.ClampToEdge,
+            Texture.TextureWrap.ClampToEdge
+        ); // Clamp to edge to avoid issues at boundaries
+        return vat
     }
 
     override fun render() {
