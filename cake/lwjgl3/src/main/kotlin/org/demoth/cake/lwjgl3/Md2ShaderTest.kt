@@ -1,15 +1,18 @@
 package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.ApplicationAdapter
+import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
+import com.badlogic.gdx.utils.SharedLibraryLoader
 import org.demoth.cake.modelviewer.CustomTextureData
 import org.demoth.cake.modelviewer.Md2ShaderModel
 import java.nio.FloatBuffer
@@ -18,7 +21,6 @@ import java.nio.FloatBuffer
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     private lateinit var md2Shader: ShaderProgram
-    private val worldTrans = Matrix4()
     private var animationTime = 0f
 
     // --- Model Data (Replace with your actual loaded data) ---
@@ -26,13 +28,17 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private val numberOfFrames = 2 // Example: 60 animation frames
     private val animationDuration = 2.0f // Example: 2 seconds animation duration
 
+    private lateinit var camera: Camera
+    private lateinit var cameraInputController : CameraInputController
+
     private var direction = 1f
-
-
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
+        camera = PerspectiveCamera(67f, width.toFloat(), height.toFloat())
+        cameraInputController = CameraInputController(camera)
+        Gdx.input.inputProcessor = cameraInputController
         md2Shader = createShaderProgram()
 
         // vertex animation texture with all positional data for all vertices and frames
@@ -152,6 +158,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     }
 
     override fun render() {
+        camera.update()
 
         // Clear the screen
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
@@ -169,7 +176,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         animationTime += Gdx.graphics.deltaTime * direction
         val interpolation = animationTime / animationDuration
         md2ShaderModel.interpolation = interpolation
-        md2ShaderModel.render(md2Shader, worldTrans)
+        md2ShaderModel.render(md2Shader, camera.combined)
     }
 
     override fun dispose() {
@@ -178,10 +185,17 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     }
 }
 
+private const val width = 1024
+private const val height = 768
 
 fun main() {
     val config = Lwjgl3ApplicationConfiguration()
     config.setResizable(true)
-    config.setWindowedMode(1024, 768)
+    config.setWindowedMode(width, height)
+
+    // fixme: didn't really quite get why it has to be explicitly loaded,
+    // otherwise PerspectiveCamera(..) raises UnsatisfiedLinkError
+    SharedLibraryLoader().load("gdx")
+
     Lwjgl3Application(Md2ShaderTest(), config)
 }
