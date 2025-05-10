@@ -1,6 +1,7 @@
 package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Mesh
 import com.badlogic.gdx.graphics.Pixmap
@@ -10,7 +11,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
-import jake2.qcommon.usercmd_t
 import java.nio.Buffer
 
 // Helper class to create TextureData from a vertex position data buffer
@@ -85,25 +85,30 @@ class CustomTextureData(
 }
 
 class Md2ShaderModel(
+    // model related, managed resources, todo: extract into a model class
     private val mesh: Mesh,
     private val vat: Pair<Texture, Int>,
     private val diffuse: Pair<Texture, Int>,
+    // instance related, mutable state
     var frame1: Int = 0,
     var frame2: Int = 1,
     var interpolation: Float = 0.0f,
+    val entityTransform: Matrix4 = Matrix4()
 ): Disposable {
 
     private val textureWidth = vat.first.width.toFloat()
     private val textureHeight = vat.first.height.toFloat()
 
-    fun render(shader: ShaderProgram, worldTrans: Matrix4) {
+    fun render(shader: ShaderProgram, cameraTransform: Matrix4) {
         shader.bind()
 
         shader.setUniformf("u_frame1", frame1.toFloat()) // not like!
         shader.setUniformf("u_frame2", frame2.toFloat()) // not like!
         shader.setUniformf("u_interpolation", interpolation)
 
-        shader.setUniformMatrix("u_worldTrans", worldTrans)
+        shader.setUniformMatrix("u_projViewTrans", cameraTransform);
+        shader.setUniformMatrix("u_worldTrans", entityTransform)
+
         shader.setUniformi("u_vertexAnimationTexture", vat.second)
         shader.setUniformi("u_diffuseTexture", diffuse.second)
 

@@ -3,6 +3,8 @@
 attribute vec2 a_texCoord1; // Texture coordinates
 
 uniform mat4 u_worldTrans; // World transformation matrix
+uniform mat4 u_projViewTrans; // View transformation matrix
+
 uniform sampler2D u_vertexAnimationTexture; // Texture containing animated vertex positions (float texture)
 uniform float u_textureHeight; // Height of the vertex texture (number of animation frames)
 uniform float u_textureWidth; // Width of the vertex texture (number of vertices)
@@ -27,6 +29,6 @@ void main() {
     vec3 finalPosition = mix(animatedPosition1, animatedPosition2, u_interpolation);
 
     // Apply the final interpolated position
-    gl_Position = u_worldTrans * vec4(finalPosition, 1.0);
+    gl_Position = u_projViewTrans * u_worldTrans * vec4(finalPosition, 1.0);
     v_texCoord = a_texCoord1;
 }
