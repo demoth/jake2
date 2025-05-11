@@ -344,13 +344,13 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    config.resource = Md2ModelLoader(locator).loadMd2Model(it, skinIndex = 0, frameIndex = 0)
+                    config.resource = Md2ModelLoader(locator).loadStaticMd2Model(it, skinIndex = 0, frameIndex = 0)
                 }
             }
         }
 
         // temporary: load one fixed player model
-        playerModel = Md2ModelLoader(locator).loadMd2Model(
+        playerModel = Md2ModelLoader(locator).loadStaticMd2Model(
             modelName = playerModelPath,
             playerSkin = playerSkinPath,
             skinIndex = 0,
