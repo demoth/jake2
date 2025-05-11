@@ -13,8 +13,11 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
+import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.modelviewer.CustomTextureData
+import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.Md2ShaderModel
+import java.io.File
 import java.nio.FloatBuffer
 
 
@@ -40,6 +43,8 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         cameraInputController = CameraInputController(camera)
         Gdx.input.inputProcessor = cameraInputController
         md2Shader = createShaderProgram()
+        //val locator = ModelViewerResourceLocator("/home/daniil/GameDev/quake/q2/quake2/baseq2/models/items/adrenal")
+        //val md2 = Md2ModelLoader(locator).loadAnimatedModel("/home/daniil/GameDev/quake/q2/quake2/baseq2/models/items/adrenal/tris.md2", null, 0)!!
 
         // vertex animation texture with all positional data for all vertices and frames
         val vat = createVatTexture()

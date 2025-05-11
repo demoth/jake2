@@ -52,8 +52,29 @@ class Md2Model(buffer: ByteBuffer) {
 
     fun getFrameVertices(frame: Int): FloatArray {
         return glCommands.flatMap {
-            it.toFloats(frames[frame].points)
+            it.toVertexAttributes(frames[frame].points)
         }.toFloatArray()
+    }
+
+    /**
+     * Get the vertex data for all frames as a single array.
+     * Every array is a set of
+     */
+    fun getVertexData(): List<FloatArray> {
+        // transform each gl command into a list of vertex data (float arrays) for all frames.
+        // each element of this list represents a single frame, first two elements are s, t, then vertex positions for all frames (x1, y1, z1, x2, y2, z2, ...
+        // combine vertex data for all frames into a single array
+        return glCommands.flatMap { glcmd ->
+            transformGlCmd(glcmd)
+        }
+    }
+
+    fun transformGlCmd(glcmd: Md2GlCmd): List<FloatArray> {
+        val result = mutableListOf<FloatArray>()
+        val allFramesPositions = glcmd.toVertexAttributes(frames)
+        allFramesPositions.map {
+            listOf(s,t)
+        }
     }
 
     init {
@@ -162,9 +183,22 @@ data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
     /**
      * create a vertex buffer part for this particular vertex (x y z s t)
      */
-    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
+    fun toFloats(points: List<Md2Point>, returnTexCoords: Boolean): List<Float> {
         val p = points[index].position // todo: check bounds
-        return if (usePosition) listOf(p.x, p.y, p.z, s, t) else listOf(s, t)
+        return if(returnTexCoords) listOf(p.x, p.y, p.z, s, t) else listOf(p.x, p.y, p.z)
+    }
+}
+fun <T> List<List<T>>.transpose(): List<List<T>> {
+    // Check if the list is empty or contains empty rows
+    if (this.isEmpty() || this.any { it.isEmpty() }) return emptyList()
+
+    val rowCount = this.size
+    val colCount = this[0].size
+
+    return List(colCount) { colIndex ->
+        List(rowCount) { rowIndex ->
+            this[rowIndex][colIndex]
+        }
     }
 }
 
@@ -172,14 +206,25 @@ data class Md2GlCmd(
     val type: Md2GlCmdType,
     val vertices: List<Md2VertexInfo>,
 ) {
+
+    fun toVertexAttributes(frames: List<Md2Frame>): Pair<List<Float>, List<List<Float>>> {
+        // list of rows (vertex positions for each frame)
+        val framesCmdPositions = frames.map { frame ->
+            toVertexAttributes(frame.points, false)
+        }
+        val texCoords = vertices.map { listOf(it.s, it.t) } // not WORK because later we create more vertices that initially in the frame
+        return texCoords to framesCmdPositions.transpose()
+    }
+
     /**
      * Convert indexed vertices into actual vertex buffer data.
      *
      * Also convert triangle strips and fans into sets of independent triangles.
      * It may waste a bit of VRAM, but makes it much easier to draw,
      * using a single drawElements(GL_TRIANGLES, ...) call.
+     *
      */
-    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
+    fun toVertexAttributes(framePositions: List<Md2Point>, returnTexCoords: Boolean = true): List<Float> {
         val result = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
@@ -189,9 +234,9 @@ data class Md2GlCmd(
                 vertices.windowed(3).flatMap { strip ->
                     clockwise = !clockwise
                     if (clockwise) {
-                        strip[0].toFloats(points) + strip[1].toFloats(points) + strip[2].toFloats(points)
+                        strip[0].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[2].toFloats(framePositions, returnTexCoords)
                     } else {
-                        strip[2].toFloats(points) + strip[1].toFloats(points) + strip[0].toFloats(points)
+                        strip[2].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords)
                     }
                 }
             }
@@ -199,7 +244,7 @@ data class Md2GlCmd(
             Md2GlCmdType.TRIANGLE_FAN -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
                 vertices.drop(1).windowed(2).flatMap { strip ->
-                    strip[1].toFloats(points) + strip[0].toFloats(points) + vertices.first().toFloats(points)
+                    strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords) + vertices.first().toFloats(framePositions, returnTexCoords)
                 }
             }
         }
