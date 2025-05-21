@@ -5,11 +5,12 @@ Jake2 README
 
 [Screenshots](info/screenshots/Screenshots.md)
 
-Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
+Jake2 is a port of the GPL'd Quake2 engine from id Software. Jake2 is
 distributed under the terms of the GPL (see LICENSE).
 
-The port is implemented in Java, but some native libraries (LWJGL) are used for the
-visual rendering, input processing and audio playback (OpenAL) functionality. 
+The original engine core and server components are implemented in Java.
+The new `cake` client is developed in Kotlin using libGDX with an LWJGL3 backend
+for graphics, input, and audio. Older client code relied on LWJGL (version 2) and OpenAL directly.
 
 Jake2 is still under development. Feel free to send bug report if you find one.
 
@@ -19,7 +20,7 @@ Requirements:
 
  * jdk version 11 to build and run Jake2
 
-Please note that there is an issue with more recent java versions (17) on linux with lwjgl natives.
+Please note that there was an issue with more recent java versions (e.g., 17) on Linux with LWJGL 2 natives (used by the legacy client). The new `cake` client uses LWJGL3, which generally has better compatibility with modern Java versions.
 
 
 Documentation & Info
@@ -39,30 +40,30 @@ which is incompatible with the current LWJGL version.
 Secondly, jake2 rendering is implemented in OpenGL immediate mode and had to be rewritten on a modern shader pipeline anyway.
 And lastly, there is a libGDX framework that can provide a lot of useful functionality, and ditch a lot of code (yes, `Menu.java`, I am looking at you)
 
-The `client` and `fullgame` modules are excluded from the build. 
-The new `cake` module is introduced for the client side part (WIP).
-
-TODO: update readme
+The `client` and `fullgame` modules are excluded from the build.
+The new `cake` module is introduced for the client side part (WIP). Cake is a fresh implementation of the Jake2 client part on the modern libraries: LWJGL3 and libGDX.
 
 Installation and running
 ------------------------
 
-from binary distribution:
+The primary way to run Jake2 is by building from source, particularly for the new `cake` client.
 
-- unzip the distribution(jake2-some_version.zip)
-- go to `bin` folder
-- run `./fullgame` (or `fullgame.bat` on windows)
+**Running the `cake` client (LWJGL3/Desktop):**
+- Use the Gradle task: `./gradlew cake:lwjgl3:run`
+- To build a distribution of the `cake` client, you can use tasks like `cake:lwjgl3:jar` to create a runnable JAR, or `cake:lwjgl3:jpackageImage` to create a native bundle (requires Java 14+). Check the `cake/lwjgl3/build.gradle` file for more details on packaging.
 
-build from source:
+**Running the server:**
+- (TODO: Verify the exact Gradle task for running the server. It might be a task like `./gradlew server:run` if a dedicated server module exists, or the main `run` task might default to the server if no client is specified.)
 
-- run `gradle run` to build from source and run jake2
-- run `gradle distZip` to build the distribution
+**Building from source (general):**
+- `gradlew build`: Compiles all modules and runs checks.
+- `gradlew distZip`: This task's content might have changed. It traditionally created a distribution of the `fullgame` module. Its current output should be verified. (TODO: Verify what `distZip` produces now).
 
-If you don't have a gradle distribution you can use gradle wrapper, like `./gradlew run`.
-
-If you run jake from an IDE:
-  1. add dependency to `gradle installDist` task before launch
-  2. add `-Djava.library.path` VM option to point to the location of native libs (they are copied to the `fullgame/build/install/fullgame` after the task mentioned above)
+**If you run Jake2 from an IDE (e.g., IntelliJ IDEA, Eclipse):**
+  1. Import the project as a Gradle project.
+  2. To run the `cake` client, find the `Lwjgl3GameLauncher` class in the `cake.lwjgl3` module (`org.demoth.cake.lwjgl3.Lwjgl3GameLauncher`) and run its `main` method.
+  3. Native library paths for the `cake` client are typically managed automatically by libGDX and its LWJGL3 backend when run through Gradle or an IDE that understands Gradle projects. If you encounter issues, ensure the working directory is set correctly (usually the project's `assets/` directory or the root of the `cake/lwjgl3` module for asset loading).
+  (TODO: Add specific instructions for server-side execution from IDE if necessary).
 
 Installation of Quake2 data:
 ----------------------------
@@ -101,10 +102,10 @@ Roadmap
 With accordance to the goals we can put a list of more concrete steps:
 
   * gather game state in classes. at the moment state of the process is scattered across many static fields.
-  * code cleanup - move to modern libraries (filesystem, network, logging)
-  * file formats - support modern file formats (zip, image, audio, video, models?)
+  * code cleanup - move to modern libraries (filesystem, network, logging) (Partially addressed in `cake` client for its specific needs)
+  * file formats - support modern file formats (zip, image, audio, video, models?) (libGDX in `cake` helps with image/audio)
   * support "brother projets" content: q2 mission packs, q1? q3? hl?
-  * replace q2 ui code (not 3d) with a library (i.e. nifty-gui)
+  * replace q2 ui code (not 3d) with a modern UI library (e.g., libGDX's Scene2D, which is being used in the `cake` client, replacing old UI code like `Menu.java`)
 
 ### Crazy ideas area (proceed with caution):
 
@@ -121,9 +122,14 @@ full set of tools to support game development and creation of new games.
 3rd party components
 --------------------
 
-Jake2 uses:
-lwjgl    Light Weight Java Game Library http://www.lwjgl.org
-openal   Audio library                  http://www.openal.org
+The Jake2 project utilizes several key third-party libraries:
+
+*   **libGDX**: A cross-platform game development framework. The new `cake` client is built upon libGDX. (https://libgdx.com/)
+*   **LWJGL3 (Lightweight Java Game Library 3)**: Used by libGDX for accessing native APIs for graphics (OpenGL), audio (OpenAL), and input on desktop platforms. (https://www.lwjgl.org/)
+*   **Kotlin**: The `cake` client is primarily written in Kotlin, a modern programming language that runs on the JVM. (https://kotlinlang.org/)
+*   **OpenAL**: An audio library, typically used via libGDX in the `cake` client for sound playback. (https://www.openal.org/)
+
+The legacy parts of Jake2 also used LWJGL (version 2) and OpenAL directly.
 
 Use github issue tracker for bug reports and feedback.
 
