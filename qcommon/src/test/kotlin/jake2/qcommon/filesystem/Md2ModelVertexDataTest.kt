@@ -1,17 +1,40 @@
 package jake2.qcommon.filesystem
 
 import jake2.qcommon.math.Vector3f
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
 /**
- * Create a simple geometry to test transformation of md2 packed data into shader suitable format.
- * In this example there is a sinble square composed of two halfs:
+ * Create a simple geometry to test transformation of md2 packed data into shader-suitable format.
+ * In this example there is a single square composed of two halves:
  *  - bottom (triangle strip, grass texture)
  *  - top (triangle fan, wood texture).
- * The actual texture has the opposite layout: the grass is on the top and the wood is on the bottom.
- * This makes an interesting case, because the same vertices (same in a sense of the postitions)
+ * The actual texture has the opposite layout: the grass is on the top, and the wood is on the bottom.
+ * This makes an interesting case because the same vertices (same in the sense of the positions)
  * have different texture coordinates when are part of different triangles.
+ *
+ *
+ * This is how I image the model (vertex indices are inside, vertex positions are outside)
+ *     0,1                       1,1
+ *       ┌──────────────────────┐
+ *       │2                    3│
+ *       │     wood texture     │
+ *    Y  │1                    4│
+ *  0,0.5┼──────────────────────┼1,0.5
+ *       │      grass texture   │
+ *       │0                    5│
+ *       └──────────────────────┘
+ *      0,0         X            1,0
+ *
+ * This is how the texture image looks
+ *     0,1┌──────────┐1,1
+ *        │  grass   │
+ *        │  texture │
+ *   0,0.5┼──────────┼1,0.5
+ *     Y  │  wood    │
+ *        │  texture │
+ *        └──────────┘
+ *     0,0     X      1,0
  *
  * Initially we have 6 vertices in the md2 format. But since the vertices,
  * which are shared by different quads have different texture coordinates, we need to make new vertices instead.
@@ -26,10 +49,22 @@ import org.junit.Test
  * 4        1.0     1.0     *
  * 5        1.0     0.5
  *
- * vertices 1 and 4 are shared and have different uv in different quads, so need to create new ones instead
+ * Vertices 1 and 4 are shared and have different uv in different quads, so need to create new ones instead.
  *
- * 6(prev 1)0.0     0.0     *
- * 7(prev 4)1.0     0.0     *
+ * 6(prev 1*)0.0     0.0     *
+ * 7(prev 4*)1.0     0.0     *
+ *
+ * Vertices are re-indexed as they are used in the gl commands; we throw away previous indexing.
+ * Re-indexed vertices will look like:
+ * new index, old index, u  v
+ *  0       0        0.0     0.5
+ *  1       5        1.0     0.5
+ *  2       4        1.0     1.0
+ *  3       1        0.0     1.0
+ *  4       1*       0.0     0.0
+ *  5       4*       1.0     0.0
+ *  6       3        1.0     0.5
+ *  7       2        0.0     0.5
  */
 class Md2ModelVertexDataTest {
 
@@ -88,8 +123,18 @@ class Md2ModelVertexDataTest {
         val testFrames: List<Md2Frame>  = createTestFrames()
 
         val actual = getVertexData(testGlCmds, testFrames)
-        val expected = TODO()
 
-        assertEquals(expected, actual)
+        // these values are taken from the example in the Javadoc (very end)
+        val expectedVertexAttributes = floatArrayOf(
+            0.0f, 0.5f,
+            1.0f, 0.5f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 0.5f,
+            0.0f, 0.5f,
+        )
+        assertArrayEquals(expectedVertexAttributes, actual.vertexAttributes, 0.0001f)
     }
 }

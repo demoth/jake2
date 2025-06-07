@@ -57,29 +57,6 @@ class Md2Model(buffer: ByteBuffer) {
         }.toFloatArray()
     }
 
-    /**
-     * Get the vertex data for all frames as a single array.
-     * Every array is a set of
-     */
-    fun getVertexData(): FloatArray {
-        // transform each gl command into a list of vertex data (float arrays) for all frames.
-        // each element of this list represents a single frame, first two elements are s, t, then vertex positions for all frames (x1, y1, z1, x2, y2, z2, ...
-        // combine vertex data for all frames into a single array
-//        return glCommands.flatMap { glcmd ->
-//            transformGlCmd(glcmd)
-//        }
-        TODO()
-    }
-
-    fun transformGlCmd(glcmd: Md2GlCmd): List<FloatArray> {
-        val result = mutableListOf<FloatArray>()
-        val allFramesPositions = glcmd.toVertexAttributes(frames)
-//        allFramesPositions.map {
-//            listOf(s,t)
-//        }
-        TODO()
-    }
-
     init {
         //
         // region: HEADER
@@ -189,18 +166,29 @@ fun getVertexData(
     // and (!most importantly!) reindex the positions in the frames.
 
     // map from (oldIndex, s,t ) to new index
-    val vertexMap = mutableMapOf<Triple<Int, Float, Float>, Int>()
+    val vertexMap = mutableMapOf<Md2VertexInfo, Int>()
     var currentVertex = 0
     glCmds.forEach { glCmd ->
         glCmd.vertices.forEach { vertex ->
-            val existingVertex = vertexMap[Triple(vertex.index, vertex.s, vertex.t)]
-            if (existingVertex != null) {
-
+            val key = Md2VertexInfo(vertex.index, vertex.s, vertex.t)
+            val existingVertex = vertexMap[key]
+            if (existingVertex == null) {
+                vertexMap[key] = currentVertex
+                currentVertex++
             }
         }
     }
 
-    TODO()
+    val indices = vertexMap.values.sorted()
+    // map new index -> vertex attributes
+    val reversedVertexMap = vertexMap.entries.associate { (k, v) -> v to k }
+    val vertexAttributes = indices.flatMap { listOf(reversedVertexMap[it]!!.s, reversedVertexMap[it]!!.t) }
+    return Md2VertexData(
+        indices = indices.map { it.toShort() }.toShortArray(),
+        vertexAttributes = vertexAttributes.toFloatArray(),
+        vertexPositions = null // todo
+    )
+
 }
 
 @Suppress("ArrayInDataClass")
@@ -208,10 +196,10 @@ data class Md2VertexData(
     // indices to draw GL_TRIANGLES
     val indices: ShortArray,
     // indexed attributes (at the moment - only text coords)
-    val vertexData: FloatArray,
+    val vertexAttributes: FloatArray,
     // vertex positions in a 2d array, should correspond to the indices, used to create VAT (Vertex Animation Texture)
     // size is numVertices(width) * numFrames(height) * 3(rgb)
-    val vertexPositions: FloatBuffer
+    val vertexPositions: FloatArray?
 )
 
 enum class Md2GlCmdType {
@@ -228,34 +216,11 @@ data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
         return if(returnTexCoords) listOf(p.x, p.y, p.z, s, t) else listOf(p.x, p.y, p.z)
     }
 }
-fun <T> List<List<T>>.transpose(): List<List<T>> {
-    // Check if the list is empty or contains empty rows
-    if (this.isEmpty() || this.any { it.isEmpty() }) return emptyList()
-
-    val rowCount = this.size
-    val colCount = this[0].size
-
-    return List(colCount) { colIndex ->
-        List(rowCount) { rowIndex ->
-            this[rowIndex][colIndex]
-        }
-    }
-}
 
 data class Md2GlCmd(
     val type: Md2GlCmdType,
     val vertices: List<Md2VertexInfo>,
 ) {
-
-    fun toVertexAttributes(frames: List<Md2Frame>): Pair<List<Float>, List<List<Float>>> {
-        // list of rows (vertex positions for each frame)
-        val framesCmdPositions = frames.map { frame ->
-            toVertexAttributes(frame.points, false)
-        }
-        val texCoords = vertices.map { listOf(it.s, it.t) } // not WORK because later we create more vertices that initially in the frame
-//        return texCoords to framesCmdPositions.transpose()
-        TODO()
-    }
 
     /**
      * Convert indexed vertices into actual vertex buffer data.

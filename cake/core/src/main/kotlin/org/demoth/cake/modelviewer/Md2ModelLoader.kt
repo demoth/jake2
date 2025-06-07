@@ -11,9 +11,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.PCX
+import jake2.qcommon.filesystem.getVertexData
 import org.demoth.cake.ResourceLocator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 class Md2ModelLoader(private val locator: ResourceLocator) {
 
@@ -82,9 +84,10 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
 
         val diffuse = Texture(PCXTextureData(fromPCX(PCX(modelSkin))))
 
+        val vertexData = getVertexData(md2Model.glCommands, md2Model.frames)
         return Md2ShaderModel(
-            mesh = createMesh(md2Model),
-            vat = createVat(md2Model) to 0,
+            mesh = createMesh(vertexData.indices, vertexData.vertexAttributes),
+            vat = createVat(vertexData.vertexPositions!!) to 0,
             diffuse = diffuse to 1,
         )
     }
@@ -94,22 +97,20 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
      * The indices are implicitly provided and normals are just skipped in this example.
      *
      */
-    private fun createMesh(md2Model: Md2Model): Mesh {
-        val texCoords = md2Model.getVertexData()
-        val indices = ShortArray(md2Model.verticesCount)
+    private fun createMesh(indices: ShortArray, vertexAttributes: FloatArray): Mesh {
         // todo: calculate indices
         val mesh = Mesh(
             true,
-            texCoords.size,
+            vertexAttributes.size,
             indices.size,
             VertexAttribute.TexCoords(1)
         )
-        mesh.setVertices(texCoords)
+        mesh.setVertices(vertexAttributes)
         mesh.setIndices(indices)
         return mesh
     }
 
-    private fun createVat(md2Model: Md2Model): Texture {
+    private fun createVat(data: FloatArray): Texture {
         TODO()
     }
 }
