@@ -96,14 +96,14 @@ class Md2ShaderModel(
     val entityTransform: Matrix4 = Matrix4()
 ): Disposable {
 
-    private val textureWidth = vat.first.width.toFloat()
-    private val textureHeight = vat.first.height.toFloat()
+    private val textureWidth = vat.first.width
+    private val textureHeight = vat.first.height
 
     fun render(shader: ShaderProgram, cameraTransform: Matrix4) {
         shader.bind()
 
-        shader.setUniformf("u_frame1", frame1.toFloat()) // not like!
-        shader.setUniformf("u_frame2", frame2.toFloat()) // not like!
+        shader.setUniformi("u_frame1", frame1)
+        shader.setUniformi("u_frame2", frame2)
         shader.setUniformf("u_interpolation", interpolation)
 
         shader.setUniformMatrix("u_projViewTrans", cameraTransform);
@@ -112,8 +112,8 @@ class Md2ShaderModel(
         shader.setUniformi("u_vertexAnimationTexture", vat.second)
         shader.setUniformi("u_diffuseTexture", diffuse.second)
 
-        shader.setUniformf("u_textureHeight", textureHeight) // number of frames
-        shader.setUniformf("u_textureWidth", textureWidth) // number of vertices
+        shader.setUniformi("u_textureHeight", textureHeight) // number of frames
+        shader.setUniformi("u_textureWidth", textureWidth) // number of vertices
 
         vat.first.bind(vat.second)
         diffuse.first.bind(diffuse.second)

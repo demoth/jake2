@@ -6,10 +6,10 @@ uniform mat4 u_worldTrans; // World transformation matrix
 uniform mat4 u_projViewTrans; // View transformation matrix
 
 uniform sampler2D u_vertexAnimationTexture; // Texture containing animated vertex positions (float texture)
-uniform float u_textureHeight; // Height of the vertex texture (number of animation frames)
-uniform float u_textureWidth; // Width of the vertex texture (number of vertices)
-uniform float u_frame1; // Index of the first frame in the animation texture
-uniform float u_frame2; // Index of the second frame in the animation texture
+uniform int u_textureHeight; // Height of the vertex texture (number of animation frames)
+uniform int u_textureWidth; // Width of the vertex texture (number of vertices)
+uniform int u_frame1; // Index of the first frame in the animation texture
+uniform int u_frame2; // Index of the second frame in the animation texture
 uniform float u_interpolation; // Interpolation factor between two animation frames (0.0 to 1.0)
 
 varying vec2 v_texCoord;
