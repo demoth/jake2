@@ -3,6 +3,7 @@ package jake2.qcommon.filesystem
 import jake2.qcommon.math.Vector3f
 import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 
 const val IDALIASHEADER: Int = (('2'.code shl 24) + ('P'.code shl 16) + ('D'.code shl 8) + 'I'.code)
 const val ALIAS_VERSION: Int = 8
@@ -60,21 +61,23 @@ class Md2Model(buffer: ByteBuffer) {
      * Get the vertex data for all frames as a single array.
      * Every array is a set of
      */
-    fun getVertexData(): List<FloatArray> {
+    fun getVertexData(): FloatArray {
         // transform each gl command into a list of vertex data (float arrays) for all frames.
         // each element of this list represents a single frame, first two elements are s, t, then vertex positions for all frames (x1, y1, z1, x2, y2, z2, ...
         // combine vertex data for all frames into a single array
-        return glCommands.flatMap { glcmd ->
-            transformGlCmd(glcmd)
-        }
+//        return glCommands.flatMap { glcmd ->
+//            transformGlCmd(glcmd)
+//        }
+        TODO()
     }
 
     fun transformGlCmd(glcmd: Md2GlCmd): List<FloatArray> {
         val result = mutableListOf<FloatArray>()
         val allFramesPositions = glcmd.toVertexAttributes(frames)
-        allFramesPositions.map {
-            listOf(s,t)
-        }
+//        allFramesPositions.map {
+//            listOf(s,t)
+//        }
+        TODO()
     }
 
     init {
@@ -121,7 +124,7 @@ class Md2Model(buffer: ByteBuffer) {
         buffer.position(firstFrameOffset)
         repeat(framesCount) {
             // parse frame from the buffer
-            frames.add(Md2Frame(buffer, verticesCount))
+            frames.add(Md2Frame.fromBuffer(buffer, verticesCount))
         }
 
         // GL COMMANDS
@@ -174,6 +177,43 @@ class Md2Model(buffer: ByteBuffer) {
     }
 }
 
+fun getVertexData(
+    glCmds: List<Md2GlCmd>,
+    frames: List<Md2Frame>
+): Md2VertexData {
+    // First, we need to reindex the vertices.
+    // In md2 format the vertices are indexed without the texture coordinates (which are part of gl commands).
+    // GL commands are shared between frames, therefore the uv don't change between frames.
+    // To make this index, we need to iterate over the gl commands by vertex index, and cache the vertex coordinates.
+    // If however, the same vertex has a different text coord, we need to make a new vertex, append it to the index,
+    // and (!most importantly!) reindex the positions in the frames.
+
+    // map from (oldIndex, s,t ) to new index
+    val vertexMap = mutableMapOf<Triple<Int, Float, Float>, Int>()
+    var currentVertex = 0
+    glCmds.forEach { glCmd ->
+        glCmd.vertices.forEach { vertex ->
+            val existingVertex = vertexMap[Triple(vertex.index, vertex.s, vertex.t)]
+            if (existingVertex != null) {
+
+            }
+        }
+    }
+
+    TODO()
+}
+
+@Suppress("ArrayInDataClass")
+data class Md2VertexData(
+    // indices to draw GL_TRIANGLES
+    val indices: ShortArray,
+    // indexed attributes (at the moment - only text coords)
+    val vertexData: FloatArray,
+    // vertex positions in a 2d array, should correspond to the indices, used to create VAT (Vertex Animation Texture)
+    // size is numVertices(width) * numFrames(height) * 3(rgb)
+    val vertexPositions: FloatBuffer
+)
+
 enum class Md2GlCmdType {
     TRIANGLE_STRIP,
     TRIANGLE_FAN,
@@ -213,7 +253,8 @@ data class Md2GlCmd(
             toVertexAttributes(frame.points, false)
         }
         val texCoords = vertices.map { listOf(it.s, it.t) } // not WORK because later we create more vertices that initially in the frame
-        return texCoords to framesCmdPositions.transpose()
+//        return texCoords to framesCmdPositions.transpose()
+        TODO()
     }
 
     /**
@@ -262,45 +303,44 @@ data class Md2GlCmd(
  *   - 16 bytes: name
  *   - number of vertices:
  *      - 4 bytes: packed normal index + x, y, z position
+ *      [name] - frame name from grabbing (size 16)
  */
-class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
-    val points: List<Md2Point>
-    val name: String // frame name from grabbing (size 16)
-
-    init {
-        val scale = Vector3f(
-            buffer.getFloat(),
-            buffer.getFloat(),
-            buffer.getFloat()
-        )
-        val translate = Vector3f(
-            buffer.getFloat(),
-            buffer.getFloat(),
-            buffer.getFloat()
-        )
-        val nameBuf = ByteArray(16)
-        buffer.get(nameBuf)
-        name = String(nameBuf).trim { it < ' '}
-
-        points = ArrayList(vertexCount)
-        repeat(vertexCount) {
-            // vertices are all 8 bit, so no swapping needed
-            // 4 bytes:
-            // highest - normal index
-            // x y z
-            val vertexData = buffer.getInt()
-            // unpack vertex data
-            points.add(
-                Md2Point(
-                    Vector3f(
-                        scale.x * (vertexData ushr 0 and 0xFF),
-                        scale.y * (vertexData ushr 8 and 0xFF),
-                        scale.z * (vertexData ushr 16 and 0xFF)
-                    ) + translate,
-                    vertexData ushr 24 and 0xFF
-                )
+class Md2Frame(val name: String,  val points: List<Md2Point>) {
+    companion object {
+        fun fromBuffer(buffer: ByteBuffer, vertexCount: Int): Md2Frame {
+            val scale = Vector3f(
+                buffer.getFloat(),
+                buffer.getFloat(),
+                buffer.getFloat()
             )
-
+            val translate = Vector3f(
+                buffer.getFloat(),
+                buffer.getFloat(),
+                buffer.getFloat()
+            )
+            val nameBuf = ByteArray(16)
+            buffer.get(nameBuf)
+            val name = String(nameBuf).trim { it < ' ' }
+            val points: ArrayList<Md2Point> = ArrayList(vertexCount)
+            repeat(vertexCount) {
+                // vertices are all 8 bit, so no swapping needed
+                // 4 bytes:
+                // highest - normal index
+                // x y z
+                val vertexData = buffer.getInt()
+                // unpack vertex data
+                points.add(
+                    Md2Point(
+                        Vector3f(
+                            scale.x * (vertexData ushr 0 and 0xFF),
+                            scale.y * (vertexData ushr 8 and 0xFF),
+                            scale.z * (vertexData ushr 16 and 0xFF)
+                        ) + translate,
+                        vertexData ushr 24 and 0xFF
+                    )
+                )
+            }
+            return Md2Frame(name, points)
         }
     }
 
