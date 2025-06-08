@@ -1,6 +1,7 @@
 package jake2.qcommon.filesystem
 
 import jake2.qcommon.math.Vector3f
+import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
@@ -54,7 +55,7 @@ import org.junit.Test
  * 6(prev 1*)0.0     0.0     *
  * 7(prev 4*)1.0     0.0     *
  *
- * Vertices are re-indexed as they are used in the gl commands; we throw away previous indexing.
+ * Vertices are re-indexed as they are used in the gl commands.
  * Re-indexed vertices will look like:
  * new index, old index, u  v
  *  0       0        0.0     0.5
@@ -65,6 +66,9 @@ import org.junit.Test
  *  5       4*       1.0     0.0
  *  6       3        1.0     0.5
  *  7       2        0.0     0.5
+ *
+ *  New index is just going incrementally (we always draw all vertices in a model),
+ *  old index is used to locate the vertex position in the frame data (and VAT).
  */
 class Md2ModelVertexDataTest {
 
@@ -126,15 +130,18 @@ class Md2ModelVertexDataTest {
 
         // these values are taken from the example in the Javadoc (very end)
         val expectedVertexAttributes = floatArrayOf(
-            0.0f, 0.5f,
-            1.0f, 0.5f,
-            1.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 0.5f,
-            0.0f, 0.5f,
+            0.0f, 0.0f, 0.5f,
+            5.0f, 1.0f, 0.5f,
+            4.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f,
+            4.0f, 1.0f, 0.0f,
+            3.0f, 1.0f, 0.5f,
+            2.0f, 0.0f, 0.5f,
         )
         assertArrayEquals(expectedVertexAttributes, actual.vertexAttributes, 0.0001f)
+
+        // todo: add proper test for texture coordinates
+        assertEquals(testFrames.size * testFrames.first().points.size * 3, actual.vertexPositions?.size)
     }
 }

@@ -182,11 +182,27 @@ fun getVertexData(
     val indices = vertexMap.values.sorted()
     // map new index -> vertex attributes
     val reversedVertexMap = vertexMap.entries.associate { (k, v) -> v to k }
-    val vertexAttributes = indices.flatMap { listOf(reversedVertexMap[it]!!.s, reversedVertexMap[it]!!.t) }
+    val vertexAttributes = indices.flatMap { listOf(
+        reversedVertexMap[it]!!.index.toFloat(),
+        reversedVertexMap[it]!!.s,
+        reversedVertexMap[it]!!.t
+    ) }
+
+    val vertexPositions = mutableListOf<Float>()
+    // todo: check the order of rows/columns
+    frames.forEach { frame ->
+        frame.points.forEach { point ->
+            vertexPositions.add(point.position.x)
+            vertexPositions.add(point.position.y)
+            vertexPositions.add(point.position.z)
+            // normal is unused so far
+        }
+    }
+
     return Md2VertexData(
         indices = indices.map { it.toShort() }.toShortArray(),
         vertexAttributes = vertexAttributes.toFloatArray(),
-        vertexPositions = null // todo
+        vertexPositions = vertexPositions.toFloatArray()
     )
 
 }
