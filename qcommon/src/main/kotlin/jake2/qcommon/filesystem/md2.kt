@@ -3,7 +3,6 @@ package jake2.qcommon.filesystem
 import jake2.qcommon.math.Vector3f
 import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
 
 const val IDALIASHEADER: Int = (('2'.code shl 24) + ('P'.code shl 16) + ('D'.code shl 8) + 'I'.code)
 const val ALIAS_VERSION: Int = 8
@@ -154,7 +153,7 @@ class Md2Model(buffer: ByteBuffer) {
     }
 }
 
-fun getVertexData(
+fun buildVertexData(
     glCmds: List<Md2GlCmd>,
     frames: List<Md2Frame>
 ): Md2VertexData {
@@ -163,7 +162,6 @@ fun getVertexData(
     // GL commands are shared between frames, therefore the uv don't change between frames.
     // To make this index, we need to iterate over the gl commands by vertex index, and cache the vertex coordinates.
     // If however, the same vertex has a different text coord, we need to make a new vertex, append it to the index,
-    // and (!most importantly!) reindex the positions in the frames.
 
     // map from (oldIndex, s,t ) to new index
     val vertexMap = mutableMapOf<Md2VertexInfo, Int>()
@@ -188,8 +186,8 @@ fun getVertexData(
         reversedVertexMap[it]!!.t
     ) }
 
+    // flatten vertex positions in all frames
     val vertexPositions = mutableListOf<Float>()
-    // todo: check the order of rows/columns
     frames.forEach { frame ->
         frame.points.forEach { point ->
             vertexPositions.add(point.position.x)
@@ -202,7 +200,9 @@ fun getVertexData(
     return Md2VertexData(
         indices = indices.map { it.toShort() }.toShortArray(),
         vertexAttributes = vertexAttributes.toFloatArray(),
-        vertexPositions = vertexPositions.toFloatArray()
+        vertexPositions = vertexPositions.toFloatArray(),
+        frames = frames.size,
+        vertices = frames.first().points.size,
     )
 
 }
@@ -215,7 +215,9 @@ data class Md2VertexData(
     val vertexAttributes: FloatArray,
     // vertex positions in a 2d array, should correspond to the indices, used to create VAT (Vertex Animation Texture)
     // size is numVertices(width) * numFrames(height) * 3(rgb)
-    val vertexPositions: FloatArray?
+    val vertexPositions: FloatArray,
+    val frames: Int,
+    val vertices: Int,
 )
 
 enum class Md2GlCmdType {

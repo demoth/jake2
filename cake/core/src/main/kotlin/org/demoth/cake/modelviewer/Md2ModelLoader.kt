@@ -1,6 +1,8 @@
 package org.demoth.cake.modelviewer
 
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
+import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.Mesh
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttribute
@@ -10,8 +12,9 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Md2Model
+import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
-import jake2.qcommon.filesystem.getVertexData
+import jake2.qcommon.filesystem.buildVertexData
 import org.demoth.cake.ResourceLocator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -84,10 +87,10 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
 
         val diffuse = Texture(PCXTextureData(fromPCX(PCX(modelSkin))))
 
-        val vertexData = getVertexData(md2Model.glCommands, md2Model.frames)
+        val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
         return Md2ShaderModel(
-            mesh = createMesh(vertexData.indices, vertexData.vertexAttributes),
-            vat = createVat(vertexData.vertexPositions!!) to 0,
+            mesh = createMesh(vertexData),
+            vat = createVat(vertexData) to 0,
             diffuse = diffuse to 1,
         )
     }
@@ -97,22 +100,40 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
      * The indices are implicitly provided and normals are just skipped in this example.
      *
      */
-    private fun createMesh(indices: ShortArray, vertexAttributes: FloatArray): Mesh {
-        // todo: calculate indices
+    private fun createMesh(vertexData: Md2VertexData): Mesh {
         val mesh = Mesh(
             true,
-            vertexAttributes.size,
-            indices.size,
+            vertexData.vertexAttributes.size,
+            vertexData.indices.size,
             VertexAttribute.TexCoords(1)
         )
-        mesh.setVertices(vertexAttributes)
-        mesh.setIndices(indices)
+        mesh.setVertices(vertexData.vertexAttributes)
+        mesh.setIndices(vertexData.indices)
         return mesh
     }
 
-    private fun createVat(data: FloatArray): Texture {
-        TODO()
+    private fun createVat(vertexData: Md2VertexData): Texture {
+        return Texture(
+            CustomTextureData(
+                vertexData.frames,
+                vertexData.vertices,
+                GL30.GL_RGB16F,
+                GL30.GL_RGB,
+                GL20.GL_FLOAT,
+                vertexData.vertexPositions.toFloatBuffer(),
+            )
+        )
     }
+}
+
+private fun FloatArray.toFloatBuffer(): FloatBuffer {
+    val result = ByteBuffer
+        .allocateDirect(size * 4)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+    result.put(this)
+    result.flip()
+    return result
 }
 
 private fun readMd2Model(modelData: ByteArray): Md2Model {

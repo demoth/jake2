@@ -126,7 +126,7 @@ class Md2ModelVertexDataTest {
         val testGlCmds: List<Md2GlCmd> = createTestGlCmd()
         val testFrames: List<Md2Frame>  = createTestFrames()
 
-        val actual = getVertexData(testGlCmds, testFrames)
+        val actual = buildVertexData(testGlCmds, testFrames)
 
         // these values are taken from the example in the Javadoc (very end)
         val expectedVertexAttributes = floatArrayOf(
