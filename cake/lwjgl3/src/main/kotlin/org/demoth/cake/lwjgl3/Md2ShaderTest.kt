@@ -1,23 +1,18 @@
 package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.ApplicationAdapter
-import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
-import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.modelviewer.CustomTextureData
-import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.Md2ShaderModel
-import java.io.File
 import java.nio.FloatBuffer
 
 
@@ -97,17 +92,20 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             true,
             numberOfVertices,
             iCount,
-            VertexAttribute.TexCoords(1) // in future, normals can also be added here
+            VertexAttributes(
+                            VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_vat_index"),
+                VertexAttribute.TexCoords(1) // in future, normals can also be added here
+            )
         )
 
         // v (vertical) component is flipped
-        val textureCoords = floatArrayOf(
-            0.0f, 1.0f, // bottom left
-            1.0f, 1.0f, // bottom right
-            0.5f, 0.0f, // top
+        val attributes = floatArrayOf(
+            0.0f, 0.0f, 1.0f, // bottom left
+            1.0f, 1.0f, 1.0f, // bottom right
+            2.0f, 0.5f, 0.0f, // top
         )
 
-        mesh.setVertices(textureCoords)
+        mesh.setVertices(attributes)
         mesh.setIndices(indices)
         return mesh
     }

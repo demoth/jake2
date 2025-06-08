@@ -1,6 +1,7 @@
-#version 130 // required by gl_VertexID
+#version 130
 
-attribute vec2 a_texCoord1; // Texture coordinates
+attribute float a_vat_index;
+attribute vec2 a_texCoord1; // Diffuse Texture coordinates
 
 uniform mat4 u_worldTrans; // World transformation matrix
 uniform mat4 u_projViewTrans; // View transformation matrix
@@ -15,10 +16,9 @@ uniform float u_interpolation; // Interpolation factor between two animation fra
 varying vec2 v_texCoord;
 
 void main() {
-    float index = float(gl_VertexID);
     vec2 texelSize = vec2(1.0 / u_textureWidth, 1.0 / u_textureHeight);
-    vec2 vertexTextureCoord1 = vec2((index + 0.5) * texelSize.x, (u_frame1 + 0.5) * texelSize.y);
-    vec2 vertexTextureCoord2 = vec2((index + 0.5) * texelSize.x, (u_frame2 + 0.5) * texelSize.y);
+    vec2 vertexTextureCoord1 = vec2((a_vat_index + 0.5) * texelSize.x, (u_frame1 + 0.5) * texelSize.y);
+    vec2 vertexTextureCoord2 = vec2((a_vat_index + 0.5) * texelSize.x, (u_frame2 + 0.5) * texelSize.y);
 
     // Sample the vertex texture to get the animated positions for the two frames
     // The texture stores vec3 positions in RGB channels (assuming float texture)
