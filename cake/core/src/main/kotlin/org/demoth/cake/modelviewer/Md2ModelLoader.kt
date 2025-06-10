@@ -118,8 +118,8 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
     private fun createVat(vertexData: Md2VertexData): Texture {
         return Texture(
             CustomTextureData(
-                vertexData.frames,
                 vertexData.vertices,
+                vertexData.frames,
                 GL30.GL_RGB16F,
                 GL30.GL_RGB,
                 GL20.GL_FLOAT,
