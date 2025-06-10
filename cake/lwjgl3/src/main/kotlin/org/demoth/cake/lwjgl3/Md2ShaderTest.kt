@@ -48,7 +48,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         Gdx.input.inputProcessor = cameraInputController
 
         md2Shader = createShaderProgram()
-        val pathToFile = "berserk"
+        val pathToFile = "/home/daniil/.steam/steam/steamapps/common/Quake 2/baseq2/models/monsters/infantry"
         val locator = ModelViewerResourceLocator(pathToFile)
         val md2 = Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)?.apply {
             frame1 = 0
@@ -76,6 +76,10 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             playing = !playing
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            changeFrame(1)
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            changeFrame(-1)
         }
 
         camera.update()
@@ -93,13 +97,22 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             animationTime += Gdx.graphics.deltaTime
 
             if (animationTime > animationDuration) {
-                animationTime = 0f
-                // advance animation frames: frame1++ frame2++, keep in mind number of frames
-                md2ShaderModel.frame1 = md2ShaderModel.frame2
-                val nextFrame = (md2ShaderModel.frame2 + 1) % md2ShaderModel.frames
-                md2ShaderModel.frame2 = nextFrame
+                changeFrame(1)
             }
         }
+    }
+
+    private fun changeFrame(delta: Int) {
+        animationTime = 0f
+        // advance animation frames: frame1++ frame2++, keep in mind number of frames
+        md2ShaderModel.frame1 = (md2ShaderModel.frame1 + delta) % md2ShaderModel.frames
+        if (md2ShaderModel.frame1 < 0) {
+            md2ShaderModel.frame1 += md2ShaderModel.frames
+        }
+        if (md2ShaderModel.frame2 < 0) {
+            md2ShaderModel.frame2 += md2ShaderModel.frames
+        }
+        md2ShaderModel.frame2 = (md2ShaderModel.frame2 + delta) % md2ShaderModel.frames
     }
 
     override fun dispose() {
