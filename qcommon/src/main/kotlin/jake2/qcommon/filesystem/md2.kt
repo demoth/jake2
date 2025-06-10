@@ -164,27 +164,11 @@ fun buildVertexData(
     // If however, the same vertex has a different text coord, we need to make a new vertex, append it to the index,
 
     // map from (oldIndex, s,t ) to new index
-    val vertexMap = mutableMapOf<Md2VertexInfo, Int>()
-    var currentVertex = 0
-    glCmds.forEach { glCmd ->
-        glCmd.vertices.forEach { vertex ->
-            val key = Md2VertexInfo(vertex.index, vertex.s, vertex.t)
-            val existingVertex = vertexMap[key]
-            if (existingVertex == null) {
-                vertexMap[key] = currentVertex
-                currentVertex++
-            }
+    val attributes = glCmds.flatMap { glCmd ->
+        glCmd.unpack().flatMap { vertex ->
+            listOf(vertex.index.toFloat(), vertex.s, vertex.t)
         }
     }
-
-    val indices = vertexMap.values.sorted()
-    // map new index -> vertex attributes
-    val reversedVertexMap = vertexMap.entries.associate { (k, v) -> v to k }
-    val vertexAttributes = indices.flatMap { listOf(
-        reversedVertexMap[it]!!.index.toFloat(),
-        reversedVertexMap[it]!!.s,
-        reversedVertexMap[it]!!.t
-    ) }
 
     // flatten vertex positions in all frames
     val vertexPositions = mutableListOf<Float>()
@@ -198,8 +182,8 @@ fun buildVertexData(
     }
 
     return Md2VertexData(
-        indices = indices.map { it.toShort() }.toShortArray(),
-        vertexAttributes = vertexAttributes.toFloatArray(),
+        indices = attributes.indices.map { it.toShort() }.toShortArray(),
+        vertexAttributes = attributes.toFloatArray(),
         vertexPositions = vertexPositions.toFloatArray(),
         frames = frames.size,
         vertices = frames.first().points.size, // assuming all frames have the same number of vertices
