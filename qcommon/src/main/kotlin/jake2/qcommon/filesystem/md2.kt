@@ -202,7 +202,7 @@ fun buildVertexData(
         vertexAttributes = vertexAttributes.toFloatArray(),
         vertexPositions = vertexPositions.toFloatArray(),
         frames = frames.size,
-        vertices = frames.first().points.size,
+        vertices = frames.first().points.size, // assuming all frames have the same number of vertices
     )
 
 }

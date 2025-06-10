@@ -105,7 +105,10 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
             true,
             vertexData.vertexAttributes.size,
             vertexData.indices.size,
-            VertexAttribute.TexCoords(1)
+            VertexAttributes(
+                VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_vat_index"),
+                VertexAttribute.TexCoords(1) // in future, normals can also be added here
+            )
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
