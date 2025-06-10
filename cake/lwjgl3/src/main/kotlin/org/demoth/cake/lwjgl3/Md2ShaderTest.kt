@@ -34,6 +34,11 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private lateinit var md2ShaderModel: Md2ShaderModel
 
     override fun create() {
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST)
+        Gdx.gl.glDepthFunc(GL20.GL_LEQUAL)
+        Gdx.gl.glEnable(GL20.GL_CULL_FACE)
+        Gdx.gl.glCullFace(GL20.GL_BACK)
+
         camera = PerspectiveCamera(67f, width.toFloat(), height.toFloat())
         cameraInputController = CameraInputController(camera)
         Gdx.input.inputProcessor = cameraInputController
