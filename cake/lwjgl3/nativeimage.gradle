@@ -9,7 +9,7 @@ project(":cake:lwjgl3") {
     binaries {
       main {
         imageName = appName
-        mainClass = project.mainClassName
+        mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3GameLauncher')
         requiredVersion = '23.0'
         buildArgs.add("-march=compatibility")
         jvmArgs.addAll("-Dfile.encoding=UTF8")
