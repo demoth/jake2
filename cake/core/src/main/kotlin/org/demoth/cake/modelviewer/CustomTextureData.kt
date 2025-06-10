@@ -1,7 +1,6 @@
 package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Mesh
 import com.badlogic.gdx.graphics.Pixmap
@@ -95,6 +94,8 @@ class Md2ShaderModel(
     var interpolation: Float = 0.0f,
     val entityTransform: Matrix4 = Matrix4()
 ): Disposable {
+
+    val frames = vat.first.height
 
     private val textureWidth = vat.first.width
     private val textureHeight = vat.first.height

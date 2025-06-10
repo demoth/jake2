@@ -2,18 +2,17 @@ package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
-import org.demoth.cake.modelviewer.CustomTextureData
+import org.demoth.cake.ModelViewerResourceLocator
+import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.Md2ShaderModel
-import java.nio.FloatBuffer
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
@@ -21,15 +20,10 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
     private lateinit var md2Shader: ShaderProgram
     private var animationTime = 0f
 
-    // --- Model Data (Replace with your actual loaded data) ---
-    private val numberOfVertices = 3 // Example: 100 vertices
-    private val numberOfFrames = 2 // Example: 60 animation frames
-    private val animationDuration = 2.0f // Example: 2 seconds animation duration
+    private val animationDuration = 1f // Example: 2 seconds animation duration
 
     private lateinit var camera: Camera
     private lateinit var cameraInputController : CameraInputController
-
-    private var direction = 1f
 
     private lateinit var md2ShaderModel: Md2ShaderModel
 
@@ -40,24 +34,19 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         Gdx.gl.glCullFace(GL20.GL_BACK)
 
         camera = PerspectiveCamera(67f, width.toFloat(), height.toFloat())
+        camera.near = 0.1f
+        camera.far = 1000f
         cameraInputController = CameraInputController(camera)
         Gdx.input.inputProcessor = cameraInputController
+
         md2Shader = createShaderProgram()
-        //val locator = ModelViewerResourceLocator("/home/daniil/GameDev/quake/q2/quake2/baseq2/models/items/adrenal")
-        //val md2 = Md2ModelLoader(locator).loadAnimatedModel("/home/daniil/GameDev/quake/q2/quake2/baseq2/models/items/adrenal/tris.md2", null, 0)!!
-
-        // vertex animation texture with all positional data for all vertices and frames
-        val vat = createVatTexture()
-
-        val diffuse = Texture(Gdx.files.internal("triangloid.png"))
-
-        val mesh = createMesh()
-
-        md2ShaderModel = Md2ShaderModel(
-            mesh,
-            vat to 0,
-            diffuse to 1
-        )
+        val pathToFile = "berserk"
+        val locator = ModelViewerResourceLocator(pathToFile)
+        val md2 = Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)?.apply {
+            frame1 = 0
+            frame2 = if (frames > 1) 1 else 0
+        }
+        md2ShaderModel = md2!!
     }
 
     private fun createShaderProgram(): ShaderProgram {
@@ -74,97 +63,6 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         return shaderProgram
     }
 
-    /**
-     * The Mesh holds the vertex attributes, which in the VAT scenario are only texture coordinates.
-     * The indices are implicitly provided and normals are just skipped in this example.
-     *
-     */
-    private fun createMesh(): Mesh {
-
-        val iCount = (numberOfVertices - 2) * 3 // one triangle fan as in the sample
-
-        val indices = ShortArray(iCount)
-
-        /* fill indices ----------------------------------------------------------- */
-        var p = 0
-        for (v in 0..<numberOfVertices - 2) {
-            indices[p++] = 0.toShort()
-            indices[p++] = (v + 1).toShort()
-            indices[p++] = (v + 2).toShort()
-        }
-
-        val mesh = Mesh(
-            true,
-            numberOfVertices,
-            iCount,
-            VertexAttributes(
-                            VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_vat_index"),
-                VertexAttribute.TexCoords(1) // in future, normals can also be added here
-            )
-        )
-
-        // v (vertical) component is flipped
-        val attributes = floatArrayOf(
-            0.0f, 0.0f, 1.0f, // bottom left
-            1.0f, 1.0f, 1.0f, // bottom right
-            2.0f, 0.5f, 0.0f, // top
-        )
-
-        mesh.setVertices(attributes)
-        mesh.setIndices(indices)
-        return mesh
-    }
-
-    private fun createVatTexture(): Texture {
-        // vertex data represent a 2d array of model vertices and frames
-        val vertexData = Array<Array<Vector3?>?>(numberOfVertices) {
-            arrayOfNulls(numberOfFrames)
-        }
-
-        val s = 0.5f // half size of the triangle
-        // sample vertex data: 2 frame - triangle with 3 vertices
-        vertexData[0]!![0] = Vector3(-s, -s, 0f)
-        vertexData[1]!![0] = Vector3(s, -s, 0f)
-        vertexData[2]!![0] = Vector3(s, s, 0f)
-
-        // 1 frame - mirrored triangle
-        vertexData[0]!![1] = Vector3(-s, -s, 0f)
-        vertexData[1]!![1] = Vector3(s, -s, 0f)
-        vertexData[2]!![1] = Vector3(-s, s, 0f)
-
-        // Create the VAT Texture buffer as a linear array
-        val vertexBuffer: FloatBuffer =
-            BufferUtils.newFloatBuffer(numberOfVertices * numberOfFrames * 3) // 3 floats per Vector3
-        for (frameIndex in 0..<numberOfFrames) { // Iterate through frames (rows in texture)
-            for (vertexIndex in 0..<numberOfVertices) { // Iterate through vertices (columns in texture)
-                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.x)
-                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.y)
-                vertexBuffer.put(vertexData[vertexIndex]!![frameIndex]!!.z)
-            }
-        }
-        vertexBuffer.flip() // Prepare the buffer for reading
-
-        val vat = Texture(
-            CustomTextureData(
-                numberOfVertices,  // width (vertices)
-                numberOfFrames,  // height (frames)
-                GL30.GL_RGB16F,
-                GL30.GL_RGB,
-                GL20.GL_FLOAT,
-                vertexBuffer
-            )
-        )
-        vat.setFilter(
-            Texture.TextureFilter.Nearest,
-            Texture.TextureFilter.Nearest
-        ); // Nearest filtering for exact frame sampling
-        vat.setWrap(
-            Texture.TextureWrap.ClampToEdge,
-            Texture.TextureWrap.ClampToEdge
-        ); // Clamp to edge to avoid issues at boundaries
-        return vat
-    }
-
     override fun render() {
         camera.update()
 
@@ -173,18 +71,19 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
 
-        // bounce animation
-        if (animationTime <= 0f) {
-            animationTime = 0f
-            direction = 1f
-        } else if (animationTime > animationDuration) {
-            animationTime = animationDuration
-            direction = -1f
-        }
-        animationTime += Gdx.graphics.deltaTime * direction
         val interpolation = animationTime / animationDuration
         md2ShaderModel.interpolation = interpolation
         md2ShaderModel.render(md2Shader, camera.combined)
+
+        animationTime += Gdx.graphics.deltaTime
+
+        if (animationTime > animationDuration) {
+            animationTime = 0f
+            // advance animation frames: frame1++ frame2++, keep in mind number of frames
+            md2ShaderModel.frame1 = md2ShaderModel.frame2
+            val nextFrame = (md2ShaderModel.frame2 + 1) % md2ShaderModel.frames
+            md2ShaderModel.frame2 = nextFrame
+        }
     }
 
     override fun dispose() {
