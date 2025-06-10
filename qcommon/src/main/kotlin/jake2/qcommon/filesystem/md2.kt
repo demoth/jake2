@@ -241,6 +241,37 @@ data class Md2GlCmd(
 ) {
 
     /**
+     * Convert triangle strip and triangle fan into a list of independent triangles
+     */
+    fun unpack(): List<Md2VertexInfo> {
+        val result = when (type) {
+            Md2GlCmdType.TRIANGLE_STRIP -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
+                // when converting a triangle strip into a set of separate triangles,
+                // need to alternate the winding direction
+                var clockwise = true
+                vertices.windowed(3).flatMap { strip ->
+                    clockwise = !clockwise
+                    if (clockwise) {
+                        listOf(strip[0], strip[1], strip[2])
+                    } else {
+                        listOf(strip[2], strip[1], strip[0])
+                    }
+                }
+            }
+
+            Md2GlCmdType.TRIANGLE_FAN -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
+                vertices.drop(1).windowed(2).flatMap { strip ->
+                    listOf(strip[1], strip[0], vertices.first())
+                }
+
+            }
+        }
+        return result
+    }
+
+    /**
      * Convert indexed vertices into actual vertex buffer data.
      *
      * Also convert triangle strips and fans into sets of independent triangles.
