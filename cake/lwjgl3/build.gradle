@@ -23,8 +23,10 @@ else {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
-application.setMainClass(mainClassName)
+def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
+application {
+  mainClass.set(mainClassName)
+}
 java.sourceCompatibility = 11
 java.targetCompatibility = 11
 
@@ -62,7 +64,7 @@ jar {
   }
 // setting the manifest makes the JAR runnable.
   manifest {
-    attributes 'Main-Class': project.mainClassName
+    attributes 'Main-Class': mainClassName
   }
 // this last step may help on some OSes that need extra instruction to make runnable JARs.
   doLast {
