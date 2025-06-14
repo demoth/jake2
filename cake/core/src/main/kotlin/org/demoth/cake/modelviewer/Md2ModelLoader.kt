@@ -1,16 +1,19 @@
 package org.demoth.cake.modelviewer
 
-import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
-import com.badlogic.gdx.graphics.GL30
-import com.badlogic.gdx.graphics.Mesh
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.VertexAttribute
-import com.badlogic.gdx.graphics.VertexAttributes
+import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
+import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
+import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute.Diffuse
+import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
@@ -88,32 +91,28 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
         val diffuse = Texture(PCXTextureData(fromPCX(PCX(modelSkin))))
 
         val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
+
+        val instancedAttribute = VertexAttribute(Generic, 1, "a_vat_index", 0)
+        val mesh = Mesh(
+            false,
+            vertexData.vertexAttributes.size,
+            vertexData.indices.size,
+            VertexAttributes(
+                instancedAttribute,
+                TexCoords(1) // in future, normals can also be added here
+            )
+        )
+        mesh.setVertices(vertexData.vertexAttributes)
+        mesh.setIndices(vertexData.indices)
         return Md2ShaderModel(
-            mesh = createMesh(vertexData),
+            mesh = mesh,
             vat = createVat(vertexData) to 0,
             diffuse = diffuse to 1,
         )
     }
 
-    /**
-     * The Mesh holds the vertex attributes, which in the VAT scenario are only texture coordinates.
-     * The indices are implicitly provided and normals are just skipped in this example.
-     *
-     */
-    private fun createMesh(vertexData: Md2VertexData): Mesh {
-        val mesh = Mesh(
-            true,
-            vertexData.vertexAttributes.size,
-            vertexData.indices.size,
-            VertexAttributes(
-                VertexAttribute(VertexAttributes.Usage.Generic, 1, "a_vat_index"),
-                VertexAttribute.TexCoords(1) // in future, normals can also be added here
-            )
-        )
-        mesh.setVertices(vertexData.vertexAttributes)
-        mesh.setIndices(vertexData.indices)
-        return mesh
-    }
+
+
 
     private fun createVat(vertexData: Md2VertexData): Texture {
         return Texture(
@@ -127,6 +126,44 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
             )
         )
     }
+}
+
+// animation related local (per renderable) uniforms
+val u_vertexAnimationTexture = BaseShader.Uniform("u_vertexAnimationTexture")
+val u_textureHeight = BaseShader.Uniform("u_textureHeight")
+val u_textureWidth = BaseShader.Uniform("u_textureWidth")
+val u_frame1 = BaseShader.Uniform("u_frame1")
+val u_frame2 = BaseShader.Uniform("u_frame2")
+val u_interpolation = BaseShader.Uniform("u_interpolation")
+
+class AnimationTextureAttribute(val texture: Texture): TextureAttribute(AnimationTexture, texture) {
+    companion object {
+        @property:JvmStatic val AnimationTextureAlias: String = "animationTexture"
+        @property:JvmStatic val AnimationTexture: Long = register(AnimationTextureAlias)
+        @JvmStatic fun init() {
+            // this is weird?
+            Mask = Mask or AnimationTexture
+        }
+    }
+}
+
+
+
+fun createModel(mesh: Mesh, diffuseTexture: Texture, animationTexture: Texture): Model {
+    // need to call static init explicitly?
+    // without it, I get the error about an invalid attribute type from 'register'
+    AnimationTextureAttribute.init()
+
+    // create the material with diffuse and an "animation" attribute
+    val material = Material(
+        TextureAttribute(Diffuse, diffuseTexture),
+        AnimationTextureAttribute(animationTexture)
+    )
+
+    return ModelBuilder().apply {
+        begin()
+        part("part1", mesh, GL_TRIANGLES, material)
+    }.end()
 }
 
 private fun FloatArray.toFloatBuffer(): FloatBuffer {

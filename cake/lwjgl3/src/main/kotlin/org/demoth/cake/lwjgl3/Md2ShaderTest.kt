@@ -6,7 +6,16 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.g3d.Attributes
+import com.badlogic.gdx.graphics.g3d.ModelBatch
+import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.Renderable
+import com.badlogic.gdx.graphics.g3d.Shader
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
+import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
+import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
@@ -14,11 +23,12 @@ import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.Md2ShaderModel
+import org.demoth.cake.modelviewer.createModel
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
-    private lateinit var md2Shader: ShaderProgram
+    private lateinit var md2ShaderProgram: ShaderProgram
     private var animationTime = 0f
 
     private val animationDuration = 0.1f // Example: 2 seconds animation duration
@@ -47,14 +57,51 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         cameraInputController = FlyingCameraController(camera)
         Gdx.input.inputProcessor = cameraInputController
 
-        md2Shader = createShaderProgram()
+        md2ShaderProgram = createShaderProgram() // ok
+
+
+        val md2 = loadMd2Format()
+
+        val model = createModel(md2.mesh, md2.diffuse.first, md2.vat.first) // ok, but there are nuances
+        val modelInstance = ModelInstance(model) // ok
+
+        val shaderRenderable = Renderable()
+        val shader = DefaultShader(
+            modelInstance.getRenderable(shaderRenderable), // I don't understand
+            DefaultShader.Config(),
+            md2ShaderProgram,
+        )
+
+        val md2shaderProvider = object : ShaderProvider {
+            override fun getShader(renderable: Renderable): Shader? {
+                return if (renderable.userData == "md2shader") // is it ok to just tag object with user data?
+                     shader
+                else null // ? can it return null?
+            }
+
+            override fun dispose() {
+                TODO("Not yet implemented")
+            }
+        }
+
+        val modelBatch = ModelBatch(md2shaderProvider)
+
+        // inside render()
+        modelBatch.begin(camera)
+        modelBatch.render(modelInstance) // where do I stick md2shaderProvider ?
+        modelBatch.end()
+
+        md2ShaderModel = md2
+    }
+
+    private fun loadMd2Format(): Md2ShaderModel {
         val pathToFile = "/home/daniil/.steam/steam/steamapps/common/Quake 2/baseq2/models/monsters/infantry"
         val locator = ModelViewerResourceLocator(pathToFile)
         val md2 = Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)?.apply {
             frame1 = 0
             frame2 = if (frames > 1) 1 else 0
-        }
-        md2ShaderModel = md2!!
+        }!!
+        return md2
     }
 
     private fun createShaderProgram(): ShaderProgram {
@@ -65,9 +112,10 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
         val shaderProgram = ShaderProgram(vertexShader, fragmentShader)
         if (!shaderProgram.isCompiled) {
-            Gdx.app.error("Shader Error", md2Shader.log)
+            Gdx.app.error("Shader Error", shaderProgram.log)
             Gdx.app.exit()
         }
+
         return shaderProgram
     }
 
@@ -91,7 +139,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
         val interpolation = animationTime / animationDuration
         md2ShaderModel.interpolation = interpolation
-        md2ShaderModel.render(md2Shader, camera.combined)
+        md2ShaderModel.render(md2ShaderProgram, camera.combined)
 
         if (playing) {
             animationTime += Gdx.graphics.deltaTime
@@ -106,17 +154,17 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         animationTime = 0f
         // advance animation frames: frame1++ frame2++, keep in mind number of frames
         md2ShaderModel.frame1 = (md2ShaderModel.frame1 + delta) % md2ShaderModel.frames
+        md2ShaderModel.frame2 = (md2ShaderModel.frame2 + delta) % md2ShaderModel.frames
         if (md2ShaderModel.frame1 < 0) {
             md2ShaderModel.frame1 += md2ShaderModel.frames
         }
         if (md2ShaderModel.frame2 < 0) {
             md2ShaderModel.frame2 += md2ShaderModel.frames
         }
-        md2ShaderModel.frame2 = (md2ShaderModel.frame2 + delta) % md2ShaderModel.frames
     }
 
     override fun dispose() {
-        md2Shader.dispose()
+        md2ShaderProgram.dispose()
         md2ShaderModel.dispose()
     }
 }
@@ -124,11 +172,12 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 private const val width = 1024
 private const val height = 768
 
+
 fun main() {
     val config = Lwjgl3ApplicationConfiguration()
-    config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
-//    config.setResizable(true)
-//    config.setWindowedMode(width, height)
+//    config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
+    config.setResizable(true)
+    config.setWindowedMode(width, height)
 
     // fixme: didn't really quite get why it has to be explicitly loaded,
     // otherwise PerspectiveCamera(..) raises UnsatisfiedLinkError

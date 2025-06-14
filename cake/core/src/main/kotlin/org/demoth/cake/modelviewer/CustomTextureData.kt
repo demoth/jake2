@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Mesh
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureData
+import com.badlogic.gdx.graphics.g3d.Material
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
@@ -85,9 +87,9 @@ class CustomTextureData(
 
 class Md2ShaderModel(
     // model related, managed resources, todo: extract into a model class
-    private val mesh: Mesh,
-    private val vat: Pair<Texture, Int>,
-    private val diffuse: Pair<Texture, Int>,
+    val mesh: Mesh,
+    val vat: Pair<Texture, Int>,
+    val diffuse: Pair<Texture, Int>,
     // instance related, mutable state
     var frame1: Int = 0,
     var frame2: Int = 1,
