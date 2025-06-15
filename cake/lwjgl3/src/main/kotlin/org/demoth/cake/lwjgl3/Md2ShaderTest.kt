@@ -6,21 +6,19 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.Shader
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
-import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
-import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider
+import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
 import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.clientcommon.FlyingCameraController
+import org.demoth.cake.modelviewer.Md2CustomData
 import org.demoth.cake.modelviewer.Md2ModelLoader
 import org.demoth.cake.modelviewer.Md2Shader
 import org.demoth.cake.modelviewer.Md2ShaderModel
@@ -39,6 +37,9 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
     private lateinit var md2ShaderModel: Md2ShaderModel
     private var playing = false
+    private lateinit var modelBatch: ModelBatch
+    private lateinit var modelInstance: ModelInstance
+
 
     override fun create() {
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST)
@@ -64,34 +65,30 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         val md2 = loadMd2Format()
 
         val model = createModel(md2.mesh, md2.diffuse.first, md2.vat.first) // ok, but there are nuances
-        val modelInstance = ModelInstance(model) // ok
+        modelInstance = ModelInstance(model) // ok
+        modelInstance.userData = Md2CustomData(0, 0, 0f) // we can save the reference to update it later
 
         val shaderRenderable = Renderable()
-        val shader = Md2Shader(
+        val md2Shader = Md2Shader(
             modelInstance.getRenderable(shaderRenderable), // I don't understand
             DefaultShader.Config(),
             md2ShaderProgram,
         )
-
-        val md2shaderProvider = object : ShaderProvider {
+        md2Shader.init()
+        val md2shaderProvider = object : DefaultShaderProvider() {
             override fun getShader(renderable: Renderable): Shader? {
-                return if (renderable.userData == "md2shader") // is it ok to just tag object with user data?
-                    shader
-                else null // ? can it return null?
+                return if (renderable.userData is Md2CustomData) {
+                    md2Shader
+                } else super.getShader(renderable)
             }
 
             override fun dispose() {
-                TODO("Not yet implemented")
+                md2Shader.dispose()
+                md2ShaderProgram.dispose()
             }
         }
 
-        val modelBatch = ModelBatch(md2shaderProvider)
-
-        // inside render()
-        modelBatch.begin(camera)
-        modelBatch.render(modelInstance) // where do I stick md2shaderProvider ?
-        modelBatch.end()
-
+        modelBatch = ModelBatch(md2shaderProvider)
         md2ShaderModel = md2
     }
 
@@ -137,18 +134,25 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
+        // inside render()
+        modelBatch.begin(camera)
+        modelBatch.render(modelInstance) // where do I stick md2shaderProvider ?
+        modelBatch.end()
 
-        val interpolation = animationTime / animationDuration
-        md2ShaderModel.interpolation = interpolation
-        md2ShaderModel.render(md2ShaderProgram, camera.combined)
 
-        if (playing) {
-            animationTime += Gdx.graphics.deltaTime
+        /*
+                val interpolation = animationTime / animationDuration
+                md2ShaderModel.interpolation = interpolation
+                md2ShaderModel.render(md2ShaderProgram, camera.combined)
 
-            if (animationTime > animationDuration) {
-                changeFrame(1)
-            }
-        }
+                if (playing) {
+                    animationTime += Gdx.graphics.deltaTime
+
+                    if (animationTime > animationDuration) {
+                        changeFrame(1)
+                    }
+                }
+        */
     }
 
     private fun changeFrame(delta: Int) {
