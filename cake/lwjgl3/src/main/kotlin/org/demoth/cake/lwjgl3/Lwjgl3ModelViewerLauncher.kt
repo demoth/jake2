@@ -18,7 +18,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Model Viewer 1.3")
+    setTitle("Cake Model Viewer 1.4")
     useVsync(true)
     //// Limits FPS to the refresh rate of the currently active monitor.
     setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
@@ -29,4 +29,6 @@ private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
     //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
     setWindowedMode(1280, 720)
     setWindowIcon("icons/logo.png", "icons/logo-32.png")
+//     setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
+
 }
