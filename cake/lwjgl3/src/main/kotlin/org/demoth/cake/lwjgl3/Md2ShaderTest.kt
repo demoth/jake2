@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.SharedLibraryLoader
 import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.clientcommon.FlyingCameraController
 import org.demoth.cake.modelviewer.Md2ModelLoader
+import org.demoth.cake.modelviewer.Md2Shader
 import org.demoth.cake.modelviewer.Md2ShaderModel
 import org.demoth.cake.modelviewer.createModel
 
@@ -66,7 +67,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         val modelInstance = ModelInstance(model) // ok
 
         val shaderRenderable = Renderable()
-        val shader = DefaultShader(
+        val shader = Md2Shader(
             modelInstance.getRenderable(shaderRenderable), // I don't understand
             DefaultShader.Config(),
             md2ShaderProgram,
@@ -75,7 +76,7 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         val md2shaderProvider = object : ShaderProvider {
             override fun getShader(renderable: Renderable): Shader? {
                 return if (renderable.userData == "md2shader") // is it ok to just tag object with user data?
-                     shader
+                    shader
                 else null // ? can it return null?
             }
 

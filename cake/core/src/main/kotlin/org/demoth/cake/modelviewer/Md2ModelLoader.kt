@@ -4,16 +4,11 @@ import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
-import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute.Diffuse
-import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
@@ -92,13 +87,12 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
 
         val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
 
-        val instancedAttribute = VertexAttribute(Generic, 1, "a_vat_index", 0)
         val mesh = Mesh(
             false,
             vertexData.vertexAttributes.size,
             vertexData.indices.size,
             VertexAttributes(
-                instancedAttribute,
+                VertexAttribute(Generic, 1, "a_vat_index"),
                 TexCoords(1) // in future, normals can also be added here
             )
         )
@@ -110,9 +104,6 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
             diffuse = diffuse to 1,
         )
     }
-
-
-
 
     private fun createVat(vertexData: Md2VertexData): Texture {
         return Texture(
@@ -128,24 +119,7 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
     }
 }
 
-// animation related local (per renderable) uniforms
-val u_vertexAnimationTexture = BaseShader.Uniform("u_vertexAnimationTexture")
-val u_textureHeight = BaseShader.Uniform("u_textureHeight")
-val u_textureWidth = BaseShader.Uniform("u_textureWidth")
-val u_frame1 = BaseShader.Uniform("u_frame1")
-val u_frame2 = BaseShader.Uniform("u_frame2")
-val u_interpolation = BaseShader.Uniform("u_interpolation")
 
-class AnimationTextureAttribute(val texture: Texture): TextureAttribute(AnimationTexture, texture) {
-    companion object {
-        @property:JvmStatic val AnimationTextureAlias: String = "animationTexture"
-        @property:JvmStatic val AnimationTexture: Long = register(AnimationTextureAlias)
-        @JvmStatic fun init() {
-            // this is weird?
-            Mask = Mask or AnimationTexture
-        }
-    }
-}
 
 
 
