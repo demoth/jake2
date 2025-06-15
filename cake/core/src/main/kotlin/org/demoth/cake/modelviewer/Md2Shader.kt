@@ -32,6 +32,11 @@ class AnimationTextureAttribute(val texture: Texture): TextureAttribute(Animatio
     }
 }
 
+private const val md2ShaderPrefix = """
+    #version 130
+    #define diffuseTextureFlag
+"""
+
 /**
  * Shader for md2 vertex animations using a Vertex Animation Texture (or VAT) approach.
  *
@@ -41,8 +46,7 @@ class AnimationTextureAttribute(val texture: Texture): TextureAttribute(Animatio
 class Md2Shader(
     renderable: Renderable,
     config: Config,
-    shaderProgram: ShaderProgram,
-): DefaultShader(renderable, config, shaderProgram) {
+): DefaultShader(renderable, config, md2ShaderPrefix) {
     // uniform setters (local as they are different for each object)
     private val vertexAnimationTextureSetter = object : LocalSetter() {
         override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {

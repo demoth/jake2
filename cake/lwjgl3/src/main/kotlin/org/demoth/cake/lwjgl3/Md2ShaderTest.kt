@@ -5,24 +5,20 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
-import com.badlogic.gdx.graphics.g3d.Shader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
-import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.SharedLibraryLoader
 import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.clientcommon.FlyingCameraController
-import org.demoth.cake.modelviewer.Md2CustomData
-import org.demoth.cake.modelviewer.Md2ModelLoader
-import org.demoth.cake.modelviewer.Md2Shader
-import org.demoth.cake.modelviewer.Md2ShaderModel
-import org.demoth.cake.modelviewer.createModel
+import org.demoth.cake.modelviewer.*
 
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
@@ -67,47 +63,23 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
             md2.frames
         )
 
-        val shaderRenderable = Renderable()
+        val tempRenderable = Renderable()
         val md2Shader = Md2Shader(
-            modelInstance.getRenderable(shaderRenderable), // I don't understand
-            DefaultShader.Config(),
-            createShaderProgram(),
+            modelInstance.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
+            DefaultShader.Config(
+                Gdx.files.internal("shaders/vat.glsl").readString(),
+                null, // use default fragment shader
+            )
         )
         md2Shader.init()
-        val md2shaderProvider = object : DefaultShaderProvider() {
-            override fun getShader(renderable: Renderable): Shader? {
-                return if (renderable.userData is Md2CustomData) {
-                    md2Shader
-                } else super.getShader(renderable)
-            }
 
-            override fun dispose() {
-                md2Shader.dispose()
-            }
-        }
-
-        modelBatch = ModelBatch(md2shaderProvider)
+        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
     }
 
     private fun loadMd2Format(): Md2ShaderModel {
         val pathToFile = "/home/daniil/.steam/steam/steamapps/common/Quake 2/baseq2/models/monsters/infantry"
         val locator = ModelViewerResourceLocator(pathToFile)
         return Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)!!
-    }
-
-    private fun createShaderProgram(): ShaderProgram {
-        //ShaderProgram.pedantic = false // Disable strict checking to keep the example simple.
-
-        val vertexShader = Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
-        val fragmentShader = Gdx.files.internal("shaders/md2-fragment.glsl").readString()
-
-        val shaderProgram = ShaderProgram(vertexShader, fragmentShader)
-        if (!shaderProgram.isCompiled) {
-            Gdx.app.error("Shader Error", shaderProgram.log)
-            Gdx.app.exit()
-        }
-
-        return shaderProgram
     }
 
     override fun render() {
