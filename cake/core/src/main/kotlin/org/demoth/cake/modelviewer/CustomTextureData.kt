@@ -1,15 +1,10 @@
 package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Mesh
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureData
-import com.badlogic.gdx.graphics.g3d.Material
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import java.nio.Buffer
@@ -86,48 +81,16 @@ class CustomTextureData(
 }
 
 class Md2ShaderModel(
-    // model related, managed resources, todo: extract into a model class
     val mesh: Mesh,
-    val vat: Pair<Texture, Int>,
-    val diffuse: Pair<Texture, Int>,
-    // instance related, mutable state
-    var frame1: Int = 0,
-    var frame2: Int = 1,
-    var interpolation: Float = 0.0f,
-    val entityTransform: Matrix4 = Matrix4()
+    val vat: Texture,
+    val diffuse: Texture,
 ): Disposable {
 
-    val frames = vat.first.height
-
-    private val textureWidth = vat.first.width
-    private val textureHeight = vat.first.height
-
-    fun render(shader: ShaderProgram, cameraTransform: Matrix4) {
-        shader.bind()
-
-        shader.setUniformi("u_frame1", frame1)
-        shader.setUniformi("u_frame2", frame2)
-        shader.setUniformf("u_interpolation", interpolation)
-
-        shader.setUniformMatrix("u_projViewTrans", cameraTransform);
-        shader.setUniformMatrix("u_worldTrans", entityTransform)
-
-        shader.setUniformi("u_vertexAnimationTexture", vat.second)
-        shader.setUniformi("u_diffuseTexture", diffuse.second)
-
-        shader.setUniformi("u_textureHeight", textureHeight) // number of frames
-        shader.setUniformi("u_textureWidth", textureWidth) // number of vertices
-
-        vat.first.bind(vat.second)
-        diffuse.first.bind(diffuse.second)
-
-        mesh.render(shader, GL20.GL_TRIANGLES)
-    }
+    val frames = vat.height
 
     override fun dispose() {
         mesh.dispose()
-        vat.first.dispose()
-        diffuse.first.dispose()
+        vat.dispose()
+        diffuse.dispose()
     }
-
 }

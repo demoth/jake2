@@ -88,7 +88,7 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
         val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
 
         val mesh = Mesh(
-            false,
+            true,
             vertexData.vertexAttributes.size,
             vertexData.indices.size,
             VertexAttributes(
@@ -100,8 +100,8 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
         mesh.setIndices(vertexData.indices)
         return Md2ShaderModel(
             mesh = mesh,
-            vat = createVat(vertexData) to 0,
-            diffuse = diffuse to 1,
+            vat = createVat(vertexData),
+            diffuse = diffuse,
         )
     }
 

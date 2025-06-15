@@ -8,7 +8,12 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 
-data class Md2CustomData(var frame1: Int, var frame2: Int, var interpolation: Float)
+data class Md2CustomData(
+    var frame1: Int,
+    var frame2: Int,
+    var interpolation: Float,
+    val frames: Int
+)
 
 class AnimationTextureAttribute(val texture: Texture): TextureAttribute(AnimationTexture, texture) {
     companion object {

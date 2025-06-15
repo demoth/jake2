@@ -27,15 +27,12 @@ import org.demoth.cake.modelviewer.createModel
 
 class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
-    private lateinit var md2ShaderProgram: ShaderProgram
     private var animationTime = 0f
-
-    private val animationDuration = 0.1f // Example: 2 seconds animation duration
+    private val animationDuration = 0.2f // Example: 2 seconds animation duration
 
     private lateinit var camera: Camera
     private lateinit var cameraInputController : CameraInputController
 
-    private lateinit var md2ShaderModel: Md2ShaderModel
     private var playing = false
     private lateinit var modelBatch: ModelBatch
     private lateinit var modelInstance: ModelInstance
@@ -59,20 +56,22 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         cameraInputController = FlyingCameraController(camera)
         Gdx.input.inputProcessor = cameraInputController
 
-        md2ShaderProgram = createShaderProgram() // ok
-
-
         val md2 = loadMd2Format()
 
-        val model = createModel(md2.mesh, md2.diffuse.first, md2.vat.first) // ok, but there are nuances
+        val model = createModel(md2.mesh, md2.diffuse, md2.vat)
         modelInstance = ModelInstance(model) // ok
-        modelInstance.userData = Md2CustomData(0, 0, 0f) // we can save the reference to update it later
+        modelInstance.userData = Md2CustomData(
+            0,
+            if (md2.frames > 1) 1 else 0,
+            0f,
+            md2.frames
+        )
 
         val shaderRenderable = Renderable()
         val md2Shader = Md2Shader(
             modelInstance.getRenderable(shaderRenderable), // I don't understand
             DefaultShader.Config(),
-            md2ShaderProgram,
+            createShaderProgram(),
         )
         md2Shader.init()
         val md2shaderProvider = object : DefaultShaderProvider() {
@@ -84,22 +83,16 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
             override fun dispose() {
                 md2Shader.dispose()
-                md2ShaderProgram.dispose()
             }
         }
 
         modelBatch = ModelBatch(md2shaderProvider)
-        md2ShaderModel = md2
     }
 
     private fun loadMd2Format(): Md2ShaderModel {
         val pathToFile = "/home/daniil/.steam/steam/steamapps/common/Quake 2/baseq2/models/monsters/infantry"
         val locator = ModelViewerResourceLocator(pathToFile)
-        val md2 = Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)?.apply {
-            frame1 = 0
-            frame2 = if (frames > 1) 1 else 0
-        }!!
-        return md2
+        return Md2ModelLoader(locator).loadAnimatedModel("$pathToFile/tris.md2", null, 0)!!
     }
 
     private fun createShaderProgram(): ShaderProgram {
@@ -123,9 +116,9 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-            changeFrame(1)
+            changeFrame(1, modelInstance.getMd2CustomData())
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-            changeFrame(-1)
+            changeFrame(-1, modelInstance.getMd2CustomData())
         }
 
         camera.update()
@@ -136,43 +129,40 @@ class Md2ShaderTest : ApplicationAdapter(), Disposable {
 
         // inside render()
         modelBatch.begin(camera)
-        modelBatch.render(modelInstance) // where do I stick md2shaderProvider ?
+        modelBatch.render(modelInstance)
         modelBatch.end()
 
+        modelInstance.getMd2CustomData().interpolation = animationTime / animationDuration
 
-        /*
-                val interpolation = animationTime / animationDuration
-                md2ShaderModel.interpolation = interpolation
-                md2ShaderModel.render(md2ShaderProgram, camera.combined)
+        if (playing) {
+            animationTime += Gdx.graphics.deltaTime
 
-                if (playing) {
-                    animationTime += Gdx.graphics.deltaTime
-
-                    if (animationTime > animationDuration) {
-                        changeFrame(1)
-                    }
-                }
-        */
+            if (animationTime > animationDuration) {
+                changeFrame(1, modelInstance.getMd2CustomData())
+            }
+        }
     }
 
-    private fun changeFrame(delta: Int) {
+    private fun changeFrame(delta: Int, md2CustomData: Md2CustomData) {
         animationTime = 0f
         // advance animation frames: frame1++ frame2++, keep in mind number of frames
-        md2ShaderModel.frame1 = (md2ShaderModel.frame1 + delta) % md2ShaderModel.frames
-        md2ShaderModel.frame2 = (md2ShaderModel.frame2 + delta) % md2ShaderModel.frames
-        if (md2ShaderModel.frame1 < 0) {
-            md2ShaderModel.frame1 += md2ShaderModel.frames
+        md2CustomData.frame1 = (md2CustomData.frame1 + delta) % md2CustomData.frames
+        md2CustomData.frame2 = (md2CustomData.frame2 + delta) % md2CustomData.frames
+        if (md2CustomData.frame1 < 0) {
+            md2CustomData.frame1 += md2CustomData.frames
         }
-        if (md2ShaderModel.frame2 < 0) {
-            md2ShaderModel.frame2 += md2ShaderModel.frames
+        if (md2CustomData.frame2 < 0) {
+            md2CustomData.frame2 += md2CustomData.frames
         }
+        md2CustomData.interpolation = 0f
     }
 
     override fun dispose() {
-        md2ShaderProgram.dispose()
-        md2ShaderModel.dispose()
+        modelInstance.model.dispose()
     }
 }
+
+fun ModelInstance.getMd2CustomData(): Md2CustomData = userData as Md2CustomData
 
 private const val width = 1024
 private const val height = 768

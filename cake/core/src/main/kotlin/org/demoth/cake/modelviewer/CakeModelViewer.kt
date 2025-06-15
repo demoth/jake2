@@ -138,7 +138,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
             }
 
-            md2ShaderModel?.render(md2Shader, camera.combined)
+            //fixme: md2ShaderModel?.render(md2Shader, camera.combined)
 
             batch.use {
                 // draw frame time in the bottom left corner
