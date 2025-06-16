@@ -11,8 +11,10 @@ import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -145,7 +147,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     )
 
     // mappings for input command: which are sent on every client update frame
-    private val mouseSensitivity = 1f // todo cvar
     private var mouseWasMoved = false
 
     private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
@@ -200,7 +201,30 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         // create camera
         camera.update()
-        modelBatch = ModelBatch()
+
+        // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
+        val md2 = Md2ModelLoader(locator).loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
+        val model = createModel(md2.mesh, md2.material)
+        val md2Instance = ModelInstance(model)
+
+        md2Instance.userData = Md2CustomData(
+            0,
+            if (md2.frames > 1) 1 else 0,
+            0f,
+            md2.frames
+        )
+
+        val tempRenderable = Renderable()
+        val md2Shader = Md2Shader(
+            md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
+            DefaultShader.Config(
+                Gdx.files.internal("shaders/vat.glsl").readString(),
+                null, // use default fragment shader
+            )
+        )
+        md2Shader.init()
+
+        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
 
         ClientCommands.entries.forEach { commandsState[it] = false }
     }
@@ -256,7 +280,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
             it.modelInstance.transform.setTranslation(x, y, z)
 
-            modelBatch.render(it.modelInstance, environment);
+            modelBatch.render(it.modelInstance, environment)
         }
         modelBatch.end()
 
@@ -344,18 +368,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    config.resource = Md2ModelLoader(locator).loadStaticMd2Model(it, skinIndex = 0, frameIndex = 0)
+                    val md2 = Md2ModelLoader(locator).loadMd2ModelData(it, skinIndex = 0)!!
+                    config.resource = createModel(md2.mesh, md2.material)
                 }
             }
         }
 
         // temporary: load one fixed player model
-        playerModel = Md2ModelLoader(locator).loadStaticMd2Model(
+        val playerModelData = Md2ModelLoader(locator).loadMd2ModelData(
             modelName = playerModelPath,
             playerSkin = playerSkinPath,
             skinIndex = 0,
-            frameIndex = 0
         )!!
+        playerModel = createModel(playerModelData.mesh, playerModelData.material)
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {

@@ -68,8 +68,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "md2" -> {
 
-                val md2 = Md2ModelLoader(locator).loadAnimatedModel(file.absolutePath, null, 0)!!
-                val model = createModel(md2.mesh, md2.diffuse, md2.vat)
+                val md2 = Md2ModelLoader(locator).loadMd2ModelData(file.absolutePath, null, 0)!!
+                val model = createModel(md2.mesh, md2.material)
                 md2Instance = ModelInstance(model) // ok
                 md2Instance!!.userData = Md2CustomData(
                     0,
@@ -96,10 +96,15 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> {
                 modelBatch = ModelBatch()
+                // todo: fix bsp back!
 //                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
 //                models.addAll(BspLoader(gameDir).loadBspModels(file))
                 instances.add(createOriginArrows(GRID_SIZE))
                 instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+            }
+            else -> {
+                println("Unsupported file format ${file.extension}")
+                Gdx.app.exit()
             }
         }
 
@@ -144,7 +149,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         }
 
         frameTime = measureTimeMillis {
-            Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
+            Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
             camera.update()
 

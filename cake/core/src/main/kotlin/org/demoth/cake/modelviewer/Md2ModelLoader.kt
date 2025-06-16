@@ -1,5 +1,6 @@
 package org.demoth.cake.modelviewer
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
@@ -9,66 +10,24 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute.Diffuse
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.buildVertexData
 import org.demoth.cake.ResourceLocator
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 class Md2ModelLoader(private val locator: ResourceLocator) {
 
-    fun loadStaticMd2Model(
-        modelName: String,
-        playerSkin: String? = null,
-        skinIndex: Int = 0,
-        frameIndex: Int = 0,
-    ): Model? {
-        val findModel = locator.findModel(modelName)
-            ?: return null
-        val md2Model: Md2Model = readMd2Model(findModel)
-
-        val skins = md2Model.skinNames.map {
-            locator.findSkin(it)
-        }
-
-        val modelBuilder = ModelBuilder()
-        modelBuilder.begin()
-        val modelSkin: ByteArray = if (skins.isNotEmpty()) {
-            skins[skinIndex]
-        } else {
-            if (playerSkin != null) {
-                locator.findSkin(playerSkin)
-            } else throw IllegalStateException("No skin found in the model, no player skin provided")
-        }
-        val meshBuilder = modelBuilder.part(
-            "part1",
-            GL_TRIANGLES,
-            VertexAttributes(
-                VertexAttribute.Position(), // 3 floats per vertex
-                VertexAttribute.TexCoords(0) // 2 floats per vertex
-            ),
-            Material(
-                TextureAttribute(
-                    TextureAttribute.Diffuse,
-                    Texture(PCXTextureData(fromPCX(PCX(modelSkin)))),
-                )
-            )
-        )
-        val frameVertices = md2Model.getFrameVertices(frameIndex)
-        val size = frameVertices.size / 5 // 5 floats per vertex : fixme: not great
-        meshBuilder.addMesh(frameVertices, (0..<size).map { it.toShort() }.toShortArray())
-        val model = modelBuilder.end()
-        return model
-    }
-
-    fun loadAnimatedModel(
+    fun loadMd2ModelData(
         modelName: String,
         playerSkin: String? = null,
         skinIndex: Int,
-    ): Md2ShaderModel? {
+    ): Md2ModelData? {
         val findModel = locator.findModel(modelName) ?: return null
         val md2Model: Md2Model = readMd2Model(findModel)
 
@@ -98,10 +57,22 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
-        return Md2ShaderModel(
+        return Md2ModelData(
             mesh = mesh,
-            vat = createVat(vertexData),
-            diffuse = diffuse,
+            material = createMd2Material(diffuse, createVat(vertexData)),
+            frames = md2Model.frames.size // :thinking: used only in the model viewer, otherwise we could have return a `Model` here
+        )
+    }
+
+    private fun createMd2Material(diffuse: Texture, vat: Texture): Material {
+        // need to call static init explicitly?
+        // without it, I get the error about an invalid attribute type from 'register'
+        AnimationTextureAttribute.init()
+
+        // create the material with diffuse and an "animation" attribute
+        return Material(
+            TextureAttribute(Diffuse, diffuse),
+            AnimationTextureAttribute(vat)
         )
     }
 
@@ -119,21 +90,80 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
     }
 }
 
+class Md2ModelData(val mesh: Mesh, val material: Material, val frames: Int)
+
+// Helper class to create TextureData from a vertex position data buffer
+private class CustomTextureData(
+    private val width: Int,
+    private val height: Int,
+    private val glInternalFormat: Int,
+    private val glFormat: Int,
+    private val glType: Int,
+    private val buffer: Buffer?
+) : TextureData {
+    private var isPrepared = false
+
+    override fun getType(): TextureData.TextureDataType {
+        // means it doesn't rely on the pixmap format
+        return TextureData.TextureDataType.Custom
+    }
+
+    override fun isPrepared(): Boolean {
+        return isPrepared
+    }
+
+    override fun prepare() {
+        if (isPrepared) throw GdxRuntimeException("Already prepared!")
+        isPrepared = true
+    }
+
+    override fun consumePixmap(): Pixmap? {
+        throw GdxRuntimeException("This TextureData does not return a Pixmap")
+    }
+
+    override fun disposePixmap(): Boolean {
+        return false
+    }
 
 
+    override fun consumeCustomData(target: Int) {
+        if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
 
+        Gdx.gl.glTexImage2D(
+            /* target = */ target,
+            /* level = */ 0,
+            /* internalformat = */ glInternalFormat,
+            /* width = */ width,
+            /* height = */ height,
+            /* border = */ 0,
+            /* format = */ glFormat,
+            /* type = */ glType,
+            /* pixels = */ buffer
+        )
+    }
 
-fun createModel(mesh: Mesh, diffuseTexture: Texture, animationTexture: Texture): Model {
-    // need to call static init explicitly?
-    // without it, I get the error about an invalid attribute type from 'register'
-    AnimationTextureAttribute.init()
+    override fun getWidth(): Int {
+        return width
+    }
 
-    // create the material with diffuse and an "animation" attribute
-    val material = Material(
-        TextureAttribute(Diffuse, diffuseTexture),
-        AnimationTextureAttribute(animationTexture)
-    )
+    override fun getHeight(): Int {
+        return height
+    }
 
+    override fun getFormat(): Pixmap.Format? {
+        throw GdxRuntimeException("This TextureData does not use a Pixmap")
+    }
+
+    override fun useMipMaps(): Boolean {
+        return false
+    }
+
+    override fun isManaged(): Boolean {
+        return true // LibGDX will manage this texture
+    }
+}
+
+fun createModel(mesh: Mesh, material: Material): Model {
     return ModelBuilder().apply {
         begin()
         part("part1", mesh, GL_TRIANGLES, material)
