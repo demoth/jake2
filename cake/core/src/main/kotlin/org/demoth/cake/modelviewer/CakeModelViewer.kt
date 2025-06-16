@@ -10,9 +10,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
@@ -34,16 +34,16 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
-    private val models: MutableList<ModelInstance> = mutableListOf()
+    private val instances: MutableList<ModelInstance> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var font: BitmapFont
-    private var frameTime = 0f
+    private var frameTime = 0f // to have an idea of the fps
 
-
-    private lateinit var md2Shader: ShaderProgram
-    private var md2ShaderModel: Md2ShaderModel? = null
-    private var md2AnimationTimer = 0.1f
-
+    // md2 related stuff
+    private var md2Instance: ModelInstance? = null // to control the model animation
+    private var md2AnimationFrameTime = 0.1f
+    private var md2AnimationTime = 0.0f
+    private var playingMd2Animation = false
 
     override fun create() {
 
@@ -68,35 +68,48 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "md2" -> {
 
-                // Create the shader program
-                val vertexShader =
-                    Gdx.files.internal("shaders/vat.glsl").readString() // Assuming vat.vert contains the shader code above
-                val fragmentShader = "void main() { gl_FragColor = vec4(1.0); }" // Simple dummy fragment shader
-                md2Shader = ShaderProgram(vertexShader, fragmentShader)
-                if (!md2Shader.isCompiled) {
-                    Gdx.app.error("Shader Error", md2Shader.getLog())
-                    Gdx.app.exit()
-                }
-
-                md2ShaderModel = Md2ModelLoader(locator).loadAnimatedModel(
-                    modelName = file.path, // will be passed to the ResourceLocator
-                    playerSkin = null,
-                    skinIndex = 0
+                val md2 = Md2ModelLoader(locator).loadMd2ModelData(file.absolutePath, null, 0)!!
+                val model = createModel(md2.mesh, md2.material)
+                md2Instance = ModelInstance(model) // ok
+                md2Instance!!.userData = Md2CustomData(
+                    0,
+                    if (md2.frames > 1) 1 else 0,
+                    0f,
+                    md2.frames
                 )
-                models.add(createOriginArrows(GRID_SIZE))
-                models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+
+                val tempRenderable = Renderable()
+                val md2Shader = Md2Shader(
+                    md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
+                    DefaultShader.Config(
+                        Gdx.files.internal("shaders/vat.glsl").readString(),
+                        null, // use default fragment shader
+                    )
+                )
+                md2Shader.init()
+
+                modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
+
+                instances.add(md2Instance!!)
+                instances.add(createOriginArrows(GRID_SIZE))
+                instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
+                modelBatch = ModelBatch()
+                // todo: fix bsp back!
 //                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
 //                models.addAll(BspLoader(gameDir).loadBspModels(file))
-                models.add(createOriginArrows(GRID_SIZE))
-                models.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                instances.add(createOriginArrows(GRID_SIZE))
+                instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+            }
+            else -> {
+                println("Unsupported file format ${file.extension}")
+                Gdx.app.exit()
             }
         }
 
         batch = SpriteBatch()
 
-        modelBatch = ModelBatch()
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
@@ -113,32 +126,42 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun render() {
-        // advance the model animation (if any) each 0.1 seconds
-        md2AnimationTimer -= Gdx.graphics.deltaTime
-        if (md2AnimationTimer < 0f) {
-            md2AnimationTimer = 0.1f
-            //model?.nextFrame()
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            playingMd2Animation = !playingMd2Animation
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            Gdx.app.exit()
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            md2AnimationTime = 0f
+            changeFrame(1, md2Instance!!.getMd2CustomData())
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            md2AnimationTime = 0f
+            changeFrame(-1, md2Instance!!.getMd2CustomData())
+        }
+
+        if (playingMd2Animation) {
+            md2AnimationTime += Gdx.graphics.deltaTime
+            if (md2AnimationTime >  md2AnimationFrameTime) {
+                md2AnimationTime = 0f
+                changeFrame(1, md2Instance!!.getMd2CustomData())
+            }
+            md2Instance!!.getMd2CustomData().interpolation = md2AnimationTime / md2AnimationFrameTime
+
         }
 
         frameTime = measureTimeMillis {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-                Gdx.app.exit()
-            }
-            Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
+            Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-            camera.update();
+            camera.update()
 
 
-            if (models.isNotEmpty()) {
+            if (instances.isNotEmpty()) {
                 modelBatch.begin(camera)
-                models.forEach {
+                instances.forEach {
                     modelBatch.render(it)
                 }
                 modelBatch.end()
 
             }
-
-            md2ShaderModel?.render(md2Shader, camera.combined)
 
             batch.use {
                 // draw frame time in the bottom left corner
@@ -160,10 +183,25 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     override fun dispose() {
         batch.dispose()
         image?.dispose()
-        models.forEach { it.model.dispose() }
+        instances.forEach { it.model.dispose() }
         modelBatch.dispose()
     }
 }
+
+private fun changeFrame(delta: Int, md2CustomData: Md2CustomData) {
+    // advance animation frames: frame1++ frame2++, keep in mind number of frames
+    md2CustomData.frame1 = (md2CustomData.frame1 + delta) % md2CustomData.frames
+    md2CustomData.frame2 = (md2CustomData.frame2 + delta) % md2CustomData.frames
+    if (md2CustomData.frame1 < 0) {
+        md2CustomData.frame1 += md2CustomData.frames
+    }
+    if (md2CustomData.frame2 < 0) {
+        md2CustomData.frame2 += md2CustomData.frames
+    }
+    md2CustomData.interpolation = 0f
+}
+
+fun ModelInstance.getMd2CustomData(): Md2CustomData = userData as Md2CustomData
 
 fun createGrid(size: Float, divisions: Int): ModelInstance {
     val modelBuilder = ModelBuilder()

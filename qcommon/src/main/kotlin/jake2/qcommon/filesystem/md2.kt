@@ -52,7 +52,7 @@ class Md2Model(buffer: ByteBuffer) {
 
     fun getFrameVertices(frame: Int): FloatArray {
         return glCommands.flatMap {
-            it.toFloats(frames[frame].points)
+            it.toVertexAttributes(frames[frame].points)
         }.toFloatArray()
     }
 
@@ -100,7 +100,7 @@ class Md2Model(buffer: ByteBuffer) {
         buffer.position(firstFrameOffset)
         repeat(framesCount) {
             // parse frame from the buffer
-            frames.add(Md2Frame(buffer, verticesCount))
+            frames.add(Md2Frame.fromBuffer(buffer, verticesCount))
         }
 
         // GL COMMANDS
@@ -153,6 +153,57 @@ class Md2Model(buffer: ByteBuffer) {
     }
 }
 
+fun buildVertexData(
+    glCmds: List<Md2GlCmd>,
+    frames: List<Md2Frame>
+): Md2VertexData {
+    // First, we need to reindex the vertices.
+    // In md2 format the vertices are indexed without the texture coordinates (which are part of gl commands).
+    // GL commands are shared between frames, therefore the uv don't change between frames.
+    // To make this index, we need to iterate over the gl commands by vertex index, and cache the vertex coordinates.
+    // If however, the same vertex has a different text coord, we need to make a new vertex, append it to the index,
+
+    // map from (oldIndex, s,t ) to new index
+    val attributes = glCmds.flatMap { glCmd ->
+        glCmd.unpack().flatMap { vertex ->
+            listOf(vertex.index.toFloat(), vertex.s, vertex.t)
+        }
+    }
+
+    // flatten vertex positions in all frames
+    val vertexPositions = mutableListOf<Float>()
+    frames.forEach { frame ->
+        frame.points.forEach { point ->
+            vertexPositions.add(point.position.x)
+            vertexPositions.add(point.position.y)
+            vertexPositions.add(point.position.z)
+            // normal is unused so far
+        }
+    }
+
+    return Md2VertexData(
+        indices = attributes.indices.map { it.toShort() }.toShortArray(),
+        vertexAttributes = attributes.toFloatArray(),
+        vertexPositions = vertexPositions.toFloatArray(),
+        frames = frames.size,
+        vertices = frames.first().points.size, // assuming all frames have the same number of vertices
+    )
+
+}
+
+@Suppress("ArrayInDataClass")
+data class Md2VertexData(
+    // indices to draw GL_TRIANGLES
+    val indices: ShortArray,
+    // indexed attributes (at the moment - only text coords)
+    val vertexAttributes: FloatArray,
+    // vertex positions in a 2d array, should correspond to the indices, used to create VAT (Vertex Animation Texture)
+    // size is numVertices(width) * numFrames(height) * 3(rgb)
+    val vertexPositions: FloatArray,
+    val frames: Int,
+    val vertices: Int,
+)
+
 enum class Md2GlCmdType {
     TRIANGLE_STRIP,
     TRIANGLE_FAN,
@@ -162,9 +213,9 @@ data class Md2VertexInfo(val index: Int, val s: Float, val t: Float) {
     /**
      * create a vertex buffer part for this particular vertex (x y z s t)
      */
-    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
+    fun toFloats(points: List<Md2Point>, returnTexCoords: Boolean): List<Float> {
         val p = points[index].position // todo: check bounds
-        return if (usePosition) listOf(p.x, p.y, p.z, s, t) else listOf(s, t)
+        return if(returnTexCoords) listOf(p.x, p.y, p.z, s, t) else listOf(p.x, p.y, p.z)
     }
 }
 
@@ -172,14 +223,11 @@ data class Md2GlCmd(
     val type: Md2GlCmdType,
     val vertices: List<Md2VertexInfo>,
 ) {
+
     /**
-     * Convert indexed vertices into actual vertex buffer data.
-     *
-     * Also convert triangle strips and fans into sets of independent triangles.
-     * It may waste a bit of VRAM, but makes it much easier to draw,
-     * using a single drawElements(GL_TRIANGLES, ...) call.
+     * Convert triangle strip and triangle fan into a list of independent triangles
      */
-    fun toFloats(points: List<Md2Point>, usePosition: Boolean = true): List<Float> {
+    fun unpack(): List<Md2VertexInfo> {
         val result = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
@@ -189,9 +237,9 @@ data class Md2GlCmd(
                 vertices.windowed(3).flatMap { strip ->
                     clockwise = !clockwise
                     if (clockwise) {
-                        strip[0].toFloats(points) + strip[1].toFloats(points) + strip[2].toFloats(points)
+                        listOf(strip[0], strip[1], strip[2])
                     } else {
-                        strip[2].toFloats(points) + strip[1].toFloats(points) + strip[0].toFloats(points)
+                        listOf(strip[2], strip[1], strip[0])
                     }
                 }
             }
@@ -199,7 +247,43 @@ data class Md2GlCmd(
             Md2GlCmdType.TRIANGLE_FAN -> {
                 // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
                 vertices.drop(1).windowed(2).flatMap { strip ->
-                    strip[1].toFloats(points) + strip[0].toFloats(points) + vertices.first().toFloats(points)
+                    listOf(strip[1], strip[0], vertices.first())
+                }
+
+            }
+        }
+        return result
+    }
+
+    /**
+     * Convert indexed vertices into actual vertex buffer data.
+     *
+     * Also convert triangle strips and fans into sets of independent triangles.
+     * It may waste a bit of VRAM, but makes it much easier to draw,
+     * using a single drawElements(GL_TRIANGLES, ...) call.
+     *
+     */
+    fun toVertexAttributes(framePositions: List<Md2Point>, returnTexCoords: Boolean = true): List<Float> {
+        val result = when (type) {
+            Md2GlCmdType.TRIANGLE_STRIP -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
+                // when converting a triangle strip into a set of separate triangles,
+                // need to alternate the winding direction
+                var clockwise = true
+                vertices.windowed(3).flatMap { strip ->
+                    clockwise = !clockwise
+                    if (clockwise) {
+                        strip[0].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[2].toFloats(framePositions, returnTexCoords)
+                    } else {
+                        strip[2].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords)
+                    }
+                }
+            }
+
+            Md2GlCmdType.TRIANGLE_FAN -> {
+                // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
+                vertices.drop(1).windowed(2).flatMap { strip ->
+                    strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords) + vertices.first().toFloats(framePositions, returnTexCoords)
                 }
             }
         }
@@ -217,45 +301,44 @@ data class Md2GlCmd(
  *   - 16 bytes: name
  *   - number of vertices:
  *      - 4 bytes: packed normal index + x, y, z position
+ *      [name] - frame name from grabbing (size 16)
  */
-class Md2Frame(buffer: ByteBuffer, vertexCount: Int) {
-    val points: List<Md2Point>
-    val name: String // frame name from grabbing (size 16)
-
-    init {
-        val scale = Vector3f(
-            buffer.getFloat(),
-            buffer.getFloat(),
-            buffer.getFloat()
-        )
-        val translate = Vector3f(
-            buffer.getFloat(),
-            buffer.getFloat(),
-            buffer.getFloat()
-        )
-        val nameBuf = ByteArray(16)
-        buffer.get(nameBuf)
-        name = String(nameBuf).trim { it < ' '}
-
-        points = ArrayList(vertexCount)
-        repeat(vertexCount) {
-            // vertices are all 8 bit, so no swapping needed
-            // 4 bytes:
-            // highest - normal index
-            // x y z
-            val vertexData = buffer.getInt()
-            // unpack vertex data
-            points.add(
-                Md2Point(
-                    Vector3f(
-                        scale.x * (vertexData ushr 0 and 0xFF),
-                        scale.y * (vertexData ushr 8 and 0xFF),
-                        scale.z * (vertexData ushr 16 and 0xFF)
-                    ) + translate,
-                    vertexData ushr 24 and 0xFF
-                )
+class Md2Frame(val name: String,  val points: List<Md2Point>) {
+    companion object {
+        fun fromBuffer(buffer: ByteBuffer, vertexCount: Int): Md2Frame {
+            val scale = Vector3f(
+                buffer.getFloat(),
+                buffer.getFloat(),
+                buffer.getFloat()
             )
-
+            val translate = Vector3f(
+                buffer.getFloat(),
+                buffer.getFloat(),
+                buffer.getFloat()
+            )
+            val nameBuf = ByteArray(16)
+            buffer.get(nameBuf)
+            val name = String(nameBuf).trim { it < ' ' }
+            val points: ArrayList<Md2Point> = ArrayList(vertexCount)
+            repeat(vertexCount) {
+                // vertices are all 8 bit, so no swapping needed
+                // 4 bytes:
+                // highest - normal index
+                // x y z
+                val vertexData = buffer.getInt()
+                // unpack vertex data
+                points.add(
+                    Md2Point(
+                        Vector3f(
+                            scale.x * (vertexData ushr 0 and 0xFF),
+                            scale.y * (vertexData ushr 8 and 0xFF),
+                            scale.z * (vertexData ushr 16 and 0xFF)
+                        ) + translate,
+                        vertexData ushr 24 and 0xFF
+                    )
+                )
+            }
+            return Md2Frame(name, points)
         }
     }
 

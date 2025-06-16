@@ -43,7 +43,7 @@ class Md2ModelTest {
             Md2VertexInfo(3, 3.4f, 4.4f),
         )
         val command = Md2GlCmd(Md2GlCmdType.TRIANGLE_FAN, vertices)
-        val actual = command.toFloats(points)
+        val actual = command.toVertexAttributes(points)
         val expected = listOf(
             0.3f, 1.3f, 2.3f, 3.3f, 4.3f,
             0.2f, 1.2f, 2.2f, 3.2f, 4.2f,
@@ -71,7 +71,7 @@ class Md2ModelTest {
             Md2VertexInfo(3, 3.4f, 4.4f),
         )
         val command = Md2GlCmd(Md2GlCmdType.TRIANGLE_STRIP, vertices)
-        val actual = command.toFloats(points)
+        val actual = command.toVertexAttributes(points)
         val expected = listOf(
             0.3f, 1.3f, 2.3f, 3.3f, 4.3f,
             0.2f, 1.2f, 2.2f, 3.2f, 4.2f,
