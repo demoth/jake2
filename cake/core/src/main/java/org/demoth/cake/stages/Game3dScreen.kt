@@ -280,6 +280,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
             it.modelInstance.transform.setTranslation(x, y, z)
 
+            (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                userData.interpolation = lerpFrac
+            }
             modelBatch.render(it.modelInstance, environment)
         }
         modelBatch.end()
@@ -998,6 +1001,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 && newState.number != playerNumber + 1 // do not draw ourselves
                 && drawEntities
             ) {
+                (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                    userData.frame1 = entity.prev.frame
+                    userData.frame2 = newState.frame
+                }
                 visibleEntities += entity
             }
         }
