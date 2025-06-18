@@ -216,7 +216,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
         val tempRenderable = Renderable()
         val md2Shader = Md2Shader(
-            md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
+            md2Instance.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
             DefaultShader.Config(
                 Gdx.files.internal("shaders/vat.glsl").readString(),
                 null, // use default fragment shader
@@ -368,8 +368,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    val md2 = Md2ModelLoader(locator).loadMd2ModelData(it, skinIndex = 0)!!
-                    config.resource = createModel(md2.mesh, md2.material)
+                    val md2 = Md2ModelLoader(locator).loadMd2ModelData(it, skinIndex = 0)
+                    if (md2 != null) {
+                        config.resource = createModel(md2.mesh, md2.material)
+                    } else {
+                        println("Failed to load MD2 model data for config ${config.value}")
+                    }
                 }
             }
         }
@@ -972,14 +976,19 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 val modelIndex = newState.modelindex
                 if (modelIndex == 255) { // this is a player
                     // fixme: how to get which model/skin does the player have?
-                    entity.modelInstance = ModelInstance(playerModel)
+                    entity.modelInstance = ModelInstance(playerModel).apply {
+                        userData = Md2CustomData(0, 0, 0f ,1)
+                    }
                     entity.name = "player"
                 } else if (modelIndex != 0) {
                     val modelConfig = gameConfig[CS_MODELS + modelIndex]
                     val model = modelConfig?.resource as? Model
                     if (model != null) {
                         entity.name = modelConfig.value
-                        entity.modelInstance = ModelInstance(model)
+                        entity.modelInstance = ModelInstance(model).apply {
+                            if (!modelConfig.value.contains("*")) // skip brush models
+                                userData = Md2CustomData(0, 0, 0f ,1)
+                        }
                     }
                 }
             }
@@ -999,7 +1008,9 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             val model = gameConfig[CS_MODELS + currentFrame.playerstate.gunindex]?.resource as? Model
             if (model != null) {
                 gun = ClientEntity("gun").apply {
-                    modelInstance = ModelInstance(model)
+                    modelInstance = ModelInstance(model).apply {
+                        userData = Md2CustomData(0, 0, 0f ,1)
+                    }
                 }
             }
         }
