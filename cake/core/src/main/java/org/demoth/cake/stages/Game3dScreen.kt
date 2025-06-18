@@ -613,9 +613,11 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             currentGunOffsetZ + newZ,
         )
         // not using pitch because the gun will not be visible at all.
-        // FIXME: change after md2 animation is implemented
-        gun?.current?.angles = floatArrayOf(0f, localYaw, 0f)
-        gun?.prev?.angles = floatArrayOf(0f, localYaw, 0f)
+        gun?.current?.angles = floatArrayOf(0f, localYaw, localPitch)
+        gun?.prev?.angles = floatArrayOf(0f, localYaw, localPitch)
+        (gun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
+            userData.interpolation = lerpFrac
+        }
     }
 
     private fun quakeForward(pitchDeg: Float, yawDeg: Float): Vector3 {
@@ -1009,6 +1011,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
         }
 
+        // fixme: update the model if the weapon was changed
         // update player gun model
         if (gun == null) {
             // try to load the model
@@ -1023,6 +1026,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         }
         gun?.let {
             visibleEntities += it
+            (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                userData.frame1 = previousFrame?.playerstate?.gunframe ?: currentFrame.playerstate.gunframe
+                userData.frame2 = currentFrame.playerstate.gunframe
+            }
         }
     }
 
