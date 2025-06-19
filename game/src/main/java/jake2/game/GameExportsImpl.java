@@ -833,7 +833,7 @@ public class GameExportsImpl implements GameExports {
         count = 0;
         for (i = 0; i < game.maxclients; i++) {
             if (game.clients[i].pers.connected) {
-                index[count] = new Integer(i);
+                index[count] = Integer.valueOf(i);
                 count++;
             }
         }

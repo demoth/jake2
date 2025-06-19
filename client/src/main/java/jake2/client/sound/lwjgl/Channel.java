@@ -387,7 +387,7 @@ public class Channel {
 
 	    if (sound == 0) continue;
 
-	    key = new Integer(ent.number);
+            key = Integer.valueOf(ent.number);
 	    ch = (Channel)looptable.get(key);
 
 	    if (ch != null) {
