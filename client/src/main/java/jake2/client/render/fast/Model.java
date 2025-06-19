@@ -1185,7 +1185,7 @@ public abstract class Model extends Surf {
 			if (count == 0)
 				break;		// done
 
-			tmp.addElement(new Integer(count));
+                        tmp.addElement(Integer.valueOf(count));
 				
 			if (count < 0)
 			{
