@@ -145,12 +145,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 if (it.size > 1)
                     netchan.reliablePending.add(StringCmdMessage(getArguments(it)))
                 else
-                    Com.Println("Empty cmd")
+                    Com.Println("Empty cmd") // todo: warning
             }
         }
 
         Cmd.AddCommand("precache") {
-            // todo: check the game state first, do not precache in the middle of the game
+            if (networkState == ACTIVE) {
+                // tothink: do we ignore it or restart the map?
+                Com.Printf("precache - during the game!\n") // todo: warning
+                return@AddCommand
+            }
             Com.Printf("precache - loading resources\n")
             val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
