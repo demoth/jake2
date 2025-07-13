@@ -873,9 +873,12 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
 
     override fun processSoundMessage(msg: SoundMessage) {
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
-        val sound = config?.resource as? Sound // else warning?
-        println("Playing sound ${msg.soundIndex} (${config?.value})")
-        sound?.play() // todo: use msg.volume, attenuation, etc
+        val sound = config?.resource as? Sound
+        if (sound != null) {
+            sound.play(msg.origin[0], msg.origin[1], msg.origin[2])
+        } else {
+            Com.Warn("sound ${msg.soundIndex} not found")
+        }
     }
 
     override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
@@ -887,7 +890,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         if (sound != null) {
             sound.play(if (silenced) 0.2f else 1f)
         } else {
-            // todo: warning!
+            Com.Warn("weapon sound $weaponType not found")
         }
     }
 
@@ -957,7 +960,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     // create/modify model instances
     // AddPacketEntities
     // update visible entities based on informatino from server
-    // todo: this methon handles both instancing and visibility, maybe split it?
+    // todo: this method handles both instancing and visibility, maybe split it?
     fun postReceive() {
         lerpAcc = 0f // reset lerp between server frames
 

@@ -140,22 +140,21 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
          */
         Cmd.AddCommand("cmd") {
             if (networkState != CONNECTED && networkState != ACTIVE) {
-                Com.Println("Cannot cmd '${it}', not connected")
+                Com.Warn("Cannot cmd '${it}', not connected")
             } else {
                 if (it.size > 1)
                     netchan.reliablePending.add(StringCmdMessage(getArguments(it)))
                 else
-                    Com.Println("Empty cmd") // todo: warning
+                    Com.Warn("Empty cmd") // todo: warning
             }
         }
 
         Cmd.AddCommand("precache") {
             if (networkState == ACTIVE) {
                 // tothink: do we ignore it or restart the map?
-                Com.Printf("precache - during the game!\n") // todo: warning
+                Com.Warn("precache - during the game!\n") // todo: warning
                 return@AddCommand
             }
-            Com.Printf("precache - loading resources\n")
             val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
@@ -282,7 +281,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
-            Com.Printf("Bad server address\n")
+            Com.Warn("Bad server address\n")
             networkState = DISCONNECTED
             reconnectTimeout = 0f
             return
@@ -299,7 +298,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun SendConnectPacket() {
         val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {
-            Com.Printf("Bad server address\n")
+            Com.Warn("Bad server address\n")
             networkState = DISCONNECTED
             reconnectTimeout = 0f
             return
@@ -340,7 +339,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // packet from server
             //
             if (!networkPacket.from.compareIp(netchan.remote_address)) {
-                Com.Printf(networkPacket.from.toString() + ": sequenced packet without connection\n")
+                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
                 continue
             }
 
@@ -452,7 +451,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             }
             ConnectionlessCommand.client_connect -> {
                 if (networkState == CONNECTED) {
-                    Com.Printf("Dup connect received.  Ignored.\n")
+                    Com.Warn("Dup connect received.  Ignored.\n")
 
                 } else {
                     networkState = CONNECTED // Defines.ca_connected

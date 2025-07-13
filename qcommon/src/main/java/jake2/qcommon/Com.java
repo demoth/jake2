@@ -324,6 +324,11 @@ public final class Com
 		Printf(_debugContext + fmt + "\n");
 	}
 
+    public static void Warn(String fmt) {
+        // todo: handle warnings differently
+        Printf(_debugContext + fmt + "\n");
+    }
+
 	@Deprecated
 	public static String sprintf(String fmt, Vargs vargs) {
 		if (vargs == null || vargs.size() == 0) {
