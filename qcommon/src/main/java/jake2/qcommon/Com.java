@@ -326,7 +326,7 @@ public final class Com
 
     public static void Warn(String fmt) {
         // todo: handle warnings differently
-        Printf(_debugContext + fmt + "\n");
+        Printf("Warn: " + fmt + "\n");
     }
 
 	@Deprecated

@@ -9,6 +9,10 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 
+/**
+ * Small data structure to hold the custom data required for the shader.
+ * Attached to every ModelInstance(userData) which should be animated using a VAT.
+ */
 data class Md2CustomData(
     var frame1: Int,
     var frame2: Int,

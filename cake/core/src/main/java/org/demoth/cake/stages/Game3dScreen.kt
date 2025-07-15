@@ -45,7 +45,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private var precached: Boolean = false
 
     // model instances to be drawn - updated on every server frame
-    private val visibleEntities = ArrayList<ClientEntity>()
+    private lateinit var visibleEntities: List<ClientEntity>
     private val modelBatch: ModelBatch
     private var levelModel: ClientEntity? = null
     private var drawLevel = true
@@ -864,8 +864,10 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         // save the frame off in the backup array for later delta comparisons
         frames[currentFrame.serverframe and Defines.UPDATE_MASK].set(currentFrame)
 
-        // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
-
+        if (currentFrame.valid) {
+            visibleEntities = computeVisibleEntities()
+            // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
+        }
         // getting a valid frame message ends the connection process
         return currentFrame.valid
     }
@@ -875,7 +877,8 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound
         if (sound != null) {
-            sound.play(msg.origin[0], msg.origin[1], msg.origin[2])
+            // todo:  use other msg properties (like volume, origin)
+            sound.play()
         } else {
             Com.Warn("sound ${msg.soundIndex} not found")
         }
@@ -957,14 +960,33 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         entity.current.set(newState) // fixme: use assignment instead of copying fields?
     }
 
-    // create/modify model instances
-    // AddPacketEntities
-    // update visible entities based on informatino from server
-    // todo: this method handles both instancing and visibility, maybe split it?
-    fun postReceive() {
+    /**
+     * Computes the list of entities that should be visible during the current frame.
+     * This function updates the `visibleEntities` list by clearing it and adding entities
+     * based on their visibility status and other conditions outlined below.
+     *
+     * Key functionalities:
+     * - Resets the linear interpolation accumulator `lerpAcc` for server frame interpolation.
+     * - Adds grid and origin visualization models to the visible entities.
+     * - Includes the level model in the visible entities under certain conditions, such as if
+     *   `drawLevel` is enabled.
+     * - Iterates over the entities in the current frame, instantiating their models if they
+     *   haven't been loaded yet and updating them according to the game state.
+     * - Ensures the player entity is excluded from rendering by verifying entity numbers.
+     * - Attempts to load and manage the player's weapon model, updating its animation frames
+     *   as necessary.
+     *
+     * Known issues and TODOs:
+     * - Persistent storage for client entities is not implemented yet.
+     * - Visibility is not optimized using spatial partitioning or visibility clusters.
+     * - Handling of player models and skins is incomplete.
+     * - Updates for weapon models upon change are currently missing.
+     *
+     *  Former `CL_AddPacketEntities`
+     */
+    fun computeVisibleEntities(): List<ClientEntity> {
         lerpAcc = 0f // reset lerp between server frames
-
-        visibleEntities.clear()
+        val visibleEntities = mutableListOf<ClientEntity>()
         // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
@@ -1006,6 +1028,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 && newState.number != playerNumber + 1 // do not draw ourselves
                 && drawEntities
             ) {
+                // update animation frame
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                     userData.frame1 = entity.prev.frame
                     userData.frame2 = newState.frame
@@ -1034,6 +1057,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
                 userData.frame2 = currentFrame.playerstate.gunframe
             }
         }
+        return visibleEntities
     }
 
     // todo: delegate to a separate class
