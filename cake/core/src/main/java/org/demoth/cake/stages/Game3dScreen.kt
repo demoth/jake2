@@ -38,7 +38,7 @@ import kotlin.math.sin
  * This class is responsible for drawing 3d models, hud, process inputs and play sounds.
  * Also, it is responsible for loading/disposing of the required resources
  */
-class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
+class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     private var precached: Boolean = false
 
     // model instances to be drawn - updated on every server frame
@@ -95,8 +95,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
     private val playerSkinPath = "players/male/grunt.pcx"
     private lateinit var playerModel: Model
 
-    private val inputManager = InputManager()
-
     // todo: think about designing an extendable client side effect system
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private val weaponSoundPaths = mapOf(
@@ -130,16 +128,6 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         MZ_NUKE4 to null,
         MZ_NUKE8 to null,
     )
-
-    // mappings for input command: which are sent on every client update frame
-    private var mouseWasMoved = false
-
-    // todo: track time
-    private var previousX = 0f
-    private var previousY = 0f
-    private var deltaX = 0f
-    private var deltaY = 0f
-    private val sensitivity = 25f
 
     init {
         camera.position.set(0f, 0f, 0f);
@@ -435,10 +423,7 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
         )
 
         // process mouse movement
-        if (mouseWasMoved) {
-            inputManager.updateAngles(deltaX, deltaY)
-            mouseWasMoved = false
-        }
+        inputManager.updateAngles()
 
         // calculate where the camera should look at on this frame
         val direction: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
@@ -932,52 +917,5 @@ class Game3dScreen : KtxScreen, InputProcessor, ServerMessageProcessor {
             }
         }
         return visibleEntities
-    }
-
-    // todo: delegate to a separate class
-    override fun keyDown(keycode: Int): Boolean {
-        return inputManager.keyDown(keycode)
-    }
-
-    override fun keyUp(keycode: Int): Boolean {
-        return inputManager.keyUp(keycode)
-    }
-
-    override fun keyTyped(character: Char): Boolean {
-        return false
-    }
-
-    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return inputManager.touchDown(screenX, screenY, pointer, button)
-    }
-
-    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return inputManager.touchUp(screenX, screenY, pointer, button)
-    }
-
-    override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return false
-    }
-
-    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        return processCameraRotation(screenX, screenY)
-    }
-
-
-    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-        return processCameraRotation(screenX, screenY)
-    }
-
-    override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        return false
-    }
-
-    private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
-        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
-        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
-        previousX = screenX.toFloat()
-        previousY = screenY.toFloat()
-        mouseWasMoved = true
-        return true // consume the event
     }
 }

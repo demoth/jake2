@@ -1,6 +1,8 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputProcessor
 import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.Defines.PITCH
@@ -16,7 +18,7 @@ import org.demoth.cake.stages.ClientCommands.*
 import kotlin.experimental.or
 
 // CL_input
-class InputManager {
+class InputManager : InputProcessor {
     private val commandsState: EnumMap<ClientCommands, Boolean> = EnumMap(ClientCommands::class.java)
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
     private val clientSpeed: Short = 100 // todo: cvar
@@ -24,11 +26,21 @@ class InputManager {
     // the angle that the player spawned with
     var initialYaw: Float? = null
     var initialPitch: Float? = null
+
     // local camera angle
     var localYaw: Float = 0f
     var localPitch: Float = 0f
 
+    private var previousX = 0f
+    private var previousY = 0f
+    private var deltaX = 0f
+    private var deltaY = 0f
+    private val sensitivity = 25f
+    private var mouseWasMoved = false
+
     private val cameraKeyboardRotationSpeed = 140f // degrees per second
+
+    // mappings for input command: which are sent on every client update frame
     private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
         Input.Keys.W to in_forward,
         Input.Keys.S to in_back,
@@ -42,6 +54,7 @@ class InputManager {
         Input.Keys.DOWN to in_lookdown,
         Input.Keys.CONTROL_LEFT to in_attack,
     )
+
     // default.cfg
     // input mapping for string commands - sent on demand
     private val inputBindings: MutableMap<Int, String> = mutableMapOf(
@@ -147,25 +160,29 @@ class InputManager {
         )
     }
 
-    fun updateAngles(deltaX: Float, deltaY: Float) {
-        localYaw -= deltaX
-        localPitch += deltaY
+    fun updateAngles() {
+        if (mouseWasMoved) {
+            mouseWasMoved = false
 
-        // wrap yaw
-        if (localYaw <= -180f) localYaw += 360f
-        if (localYaw >= 180f) localYaw -= 360f
+            localYaw -= deltaX
+            localPitch += deltaY
 
-        // first wrap the pitch
-        if (localPitch <= -180f) localPitch += 360f
-        if (localPitch >= 180f) localPitch -= 360f
+            // wrap yaw
+            if (localYaw <= -180f) localYaw += 360f
+            if (localYaw >= 180f) localYaw -= 360f
 
-        // clamp pitch
-        if (localPitch >= 89f) localPitch = 89f
-        if (localPitch <= -89f) localPitch = -89f
+            // first wrap the pitch
+            if (localPitch <= -180f) localPitch += 360f
+            if (localPitch >= 180f) localPitch -= 360f
+
+            // clamp pitch
+            if (localPitch >= 89f) localPitch = 89f
+            if (localPitch <= -89f) localPitch = -89f
+        }
 
     }
 
-    fun keyDown(keycode: Int): Boolean {
+    override fun keyDown(keycode: Int): Boolean {
         if (inputKeyMappings[keycode] != null) {
             commandsState[inputKeyMappings[keycode]] = true
             return true
@@ -174,7 +191,7 @@ class InputManager {
         }
     }
 
-    fun keyUp(keycode: Int): Boolean {
+    override fun keyUp(keycode: Int): Boolean {
         if (inputKeyMappings[keycode] != null) {
             commandsState[inputKeyMappings[keycode]] = false
             return true
@@ -189,7 +206,15 @@ class InputManager {
         return false
     }
 
-    fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+    override fun keyTyped(character: Char): Boolean {
+        return false
+    }
+
+    override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return false
+    }
+
+    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.LEFT) {
             commandsState[in_attack] = true
             return true
@@ -197,13 +222,35 @@ class InputManager {
         return false
     }
 
-    fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.LEFT) {
             commandsState[in_attack] = false
             return true
         }
         return false
     }
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        return processCameraRotation(screenX, screenY)
+    }
+
+    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        return processCameraRotation(screenX, screenY)
+    }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        return false
+    }
+
+    private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
+        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
+        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+        previousX = screenX.toFloat()
+        previousY = screenY.toFloat()
+        mouseWasMoved = true
+        return true // consume the event
+    }
+
 }
 
 enum class ClientCommands {
