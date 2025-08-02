@@ -622,7 +622,11 @@ class Game3dScreen(
     }
 
     override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
-        return entityManager.processPacketEntitiesMessage(msg, renderState, gameConfig)
+        val validMessage = entityManager.processPacketEntitiesMessage(msg)
+        if (validMessage) {
+            entityManager.computeVisibleEntities(renderState, gameConfig)
+        }
+        return validMessage
     }
 
     override fun processSoundMessage(msg: SoundMessage) {

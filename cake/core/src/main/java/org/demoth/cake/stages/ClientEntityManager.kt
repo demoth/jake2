@@ -19,6 +19,7 @@ import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
 
+// responsible for managing entity states which are updated from the server
 class ClientEntityManager {
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
 
@@ -41,11 +42,7 @@ class ClientEntityManager {
      * CL_ParsePacketEntities
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments
      */
-    fun processPacketEntitiesMessage(
-        msg: PacketEntitiesMessage,
-        renderState: RenderState,
-        gameConfig: GameConfiguration
-    ): Boolean {
+    fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
         currentFrame.parse_entities = parse_entities // save ring buffer head
         currentFrame.num_entities = 0
 
@@ -134,10 +131,7 @@ class ClientEntityManager {
         // save the frame off in the backup array for later delta comparisons
         frames[currentFrame.serverframe and Defines.UPDATE_MASK].set(currentFrame)
 
-        if (currentFrame.valid) {
-            visibleEntities = computeVisibleEntities(renderState, gameConfig)
-            // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
-        }
+        // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
         // getting a valid frame message ends the connection process
         return currentFrame.valid
     }
@@ -196,18 +190,13 @@ class ClientEntityManager {
     }
 
     /**
-     * Computes the list of entities that should be visible during the current frame.
-     * This function updates the `visibleEntities` list by clearing it and adding entities
-     * based on their visibility status and other conditions outlined below.
+     * Computes the list of entities that should be visible during the current server frame.
      *
      * Key functionalities:
-     * - Resets the linear interpolation accumulator `lerpAcc` for server frame interpolation.
+     * - Resets `lerpAcc` for server frame interpolation.
      * - Adds grid and origin visualization models to the visible entities.
-     * - Includes the level model in the visible entities under certain conditions, such as if
-     *   `drawLevel` is enabled.
      * - Iterates over the entities in the current frame, instantiating their models if they
      *   haven't been loaded yet and updating them according to the game state.
-     * - Ensures the player entity is excluded from rendering by verifying entity numbers.
      * - Attempts to load and manage the player's weapon model, updating its animation frames
      *   as necessary.
      *
@@ -219,7 +208,7 @@ class ClientEntityManager {
      *
      *  Former `CL_AddPacketEntities`
      */
-    private fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration): List<ClientEntity> {
+    fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration): List<ClientEntity> {
         renderState.lerpAcc = 0f // reset lerp between server frames
         val visibleEntities = mutableListOf<ClientEntity>()
         // todo: put to a persistent client entities list?
