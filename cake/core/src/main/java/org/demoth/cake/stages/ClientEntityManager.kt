@@ -1,7 +1,11 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.ModelInstance
 import jake2.qcommon.Defines
+import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.MAX_EDICTS
+import jake2.qcommon.Defines.MAX_PARSE_ENTITIES
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
@@ -9,14 +13,26 @@ import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
+import org.demoth.cake.GameConfiguration
+import org.demoth.cake.modelviewer.Md2CustomData
+import org.demoth.cake.modelviewer.createGrid
+import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
 
 class ClientEntityManager {
-    private var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
+    val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
+
+    var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
     private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t(null) }
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity("") }
 
+    var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
+    val currentFrame = ClientFrame() // latest frame information received from the server
+
+
+    // model instances to be drawn - updated on every server frame
+    var visibleEntities = emptyList<ClientEntity>()
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         clientEntities[msg.entityState.number].baseline.set(msg.entityState)
     }
@@ -25,7 +41,11 @@ class ClientEntityManager {
      * CL_ParsePacketEntities
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments
      */
-    fun processPacketEntitiesMessage(msg: PacketEntitiesMessage, currentFrame: ClientFrame, previousFrame: ClientFrame?): Boolean {
+    fun processPacketEntitiesMessage(
+        msg: PacketEntitiesMessage,
+        renderState: RenderState,
+        gameConfig: GameConfiguration
+    ): Boolean {
         currentFrame.parse_entities = parse_entities // save ring buffer head
         currentFrame.num_entities = 0
 
@@ -115,7 +135,7 @@ class ClientEntityManager {
         frames[currentFrame.serverframe and Defines.UPDATE_MASK].set(currentFrame)
 
         if (currentFrame.valid) {
-            visibleEntities = computeVisibleEntities()
+            visibleEntities = computeVisibleEntities(renderState, gameConfig)
             // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
         }
         // getting a valid frame message ends the connection process
@@ -199,15 +219,15 @@ class ClientEntityManager {
      *
      *  Former `CL_AddPacketEntities`
      */
-    private fun computeVisibleEntities(): List<ClientEntity> {
-        lerpAcc = 0f // reset lerp between server frames
+    private fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration): List<ClientEntity> {
+        renderState.lerpAcc = 0f // reset lerp between server frames
         val visibleEntities = mutableListOf<ClientEntity>()
         // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
-        if (levelModel != null && drawLevel) {
+        if (renderState.levelModel != null && renderState.drawLevel) {
             // todo: use area visibility to draw only part of the map (visible clusters)
-            visibleEntities += levelModel!!
+            visibleEntities += renderState.levelModel!!
         }
 
         // entities in the current frame
@@ -221,7 +241,7 @@ class ClientEntityManager {
                 val modelIndex = newState.modelindex
                 if (modelIndex == 255) { // this is a player
                     // fixme: how to get which model/skin does the player have?
-                    entity.modelInstance = ModelInstance(playerModel).apply {
+                    entity.modelInstance = ModelInstance(renderState.playerModel).apply {
                         userData = Md2CustomData(0, 0, 0f ,1)
                     }
                     entity.name = "player"
@@ -240,8 +260,8 @@ class ClientEntityManager {
 
             // update the model instance
             if (entity.modelInstance != null
-                && newState.number != playerNumber + 1 // do not draw ourselves
-                && drawEntities
+                && newState.number != renderState.playerNumber + 1 // do not draw ourselves
+                && renderState.drawEntities
             ) {
                 // update animation frame
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
@@ -254,18 +274,18 @@ class ClientEntityManager {
 
         // fixme: update the model if the weapon was changed
         // update player gun model
-        if (gun == null) {
+        if (renderState.gun == null) {
             // try to load the model
             val model = gameConfig[CS_MODELS + currentFrame.playerstate.gunindex]?.resource as? Model
             if (model != null) {
-                gun = ClientEntity("gun").apply {
+                renderState.gun = ClientEntity("gun").apply {
                     modelInstance = ModelInstance(model).apply {
                         userData = Md2CustomData(0, 0, 0f ,1)
                     }
                 }
             }
         }
-        gun?.let {
+        renderState.gun?.let {
             visibleEntities += it
             (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
                 userData.frame1 = previousFrame?.playerstate?.gunframe ?: currentFrame.playerstate.gunframe

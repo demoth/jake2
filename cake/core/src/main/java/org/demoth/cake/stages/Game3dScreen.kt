@@ -37,15 +37,13 @@ import kotlin.math.sin
  * This class is responsible for drawing 3d models, hud, process inputs and play sounds.
  * Also, it is responsible for loading/disposing of the required resources
  */
-class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
+class Game3dScreen(
+    val inputManager: InputManager = InputManager(),
+    val renderState: RenderState = RenderState()
+) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     private var precached: Boolean = false
 
-    // model instances to be drawn - updated on every server frame
-    private var visibleEntities: List<ClientEntity> = emptyList()
     private val modelBatch: ModelBatch
-    private var levelModel: ClientEntity? = null
-    private var drawLevel = true
-    private var drawEntities = true
     private val collisionModel = CM()
     private val locator = GameResourceLocator(System.getProperty("basedir"))
 
@@ -63,19 +61,13 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
-    private var drawSkybox = true
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
      */
-    private var playerNumber = 1
     private var levelString: String = ""
-    private var gun: ClientEntity? = null
 
-    private var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
-    private val currentFrame = ClientFrame() // latest frame information received from the server
     private var surpressCount = 0 // number of messages rate supressed
-    private val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
     private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
     private val spriteBatch = SpriteBatch()
     private val skin = Skin(Gdx.files.internal("ui/uiskin.json"))
@@ -84,12 +76,10 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
 
     // interpolation factor between two server frames
     private var lerpFrac: Float = 0f
-    private var lerpAcc: Float = 0f
 
     // todo: make proper player loader
     private val playerModelPath = "players/male/tris.md2"
     private val playerSkinPath = "players/male/grunt.pcx"
-    private lateinit var playerModel: Model
 
     // todo: think about designing an extendable client side effect system
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
@@ -162,13 +152,13 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
 
         // todo: move this to a dedicated render class
         Cmd.AddCommand("toggle_skybox") {
-            drawSkybox = !drawSkybox
+            renderState.drawSkybox = !renderState.drawSkybox
         }
         Cmd.AddCommand("toggle_level") {
-            drawLevel = !drawLevel
+            renderState.drawLevel = !renderState.drawLevel
         }
         Cmd.AddCommand("toggle_entities") {
-            drawEntities = !drawEntities
+            renderState.drawEntities = !renderState.drawEntities
         }
 
         modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
@@ -187,14 +177,14 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
             return
 
         val serverFrameTime = 1f/10f // 10Hz server updates
-        lerpFrac = (lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+        lerpFrac = (renderState.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
 
         updatePlayerCamera(lerpFrac)
         //updatePlayerGun(lerpFrac)
 
         modelBatch.begin(camera)
 
-        if (drawSkybox)
+        if (renderState.drawSkybox)
             skyBox?.let {
                 Gdx.gl.glDepthMask(false)
                 // TODO: rotate skybox: skyBox.transform.setToRotation(...)
@@ -203,7 +193,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
                 Gdx.gl.glDepthMask(true)
             }
 
-        visibleEntities.forEach {
+        entityManager.visibleEntities.forEach {
 
             // apply client side effects
             if (it.current.effects and EF_ROTATE != 0) {
@@ -242,8 +232,8 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
 
             layoutExecutor.executeLayoutString(
                 layout = gameConfig.getStatusBarLayout(),
-                serverFrame = currentFrame.serverframe,
-                stats = currentFrame.playerstate.stats,
+                serverFrame = entityManager.currentFrame.serverframe,
+                stats = entityManager.currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
                 gameConfig = gameConfig
@@ -251,11 +241,11 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
 
             // draw additional layout, like help or score
             // SRC.DrawLayout
-            if ((currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 1) != 0) {
+            if ((entityManager.currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 1) != 0) {
                 layoutExecutor.executeLayoutString(
                     layout = gameConfig.layout,
-                    serverFrame = currentFrame.serverframe,
-                    stats = currentFrame.playerstate.stats,
+                    serverFrame = entityManager.currentFrame.serverframe,
+                    stats = entityManager.currentFrame.playerstate.stats,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
                     gameConfig = gameConfig
@@ -263,9 +253,9 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
             }
             // draw additional layout, like help or score
             // CL_inv.DrawInventory
-            if ((currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 2) != 0) {
+            if ((entityManager.currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 2) != 0) {
                 layoutExecutor.drawInventory(
-                    playerstate = currentFrame.playerstate,
+                    playerstate = entityManager.currentFrame.playerstate,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
                     gameConfig = gameConfig
@@ -273,7 +263,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
             }
 
         }
-        lerpAcc += delta
+        renderState.lerpAcc += delta
     }
 
     override fun dispose() {
@@ -305,7 +295,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
-        levelModel = ClientEntity("level").apply {
+        renderState.levelModel = ClientEntity("level").apply {
             modelInstance = ModelInstance(brushModels.first())
         }
 
@@ -333,7 +323,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
             playerSkin = playerSkinPath,
             skinIndex = 0,
         )!!
-        playerModel = createModel(playerModelData.mesh, playerModelData.material)
+        renderState.playerModel = createModel(playerModelData.mesh, playerModelData.material)
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {
@@ -372,7 +362,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
     }
 
     fun gatherInput(outgoingSequence: Int): MoveMessage {
-        return inputManager.gatherInput(outgoingSequence, deltaTime, currentFrame)
+        return inputManager.gatherInput(outgoingSequence, deltaTime, entityManager.currentFrame)
     }
 
     /**
@@ -380,6 +370,8 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
      * Updates camera transformation according to player input and player info
      */
     private fun updatePlayerCamera(lerp: Float) {
+        val currentFrame = entityManager.currentFrame
+        val previousFrame = entityManager.previousFrame
         val currentState = currentFrame.playerstate
         val newX = currentState.viewoffset[0] + (currentState.pmove.origin[0]) * 0.125f
         val newY = currentState.viewoffset[1] + (currentState.pmove.origin[1]) * 0.125f
@@ -456,21 +448,21 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
         // ideally, we want the gun to follow the camera direction.
         // The problem is that gun position/rotation is partially local (localYaw) and partially replicated (gun offset)
         // todo: think of a better approach
-        gun?.prev?.origin = floatArrayOf(
+        renderState.gun?.prev?.origin = floatArrayOf(
             oldGunOffsetX + oldX,
             oldGunOffsetY + oldY,
             oldGunOffsetZ + oldZ,
         )
-        gun?.current?.origin = floatArrayOf(
+        renderState.gun?.current?.origin = floatArrayOf(
             currentGunOffsetX + newX,
             currentGunOffsetY + newY,
             currentGunOffsetZ + newZ,
         )
 
         // todo: fix pitch
-        gun?.current?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
-        gun?.prev?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
-        (gun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
+        renderState.gun?.current?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
+        renderState.gun?.prev?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
+        (renderState.gun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
         }
     }
@@ -499,7 +491,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
     override fun processServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
-        playerNumber = msg.playerNumber
+        renderState.playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
 
         locator.gameName = gameName
@@ -519,10 +511,10 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
      * todo: move to common?
      */
     override fun processPlayerInfoMessage(msg: PlayerInfoMessage) {
-        val state = currentFrame.playerstate
+        val state = entityManager.currentFrame.playerstate
 
         // clear to old value before delta parsing
-        val deltaFrame = previousFrame
+        val deltaFrame = entityManager.previousFrame
         if (deltaFrame == null) {
             state.clear()
         } else {
@@ -585,6 +577,9 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
      * Also compute the previous frame
      */
     override fun processServerFrameHeader(msg: FrameHeaderMessage) {
+        // todo: move to the entity manager
+        val currentFrame = entityManager.currentFrame
+
         // update current frame
         currentFrame.reset()
         currentFrame.serverframe = msg.frameNumber
@@ -604,20 +599,20 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
             currentFrame.valid = true // uncompressed frame
             deltaFrame = null
         } else {
-            deltaFrame = frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
+            deltaFrame = entityManager.frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
             if (!deltaFrame.valid) { // should never happen
                 Com.Printf("Delta from invalid frame (not supposed to happen!).\n")
             }
             if (deltaFrame.serverframe != currentFrame.deltaframe) {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
                 Com.Printf("Delta frame too old.\n")
-            } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
+            } else if (entityManager.parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
                 Com.Printf("Delta parse_entities too old.\n")
             } else {
                 currentFrame.valid = true  // valid delta parse
             }
         }
-        previousFrame = deltaFrame
+        entityManager.previousFrame = deltaFrame
 
         // clamp time
         time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
@@ -627,7 +622,7 @@ class Game3dScreen(val inputManager: InputManager = InputManager()) : KtxScreen,
     }
 
     override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
-        return entityManager.processPacketEntitiesMessage(msg, currentFrame, previousFrame)
+        return entityManager.processPacketEntitiesMessage(msg, renderState, gameConfig)
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
