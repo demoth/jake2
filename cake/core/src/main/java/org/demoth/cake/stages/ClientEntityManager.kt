@@ -33,7 +33,8 @@ class ClientEntityManager {
 
 
     // model instances to be drawn - updated on every server frame
-    var visibleEntities = emptyList<ClientEntity>()
+    var visibleEntities = mutableListOf<ClientEntity>()
+
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         clientEntities[msg.entityState.number].baseline.set(msg.entityState)
     }
@@ -208,9 +209,9 @@ class ClientEntityManager {
      *
      *  Former `CL_AddPacketEntities`
      */
-    fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration): List<ClientEntity> {
+    fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration) {
         renderState.lerpAcc = 0f // reset lerp between server frames
-        val visibleEntities = mutableListOf<ClientEntity>()
+        visibleEntities.clear()
         // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
@@ -281,7 +282,6 @@ class ClientEntityManager {
                 userData.frame2 = currentFrame.playerstate.gunframe
             }
         }
-        return visibleEntities
     }
 
 }
