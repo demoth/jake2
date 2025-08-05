@@ -1,9 +1,0 @@
-{
-  "resources":{
-  "includes":[
-    {
-      "pattern": ".*(\\Qlibgdx.png\\E|\\Qassets.txt\\E|\\Qlogo.ico\\E|\\Qlogo-32.png\\E|\\Qlogo.png\\E|\\Qviper.png\\E|\\Quiskin.png\\E|\\Quiskin.atlas\\E|\\Qfont-list.fnt\\E|\\Quiskin.json\\E|\\Qfont-window.fnt\\E|\\Qfont.fnt\\E|\\Qfont-subtitle.fnt\\E|\\Qq2palette.bin\\E|\\Qtris.md2\\E|libgdx.+\\.png|lsans.+)"
-    }
-  ]},
-  "bundles":[]
-}
