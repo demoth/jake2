@@ -382,6 +382,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
                     menuVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
 
                 }
 
