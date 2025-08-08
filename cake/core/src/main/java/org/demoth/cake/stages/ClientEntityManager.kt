@@ -149,6 +149,20 @@ class ClientEntityManager {
             newState.setByFlags(update.newState, update.header.flags)
         }
 
+        // Cake: Decide if we should clear the cached model instance in certain cases
+        val reappeared = entity.serverframe != frame.serverframe - 1
+        val modelIndexChanged =
+            (newState.modelindex != entity.current.modelindex) ||
+                    (newState.modelindex2 != entity.current.modelindex2) ||
+                    (newState.modelindex3 != entity.current.modelindex3) ||
+                    (newState.modelindex4 != entity.current.modelindex4)
+        val becameInvisible = newState.modelindex == 0
+
+        if (reappeared || modelIndexChanged || becameInvisible) {
+            // Any time visibility or model identity changes across frames, drop the cached instance.
+            entity.modelInstance = null
+        }
+
         // some data changes will force no lerping
         if (newState.modelindex != entity.current.modelindex
             || newState.modelindex2 != entity.current.modelindex2
@@ -162,7 +176,7 @@ class ClientEntityManager {
             entity.serverframe = -99
         }
 
-        if (entity.serverframe == frame.serverframe - 1) { // shuffle the last state to previous
+        if (!reappeared) { // shuffle the last state to previous
             // Copy !
             entity.prev.set(entity.current)
         } else {
@@ -219,21 +233,9 @@ class ClientEntityManager {
             val newState = cl_parse_entities[idx]
             val entity = clientEntities[newState.number]
 
-            // If modelindex == 0, ensure we don't render stale model
+            // not visible to client
             if (newState.modelindex == 0) {
-                entity.modelInstance = null
                 continue
-            }
-
-            // Rebuild model if it changed (including player/non-player transitions)
-            val needsRebuild =
-                (entity.current.modelindex != newState.modelindex) ||
-                        (entity.current.modelindex2 != newState.modelindex2) ||
-                        (entity.current.modelindex3 != newState.modelindex3) ||
-                        (entity.current.modelindex4 != newState.modelindex4)
-
-            if (needsRebuild) {
-                entity.modelInstance = null
             }
 
             if (entity.modelInstance == null) {
