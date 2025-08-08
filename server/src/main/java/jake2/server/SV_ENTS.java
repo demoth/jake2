@@ -138,14 +138,26 @@ public class SV_ENTS {
         result.add(playerInfoMsg);
 
         // delta encode the entities
-        PacketEntitiesMessage packetEntities = buildPacketEntities(lastReceivedFrame, currentFrame);
+        PacketEntitiesMessage packetEntities = buildPacketEntities(
+                lastReceivedFrame,
+                currentFrame,
+                client_entities,
+                gameImports.sv.baselines,
+                maxClientEntities,
+                gameImports.serverMain.getClients().size());
         result.add(packetEntities);
         return result;
     }
 
     // SV_EmitPacketEntities
-    private PacketEntitiesMessage buildPacketEntities(client_frame_t lastReceivedFrame,
-                                                      client_frame_t currentFrame) {
+    static PacketEntitiesMessage buildPacketEntities(client_frame_t lastReceivedFrame,
+                                                      client_frame_t currentFrame,
+                                                      entity_state_t[] client_entities,
+                                                      entity_state_t[] baselines,
+                                                      int maxEntities,
+                                                      int maxClients) {
+        // assert client_entities.length == maxEntities;
+        // assert baselines.length == maxEntities;
 
         PacketEntitiesMessage result = new PacketEntitiesMessage();
 
@@ -166,7 +178,7 @@ public class SV_ENTS {
                 // does not exist in the frame
                 newnum = 9999;
             } else {
-                newState = client_entities[(currentFrame.first_entity + newindex) % this.maxClientEntities];
+                newState = client_entities[(currentFrame.first_entity + newindex) % maxEntities];
                 newnum = newState.number;
             }
             final int oldnum;
@@ -174,7 +186,7 @@ public class SV_ENTS {
                 // does not exist in the frame
                 oldnum = 9999;
             else {
-                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % this.maxClientEntities];
+                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % maxEntities];
                 oldnum = oldState.number;
             }
 
@@ -184,13 +196,13 @@ public class SV_ENTS {
                 // in any bytes being emited if the entity has not changed at all.
                 // Note: players are always 'newentities', this updates
                 // their oldorigin always  and prevents warping
-                final boolean isPlayer = newState.number <= gameImports.serverMain.getClients().size();
+                final boolean isPlayer = newState.number <= maxClients;
                 result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
                 oldindex++;
                 newindex++;
             } else if (newnum < oldnum) {
                 // this is a new entity, send it from the baseline
-                result.updates.add(new EntityUpdate(gameImports.sv.baselines[newnum], newState, true, true));
+                result.updates.add(new EntityUpdate(baselines[newnum], newState, true, true));
                 newindex++;
             } else {
                 // if (newnum > oldnum) {
