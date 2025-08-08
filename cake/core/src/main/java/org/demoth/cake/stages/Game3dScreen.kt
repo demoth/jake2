@@ -148,13 +148,14 @@ class Game3dScreen(
         md2Shader.init()
 
         // todo: move this to a dedicated render class
-        Cmd.AddCommand("toggle_skybox") {
+        // force replace because the command lambdas capture the render state. fixme: make proper disposable approach
+        Cmd.AddCommand("toggle_skybox", true) {
             renderState.drawSkybox = !renderState.drawSkybox
         }
-        Cmd.AddCommand("toggle_level") {
+        Cmd.AddCommand("toggle_level", true) {
             renderState.drawLevel = !renderState.drawLevel
         }
-        Cmd.AddCommand("toggle_entities") {
+        Cmd.AddCommand("toggle_entities", true) {
             renderState.drawEntities = !renderState.drawEntities
         }
 

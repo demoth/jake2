@@ -174,20 +174,20 @@ public class GameImportsImpl implements GameImports {
      * bind operator commands to this server instance
      */
     private void SV_InitOperatorCommands() {
-        Cmd.AddCommand("heartbeat", this::SV_Heartbeat_f, true);
-        Cmd.AddCommand("kick", this::SV_Kick_f, true);
-        Cmd.AddCommand("status", this::SV_Status_f, true);
-        Cmd.AddCommand("serverinfo", this::SV_Serverinfo_f, true);
-        Cmd.AddCommand("dumpuser", this::SV_DumpUser_f, true);
-        Cmd.AddCommand("say", this::SV_ConSay_f, true);
-        Cmd.AddCommand("save", this::SV_Savegame_f, true);
-        Cmd.AddCommand("killserver", this::SV_KillServer_f, true);
+        Cmd.AddCommand("heartbeat", true, this::SV_Heartbeat_f);
+        Cmd.AddCommand("kick", true, this::SV_Kick_f);
+        Cmd.AddCommand("status", true, this::SV_Status_f);
+        Cmd.AddCommand("serverinfo", true, this::SV_Serverinfo_f);
+        Cmd.AddCommand("dumpuser", true, this::SV_DumpUser_f);
+        Cmd.AddCommand("say", true, this::SV_ConSay_f);
+        Cmd.AddCommand("save", true, this::SV_Savegame_f);
+        Cmd.AddCommand("killserver", true, this::SV_KillServer_f);
 
         // ip filtering and stuff
-        Cmd.AddCommand("sv", args -> {
+        Cmd.AddCommand("sv", true, args -> {
             if (gameExports != null)
                 gameExports.ServerCommand(args);
-        }, true);
+        });
     }
 
     // special messages

@@ -229,10 +229,10 @@ public final class Cmd {
     }
 
     public static void AddCommand(String cmd_name, Command function) {
-        AddCommand(cmd_name, function, false);
+        AddCommand(cmd_name, false, function);
     }
 
-    public static void AddCommand(String cmd_name, Command function, boolean replace) {
+    public static void AddCommand(String cmd_name, boolean replace, Command function) {
         // fail if the command is a variable name
         if ((Cvar.getInstance().VariableString(cmd_name)).length() > 0) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
