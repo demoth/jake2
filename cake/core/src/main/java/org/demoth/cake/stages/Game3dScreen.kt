@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
@@ -509,66 +508,7 @@ class Game3dScreen(
      * todo: move to common?
      */
     override fun processPlayerInfoMessage(msg: PlayerInfoMessage) {
-        val state = entityManager.currentFrame.playerstate
-
-        // clear to old value before delta parsing
-        val deltaFrame = entityManager.previousFrame
-        if (deltaFrame == null) {
-            state.clear()
-        } else {
-            state.set(deltaFrame.playerstate)
-        }
-
-        //
-        // parse the pmove_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_M_TYPE) != 0)
-            state.pmove.pm_type = msg.currentState.pmove.pm_type;
-
-//        if (ClientGlobals.cl.attractloop)
-//            state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
-
-        if ((msg.deltaFlags and Defines.PS_M_ORIGIN) != 0)
-            state.pmove.origin = msg.currentState.pmove.origin;
-        if ((msg.deltaFlags and Defines.PS_M_VELOCITY) != 0)
-            state.pmove.velocity = msg.currentState.pmove.velocity;
-        if ((msg.deltaFlags and Defines.PS_M_TIME) != 0)
-            state.pmove.pm_time = msg.currentState.pmove.pm_time;
-        if ((msg.deltaFlags and Defines.PS_M_FLAGS) != 0)
-            state.pmove.pm_flags = msg.currentState.pmove.pm_flags;
-        if ((msg.deltaFlags and Defines.PS_M_GRAVITY) != 0)
-            state.pmove.gravity = msg.currentState.pmove.gravity;
-        if ((msg.deltaFlags and Defines.PS_M_DELTA_ANGLES) != 0)
-            state.pmove.delta_angles = msg.currentState.pmove.delta_angles;
-        //
-        // parse the rest of the player_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_VIEWOFFSET) != 0)
-            state.viewoffset = msg.currentState.viewoffset;
-        if ((msg.deltaFlags and Defines.PS_VIEWANGLES) != 0)
-            state.viewangles = msg.currentState.viewangles;
-        if ((msg.deltaFlags and Defines.PS_KICKANGLES) != 0)
-            state.kick_angles = msg.currentState.kick_angles;
-        if ((msg.deltaFlags and Defines.PS_WEAPONINDEX) != 0)
-            state.gunindex = msg.currentState.gunindex;
-        if ((msg.deltaFlags and Defines.PS_WEAPONFRAME) != 0) {
-            state.gunframe = msg.currentState.gunframe;
-            state.gunoffset = msg.currentState.gunoffset;
-            state.gunangles = msg.currentState.gunangles;
-        }
-        if ((msg.deltaFlags and Defines.PS_BLEND) != 0)
-            state.blend = msg.currentState.blend;
-        if ((msg.deltaFlags and Defines.PS_FOV) != 0)
-            state.fov = msg.currentState.fov;
-        if ((msg.deltaFlags and Defines.PS_RDFLAGS) != 0)
-            state.rdflags = msg.currentState.rdflags;
-
-        // copy only changed stats
-        for (i in (0..<Defines.MAX_STATS)) {
-            if ((msg.statbits and (1 shl i)) != 0) {
-                state.stats[i] = msg.currentState.stats[i];
-            }
-        }
+        entityManager.processPlayerInfoMessage(msg)
     }
 
     /**
