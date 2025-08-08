@@ -2,12 +2,14 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.MAX_EDICTS
 import jake2.qcommon.Defines.MAX_PARSE_ENTITIES
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.network.messages.server.EntityUpdate
+import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.util.Math3D
@@ -31,9 +33,12 @@ class ClientEntityManager {
     var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
     val currentFrame = ClientFrame() // latest frame information received from the server
 
+    var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
+
+    var surpressCount = 0
 
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         clientEntities[msg.entityState.number].baseline.set(msg.entityState)
@@ -44,96 +49,84 @@ class ClientEntityManager {
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments
      */
     fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
-        currentFrame.parse_entities = parse_entities // save ring buffer head
+        // Save ring buffer head: first entity slot for this frame
+        currentFrame.parse_entities = parse_entities
         currentFrame.num_entities = 0
 
-        // delta from the entities present in oldframe
-        val oldFrame = previousFrame
-        var entityIdOldFrame = 99999
-        var oldstate: entity_state_t? = null
+        // Determine if we have a valid previous frame to delta from
+        val oldFrame = previousFrame?.takeIf { it.valid && it.num_entities > 0 }
 
-        if (oldFrame != null) {
-            oldstate = cl_parse_entities[oldFrame.parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
-            entityIdOldFrame = oldstate.number
-        } else {
-            // uncompressed frame: no delta required
-        }
+        val mask = MAX_PARSE_ENTITIES - 1
+
         var oldindex = 0
-        msg.updates.forEach { update ->
-            // while we haven't reached entities in the new frame
-            val entityIdNewFrame = update.header.number
-            while (entityIdOldFrame < entityIdNewFrame) {
-                // one or more entities from the old packet are unchanged,
-                // copy them to the new frame
-                DeltaEntity(currentFrame, entityIdOldFrame, oldstate!!, null)
-                // fixme: same piece of code asdf123
-                oldindex++
-                if (oldindex >= previousFrame!!.num_entities) {
-                    entityIdOldFrame = 99999
-                } else {
-                    oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    entityIdOldFrame = oldstate!!.number
-                }
-            }
-
-            // oldnum is either 99999 or has reached newnum value
-            if ((update.header.flags and Defines.U_REMOVE) != 0) {
-                // the entity present in oldframe is not in the current frame
-                // fixme: assert entityIdOldFrame == u.header.number
-                // otherwise we are removing (=not including it in the new frame) an entity that wasn't there O_o
-
-                // fixme: same piece of code asdf123
-                oldindex++
-                if (oldindex >= previousFrame!!.num_entities) {
-                    entityIdOldFrame = 99999
-                } else {
-                    oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    entityIdOldFrame = oldstate!!.number
-                }
-                return@forEach //
-            }
-
-            if (entityIdOldFrame == entityIdNewFrame) {
-                // delta from previous state
-
-                DeltaEntity(currentFrame, entityIdNewFrame, oldstate!!, update)
-                // fixme: same piece of code asdf123
-                oldindex++
-                if (oldindex >= previousFrame!!.num_entities) {
-                    entityIdOldFrame = 99999
-                } else {
-                    oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                    entityIdOldFrame = oldstate!!.number
-                }
-
-            } else if (entityIdOldFrame > entityIdNewFrame) {
-                // delta from baseline
-                DeltaEntity(currentFrame, entityIdNewFrame, clientEntities[entityIdNewFrame].baseline, update)
-            }
+        var oldstate: entity_state_t? = null
+        var oldnum = if (oldFrame != null && oldFrame.num_entities > 0) {
+            oldstate = cl_parse_entities[(oldFrame.parse_entities + oldindex) and mask]
+            oldstate.number
+        } else {
+            9999
         }
 
-        /*
-         any remaining entities in the old frame are copied over,
-         one or more entities from the old packet are unchanged
-        */
-        while (entityIdOldFrame != 99999) {
-            DeltaEntity(currentFrame, entityIdOldFrame, oldstate!!, null);
-            // fixme: same piece of code asdf123
+        // Helper to advance old pointer safely
+        fun advanceOld() {
             oldindex++
-            if (oldindex >= previousFrame!!.num_entities) {
-                entityIdOldFrame = 99999
+            if (oldFrame == null || oldindex >= oldFrame.num_entities) {
+                oldstate = null
+                oldnum = 9999
             } else {
-                oldstate = cl_parse_entities[(oldFrame!!.parse_entities + oldindex) and (Defines.MAX_PARSE_ENTITIES - 1)]
-                entityIdOldFrame = oldstate!!.number
+                oldstate = cl_parse_entities[(oldFrame.parse_entities + oldindex) and mask]
+                oldnum = oldstate!!.number
             }
-
         }
 
-        // save the frame off in the backup array for later delta comparisons
+        // Copy unchanged old entities while oldnum < targetNum
+        fun copyUnchangedUntil(targetNum: Int) {
+            while (oldnum < targetNum) {
+                // unchanged entity copied over to new frame
+                DeltaEntity(currentFrame, oldnum, oldstate!!, null)
+                advanceOld()
+            }
+        }
+
+        // Process updates in order
+        for (update in msg.updates) {
+            val newnum = update.header.number
+
+            // Bring old pointer up to the current newnum, copying unchanged
+            copyUnchangedUntil(newnum)
+
+            if ((update.header.flags and Defines.U_REMOVE) != 0) {
+                // Removal: ensure we are at the entity being removed
+                // If due to some earlier mismatch we are still behind, pull forward copying unchanged
+                copyUnchangedUntil(newnum)
+                // Now either oldnum == newnum (expected) or oldnum > newnum (already gone)
+                if (oldnum == newnum) {
+                    // Skip it: don't emit to new frame
+                    advanceOld()
+                }
+                // continue to next update
+                continue
+            }
+
+            if (oldnum == newnum) {
+                // Delta from previous state
+                DeltaEntity(currentFrame, newnum, oldstate!!, update)
+                advanceOld()
+            } else {
+                // oldnum > newnum => new entity: delta from baseline
+                DeltaEntity(currentFrame, newnum, clientEntities[newnum].baseline, update)
+            }
+        }
+
+        // Any remaining old entities are unchanged: copy them over
+        while (oldnum != 9999) {
+            DeltaEntity(currentFrame, oldnum, oldstate!!, null)
+            advanceOld()
+        }
+
+        // Save the frame for future deltas
         frames[currentFrame.serverframe and Defines.UPDATE_MASK].set(currentFrame)
 
-        // if valid: todo: FireEntityEvents, CL_pred.CheckPredictionError
-        // getting a valid frame message ends the connection process
         return currentFrame.valid
     }
 
@@ -210,50 +203,66 @@ class ClientEntityManager {
      *  Former `CL_AddPacketEntities`
      */
     fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration) {
-        renderState.lerpAcc = 0f // reset lerp between server frames
+        renderState.lerpAcc = 0f
         visibleEntities.clear()
-        // todo: put to a persistent client entities list?
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
         if (renderState.levelModel != null && renderState.drawLevel) {
-            // todo: use area visibility to draw only part of the map (visible clusters)
             visibleEntities += renderState.levelModel!!
         }
 
-        // entities in the current frame
-        // draw client entities, check jake2.client.CL_ents#AddPacketEntities
-        (0..<currentFrame.num_entities).forEach { // todo: clientEntities.forEach {...
-            val newState = cl_parse_entities[currentFrame.parse_entities + it and (MAX_PARSE_ENTITIES - 1)]
+        val mask = Defines.MAX_PARSE_ENTITIES - 1
+
+        for (i in 0 until currentFrame.num_entities) {
+            // Make the mask application explicit to avoid any precedence confusion
+            val idx = (currentFrame.parse_entities + i) and mask
+            val newState = cl_parse_entities[idx]
             val entity = clientEntities[newState.number]
 
-            // instantiate model if not yet done
+            // If modelindex == 0, ensure we don't render stale model
+            if (newState.modelindex == 0) {
+                entity.modelInstance = null
+                continue
+            }
+
+            // Rebuild model if it changed (including player/non-player transitions)
+            val needsRebuild =
+                (entity.current.modelindex != newState.modelindex) ||
+                        (entity.current.modelindex2 != newState.modelindex2) ||
+                        (entity.current.modelindex3 != newState.modelindex3) ||
+                        (entity.current.modelindex4 != newState.modelindex4)
+
+            if (needsRebuild) {
+                entity.modelInstance = null
+            }
+
             if (entity.modelInstance == null) {
                 val modelIndex = newState.modelindex
-                if (modelIndex == 255) { // this is a player
-                    // fixme: how to get which model/skin does the player have?
+                if (modelIndex == 255) {
+                    // player
                     entity.modelInstance = ModelInstance(renderState.playerModel).apply {
-                        userData = Md2CustomData(0, 0, 0f ,1)
+                        userData = Md2CustomData(0, 0, 0f, 1)
                     }
                     entity.name = "player"
-                } else if (modelIndex != 0) {
-                    val modelConfig = gameConfig[CS_MODELS + modelIndex]
-                    val model = modelConfig?.resource as? Model
+                } else {
+                    val modelConfig = gameConfig[Defines.CS_MODELS + modelIndex]
+                    val model = modelConfig?.resource as? com.badlogic.gdx.graphics.g3d.Model
                     if (model != null) {
                         entity.name = modelConfig.value
                         entity.modelInstance = ModelInstance(model).apply {
-                            if (!modelConfig.value.contains("*")) // skip brush models
-                                userData = Md2CustomData(0, 0, 0f ,1)
+                            if (!modelConfig.value.contains("*")) {
+                                userData = Md2CustomData(0, 0, 0f, 1)
+                            }
                         }
                     }
                 }
             }
 
-            // update the model instance
+            // render it if the model was successfully loaded
             if (entity.modelInstance != null
-                && newState.number != renderState.playerNumber + 1 // do not draw ourselves
+                && newState.number != renderState.playerNumber + 1
                 && renderState.drawEntities
             ) {
-                // update animation frame
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                     userData.frame1 = entity.prev.frame
                     userData.frame2 = newState.frame
@@ -275,6 +284,8 @@ class ClientEntityManager {
                 }
             }
         }
+
+        // update the gun animation
         renderState.gun?.let {
             visibleEntities += it
             (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
