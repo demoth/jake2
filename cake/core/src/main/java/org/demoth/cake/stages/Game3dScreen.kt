@@ -67,8 +67,6 @@ class Game3dScreen(
      */
     private var levelString: String = ""
 
-    private var surpressCount = 0 // number of messages rate supressed
-    private var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
     private val spriteBatch = SpriteBatch()
     private val skin = Skin(Gdx.files.internal("ui/uiskin.json"))
     private val layoutExecutor = LayoutExecutor(spriteBatch, skin)
@@ -577,48 +575,7 @@ class Game3dScreen(
      * Also compute the previous frame
      */
     override fun processServerFrameHeader(msg: FrameHeaderMessage) {
-        // todo: move to the entity manager
-        val currentFrame = entityManager.currentFrame
-
-        // update current frame
-        currentFrame.reset()
-        currentFrame.serverframe = msg.frameNumber
-        currentFrame.deltaframe = msg.lastFrame
-        currentFrame.servertime = currentFrame.serverframe * 100
-        surpressCount = msg.suppressCount
-
-        // If the frame is delta compressed from data that we
-        // no longer have available, we must suck up the rest of
-        // the frame, but not use it, then ask for a non-compressed
-        // message
-
-        // determine delta frame:
-        val deltaFrame: ClientFrame?
-        if (currentFrame.deltaframe <= 0) {
-            // uncompressed frame, don't need a delta frame
-            currentFrame.valid = true // uncompressed frame
-            deltaFrame = null
-        } else {
-            deltaFrame = entityManager.frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
-            if (!deltaFrame.valid) { // should never happen
-                Com.Printf("Delta from invalid frame (not supposed to happen!).\n")
-            }
-            if (deltaFrame.serverframe != currentFrame.deltaframe) {
-                // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
-                Com.Printf("Delta frame too old.\n")
-            } else if (entityManager.parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
-                Com.Printf("Delta parse_entities too old.\n")
-            } else {
-                currentFrame.valid = true  // valid delta parse
-            }
-        }
-        entityManager.previousFrame = deltaFrame
-
-        // clamp time
-        time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
-
-        // read areabits
-        System.arraycopy(msg.areaBits, 0, currentFrame.areabits, 0, msg.areaBits.size);
+        entityManager.processServerFrameHeader(msg)
     }
 
     override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {

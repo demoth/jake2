@@ -284,4 +284,46 @@ class ClientEntityManager {
         }
     }
 
+    fun processServerFrameHeader(msg: FrameHeaderMessage) {
+        // update current frame
+        currentFrame.reset()
+        currentFrame.serverframe = msg.frameNumber
+        currentFrame.deltaframe = msg.lastFrame
+        currentFrame.servertime = currentFrame.serverframe * 100
+
+        surpressCount = msg.suppressCount
+
+        // If the frame is delta compressed from data that we
+        // no longer have available, we must suck up the rest of
+        // the frame, but not use it, then ask for a non-compressed
+        // message
+        val deltaFrame: ClientFrame?
+        if (currentFrame.deltaframe <= 0) {
+            // uncompressed frame, don't need a delta frame
+            currentFrame.valid = true // uncompressed frame
+            deltaFrame = null
+        } else {
+            deltaFrame = frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
+            if (!deltaFrame.valid) { // should never happen
+                Com.Printf("Delta from invalid frame (not supposed to happen!).\n")
+            }
+            if (deltaFrame.serverframe != currentFrame.deltaframe) {
+                // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
+                Com.Printf("Delta frame too old.\n")
+            } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
+                Com.Printf("Delta parse_entities too old.\n")
+            } else {
+                currentFrame.valid = true  // valid delta parse
+            }
+        }
+        previousFrame = deltaFrame
+
+        // determine delta frame:
+        // clamp time
+        time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
+
+        // read areabits
+        System.arraycopy(msg.areaBits, 0, currentFrame.areabits, 0, msg.areaBits.size);
+    }
+
 }
