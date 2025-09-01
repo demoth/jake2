@@ -30,7 +30,7 @@ public abstract class ServerEntity {
 
     /** Constructor. */
     public ServerEntity(int i) {
-        s.number = i;
+        s.index = i;
         index = i;
     }
 

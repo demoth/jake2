@@ -85,7 +85,7 @@ public class NetworkMessageSizeTest {
         entity_state_t entityState = new entity_state_t(1);
         {
             entityState.origin = new float[]{1, 2, 3};
-            entityState.number = 1000;
+            entityState.index = 1000;
             // used these values due to rounding during serialization
             entityState.angles = new float[]{0.0f, 2.8125f, 1.40625f};
             entityState.skinnum = 2222;

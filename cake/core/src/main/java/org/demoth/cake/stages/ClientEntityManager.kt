@@ -42,7 +42,7 @@ class ClientEntityManager {
     var surpressCount = 0
 
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
-        clientEntities[msg.entityState.number].baseline.set(msg.entityState)
+        clientEntities[msg.entityState.index].baseline.set(msg.entityState)
     }
 
     /**
@@ -63,7 +63,7 @@ class ClientEntityManager {
         var oldstate: entity_state_t? = null
         var oldnum = if (oldFrame != null && oldFrame.num_entities > 0) {
             oldstate = cl_parse_entities[(oldFrame.parse_entities + oldindex) and mask]
-            oldstate.number
+            oldstate.index
         } else {
             9999
         }
@@ -76,7 +76,7 @@ class ClientEntityManager {
                 oldnum = 9999
             } else {
                 oldstate = cl_parse_entities[(oldFrame.parse_entities + oldindex) and mask]
-                oldnum = oldstate!!.number
+                oldnum = oldstate!!.index
             }
         }
 
@@ -142,7 +142,7 @@ class ClientEntityManager {
         frame.num_entities++
 
         newState.set(old)
-        newState.number = newnum
+        newState.index = newnum
         newState.event = 0
         Math3D.VectorCopy(old.origin, newState.old_origin)
 
@@ -232,7 +232,7 @@ class ClientEntityManager {
             // Make the mask application explicit to avoid any precedence confusion
             val idx = (currentFrame.parse_entities + i) and mask
             val newState = cl_parse_entities[idx]
-            val entity = clientEntities[newState.number]
+            val entity = clientEntities[newState.index]
 
             // not visible to client
             if (newState.modelindex == 0) {
@@ -263,7 +263,7 @@ class ClientEntityManager {
 
             // render it if the model was successfully loaded
             if (entity.modelInstance != null
-                && newState.number != renderState.playerNumber + 1
+                && newState.index != renderState.playerNumber + 1
                 && renderState.drawEntities
             ) {
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->

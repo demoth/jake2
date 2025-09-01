@@ -36,12 +36,12 @@ import java.util.Arrays;
 public class entity_state_t {
 	public entity_state_t(){}
 
-	public entity_state_t(int number) {
-		this.number = number;
+	public entity_state_t(int index) {
+		this.index = index;
 	}
 
 	/** edict index. TODO: this is critical. The index has to be proper managed. */
-	public int number = 0; 
+	public int index = 0;
 	public float[] origin = { 0, 0, 0 };
 	public float[] angles = { 0, 0, 0 };
 	
@@ -127,7 +127,7 @@ public class entity_state_t {
 
 	public void set(entity_state_t from)
 	{
-		number = from.number;
+		index = from.index;
 		Math3D.VectorCopy(from.origin, origin);
 		Math3D.VectorCopy(from.angles, angles);
 		Math3D.VectorCopy(from.old_origin, old_origin);
@@ -151,7 +151,7 @@ public class entity_state_t {
 	 * in the same way it's encoded during serialization.
 	 */
 	public void setByFlags(entity_state_t from, int flags) {
-		number = from.number;
+		index = from.index;
 
 		if ((flags & Defines.U_ORIGIN1) != 0)
 			origin[0] = from.origin[0];
@@ -204,7 +204,7 @@ public class entity_state_t {
 	public void clear()
 	{
 	    //TODO: this is critical. The index has to be proper managed.
-		number = 0;
+		index = 0;
 		Math3D.VectorClear(origin);
 		Math3D.VectorClear(angles);
 		Math3D.VectorClear(old_origin);
@@ -226,7 +226,7 @@ public class entity_state_t {
 
 		entity_state_t that = (entity_state_t) o;
 
-		if (number != that.number) return false;
+		if (index != that.index) return false;
 		if (modelindex != that.modelindex) return false;
 		if (modelindex2 != that.modelindex2) return false;
 		if (modelindex3 != that.modelindex3) return false;
@@ -245,7 +245,7 @@ public class entity_state_t {
 
 	@Override
 	public int hashCode() {
-		int result = number;
+		int result = index;
 		result = 31 * result + Arrays.hashCode(origin);
 		result = 31 * result + Arrays.hashCode(angles);
 		result = 31 * result + Arrays.hashCode(old_origin);
@@ -266,7 +266,7 @@ public class entity_state_t {
 	@Override
 	public String toString() {
 		return "entity_state_t{" +
-				"number=" + number +
+				"number=" + index +
 				", origin=" + Arrays.toString(origin) +
 				", angles=" + Arrays.toString(angles) +
 				", old_origin=" + Arrays.toString(old_origin) +

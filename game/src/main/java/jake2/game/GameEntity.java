@@ -240,7 +240,7 @@ public class GameEntity extends ServerEntity {
         gravity = 1.0f;
         //e.s.number= e - g_edicts;
         s = new entity_state_t(i);
-        s.number = i;
+        s.index = i;
         st = new ExtraSpawnProperties();
         index = i;
     }

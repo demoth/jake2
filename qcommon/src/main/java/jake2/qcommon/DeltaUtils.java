@@ -59,9 +59,9 @@ public class DeltaUtils {
         //----------
 
         if ((deltaFlags & U_NUMBER16) != 0)
-            buffer.writeShort(to.number);
+            buffer.writeShort(to.index);
         else
-            buffer.writeByte((byte) to.number);
+            buffer.writeByte((byte) to.index);
 
         if ((deltaFlags & U_MODEL) != 0)
             buffer.writeByte((byte) to.modelindex);
@@ -128,15 +128,15 @@ public class DeltaUtils {
     }
 
     private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {
-        if (0 == to.number)
+        if (0 == to.index)
             Com.Error(ERR_FATAL, "Unset entity number");
-        if (to.number >= MAX_EDICTS)
+        if (to.index >= MAX_EDICTS)
             Com.Error(ERR_FATAL, "Entity number >= MAX_EDICTS");
 
         // send an update
         int deltaFlags = 0;
 
-        if (to.number >= 256)
+        if (to.index >= 256)
             deltaFlags |= U_NUMBER16; // number8 is implicit otherwise
 
         if (to.origin[0] != from.origin[0])

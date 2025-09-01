@@ -114,7 +114,7 @@ public class QuakeFile extends RandomAccessFile {
         if (ent == null)
             writeInt(-1);
         else {
-            writeInt(ent.s.number);
+            writeInt(ent.s.index);
         }
     }
 

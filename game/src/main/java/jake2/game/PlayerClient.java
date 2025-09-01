@@ -643,7 +643,7 @@ public class PlayerClient {
         gameExports.gameImports.unlinkentity(body);
         body.s = ent.s.getClone();
 
-        body.s.number = body.index;
+        body.s.index = body.index;
 
         body.svflags = ent.svflags;
         Math3D.VectorCopy(ent.mins, body.mins);

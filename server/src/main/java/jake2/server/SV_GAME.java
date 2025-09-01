@@ -251,7 +251,7 @@ public class SV_GAME {
                     && 0 == svent.s.effects)
                 continue;
 
-            svent.s.number = entnum;
+            svent.s.index = entnum;
 
             // take current state as baseline
             Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);

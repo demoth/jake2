@@ -164,7 +164,7 @@ public class SV_ENTS {
                 newnum = 9999;
             } else {
                 newState = clientEntityStates[(currentFrame.first_entity + newindex) % maxEntityStates];
-                newnum = newState.number;
+                newnum = newState.index;
             }
             final int oldnum;
             if (oldindex >= from_num_entities)
@@ -172,7 +172,7 @@ public class SV_ENTS {
                 oldnum = 9999;
             else {
                 oldState = clientEntityStates[(lastReceivedFrame.first_entity + oldindex) % maxEntityStates];
-                oldnum = oldState.number;
+                oldnum = oldState.index;
             }
 
             if (newnum == oldnum) {
@@ -181,7 +181,7 @@ public class SV_ENTS {
                 // in any bytes being emited if the entity has not changed at all.
                 // Note: players are always 'newentities', this updates
                 // their oldorigin always  and prevents warping
-                final boolean isPlayer = newState.number <= maxClients;
+                final boolean isPlayer = newState.index <= maxClients;
                 result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
                 oldindex++;
                 newindex++;
@@ -361,9 +361,9 @@ public class SV_ENTS {
             // add it to the circular client_entities array
             int ix = next_client_entities % maxClientEntityStates;
             entity_state_t state = clientEntityStates[ix];
-            if (ent.s.number != e) {
+            if (ent.s.index != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
-                ent.s.number = e;
+                ent.s.index = e;
             }
 
             //*state = ent.s;
