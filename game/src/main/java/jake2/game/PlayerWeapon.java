@@ -42,7 +42,7 @@ public class PlayerWeapon {
     	public String getID() { return "Weapon_Grenade"; }
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if ((client.newweapon != null)
                     && (client.weaponstate == WeaponStates.WEAPON_READY)) {
                 ChangeWeapon(ent, gameExports);
@@ -166,7 +166,7 @@ public class PlayerWeapon {
                 damage *= 4;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             Math3D.AngleVectors(client.v_angle, forward, right, null);
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
@@ -230,7 +230,7 @@ public class PlayerWeapon {
                 radius_damage *= 4;
             }
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             Math3D.AngleVectors(client.v_angle, forward, right, null);
 
             Math3D.VectorScale(forward, -2, client.kick_origin);
@@ -311,7 +311,7 @@ public class PlayerWeapon {
             int effect;
             int damage;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.weapon_sound = gameExports.gameImports
                     .soundindex("weapons/hyprbl1a.wav");
 
@@ -433,7 +433,7 @@ public class PlayerWeapon {
             int damage = 4;
             int kick = 8;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (client.getPlayerState().gunframe == 9) {
                 client.getPlayerState().gunframe++;
                 return true;
@@ -499,7 +499,7 @@ public class PlayerWeapon {
             int damage = 6;
             int kick = 12;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             Math3D.AngleVectors(client.v_angle, forward, right, null);
 
             Math3D.VectorScale(forward, -2, client.kick_origin);
@@ -586,7 +586,7 @@ public class PlayerWeapon {
                 kick *= 4;
             }
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             Math3D.AngleVectors(client.v_angle, forward, right, null);
 
             Math3D.VectorScale(forward, -3, client.kick_origin);
@@ -645,7 +645,7 @@ public class PlayerWeapon {
             else
                 damage = 500;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (client.getPlayerState().gunframe == 9) {
                 gameExports.gameImports.multicastMessage(ent.s.origin, new WeaponSoundMessage(ent.index, Defines.MZ_BFG | gameExports.is_silenced), MulticastTypes.MULTICAST_PVS);
 
@@ -718,7 +718,7 @@ public class PlayerWeapon {
             GameItem ammo_item;
 
             // see if we're already using it
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (item == client.pers.weapon)
                 return;
 
@@ -767,7 +767,7 @@ public class PlayerWeapon {
 
             index = item.index;
             // see if we're already using it
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (((item == client.pers.weapon) || (item == client.newweapon))
                     && (client.pers.inventory[index] == 1)) {
                 gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
@@ -801,7 +801,7 @@ public class PlayerWeapon {
             int kick = 2;
             float[] offset = { 0, 0, 0 };
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (0 == (client.buttons & Defines.BUTTON_ATTACK)) {
                 client.machinegun_shots = 0;
                 client.getPlayerState().gunframe++;
@@ -896,7 +896,7 @@ public class PlayerWeapon {
             else
                 damage = 8;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (client.getPlayerState().gunframe == 5)
                 gameExports.gameImports.sound(ent, Defines.CHAN_AUTO, gameExports.gameImports
                         .soundindex("weapons/chngnu1a.wav"), 1,
@@ -1003,7 +1003,7 @@ public class PlayerWeapon {
 
             index = ent.item.index;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             if ((((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || gameExports.gameCvars.coop.value != 0)
                     && 0 != client.pers.inventory[index]) {
                 if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM)))
@@ -1042,8 +1042,8 @@ public class PlayerWeapon {
         }
     };
 
-    public static void P_ProjectSource(gclient_t client, float[] point,
-            float[] distance, float[] forward, float[] right, float[] result) {
+    public static void P_ProjectSource(GamePlayerInfo client, float[] point,
+                                       float[] distance, float[] forward, float[] right, float[] result) {
         float[] _distance = { 0, 0, 0 };
 
         Math3D.VectorCopy(distance, _distance);
@@ -1064,7 +1064,7 @@ public class PlayerWeapon {
     public static void ChangeWeapon(GameEntity ent, GameExportsImpl gameExports) {
         int i;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client.grenade_time != 0) {
             client.grenade_time = gameExports.level.time;
             client.weapon_sound = 0;
@@ -1121,7 +1121,7 @@ public class PlayerWeapon {
      * =================
      */
     public static void NoAmmoWeaponChange(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (0 != client.pers.inventory[GameItems
                 .FindItem("slugs", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
@@ -1176,7 +1176,7 @@ public class PlayerWeapon {
      */
     public static void Think_Weapon(GameEntity ent, GameExportsImpl gameExports) {
         // if just died, put the weapon away
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (ent.health < 1) {
             client.newweapon = null;
             ChangeWeapon(ent, gameExports);
@@ -1218,7 +1218,7 @@ public class PlayerWeapon {
             return;
         }
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client.weaponstate == WeaponStates.WEAPON_DROPPING) {
             if (client.getPlayerState().gunframe == FRAME_DEACTIVATE_LAST) {
                 ChangeWeapon(ent, gameExports);
@@ -1357,7 +1357,7 @@ public class PlayerWeapon {
             damage *= 4;
 
         Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         Math3D.AngleVectors(client.v_angle, forward, right, null);
         P_ProjectSource(client, ent.s.origin, offset, forward, right, start);
 
@@ -1408,7 +1408,7 @@ public class PlayerWeapon {
 
         if (gameExports.is_quad)
             damage *= 4;
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         Math3D.AngleVectors(client.v_angle, forward, right, null);
         Math3D.VectorSet(offset, 24, 8, ent.viewheight - 8);
         Math3D.VectorAdd(offset, g_offset, offset);
@@ -1446,7 +1446,7 @@ public class PlayerWeapon {
     static void PlayerNoise(GameEntity who, float[] where, int type, GameExportsImpl gameExports) {
 
         if (type == GameDefines.PNOISE_WEAPON) {
-            gclient_t client = who.getClient();
+            GamePlayerInfo client = who.getClient();
             if (client.silencer_shots > 0) {
                 client.silencer_shots--;
                 return;

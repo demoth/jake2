@@ -168,7 +168,7 @@ public class GameUtil {
     private static String ClientTeam(GameEntity ent, float dmflags) {
         String value;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client == null)
             return "";
 
@@ -188,7 +188,7 @@ public class GameUtil {
 
     public static void ValidateSelectedItem(GameEntity ent, GameExportsImpl gameExports) {
 
-        gclient_t cl = ent.getClient();
+        GamePlayerInfo cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid

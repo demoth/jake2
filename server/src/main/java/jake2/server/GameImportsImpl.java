@@ -421,7 +421,7 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("Usage: kick <userid>\n");
             return;
         }
-        client_t client = SV_SetPlayer(args);
+        ClientNetworkInfo client = SV_SetPlayer(args);
         if (client == null)
             return;
 
@@ -449,7 +449,7 @@ public class GameImportsImpl implements GameImports {
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
 
         int i = 0;
-        for (client_t cl : serverMain.getClients()) {
+        for (ClientNetworkInfo cl : serverMain.getClients()) {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
 
@@ -506,7 +506,7 @@ public class GameImportsImpl implements GameImports {
 
         text += p;
 
-        for (client_t client: serverMain.getClients()) {
+        for (ClientNetworkInfo client: serverMain.getClients()) {
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
             SV_SEND.SV_ClientPrintf(client, Defines.PRINT_CHAT, text + "\n");
@@ -542,7 +542,7 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("Usage: info <userid>\n");
             return;
         }
-        client_t client = SV_SetPlayer(args);
+        ClientNetworkInfo client = SV_SetPlayer(args);
         if (client == null)
             return;
 
@@ -569,7 +569,7 @@ public class GameImportsImpl implements GameImports {
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
      */
-    private client_t SV_SetPlayer(List<String> args) {
+    private ClientNetworkInfo SV_SetPlayer(List<String> args) {
 
         if (args.size() < 2)
             return null;
@@ -585,7 +585,7 @@ public class GameImportsImpl implements GameImports {
                 return null;
             }
 
-            final client_t result = serverMain.getClients().get(id);
+            final ClientNetworkInfo result = serverMain.getClients().get(id);
             if (ClientStates.CS_FREE == result.state) {
                 Com.Printf("Client " + id + " is not active\n");
                 return null;
@@ -594,7 +594,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // check for a name match
-        for (client_t cl: serverMain.getClients()) {
+        for (ClientNetworkInfo cl: serverMain.getClients()) {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
             if (idOrName.equals(cl.name)) {
@@ -639,7 +639,7 @@ public class GameImportsImpl implements GameImports {
         if (sv.state == ServerStates.SS_DEAD)
             return;
 
-        for (client_t client : serverMain.getClients()) {
+        for (ClientNetworkInfo client : serverMain.getClients()) {
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
             client.netchan.reliablePending.add(new StuffTextMessage(s));
@@ -781,7 +781,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // send the data to all relevent clients
-        for (client_t client : serverMain.getClientsForInstance(name)) {
+        for (ClientNetworkInfo client : serverMain.getClientsForInstance(name)) {
             if (client == null)
                 continue;
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)

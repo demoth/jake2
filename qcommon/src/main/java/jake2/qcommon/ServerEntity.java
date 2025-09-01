@@ -85,7 +85,7 @@ public class ServerEntity {
         throw new IllegalStateException("edict_t.getOwner() should not be called");
     }
 
-    public GameClient getClient() {
+    public ServerPlayerInfo getClient() {
         throw new IllegalStateException("edict_t.getClient() should not be called");
     }
 

@@ -55,7 +55,7 @@ class PlayerView {
 
     private GameEntity current_player;
 
-    private gclient_t current_client;
+    private GamePlayerInfo current_client;
 
     private float[] forward = { 0, 0, 0 };
     private float[] right = { 0, 0, 0 };
@@ -104,7 +104,7 @@ class PlayerView {
      * Handles color blends and view kicks
      */
     private void P_DamageFeedback(GameEntity player, GameExportsImpl gameExports) {
-        gclient_t client;
+        GamePlayerInfo client;
         float side;
         float realcount, count, kick;
         float[] v = { 0, 0, 0 };
@@ -259,7 +259,7 @@ class PlayerView {
         float[] v = { 0, 0, 0 };
 
         // base angles
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         angles = client.getPlayerState().kick_angles;
 
         // if dead, fix the angle and don't add any kick
@@ -364,7 +364,7 @@ class PlayerView {
         float delta;
 
         // gun angles from bobbing
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         client.getPlayerState().gunangles[Defines.ROLL] = xyspeed * bobfracsin * 0.005f;
         client.getPlayerState().gunangles[Defines.YAW] = xyspeed * bobfracsin * 0.01f;
         if ((bobcycle & 1) != 0) {
@@ -428,7 +428,7 @@ class PlayerView {
         float[] vieworg = { 0, 0, 0 };
         int remaining;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         client.getPlayerState().blend[0] = client.getPlayerState().blend[1] = client.getPlayerState().blend[2] = client.getPlayerState().blend[3] = 0;
 
         // add for contents
@@ -515,7 +515,7 @@ class PlayerView {
         if (ent.movetype == GameDefines.MOVETYPE_NOCLIP)
             return;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if ((client.oldvelocity[2] < 0)
                 && (ent.velocity[2] > client.oldvelocity[2])
                 && (null == ent.groundentity)) {
@@ -686,7 +686,7 @@ class PlayerView {
 
             // if out of air, start drowning
             if (current_player.air_finished < gameExports.level.time) { // drown!
-                gclient_t client = current_player.getClient();
+                GamePlayerInfo client = current_player.getClient();
                 if (client.next_drown_time < gameExports.level.time
                         && current_player.health > 0) {
                     client.next_drown_time = gameExports.level.time + 1;
@@ -792,7 +792,7 @@ class PlayerView {
             }
         }
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client.quad_framenum > gameExports.level.framenum) {
             remaining = (int) client.quad_framenum
                     - gameExports.level.framenum;
@@ -837,7 +837,7 @@ class PlayerView {
     private static void G_SetClientSound(GameEntity ent, GameExportsImpl gameExports) {
         String weap;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client.pers.game_helpchanged != gameExports.game.helpchanged) {
             client.pers.game_helpchanged = gameExports.game.helpchanged;
             client.pers.helpchanged = 1;
@@ -881,7 +881,7 @@ class PlayerView {
         if (ent.s.modelindex != 255)
             return; // not in the player model
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
 
         if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             duck = true;

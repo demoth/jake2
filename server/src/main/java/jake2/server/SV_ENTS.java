@@ -82,7 +82,7 @@ public class SV_ENTS {
      *
      * SV_WriteFrameToClient
      */
-    public Collection<ServerMessage> buildClientFrameMessages(client_t client) {
+    public Collection<ServerMessage> buildClientFrameMessages(ClientNetworkInfo client) {
         // first, build the "frame" (previously it was invoked outside of this method)
         gameImports.sv_ents.SV_BuildClientFrame(client);
 
@@ -259,7 +259,7 @@ public class SV_ENTS {
      * Decides which entities are going to be visible to the client (update the clientEntityStates from game entities' state),
      * and copies off the playerstat and areabits.
      */
-    public void SV_BuildClientFrame(client_t client) {
+    public void SV_BuildClientFrame(ClientNetworkInfo client) {
 
         ServerEntity clent = client.edict;
         if (clent.getClient() == null)

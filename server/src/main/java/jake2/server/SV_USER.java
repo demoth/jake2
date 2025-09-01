@@ -72,7 +72,7 @@ class SV_USER {
      * be sent on the initial connection and upon each server load.
      * ================
      */
-    private static void SV_New_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_New_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
 
         Com.DPrintf("New() from " + client.name + "\n");
 
@@ -124,7 +124,7 @@ class SV_USER {
     /*
      * ================== SV_Configstrings_f ==================
      */
-    private static void SV_Configstrings_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_Configstrings_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
 
         Com.DPrintf("Configstrings() from " + client.name + "\n");
 
@@ -168,7 +168,7 @@ class SV_USER {
     /*
      * ================== SV_Baselines_f ==================
      */
-    private static void SV_Baselines_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_Baselines_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
 
         Com.DPrintf("Baselines() from " + client.name + "\n");
 
@@ -218,7 +218,7 @@ class SV_USER {
     /*
      * ================== SV_Begin_f ==================
      */
-    private static void SV_Begin_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_Begin_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
         Com.DPrintf("Begin() from " + client.name + "\n");
 
         // handle the case of a level changing while a client was connecting
@@ -242,7 +242,7 @@ class SV_USER {
     /*
      * ================== SV_NextDownload_f ==================
      */
-    private static void SV_NextDownload_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_NextDownload_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
 
         if (client.download == null)
             return;
@@ -269,7 +269,7 @@ class SV_USER {
     /*
      * ================== SV_BeginDownload_f ==================
      */
-    private static void SV_BeginDownload_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_BeginDownload_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
         int offset = 0;
 
         if (args.size() < 2)
@@ -343,7 +343,7 @@ class SV_USER {
      * The client is going to disconnect, so remove the connection immediately
      * =================
      */
-    private static void SV_Disconnect_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_Disconnect_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
         //	SV_EndRedirect ();
         SV_MAIN.SV_DropClient(client);
     }
@@ -353,7 +353,7 @@ class SV_USER {
      * 
      * Dumps the serverinfo info string ==================
      */
-    private static void SV_ShowServerinfo_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_ShowServerinfo_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
         Info.Print(Cvar.getInstance().Serverinfo());
     }
 
@@ -382,7 +382,7 @@ class SV_USER {
      * A cinematic has completed or been aborted by a client, so move to the
      * next server, ==================
      */
-    private static void SV_Nextserver_f(List<String> args, GameImportsImpl gameImports, client_t client) {
+    private static void SV_Nextserver_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
         int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
         if (spawnCount != gameImports.spawncount) {
             Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n");

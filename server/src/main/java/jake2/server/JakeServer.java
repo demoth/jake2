@@ -5,9 +5,9 @@ import java.util.List;
 public interface JakeServer {
     void update(long time);
 
-    List<client_t> getClientsForInstance(String gameName);
+    List<ClientNetworkInfo> getClientsForInstance(String gameName);
 
-    List<client_t> getClients();
+    List<ClientNetworkInfo> getClients();
 
     void SV_BroadcastPrintf(int level, String s, String name);
 

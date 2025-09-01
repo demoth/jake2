@@ -32,11 +32,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Server side representation of client.
+ * Server side representation of client for networking.
+ * (former client_t)
  */
-public class client_t {
+public class ClientNetworkInfo {
 
-	public client_t() {
+	public ClientNetworkInfo() {
 		for (int n = 0; n < Defines.UPDATE_BACKUP; n++) {
 			frames[n] = new client_frame_t();
 		}

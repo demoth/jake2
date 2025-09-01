@@ -50,7 +50,7 @@ public class SV_SEND {
 	Sends text across to be displayed if the level passes
 	=================
 	*/
-	public static void SV_ClientPrintf(client_t cl, int level, String s) {
+	public static void SV_ClientPrintf(ClientNetworkInfo cl, int level, String s) {
 
 		if (level >= cl.messagelevel) {
 			cl.netchan.reliablePending.add(new PrintMessage(level, s));
@@ -180,7 +180,7 @@ public class SV_SEND {
 	SV_SendClientDatagram
 	=======================
 	*/
-	public static void SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
+	public static void SV_SendClientDatagram(ClientNetworkInfo client, GameImportsImpl gameImports) {
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t

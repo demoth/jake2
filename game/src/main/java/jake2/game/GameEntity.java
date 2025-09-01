@@ -22,7 +22,7 @@ public class GameEntity extends ServerEntity {
         super(i);
     }
 
-    private gclient_t client;
+    private GamePlayerInfo client;
 
     public GameEntity enemy = null;
     public GameEntity oldenemy = null;
@@ -541,7 +541,7 @@ public class GameEntity extends ServerEntity {
     }
 
     /** Reads the entity from the file. */
-    public void read(QuakeFile f, ServerEntity[] g_edicts, gclient_t[] clients, GameExportsImpl gameExports) throws IOException {
+    public void read(QuakeFile f, ServerEntity[] g_edicts, GamePlayerInfo[] clients, GameExportsImpl gameExports) throws IOException {
         s.read(f, g_edicts);
         inuse = f.readBoolean();
         linkcount = f.readInt();
@@ -712,11 +712,11 @@ public class GameEntity extends ServerEntity {
     }
 
     @Override
-    public gclient_t getClient() {
+    public GamePlayerInfo getClient() {
         return client;
     }
 
-    public void setClient(gclient_t client) {
+    public void setClient(GamePlayerInfo client) {
         this.client = client;
     }
 

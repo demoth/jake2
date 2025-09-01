@@ -1,9 +1,9 @@
 package jake2.qcommon;
 
 /**
- * Represents connected client information linked to edict
+ * Represents connected client information exposed from the server for the game side
  */
-public interface GameClient {
+public interface ServerPlayerInfo {
     player_state_t getPlayerState();
 
     int getPing();

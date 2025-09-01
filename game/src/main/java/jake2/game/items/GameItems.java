@@ -238,7 +238,7 @@ public class GameItems {
             if (ent.classname.equals("item_breather"))
                 taken = false;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             if (client == null)
                 return;
             if (other.health < 1)
@@ -319,7 +319,7 @@ public class GameItems {
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int timeout;
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
 
@@ -346,7 +346,7 @@ public class GameItems {
         }
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
 
@@ -365,7 +365,7 @@ public class GameItems {
         }
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
 
             GameUtil.ValidateSelectedItem(ent, gameExports);
@@ -385,7 +385,7 @@ public class GameItems {
         }
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
 
@@ -405,7 +405,7 @@ public class GameItems {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
             client.silencer_shots += 30;
@@ -417,7 +417,7 @@ public class GameItems {
     static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
         public String getID() { return "pickup_key";}
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             if (gameExports.gameCvars.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
                     if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
@@ -451,7 +451,7 @@ public class GameItems {
             else
                 count = ent.item.quantity;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             oldcount = client.pers.inventory[ent.item.index];
     
             if (!Add_Ammo(other, ent.item, count))
@@ -483,7 +483,7 @@ public class GameItems {
             int old_armor_index = ArmorIndex(other, gameExports);
 
             // handle armor shards specially
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             if ("item_armor_shard".equals(ent.item.classname)) {
                 if (-1 == old_armor_index)
                     client.pers.inventory[gameExports.jacket_armor_index] = 2;
@@ -555,7 +555,7 @@ public class GameItems {
     
             int quantity;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             quantity = client.pers.inventory[ent.item.index];
 
             client.pers.inventory[ent.item.index]++;
@@ -575,7 +575,7 @@ public class GameItems {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int quantity;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             quantity = client.pers.inventory[ent.item.index];
             if ((gameExports.gameCvars.skill.value == 1 && quantity >= 2)
                     || (gameExports.gameCvars.skill.value >= 2 && quantity >= 1))
@@ -639,7 +639,7 @@ public class GameItems {
             GameItem item;
             int index;
 
-            gclient_t client = other.getClient();
+            GamePlayerInfo client = other.getClient();
             if (client.pers.max_bullets < 250)
                 client.pers.max_bullets = 250;
             if (client.pers.max_shells < 150)
@@ -683,7 +683,7 @@ public class GameItems {
 
             index = item.index;
             GameEntity dropped = Drop_Item(ent, item, gameExports);
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (client.pers.inventory[index] >= item.quantity)
                 dropped.count = item.quantity;
             else
@@ -710,7 +710,7 @@ public class GameItems {
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             Drop_Item(ent, item, gameExports);
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             client.pers.inventory[item.index]--;
             ValidateSelectedItem(ent, gameExports);
         }
@@ -722,7 +722,7 @@ public class GameItems {
         }
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
-            gclient_t client = ent.getClient();
+            GamePlayerInfo client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[item.index] == 1))
                 Use_PowerArmor.use(ent, item, gameExports);
@@ -812,7 +812,7 @@ public class GameItems {
                                 Defines.ATTN_NORM, 0);
             } else {
                     GameItem cells = FindItem("cells", gameExports);
-                gclient_t client = ent.getClient();
+                GamePlayerInfo client = ent.getClient();
                 if (cells == null || 0 == client.pers.inventory[cells.index]) {
                     gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                             "No cells for power armor.\n");
@@ -906,7 +906,7 @@ public class GameItems {
     
         dropped.setOwner(ent);
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client != null) {
             trace_t trace;
     
@@ -934,7 +934,7 @@ public class GameItems {
     }
 
     public static int PowerArmorType(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
     
@@ -951,7 +951,7 @@ public class GameItems {
     }
 
     public static int ArmorIndex(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client == null)
             return -1;
     
@@ -971,7 +971,7 @@ public class GameItems {
         int index;
         int max;
 
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (client == null)
             return false;
 
@@ -1023,7 +1023,7 @@ public class GameItems {
 
     public static void SelectNextItem(GameEntity ent, int itflags, GameExportsImpl gameExports) {
 
-        gclient_t cl = ent.getClient();
+        GamePlayerInfo cl = ent.getClient();
 
         if (cl.chase_target != null) {
             GameChase.ChaseNext(ent, gameExports);
@@ -1050,7 +1050,7 @@ public class GameItems {
 
     public static void SelectPrevItem(GameEntity ent, int itflags, GameExportsImpl gameExports) {
 
-        gclient_t cl = ent.getClient();
+        GamePlayerInfo cl = ent.getClient();
 
         if (cl.chase_target != null) {
             GameChase.ChasePrev(ent, gameExports);
@@ -1225,7 +1225,7 @@ public class GameItems {
         boolean taken;
 
         // freed edicts have not items.
-        gclient_t client = other.getClient();
+        GamePlayerInfo client = other.getClient();
         if (client == null || ent.item == null)
             return;
         if (other.health < 1)
@@ -1292,7 +1292,7 @@ public class GameItems {
     }
 
     public static void ValidateSelectedItem(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t cl = ent.getClient();
+        GamePlayerInfo cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid

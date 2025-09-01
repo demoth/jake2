@@ -118,7 +118,7 @@ public class GameCombat {
             // content type
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 gameExports.level.killed_monsters++;
-                gclient_t attackerClient = attacker.getClient();
+                GamePlayerInfo attackerClient = attacker.getClient();
                 if (gameExports.gameCvars.coop.value != 0 && attackerClient != null)
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
@@ -153,7 +153,7 @@ public class GameCombat {
 
     private static int CheckPowerArmor(GameEntity ent, float[] point, float[] normal,
                                        int damage, int dflags, GameExportsImpl gameExports) {
-        gclient_t client;
+        GamePlayerInfo client;
         int save;
         int power_armor_type;
         int index = 0;
@@ -230,7 +230,7 @@ public class GameCombat {
 
     private static int CheckArmor(GameEntity ent, float[] point, float[] normal,
                                   int damage, int te_sparks, int dflags, GameExportsImpl gameExports) {
-        gclient_t client;
+        GamePlayerInfo client;
         int save;
 
         if (damage == 0)
@@ -486,7 +486,7 @@ public class GameCombat {
         }
     
         // check for invincibility
-        gclient_t targetClient = target.getClient();
+        GamePlayerInfo targetClient = target.getClient();
         if ((targetClient != null && targetClient.invincible_framenum > gameExports.level.framenum)
                 && 0 == (damageFlags & DamageFlags.DAMAGE_NO_PROTECTION)) {
             if (target.pain_debounce_time < gameExports.level.time) {

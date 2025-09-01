@@ -42,7 +42,7 @@ public class PlayerHud {
      */
 
     public static void MoveClientToIntermission(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0)
             client.showscores = true;
         Math3D.VectorCopy(gameExports.level.intermission_origin, ent.s.origin);
@@ -174,7 +174,7 @@ public class PlayerHud {
         int score, total;
         int picnum;
         int x, y;
-        gclient_t cl;
+        GamePlayerInfo cl;
         ServerEntity cl_ent;
         String tag;
 
@@ -269,7 +269,7 @@ public class PlayerHud {
         //
         // health
         //
-        gclient_t client = ent.getClient();
+        GamePlayerInfo client = ent.getClient();
         client.getPlayerState().stats[Defines.STAT_HEALTH_ICON] = (short) gameExports.level.pic_health;
         client.getPlayerState().stats[Defines.STAT_HEALTH] = (short) ent.health;
 
@@ -406,7 +406,7 @@ public class PlayerHud {
     public static void G_CheckChaseStats(ServerEntity ent, GameExportsImpl gameExports) {
 
         for (int i = 1; i <= gameExports.game.maxclients; i++) {
-            gclient_t cl = gameExports.g_edicts[i].getClient();
+            GamePlayerInfo cl = gameExports.g_edicts[i].getClient();
             if (!gameExports.g_edicts[i].inuse || cl.chase_target != ent)
                 continue;
             //memcpy(cl.ps.stats, ent.client.ps.stats, sizeof(cl.ps.stats));
@@ -423,7 +423,7 @@ public class PlayerHud {
      * ===============
      */
     public static void G_SetSpectatorStats(GameEntity ent, GameExportsImpl gameExports) {
-        gclient_t cl = ent.getClient();
+        GamePlayerInfo cl = ent.getClient();
 
         if (null == cl.chase_target)
             G_SetStats(ent, gameExports);

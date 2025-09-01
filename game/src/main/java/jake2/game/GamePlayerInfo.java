@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
+import jake2.qcommon.ServerPlayerInfo;
 import jake2.qcommon.ServerEntity;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.player_state_t;
@@ -31,9 +32,13 @@ import jake2.qcommon.pmove_state_t;
 
 import java.io.IOException;
 
-public class gclient_t implements jake2.qcommon.GameClient {
+/**
+ * Represents game side information about the player.
+ * (former edict_t)
+ */
+public class GamePlayerInfo implements ServerPlayerInfo {
 
-	public gclient_t(int index)
+	public GamePlayerInfo(int index)
 	{
 		this.setIndex(index);
 	}

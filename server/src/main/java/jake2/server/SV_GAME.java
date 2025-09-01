@@ -49,7 +49,7 @@ public class SV_GAME {
         if (index < 1 || index > gameImports.serverMain.getClients().size())
             return;
 
-        client_t client = gameImports.serverMain.getClients().get(index - 1);
+        ClientNetworkInfo client = gameImports.serverMain.getClients().get(index - 1);
 
         if (reliable) {
             client.netchan.reliablePending.add(msg);

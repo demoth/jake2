@@ -13,7 +13,7 @@ public enum ClientStates {
     CS_ZOMBIE,
 
     /*
-     * Client is connected (new) and been assigned to this slot (client_t).
+     * Client is connected (new) and been assigned to this slot (ClientNetworkInfo).
      * Client is receiving "baselines" (command), but not in game yet.
      */
     CS_CONNECTED,

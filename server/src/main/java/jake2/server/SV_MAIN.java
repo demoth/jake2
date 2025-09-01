@@ -59,7 +59,7 @@ import static jake2.server.SV_USER.userCommands;
 public class SV_MAIN implements JakeServer {
 
     @Override
-    public List<client_t> getClients() {
+    public List<ClientNetworkInfo> getClients() {
         return clients;
     }
 
@@ -68,7 +68,7 @@ public class SV_MAIN implements JakeServer {
     public static Map<String, GameImportsImpl> games = new HashMap<>();
 
     @Override
-    public List<client_t> getClientsForInstance(final String gameName) {
+    public List<ClientNetworkInfo> getClientsForInstance(final String gameName) {
         if (!games.containsKey(gameName)) {
             // happens during the game instance creation, while the instance has random name
             Com.Printf("Game " + gameName + " is not found!\n");
@@ -86,7 +86,7 @@ public class SV_MAIN implements JakeServer {
     // prevent invalid IPs from connecting
     private final challenge_t[] challenges = new challenge_t[Defines.MAX_CHALLENGES]; // to
 
-    private List<client_t> clients = new ArrayList<>(); // [maxclients->value];
+    private List<ClientNetworkInfo> clients = new ArrayList<>(); // [maxclients->value];
 
     private long realtime = 0;
     private int frameNum = 0;
@@ -140,7 +140,7 @@ public class SV_MAIN implements JakeServer {
 
         String status = Cvar.getInstance().Serverinfo() + "\n";
 
-        for (client_t cl: clients) {
+        for (ClientNetworkInfo cl: clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) {
                 String player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
 
@@ -173,7 +173,7 @@ public class SV_MAIN implements JakeServer {
             info = SV_MAIN.hostname.string + ": wrong version\n";
         else {
             int players = 0;
-            for (client_t cl: clients)
+            for (ClientNetworkInfo cl: clients)
                 if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
@@ -270,7 +270,7 @@ public class SV_MAIN implements JakeServer {
 
         // if there is already a slot for this ip, reuse it
         int i = 0;
-        for (client_t cl: clients) {
+        for (ClientNetworkInfo cl: clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
@@ -290,7 +290,7 @@ public class SV_MAIN implements JakeServer {
         // find a client slot
         int index = -1;
         i = 0;
-        for (client_t cl: clients) {
+        for (ClientNetworkInfo cl: clients) {
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
@@ -311,9 +311,9 @@ public class SV_MAIN implements JakeServer {
     private void gotnewcl(int i, int challenge, String userinfo, netadr_t adr, int qport) {
         // build a new connection
         // accept the new client
-        // this is the only place a client_t is ever initialized
+        // this is the only place a ClientNetworkInfo is ever initialized
 
-        final client_t client = clients.get(i);
+        final ClientNetworkInfo client = clients.get(i);
         GameImportsImpl gameImports = games.get("default");
         client.gameName = "default";
 
@@ -519,7 +519,7 @@ public class SV_MAIN implements JakeServer {
     void SV_SendClientMessages() {
 
         // send a message to each connected client
-        for (client_t c : clients) {
+        for (ClientNetworkInfo c : clients) {
 
             if (c.state == ClientStates.CS_FREE)
                 continue;
@@ -557,7 +557,7 @@ public class SV_MAIN implements JakeServer {
      * unwillingly. This is NOT called if the entire server is quiting or
      * crashing.
      */
-    static void SV_DropClient(client_t client) {
+    static void SV_DropClient(ClientNetworkInfo client) {
         // add the disconnect
         client.netchan.reliablePending.add(new DisconnectMessage());
 
@@ -585,7 +585,7 @@ public class SV_MAIN implements JakeServer {
             Com.Printf(message);
         }
 
-        for (client_t cl: getClientsForInstance(gameName)) {
+        for (ClientNetworkInfo cl: getClientsForInstance(gameName)) {
             if (cl == null || level < cl.messagelevel)
                 continue;
             if (cl.state != ClientStates.CS_SPAWNED)
@@ -600,7 +600,7 @@ public class SV_MAIN implements JakeServer {
      * Returns true if the client is over its current
      * bandwidth estimation and should not be sent another packet
      */
-    boolean SV_RateDrop(client_t c) {
+    boolean SV_RateDrop(ClientNetworkInfo c) {
 
         // never drop over the loopback
         if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
@@ -642,7 +642,7 @@ public class SV_MAIN implements JakeServer {
 
             // Match incoming packet with the existing client.
             // todo: get client by address (hashmap?)
-            for (client_t cl: clients) {
+            for (ClientNetworkInfo cl: clients) {
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address))
@@ -677,7 +677,7 @@ public class SV_MAIN implements JakeServer {
      * The current net_message is parsed for the given client
      * ===================
      */
-    static void SV_ExecuteClientMessage(client_t cl, Collection<ClientMessage> clientMessages) {
+    static void SV_ExecuteClientMessage(ClientNetworkInfo cl, Collection<ClientMessage> clientMessages) {
 
         // only allow one move command
         boolean move_issued = false;
@@ -760,7 +760,7 @@ public class SV_MAIN implements JakeServer {
         }
     }
 
-    static void SV_ClientThink(client_t cl, usercmd_t cmd) {
+    static void SV_ClientThink(ClientNetworkInfo cl, usercmd_t cmd) {
         cl.commandMsec -= cmd.msec & 0xFF;
 
         if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
@@ -775,7 +775,7 @@ public class SV_MAIN implements JakeServer {
      * Pull specific info from a newly changed userinfo string into a more C
      * freindly form.
      */
-    static void SV_UserinfoChanged(client_t cl) {
+    static void SV_UserinfoChanged(ClientNetworkInfo cl) {
         // call prog code to allow overrides
         games.get(cl.gameName).gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
@@ -806,7 +806,7 @@ public class SV_MAIN implements JakeServer {
 
     }
 
-    private static void SV_ExecuteUserCommand(client_t cl, String command) {
+    private static void SV_ExecuteUserCommand(ClientNetworkInfo cl, String command) {
 
         Com.dprintln("SV_ExecuteUserCommand:" + command );
 
@@ -829,13 +829,13 @@ public class SV_MAIN implements JakeServer {
      * seconds, drop the conneciton. Server frames are used instead of realtime
      * to avoid dropping the local client while debugging.
      *
-     * When a client is normally dropped, the client_t goes into a zombie state
+     * When a client is normally dropped, the ClientNetworkInfo goes into a zombie state
      * for a few seconds to make sure any final reliable message gets resent if
      * necessary.
      */
     void SV_CheckTimeouts() {
 
-        for (client_t cl : clients) {
+        for (ClientNetworkInfo cl : clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -864,7 +864,7 @@ public class SV_MAIN implements JakeServer {
      */
     void SV_CalcPings() {
 
-        for (client_t cl: clients) {
+        for (ClientNetworkInfo cl: clients) {
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -895,7 +895,7 @@ public class SV_MAIN implements JakeServer {
         if ((frameNum & 15) != 0)
             return;
 
-        for (client_t cl: clients) {
+        for (ClientNetworkInfo cl: clients) {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -924,11 +924,11 @@ public class SV_MAIN implements JakeServer {
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
-        for (client_t cl : clients) {
+        for (ClientNetworkInfo cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 cl.netchan.transmit(msgs);
         }
-        for (client_t cl : clients) {
+        for (ClientNetworkInfo cl : clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 cl.netchan.transmit(msgs);
         }
@@ -963,7 +963,7 @@ public class SV_MAIN implements JakeServer {
         // Clear all clients
         clients = new ArrayList<>(max);
         for (int i = 0; i < max; i++) {
-            client_t cl = new client_t();
+            ClientNetworkInfo cl = new ClientNetworkInfo();
             cl.lastcmd = new usercmd_t();
             clients.add(cl);
         }
@@ -1224,7 +1224,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
                 // todo: only relevant to this gameImports clients
                 boolean[] savedInuse = new boolean[clients.size()];
                 int i = 0;
-                for (client_t cl : clients) {
+                for (ClientNetworkInfo cl : clients) {
                     if (cl.edict != null) { // free client slots will have null values
                         savedInuse[i] = cl.edict.inuse;
                         cl.edict.inuse = false;
@@ -1236,7 +1236,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
                 // we must restore these for clients to transfer over correctly
                 i = 0;
-                for (client_t cl: clients) {
+                for (ClientNetworkInfo cl: clients) {
                     if (cl.edict != null) { // free client slots will have null values
                         cl.edict.inuse = savedInuse[i];
                     }
@@ -1252,13 +1252,13 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             // start up the next map
             game.name = "default";
             games.put(game.name, game);
-            for (client_t cl : clients) {
+            for (ClientNetworkInfo cl : clients) {
                 cl.gameName = "default";
             }
 
         } else {
             // preview of the multi instance mode
-            final client_t cl = clients.get(clientIndex - 1);
+            final ClientNetworkInfo cl = clients.get(clientIndex - 1);
             GameImportsImpl previousGame = games.get(cl.gameName);
             previousGame.gameExports.ClientDisconnect(cl.edict);
             games.put(game.name, game);
@@ -1307,7 +1307,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         if (clientIndex == 0) {
             // leave slots at start for clients only
-            for (client_t cl : clients) { //todo
+            for (ClientNetworkInfo cl : clients) { //todo
                 // needs to reconnect
                 if (cl.state == ClientStates.CS_SPAWNED)
                     cl.state = ClientStates.CS_CONNECTED;
@@ -1316,7 +1316,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             gameImports.SV_BroadcastCommand("changing");
 
         } else {
-            final client_t cl = clients.get(clientIndex - 1);
+            final ClientNetworkInfo cl = clients.get(clientIndex - 1);
             if (cl.state == ClientStates.CS_SPAWNED)
                 cl.state = ClientStates.CS_CONNECTED;
             cl.lastReceivedFrame = -1;

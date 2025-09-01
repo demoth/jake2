@@ -235,7 +235,7 @@ public class GameMisc {
         VelocityForDamage(damage, vd);
         Math3D.VectorAdd(self.velocity, vd, self.velocity);
 
-        gclient_t client = self.getClient();
+        GamePlayerInfo client = self.getClient();
         if (client != null)
         // bodies in the queue don't have a client anymore
         {
