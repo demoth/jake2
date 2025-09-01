@@ -24,7 +24,7 @@ package jake2.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.PrintMessage;
@@ -85,7 +85,7 @@ public class SV_SEND {
 	*/
 	public static void SV_StartSound(
 		float[] origin,
-		edict_t entity,
+		ServerEntity entity,
 		int channel,
 		int soundindex,
 		float volume,

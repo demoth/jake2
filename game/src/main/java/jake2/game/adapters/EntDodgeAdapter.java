@@ -24,9 +24,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game.adapters;
 
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
+import jake2.game.GameEntity;
 
 public abstract class EntDodgeAdapter extends SuperAdapter
 {
-	public abstract void dodge(SubgameEntity self, SubgameEntity other, float eta, GameExportsImpl gameExports);
+	public abstract void dodge(GameEntity self, GameEntity other, float eta, GameExportsImpl gameExports);
 }

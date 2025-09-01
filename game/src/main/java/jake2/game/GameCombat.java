@@ -27,7 +27,7 @@ import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.PointDirectionTEMessage;
 import jake2.qcommon.trace_t;
@@ -43,7 +43,7 @@ public class GameCombat {
      * Returns true if the inflictor can directly damage the target. Used for
      * explosions and melee attacks.
      */
-    static boolean CanDamage(SubgameEntity targ, edict_t inflictor, GameExportsImpl gameExports) {
+    static boolean CanDamage(GameEntity targ, ServerEntity inflictor, GameExportsImpl gameExports) {
         float[] dest = { 0, 0, 0 };
         trace_t trace;
     
@@ -104,8 +104,8 @@ public class GameCombat {
     /**
      * Killed.
      */
-    private static void Killed(SubgameEntity targ, SubgameEntity inflictor,
-                               SubgameEntity attacker, int damage, float[] point, GameExportsImpl gameExports) {
+    private static void Killed(GameEntity targ, GameEntity inflictor,
+                               GameEntity attacker, int damage, float[] point, GameExportsImpl gameExports) {
         gameExports.gameImports.dprintf("Killing a " + targ.classname + "\n");
         if (targ.health < -999)
             targ.health = -999;
@@ -151,7 +151,7 @@ public class GameCombat {
         gameExports.gameImports.multicastMessage(origin, new PointDirectionTEMessage(type, origin, normal), MulticastTypes.MULTICAST_PVS);
     }
 
-    private static int CheckPowerArmor(SubgameEntity ent, float[] point, float[] normal,
+    private static int CheckPowerArmor(GameEntity ent, float[] point, float[] normal,
                                        int damage, int dflags, GameExportsImpl gameExports) {
         gclient_t client;
         int save;
@@ -228,7 +228,7 @@ public class GameCombat {
         return save;
     }
 
-    private static int CheckArmor(SubgameEntity ent, float[] point, float[] normal,
+    private static int CheckArmor(GameEntity ent, float[] point, float[] normal,
                                   int damage, int te_sparks, int dflags, GameExportsImpl gameExports) {
         gclient_t client;
         int save;
@@ -269,7 +269,7 @@ public class GameCombat {
         return save;
     }
 
-    private static void M_ReactToDamage(SubgameEntity targ, SubgameEntity attacker, GameExportsImpl gameExports) {
+    private static void M_ReactToDamage(GameEntity targ, GameEntity attacker, GameExportsImpl gameExports) {
         if ((null != attacker.getClient())
                 && 0 != (attacker.svflags & Defines.SVF_MONSTER))
             return;
@@ -347,7 +347,7 @@ public class GameCombat {
         }
     }
 
-    private static boolean CheckTeamDamage(edict_t targ, edict_t attacker) {
+    private static boolean CheckTeamDamage(ServerEntity targ, ServerEntity attacker) {
         //FIXME make the next line real and uncomment this block
         // if ((ability to damage a teammate == OFF) && (targ's team ==
         // attacker's team))
@@ -357,8 +357,8 @@ public class GameCombat {
     /**
      * T_RadiusDamage.
      */
-    public static void T_RadiusDamage(SubgameEntity inflictor, SubgameEntity attacker,
-                               float damage, edict_t ignore, float radius, int mod, GameExportsImpl gameExports) {
+    public static void T_RadiusDamage(GameEntity inflictor, GameEntity attacker,
+                                      float damage, ServerEntity ignore, float radius, int mod, GameExportsImpl gameExports) {
         float points;
         EdictIterator edictit = null;
     
@@ -367,7 +367,7 @@ public class GameCombat {
     
         while ((edictit = GameBase.findradius(edictit, inflictor.s.origin,
                 radius, gameExports)) != null) {
-            SubgameEntity ent = edictit.o;
+            GameEntity ent = edictit.o;
             if (ent == ignore)
                 continue;
             if (ent.takedamage == 0)
@@ -407,7 +407,7 @@ public class GameCombat {
      * @param mod - means of death ( + friendly fire flag)
      * todo: infer nullify
      */
-    public static void T_Damage(SubgameEntity target, SubgameEntity inflictor, SubgameEntity attacker,
+    public static void T_Damage(GameEntity target, GameEntity inflictor, GameEntity attacker,
                                 float[] dir, float[] point, float[] normal,
                                 int damage, int knockback, int damageFlags, int mod, GameExportsImpl gameExports) {
 

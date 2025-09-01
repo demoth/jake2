@@ -240,7 +240,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_idle = new EntThinkAdapter() {
     	public String getID() { return "gladiator_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
@@ -250,7 +250,7 @@ public class M_Gladiator {
 
     static EntInteractAdapter gladiator_sight = new EntInteractAdapter() {
     	public String getID() { return "gladiator_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
@@ -260,7 +260,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_search = new EntThinkAdapter() {
     	public String getID() { return "gladiator_search"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
@@ -270,7 +270,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_cleaver_swing = new EntThinkAdapter() {
     	public String getID() { return "gladiator_cleaver_swing"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
                     1, Defines.ATTN_NORM, 0);
@@ -292,7 +292,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_stand = new EntThinkAdapter() {
     	public String getID() { return "gladiator_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_stand;
             return true;
@@ -322,7 +322,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_walk = new EntThinkAdapter() {
     	public String getID() { return "gladiator_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_walk;
 
@@ -343,7 +343,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_run = new EntThinkAdapter() {
     	public String getID() { return "gladiator_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = gladiator_move_stand;
@@ -356,7 +356,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter GaldiatorMelee = new EntThinkAdapter() {
     	public String getID() { return "GaldiatorMelee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] aim = { 0, 0, 0 };
 
@@ -395,7 +395,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_melee = new EntThinkAdapter() {
     	public String getID() { return "gladiator_melee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_attack_melee;
             return true;
@@ -404,7 +404,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter GladiatorGun = new EntThinkAdapter() {
     	public String getID() { return "GladiatorGun"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] start = { 0, 0, 0 };
 
@@ -445,7 +445,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_attack = new EntThinkAdapter() {
     	public String getID() { return "gladiator_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float range;
             float[] v = { 0, 0, 0 };
@@ -492,7 +492,7 @@ public class M_Gladiator {
 
     static EntPainAdapter gladiator_pain = new EntPainAdapter() {
     	public String getID() { return "gladiator_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -526,7 +526,7 @@ public class M_Gladiator {
 
     static EntThinkAdapter gladiator_dead = new EntThinkAdapter() {
     	public String getID() { return "gladiator_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -567,7 +567,7 @@ public class M_Gladiator {
 
     static EntDieAdapter gladiator_die = new EntDieAdapter() {
     	public String getID() { return "gladiator_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
@@ -608,7 +608,7 @@ public class M_Gladiator {
      * QUAKED monster_gladiator (1 .5 0) (-32 -32 -24) (32 32 64) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_gladiator(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_monster_gladiator(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("gladiator/pain.wav");

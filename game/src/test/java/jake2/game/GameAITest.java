@@ -12,7 +12,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class GameAITest {
-    private SubgameEntity entity;
+    private GameEntity entity;
     private GameExportsImpl gameExports;
     private boolean meleeAttackExecuted;
     private boolean missileAttackExecuted;
@@ -33,22 +33,22 @@ public class GameAITest {
         }
 
         @Override
-        public void cprintf(edict_t ent, int printlevel, String s) {
+        public void cprintf(ServerEntity ent, int printlevel, String s) {
             // Do nothing for tests
         }
 
         @Override
-        public void centerprintf(edict_t ent, String s) {
+        public void centerprintf(ServerEntity ent, String s) {
             // Do nothing for tests
         }
 
         @Override
-        public void sound(edict_t ent, int channel, int soundindex, float volume, float attenuation, float timeofs) {
+        public void sound(ServerEntity ent, int channel, int soundindex, float volume, float attenuation, float timeofs) {
             // Do nothing for tests
         }
 
         @Override
-        public void positioned_sound(float[] origin, edict_t ent, int channel, int soundinedex, float volume, float attenuation, float timeofs) {
+        public void positioned_sound(float[] origin, ServerEntity ent, int channel, int soundinedex, float volume, float attenuation, float timeofs) {
             // Do nothing for tests
         }
 
@@ -83,12 +83,12 @@ public class GameAITest {
         }
 
         @Override
-        public void setmodel(edict_t ent, String name) {
+        public void setmodel(ServerEntity ent, String name) {
             // Do nothing for tests
         }
 
         @Override
-        public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end, edict_t passent, int contentmask) {
+        public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end, ServerEntity passent, int contentmask) {
             System.out.println("[DEBUG_LOG] Trace from: (" + start[0] + "," + start[1] + "," + start[2] + 
                              ") to: (" + end[0] + "," + end[1] + "," + end[2] + ")");
             float dx = end[0] - start[0];
@@ -107,7 +107,7 @@ public class GameAITest {
             trace.startsolid = false;
             trace.plane = new cplane_t();
             trace.plane.normal = new float[]{0, 0, 1};  // Pointing up
-            trace.ent = new SubgameEntity(0);  // Empty entity for collision
+            trace.ent = new GameEntity(0);  // Empty entity for collision
             trace.ent.linkcount = 1;  // Needed by SV_movestep
 
             // Calculate movement vector relative to entity's origin
@@ -145,8 +145,8 @@ public class GameAITest {
                     trace.fraction = 1.0f;
                     System.arraycopy(end, 0, trace.endpos, 0, 3);
                     // Update entity position on successful movement
-                    if (passent instanceof SubgameEntity) {
-                        SubgameEntity ent = (SubgameEntity) passent;
+                    if (passent instanceof GameEntity) {
+                        GameEntity ent = (GameEntity) passent;
                         System.arraycopy(end, 0, ent.s.origin, 0, 3);
                         System.out.println("[DEBUG_LOG] Updated entity position to: (" + 
                             ent.s.origin[0] + "," + ent.s.origin[1] + "," + ent.s.origin[2] + ")");
@@ -187,17 +187,17 @@ public class GameAITest {
         }
 
         @Override
-        public void linkentity(edict_t ent) {
+        public void linkentity(ServerEntity ent) {
             // Do nothing for tests
         }
 
         @Override
-        public void unlinkentity(edict_t ent) {
+        public void unlinkentity(ServerEntity ent) {
             // Do nothing for tests
         }
 
         @Override
-        public int BoxEdicts(float[] mins, float[] maxs, edict_t[] list, int maxcount, int areatype) {
+        public int BoxEdicts(float[] mins, float[] maxs, ServerEntity[] list, int maxcount, int areatype) {
             return 0;
         }
 
@@ -244,7 +244,7 @@ public class GameAITest {
 
     @Before
     public void setUp() {
-        entity = new SubgameEntity(1);
+        entity = new GameEntity(1);
         entity.s = new entity_state_t(null);
         entity.s.clear();
 
@@ -256,7 +256,7 @@ public class GameAITest {
         entity.size = new float[]{32, 32, 56};  // maxs - mins
 
         // Set up movement properties
-        entity.groundentity = new SubgameEntity(0);  // Entity needs to be grounded for movement
+        entity.groundentity = new GameEntity(0);  // Entity needs to be grounded for movement
         entity.flags = 0;  // Clear any flags that might interfere
         entity.movetype = GameDefines.MOVETYPE_STEP;  // Standard monster movement type
         entity.gravity = 1.0f;  // Normal gravity
@@ -282,7 +282,7 @@ public class GameAITest {
         entity.monsterinfo = new monsterinfo_t();
         entity.monsterinfo.melee = new EntThinkAdapter() {
             @Override
-            public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            public boolean think(GameEntity self, GameExportsImpl gameExports) {
                 meleeAttackExecuted = true;
                 return true;
             }
@@ -294,7 +294,7 @@ public class GameAITest {
         };
         entity.monsterinfo.attack = new EntThinkAdapter() {
             @Override
-            public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            public boolean think(GameEntity self, GameExportsImpl gameExports) {
                 missileAttackExecuted = true;
                 return true;
             }

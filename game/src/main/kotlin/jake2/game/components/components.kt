@@ -1,15 +1,15 @@
 package jake2.game.components
 
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
 import jake2.qcommon.Defines
 import jake2.qcommon.lerpI
 
-inline fun <reified T> SubgameEntity.getComponent(): T? {
+inline fun <reified T> GameEntity.getComponent(): T? {
     return this.components[T::class.java.name] as? T
 }
 
-inline fun <reified T> SubgameEntity.addComponent(component: T): T{
+inline fun <reified T> GameEntity.addComponent(component: T): T{
     this.components[T::class.java.name] = component
     return component
 }

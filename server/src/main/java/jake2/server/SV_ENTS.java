@@ -261,7 +261,7 @@ public class SV_ENTS {
      */
     public void SV_BuildClientFrame(client_t client) {
 
-        edict_t clent = client.edict;
+        ServerEntity clent = client.edict;
         if (clent.getClient() == null)
             return; // not in game yet
 
@@ -295,7 +295,7 @@ public class SV_ENTS {
         frame.first_entity = next_client_entities;
 
         for (int e = 1; e < gameImports.gameExports.getNumEdicts(); e++) {
-            edict_t ent = gameImports.gameExports.getEdict(e);
+            ServerEntity ent = gameImports.gameExports.getEdict(e);
 
             // ignore ents without visible models
             if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)

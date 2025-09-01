@@ -1047,7 +1047,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_taunt = new EntThinkAdapter() {
     	public String getID() { return "makron_taunt"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float r;
 
             r = Lib.random();
@@ -1069,7 +1069,7 @@ public class M_Makron {
     //
     static EntThinkAdapter makron_stand = new EntThinkAdapter() {
     	public String getID() { return "makron_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = makron_move_stand;
             return true;
         }
@@ -1077,12 +1077,12 @@ public class M_Makron {
 
     /*
      * static EntThinkAdapter xxx = new EntThinkAdapter() { public boolean
-     * think(SubgameEntity self) { return true; } };
+     * think(GameEntity self) { return true; } };
      */
 
     static EntThinkAdapter makron_hit = new EntThinkAdapter() {
     	public String getID() { return "makron_hit"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_hit, 1,
                     Defines.ATTN_NONE, 0);
             return true;
@@ -1091,7 +1091,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_popup = new EntThinkAdapter() {
     	public String getID() { return "makron_popup"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_popup, 1,
                     Defines.ATTN_NONE, 0);
             return true;
@@ -1101,7 +1101,7 @@ public class M_Makron {
     static EntThinkAdapter makron_step_left = new EntThinkAdapter() {
     	public String getID() { return "makron_step_left"; }
 
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1110,7 +1110,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_step_right = new EntThinkAdapter() {
     	public String getID() { return "makron_step_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1119,7 +1119,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_brainsplorch = new EntThinkAdapter() {
     	public String getID() { return "makron_brainsplorch"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_brainsplorch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1128,7 +1128,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_prerailgun = new EntThinkAdapter() {
     	public String getID() { return "makron_prerailgun"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_prerailgun, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1241,7 +1241,7 @@ public class M_Makron {
     //
     static EntThinkAdapter makron_dead = new EntThinkAdapter() {
     	public String getID() { return "makron_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -1254,7 +1254,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_walk = new EntThinkAdapter() {
     	public String getID() { return "makron_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = makron_move_walk;
             return true;
         }
@@ -1262,7 +1262,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_run = new EntThinkAdapter() {
     	public String getID() { return "makron_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = makron_move_stand;
             else
@@ -1478,7 +1478,7 @@ public class M_Makron {
 
     static EntThinkAdapter makronBFG = new EntThinkAdapter() {
     	public String getID() { return "makronBFG"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
 
             float[] start = { 0, 0, 0 };
@@ -1504,7 +1504,7 @@ public class M_Makron {
 
     static EntThinkAdapter MakronSaveloc = new EntThinkAdapter() {
     	public String getID() { return "MakronSaveloc"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorCopy(self.enemy.s.origin, self.pos1); //save for
                                                                // aiming the
                                                                // shot
@@ -1517,7 +1517,7 @@ public class M_Makron {
 
     static EntThinkAdapter MakronRailgun = new EntThinkAdapter() {
     	public String getID() { return "MakronRailgun"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -1542,7 +1542,7 @@ public class M_Makron {
 
     static EntThinkAdapter MakronHyperblaster = new EntThinkAdapter() {
     	public String getID() { return "MakronHyperblaster"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] dir = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -1585,7 +1585,7 @@ public class M_Makron {
 
     static EntPainAdapter makron_pain = new EntPainAdapter() {
     	public String getID() { return "makron_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -1628,7 +1628,7 @@ public class M_Makron {
 
     static EntInteractAdapter makron_sight = new EntInteractAdapter() {
     	public String getID() { return "makron_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = makron_move_sight;
             return true;
         }
@@ -1636,7 +1636,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_attack = new EntThinkAdapter() {
     	public String getID() { return "makron_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range;
             float r;
@@ -1663,7 +1663,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_torso_think = new EntThinkAdapter() {
     	public String getID() { return "makron_torso_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 365)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
@@ -1676,7 +1676,7 @@ public class M_Makron {
 
     static EntThinkAdapter makron_torso = new EntThinkAdapter() {
     	public String getID() { return "makron_torso"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             ent.movetype = GameDefines.MOVETYPE_NONE;
             ent.solid = Defines.SOLID_NOT;
             Math3D.VectorSet(ent.mins, -8, -8, 0);
@@ -1694,9 +1694,9 @@ public class M_Makron {
 
     static EntDieAdapter makron_die = new EntDieAdapter() {
     	public String getID() { return "makron_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
-            SubgameEntity tempent;
+            GameEntity tempent;
 
             int n;
 
@@ -1742,7 +1742,7 @@ public class M_Makron {
 
     static EntThinkAdapter Makron_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "Makron_CheckAttack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
             float chance;
@@ -1898,10 +1898,10 @@ public class M_Makron {
      */
     static EntThinkAdapter MakronSpawn = new EntThinkAdapter() {
     	public String getID() { return "MakronSpawn"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
 
-            edict_t player;
+            ServerEntity player;
 
             SP_monster_makron(self, gameExports);
 
@@ -1923,8 +1923,8 @@ public class M_Makron {
 
     static EntThinkAdapter MakronToss = new EntThinkAdapter() {
     	public String getID() { return "MakronToss"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent = gameExports.G_Spawn();
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
+            GameEntity ent = gameExports.G_Spawn();
             ent.think.nextTime = gameExports.level.time + 0.8f;
             ent.think.action = MakronSpawn;
             ent.target = self.target;
@@ -1960,7 +1960,7 @@ public class M_Makron {
      * QUAKED monster_makron (1 .5 0) (-30 -30 0) (30 30 90) Ambush
      * Trigger_Spawn Sight
      */
-    static void SP_monster_makron(SubgameEntity self, GameExportsImpl gameExports) {
+    static void SP_monster_makron(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         MakronPrecache(gameExports);

@@ -15,7 +15,7 @@ import jake2.qcommon.Defines
  * Default _cone value is 10 (used to set size of light for spotlights)
  */
 private const val START_OFF = 1
-fun light(self: SubgameEntity, game: GameExportsImpl) {
+fun light(self: GameEntity, game: GameExportsImpl) {
     // no targeted lights in deathmatch, because they cause global messages
     if (game.skipForDeathmatch(self)) return
 
@@ -43,20 +43,20 @@ private val lightUse = registerUse("lightUse") { self, _, _, game ->
 /*
  * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
  */
-fun lightMine1(ent: SubgameEntity, game: GameExportsImpl) {
+fun lightMine1(ent: GameEntity, game: GameExportsImpl) {
     staticModel(ent, game, "models/objects/minelite/light1/tris.md2")
 }
 
 /*
  * QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
  */
-fun lightMine2(ent: SubgameEntity, game: GameExportsImpl) {
+fun lightMine2(ent: GameEntity, game: GameExportsImpl) {
     staticModel(ent, game, "models/objects/minelite/light2/tris.md2")
 }
 
 // todo: expose this to the editor with as separate classname (misc_model?) and set model from a property
 // check how it is implemented in other engines
-fun staticModel(ent: SubgameEntity, game: GameExportsImpl, model: String) {
+fun staticModel(ent: GameEntity, game: GameExportsImpl, model: String) {
     ent.movetype = GameDefines.MOVETYPE_NONE
     ent.solid = Defines.SOLID_BBOX
     ent.s.modelindex = game.gameImports.modelindex(model)

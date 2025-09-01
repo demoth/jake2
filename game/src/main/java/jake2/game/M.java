@@ -29,7 +29,7 @@ import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.monsters.mmove_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -39,7 +39,7 @@ import jake2.qcommon.util.Math3D;
  */
 public final class M {
 
-    public static void M_CheckGround(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void M_CheckGround(GameEntity ent, GameExportsImpl gameExports) {
         float[] point = { 0, 0, 0 };
 
         if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0)
@@ -81,7 +81,7 @@ public final class M {
      * Returns false if any part of the bottom of the entity is off an edge that
      * is not a staircase.
      */
-    public static boolean M_CheckBottom(edict_t ent, GameExportsImpl gameExports) {
+    public static boolean M_CheckBottom(ServerEntity ent, GameExportsImpl gameExports) {
         float[] mins = { 0, 0, 0 };
         float[] maxs = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
@@ -149,7 +149,7 @@ public final class M {
      * M_ChangeYaw.
      * Rotate to the direction of ent.ideal_yaw, but not faster than ent.yaw_speed
      */
-    public static void rotateToIdealYaw(SubgameEntity ent) {
+    public static void rotateToIdealYaw(GameEntity ent) {
 
         float currentYaw = Math3D.anglemod(ent.s.angles[Defines.YAW]);
 
@@ -181,8 +181,8 @@ public final class M {
     /**
      * M_MoveToGoal.
      */
-    public static void M_MoveToGoal(SubgameEntity ent, float dist, GameExportsImpl gameExports) {
-        SubgameEntity goal = ent.goalentity;
+    public static void M_MoveToGoal(GameEntity ent, float dist, GameExportsImpl gameExports) {
+        GameEntity goal = ent.goalentity;
 
         // if we are (helplessly) falling and cannot fly -> return
         if (ent.groundentity == null
@@ -206,7 +206,7 @@ public final class M {
      * @param yaw  - where the entitiy is looking at (in degrees)
      * @param dist - distance to travel during this frame
      */
-    public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
+    public static boolean M_walkmove(GameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
 
         // if we are falling (or swimming) and cannot fly (swim) -> return
         if ((ent.groundentity == null)
@@ -227,7 +227,7 @@ public final class M {
     /**
      * M_CatagorizePosition
      */
-    public static void setWaterLevel(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void setWaterLevel(GameEntity ent, GameExportsImpl gameExports) {
         float[] point = {
                 ent.s.origin[0],
                 ent.s.origin[1],
@@ -260,7 +260,7 @@ public final class M {
      * M_WorldEffects
      * Apply water drowning, lava or slime effects
      */
-    static void applyWaterEffects(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void applyWaterEffects(GameEntity ent, GameExportsImpl gameExports) {
 
         if (ent.health > 0) {
             int dmg;
@@ -363,7 +363,7 @@ public final class M {
 
     public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
         public String getID() { return "m_drop_to_floor";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float[] end = { 0, 0, 0 };
             trace_t trace;
 
@@ -386,7 +386,7 @@ public final class M {
         }
     };
 
-    public static void M_SetEffects(SubgameEntity ent, float time) {
+    public static void M_SetEffects(GameEntity ent, float time) {
         ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
         ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
 
@@ -409,7 +409,7 @@ public final class M {
     };
 
     //ok
-    public static void M_MoveFrame(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void M_MoveFrame(GameEntity self, GameExportsImpl gameExports) {
 
         mmove_t move = self.monsterinfo.currentmove;
         self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -461,7 +461,7 @@ public final class M {
     /** Stops the Flies. */
     public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
         public String getID() { return "m_fliesoff";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.s.effects &= ~Defines.EF_FLIES;
             self.s.sound = 0;
             return true;
@@ -471,7 +471,7 @@ public final class M {
     /** Starts the Flies as setting the animation flag in the entity. */
     public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
         public String getID() { return "m_flies_on";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.waterlevel != 0)
                 return true;
 
@@ -486,7 +486,7 @@ public final class M {
     /** Adds some flies after a random time */
     public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
         public String getID() { return "m_fly_check";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (self.waterlevel != 0)
                 return true;

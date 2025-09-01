@@ -23,8 +23,8 @@
 package jake2.game.monsters;
 
 import jake2.game.GameDefines;
+import jake2.game.GameEntity;
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.qcommon.Defines;
@@ -40,7 +40,7 @@ public class M_Makron_Idle {
             return "Use_Boss3";
         }
 
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin), MulticastTypes.MULTICAST_PVS);
             gameExports.freeEntity(ent);
         }
@@ -48,7 +48,7 @@ public class M_Makron_Idle {
 
     static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
     	public String getID() { return "Think_Boss3Stand"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             if (ent.s.frame == M_Makron.FRAME_stand260)
                 ent.s.frame = M_Makron.FRAME_stand201;
             else
@@ -64,7 +64,7 @@ public class M_Makron_Idle {
      * 
      * Just stands and cycles in one place until targeted, then teleports away.
      */
-    public static void SP_monster_boss3_stand(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_monster_boss3_stand(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         self.movetype = GameDefines.MOVETYPE_STEP;

@@ -52,7 +52,7 @@ public class pmove_t {
     // results (out)
     public int numtouch;
 
-    public edict_t touchents[] = new edict_t[Defines.MAXTOUCH];
+    public ServerEntity touchents[] = new ServerEntity[Defines.MAXTOUCH];
 
     public float[] viewangles = { 0, 0, 0 }; // clamped
 
@@ -60,7 +60,7 @@ public class pmove_t {
 
     public float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
 
-    public edict_t groundentity;
+    public ServerEntity groundentity;
 
     public int watertype;
 

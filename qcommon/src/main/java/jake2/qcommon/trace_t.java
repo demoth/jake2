@@ -37,7 +37,7 @@ public class trace_t {
 	public csurface_t surface; // surface hit
 	public int contents; // contents on other side of surface hit
 	// pointer
-	public edict_t ent; // not set by CM_*() functions
+	public ServerEntity ent; // not set by CM_*() functions
 	
 	public void set(trace_t from) {
 		allsolid = from.allsolid;

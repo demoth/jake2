@@ -1,8 +1,8 @@
 package jake2.game.func
 
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -24,7 +24,7 @@ enum class MovementState {
 /**
  * Move_Calc
  */
-fun startMovement(self: SubgameEntity, destination: Vector3f, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
+fun startMovement(self: GameEntity, destination: Vector3f, endFunction: EntThinkAdapter?, game: GameExportsImpl) {
     Math3D.VectorClear(self.velocity)
 
     val moveInfo: MoveInfo = self.getComponent()!!

@@ -3,10 +3,10 @@ package jake2.game.func
 import jake2.game.GameBase
 import jake2.game.GameCombat
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.GameMisc
 import jake2.game.GameUtil
-import jake2.game.SubgameEntity
 import jake2.game.adapters.EntThinkAdapter
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -36,7 +36,7 @@ private const val TRAIN_BLOCK_STOPS = 4
  * default 2 noise looping sound to play when the train is in motion
  *
  */
-fun funcTrain(self: SubgameEntity, game: GameExportsImpl) {
+fun funcTrain(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
 
     Math3D.VectorClear(self.s.angles)
@@ -151,7 +151,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
     var first = true
 
     var dogoto = true
-    var ent: SubgameEntity? = null
+    var ent: GameEntity? = null
     // fixme: change to for (for each) loop
     while (dogoto) {
         if (self.target == null) {
@@ -252,7 +252,7 @@ private val trainWait: EntThinkAdapter = registerThink("train_wait") { self, gam
 
 }
 
-private fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
+private fun trainResume(self: GameEntity, game: GameExportsImpl?) {
     val dest = floatArrayOf(0f, 0f, 0f)
     Math3D.VectorSubtract(self.target_ent.s.origin, self.mins, dest)
     val moveInfo: MoveInfo = self.getComponent()!!
@@ -269,7 +269,7 @@ private fun trainResume(self: SubgameEntity, game: GameExportsImpl?) {
  * A special trigger used together with the train entity.
  * todo: describe
  */
-fun triggerElevator(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerElevator(self: GameEntity, game: GameExportsImpl) {
     self.think.action = triggerElevatorCheckTargets
     self.think.nextTime = game.level.time + Defines.FRAMETIME
 }
@@ -329,7 +329,7 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
  *
  * "model" - model of the ship: either `viper` or `strogg1`
  */
-fun miscFlyingShip(self: SubgameEntity, game: GameExportsImpl, model: String) {
+fun miscFlyingShip(self: GameEntity, game: GameExportsImpl, model: String) {
     if (self.target == null) {
         game.gameImports.dprintf("${self.classname} without a target at ${Lib.vtos(self.absmin)}\n")
         game.freeEntity(self)

@@ -35,7 +35,7 @@ import java.util.Arrays;
  */
 public class entity_state_t implements Cloneable
 {
-	public entity_state_t(edict_t ent)
+	public entity_state_t(ServerEntity ent)
 	{
 		this.surrounding_ent = ent;
 		if (ent != null)
@@ -45,7 +45,7 @@ public class entity_state_t implements Cloneable
 	/** edict index. TODO: this is critical. The index has to be proper managed. */
 	public int number = 0; 
 	// TODO: why was this introduced?
-	public edict_t surrounding_ent = null;
+	public ServerEntity surrounding_ent = null;
 	public float[] origin = { 0, 0, 0 };
 	public float[] angles = { 0, 0, 0 };
 	
@@ -95,7 +95,7 @@ public class entity_state_t implements Cloneable
 	}
 
 	/** Reads the entity state from the file. */
-	public void read(QuakeFile f, edict_t[] g_edicts) throws IOException
+	public void read(QuakeFile f, ServerEntity[] g_edicts) throws IOException
 	{
 		surrounding_ent = f.readEdictRef(g_edicts);
 		origin = f.readVector();

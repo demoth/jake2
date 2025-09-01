@@ -367,7 +367,7 @@ public class M_Flyer {
 
     public static EntInteractAdapter flyer_sight = new EntInteractAdapter() {
     	public String getID() { return "flyer_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -376,7 +376,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_idle = new EntThinkAdapter() {
     	public String getID() { return "flyer_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -385,7 +385,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_pop_blades = new EntThinkAdapter() {
     	public String getID() { return "flyer_pop_blades"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -544,7 +544,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_run = new EntThinkAdapter() {
     	public String getID() { return "flyer_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = flyer_move_stand;
             else
@@ -555,7 +555,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_walk = new EntThinkAdapter() {
     	public String getID() { return "flyer_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_walk;
             return true;
         }
@@ -563,7 +563,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_stand = new EntThinkAdapter() {
     	public String getID() { return "flyer_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_stand;
             return true;
         }
@@ -571,7 +571,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_nextmove = new EntThinkAdapter() {
     	public String getID() { return "flyer_nextmove"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (nextmove == ACTION_attack1)
                 self.monsterinfo.currentmove = flyer_move_start_melee;
             else if (nextmove == ACTION_attack2)
@@ -607,7 +607,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_stop = new EntThinkAdapter() {
     	public String getID() { return "flyer_stop"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_stop;
             return true;
         }
@@ -615,7 +615,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_start = new EntThinkAdapter() {
     	public String getID() { return "flyer_start"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_start;
             return true;
         }
@@ -719,7 +719,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_fireleft = new EntThinkAdapter() {
     	public String getID() { return "flyer_fireleft"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             flyer_fire(self, Defines.MZ2_FLYER_BLASTER_1, gameExports);
             return true;
         }
@@ -727,7 +727,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_fireright = new EntThinkAdapter() {
     	public String getID() { return "flyer_fireright"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             flyer_fire(self, Defines.MZ2_FLYER_BLASTER_2, gameExports);
             return true;
         }
@@ -758,7 +758,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_slash_left = new EntThinkAdapter() {
     	public String getID() { return "flyer_slash_left"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 0);
@@ -771,7 +771,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_slash_right = new EntThinkAdapter() {
     	public String getID() { return "flyer_slash_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 0);
@@ -784,7 +784,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_loop_melee = new EntThinkAdapter() {
     	public String getID() { return "flyer_loop_melee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * if (random() <= 0.5) self.monsterinfo.currentmove =
              * flyer_move_attack1; else
@@ -833,7 +833,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_check_melee = new EntThinkAdapter() {
     	public String getID() { return "flyer_check_melee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 if (Lib.random() <= 0.8)
                     self.monsterinfo.currentmove = flyer_move_loop_melee;
@@ -850,7 +850,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_attack = new EntThinkAdapter() {
     	public String getID() { return "flyer_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * if (random() <= 0.5) self.monsterinfo.currentmove =
              * flyer_move_attack1; else
@@ -863,7 +863,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_setstart = new EntThinkAdapter() {
     	public String getID() { return "flyer_setstart"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             nextmove = ACTION_run;
             self.monsterinfo.currentmove = flyer_move_start;
             return true;
@@ -872,7 +872,7 @@ public class M_Flyer {
 
     static EntThinkAdapter flyer_melee = new EntThinkAdapter() {
     	public String getID() { return "flyer_melee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //			flyer.nextmove = ACTION_attack1;
             //	 self.monsterinfo.currentmove = flyer_move_stop;
             self.monsterinfo.currentmove = flyer_move_start_melee;
@@ -882,7 +882,7 @@ public class M_Flyer {
 
     static EntPainAdapter flyer_pain = new EntPainAdapter() {
     	public String getID() { return "flyer_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
             if (self.health < (self.max_health / 2))
@@ -915,7 +915,7 @@ public class M_Flyer {
 
     static EntDieAdapter flyer_die = new EntDieAdapter() {
     	public String getID() { return "flyer_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
@@ -923,7 +923,7 @@ public class M_Flyer {
         }
     };
 
-    static void flyer_fire(SubgameEntity self, int flash_number, GameExportsImpl gameExports) {
+    static void flyer_fire(GameEntity self, int flash_number, GameExportsImpl gameExports) {
         float[] start = { 0, 0, 0 };
 
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -954,7 +954,7 @@ public class M_Flyer {
      * QUAKED monster_flyer (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_flyer(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_monster_flyer(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         // fix a map bug in jail5.bsp

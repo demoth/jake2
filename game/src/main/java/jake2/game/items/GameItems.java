@@ -68,9 +68,9 @@ public class GameItems {
             return "do_respawn";
         }
 
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             if (ent.team != null) {
-                SubgameEntity master;
+                GameEntity master;
                 int count;
                 int choice = 0;
     
@@ -98,7 +98,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Pack = new EntInteractAdapter() {
         public String getID() { return "pickup_pack";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
 
             GameItem item;
             int index;
@@ -175,7 +175,7 @@ public class GameItems {
 
     private static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
     	public String getID() { return "MegaHealth_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.getOwner().health > self.getOwner().max_health) {
                 self.think.nextTime = gameExports.level.time + 1;
                 self.getOwner().health -= 1;
@@ -194,7 +194,7 @@ public class GameItems {
 
     final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
         public String getID() { return "pickup_health";}
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl game) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl game) {
             Medkit medkit = (Medkit) self.components.get(Medkit.class.getName());
 
             if (medkit == null)
@@ -231,7 +231,7 @@ public class GameItems {
     };
     public static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
         public String getID() { return "touch_item";}
-        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             boolean taken;
     
@@ -292,7 +292,7 @@ public class GameItems {
     };
     private static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
         public String getID() { return "drop_temp_touch";}
-        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
                 return;
@@ -302,7 +302,7 @@ public class GameItems {
     };
     private static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
         public String getID() { return "drop_make_touchable";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
             if (gameExports.gameCvars.deathmatch.value != 0) {
                 ent.think.nextTime = gameExports.level.time + 29;
@@ -316,7 +316,7 @@ public class GameItems {
             return "use_quad";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int timeout;
 
             gclient_t client = ent.getClient();
@@ -345,7 +345,7 @@ public class GameItems {
             return "use_invulnerability";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
@@ -364,7 +364,7 @@ public class GameItems {
             return "use_breather";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
 
@@ -384,7 +384,7 @@ public class GameItems {
             return "use_envirosuit";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent, gameExports);
@@ -403,7 +403,7 @@ public class GameItems {
             return "use_silencer";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
@@ -416,7 +416,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
         public String getID() { return "pickup_key";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             gclient_t client = other.getClient();
             if (gameExports.gameCvars.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
@@ -437,7 +437,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Ammo = new EntInteractAdapter() {
         public String getID() { return "pickup_ammo";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int oldcount;
             int count;
             boolean weapon;
@@ -471,7 +471,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
         public String getID() { return "pickup_armor";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             gitem_armor_t oldinfo;
             int newcount;
             float salvage;
@@ -551,7 +551,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_PowerArmor = new EntInteractAdapter() {
         public String getID() { return "pickup_powerarmor";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
     
             int quantity;
 
@@ -572,7 +572,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Powerup = new EntInteractAdapter() {
         public String getID() { return "pickup_powerup";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int quantity;
 
             gclient_t client = other.getClient();
@@ -606,7 +606,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
         public String getID() { return "pickup_adrenaline";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.deathmatch.value == 0)
                 other.max_health += 1;
     
@@ -623,7 +623,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_AncientHead = new EntInteractAdapter() {
         public String getID() { return "pickup_ancienthead";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             other.max_health += 2;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
@@ -635,7 +635,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
         public String getID() { return "pickup_bandolier";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             GameItem item;
             int index;
 
@@ -678,11 +678,11 @@ public class GameItems {
             return "drop_ammo";
         }
 
-        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
 
             index = item.index;
-            SubgameEntity dropped = Drop_Item(ent, item, gameExports);
+            GameEntity dropped = Drop_Item(ent, item, gameExports);
             gclient_t client = ent.getClient();
             if (client.pers.inventory[index] >= item.quantity)
                 dropped.count = item.quantity;
@@ -708,7 +708,7 @@ public class GameItems {
             return "drop_general";
         }
 
-        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             Drop_Item(ent, item, gameExports);
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
@@ -721,7 +721,7 @@ public class GameItems {
             return "drop_powerarmor";
         }
 
-        public void drop(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[item.index] == 1))
@@ -732,7 +732,7 @@ public class GameItems {
     
     private static EntThinkAdapter droptofloor = new EntThinkAdapter() {
         public String getID() { return "drop_to_floor";}
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             trace_t tr;
             float[] dest = { 0, 0, 0 };
     
@@ -802,7 +802,7 @@ public class GameItems {
             return "use_powerarmor";
         }
 
-        public void use(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
             if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
@@ -828,7 +828,7 @@ public class GameItems {
     };
     private static EntUseAdapter Use_Item = new EntUseAdapter() {
         public String getID() { return "use_item";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(GameEntity ent, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.use = null;
     
@@ -875,7 +875,7 @@ public class GameItems {
         return found.orElse(null);
     }
 
-    public static void SetRespawn(SubgameEntity ent, float delay, GameExportsImpl gameExports) {
+    public static void SetRespawn(GameEntity ent, float delay, GameExportsImpl gameExports) {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
@@ -884,12 +884,12 @@ public class GameItems {
         gameExports.gameImports.linkentity(ent);
     }
 
-    public static SubgameEntity Drop_Item(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    public static GameEntity Drop_Item(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
         float[] forward = {0, 0, 0};
         float[] right = {0, 0, 0};
         float[] offset = {0, 0, 0};
 
-        SubgameEntity dropped = gameExports.G_Spawn();
+        GameEntity dropped = gameExports.G_Spawn();
 
         dropped.classname = item.classname;
         dropped.item = item;
@@ -933,7 +933,7 @@ public class GameItems {
         return dropped;
     }
 
-    public static int PowerArmorType(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static int PowerArmorType(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
@@ -950,7 +950,7 @@ public class GameItems {
         return GameDefines.POWER_ARMOR_NONE;
     }
 
-    public static int ArmorIndex(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static int ArmorIndex(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (client == null)
             return -1;
@@ -967,7 +967,7 @@ public class GameItems {
         return -1;
     }
 
-    public static boolean Add_Ammo(SubgameEntity ent, GameItem item, int count) {
+    public static boolean Add_Ammo(GameEntity ent, GameItem item, int count) {
         int index;
         int max;
 
@@ -1021,7 +1021,7 @@ public class GameItems {
         gameExports.power_shield_index = FindItem("Power Shield", gameExports).index;
     }
 
-    public static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
+    public static void SelectNextItem(GameEntity ent, int itflags, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -1048,7 +1048,7 @@ public class GameItems {
         cl.pers.selected_item = -1;
     }
 
-    public static void SelectPrevItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
+    public static void SelectPrevItem(GameEntity ent, int itflags, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -1145,7 +1145,7 @@ public class GameItems {
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet.
      */
-    public static void SpawnItem(SubgameEntity ent, GameItem item, GameExportsImpl gameExports) {
+    public static void SpawnItem(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
         PrecacheItem(item, gameExports);
 
         if (ent.spawnflags != 0) {
@@ -1220,7 +1220,7 @@ public class GameItems {
      * Touch_Item 
      * ===============
      */
-    public static void Touch_Item(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+    public static void Touch_Item(GameEntity ent, GameEntity other, cplane_t plane,
                                   csurface_t surf, GameExportsImpl gameExports) {
         boolean taken;
 
@@ -1291,7 +1291,7 @@ public class GameItems {
         }
     }
 
-    public static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ValidateSelectedItem(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)

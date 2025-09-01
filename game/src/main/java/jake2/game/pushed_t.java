@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 public class pushed_t {
-	public SubgameEntity ent;
+	public GameEntity ent;
 	public float[] origin= { 0.0f, 0.0f, 0.0f };
 	public float[] angles= { 0.0f, 0.0f, 0.0f };
 	public float deltayaw;

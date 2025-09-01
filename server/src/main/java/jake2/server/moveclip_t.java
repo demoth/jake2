@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 
@@ -34,7 +34,7 @@ public class moveclip_t
 	float [] start, end;
 	// mem
 	trace_t	trace	= new trace_t();
-	edict_t	passedict;
+	ServerEntity passedict;
 	int contentmask;
 	
 	public void clear() {

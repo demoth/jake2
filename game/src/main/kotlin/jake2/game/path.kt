@@ -15,7 +15,7 @@ import jake2.qcommon.util.Math3D
  */
 
 private const val TELEPORT = 1
-fun pathCorner(self: SubgameEntity, game: GameExportsImpl) {
+fun pathCorner(self: GameEntity, game: GameExportsImpl) {
     if (self.targetname == null) {
         game.gameImports.dprintf("path_corner with no targetname at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
@@ -80,7 +80,7 @@ private val pathCornerTouch = registerTouch("path_corner_touch") { self, other, 
  * If hold is selected, it will stay here.
  */
 private const val HOLD = 1
-fun pointCombat(self: SubgameEntity, game: GameExportsImpl) {
+fun pointCombat(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     self.solid = Defines.SOLID_TRIGGER

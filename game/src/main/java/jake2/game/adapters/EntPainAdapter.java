@@ -23,10 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game.adapters;
 
+import jake2.game.GameEntity;
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
 
 public abstract class EntPainAdapter extends SuperAdapter
 {
-	public abstract void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports);
+	public abstract void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports);
 }

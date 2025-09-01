@@ -8,7 +8,7 @@ import jake2.qcommon.util.Math3D
  * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
  * The normal starting point for a level.
  */
-fun infoPlayerStart(self: SubgameEntity, game: GameExportsImpl) {
+fun infoPlayerStart(self: GameEntity, game: GameExportsImpl) {
     if (game.gameCvars.coop.value == 0f)
         return
     if ("security".equals(game.level.mapname, true)) {
@@ -39,7 +39,7 @@ private val mapsToFixCoop = setOf(
  * QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32)
  * A potential spawning position for coop games.
  */
-fun infoPlayerCoop(self: SubgameEntity, game: GameExportsImpl) {
+fun infoPlayerCoop(self: GameEntity, game: GameExportsImpl) {
     if (game.gameCvars.coop.value == 0f) {
         game.freeEntity(self)
         return
@@ -122,7 +122,7 @@ private val createCoopStartHack = registerThink("SP_CreateCoopSpots") { _, game 
  * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
  * A potential spawning position for deathmatch games.
  */
-fun infoPlayerDeathmatch(self: SubgameEntity, game: GameExportsImpl) {
+fun infoPlayerDeathmatch(self: GameEntity, game: GameExportsImpl) {
     if (game.gameCvars.deathmatch.value == 0f) {
         game.freeEntity(self)
         return
@@ -136,7 +136,7 @@ fun infoPlayerDeathmatch(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
  * Used as a positional target for lightning.
  */
-fun infoNotNull(self: SubgameEntity, game: GameExportsImpl) {
+fun infoNotNull(self: GameEntity, game: GameExportsImpl) {
     Math3D.VectorCopy(self.s.origin, self.absmin)
     Math3D.VectorCopy(self.s.origin, self.absmax)
 }

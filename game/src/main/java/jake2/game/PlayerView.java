@@ -53,7 +53,7 @@ class PlayerView {
     private float bobfracsin; // sin(bobfrac*M_PI)}
     private int xxxi = 0;
 
-    private SubgameEntity current_player;
+    private GameEntity current_player;
 
     private gclient_t current_client;
 
@@ -103,7 +103,7 @@ class PlayerView {
     /**
      * Handles color blends and view kicks
      */
-    private void P_DamageFeedback(SubgameEntity player, GameExportsImpl gameExports) {
+    private void P_DamageFeedback(GameEntity player, GameExportsImpl gameExports) {
         gclient_t client;
         float side;
         float realcount, count, kick;
@@ -251,7 +251,7 @@ class PlayerView {
      * fall from 640: 960 =  
      * damage = deltavelocity*deltavelocity * 0.0001
      */
-    private void SV_CalcViewOffset(SubgameEntity ent, float time) {
+    private void SV_CalcViewOffset(GameEntity ent, float time) {
         float angles[] = { 0, 0, 0 };
         float bob;
         float ratio;
@@ -359,7 +359,7 @@ class PlayerView {
     /**
      * Calculates where to draw the gun.
      */
-    private void SV_CalcGunOffset(SubgameEntity ent) {
+    private void SV_CalcGunOffset(GameEntity ent) {
         int i;
         float delta;
 
@@ -423,7 +423,7 @@ class PlayerView {
     /**
      * Calculates the blending color according to the players environment.
      */
-    private static void SV_CalcBlend(SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void SV_CalcBlend(GameEntity ent, GameExportsImpl gameExports) {
         int contents;
         float[] vieworg = { 0, 0, 0 };
         int remaining;
@@ -504,7 +504,7 @@ class PlayerView {
     /**
      * Calculates damage and effect when a player falls down.
      */
-    private static void P_FallingDamage(SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void P_FallingDamage(GameEntity ent, GameExportsImpl gameExports) {
         float delta;
         int damage;
         float[] dir = { 0, 0, 0 };
@@ -772,7 +772,7 @@ class PlayerView {
      * G_SetClientEffects 
      * ===============
      */
-    private static void G_SetClientEffects(SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void G_SetClientEffects(GameEntity ent, GameExportsImpl gameExports) {
         int pa_type;
         int remaining;
 
@@ -819,7 +819,7 @@ class PlayerView {
      * G_SetClientEvent 
      * ===============
      */
-    private void G_SetClientEvent(SubgameEntity ent) {
+    private void G_SetClientEvent(GameEntity ent) {
         if (ent.s.event != 0)
             return;
 
@@ -834,7 +834,7 @@ class PlayerView {
      * G_SetClientSound 
      * ===============
      */
-    private static void G_SetClientSound(SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void G_SetClientSound(GameEntity ent, GameExportsImpl gameExports) {
         String weap;
 
         gclient_t client = ent.getClient();
@@ -875,7 +875,7 @@ class PlayerView {
      * G_SetClientFrame 
      * ===============
      */
-    private void G_SetClientFrame(SubgameEntity ent) {
+    private void G_SetClientFrame(GameEntity ent) {
         boolean duck, run;
 
         if (ent.s.modelindex != 255)
@@ -963,7 +963,7 @@ class PlayerView {
      * Called for each player at the end of the server frame and right after
      * spawning.
      */
-    void ClientEndServerFrame(SubgameEntity ent, GameExportsImpl gameExports) {
+    void ClientEndServerFrame(GameEntity ent, GameExportsImpl gameExports) {
         float bobtime;
         int i;
 

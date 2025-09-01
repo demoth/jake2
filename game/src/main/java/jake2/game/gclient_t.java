@@ -24,7 +24,7 @@ package jake2.game;
 
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.player_state_t;
 import jake2.qcommon.pmove_state_t;
@@ -121,7 +121,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	float respawn_time; // can respawn when time > this
 
-	public SubgameEntity chase_target; // player we are chasing
+	public GameEntity chase_target; // player we are chasing
 	boolean update_chase; // need to update chase info?
 
 	private int index;
@@ -210,7 +210,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 	}
 
 	/** Reads a game client from the file. */
-	public void read(QuakeFile f, edict_t[] edicts, GameExportsImpl gameExports) throws IOException
+	public void read(QuakeFile f, ServerEntity[] edicts, GameExportsImpl gameExports) throws IOException
 	{
 
 		getPlayerState().load(f);
@@ -317,7 +317,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 		flood_when[9] = f.readFloat();
 		flood_whenhead = f.readInt();
 		respawn_time = f.readFloat();
-		chase_target = (SubgameEntity) f.readEdictRef(edicts);
+		chase_target = (GameEntity) f.readEdictRef(edicts);
 		update_chase = f.readInt() != 0;
 		
 		if (f.readInt() != 8765)

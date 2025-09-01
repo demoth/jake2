@@ -16,7 +16,7 @@ import jake2.qcommon.util.Math3D
  * QUAKED misc_explobox (0 .5 .8) (-16 -16 0) (16 16 40)
  * Large exploding barrel. You can override its mass (400), health (10), and dmg (150).
  */
-fun miscExplobox(self: SubgameEntity, game: GameExportsImpl) {
+fun miscExplobox(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     game.gameImports.modelindex("models/objects/debris1/tris.md2")
@@ -118,7 +118,7 @@ private val miscExploboxExplode = registerThink("barrel_explode") { self, game -
  * 
  * Disappears when used.
  */
-fun miscBlackhole(self: SubgameEntity, game: GameExportsImpl) {
+fun miscBlackhole(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_NONE
     self.solid = Defines.SOLID_NOT
     Math3D.VectorSet(self.mins, -64f, -64f, 0f)
@@ -148,7 +148,7 @@ private val miscBlackholeDisappear = registerUse("misc_blackhole_use") { self, _
  * The origin is the bottom of the banner.
  * The banner is 128 tall.
  */
-fun miscBanner(self: SubgameEntity, game: GameExportsImpl) {
+fun miscBanner(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_NONE
     self.solid = Defines.SOLID_NOT
     self.s.modelindex = game.gameImports.modelindex("models/objects/banner/tris.md2")
@@ -168,7 +168,7 @@ private val bannerThink = registerThink("misc_banner_think") { self, game ->
  * QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8) 
  * Intended for use with the target_spawner
  */
-fun miscGibArm(self: SubgameEntity, game: GameExportsImpl) {
+fun miscGibArm(self: GameEntity, game: GameExportsImpl) {
     initGib(self, game, "arm")
 }
 
@@ -176,7 +176,7 @@ fun miscGibArm(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8) 
  * Intended for use with the target_spawner
  */
-fun miscGibLeg(self: SubgameEntity, game: GameExportsImpl) {
+fun miscGibLeg(self: GameEntity, game: GameExportsImpl) {
     initGib(self, game, "leg")
 }
 
@@ -184,11 +184,11 @@ fun miscGibLeg(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8) 
  * Intended for use with the target_spawner
  */
-fun miscGibHead(self: SubgameEntity, game: GameExportsImpl) {
+fun miscGibHead(self: GameEntity, game: GameExportsImpl) {
     initGib(self, game, "head")
 }
 
-private fun initGib(ent: SubgameEntity, game: GameExportsImpl, model: String) {
+private fun initGib(ent: GameEntity, game: GameExportsImpl, model: String) {
     game.gameImports.setmodel(ent, "models/objects/gibs/$model/tris.md2")
     ent.solid = Defines.SOLID_NOT
     ent.s.effects = ent.s.effects or Defines.EF_GIB
@@ -212,7 +212,7 @@ private val dieFreeEntity = registerDie("die-free-entity") { self, _, _, _, _, g
 /*
  * QUAKED misc_satellite_dish (1 .5 0) (-64 -64 0) (64 64 128)
  */
-fun miscSatelliteDish(self: SubgameEntity, game: GameExportsImpl) {
+fun miscSatelliteDish(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_NONE
     self.solid = Defines.SOLID_BBOX
     Math3D.VectorSet(self.mins, -64f, -64f, 0f)
@@ -248,7 +248,7 @@ private val miscDishRotate = registerThink("misc_satellite_dish_think") { self, 
  * Comes in 6 exciting different poses!
  */
 // todo: extract spawnflags
-fun miscDeadSoldier(self: SubgameEntity, game: GameExportsImpl) {
+fun miscDeadSoldier(self: GameEntity, game: GameExportsImpl) {
     if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
         game.freeEntity(self)
         return
@@ -290,7 +290,7 @@ private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { se
  * QUAKED misc_viper_bomb (1 0 0) (-8 -8 -8) (8 8 8) "dmg" how much boom
  * should the bomb make?
  */
-fun miscViperBomb(self: SubgameEntity, game: GameExportsImpl) {
+fun miscViperBomb(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_NONE
     self.solid = Defines.SOLID_NOT
     Math3D.VectorSet(self.mins, -8f, -8f, -8f)
@@ -316,7 +316,7 @@ private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other,
 
     // get the ship reference (so it sticks to the first found ship?)
     val es = GameBase.G_Find(null, GameBase.findByClassName, "misc_viper", game)
-    var viper: SubgameEntity? = null
+    var viper: GameEntity? = null
     if (es != null)
         viper = es.o
 
@@ -361,7 +361,7 @@ private val miscViperBombTouch = registerTouch("misc_viper_bomb_touch") { self, 
  * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72)
  * This is a large stationary viper as seen in Paul's intro
  */
-fun miscBigViper(self: SubgameEntity, game: GameExportsImpl) {
+fun miscBigViper(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_NONE
     self.solid = Defines.SOLID_BBOX
     Math3D.VectorSet(self.mins, -176f, -120f, -24f)
@@ -374,7 +374,7 @@ fun miscBigViper(self: SubgameEntity, game: GameExportsImpl) {
  * QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
  * Stepping onto this disc will teleport player to the targeted misc_teleporter_dest object.
  */
-fun miscTeleporter(self: SubgameEntity, game: GameExportsImpl) {
+fun miscTeleporter(self: GameEntity, game: GameExportsImpl) {
     if (self.target == null) {
         game.gameImports.dprintf("teleporter without a target.\n")
         game.freeEntity(self)
@@ -446,7 +446,7 @@ private val teleporterTriggerTouch = registerTouch("teleporter_touch") { self, o
  * QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
  * Point teleporters at these.
  */
-fun miscTeleporterDest(self: SubgameEntity, game: GameExportsImpl) {
+fun miscTeleporterDest(self: GameEntity, game: GameExportsImpl) {
     game.gameImports.setmodel(self, "models/objects/dmspot/tris.md2")
     self.s.skinnum = 0
     self.solid = Defines.SOLID_BBOX

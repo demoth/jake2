@@ -301,7 +301,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_launch = new EntThinkAdapter() {
     	public String getID(){ return "parasite_launch"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_launch, 1,
                     Defines.ATTN_NORM, 0);
@@ -311,7 +311,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_reel_in = new EntThinkAdapter() {
     	public String getID(){ return "parasite_reel_in"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_reelin, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -320,7 +320,7 @@ public class M_Parasite {
 
     static EntInteractAdapter parasite_sight = new EntInteractAdapter() {
     	public String getID(){ return "parasite_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -329,7 +329,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_tap = new EntThinkAdapter() {
     	public String getID(){ return "parasite_tap"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_tap, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -338,7 +338,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_scratch = new EntThinkAdapter() {
     	public String getID(){ return "parasite_scratch"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_scratch, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -347,7 +347,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_search = new EntThinkAdapter() {
     	public String getID(){ return "parasite_search"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_search, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -356,7 +356,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_start_walk = new EntThinkAdapter() {
     	public String getID(){ return "parasite_start_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_start_walk;
             return true;
         }
@@ -364,7 +364,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_walk = new EntThinkAdapter() {
     	public String getID(){ return "parasite_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_walk;
             return true;
         }
@@ -372,7 +372,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_stand = new EntThinkAdapter() {
     	public String getID(){ return "parasite_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_stand;
             return true;
         }
@@ -380,7 +380,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_end_fidget = new EntThinkAdapter() {
     	public String getID(){ return "parasite_end_fidget"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_end_fidget;
             return true;
         }
@@ -388,7 +388,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_do_fidget = new EntThinkAdapter() {
     	public String getID(){ return "parasite_do_fidget"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_fidget;
             return true;
         }
@@ -396,7 +396,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_refidget = new EntThinkAdapter() {
     	public String getID(){ return "parasite_refidget"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.8)
                 self.monsterinfo.currentmove = parasite_move_fidget;
             else
@@ -407,7 +407,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_idle = new EntThinkAdapter() {
     	public String getID(){ return "parasite_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_start_fidget;
             return true;
         }
@@ -415,7 +415,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_start_run = new EntThinkAdapter() {
     	public String getID(){ return "parasite_start_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
             else
@@ -426,7 +426,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_run = new EntThinkAdapter() {
     	public String getID(){ return "parasite_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
             else
@@ -568,7 +568,7 @@ public class M_Parasite {
 
     static EntPainAdapter parasite_pain = new EntPainAdapter() {
     	public String getID(){ return "parasite_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
@@ -593,7 +593,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_drain_attack = new EntThinkAdapter() {
     	public String getID(){ return "parasite_drain_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 }, f = { 0, 0, 0 }, r = {
                     0, 0, 0 }, end = { 0, 0, 0 }, dir = { 0, 0, 0 };
             trace_t tr;
@@ -708,7 +708,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_attack = new EntThinkAdapter() {
     	public String getID(){ return "parasite_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //	if (random() <= 0.2)
             //		self.monsterinfo.currentmove = &parasite_move_break;
             //	else
@@ -723,7 +723,7 @@ public class M_Parasite {
 
     static EntThinkAdapter parasite_dead = new EntThinkAdapter() {
     	public String getID(){ return "parasite_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -748,7 +748,7 @@ public class M_Parasite {
 
     static EntDieAdapter parasite_die = new EntDieAdapter() {
     	public String getID(){ return "parasite_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
@@ -794,7 +794,7 @@ public class M_Parasite {
 
     public static EntThinkAdapter SP_monster_parasite = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_parasite"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.skipForDeathmatch(self)) return true;
 
             sound_pain1 = gameExports.gameImports.soundindex("parasite/parpain1.wav");

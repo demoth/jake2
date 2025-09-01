@@ -1003,7 +1003,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_stand = new EntThinkAdapter() {
         public String getID() { return "actor_stand";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_stand;
 
             // randomize on startup
@@ -1078,7 +1078,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_walk = new EntThinkAdapter() {
         public String getID() { return "actor_walk";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_walk;
             return true;
         }
@@ -1103,7 +1103,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_run = new EntThinkAdapter() {
         public String getID() { return "actor_run";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time < self.pain_debounce_time && (self.enemy == null)) {
                 if (self.movetarget != null)
                     actor_walk.think(self, gameExports);
@@ -1193,7 +1193,7 @@ public class M_Actor {
 
     static EntPainAdapter actor_pain = new EntPainAdapter() {
         public String getID() { return "actor_pain";}
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             int n;
 
@@ -1239,7 +1239,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_dead = new EntThinkAdapter() {
         public String getID() { return "actor_dead";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -1282,7 +1282,7 @@ public class M_Actor {
 
     static EntDieAdapter actor_die = new EntDieAdapter() {
         public String getID() { return "actor_die";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
@@ -1321,7 +1321,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_fire = new EntThinkAdapter() {
         public String getID() { return "actor_fire";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             actorMachineGun(self, gameExports);
 
             if (gameExports.level.time >= self.monsterinfo.pausetime)
@@ -1344,7 +1344,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_attack = new EntThinkAdapter() {
         public String getID() { return "actor_attack";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             int n;
 
             self.monsterinfo.currentmove = actor_move_attack;
@@ -1358,7 +1358,7 @@ public class M_Actor {
 
     static EntUseAdapter actor_use = new EntUseAdapter() {
         public String getID() { return "actor_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
 
             self.goalentity = self.movetarget = GameBase
@@ -1400,7 +1400,7 @@ public class M_Actor {
 
     static EntTouchAdapter target_actor_touch = new EntTouchAdapter() {
         public String getID() { return "target_actor_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
 
@@ -1483,7 +1483,7 @@ public class M_Actor {
         }
     };
 
-    static void actorMachineGun(SubgameEntity self, GameExportsImpl gameExports) {
+    static void actorMachineGun(GameEntity self, GameExportsImpl gameExports) {
         float start[] = { 0, 0, 0 }, target[] = { 0, 0, 0 };
 
         float forward[] = { 0, 0, 0 }, right[] = { 0, 0, 0 };
@@ -1519,7 +1519,7 @@ public class M_Actor {
      *//*
 
 
-    public static void SP_misc_actor(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_misc_actor(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0) {
             gameExports.freeEntity(self);
             return;
@@ -1573,7 +1573,7 @@ public class M_Actor {
         self.use = actor_use;
     }
 
-    public static void SP_target_actor(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_target_actor(GameEntity self, GameExportsImpl gameExports) {
         if (self.targetname != null)
             gameExports.gameImports.dprintf(self.classname + " with no targetname at "
                     + Lib.vtos(self.s.origin) + " \n");

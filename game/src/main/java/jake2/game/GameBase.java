@@ -27,8 +27,8 @@
 package jake2.game;
 
 import jake2.qcommon.Defines;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.cplane_t;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -101,8 +101,8 @@ public class GameBase {
     }
 
     // comfort version (rst)
-    static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff,
-                               String s, GameExportsImpl gameExports) {
+    static ServerEntity G_FindEdict(EdictIterator from, EdictFindFilter eff,
+                                    String s, GameExportsImpl gameExports) {
         EdictIterator ei = G_Find(from, eff, s, gameExports);
         if (ei == null)
             return null;
@@ -151,10 +151,10 @@ public class GameBase {
      * will be returned if the end of the list is reached.
      */
 
-    public static SubgameEntity G_PickTarget(String targetname, GameExportsImpl gameExports) {
+    public static GameEntity G_PickTarget(String targetname, GameExportsImpl gameExports) {
         int num_choices = 0;
         int MAXCHOICES = 8;
-        SubgameEntity[] choice = new SubgameEntity[MAXCHOICES];
+        GameEntity[] choice = new GameEntity[MAXCHOICES];
 
         if (targetname == null) {
             gameExports.gameImports.dprintf("G_PickTarget called with null targetname\n");
@@ -197,9 +197,9 @@ public class GameBase {
         Math3D.VectorClear(angles);
     }
 
-    static void G_TouchTriggers(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void G_TouchTriggers(GameEntity ent, GameExportsImpl gameExports) {
         int i;
-        SubgameEntity hit;
+        GameEntity hit;
 
         // dead things don't activate triggers!
         if ((ent.getClient() != null || (ent.svflags & Defines.SVF_MONSTER) != 0)

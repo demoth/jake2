@@ -47,14 +47,14 @@ public class GameUtil {
      * Search for (string)targetname in all entities that match
      * (string)self.target and call their .use function
      */
-    public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator, GameExportsImpl gameExports) {
+    public static void G_UseTargets(GameEntity ent, GameEntity activator, GameExportsImpl gameExports) {
 
         if (ent.classname == null) {
             gameExports.gameImports.dprintf("edict with classname = null: " + ent.index);
         }
 
         // check for a delay
-        SubgameEntity t;
+        GameEntity t;
         if (ent.delay != 0) {
             // create a temp object to fire at a later time
             t = gameExports.G_Spawn();
@@ -127,12 +127,12 @@ public class GameUtil {
      * Kills all entities that would touch the proposed new positioning of ent.
      * Ent should be unlinked before calling this!
      */
-    public static boolean KillBox(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static boolean KillBox(GameEntity ent, GameExportsImpl gameExports) {
 
         while (true) {
             trace_t tr = gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,
                     ent.s.origin, null, Defines.MASK_PLAYERSOLID);
-            SubgameEntity target = (SubgameEntity) tr.ent;
+            GameEntity target = (GameEntity) tr.ent;
             if (target == null || target == gameExports.g_edicts[0])
                 break;
 
@@ -152,7 +152,7 @@ public class GameUtil {
     /** 
      * Returns true, if two edicts are on the same team. 
      */
-    static boolean OnSameTeam(SubgameEntity ent1, SubgameEntity ent2, float dmflags) {
+    static boolean OnSameTeam(GameEntity ent1, GameEntity ent2, float dmflags) {
         if (0 == ((int) dmflags & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
 
@@ -165,7 +165,7 @@ public class GameUtil {
      * Returns the team string of an entity 
      * with respect to rteam_by_model and team_by_skin. 
      */
-    private static String ClientTeam(SubgameEntity ent, float dmflags) {
+    private static String ClientTeam(GameEntity ent, float dmflags) {
         String value;
 
         gclient_t client = ent.getClient();
@@ -186,7 +186,7 @@ public class GameUtil {
         return value.substring(p + 1, value.length());
     }
 
-    public static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ValidateSelectedItem(GameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t cl = ent.getClient();
 
@@ -202,7 +202,7 @@ public class GameUtil {
      * infront, or visibility and show hostile 2 infront and show hostile 3 only
      * triggered by damage.
      */
-    public static int range(SubgameEntity self, edict_t other) {
+    public static int range(GameEntity self, ServerEntity other) {
         float[] v = { 0, 0, 0 };
         float len;
 
@@ -217,14 +217,14 @@ public class GameUtil {
         return GameDefines.RANGE_FAR;
     }
 
-    static void AttackFinished(SubgameEntity self, float attack_finished) {
+    static void AttackFinished(GameEntity self, float attack_finished) {
         self.monsterinfo.attack_finished = attack_finished;
     }
 
     /**
      * Returns true if the entity is in front (in sight) of self
      */
-    public static boolean infront(SubgameEntity self, edict_t other) {
+    public static boolean infront(GameEntity self, ServerEntity other) {
         float[] vec = { 0, 0, 0 };
         float dot;
         float[] forward = { 0, 0, 0 };
@@ -242,7 +242,7 @@ public class GameUtil {
     /**
      * Returns 1 if the entity is visible to self, even if not infront().
      */
-    public static boolean visible(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+    public static boolean visible(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
         if (other == null)
             return false;
 
@@ -277,7 +277,7 @@ public class GameUtil {
      * checked each frame. This means multi player games will have slightly
      * slower noticing monsters.
      */
-    static boolean FindTarget(SubgameEntity self, GameExportsImpl gameExports) {
+    static boolean FindTarget(GameEntity self, GameExportsImpl gameExports) {
         boolean heardit;
         int r;
 
@@ -303,7 +303,7 @@ public class GameUtil {
         // noise but not weapon impact/explosion noises
 
         heardit = false;
-        SubgameEntity client;
+        GameEntity client;
         if ((gameExports.level.sight_entity_framenum >= (gameExports.level.framenum - 1))
                 && 0 == (self.spawnflags & 1)) {
             client = gameExports.level.sight_entity;
@@ -428,7 +428,7 @@ public class GameUtil {
         return true;
     }
 
-    public static void FoundTarget(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void FoundTarget(GameEntity self, GameExportsImpl gameExports) {
         // let other monsters see this monster for a while
         if (self.enemy.getClient() != null) {
             gameExports.level.sight_entity = self;
@@ -472,7 +472,7 @@ public class GameUtil {
 
     private static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
     	public String getID() { return "Think_Delay"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             G_UseTargets(ent, ent.activator, gameExports);
             gameExports.freeEntity(ent);
             return true;
@@ -481,7 +481,7 @@ public class GameUtil {
 
     public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             gameExports.freeEntity(ent);
             return false;
         }
@@ -490,7 +490,7 @@ public class GameUtil {
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "M_CheckAttack"; }
 
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 };
 
             float[] spot2 = { 0, 0, 0 };
@@ -576,7 +576,7 @@ public class GameUtil {
 
     static EntUseAdapter monster_use = new EntUseAdapter() {
     	public String getID() { return "monster_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             if (self.enemy != null)
                 return;
             if (self.health <= 0)

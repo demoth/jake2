@@ -38,7 +38,7 @@ public class GameWeapon {
     static EntTouchAdapter blaster_touch = new EntTouchAdapter() {
     	public String getID() { return "blaster_touch"; }
     
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
 
             if (other == self.getOwner())
@@ -92,7 +92,7 @@ public class GameWeapon {
         }
     };
 
-    public static String buildEntityInfo(SubgameEntity other) {
+    public static String buildEntityInfo(GameEntity other) {
         final StringBuilder result = new StringBuilder("Classname: " + other.classname);
         appendIfNonNull(result, "Index", other.index);
         appendIfNonNull(result, "Target", other.target);
@@ -117,7 +117,7 @@ public class GameWeapon {
 
     static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
     	public String getID() { return "Grenade_Explode"; }
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             int mod;
     
@@ -176,7 +176,7 @@ public class GameWeapon {
     };
     static EntTouchAdapter Grenade_Touch = new EntTouchAdapter() {
     	public String getID() { return "Grenade_Touch"; }
-        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
                 return;
@@ -216,7 +216,7 @@ public class GameWeapon {
      */
     static EntTouchAdapter rocket_touch = new EntTouchAdapter() {
     	public String  getID() { return "rocket_touch"; }
-        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             int n;
@@ -276,7 +276,7 @@ public class GameWeapon {
      */
     static EntThinkAdapter bfg_explode = new EntThinkAdapter() {
     	public String getID() { return "bfg_explode"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float points;
             float[] v = { 0, 0, 0 };
             float dist;
@@ -285,7 +285,7 @@ public class GameWeapon {
     
             if (self.s.frame == 0) {
                 // the BFG effect
-                SubgameEntity ent;
+                GameEntity ent;
                 while ((edit = GameBase.findradius(edit, self.s.origin,
                         self.dmg_radius, gameExports)) != null) {
                     ent = edit.o;
@@ -326,7 +326,7 @@ public class GameWeapon {
     
     static EntTouchAdapter bfg_touch = new EntTouchAdapter() {
     	public String getID() { return "bfg_touch"; }
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == self.getOwner())
                 return;
@@ -370,7 +370,7 @@ public class GameWeapon {
     
     static EntThinkAdapter bfg_think = new EntThinkAdapter() {
     	public String getID() { return "bfg_think"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] point = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -385,7 +385,7 @@ public class GameWeapon {
     
             EdictIterator edit = null;
             while ((edit = GameBase.findradius(edit, self.s.origin, 256, gameExports)) != null) {
-                SubgameEntity ent = edit.o;
+                GameEntity ent = edit.o;
 
                 if (ent == self)
                     continue;
@@ -406,7 +406,7 @@ public class GameWeapon {
                 Math3D.VectorSubtract(point, self.s.origin, dir);
                 Math3D.VectorNormalize(dir);
 
-                edict_t ignore = self;
+                ServerEntity ignore = self;
                 Math3D.VectorCopy(self.s.origin, start);
                 Math3D.VectorMA(start, 2048, dir, end);
                 while (true) {
@@ -414,7 +414,7 @@ public class GameWeapon {
                             Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                     | Defines.CONTENTS_DEADMONSTER);
 
-                    SubgameEntity target = (SubgameEntity) tr.ent;
+                    GameEntity target = (GameEntity) tr.ent;
                     if (null == target)
                         break;
     
@@ -422,7 +422,7 @@ public class GameWeapon {
                     if ((target.takedamage != 0)
                             && 0 == (target.flags & GameDefines.FL_IMMUNE_LASER)
                             && (target != self.getOwner()))
-                        GameCombat.T_Damage((SubgameEntity) target, self, self.getOwner(), dir,
+                        GameCombat.T_Damage((GameEntity) target, self, self.getOwner(), dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
                                 DamageFlags.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER, gameExports);
     
@@ -455,7 +455,7 @@ public class GameWeapon {
      * called. 
      * =================
      */
-    static void check_dodge(SubgameEntity self, float[] start, float[] dir, int speed, GameExportsImpl gameExports) {
+    static void check_dodge(GameEntity self, float[] start, float[] dir, int speed, GameExportsImpl gameExports) {
         float[] end = { 0, 0, 0 };
         float[] v = { 0, 0, 0 };
         trace_t tr;
@@ -468,7 +468,7 @@ public class GameWeapon {
         }
         Math3D.VectorMA(start, 8192, dir, end);
         tr = gameExports.gameImports.trace(start, null, null, end, self, Defines.MASK_SHOT);
-        SubgameEntity target = (SubgameEntity) tr.ent;
+        GameEntity target = (GameEntity) tr.ent;
         if ((target != null) && (target.svflags & Defines.SVF_MONSTER) != 0
                 && (target.health > 0) && (null != target.monsterinfo.dodge)
                 && GameUtil.infront(target, self)) {
@@ -485,7 +485,7 @@ public class GameWeapon {
      * Used for all impact (hit/punch/slash) attacks 
      * =================
      */
-    public static boolean fire_hit(SubgameEntity self, float[] aim, int damage,
+    public static boolean fire_hit(GameEntity self, float[] aim, int damage,
                                    int kick, GameExportsImpl gameExports) {
         trace_t tr;
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
@@ -518,7 +518,7 @@ public class GameWeapon {
         tr = gameExports.gameImports.trace(self.s.origin, null, null, point, self,
                 Defines.MASK_SHOT);
         if (tr.fraction < 1) {
-            SubgameEntity target = (SubgameEntity) tr.ent;
+            GameEntity target = (GameEntity) tr.ent;
             if (0 == target.takedamage)
                 return false;
             // if it will hit any client/monster then hit the one we wanted to
@@ -535,7 +535,7 @@ public class GameWeapon {
         Math3D.VectorSubtract(point, self.enemy.s.origin, dir);
     
         // do the damage
-        GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, dir, point, Globals.vec3_origin,
+        GameCombat.T_Damage((GameEntity) tr.ent, self, self, dir, point, Globals.vec3_origin,
                 damage, kick / 2, DamageFlags.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT, gameExports);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
@@ -559,7 +559,7 @@ public class GameWeapon {
      * This is an internal support routine used for bullet/pellet based weapons.
      * =================
      */
-    public static void fire_lead(SubgameEntity self, float[] start, float[] aimdir,
+    public static void fire_lead(GameEntity self, float[] start, float[] aimdir,
                                  int damage, int kick, int te_impact, int hspread, int vspread,
                                  int mod, GameExportsImpl gameExports) {
         trace_t tr;
@@ -634,7 +634,7 @@ public class GameWeapon {
         }
     
         // send gun puff / flash
-        SubgameEntity target = (SubgameEntity) tr.ent;
+        GameEntity target = (GameEntity) tr.ent;
         if (!((tr.surface != null) && 0 != (tr.surface.flags & Defines.SURF_SKY))) {
             if (tr.fraction < 1.0) {
                 if (target.takedamage != 0) {
@@ -680,7 +680,7 @@ public class GameWeapon {
      * Fires a single round. Used for machinegun and chaingun. Would be fine for
      * pistols, rifles, etc.... =================
      */
-    public static void fire_bullet(SubgameEntity self, float[] start, float[] aimdir,
+    public static void fire_bullet(GameEntity self, float[] start, float[] aimdir,
                                    int damage, int kick, int hspread, int vspread, int mod, GameExportsImpl gameExports) {
         fire_lead(self, start, aimdir, damage, kick, Defines.TE_GUNSHOT,
                 hspread, vspread, mod, gameExports);
@@ -693,7 +693,7 @@ public class GameWeapon {
      * Shoots shotgun pellets. Used by shotgun and super shotgun.
      * =================
      */
-    public static void fire_shotgun(SubgameEntity self, float[] start,
+    public static void fire_shotgun(GameEntity self, float[] start,
                                     float[] aimdir, int damage, int kick, int hspread, int vspread,
                                     int count, int mod, GameExportsImpl gameExports) {
 
@@ -710,12 +710,12 @@ public class GameWeapon {
      * =================
      */
 
-    public static void fire_blaster(SubgameEntity self, float[] start, float[] dir,
+    public static void fire_blaster(GameEntity self, float[] start, float[] dir,
                                     int damage, int speed, int effect, boolean hyper, GameExportsImpl gameExports) {
 
         Math3D.VectorNormalize(dir);
 
-        SubgameEntity bolt = gameExports.G_Spawn();
+        GameEntity bolt = gameExports.G_Spawn();
         bolt.svflags = Defines.SVF_DEADMONSTER;
         // yes, I know it looks weird that projectiles are deadmonsters
         // what this means is that when prediction is used against the object
@@ -753,11 +753,11 @@ public class GameWeapon {
                 Defines.MASK_SHOT);
         if (tr.fraction < 1.0) {
             Math3D.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
-            bolt.touch.touch(bolt, (SubgameEntity) tr.ent, GameBase.dummyplane, null, gameExports);
+            bolt.touch.touch(bolt, (GameEntity) tr.ent, GameBase.dummyplane, null, gameExports);
         }
     }
 
-    public static void fire_grenade(SubgameEntity self, float[] start,
+    public static void fire_grenade(GameEntity self, float[] start,
                                     float[] aimdir, int damage, int speed, float timer,
                                     float damage_radius, GameExportsImpl gameExports) {
         float[] dir = { 0, 0, 0 };
@@ -766,7 +766,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = gameExports.G_Spawn();
+        GameEntity grenade = gameExports.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -793,7 +793,7 @@ public class GameWeapon {
         gameExports.gameImports.linkentity(grenade);
     }
 
-    public static void fire_grenade2(SubgameEntity self, float[] start,
+    public static void fire_grenade2(GameEntity self, float[] start,
                                      float[] aimdir, int damage, int speed, float timer,
                                      float damage_radius, boolean held, GameExportsImpl gameExports) {
         float[] dir = { 0, 0, 0 };
@@ -802,7 +802,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = gameExports.G_Spawn();
+        GameEntity grenade = gameExports.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -841,10 +841,10 @@ public class GameWeapon {
         }
     }
 
-    public static void fire_rocket(SubgameEntity self, float[] start, float[] dir,
+    public static void fire_rocket(GameEntity self, float[] start, float[] dir,
                                    int damage, int speed, float damage_radius, int radius_damage, GameExportsImpl gameExports) {
 
-        SubgameEntity rocket = gameExports.G_Spawn();
+        GameEntity rocket = gameExports.G_Spawn();
         Math3D.VectorCopy(start, rocket.s.origin);
         Math3D.VectorCopy(dir, rocket.movedir);
         Math3D.vectoangles(dir, rocket.s.angles);
@@ -878,12 +878,12 @@ public class GameWeapon {
      * fire_rail 
      * =================
      */
-    public static void fire_rail(SubgameEntity self, float[] start, float[] aimdir,
+    public static void fire_rail(GameEntity self, float[] start, float[] aimdir,
                                  int damage, int kick, GameExportsImpl gameExports) {
         float[] from = { 0, 0, 0 };
         float[] end = { 0, 0, 0 };
         trace_t tr = null;
-        edict_t ignore;
+        ServerEntity ignore;
         int mask;
         boolean water;
     
@@ -902,7 +902,7 @@ public class GameWeapon {
             } else {
                 //ZOID--added so rail goes through SOLID_BBOX entities (gibs,
                 // etc)
-                SubgameEntity target = (SubgameEntity) tr.ent;
+                GameEntity target = (GameEntity) tr.ent;
                 if ((target.svflags & Defines.SVF_MONSTER) != 0
                         || (target.getClient() != null)
                         || (target.solid == Defines.SOLID_BBOX))
@@ -932,10 +932,10 @@ public class GameWeapon {
             PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT, gameExports);
     }
 
-    public static void fire_bfg(SubgameEntity self, float[] start, float[] dir,
+    public static void fire_bfg(GameEntity self, float[] start, float[] dir,
                                 int damage, int speed, float damage_radius, GameExportsImpl gameExports) {
 
-        SubgameEntity bfg = gameExports.G_Spawn();
+        GameEntity bfg = gameExports.G_Spawn();
         Math3D.VectorCopy(start, bfg.s.origin);
         Math3D.VectorCopy(dir, bfg.movedir);
         Math3D.vectoangles(dir, bfg.s.angles);

@@ -4,7 +4,7 @@ import jake2.game.GameCombat
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
 import jake2.game.GameMisc
-import jake2.game.SubgameEntity
+import jake2.game.GameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
@@ -57,7 +57,7 @@ private const val PLAT_LOW_TRIGGER = 1
  *
  * Set "sounds" to one of the following: 1) base fast 2) chain slow
  */
-fun funcPlat(self: SubgameEntity, game: GameExportsImpl) {
+fun funcPlat(self: GameEntity, game: GameExportsImpl) {
     Math3D.VectorClear(self.s.angles)
     self.solid = Defines.SOLID_BSP
     self.movetype = GameDefines.MOVETYPE_PUSH
@@ -161,7 +161,7 @@ private val platUse = registerUse("use_plat") { self, other, activator, game ->
 
 }
 
-private fun spawnInsideTrigger(plat: SubgameEntity, gameExports: GameExportsImpl) {
+private fun spawnInsideTrigger(plat: GameEntity, gameExports: GameExportsImpl) {
     val trigger = gameExports.G_Spawn()
     trigger.touch = platTriggerTouch
     trigger.movetype = GameDefines.MOVETYPE_NONE
@@ -205,7 +205,7 @@ private val platTriggerTouch = registerTouch("touch_plat_center") { self, other,
         plat.think.nextTime = game.level.time + 1 
     }
 }
-private fun platGoUp(self: SubgameEntity, game: GameExportsImpl) {
+private fun platGoUp(self: GameEntity, game: GameExportsImpl) {
     val moveInfo: MoveInfo = self.getComponent()!!
 
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {

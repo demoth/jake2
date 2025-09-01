@@ -20,14 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 09.01.2004 by RST.
 package jake2.game.adapters
 
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
 import jake2.qcommon.cplane_t
 import jake2.qcommon.csurface_t
 import jake2.qcommon.filesystem.QuakeFile
 
 /**
- * There are many fields in the [SubgameEntity] class. Some of them represent state - like 'health', 'damage' etc,
+ * There are many fields in the [GameEntity] class. Some of them represent state - like 'health', 'damage' etc,
  * other represent behaviour - like 'think', 'touch', 'use' etc.
  * In c version these were function pointers.
  *
@@ -61,9 +61,9 @@ abstract class SuperAdapter {
             return id
         }
 
-        fun registerThink(id: String, think: (self: SubgameEntity, game: GameExportsImpl) -> Boolean): EntThinkAdapter {
+        fun registerThink(id: String, think: (self: GameEntity, game: GameExportsImpl) -> Boolean): EntThinkAdapter {
             val adapter = object : EntThinkAdapter() {
-                override fun think(self: SubgameEntity, game: GameExportsImpl): Boolean {
+                override fun think(self: GameEntity, game: GameExportsImpl): Boolean {
                     return think.invoke(self, game)
                 }
 
@@ -73,9 +73,9 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerBlocked(id: String, block: (self: SubgameEntity, obstacle: SubgameEntity, game: GameExportsImpl ) -> Unit): EntBlockedAdapter {
+        fun registerBlocked(id: String, block: (self: GameEntity, obstacle: GameEntity, game: GameExportsImpl ) -> Unit): EntBlockedAdapter {
             val adapter = object: EntBlockedAdapter() {
-                override fun blocked(self: SubgameEntity, obstacle: SubgameEntity, game: GameExportsImpl) {
+                override fun blocked(self: GameEntity, obstacle: GameEntity, game: GameExportsImpl) {
                     block.invoke(self, obstacle, game)
                 }
 
@@ -85,12 +85,12 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerUse(id: String, use: (self: SubgameEntity, other: SubgameEntity?, activator: SubgameEntity?, game: GameExportsImpl) -> Unit): EntUseAdapter {
+        fun registerUse(id: String, use: (self: GameEntity, other: GameEntity?, activator: GameEntity?, game: GameExportsImpl) -> Unit): EntUseAdapter {
             val adapter = object : EntUseAdapter() {
                 override fun use(
-                    self: SubgameEntity,
-                    other: SubgameEntity?,
-                    activator: SubgameEntity?,
+                    self: GameEntity,
+                    other: GameEntity?,
+                    activator: GameEntity?,
                     gameExports: GameExportsImpl
                 ) {
                     use.invoke(self, other, activator, gameExports)
@@ -102,11 +102,11 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerTouch(id: String, touch: (self: SubgameEntity, other: SubgameEntity, plane: cplane_t, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
+        fun registerTouch(id: String, touch: (self: GameEntity, other: GameEntity, plane: cplane_t, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
             val adapter = object : EntTouchAdapter() {
                 override fun touch(
-                    self: SubgameEntity,
-                    other: SubgameEntity,
+                    self: GameEntity,
+                    other: GameEntity,
                     plane: cplane_t,
                     surf: csurface_t?,
                     game: GameExportsImpl
@@ -120,12 +120,12 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerDie(id:String, die: (self: SubgameEntity, inflictor: SubgameEntity?, attacker: SubgameEntity?, damage: Int, point: FloatArray?, game: GameExportsImpl) -> Unit): EntDieAdapter {
+        fun registerDie(id:String, die: (self: GameEntity, inflictor: GameEntity?, attacker: GameEntity?, damage: Int, point: FloatArray?, game: GameExportsImpl) -> Unit): EntDieAdapter {
             val adapter = object : EntDieAdapter() {
                 override fun die(
-                    self: SubgameEntity,
-                    inflictor: SubgameEntity?,
-                    attacker: SubgameEntity?,
+                    self: GameEntity,
+                    inflictor: GameEntity?,
+                    attacker: GameEntity?,
                     damage: Int,
                     point: FloatArray?,
                     gameExports: GameExportsImpl

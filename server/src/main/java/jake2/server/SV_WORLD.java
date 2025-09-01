@@ -33,12 +33,12 @@ class SV_WORLD {
     int sv_numareanodes;
     float[] area_mins;
     float[] area_maxs;
-    edict_t[] area_list;
+    ServerEntity[] area_list;
     int area_count;
     int area_maxcount;
     int area_type;
-    edict_t[] touch = new edict_t[Defines.MAX_EDICTS];
-    edict_t[] touchlist = new edict_t[Defines.MAX_EDICTS];
+    ServerEntity[] touch = new ServerEntity[Defines.MAX_EDICTS];
+    ServerEntity[] touchlist = new ServerEntity[Defines.MAX_EDICTS];
     public final int MAX_TOTAL_ENT_LEAFS = 128;
     int[] leafs = new int[MAX_TOTAL_ENT_LEAFS];
     int[] clusters = new int[MAX_TOTAL_ENT_LEAFS];
@@ -132,14 +132,14 @@ class SV_WORLD {
     /*
      * =============== SV_UnlinkEdict ===============
      */
-    static void SV_UnlinkEdict(edict_t ent) {
+    static void SV_UnlinkEdict(ServerEntity ent) {
         if (null == ent.area.prev)
             return; // not linked in anywhere
         RemoveLink(ent.area);
         ent.area.prev = ent.area.next = null;
     }
 
-    static void SV_LinkEdict(edict_t ent, GameImportsImpl gameImports) {
+    static void SV_LinkEdict(ServerEntity ent, GameImportsImpl gameImports) {
         areanode_t node;
         int num_leafs;
         int j, k;
@@ -292,7 +292,7 @@ class SV_WORLD {
      */
     private static void SV_AreaEdicts_r(areanode_t node, GameImportsImpl gameImports) {
         link_t l, next, start;
-        edict_t check;
+        ServerEntity check;
         // touch linked edicts
         if (gameImports.world.area_type == Defines.AREA_SOLID)
             start = node.solid_edicts;
@@ -300,7 +300,7 @@ class SV_WORLD {
             start = node.trigger_edicts;
         for (l = start.next; l != start; l = next) {
             next = l.next;
-            check = (edict_t) l.o;
+            check = (ServerEntity) l.o;
             if (check.solid == Defines.SOLID_NOT)
                 continue; // deactivated
             if (check.absmin[0] > gameImports.world.area_maxs[0]
@@ -330,7 +330,7 @@ class SV_WORLD {
      * ================ SV_AreaEdicts ================
      * TODO: return a collection of edicts rather than modifying param
      */
-    static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t[] list, int maxcount, int areatype, GameImportsImpl gameImports) {
+    static int SV_AreaEdicts(float[] mins, float[] maxs, ServerEntity[] list, int maxcount, int areatype, GameImportsImpl gameImports) {
         gameImports.world.area_mins = mins;
         gameImports.world.area_maxs = maxs;
         gameImports.world.area_list = list;
@@ -345,7 +345,7 @@ class SV_WORLD {
      * ============= SV_PointContents =============
      */
     static int SV_PointContents(float[] p, GameImportsImpl gameImports) {
-        edict_t hit;
+        ServerEntity hit;
         int i, num;
         int contents, c2;
         int headnode;
@@ -374,7 +374,7 @@ class SV_WORLD {
      * be added to the testing object's origin to get a point to use with the
      * returned hull. ================
      */
-    private static int SV_HullForEntity(edict_t ent, GameImportsImpl gameImports) {
+    private static int SV_HullForEntity(ServerEntity ent, GameImportsImpl gameImports) {
         cmodel_t model;
         // decide which clipping hull to use, based on the size
         if (ent.solid == Defines.SOLID_BSP) {
@@ -391,7 +391,7 @@ class SV_WORLD {
 
     private static void SV_ClipMoveToEntities(moveclip_t clip, GameImportsImpl gameImports) {
         int i, num;
-        edict_t touch;
+        ServerEntity touch;
         trace_t trace;
         int headnode;
         float angles[];
@@ -467,7 +467,7 @@ class SV_WORLD {
      * 
      * ==================
      */
-    static trace_t SV_Trace(float[] start, float[] mins, float[] maxs, float[] end, edict_t passedict, int contentmask, GameImportsImpl gameImports) {
+    static trace_t SV_Trace(float[] start, float[] mins, float[] maxs, float[] end, ServerEntity passedict, int contentmask, GameImportsImpl gameImports) {
         moveclip_t clip = new moveclip_t();
         if (mins == null)
             mins = Globals.vec3_origin;

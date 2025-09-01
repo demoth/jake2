@@ -30,7 +30,7 @@ private const val FIRE_FLAG = 65536
  * This portion of the turret changes yaw only.
  * MUST be teamed with a turret_breach.
  */
-fun turretBase(self: SubgameEntity, game: GameExportsImpl) {
+fun turretBase(self: GameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.blocked = turretBlocked
@@ -70,7 +70,7 @@ private val turretBlocked = registerBlocked("turret_blocked") { self, obstacle, 
  * "minyaw" min acceptable yaw angle : default 0
  * "maxyaw" max acceptable yaw angle : default 360
  */
-fun turretBreach(self: SubgameEntity, game: GameExportsImpl) {
+fun turretBreach(self: GameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     self.movetype = GameDefines.MOVETYPE_PUSH
     game.gameImports.setmodel(self, self.model)
@@ -213,7 +213,7 @@ private val turretBreachThink = registerThink("turret_breach_think") { self, gam
     true
 }
 
-fun turretBreachFireRocket(self: SubgameEntity, game: GameExportsImpl) {
+fun turretBreachFireRocket(self: GameEntity, game: GameExportsImpl) {
     val forward = floatArrayOf(0f, 0f, 0f)
     val right = floatArrayOf(0f, 0f, 0f)
     val up = floatArrayOf(0f, 0f, 0f)
@@ -253,7 +253,7 @@ internal fun Float.snapToEights(): Float {
  * Must NOT be on the team with the rest of the turret parts.
  * Instead, it must target the turret_breach.
  */
-fun turretDriver(self: SubgameEntity, game: GameExportsImpl) {
+fun turretDriver(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     // todo: decide weather to move to enforcer code or create a separate entity (non enforcer based driver?)

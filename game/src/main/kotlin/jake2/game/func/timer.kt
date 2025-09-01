@@ -1,8 +1,8 @@
 package jake2.game.func
 
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
-import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.hasSpawnFlag
@@ -25,7 +25,7 @@ import jake2.qcommon.util.Lib
 
 private const val TIMER_START_ON = 1
 
-fun funcTimer(self: SubgameEntity, game: GameExportsImpl) {
+fun funcTimer(self: GameEntity, game: GameExportsImpl) {
     if (self.wait == 0f)
         self.wait = 1.0f
 

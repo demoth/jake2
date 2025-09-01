@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
@@ -46,15 +46,15 @@ public class level_locals_t {
     public float[] intermission_origin = {0, 0, 0};
     public float[] intermission_angle = {0, 0, 0};
 
-    public SubgameEntity sight_client; // changed once each frame for coop games
+    public GameEntity sight_client; // changed once each frame for coop games
 
-    public SubgameEntity sight_entity;
+    public GameEntity sight_entity;
     public int sight_entity_framenum;
 
-    public SubgameEntity sound_entity;
+    public GameEntity sound_entity;
     public int sound_entity_framenum;
 	
-	public SubgameEntity sound2_entity;
+	public GameEntity sound2_entity;
 	public int sound2_entity_framenum;
 
 	public int pic_health;
@@ -68,7 +68,7 @@ public class level_locals_t {
 	public int total_monsters;
 	public int killed_monsters;
 
-	public edict_t current_entity; // entity running from G_RunFrame
+	public ServerEntity current_entity; // entity running from G_RunFrame
 	public int body_que; // dead bodies
 
 	public int power_cubes; // ugly necessity for coop
@@ -115,7 +115,7 @@ public class level_locals_t {
 	}
 	
 	/** Reads the level locals from the file. */
-	public void read(QuakeFile f, edict_t[] g_edicts) throws IOException
+	public void read(QuakeFile f, ServerEntity[] g_edicts) throws IOException
 	{
 		framenum = f.readInt();
 		time = f.readFloat();
@@ -127,14 +127,14 @@ public class level_locals_t {
 		exitintermission = f.readBoolean();
 		intermission_origin = f.readVector();
 		intermission_angle = f.readVector();
- 		sight_client = (SubgameEntity) f.readEdictRef(g_edicts);
+ 		sight_client = (GameEntity) f.readEdictRef(g_edicts);
  		
-		sight_entity = (SubgameEntity) f.readEdictRef(g_edicts);
+		sight_entity = (GameEntity) f.readEdictRef(g_edicts);
 		sight_entity_framenum = f.readInt();
 		
-		sound_entity = (SubgameEntity) f.readEdictRef(g_edicts);
+		sound_entity = (GameEntity) f.readEdictRef(g_edicts);
 		sound_entity_framenum = f.readInt();
-		sound2_entity = (SubgameEntity) f.readEdictRef(g_edicts);
+		sound2_entity = (GameEntity) f.readEdictRef(g_edicts);
 		sound2_entity_framenum = f.readInt();
 
 		pic_health = f.readInt();

@@ -1,9 +1,9 @@
 package jake2.game.character
 
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.M
-import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.components.ThinkComponent
 import jake2.qcommon.Defines
@@ -89,7 +89,7 @@ fun createSequences(name: String): Collection<AnimationSequence> {
 }
 
 class GameCharacter(
-    private val self: SubgameEntity,
+    private val self: GameEntity,
     private val game: GameExportsImpl,
     name: String,
 //    private var soundPlayer: (soundName: String) -> Unit
@@ -202,7 +202,7 @@ class GameCharacter(
 
 }
 
-fun spawnNewMonster(self: SubgameEntity, game: GameExportsImpl) {
+fun spawnNewMonster(self: GameEntity, game: GameExportsImpl) {
 
     val entity = game.G_Spawn()
     self.movetype = GameDefines.MOVETYPE_STEP

@@ -31,6 +31,6 @@ public class EdictIterator
 	{
 		this.i = i;
 	}
-	public SubgameEntity o;
+	public GameEntity o;
 	int i;
 }

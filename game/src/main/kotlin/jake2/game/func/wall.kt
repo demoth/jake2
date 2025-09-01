@@ -1,9 +1,9 @@
 package jake2.game.func
 
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
-import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.hasSpawnFlag
 import jake2.game.setSpawnFlag
@@ -33,7 +33,7 @@ private const val START_ON = 4
 private const val ANIMATED = 8
 private const val ANIMATED_FAST = 16
 
-fun funcWall(self: SubgameEntity, game: GameExportsImpl) {
+fun funcWall(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
     game.gameImports.setmodel(self, self.model)
 

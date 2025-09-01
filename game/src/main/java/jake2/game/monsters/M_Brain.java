@@ -508,7 +508,7 @@ public class M_Brain {
 
     static EntInteractAdapter brain_sight = new EntInteractAdapter() {
     	public String getID() { return "brain_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -517,7 +517,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_search = new EntThinkAdapter() {
     	public String getID() { return "brain_search"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -565,7 +565,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_stand = new EntThinkAdapter() {
     	public String getID() { return "brain_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = brain_move_stand;
             return true;
         }
@@ -612,7 +612,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_idle = new EntThinkAdapter() {
     	public String getID() { return "brain_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_idle3, 1,
                     Defines.ATTN_IDLE, 0);
             self.monsterinfo.currentmove = brain_move_idle;
@@ -641,7 +641,7 @@ public class M_Brain {
 
     //	   walk2 is FUBAR, do not use
     /*
-     * # if 0 void brain_walk2_cycle(SubgameEntity self) { if (random() > 0.1)
+     * # if 0 void brain_walk2_cycle(GameEntity self) { if (random() > 0.1)
      * self.monsterinfo.nextframe= FRAME_walk220; }
      * 
      * static mframe_t brain_frames_walk2[]= new mframe_t[] { new
@@ -673,7 +673,7 @@ public class M_Brain {
      */
     static EntThinkAdapter brain_walk = new EntThinkAdapter() {
     	public String getID() { return "brain_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //			if (random() <= 0.5)
             self.monsterinfo.currentmove = brain_move_walk1;
             //		else
@@ -688,7 +688,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_duck_down = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_down"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
@@ -702,7 +702,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_hold"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
@@ -713,7 +713,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_duck_up = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_up"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
@@ -724,7 +724,7 @@ public class M_Brain {
 
     static EntDodgeAdapter brain_dodge = new EntDodgeAdapter() {
     	public String getID() { return "brain_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
+        public void dodge(GameEntity self, GameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -746,7 +746,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_dead = new EntThinkAdapter() {
     	public String getID() { return "brain_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -789,7 +789,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_swing_right = new EntThinkAdapter() {
     	public String getID() { return "brain_swing_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_melee1, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -798,7 +798,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_hit_right = new EntThinkAdapter() {
     	public String getID() { return "brain_hit_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
@@ -811,7 +811,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_swing_left = new EntThinkAdapter() {
     	public String getID() { return "brain_swing_left"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_melee2, 1,
                     Defines.ATTN_NORM, 0);
 
@@ -821,7 +821,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_hit_left = new EntThinkAdapter() {
     	public String getID() { return "brain_hit_left"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
@@ -835,7 +835,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_chest_open = new EntThinkAdapter() {
     	public String getID() { return "brain_chest_open"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.spawnflags &= ~65536;
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_NONE;
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_chest_open, 1,
@@ -846,7 +846,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_tentacle_attack = new EntThinkAdapter() {
     	public String getID() { return "brain_tentacle_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] aim = { 0, 0, 0 };
 
@@ -882,7 +882,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_chest_closed = new EntThinkAdapter() {
     	public String getID() { return "brain_chest_closed"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
             if ((self.spawnflags & 65536) != 0) {
@@ -914,7 +914,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_melee = new EntThinkAdapter() {
     	public String getID() { return "brain_melee"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.5)
                 self.monsterinfo.currentmove = brain_move_attack1;
             else
@@ -946,7 +946,7 @@ public class M_Brain {
 
     static EntThinkAdapter brain_run = new EntThinkAdapter() {
     	public String getID() { return "brain_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = brain_move_stand;
@@ -1035,7 +1035,7 @@ public class M_Brain {
 
     static EntPainAdapter brain_pain = new EntPainAdapter() {
     	public String getID() { return "brain_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
 
             if (self.health < (self.max_health / 2))
@@ -1068,7 +1068,7 @@ public class M_Brain {
 
     static EntDieAdapter brain_die = new EntDieAdapter() {
     	public String getID() { return "brain_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
@@ -1119,7 +1119,7 @@ public class M_Brain {
      * QUAKED monster_brain (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_brain(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_monster_brain(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         sound_chest_open = gameExports.gameImports.soundindex("brain/brnatck1.wav");

@@ -20,7 +20,7 @@ private const val TRIGGERED = 4
  * This trigger will always fire.
  * It is activated by the world.
  */
-fun triggerAlways(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerAlways(self: GameEntity, game: GameExportsImpl) {
     if (self.delay < 0.2f)
         self.delay = 0.2f
     GameUtil.G_UseTargets(self, self, game)
@@ -39,7 +39,7 @@ fun triggerAlways(self: SubgameEntity, game: GameExportsImpl) {
  *
  * "message" string to be displayed when triggered
  */
-fun triggerOnce(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerOnce(self: GameEntity, game: GameExportsImpl) {
     // make old maps work because I messed up on flag assignments here
     // triggered was on bit 1 when it should have been on bit 4
     if (self.hasSpawnFlag(1)) {
@@ -65,7 +65,7 @@ fun triggerOnce(self: SubgameEntity, game: GameExportsImpl) {
  * sounds  1) secret 2) beep beep 3) large switch 4)
  * set "message" to text string
  */
-fun triggerMultiple(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerMultiple(self: GameEntity, game: GameExportsImpl) {
     when (self.sounds) {
         1 -> self.noise_index = game.gameImports.soundindex("misc/secret.wav")
         2 -> self.noise_index = game.gameImports.soundindex("misc/talk.wav")
@@ -128,7 +128,7 @@ private val triggerTouchMultiple = registerTouch("Touch_Multi") { self, other, _
  * self.activator should be set to the activator, so it can be held through a
  * delay so wait for the delay time before firing.
  */
-private fun multiTrigger(self: SubgameEntity, game: GameExportsImpl) {
+private fun multiTrigger(self: GameEntity, game: GameExportsImpl) {
     if (self.think.nextTime != 0f)
         return  // already been triggered
     GameUtil.G_UseTargets(self, self.activator, game)
@@ -162,7 +162,7 @@ private val triggerMultiWait = registerThink("multi_wait") { self, _ ->
  * fire all of its targets and remove itself.
  */
 private const val NO_MESSAGE = 1
-fun triggerCounter(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerCounter(self: GameEntity, game: GameExportsImpl) {
     self.wait = -1f
     if (0 == self.count)
         self.count = 2
@@ -203,11 +203,11 @@ private val triggerCounterUse = registerUse("trigger_counter_use") { self, other
  * QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8) This fixed size
  * trigger cannot be touched, it can only be fired by other events.
  */
-fun triggerRelay(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerRelay(self: GameEntity, game: GameExportsImpl) {
     self.use = triggerRelayUse
 }
 
-private val triggerRelayUse = registerUse("trigger_relay_use") { self: SubgameEntity, other: SubgameEntity?, activator: SubgameEntity?, game: GameExportsImpl ->
+private val triggerRelayUse = registerUse("trigger_relay_use") { self: GameEntity, other: GameEntity?, activator: GameEntity?, game: GameExportsImpl ->
     GameUtil.G_UseTargets(self, activator, game)
 }
 
@@ -216,7 +216,7 @@ private val triggerRelayUse = registerUse("trigger_relay_use") { self: SubgameEn
  * A relay trigger that only fires its targets if player has the proper key.
  * Use "item" to specify the required key, for example "key_data_cd"
  */
-fun triggerKey(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerKey(self: GameEntity, game: GameExportsImpl) {
     if (self.st.item == null) {
         game.gameImports.dprintf("no key item for trigger_key at ${Lib.vtos(self.s.origin)}\n")
         return
@@ -312,7 +312,7 @@ private val triggerKeyUse = registerUse("trigger_key_use") { self, other, activa
 
 private const val PUSH_ONCE = 1
 
-fun triggerPush(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerPush(self: GameEntity, game: GameExportsImpl) {
     initTrigger(self, game)
     game.windsound_index = game.gameImports.soundindex("misc/windfly.wav")
     self.touch = triggerPushTouch
@@ -348,7 +348,7 @@ private val triggerPushTouch = registerTouch("trigger_push_touch") { self, other
  * QUAKED trigger_gravity (.5 .5 .5) ? Changes the touching entity's gravity
  * to the value of "gravity". 1.0 is standard gravity for the level.
  */
-fun triggerGravity(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerGravity(self: GameEntity, game: GameExportsImpl) {
     if (self.st.gravity == null) {
         game.gameImports.dprintf("trigger_gravity without gravity set at ${Lib.vtos(self.s.origin)}\n")
         game.freeEntity(self)
@@ -384,7 +384,7 @@ private const val TOGGLE = 2
 private const val SILENT = 4
 private const val NO_PROTECTION = 8
 private const val SLOW = 16
-fun triggerHurt(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerHurt(self: GameEntity, game: GameExportsImpl) {
     initTrigger(self, game)
     self.noise_index = game.gameImports.soundindex("world/electro.wav")
     self.touch = triggerHurtTouch
@@ -453,7 +453,7 @@ private val triggerHurtUse = registerUse("hurt_use") { self, other, activator, g
  * "speed" default to 200, the speed thrown forward
  * "height" default to 200, the speed thrown upwards
  */
-fun triggerMonsterJump(self: SubgameEntity, game: GameExportsImpl) {
+fun triggerMonsterJump(self: GameEntity, game: GameExportsImpl) {
     if (self.speed == 0f)
         self.speed = 200f
 
@@ -486,7 +486,7 @@ private val triggerMonsterJumpTouch = registerTouch("trigger_monsterjump_touch")
 
 }
 
-private fun initTrigger(self: SubgameEntity, game: GameExportsImpl) {
+private fun initTrigger(self: GameEntity, game: GameExportsImpl) {
     if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
         GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.solid = Defines.SOLID_TRIGGER

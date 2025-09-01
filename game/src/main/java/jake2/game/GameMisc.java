@@ -40,7 +40,7 @@ import static jake2.qcommon.Defines.EF_FLIES;
 public class GameMisc {
 
 
-    static void SP_misc_eastertank(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SP_misc_eastertank(GameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, -16);
@@ -53,7 +53,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_easterchick(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SP_misc_easterchick(GameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
@@ -66,7 +66,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_misc_easterchick2(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SP_misc_easterchick2(GameEntity ent, GameExportsImpl gameExports) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
@@ -79,7 +79,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(ent);
     }
 
-    static void SP_monster_commander_body(SubgameEntity self, GameExportsImpl gameExports) {
+    static void SP_monster_commander_body(GameEntity self, GameExportsImpl gameExports) {
         self.movetype = GameDefines.MOVETYPE_NONE;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/commandr/tris.md2";
@@ -110,23 +110,23 @@ public class GameMisc {
             Math3D.VectorScale(v, 1.2f, v);
     }
 
-    public static void BecomeExplosion1(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void BecomeExplosion1(GameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, self.s.origin), MulticastTypes.MULTICAST_PVS);
         gameExports.freeEntity(self);
     }
 
-    public static void BecomeExplosion2(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void BecomeExplosion2(GameEntity self, GameExportsImpl gameExports) {
         gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION2, self.s.origin), MulticastTypes.MULTICAST_PVS);
         gameExports.freeEntity(self);
     }
 
-    public static void ThrowGib(SubgameEntity self, String gibname, int damage, int type, GameExportsImpl gameExports) {
+    public static void ThrowGib(GameEntity self, String gibname, int damage, int type, GameExportsImpl gameExports) {
 
         float[] vd = { 0, 0, 0 };
         float[] origin = { 0, 0, 0 };
         float[] size = { 0, 0, 0 };
 
-        SubgameEntity gib = gameExports.G_Spawn();
+        GameEntity gib = gameExports.G_Spawn();
     
         Math3D.VectorScale(self.size, 0.5f, size);
         Math3D.VectorAdd(self.absmin, size, origin);
@@ -164,7 +164,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(gib);
     }
 
-    public static void ThrowHead(SubgameEntity self, String gibname, int damage,
+    public static void ThrowHead(GameEntity self, String gibname, int damage,
                                  int type, GameExportsImpl gameExports) {
         float vd[] = { 0, 0, 0 };
     
@@ -207,7 +207,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(self);
     }
 
-    static void ThrowClientHead(SubgameEntity self, int damage, GameExportsImpl gameExports) {
+    static void ThrowClientHead(GameEntity self, int damage, GameExportsImpl gameExports) {
         float vd[] = { 0, 0, 0 };
         String gibname;
     
@@ -249,11 +249,11 @@ public class GameMisc {
         gameExports.gameImports.linkentity(self);
     }
 
-    public static void ThrowDebris(SubgameEntity self, String modelname, float speed,
-                            float[] origin, GameExportsImpl gameExports) {
+    public static void ThrowDebris(GameEntity self, String modelname, float speed,
+                                   float[] origin, GameExportsImpl gameExports) {
         float[] v = { 0, 0, 0 };
 
-        SubgameEntity chunk = gameExports.G_Spawn();
+        GameEntity chunk = gameExports.G_Spawn();
         Math3D.VectorCopy(origin, chunk.s.origin);
         gameExports.gameImports.setmodel(chunk, modelname);
         v[0] = 100 * Lib.crandom();
@@ -275,7 +275,7 @@ public class GameMisc {
         gameExports.gameImports.linkentity(chunk);
     }
 
-    private static void ClipGibVelocity(SubgameEntity ent) {
+    private static void ClipGibVelocity(GameEntity ent) {
         if (ent.velocity[0] < -300)
             ent.velocity[0] = -300;
         else if (ent.velocity[0] > 300)
@@ -301,7 +301,7 @@ public class GameMisc {
 
     private static EntThinkAdapter misc_eastertank_think = new EntThinkAdapter() {
         public String getID() { return "misc_eastertank_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 293)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
@@ -318,7 +318,7 @@ public class GameMisc {
 
     private static EntThinkAdapter misc_easterchick_think = new EntThinkAdapter() {
         public String getID() { return "misc_easterchick_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 247)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
@@ -334,7 +334,7 @@ public class GameMisc {
      */
     private static EntThinkAdapter misc_easterchick2_think = new EntThinkAdapter() {
         public String getID() { return "misc_easterchick2_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 287)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else {
@@ -353,7 +353,7 @@ public class GameMisc {
 
     private static EntThinkAdapter commander_body_think = new EntThinkAdapter() {
         public String getID() { return "commander_body_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 24)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             else
@@ -368,7 +368,7 @@ public class GameMisc {
 
     private static EntUseAdapter commander_body_use = new EntUseAdapter() {
         public String getID() { return "commander_body_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+        public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             self.think.action = commander_body_think;
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
@@ -378,7 +378,7 @@ public class GameMisc {
 
     private static EntThinkAdapter commander_body_drop = new EntThinkAdapter() {
         public String getID() { return "commander_body_group";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
@@ -388,7 +388,7 @@ public class GameMisc {
 
     private static EntThinkAdapter gib_think = new EntThinkAdapter() {
         public String getID() { return "gib_think";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
     
@@ -403,7 +403,7 @@ public class GameMisc {
 
     private static EntTouchAdapter gib_touch = new EntTouchAdapter() {
         public String getID() { return "gib_touch";}
-        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
+        public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float[] normal_angles = { 0, 0, 0 }, right = { 0, 0, 0 };
     
@@ -431,7 +431,7 @@ public class GameMisc {
 
     private static EntDieAdapter gib_die = new EntDieAdapter() {
         public String getID() { return "gib_die";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
         }
     };
@@ -441,7 +441,7 @@ public class GameMisc {
      */
     private static EntDieAdapter debris_die = new EntDieAdapter() {
         public String getID() { return "debris_die";}
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.freeEntity(self);
         }

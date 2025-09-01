@@ -31,7 +31,7 @@ import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.EntityParserKt;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -90,7 +90,7 @@ public class GameSpawn {
             return "SP_worldspawn";
         }
 
-        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
             ent.inuse = true;
@@ -351,7 +351,7 @@ public class GameSpawn {
                 return "SP_misc_insane";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Insane.SP_misc_insane(ent, gameExports);
                 return true;
             }
@@ -369,7 +369,7 @@ public class GameSpawn {
                 return "SP_misc_eastertank";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 GameMisc.SP_misc_eastertank(ent, gameExports);
                 return true;
             }
@@ -379,7 +379,7 @@ public class GameSpawn {
                 return "SP_misc_easterchick";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 GameMisc.SP_misc_easterchick(ent, gameExports);
                 return true;
             }
@@ -389,7 +389,7 @@ public class GameSpawn {
                 return "SP_misc_easterchick2";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 GameMisc.SP_misc_easterchick2(ent, gameExports);
                 return true;
             }
@@ -399,7 +399,7 @@ public class GameSpawn {
                 return "SP_monster_berserk";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Berserk.SP_monster_berserk(ent, gameExports);
                 return true;
             }
@@ -409,7 +409,7 @@ public class GameSpawn {
                 return "SP_monster_gladiator";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Gladiator.SP_monster_gladiator(ent, gameExports);
                 return true;
             }
@@ -419,7 +419,7 @@ public class GameSpawn {
                 return "SP_monster_gunner";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Gunner.SP_monster_gunner(ent, gameExports);
                 return true;
             }
@@ -429,7 +429,7 @@ public class GameSpawn {
                 return "SP_monster_infantry";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Infantry.SP_monster_infantry(ent, gameExports);
                 return true;
             }
@@ -444,7 +444,7 @@ public class GameSpawn {
                 return "SP_monster_medic";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Medic.SP_monster_medic(ent, gameExports);
                 return true;
             }
@@ -454,7 +454,7 @@ public class GameSpawn {
                 return "SP_monster_flipper";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Flipper.SP_monster_flipper(ent, gameExports);
                 return true;
             }
@@ -464,7 +464,7 @@ public class GameSpawn {
                 return "SP_monster_chick";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Chick.SP_monster_chick(ent, gameExports);
                 return true;
             }
@@ -475,7 +475,7 @@ public class GameSpawn {
                 return "SP_monster_flyer";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Flyer.SP_monster_flyer(ent, gameExports);
                 return true;
             }
@@ -485,7 +485,7 @@ public class GameSpawn {
                 return "SP_monster_brain";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Brain.SP_monster_brain(ent, gameExports);
                 return true;
             }
@@ -495,7 +495,7 @@ public class GameSpawn {
                 return "SP_monster_floater";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Float.SP_monster_floater(ent, gameExports);
                 return true;
             }
@@ -505,7 +505,7 @@ public class GameSpawn {
                 return "SP_monster_hover";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Hover.SP_monster_hover(ent, gameExports);
                 return true;
             }
@@ -517,7 +517,7 @@ public class GameSpawn {
                 return "SP_monster_boss2";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Hornet.SP_monster_boss2(ent, gameExports);
                 return true;
             }
@@ -527,7 +527,7 @@ public class GameSpawn {
                 return "SP_monster_boss3_stand";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Makron_Idle.SP_monster_boss3_stand(ent, gameExports);
                 return true;
             }
@@ -537,7 +537,7 @@ public class GameSpawn {
                 return "SP_monster_jorg";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 M_Makron_Jorg.SP_monster_jorg(ent, gameExports);
                 return true;
             }
@@ -547,7 +547,7 @@ public class GameSpawn {
                 return "SP_monster_commander_body";
             }
 
-            public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
+            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
                 GameMisc.SP_monster_commander_body(ent, gameExports);
                 return true;
             }
@@ -565,7 +565,7 @@ public class GameSpawn {
      * <p>
      * Takes a key/value pair and sets the binary values in an edict.
      */
-    private static void ED_ParseField(String key, String value, SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void ED_ParseField(String key, String value, GameEntity ent, GameExportsImpl gameExports) {
         if (!ent.st.set(key, value))
             if (!ent.setField(key, value))
                 gameExports.gameImports.dprintf("??? The key [" + key + "] is not a field\n");
@@ -579,7 +579,7 @@ public class GameSpawn {
      * should be a properly initialized empty edict.
      */
     @Deprecated
-    private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent, GameExportsImpl gameExports) {
+    private static void ED_ParseEdict(Com.ParseHelp ph, GameEntity ent, GameExportsImpl gameExports) {
 
         String keyname;
         String com_token;
@@ -621,8 +621,8 @@ public class GameSpawn {
         }
     }
 
-    private static void G_ClearEdict(edict_t ent, GameExportsImpl gameExports) {
-        gameExports.g_edicts[ent.index] = new SubgameEntity(ent.index);
+    private static void G_ClearEdict(ServerEntity ent, GameExportsImpl gameExports) {
+        gameExports.g_edicts[ent.index] = new GameEntity(ent.index);
     }
 
 
@@ -637,12 +637,12 @@ public class GameSpawn {
      * fixme: n^2 complexity
      */
     private static void G_FindTeams(GameExportsImpl game) {
-        var teams = new HashMap<String, ArrayList<SubgameEntity>>();
+        var teams = new HashMap<String, ArrayList<GameEntity>>();
         // TODO check that num_edicts is not more than g_edicts.size()
         // TODO rename fields: teamchain -> next, teamslave -> teammember, teammaster -> teamlead
 
         for (int i = 1; i < game.num_edicts; i++) {
-            SubgameEntity e = game.g_edicts[i];
+            GameEntity e = game.g_edicts[i];
 
             if (!e.inuse)
                 continue;
@@ -686,7 +686,7 @@ public class GameSpawn {
 
         EntityParserKt.parseEntities(entities).forEach(map -> {
 
-            final SubgameEntity ent;
+            final GameEntity ent;
             if ("worldspawn".equals(map.get("classname")))
                 ent = gameExports.g_edicts[0];
             else
@@ -755,7 +755,7 @@ public class GameSpawn {
     /**
      * Finds the spawn function for the entity and calls it.
      */
-    public static void ED_CallSpawn(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ED_CallSpawn(GameEntity ent, GameExportsImpl gameExports) {
 
         if (null == ent.classname) {
             gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
@@ -784,13 +784,13 @@ public class GameSpawn {
 
     static String[] mobs = { "monster_berserk", "monster_gladiator", "monster_gunner", "monster_infantry", "monster_soldier_light", "monster_soldier", "monster_soldier_ss", "monster_tank", "monster_tank_commander", "monster_medic", "monster_chick", "monster_parasite", "monster_flyer", "monster_brain", "monster_floater", "monster_mutant"};
     // for debugging and testing
-    static void SpawnRandomMonster(SubgameEntity ent, GameExportsImpl gameExports){
+    static void SpawnRandomMonster(GameEntity ent, GameExportsImpl gameExports){
         final int index = Lib.rand() % mobs.length;
         SpawnNewEntity(ent, Arrays.asList("spawn", mobs[index]), gameExports);
 
     }
 
-    static void SpawnNewEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {
+    static void SpawnNewEntity(GameEntity creator, List<String> args, GameExportsImpl gameExports) {
         String className;
         if (args.size() >= 2)
             className = args.get(1);
@@ -810,7 +810,7 @@ public class GameSpawn {
         var spawn = spawns.get(className);
         GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
-            SubgameEntity newThing = gameExports.G_Spawn();
+            GameEntity newThing = gameExports.G_Spawn();
 
             putInFrontOfCreator(creator, newThing);
 
@@ -825,7 +825,7 @@ public class GameSpawn {
         }
     }
 
-    private static void putInFrontOfCreator(SubgameEntity creator, SubgameEntity newThing) {
+    private static void putInFrontOfCreator(GameEntity creator, GameEntity newThing) {
         float[] location = creator.s.origin;
         float[] offset = {0,0,0};
         float[] forward = { 0, 0, 0 };
@@ -840,7 +840,7 @@ public class GameSpawn {
     /**
      * Makes sense only for point entities
      */
-    public static void createEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {
+    public static void createEntity(GameEntity creator, List<String> args, GameExportsImpl gameExports) {
         // hack: join back all the arguments, quoting keys and values
         // no comments are expected here
         String entities = args.stream()
@@ -851,7 +851,7 @@ public class GameSpawn {
 
         // actually we expect 1 entity
         EntityParserKt.parseEntities(entities).forEach(entity -> {
-            SubgameEntity newThing = gameExports.G_Spawn();
+            GameEntity newThing = gameExports.G_Spawn();
             entity.forEach((key, value) -> ED_ParseField(key, value, newThing, gameExports));
             putInFrontOfCreator(creator, newThing);
             ED_CallSpawn(newThing, gameExports);

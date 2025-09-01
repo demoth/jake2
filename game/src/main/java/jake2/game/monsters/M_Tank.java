@@ -649,7 +649,7 @@ public class M_Tank {
 
     static EntInteractAdapter tank_sight = new EntInteractAdapter() {
     	public String getID(){ return "tank_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -658,7 +658,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_footstep = new EntThinkAdapter() {
     	public String getID(){ return "tank_footstep"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -667,7 +667,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_thud = new EntThinkAdapter() {
     	public String getID(){ return "tank_thud"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_thud, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -676,7 +676,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_windup = new EntThinkAdapter() {
     	public String getID(){ return "tank_windup"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_windup, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -685,7 +685,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_idle = new EntThinkAdapter() {
     	public String getID(){ return "tank_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -733,7 +733,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_stand = new EntThinkAdapter() {
     	public String getID(){ return "tank_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = tank_move_stand;
             return true;
         }
@@ -744,7 +744,7 @@ public class M_Tank {
     //
     static EntThinkAdapter tank_run = new EntThinkAdapter() {
     	public String getID(){ return "tank_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.enemy != null && self.enemy.getClient() != null)
                 self.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
             else
@@ -767,7 +767,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_walk = new EntThinkAdapter() {
     	public String getID(){ return "tank_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = tank_move_walk;
             return true;
         }
@@ -903,7 +903,7 @@ public class M_Tank {
 
     static EntPainAdapter tank_pain = new EntPainAdapter() {
     	public String getID(){ return "tank_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum |= 1;
 
@@ -949,7 +949,7 @@ public class M_Tank {
 
     static EntThinkAdapter TankBlaster = new EntThinkAdapter() {
     	public String getID(){ return "TankBlaster"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
             float[] end = { 0, 0, 0 };
@@ -982,7 +982,7 @@ public class M_Tank {
 
     static EntThinkAdapter TankStrike = new EntThinkAdapter() {
     	public String getID(){ return "TankStrike"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_strike, 1,
                     Defines.ATTN_NORM, 0);
 
@@ -992,7 +992,7 @@ public class M_Tank {
 
     static EntThinkAdapter TankRocket = new EntThinkAdapter() {
     	public String getID(){ return "TankRocket"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -1026,7 +1026,7 @@ public class M_Tank {
 
     static EntThinkAdapter TankMachineGun = new EntThinkAdapter() {
     	public String getID(){ return "TankMachineGun"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] dir = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
@@ -1069,7 +1069,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_reattack_blaster = new EntThinkAdapter() {
     	public String getID(){ return "tank_reattack_blaster"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.gameCvars.skill.value >= 2)
                 if (GameUtil.visible(self, self.enemy, gameExports))
                     if (self.enemy.health > 0)
@@ -1131,7 +1131,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_poststrike = new EntThinkAdapter() {
     	public String getID(){ return "tank_poststrike"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.enemy = null;
             tank_run.think(self, gameExports);
             return true;
@@ -1140,7 +1140,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_doattack_rocket = new EntThinkAdapter() {
     	public String getID(){ return "tank_doattack_rocket"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = tank_move_attack_fire_rocket;
             return true;
         }
@@ -1148,7 +1148,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_refire_rocket = new EntThinkAdapter() {
     	public String getID(){ return "tank_refire_rocket"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             // Only on hard or nightmare
             if (gameExports.gameCvars.skill.value >= 2)
                 if (self.enemy.health > 0)
@@ -1318,7 +1318,7 @@ public class M_Tank {
 
     static EntThinkAdapter tank_attack = new EntThinkAdapter() {
     	public String getID(){ return "tank_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range;
             float r;
@@ -1366,7 +1366,7 @@ public class M_Tank {
     //
     static EntThinkAdapter tank_dead = new EntThinkAdapter() {
     	public String getID(){ return "tank_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -16);
             Math3D.VectorSet(self.maxs, 16, 16, -0);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -1416,7 +1416,7 @@ public class M_Tank {
 
     static EntDieAdapter tank_die = new EntDieAdapter() {
     	public String getID(){ return "tank_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
@@ -1470,7 +1470,7 @@ public class M_Tank {
      */
     public static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_tank"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.skipForDeathmatch(self)) return true;
 
             self.s.modelindex = gameExports.gameImports

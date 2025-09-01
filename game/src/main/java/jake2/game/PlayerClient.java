@@ -40,7 +40,7 @@ public class PlayerClient {
      */
     static EntDieAdapter player_die = new EntDieAdapter() {
     	public String getID() { return "player_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
 
             Math3D.VectorClear(self.avelocity);
@@ -142,12 +142,12 @@ public class PlayerClient {
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
     	public String getID() { return "player_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
         }
     };
     static EntDieAdapter body_die = new EntDieAdapter() {
     	public String getID() { return "body_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
     
             int n;
@@ -166,9 +166,9 @@ public class PlayerClient {
     };
 
 
-    public static void ClientObituary(SubgameEntity self,
-                                      edict_t inflictor,
-                                      SubgameEntity attacker,
+    public static void ClientObituary(GameEntity self,
+                                      ServerEntity inflictor,
+                                      GameEntity attacker,
                                       GameExportsImpl gameExports) {
 
         gclient_t attackerClient = attacker.getClient();
@@ -391,7 +391,7 @@ public class PlayerClient {
         client.pers.connected = true;
     }
 
-    public static void FetchClientEntData(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void FetchClientEntData(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
@@ -403,8 +403,8 @@ public class PlayerClient {
     /**
      * Returns the distance to the nearest player from the given spot.
      */
-    static float PlayersRangeFromSpot(SubgameEntity spot, GameExportsImpl gameExports) {
-        SubgameEntity player;
+    static float PlayersRangeFromSpot(GameEntity spot, GameExportsImpl gameExports) {
+        GameEntity player;
         float bestplayerdistance;
         float[] v = { 0, 0, 0 };
         int n;
@@ -435,15 +435,15 @@ public class PlayerClient {
      * Go to a random point, but NOT the two points closest to other players.
      * @param gameExports
      */
-    public static SubgameEntity SelectRandomDeathmatchSpawnPoint(GameExportsImpl gameExports) {
+    public static GameEntity SelectRandomDeathmatchSpawnPoint(GameExportsImpl gameExports) {
         int count = 0;
         float range2;
 
-        SubgameEntity spot;
+        GameEntity spot;
 
         float range1 = range2 = 99999;
-        SubgameEntity spot2;
-        SubgameEntity spot1 = spot2 = null;
+        GameEntity spot2;
+        GameEntity spot1 = spot2 = null;
 
         EdictIterator es = null;
 
@@ -492,10 +492,10 @@ public class PlayerClient {
 	 * If turned on in the dmflags, select a spawn point far away from other players.
      * @param gameExports
      */
-    static SubgameEntity SelectFarthestDeathmatchSpawnPoint(GameExportsImpl gameExports) {
+    static GameEntity SelectFarthestDeathmatchSpawnPoint(GameExportsImpl gameExports) {
 
-        SubgameEntity spot;
-        SubgameEntity bestspot = null;
+        GameEntity spot;
+        GameEntity bestspot = null;
         float bestdistance = 0;
 
         EdictIterator es = null;
@@ -523,14 +523,14 @@ public class PlayerClient {
     }
 
     
-    public static SubgameEntity SelectDeathmatchSpawnPoint(GameExportsImpl gameExports) {
+    public static GameEntity SelectDeathmatchSpawnPoint(GameExportsImpl gameExports) {
         if (0 != ((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
             return SelectFarthestDeathmatchSpawnPoint(gameExports);
         else
             return SelectRandomDeathmatchSpawnPoint(gameExports);
     }
 
-    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent, GameExportsImpl gameExports) {
+    public static GameEntity SelectCoopSpawnPoint(ServerEntity ent, GameExportsImpl gameExports) {
 
         //index = ent.client - game.clients;
         int index = ent.getClient().getIndex();
@@ -539,7 +539,7 @@ public class PlayerClient {
         if (index == 0)
             return null;
 
-        SubgameEntity spot;
+        GameEntity spot;
         EdictIterator es = null;
 
         // assume there are four coop spots at each spawnpoint
@@ -571,8 +571,8 @@ public class PlayerClient {
     /**
      * Chooses a player start, deathmatch start, coop start, etc.
      */
-    public static void SelectSpawnPoint(edict_t ent, float[] origin, float[] angles, GameExportsImpl gameExports) {
-        SubgameEntity spot = null;
+    public static void SelectSpawnPoint(ServerEntity ent, float[] origin, float[] angles, GameExportsImpl gameExports) {
+        GameEntity spot = null;
 
         if (gameExports.gameCvars.deathmatch.value != 0)
             spot = SelectDeathmatchSpawnPoint(gameExports);
@@ -623,16 +623,16 @@ public class PlayerClient {
 
         gameExports.level.body_que = 0;
         for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
-            SubgameEntity ent = gameExports.G_Spawn();
+            GameEntity ent = gameExports.G_Spawn();
             ent.classname = "bodyque";
         }
     }
 
-    public static void CopyToBodyQue(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void CopyToBodyQue(GameEntity ent, GameExportsImpl gameExports) {
 
         // grab a body que and cycle to the next one
         int i = (int) gameExports.game.maxclients + gameExports.level.body_que + 1;
-        SubgameEntity body = gameExports.g_edicts[i];
+        GameEntity body = gameExports.g_edicts[i];
         gameExports.level.body_que = (gameExports.level.body_que + 1)
                 % GameDefines.BODY_QUEUE_SIZE;
 
@@ -662,7 +662,7 @@ public class PlayerClient {
         gameExports.gameImports.linkentity(body);
     }
 
-    public static void respawn(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void respawn(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
@@ -698,7 +698,7 @@ public class PlayerClient {
     /**
      * Called when a player connects to a server or respawns in a deathmatch.
      */
-    public static void PutClientInServer(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void PutClientInServer(GameEntity ent, GameExportsImpl gameExports) {
         float[] mins = { -16, -16, -24 };
         float[] maxs = { 16, 16, 32 };
         int index;
@@ -854,7 +854,7 @@ public class PlayerClient {
      * A client has just connected to the server in deathmatch mode, so clear
      * everything out before starting them.
      */
-    public static void ClientBeginDeathmatch(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ClientBeginDeathmatch(GameEntity ent, GameExportsImpl gameExports) {
         ent.G_InitEdict(ent.index);
 
         gclient_t client = ent.getClient();
@@ -877,7 +877,7 @@ public class PlayerClient {
         gameExports.playerView.ClientEndServerFrame(ent, gameExports);
     }
 
-    static void ClientBegin(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void ClientBegin(GameEntity ent, GameExportsImpl gameExports) {
 
         //ent.client = game.clients + (ent - g_edicts - 1);
         ent.setClient(gameExports.game.clients[ent.index - 1]);
@@ -924,7 +924,7 @@ public class PlayerClient {
         gameExports.playerView.ClientEndServerFrame(ent, gameExports);
     }
 
-    static String ClientUserinfoChanged(SubgameEntity ent, String userinfo, GameExportsImpl gameExports) {
+    static String ClientUserinfoChanged(GameEntity ent, String userinfo, GameExportsImpl gameExports) {
         String s;
         int playernum;
 
@@ -985,7 +985,7 @@ public class PlayerClient {
      * Run checks before the clients is allowed to connect and then connect the client
      * @return if client successfully connected
      */
-    static boolean ClientConnect(SubgameEntity ent, String userinfo, GameExportsImpl gameExports) {
+    static boolean ClientConnect(GameEntity ent, String userinfo, GameExportsImpl gameExports) {
         // check to see if they are on the banned IP list
         String ip = Info.Info_ValueForKey(userinfo, "ip");
         if (GameSVCmds.SV_FilterPacket(ip, gameExports.gameCvars.filterban.value)) {
@@ -1047,7 +1047,7 @@ public class PlayerClient {
         return true;
     }
 
-    static void ClientDisconnect(SubgameEntity ent, GameImports gameImports) {
+    static void ClientDisconnect(GameEntity ent, GameImports gameImports) {
 
         gclient_t client = ent.getClient();
         if (client == null)
@@ -1090,7 +1090,7 @@ public class PlayerClient {
      * }
      */
 
-    static void ClientThink(SubgameEntity ent, usercmd_t ucmd, GameExportsImpl gameExports) {
+    static void ClientThink(GameEntity ent, usercmd_t ucmd, GameExportsImpl gameExports) {
 
         gameExports.level.current_entity = ent;
         gclient_t client = ent.getClient();
@@ -1106,7 +1106,7 @@ public class PlayerClient {
 
         gameExports.pm_passent = ent;
 
-        SubgameEntity other;
+        GameEntity other;
         int i;
         if (client.chase_target != null) {
 
@@ -1210,7 +1210,7 @@ public class PlayerClient {
 
             // touch other objects
             for (i = 0; i < pm.numtouch; i++) {
-                other = (SubgameEntity) pm.touchents[i];
+                other = (GameEntity) pm.touchents[i];
                 int j;
                 for (j = 0; j < i; j++)
                     if (pm.touchents[j] == other)
@@ -1275,7 +1275,7 @@ public class PlayerClient {
     /**
      * Returns true, if the players gender flag was set to female. 
      */
-    public static boolean IsFemale(SubgameEntity ent) {
+    public static boolean IsFemale(GameEntity ent) {
         char info;
 
         gclient_t client = ent.getClient();
@@ -1293,7 +1293,7 @@ public class PlayerClient {
      * Returns true, if the players gender flag was neither set to female nor to
      * male.
      */
-    public static boolean IsNeutral(SubgameEntity ent) {
+    public static boolean IsNeutral(GameEntity ent) {
         char info;
 
         gclient_t client = ent.getClient();
@@ -1311,8 +1311,8 @@ public class PlayerClient {
     /**
      * Changes the camera view to look at the killer.
      */
-    public static void LookAtKiller(SubgameEntity self, edict_t inflictor,
-                                    edict_t attacker, SubgameEntity world) {
+    public static void LookAtKiller(GameEntity self, ServerEntity inflictor,
+                                    ServerEntity attacker, GameEntity world) {
         float dir[] = { 0, 0, 0 };
     
         gclient_t client = self.getClient();
@@ -1344,7 +1344,7 @@ public class PlayerClient {
     /** 
      * Drop items and weapons in deathmatch games. 
      */ 
-    public static void TossClientWeapon(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void TossClientWeapon(GameEntity self, GameExportsImpl gameExports) {
 
         if (gameExports.gameCvars.deathmatch.value == 0)
             return;
@@ -1368,7 +1368,7 @@ public class PlayerClient {
         else
             spread = 0.0f;
 
-        SubgameEntity drop;
+        GameEntity drop;
         if (item != null) {
             client.v_angle[Defines.YAW] -= spread;
             drop = GameItems.Drop_Item(self, item, gameExports);

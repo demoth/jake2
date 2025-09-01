@@ -13,14 +13,14 @@ public interface GameImports {
 
     void dprintf(String s);
 
-    void cprintf(edict_t ent, int printlevel, String s);
+    void cprintf(ServerEntity ent, int printlevel, String s);
 
-    void centerprintf(edict_t ent, String s);
+    void centerprintf(ServerEntity ent, String s);
 
-    void sound(edict_t ent, int channel, int soundindex, float volume,
+    void sound(ServerEntity ent, int channel, int soundindex, float volume,
                float attenuation, float timeofs);
 
-    void positioned_sound(float[] origin, edict_t ent, int channel,
+    void positioned_sound(float[] origin, ServerEntity ent, int channel,
                           int soundinedex, float volume, float attenuation, float timeofs);
 
     /*
@@ -42,11 +42,11 @@ public interface GameImports {
 
     int imageindex(String name);
 
-    void setmodel(edict_t ent, String name);
+    void setmodel(ServerEntity ent, String name);
 
     /* collision detection */
     trace_t trace(float[] start, float[] mins, float[] maxs,
-                  float[] end, edict_t passent, int contentmask);
+                  float[] end, ServerEntity passent, int contentmask);
 
     boolean inPHS(float[] p1, float[] p2);
 
@@ -59,12 +59,12 @@ public interface GameImports {
              if it is not passed to linkentity. If the size, position, or
              solidity changes, it must be relinked.
             */
-    void linkentity(edict_t ent);
+    void linkentity(ServerEntity ent);
 
-    void unlinkentity(edict_t ent);
+    void unlinkentity(ServerEntity ent);
 
     /* call before removing an interactive edict */
-    int BoxEdicts(float[] mins, float[] maxs, edict_t list[],
+    int BoxEdicts(float[] mins, float[] maxs, ServerEntity list[],
                   int maxcount, int areatype);
 
     void Pmove(pmove_t pmove);

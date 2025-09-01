@@ -25,7 +25,7 @@ package jake2.game;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.messages.server.LayoutMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.util.Lib;
@@ -41,7 +41,7 @@ public class PlayerHud {
      * ======================================================================
      */
 
-    public static void MoveClientToIntermission(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void MoveClientToIntermission(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0)
             client.showscores = true;
@@ -81,7 +81,7 @@ public class PlayerHud {
 
     }
 
-    public static void BeginIntermission(SubgameEntity targ, GameExportsImpl gameExports) {
+    public static void BeginIntermission(GameEntity targ, GameExportsImpl gameExports) {
 
         if (gameExports.level.intermissiontime != 0)
             return; // already activated
@@ -90,7 +90,7 @@ public class PlayerHud {
 
         // respawn any dead clients
         for (int i = 0; i < gameExports.game.maxclients; i++) {
-            SubgameEntity client = gameExports.g_edicts[1 + i];
+            GameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             if (client.health <= 0)
@@ -104,7 +104,7 @@ public class PlayerHud {
         if (gameExports.level.changemap.contains("*")) {
             if (gameExports.gameCvars.coop.value != 0) {
                 for (int i = 0; i < gameExports.game.maxclients; i++) {
-                    final SubgameEntity client = gameExports.g_edicts[1 + i];
+                    final GameEntity client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
@@ -124,7 +124,7 @@ public class PlayerHud {
         gameExports.level.exitintermission = false;
 
         // find an intermission spot
-        edict_t ent = GameBase.G_FindEdict(null, GameBase.findByClassName,
+        ServerEntity ent = GameBase.G_FindEdict(null, GameBase.findByClassName,
                 "info_player_intermission", gameExports);
         if (ent == null) { // the map creator forgot to put in an intermission
                            // point...
@@ -152,7 +152,7 @@ public class PlayerHud {
 
         // move all clients to the intermission point
         for (int i = 0; i < gameExports.game.maxclients; i++) {
-            SubgameEntity client = gameExports.g_edicts[1 + i];
+            GameEntity client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             MoveClientToIntermission(client, gameExports);
@@ -164,7 +164,7 @@ public class PlayerHud {
      * DeathmatchScoreboardMessage
      * ==================
      */
-    public static ServerMessage DeathmatchScoreboardMessage(edict_t ent, edict_t killer, GameExportsImpl gameExports) {
+    public static ServerMessage DeathmatchScoreboardMessage(ServerEntity ent, ServerEntity killer, GameExportsImpl gameExports) {
         StringBuffer string = new StringBuffer(1400);
 
         int stringlength;
@@ -175,7 +175,7 @@ public class PlayerHud {
         int picnum;
         int x, y;
         gclient_t cl;
-        edict_t cl_ent;
+        ServerEntity cl_ent;
         String tag;
 
         // sort the clients by score
@@ -253,7 +253,7 @@ public class PlayerHud {
      * the 1400 byte message limit! 
      * ==================
      */
-    public static void DeathmatchScoreboard(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void DeathmatchScoreboard(GameEntity ent, GameExportsImpl gameExports) {
         gameExports.gameImports.unicastMessage(ent.index, DeathmatchScoreboardMessage(ent, ent.enemy, gameExports), true);
     }
 
@@ -262,7 +262,7 @@ public class PlayerHud {
      * G_SetStats 
      * ===============
      */
-    public static void G_SetStats(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void G_SetStats(GameEntity ent, GameExportsImpl gameExports) {
         int cells = 0;
         int power_armor_type;
 
@@ -403,7 +403,7 @@ public class PlayerHud {
      * G_CheckChaseStats 
      * ===============
      */
-    public static void G_CheckChaseStats(edict_t ent, GameExportsImpl gameExports) {
+    public static void G_CheckChaseStats(ServerEntity ent, GameExportsImpl gameExports) {
 
         for (int i = 1; i <= gameExports.game.maxclients; i++) {
             gclient_t cl = gameExports.g_edicts[i].getClient();
@@ -422,7 +422,7 @@ public class PlayerHud {
      * G_SetSpectatorStats 
      * ===============
      */
-    public static void G_SetSpectatorStats(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void G_SetSpectatorStats(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t cl = ent.getClient();
 
         if (null == cl.chase_target)

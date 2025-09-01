@@ -9,7 +9,7 @@ public interface GameExports {
     /**
      * Processes the commands the player enters in the quake console.
      */
-    void ClientCommand(edict_t ent, List<String> args);
+    void ClientCommand(ServerEntity ent, List<String> args);
 
     /**
      * Advances the world by Defines.FRAMETIME (0.1) seconds.
@@ -60,7 +60,7 @@ public interface GameExports {
      * Called when a client has finished connecting, and is ready to be placed
      * into the game. This will happen every level load.
      */
-    void ClientBegin(edict_t ent);
+    void ClientBegin(ServerEntity ent);
 
     /**
      * Called whenever the player updates a userinfo variable.
@@ -69,7 +69,7 @@ public interface GameExports {
      * names, etc) before copying it off.
      *
      */
-    String ClientUserinfoChanged(edict_t ent, String userinfo);
+    String ClientUserinfoChanged(ServerEntity ent, String userinfo);
 
     /**
      * Called when a player begins connecting to the server. The game can refuse
@@ -78,20 +78,20 @@ public interface GameExports {
      * Changing levels will NOT cause this to be called again, but loadgames
      * will.
      */
-    boolean ClientConnect(edict_t ent, String userinfo);
+    boolean ClientConnect(ServerEntity ent, String userinfo);
 
     /**
      * Called when a player drops from the server. Will not be called between levels.
      */
-    void ClientDisconnect(edict_t ent);
+    void ClientDisconnect(ServerEntity ent);
 
     /**
      * This will be called once for each client frame, which will usually be a
      * couple times for each server frame.
      */
-    void ClientThink(edict_t ent, usercmd_t ucmd);
+    void ClientThink(ServerEntity ent, usercmd_t ucmd);
 
-    edict_t getEdict(int index);
+    ServerEntity getEdict(int index);
 
     int getNumEdicts();
 

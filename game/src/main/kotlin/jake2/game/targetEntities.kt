@@ -21,7 +21,7 @@ import jake2.qcommon.util.Math3D
  * Fire an origin based temp entity event to the clients. 
  * "style" type byte, see [jake2.qcommon.network.messages.server.PointTEMessage.SUBTYPES]
  */
-fun targetTempEntity(self: SubgameEntity, game: GameExportsImpl) {
+fun targetTempEntity(self: GameEntity, game: GameExportsImpl) {
     self.use = tempEntityUse
 }
 
@@ -50,7 +50,7 @@ private val tempEntityUse = registerUse("Use_Target_Tent") { self, _, _, game ->
 private const val LOOPED_ON = 1
 private const val LOOPED_OFF = 2
 private const val RELIABLE = 4
-fun targetSpeaker(self: SubgameEntity, game: GameExportsImpl) {
+fun targetSpeaker(self: GameEntity, game: GameExportsImpl) {
     if (self.st.noise == null) {
         game.gameImports.dprintf("target_speaker with no noise set at ${Lib.vtos(self.s.origin)}\n")
         return
@@ -100,7 +100,7 @@ private val targetSpeakerUse = registerUse("Use_Target_Speaker") { self, _, _, g
  * "delay" wait this long before going off "dmg" how much radius damage
  * should be done, defaults to 0
  */
-fun targetExplosion(self: SubgameEntity, game: GameExportsImpl) {
+fun targetExplosion(self: GameEntity, game: GameExportsImpl) {
     self.use = targetExplosionUse
     self.svflags = Defines.SVF_NOCLIENT
 }
@@ -134,7 +134,7 @@ private val targetExplosionExplode = registerThink("target_explosion_explode") {
  * Counts a secret found.
  * These are single use targets.
  */
-fun targetSecret(self: SubgameEntity, game: GameExportsImpl) {
+fun targetSecret(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     self.use = targetSecretUse
@@ -167,7 +167,7 @@ private val targetSecretUse = registerUse("use_target_explosion") { self, _, act
  * QUAKED target_goal (1 0 1) (-8 -8 -8) (8 8 8) Counts a goal completed.
  * These are single use targets.
  */
-fun targetGoal(self: SubgameEntity, game: GameExportsImpl) {
+fun targetGoal(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     self.use = targetGoalUse
@@ -200,7 +200,7 @@ private val targetGoalUse = registerUse("use_target_goal") { self, _, activator,
  * "count" how many pixels in the splash (32 by default)
  * "dmg" if set, does a radius damage at this location when it splashes useful for lava/sparks
  */
-fun targetSplash(self: SubgameEntity, game: GameExportsImpl) {
+fun targetSplash(self: GameEntity, game: GameExportsImpl) {
     self.use = targetSplashUse
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     if (0 == self.count)
@@ -237,7 +237,7 @@ private val targetSplashUse = registerUse("use_target_splash") { self, _, activa
  * For gibs: Set direction if you want it moving and speed how fast it
  * should be moving otherwise it will just be dropped
  */
-fun targetSpawner(self: SubgameEntity, game: GameExportsImpl) {
+fun targetSpawner(self: GameEntity, game: GameExportsImpl) {
     self.use = targetSpawnerUse
     self.svflags = Defines.SVF_NOCLIENT
     if (self.speed != 0f) {
@@ -247,7 +247,7 @@ fun targetSpawner(self: SubgameEntity, game: GameExportsImpl) {
 }
 
 private val targetSpawnerUse = registerUse("use_target_spawner") { self, _, _, game ->
-    val ent: SubgameEntity = game.G_Spawn()
+    val ent: GameEntity = game.G_Spawn()
     ent.classname = self.target
     Math3D.VectorCopy(self.s.origin, ent.s.origin)
     Math3D.VectorCopy(self.s.angles, ent.s.angles)
@@ -269,7 +269,7 @@ private val targetSpawnerUse = registerUse("use_target_spawner") { self, _, _, g
  */
 private const val NO_TRAIL = 1
 private const val NO_EFFECTS = 2
-fun targetBlaster(self: SubgameEntity, game: GameExportsImpl) {
+fun targetBlaster(self: GameEntity, game: GameExportsImpl) {
     self.use = targetBlasterUse
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.noise_index = game.gameImports.soundindex("weapons/laser2.wav")
@@ -309,7 +309,7 @@ private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, g
  *
  * "count" duration of the quake in seconds (default:5)
  */
-fun targetEarthquake(self: SubgameEntity, game: GameExportsImpl) {
+fun targetEarthquake(self: GameEntity, game: GameExportsImpl) {
     if (self.targetname == null)
         game.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
 
@@ -373,7 +373,7 @@ private val targetEarthquakeThink = registerThink("target_earthquake_think") { s
  * and the  message light will be set on all clients status bars.
  */
 private const val HELP1 = 1
-fun targetHelp(self: SubgameEntity, game: GameExportsImpl) {
+fun targetHelp(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     if (self.message == null) {
@@ -402,7 +402,7 @@ private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
  * "message" two letter string: (starting lightlevel, ending lightlevel)
  */
 private const val LIGHTRAMP_TOGGLE = 1
-fun targetLightramp(self: SubgameEntity, game: GameExportsImpl) {
+fun targetLightramp(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     // expect 2 letters between 'a' and 'z'
@@ -487,7 +487,7 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
  *
  * "count" is position in the string (starts at 1)
  */
-fun targetCharacter(self: SubgameEntity, game: GameExportsImpl) {
+fun targetCharacter(self: GameEntity, game: GameExportsImpl) {
     self.movetype = GameDefines.MOVETYPE_PUSH
     game.gameImports.setmodel(self, self.model)
     self.solid = Defines.SOLID_BSP
@@ -498,7 +498,7 @@ fun targetCharacter(self: SubgameEntity, game: GameExportsImpl) {
 /*
  * QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
  */
-fun targetString(self: SubgameEntity, game: GameExportsImpl) {
+fun targetString(self: GameEntity, game: GameExportsImpl) {
     if (self.message == null)
         self.message = ""
     self.use = targetStringUse
@@ -534,7 +534,7 @@ private val targetStringUse = registerUse("target_string_use") { self, _, _, _ -
  *
  * Changes level to "map" when fired
  */
-fun targetChangelevel(self: SubgameEntity, game: GameExportsImpl) {
+fun targetChangelevel(self: GameEntity, game: GameExportsImpl) {
     if (self.map == null) {
         game.gameImports.dprintf("target_changelevel with no map at " + Lib.vtos(self.s.origin) + "\n")
         game.freeEntity(self)
@@ -597,7 +597,7 @@ private val targetChangelevelUse = registerUse("use_target_changelevel") { self,
  * It is OK to check multiple triggers.
  * Message, delay, target, and killtarget also work.
  */
-fun targetCrosslevelTrigger(self: SubgameEntity, game: GameExportsImpl) {
+fun targetCrosslevelTrigger(self: GameEntity, game: GameExportsImpl) {
     self.svflags = Defines.SVF_NOCLIENT
     self.use = targetCrosslevelTriggerUse
 }
@@ -618,7 +618,7 @@ private val targetCrosslevelTriggerUse = registerUse("trigger_crosslevel_trigger
  * "delay" delay before using targets if the trigger has been activated
  * (default 1)
  */
-fun targetCrosslevelTarget(self: SubgameEntity, game: GameExportsImpl) {
+fun targetCrosslevelTarget(self: GameEntity, game: GameExportsImpl) {
     if (self.delay == 0f)
         self.delay = 1f
     self.svflags = Defines.SVF_NOCLIENT
@@ -656,7 +656,7 @@ private const val FAT = 64
 
 // fixme: find a better name
 private const val LASER_SPARK_FLAG = Int.MIN_VALUE // highest bit
-fun targetLaser(self: SubgameEntity, game: GameExportsImpl) {
+fun targetLaser(self: GameEntity, game: GameExportsImpl) {
     // let everything else get spawned before we start firing
     self.think.action = laserInit
     self.think.nextTime = game.level.time + 1
@@ -728,7 +728,7 @@ private val laserUse = registerUse("target_laser_use") { self, other, activator,
         laserOn(self, game)
 }
 
-fun laserOn(self: SubgameEntity, game: GameExportsImpl) {
+fun laserOn(self: GameEntity, game: GameExportsImpl) {
     if (self.activator == null)
         self.activator = self
     self.setSpawnFlag(START_ON)
@@ -737,7 +737,7 @@ fun laserOn(self: SubgameEntity, game: GameExportsImpl) {
     laserThink.think(self, game)
 }
 
-fun laserOff(self: SubgameEntity) {
+fun laserOff(self: GameEntity) {
     self.unsetSpawnFlag(START_ON)
     self.svflags = self.svflags or Defines.SVF_NOCLIENT
     self.think.nextTime = 0f
@@ -776,7 +776,7 @@ private val laserThink = registerThink("target_laser_think") { self, game ->
             ignore,
             Defines.CONTENTS_SOLID or Defines.CONTENTS_MONSTER or Defines.CONTENTS_DEADMONSTER
         )
-        val target = tr.ent as SubgameEntity
+        val target = tr.ent as GameEntity
 
         // hurt it if we can
         if (target.takedamage != 0 && 0 == target.flags and GameDefines.FL_IMMUNE_LASER)

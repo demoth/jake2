@@ -1,7 +1,7 @@
 package jake2.game.func
 
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
+import jake2.game.GameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.hasSpawnFlag
 import jake2.game.setSpawnFlag
@@ -20,7 +20,7 @@ import jake2.qcommon.Defines
 private const val START_ON = 1
 private const val TOGGLE = 2
 
-fun funcConveyor(self: SubgameEntity, game: GameExportsImpl) {
+fun funcConveyor(self: GameEntity, game: GameExportsImpl) {
     if (self.speed == 0f)
         self.speed = 100f
 

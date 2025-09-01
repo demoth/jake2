@@ -107,14 +107,14 @@ public class GameExportsImpl implements GameExports {
     // Collision
     //////////////
     // holds the entity that is blocking something' movement
-    SubgameEntity obstacle;
+    GameEntity obstacle;
     // todo: make consistent with maxentities cvar
     pushed_t[] pushed = new pushed_t[Defines.MAX_EDICTS];
     int pushed_p;
     // holds the result of gi.BoxEdicts
     // todo: make consistent with maxentities cvar
     // todo: remove and use result of gi.BoxEdicts
-    SubgameEntity[] touch = new SubgameEntity[Defines.MAX_EDICTS];
+    GameEntity[] touch = new GameEntity[Defines.MAX_EDICTS];
 
     // Monster knowledge about the enemy
     // todo: move to separate class
@@ -140,7 +140,7 @@ public class GameExportsImpl implements GameExports {
     int player_die_i;
 
     // todo: move to PM related place
-    SubgameEntity pm_passent;
+    GameEntity pm_passent;
 
 
     /**
@@ -148,7 +148,7 @@ public class GameExportsImpl implements GameExports {
      * entities with indices 1..maxclients are the players,
      * then goes other stuff
      */
-    public SubgameEntity[] g_edicts;
+    public GameEntity[] g_edicts;
     int num_edicts;
 
     /////////////////////////////////////
@@ -198,7 +198,7 @@ public class GameExportsImpl implements GameExports {
      * G_FreeEdict
      * Marks the edict as free
      */
-    public void freeEntity(SubgameEntity ed) {
+    public void freeEntity(GameEntity ed) {
         gameImports.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
@@ -207,7 +207,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        g_edicts[ed.index] = new SubgameEntity(ed.index);
+        g_edicts[ed.index] = new GameEntity(ed.index);
         ed.classname = "freed";
         ed.freetime = level.time;
         ed.inuse = false;
@@ -219,8 +219,8 @@ public class GameExportsImpl implements GameExports {
      * think the entity morphed into something else instead of being removed and
      * recreated, which can cause interpolated angles and bad trails.
      */
-    public SubgameEntity G_Spawn() {
-        SubgameEntity e;
+    public GameEntity G_Spawn() {
+        GameEntity e;
         int i;
         for (i = this.game.maxclients + 1; i < this.num_edicts; i++) {
             e = this.g_edicts[i];
@@ -228,7 +228,7 @@ public class GameExportsImpl implements GameExports {
             // freeing and allocating, so relax the replacement policy
             if (!e.inuse
                     && (e.freetime < 2 || this.level.time - e.freetime > 0.5)) {
-                e = this.g_edicts[i] = new SubgameEntity(i);
+                e = this.g_edicts[i] = new GameEntity(i);
                 e.G_InitEdict(i);
                 return e;
             }
@@ -237,7 +237,7 @@ public class GameExportsImpl implements GameExports {
         if (i == this.game.maxentities)
             this.gameImports.error("ED_Alloc: no free edicts");
 
-        e = this.g_edicts[i] = new SubgameEntity(i);
+        e = this.g_edicts[i] = new GameEntity(i);
         e.G_InitEdict(i);
         this.num_edicts++;
         return e;
@@ -254,7 +254,7 @@ public class GameExportsImpl implements GameExports {
     public void SaveClientData() {
 
         for (int i = 0; i < game.maxclients; i++) {
-            SubgameEntity ent = g_edicts[1 + i];
+            GameEntity ent = g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
 
@@ -273,9 +273,9 @@ public class GameExportsImpl implements GameExports {
     private void CreateEdicts(float max) {
         // initialize all entities for this game
         game.maxentities = (int) max;
-        g_edicts = new SubgameEntity[game.maxentities];
+        g_edicts = new GameEntity[game.maxentities];
         for (int i = 0; i < game.maxentities; i++)
-            g_edicts[i] = new SubgameEntity(i);
+            g_edicts[i] = new GameEntity(i);
     }
 
     // create the clients array and fill it with empty clients
@@ -301,7 +301,7 @@ public class GameExportsImpl implements GameExports {
      * HelpComputer.
      * Prepare text with values and send them to client
      */
-    private void prepareHelpComputerText(edict_t ent) {
+    private void prepareHelpComputerText(ServerEntity ent) {
         StringBuilder sb = new StringBuilder(256);
         String sk;
 
@@ -335,7 +335,7 @@ public class GameExportsImpl implements GameExports {
      *
      * Give items to a client.
      */
-    private void Give_f(SubgameEntity ent, List<String> args) {
+    private void Give_f(GameEntity ent, List<String> args) {
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
             gameImports.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
@@ -397,7 +397,7 @@ public class GameExportsImpl implements GameExports {
 
         if (give_all || "Power Shield".equalsIgnoreCase(name)) {
             GameItem it = GameItems.FindItem("Power Shield", this);
-            SubgameEntity it_ent = G_Spawn();
+            GameEntity it_ent = G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -411,7 +411,7 @@ public class GameExportsImpl implements GameExports {
         if (give_all || "items".equals(name)) {
 
             items.stream().filter(it -> (it.flags & GameDefines.IT_POWERUP) != 0).forEach(it -> {
-                SubgameEntity it_ent = G_Spawn();
+                GameEntity it_ent = G_Spawn();
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -457,7 +457,7 @@ public class GameExportsImpl implements GameExports {
             else
                 client.pers.inventory[it.index] += it.quantity;
         } else {
-            SubgameEntity it_ent = this.G_Spawn();
+            GameEntity it_ent = this.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
@@ -473,7 +473,7 @@ public class GameExportsImpl implements GameExports {
      *
      * argv(0) god
      */
-    private void God_f(SubgameEntity ent) {
+    private void God_f(GameEntity ent) {
         String msg;
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
@@ -494,7 +494,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Sets client to notarget
      */
-    private void Notarget_f(SubgameEntity ent) {
+    private void Notarget_f(GameEntity ent) {
 
         // why do you need notarget in deathmatch??
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
@@ -518,7 +518,7 @@ public class GameExportsImpl implements GameExports {
      *
      * argv(0) noclip.
      */
-    private void Noclip_f(SubgameEntity ent) {
+    private void Noclip_f(GameEntity ent) {
         String msg;
 
         if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
@@ -543,7 +543,7 @@ public class GameExportsImpl implements GameExports {
      *
      * Use an inventory item.
      */
-    private void Use_f(SubgameEntity ent, List<String> args) {
+    private void Use_f(GameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
         GameItem it = GameItems.FindItem(itemName, this);
@@ -570,7 +570,7 @@ public class GameExportsImpl implements GameExports {
      *
      * Drop an inventory item.
      */
-    private void Drop_f(SubgameEntity ent, List<String> args) {
+    private void Drop_f(GameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
         GameItem it = GameItems.FindItem(itemName, this);
@@ -596,7 +596,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Inven_f.
      */
-    private void Inven_f(SubgameEntity ent) {
+    private void Inven_f(GameEntity ent) {
 
         gclient_t cl = ent.getClient();
 
@@ -616,7 +616,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_InvUse_f.
      */
-    private void InvUse_f(SubgameEntity ent) {
+    private void InvUse_f(GameEntity ent) {
         GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
@@ -638,7 +638,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapPrev_f.
      */
-    private void WeapPrev_f(SubgameEntity ent) {
+    private void WeapPrev_f(GameEntity ent) {
 
         gclient_t cl = ent.getClient();
 
@@ -668,7 +668,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapNext_f.
      */
-    private void WeapNext_f(SubgameEntity ent) {
+    private void WeapNext_f(GameEntity ent) {
         gclient_t cl;
         int i, index;
         GameItem it;
@@ -704,7 +704,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapLast_f.
      */
-    private void WeapLast_f(SubgameEntity ent) {
+    private void WeapLast_f(GameEntity ent) {
         int index;
 
         gclient_t cl = ent.getClient();
@@ -726,7 +726,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_InvDrop_f
      */
-    private void InvDrop_f(SubgameEntity ent) {
+    private void InvDrop_f(GameEntity ent) {
         GameItem it;
 
         GameItems.ValidateSelectedItem(ent, this);
@@ -751,7 +751,7 @@ public class GameExportsImpl implements GameExports {
      * Display the scoreboard.
      *
      */
-    private void Score_f(SubgameEntity ent) {
+    private void Score_f(GameEntity ent) {
         gclient_t client = ent.getClient();
         client.showinventory = false;
         client.showhelp = false;
@@ -774,7 +774,7 @@ public class GameExportsImpl implements GameExports {
      * Display the current help message.
      *
      */
-    void Help_f(SubgameEntity ent) {
+    void Help_f(GameEntity ent) {
         // this is for backwards compatability
         if (gameCvars.deathmatch.value != 0) {
             Score_f(ent);
@@ -799,7 +799,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Kill_f
      */
-    private void Kill_f(SubgameEntity ent, GameExportsImpl gameExports) {
+    private void Kill_f(GameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if ((level.time - client.respawn_time) < 5)
             return;
@@ -812,7 +812,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_PutAway_f
      */
-    private static void PutAway_f(SubgameEntity ent) {
+    private static void PutAway_f(GameEntity ent) {
         gclient_t client = ent.getClient();
         client.showscores = false;
         client.showhelp = false;
@@ -822,7 +822,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Players_f
      */
-    private void Players_f(edict_t ent) {
+    private void Players_f(ServerEntity ent) {
         int i;
         int count;
         String small;
@@ -864,7 +864,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Wave_f
      */
-    private void Wave_f(SubgameEntity ent, List<String> args) {
+    private void Wave_f(GameEntity ent, List<String> args) {
 
 
         // can't wave when ducked
@@ -912,14 +912,14 @@ public class GameExportsImpl implements GameExports {
     /**
      * Command to print the players own position.
      */
-    private void ShowPosition_f(edict_t ent) {
+    private void ShowPosition_f(ServerEntity ent) {
         gameImports.cprintf(ent, PRINT_HIGH, "pos=" + Lib.vtofsbeaty(ent.s.origin) + "\n");
     }
 
     /**
      * Cmd_Say_f
      */
-    private void Say_f(SubgameEntity ent, boolean team, boolean sayAll, List<String> args) {
+    private void Say_f(GameEntity ent, boolean team, boolean sayAll, List<String> args) {
 
         if (args.size() < 2 && !sayAll)
             return;
@@ -985,7 +985,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
         for (int j = 1; j <= game.maxclients; j++) {
-            SubgameEntity other = g_edicts[j];
+            GameEntity other = g_edicts[j];
             if (!other.inuse)
                 continue;
             if (other.getClient() == null)
@@ -1002,13 +1002,13 @@ public class GameExportsImpl implements GameExports {
     /**
      * Returns the playerlist. TODO: The list is badly formatted at the moment.
      */
-    private void PlayerList_f(edict_t ent) {
+    private void PlayerList_f(ServerEntity ent) {
 
         // connect time, ping, score, name
         String text = "";
 
         for (int i = 0; i < game.maxclients; i++) {
-            SubgameEntity e2 = g_edicts[1 + i];
+            GameEntity e2 = g_edicts[1 + i];
             if (!e2.inuse)
                 continue;
 
@@ -1051,7 +1051,7 @@ public class GameExportsImpl implements GameExports {
 
         // clear some things before going to next level
         for (int i = 0; i < game.maxclients; i++) {
-            SubgameEntity ent = g_edicts[1 + i];
+            GameEntity ent = g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
             gclient_t client = ent.getClient();
@@ -1069,7 +1069,7 @@ public class GameExportsImpl implements GameExports {
         // calc the player views now that all pushing
         // and damage has been added
         for (int i = 0; i < game.maxclients; i++) {
-            SubgameEntity ent = g_edicts[1 + i];
+            GameEntity ent = g_edicts[1 + i];
             if (!ent.inuse || null == ent.getClient()) {
                 continue;
             }
@@ -1082,7 +1082,7 @@ public class GameExportsImpl implements GameExports {
      * This will be called once for each server frame, before running any other
      * entities in the world.
      */
-    private void ClientBeginServerFrame(SubgameEntity ent) {
+    private void ClientBeginServerFrame(GameEntity ent) {
 
         if (level.intermissiontime != 0)
             return;
@@ -1133,7 +1133,7 @@ public class GameExportsImpl implements GameExports {
      * Only called when pers.spectator changes note that resp.spectator should
      * be the opposite of pers.spectator here
      */
-    private void spectatorRespawn(SubgameEntity ent) {
+    private void spectatorRespawn(GameEntity ent) {
 
         // if the user wants to become a spectator, make sure he doesn't
         // exceed max_spectators
@@ -1205,7 +1205,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * G_RunEntity
      */
-    private void runEntity(SubgameEntity ent) {
+    private void runEntity(GameEntity ent) {
 
         // call prethink handler
         if (ent.think.prethink != null)
@@ -1356,8 +1356,8 @@ public class GameExportsImpl implements GameExports {
     /**
      * Returns the created target changelevel.
      */
-    private SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent = this.G_Spawn();
+    private GameEntity CreateTargetChangeLevel(String map) {
+        GameEntity ent = this.G_Spawn();
         ent.classname = "target_changelevel";
         level.nextmap = map;
         ent.map = map;
@@ -1365,8 +1365,8 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void ClientCommand(edict_t player, List<String> args) {
-        SubgameEntity ent = g_edicts[player.index];
+    public void ClientCommand(ServerEntity player, List<String> args) {
+        GameEntity ent = g_edicts[player.index];
 
         if (ent.getClient() == null)
             return; // not fully in game yet
@@ -1485,7 +1485,7 @@ public class GameExportsImpl implements GameExports {
                 break;
         }
     }
-    private void findEdictByName(SubgameEntity ent, List<String> args) {
+    private void findEdictByName(GameEntity ent, List<String> args) {
         if (args.size() < 2) {
             gameImports.cprintf(ent, PRINT_HIGH, "usage: findbyname <targetname>\n");
             return;
@@ -1497,7 +1497,7 @@ public class GameExportsImpl implements GameExports {
 
     }
 
-    private void printEntityInfo(SubgameEntity ent, List<String> args) {
+    private void printEntityInfo(GameEntity ent, List<String> args) {
         if (args.size() < 2) {
             gameImports.cprintf(ent, PRINT_HIGH, "usage: entityinfo <entity_index>\n");
             return;
@@ -1536,7 +1536,7 @@ public class GameExportsImpl implements GameExports {
         // treat each object in turn
         // even the world gets a chance to think
         for (int i = 0; i < num_edicts; i++) {
-            SubgameEntity ent = g_edicts[i];
+            GameEntity ent = g_edicts[i];
             if (!ent.inuse)
                 continue;
 
@@ -1625,7 +1625,7 @@ public class GameExportsImpl implements GameExports {
 
             // write out all the entities
             for (int i = 0; i < num_edicts; i++) {
-                SubgameEntity ent = g_edicts[i];
+                GameEntity ent = g_edicts[i];
                 if (!ent.inuse)
                     continue;
                 f.writeInt(i);
@@ -1659,7 +1659,7 @@ public class GameExportsImpl implements GameExports {
                 if (entnum >= num_edicts)
                     num_edicts = entnum + 1;
 
-                SubgameEntity ent = g_edicts[entnum];
+                GameEntity ent = g_edicts[entnum];
                 ent.read(f, g_edicts, game.clients, this);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
@@ -1669,7 +1669,7 @@ public class GameExportsImpl implements GameExports {
 
             // mark all clients as unconnected
             for (int i = 0; i < game.maxclients; i++) {
-                SubgameEntity ent = g_edicts[i + 1];
+                GameEntity ent = g_edicts[i + 1];
                 ent.setClient(game.clients[i]);
                 gclient_t client = ent.getClient();
                 client.pers.connected = false;
@@ -1677,7 +1677,7 @@ public class GameExportsImpl implements GameExports {
 
             // do any load time things at this point
             for (int i = 0; i < num_edicts; i++) {
-                SubgameEntity ent = g_edicts[i];
+                GameEntity ent = g_edicts[i];
 
                 if (!ent.inuse)
                     continue;
@@ -1702,33 +1702,33 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void ClientBegin(edict_t e) {
+    public void ClientBegin(ServerEntity e) {
         PlayerClient.ClientBegin(g_edicts[e.index], this);
     }
 
     @Override
-    public String ClientUserinfoChanged(edict_t ent, String userinfo) {
-        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo, this);
+    public String ClientUserinfoChanged(ServerEntity ent, String userinfo) {
+        return PlayerClient.ClientUserinfoChanged((GameEntity) ent, userinfo, this);
     }
 
     @Override
-    public boolean ClientConnect(edict_t ent, String userinfo) {
-        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo, this);
+    public boolean ClientConnect(ServerEntity ent, String userinfo) {
+        return PlayerClient.ClientConnect((GameEntity) ent, userinfo, this);
     }
 
     @Override
-    public void ClientDisconnect(edict_t ent) {
-        PlayerClient.ClientDisconnect((SubgameEntity) ent, gameImports);
+    public void ClientDisconnect(ServerEntity ent) {
+        PlayerClient.ClientDisconnect((GameEntity) ent, gameImports);
     }
 
     @Override
-    public void ClientThink(edict_t ent, usercmd_t ucmd) {
-        SubgameEntity e = g_edicts[ent.index];
+    public void ClientThink(ServerEntity ent, usercmd_t ucmd) {
+        GameEntity e = g_edicts[ent.index];
         PlayerClient.ClientThink(e, ucmd, this);
     }
 
     @Override
-    public edict_t getEdict(int index) {
+    public ServerEntity getEdict(int index) {
         return g_edicts[index];
     }
 
@@ -1753,7 +1753,7 @@ public class GameExportsImpl implements GameExports {
         //game.spawnpoint = spawnPoint;
     }
 
-    public boolean skipForDeathmatch(SubgameEntity entity) {
+    public boolean skipForDeathmatch(GameEntity entity) {
         if (gameCvars.deathmatch.value != 0f) {
             freeEntity(entity);
             return true;

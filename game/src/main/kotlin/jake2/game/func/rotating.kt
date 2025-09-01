@@ -2,8 +2,8 @@ package jake2.game.func
 
 import jake2.game.GameCombat
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -41,7 +41,7 @@ private const val TOUCH_PAIN = 16
 private const val STOP = 32
 private const val ANIMATED = 64
 private const val ANIMATED_FAST = 128
-fun funcRotating(self: SubgameEntity, game: GameExportsImpl) {
+fun funcRotating(self: GameEntity, game: GameExportsImpl) {
     self.solid = Defines.SOLID_BSP
     if (self.hasSpawnFlag(STOP))
         self.movetype = GameDefines.MOVETYPE_STOP

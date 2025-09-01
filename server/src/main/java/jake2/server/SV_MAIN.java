@@ -317,7 +317,7 @@ public class SV_MAIN implements JakeServer {
         GameImportsImpl gameImports = games.get("default");
         client.gameName = "default";
 
-        edict_t ent = gameImports.gameExports.getEdict(i + 1);
+        ServerEntity ent = gameImports.gameExports.getEdict(i + 1);
         client.edict = ent; // fixme: why? isn't it already set?
 
         // save challenge for checksumming

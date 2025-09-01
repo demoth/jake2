@@ -42,7 +42,7 @@ final class SV {
     }
 
     ///////////////////////////////////////
-    private static edict_t[] SV_TestEntityPosition(edict_t ent, GameExportsImpl gameExports) {
+    private static ServerEntity[] SV_TestEntityPosition(ServerEntity ent, GameExportsImpl gameExports) {
         int mask;
 
         if (ent.clipmask != 0)
@@ -60,7 +60,7 @@ final class SV {
     }
 
     ///////////////////////////////////////
-    private void SV_CheckVelocity(SubgameEntity ent) {
+    private void SV_CheckVelocity(GameEntity ent) {
         int i;
 
         //
@@ -77,7 +77,7 @@ final class SV {
     /**
      * Runs thinking code for this frame if necessary.
      */
-    private static boolean SV_RunThink(SubgameEntity ent, GameExportsImpl gameExports) {
+    private static boolean SV_RunThink(GameEntity ent, GameExportsImpl gameExports) {
         float thinktime;
 
         thinktime = ent.think.nextTime;
@@ -99,9 +99,9 @@ final class SV {
     /**
      * Two entities have touched, so run their touch functions.
      */
-    private static void SV_Impact(SubgameEntity e1, trace_t trace, GameExportsImpl gameExports) {
+    private static void SV_Impact(GameEntity e1, trace_t trace, GameExportsImpl gameExports) {
         // assuming edicts are created only on game side
-        SubgameEntity e2 = (SubgameEntity) trace.ent;
+        GameEntity e2 = (GameEntity) trace.ent;
 
         if (e1.touch != null && e1.solid != Defines.SOLID_NOT)
             e1.touch.touch(e1, e2, trace.plane, trace.surface, gameExports);
@@ -111,8 +111,8 @@ final class SV {
             e2.touch.touch(e2, e1, GameBase.dummyplane, null, gameExports);
     }
 
-    private static int SV_FlyMove(SubgameEntity ent, float time, int mask, GameExportsImpl gameExports) {
-        edict_t hit;
+    private static int SV_FlyMove(GameEntity ent, float time, int mask, GameExportsImpl gameExports) {
+        ServerEntity hit;
         int bumpcount, numbumps;
         float[] dir = { 0.0f, 0.0f, 0.0f };
         float d;
@@ -237,14 +237,14 @@ final class SV {
     /**
      * SV_AddGravity.
      */
-    private static void SV_AddGravity(SubgameEntity ent, float gravity) {
+    private static void SV_AddGravity(GameEntity ent, float gravity) {
         ent.velocity[2] -= ent.gravity * gravity * Defines.FRAMETIME;
     }
 
     /**
      * Does not change the entities velocity at all
      */
-    private static trace_t SV_PushEntity(SubgameEntity ent, float[] push, GameExportsImpl gameExports) {
+    private static trace_t SV_PushEntity(GameEntity ent, float[] push, GameExportsImpl gameExports) {
         trace_t trace;
         float[] start = { 0, 0, 0 };
         float[] end = { 0, 0, 0 };
@@ -294,7 +294,7 @@ final class SV {
      * Objects need to be moved back on a failed push, otherwise riders would
      * continue to slide.
      */
-    private static boolean SV_Push(SubgameEntity pusher, float[] move, float[] amove, GameExportsImpl gameExports) {
+    private static boolean SV_Push(GameEntity pusher, float[] move, float[] amove, GameExportsImpl gameExports) {
         int i;
         float[] mins = { 0, 0, 0 };
         float[] maxs = { 0, 0, 0 };
@@ -348,7 +348,7 @@ final class SV {
 
         //check= g_edicts + 1;
         for (int e = 1; e < gameExports.num_edicts; e++) {
-            SubgameEntity check = gameExports.g_edicts[e];
+            GameEntity check = gameExports.g_edicts[e];
             if (!check.inuse)
                 continue;
             if (check.movetype == GameDefines.MOVETYPE_PUSH
@@ -404,7 +404,7 @@ final class SV {
                 if (check.groundentity != pusher)
                     check.groundentity = null;
 
-                edict_t[] block = SV_TestEntityPosition(check, gameExports);
+                ServerEntity[] block = SV_TestEntityPosition(check, gameExports);
                 if (block == null) { // pushed ok
                     gameExports.gameImports.linkentity(check);
                     // impact?
@@ -453,7 +453,7 @@ final class SV {
      * 
      * Bmodel objects don't interact with each other, but push all box objects.
      */
-    static void SV_Physics_Pusher(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SV_Physics_Pusher(GameEntity ent, GameExportsImpl gameExports) {
         float[] move = { 0, 0, 0 };
         float[] amove = { 0, 0, 0 };
 
@@ -466,7 +466,7 @@ final class SV {
         // if the move is blocked, all moved objects will be backed out
         //	  retry:
         gameExports.pushed_p = 0;
-        SubgameEntity part;
+        GameEntity part;
         for (part = ent; part != null; part = part.teamchain) {
             if (part.velocity[0] != 0 || part.velocity[1] != 0
                     || part.velocity[2] != 0 || part.avelocity[0] != 0
@@ -485,7 +485,7 @@ final class SV {
 
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves
-            for (SubgameEntity mv = ent; mv != null; mv = mv.teamchain) {
+            for (GameEntity mv = ent; mv != null; mv = mv.teamchain) {
                 if (mv.think.nextTime > 0)
                     mv.think.nextTime += Defines.FRAMETIME;
             }
@@ -505,7 +505,7 @@ final class SV {
     /**
      * Non moving objects can only think.
      */
-    static void SV_Physics_None(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SV_Physics_None(GameEntity ent, GameExportsImpl gameExports) {
         // regular thinking
         SV_RunThink(ent, gameExports);
     }
@@ -513,7 +513,7 @@ final class SV {
     /**
      * A moving object that doesn't obey physics.
      */
-    static void SV_Physics_Noclip(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void SV_Physics_Noclip(GameEntity ent, GameExportsImpl gameExports) {
         //	   regular thinking
         if (!SV_RunThink(ent, gameExports))
             return;
@@ -529,7 +529,7 @@ final class SV {
     /**
      * Toss, bounce, and fly movement. When onground, do nothing.
      */
-    void SV_Physics_Toss(SubgameEntity ent, GameExportsImpl gameExports) {
+    void SV_Physics_Toss(GameEntity ent, GameExportsImpl gameExports) {
 
         float[] move = { 0, 0, 0 };
         float[] old_origin = { 0, 0, 0 };
@@ -615,7 +615,7 @@ final class SV {
                     gameExports.gameImports.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
 
         //	   move teamslaves
-        for (SubgameEntity slave = ent.teamchain; slave != null; slave = slave.teamchain) {
+        for (GameEntity slave = ent.teamchain; slave != null; slave = slave.teamchain) {
             Math3D.VectorCopy(ent.s.origin, slave.s.origin);
             gameExports.gameImports.linkentity(slave);
         }
@@ -623,7 +623,7 @@ final class SV {
 
 
     // FIXME: hacked in for E3 demo
-    private static void SV_AddRotationalFriction(SubgameEntity ent) {
+    private static void SV_AddRotationalFriction(GameEntity ent) {
         int n;
         float adjustment;
 
@@ -653,13 +653,13 @@ final class SV {
      * true?
      */
 
-    void SV_Physics_Step(SubgameEntity ent, GameExportsImpl gameExports) {
+    void SV_Physics_Step(GameEntity ent, GameExportsImpl gameExports) {
         boolean wasonground;
         boolean hitsound = false;
         float vel[];
         float speed, newspeed, control;
         float friction;
-        edict_t groundentity;
+        ServerEntity groundentity;
         int mask;
 
         // airborn monsters should always check for ground
@@ -775,7 +775,7 @@ final class SV {
      * <p>
      * FIXME: since we need to test end position contents here, can we avoid doing it again later in catagorize position?
      */
-    static boolean SV_movestep(SubgameEntity ent, float[] move, boolean relink, GameExportsImpl gameExports) {
+    static boolean SV_movestep(GameEntity ent, float[] move, boolean relink, GameExportsImpl gameExports) {
         float dz;
         float[] oldorg = { 0, 0, 0 };
         float[] neworg = { 0, 0, 0 };
@@ -945,7 +945,7 @@ final class SV {
      * Turns to the movement direction, and walks the current distance if facing
      * it.
      */
-    static boolean SV_StepDirection(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
+    static boolean SV_StepDirection(GameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
         float[] move = { 0, 0, 0 };
         float[] oldorigin = { 0, 0, 0 };
 
@@ -977,11 +977,11 @@ final class SV {
      * SV_FixCheckBottom
      * 
      */
-    private static void SV_FixCheckBottom(SubgameEntity ent) {
+    private static void SV_FixCheckBottom(GameEntity ent) {
         ent.flags |= GameDefines.FL_PARTIALGROUND;
     }
 
-    static void SV_NewChaseDir(SubgameEntity actor, SubgameEntity enemy, float dist, GameExportsImpl gameExports) {
+    static void SV_NewChaseDir(GameEntity actor, GameEntity enemy, float dist, GameExportsImpl gameExports) {
         float deltax, deltay;
         float d[] = { 0, 0, 0 };
         float tdir, olddir, turnaround;
@@ -1069,7 +1069,7 @@ final class SV {
      * SV_CloseEnough - returns true if distance between 2 ents is smaller than
      * given dist.  
      */
-    static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
+    static boolean SV_CloseEnough(GameEntity ent, ServerEntity goal, float dist) {
         int i;
 
         for (i = 0; i < 3; i++) {

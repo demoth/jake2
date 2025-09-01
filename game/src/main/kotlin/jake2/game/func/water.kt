@@ -3,7 +3,7 @@ package jake2.game.func
 import jake2.game.GameBase
 import jake2.game.GameDefines
 import jake2.game.GameExportsImpl
-import jake2.game.SubgameEntity
+import jake2.game.GameEntity
 import jake2.game.components.MoveInfo
 import jake2.game.components.addComponent
 import jake2.game.hasSpawnFlag
@@ -29,7 +29,7 @@ import kotlin.math.abs
  *
  * Note: func_water has a classname `func_door`
  */
-fun funcWater(self: SubgameEntity, game: GameExportsImpl) {
+fun funcWater(self: GameEntity, game: GameExportsImpl) {
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_PUSH
     self.solid = Defines.SOLID_BSP

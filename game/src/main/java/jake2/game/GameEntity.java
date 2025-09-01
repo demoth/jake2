@@ -2,14 +2,13 @@ package jake2.game;
 
 import jake2.game.adapters.*;
 import jake2.game.character.BehaviorTree;
-import jake2.game.character.BehaviorTreeKt;
 import jake2.game.character.GameCharacter;
 import jake2.game.components.ThinkComponent;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.monsterinfo_t;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
@@ -18,31 +17,31 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SubgameEntity extends edict_t {
-    public SubgameEntity(int i) {
+public class GameEntity extends ServerEntity {
+    public GameEntity(int i) {
         super(i);
     }
 
     private gclient_t client;
 
-    public SubgameEntity enemy = null;
-    public SubgameEntity oldenemy = null;
-    public SubgameEntity chain = null;
-    public SubgameEntity activator = null;
-    public edict_t groundentity = null;
+    public GameEntity enemy = null;
+    public GameEntity oldenemy = null;
+    public GameEntity chain = null;
+    public GameEntity activator = null;
+    public ServerEntity groundentity = null;
     public int groundentity_linkcount;
     // linked list
     // todo: move to a separate component
-    public SubgameEntity teamchain = null;
-    public SubgameEntity teammaster = null;
-    public SubgameEntity goalentity = null;
-    public SubgameEntity movetarget = null;
-    public SubgameEntity target_ent = null;
-    private SubgameEntity owner;
+    public GameEntity teamchain = null;
+    public GameEntity teammaster = null;
+    public GameEntity goalentity = null;
+    public GameEntity movetarget = null;
+    public GameEntity target_ent = null;
+    private GameEntity owner;
 
     /** can go in client only. */
-    public SubgameEntity mynoise = null;
-    public SubgameEntity mynoise2 = null;
+    public GameEntity mynoise = null;
+    public GameEntity mynoise2 = null;
     //================================
     public int movetype;
 
@@ -542,7 +541,7 @@ public class SubgameEntity extends edict_t {
     }
 
     /** Reads the entity from the file. */
-    public void read(QuakeFile f, edict_t[] g_edicts, gclient_t[] clients, GameExportsImpl gameExports) throws IOException {
+    public void read(QuakeFile f, ServerEntity[] g_edicts, gclient_t[] clients, GameExportsImpl gameExports) throws IOException {
         s.read(f, g_edicts);
         inuse = f.readBoolean();
         linkcount = f.readInt();
@@ -593,7 +592,7 @@ public class SubgameEntity extends edict_t {
         deathtarget = f.readString();
         combattarget = f.readString();
 
-        target_ent = (SubgameEntity) f.readEdictRef(g_edicts);
+        target_ent = (GameEntity) f.readEdictRef(g_edicts);
 
         speed = f.readFloat();
         accel = f.readFloat();
@@ -612,8 +611,8 @@ public class SubgameEntity extends edict_t {
 
         gravity = f.readFloat();
 
-        goalentity = (SubgameEntity) f.readEdictRef(g_edicts);
-        movetarget = (SubgameEntity) f.readEdictRef(g_edicts);
+        goalentity = (GameEntity) f.readEdictRef(g_edicts);
+        movetarget = (GameEntity) f.readEdictRef(g_edicts);
 
         yaw_speed = f.readFloat();
         ideal_yaw = f.readFloat();
@@ -656,19 +655,19 @@ public class SubgameEntity extends edict_t {
         sounds = f.readInt();
         count = f.readInt();
 
-        chain = (SubgameEntity) f.readEdictRef(g_edicts);
-        enemy = (SubgameEntity) f.readEdictRef(g_edicts);
+        chain = (GameEntity) f.readEdictRef(g_edicts);
+        enemy = (GameEntity) f.readEdictRef(g_edicts);
 
-        oldenemy = (SubgameEntity) f.readEdictRef(g_edicts);
-        activator = (SubgameEntity) f.readEdictRef(g_edicts);
-        groundentity = (SubgameEntity) f.readEdictRef(g_edicts);
+        oldenemy = (GameEntity) f.readEdictRef(g_edicts);
+        activator = (GameEntity) f.readEdictRef(g_edicts);
+        groundentity = (GameEntity) f.readEdictRef(g_edicts);
 
         groundentity_linkcount = f.readInt();
-        teamchain = (SubgameEntity) f.readEdictRef(g_edicts);
-        teammaster = (SubgameEntity) f.readEdictRef(g_edicts);
+        teamchain = (GameEntity) f.readEdictRef(g_edicts);
+        teammaster = (GameEntity) f.readEdictRef(g_edicts);
 
-        mynoise = (SubgameEntity) f.readEdictRef(g_edicts);
-        mynoise2 = (SubgameEntity) f.readEdictRef(g_edicts);
+        mynoise = (GameEntity) f.readEdictRef(g_edicts);
+        mynoise2 = (GameEntity) f.readEdictRef(g_edicts);
 
         noise_index = f.readInt();
         noise_index2 = f.readInt();
@@ -700,7 +699,7 @@ public class SubgameEntity extends edict_t {
         else
             setClient(clients[ndx]);
 
-        setOwner((SubgameEntity) f.readEdictRef(g_edicts));
+        setOwner((GameEntity) f.readEdictRef(g_edicts));
 
         // rst's checker :-)
         if (f.readInt() != 9876)
@@ -708,7 +707,7 @@ public class SubgameEntity extends edict_t {
     }
 
     @Override
-    public SubgameEntity getOwner() {
+    public GameEntity getOwner() {
         return owner;
     }
 
@@ -721,7 +720,7 @@ public class SubgameEntity extends edict_t {
         this.client = client;
     }
 
-    public void setOwner(SubgameEntity owner) {
+    public void setOwner(GameEntity owner) {
         this.owner = owner;
     }
 

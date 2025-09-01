@@ -27,7 +27,7 @@ private const val TIMER_DOWN = 2
 private const val START_OFF = 4
 private const val MULTI_USE = 8
 
-fun funcClock(self: SubgameEntity, game: GameExportsImpl) {
+fun funcClock(self: GameEntity, game: GameExportsImpl) {
     if (self.target == null) {
         game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
         game.freeEntity(self)
@@ -115,7 +115,7 @@ private val clockUse = registerUse("func_clock_use") { self, other, activator, g
 
 // don't let field width of any clock messages change, or it
 // could cause an overwrite after a game load
-private fun clockReset(self: SubgameEntity) {
+private fun clockReset(self: GameEntity) {
     self.activator = null
     if (self.hasSpawnFlag(TIMER_UP)) {
         self.health = 0
@@ -126,7 +126,7 @@ private fun clockReset(self: SubgameEntity) {
     }
 }
 
-private fun clockFormatCountDown(self: SubgameEntity) {
+private fun clockFormatCountDown(self: GameEntity) {
     if (self.style == 0) {
         self.message = "" + self.health
         return

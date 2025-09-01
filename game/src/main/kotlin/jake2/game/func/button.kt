@@ -2,9 +2,9 @@ package jake2.game.func
 
 import jake2.game.GameBase
 import jake2.game.GameDefines
+import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
-import jake2.game.SubgameEntity
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
@@ -32,7 +32,7 @@ import kotlin.math.abs
  * 
  * Buttons can be activated by touching, shooting or targeting by other entity.
  */
-fun funcButton(self: SubgameEntity, game: GameExportsImpl) {
+fun funcButton(self: GameEntity, game: GameExportsImpl) {
 
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
     self.movetype = GameDefines.MOVETYPE_STOP
@@ -87,7 +87,7 @@ private val buttonUse = registerUse("button_use") { self, other, activator, game
     buttonFire(self, game)
 }
 
-private fun buttonFire(self: SubgameEntity, game: GameExportsImpl) {
+private fun buttonFire(self: GameEntity, game: GameExportsImpl) {
     val moveInfo: MoveInfo = self.getComponent()!!
     if (moveInfo.state == MovementState.UP || moveInfo.state == MovementState.TOP)
         return

@@ -202,25 +202,25 @@ public class GameImportsImpl implements GameImports {
     }
 
     @Override
-    public void cprintf(edict_t ent, int printlevel, String s) {
+    public void cprintf(ServerEntity ent, int printlevel, String s) {
         sv_game.PF_cprintf(ent, printlevel, s);
     }
 
     @Override
-    public void centerprintf(edict_t ent, String s) {
+    public void centerprintf(ServerEntity ent, String s) {
         // todo: check if s is not empty
         sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
     }
 
     @Override
-    public void sound(edict_t ent, int channel, int soundindex, float volume,
+    public void sound(ServerEntity ent, int channel, int soundindex, float volume,
                       float attenuation, float timeofs) {
         sv_game.PF_StartSound(ent, channel, soundindex, volume, attenuation,
                 timeofs);
     }
 
     @Override
-    public void positioned_sound(float[] origin, edict_t ent, int channel,
+    public void positioned_sound(float[] origin, ServerEntity ent, int channel,
                                  int soundinedex, float volume, float attenuation, float timeofs) {
 
         SV_SEND.SV_StartSound(origin, ent, channel, soundinedex, volume,
@@ -265,14 +265,14 @@ public class GameImportsImpl implements GameImports {
     }
 
     @Override
-    public void setmodel(edict_t ent, String name) {
+    public void setmodel(ServerEntity ent, String name) {
         sv_game.PF_setmodel(ent, name);
     }
 
     /* collision detection */
     @Override
     public trace_t trace(float[] start, float[] mins, float[] maxs,
-                         float[] end, edict_t passent, int contentmask) {
+                         float[] end, ServerEntity passent, int contentmask) {
         return SV_WORLD.SV_Trace(start, mins, maxs, end, passent, contentmask, this);
     }
 
@@ -297,18 +297,18 @@ public class GameImportsImpl implements GameImports {
      solidity changes, it must be relinked.
     */
     @Override
-    public void linkentity(edict_t ent) {
+    public void linkentity(ServerEntity ent) {
         SV_WORLD.SV_LinkEdict(ent, this);
     }
 
     @Override
-    public void unlinkentity(edict_t ent) {
+    public void unlinkentity(ServerEntity ent) {
         SV_WORLD.SV_UnlinkEdict(ent);
     }
 
     /* call before removing an interactive edict */
     @Override
-    public int BoxEdicts(float[] mins, float[] maxs, edict_t list[],
+    public int BoxEdicts(float[] mins, float[] maxs, ServerEntity list[],
                          int maxcount, int areatype) {
         return SV_WORLD.SV_AreaEdicts(mins, maxs, list, maxcount, areatype, this);
     }

@@ -38,7 +38,7 @@ public class GameAI {
     /**
      * Checks, if the monster should turn left/right.
      */
-    static boolean FacingIdeal(SubgameEntity self) {
+    static boolean FacingIdeal(GameEntity self) {
         float delta = Math3D.anglemod(self.s.angles[Defines.YAW] - self.ideal_yaw);
         return !(delta > 45) || !(delta < 315);
     }
@@ -46,7 +46,7 @@ public class GameAI {
     /**
      * Turn and close until within an angle to launch a melee attack.
      */
-    public static void ai_run_melee(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void ai_run_melee(GameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = gameExports.enemy_yaw;
         M.rotateToIdealYaw(self);
 
@@ -59,7 +59,7 @@ public class GameAI {
     /**
      * Turn in place until within an angle to launch a missile attack.
      */
-    public static void ai_run_missile(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void ai_run_missile(GameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = gameExports.enemy_yaw;
         M.rotateToIdealYaw(self);
 
@@ -72,7 +72,7 @@ public class GameAI {
     /**
      * Strafe sideways, but stay at aproximately the same range.
      */
-    public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
+    public static void ai_run_slide(GameEntity self, float distance, GameExportsImpl gameExports) {
         float ofs;
 
         self.ideal_yaw = gameExports.enemy_yaw;
@@ -113,7 +113,7 @@ public class GameAI {
      * 
      * walkmove(angle, speed) primitive is all or nothing
      */
-    public static boolean ai_checkattack(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+    public static boolean ai_checkattack(GameEntity self, float dist, GameExportsImpl gameExports) {
 
         boolean hesDeadJim;
 
@@ -242,7 +242,7 @@ public class GameAI {
             if (check > gameExports.game.maxclients) {
                 check = 1;
             }
-            SubgameEntity ent = gameExports.g_edicts[check];
+            GameEntity ent = gameExports.g_edicts[check];
 
             if (ent.inuse && ent.health > 0 && (ent.flags & GameDefines.FL_NOTARGET) == 0) {
                 gameExports.level.sight_client = ent;
@@ -258,7 +258,7 @@ public class GameAI {
     /**
      * Decides running or standing according to flag AI_STAND_GROUND.
      */
-    static void HuntTarget(SubgameEntity self, GameExportsImpl gameExports) {
+    static void HuntTarget(GameEntity self, GameExportsImpl gameExports) {
         float[] vec = { 0, 0, 0 };
     
         self.goalentity = self.enemy;
@@ -277,7 +277,7 @@ public class GameAI {
     
     public static EntThinkAdapter walkmonster_start_go = new EntThinkAdapter() {
         public String getID() { return "walkmonster_start_go"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (0 == (self.spawnflags & 2) && gameExports.level.time < 1) {
                 M.M_droptofloor.think(self, gameExports);
@@ -300,14 +300,14 @@ public class GameAI {
         }
     };
 
-    public static void walkmonster_start(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void walkmonster_start(GameEntity self, GameExportsImpl gameExports) {
         self.think.action = walkmonster_start_go;
         Monster.monster_start(self, gameExports);
     }
 
     public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
         public String getID() { return "flymonster_start_go";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (!M.M_walkmove(self, 0, 0, gameExports))
                 gameExports.gameImports.dprintf(self.classname + " in solid at "
                         + Lib.vtos(self.s.origin) + "\n");
@@ -326,7 +326,7 @@ public class GameAI {
 
     public static EntThinkAdapter flymonster_start = new EntThinkAdapter() {
         public String getID() { return "flymonster_start";}        
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_FLY;
             self.think.action = flymonster_start_go;
             Monster.monster_start(self, gameExports);
@@ -336,7 +336,7 @@ public class GameAI {
 
     public static EntThinkAdapter swimmonster_start_go = new EntThinkAdapter() {
         public String getID() { return "swimmonster_start_go";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;
             self.viewheight = 10;
@@ -351,7 +351,7 @@ public class GameAI {
 
     public static EntThinkAdapter swimmonster_start = new EntThinkAdapter() {
         public String getID() { return "swimmonster_start";}
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_SWIM;
             self.think.action = swimmonster_start_go;
             Monster.monster_start(self, gameExports);
@@ -366,7 +366,7 @@ public class GameAI {
      */
     public static AIAdapter ai_turn = new AIAdapter() {
         public String getID() { return "ai_turn";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
 
             if (dist != 0)
                 M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
@@ -385,7 +385,7 @@ public class GameAI {
      */
     public static AIAdapter ai_move = new AIAdapter() {
         public String getID() { return "ai_move";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
         }
     };
@@ -396,7 +396,7 @@ public class GameAI {
      */
     public static AIAdapter ai_walk = new AIAdapter() {
         public String getID() { return "ai_walk";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_MoveToGoal(self, dist, gameExports);
 
             // check for noticing a player
@@ -422,7 +422,7 @@ public class GameAI {
      */
     public static AIAdapter ai_stand = new AIAdapter() {
         public String getID() { return "ai_stand";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             if (dist != 0)
@@ -470,7 +470,7 @@ public class GameAI {
      */
     public static AIAdapter ai_charge = new AIAdapter() {
         public String getID() { return "ai_charge";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
@@ -488,7 +488,7 @@ public class GameAI {
      */
     public static AIAdapter ai_run = new AIAdapter() {
         public String getID() { return "ai_run";}
-        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
+        public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
             float[] v_forward = { 0, 0, 0 }, v_right = { 0, 0, 0 };
             float[] left_target = { 0, 0, 0 }, right_target = { 0, 0, 0 };
@@ -553,8 +553,8 @@ public class GameAI {
                 return;
             }
 
-            SubgameEntity save = self.goalentity;
-            SubgameEntity tempgoal = gameExports.G_Spawn();
+            GameEntity save = self.goalentity;
+            GameEntity tempgoal = gameExports.G_Spawn();
             self.goalentity = tempgoal;
 
             boolean new1 = false;
@@ -583,7 +583,7 @@ public class GameAI {
                 // give ourself more time since we got this far
                 self.monsterinfo.search_time = gameExports.level.time + 5;
 
-                SubgameEntity marker;
+                GameEntity marker;
                 if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_TEMP) != 0) {
                     // dprint("was temp goal; retrying original\n");
                     self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUE_TEMP;

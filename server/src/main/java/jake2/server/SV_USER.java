@@ -111,7 +111,7 @@ class SV_USER {
         // 
         if (gameImports.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
-            edict_t ent = gameImports.gameExports.getEdict(clientIndex + 1);
+            ServerEntity ent = gameImports.gameExports.getEdict(clientIndex + 1);
             ent.s.number = clientIndex + 1;
             client.edict = ent;
             client.lastcmd = new usercmd_t();

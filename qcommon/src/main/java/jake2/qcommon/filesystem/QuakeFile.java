@@ -26,7 +26,7 @@ package jake2.qcommon.filesystem;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -110,7 +110,7 @@ public class QuakeFile extends RandomAccessFile {
     }
 
     /** Writes the edict reference. */
-    public void writeEdictRef(edict_t ent) throws IOException {
+    public void writeEdictRef(ServerEntity ent) throws IOException {
         if (ent == null)
             writeInt(-1);
         else {
@@ -122,7 +122,7 @@ public class QuakeFile extends RandomAccessFile {
      * Reads an edict index from a file and returns the edict.
      */
 
-    public edict_t readEdictRef(edict_t[] g_edicts) throws IOException {
+    public ServerEntity readEdictRef(ServerEntity[] g_edicts) throws IOException {
         int i = readInt();
 
         // handle -1

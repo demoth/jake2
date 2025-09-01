@@ -450,12 +450,12 @@ public class M_Makron_Jorg {
 
     /*
      * static EntThinkAdapter xxx = new EntThinkAdapter() { public boolean
-     * think(SubgameEntity self) { return true; } };
+     * think(GameEntity self) { return true; } };
      */
 
     static EntThinkAdapter jorg_search = new EntThinkAdapter() {
     	public String getID() { return "jorg_search"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float r;
 
             r = Lib.random();
@@ -475,7 +475,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_idle = new EntThinkAdapter() {
     	public String getID() { return "jorg_idle"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -484,7 +484,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_death_hit = new EntThinkAdapter() {
     	public String getID() { return "jorg_death_hit"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_death_hit, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -493,7 +493,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_step_left = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_left"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -502,7 +502,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_step_right = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -511,7 +511,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_stand = new EntThinkAdapter() {
     	public String getID() { return "jorg_stand"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_stand;
             return true;
         }
@@ -519,7 +519,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_reattack1 = new EntThinkAdapter() {
     	public String getID() { return "jorg_reattack1"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
                     self.monsterinfo.currentmove = jorg_move_attack1;
@@ -537,7 +537,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_attack1 = new EntThinkAdapter() {
     	public String getID() { return "jorg_attack1"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_attack1;
             return true;
         }
@@ -545,7 +545,7 @@ public class M_Makron_Jorg {
 
     static EntPainAdapter jorg_pain = new EntPainAdapter() {
     	public String getID() { return "jorg_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
+        public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
@@ -605,7 +605,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorgBFG = new EntThinkAdapter() {
     	public String getID() { return "jorgBFG"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
 
             float[] start = { 0, 0, 0 };
@@ -624,7 +624,7 @@ public class M_Makron_Jorg {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack2, 1,
                     Defines.ATTN_NORM, 0);
             /*
-             * void monster_fire_bfg (SubgameEntity self, float [] start, float []
+             * void monster_fire_bfg (GameEntity self, float [] start, float []
              * aimdir, int damage, int speed, int kick, float damage_radius, int
              * flashtype)
              */
@@ -636,7 +636,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_firebullet_right = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet_right"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -664,7 +664,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_firebullet_left = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet_left"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -692,7 +692,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_firebullet = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             jorg_firebullet_left.think(self, gameExports);
             jorg_firebullet_right.think(self, gameExports);
             return true;
@@ -701,7 +701,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_attack = new EntThinkAdapter() {
     	public String getID() { return "jorg_attack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range = 0;
 
@@ -725,7 +725,7 @@ public class M_Makron_Jorg {
     /** Was disabled. RST. */
     static EntThinkAdapter jorg_dead = new EntThinkAdapter() {
     	public String getID() { return "jorg_dead"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * edict_t tempent;
              * 
@@ -748,7 +748,7 @@ public class M_Makron_Jorg {
 
     static EntDieAdapter jorg_die = new EntDieAdapter() {
     	public String getID() { return "jorg_die"; }
-        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
+        public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
@@ -763,7 +763,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter Jorg_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "Jorg_CheckAttack"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
             float chance;
@@ -975,7 +975,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_walk = new EntThinkAdapter() {
     	public String getID() { return "jorg_walk"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_walk;
             return true;
         }
@@ -983,7 +983,7 @@ public class M_Makron_Jorg {
 
     static EntThinkAdapter jorg_run = new EntThinkAdapter() {
     	public String getID() { return "jorg_run"; }
-        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = jorg_move_stand;
             else
@@ -1153,7 +1153,7 @@ public class M_Makron_Jorg {
      * QUAKED monster_jorg (1 .5 0) (-80 -80 0) (90 90 140) Ambush Trigger_Spawn
      * Sight
      */
-    public static void SP_monster_jorg(SubgameEntity self, GameExportsImpl gameExports) {
+    public static void SP_monster_jorg(GameEntity self, GameExportsImpl gameExports) {
         if (gameExports.skipForDeathmatch(self)) return;
 
         sound_pain1 = gameExports.gameImports.soundindex("boss3/bs3pain1.wav");

@@ -22,10 +22,10 @@
 
 package jake2.qcommon;
 
-public class edict_t {
+public class ServerEntity {
 
     /** Constructor. */
-    public edict_t(int i) {
+    public ServerEntity(int i) {
         s.number = i;
         index = i;
     }
@@ -81,7 +81,7 @@ public class edict_t {
     /** Introduced by rst. */
     public int index;
 
-    public edict_t getOwner() {
+    public ServerEntity getOwner() {
         throw new IllegalStateException("edict_t.getOwner() should not be called");
     }
 

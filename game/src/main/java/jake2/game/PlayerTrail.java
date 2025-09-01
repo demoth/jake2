@@ -39,7 +39,7 @@ import jake2.qcommon.util.Math3D;
 public class PlayerTrail {
 
     int TRAIL_LENGTH;
-    SubgameEntity[] trail;
+    GameEntity[] trail;
     int trail_head;
     boolean trail_active;
     private final GameExportsImpl gameExports;
@@ -47,7 +47,7 @@ public class PlayerTrail {
     public PlayerTrail(GameExportsImpl gameExports) {
         this.gameExports = gameExports;
         TRAIL_LENGTH = 16;
-        trail = new SubgameEntity[TRAIL_LENGTH];
+        trail = new GameEntity[TRAIL_LENGTH];
         trail_active = false;
     }
 
@@ -91,7 +91,7 @@ public class PlayerTrail {
         trail_head = NEXT(trail_head);
     }
 
-    SubgameEntity PickFirst(SubgameEntity self) {
+    GameEntity PickFirst(GameEntity self) {
 
         if (!trail_active)
             return null;
@@ -116,7 +116,7 @@ public class PlayerTrail {
         return trail[marker];
     }
 
-    SubgameEntity PickNext(SubgameEntity self) {
+    GameEntity PickNext(GameEntity self) {
 
         if (!trail_active)
             return null;
@@ -133,7 +133,7 @@ public class PlayerTrail {
         return trail[marker];
     }
 
-    SubgameEntity LastSpot() {
+    GameEntity LastSpot() {
         return trail[PREV(trail_head)];
     }
 }

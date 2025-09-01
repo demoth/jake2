@@ -1,7 +1,7 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
@@ -49,7 +49,7 @@ public abstract class ServerMessage implements NetworkMessage {
      * former CL_ParseDelta
      */
     protected static entity_state_t parseEntityState(int number, int flags, sizebuf_t buffer) {
-        entity_state_t to = new entity_state_t(new edict_t(number));
+        entity_state_t to = new entity_state_t(new ServerEntity(number));
         to.number = number;
 
         if ((flags & Defines.U_MODEL) != 0)

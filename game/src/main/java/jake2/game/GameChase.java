@@ -25,13 +25,13 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 
 public class GameChase {
 
-    static void UpdateChaseCam(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void UpdateChaseCam(GameEntity ent, GameExportsImpl gameExports) {
         float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] oldgoal = { 0, 0, 0 };
@@ -41,7 +41,7 @@ public class GameChase {
         gclient_t client = ent.getClient();
         gclient_t chaseTargetClient = client.chase_target.getClient();
         if (!client.chase_target.inuse || chaseTargetClient.resp.spectator) {
-            edict_t old = client.chase_target;
+            ServerEntity old = client.chase_target;
             ChaseNext(ent, gameExports);
             if (client.chase_target == old) {
                 client.chase_target = null;
@@ -50,7 +50,7 @@ public class GameChase {
             }
         }
 
-        SubgameEntity targ = client.chase_target;
+        GameEntity targ = client.chase_target;
     
         Math3D.VectorCopy(targ.s.origin, ownerv);
         Math3D.VectorCopy(ent.s.origin, oldgoal);
@@ -123,14 +123,14 @@ public class GameChase {
         gameExports.gameImports.linkentity(ent);
     }
 
-    public static void ChaseNext(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ChaseNext(GameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (null == client.chase_target)
             return;
 
         int i = client.chase_target.index;
-        SubgameEntity e;
+        GameEntity e;
         do {
             i++;
             if (i > gameExports.game.maxclients)
@@ -148,14 +148,14 @@ public class GameChase {
         client.update_chase = true;
     }
 
-    public static void ChasePrev(SubgameEntity ent, GameExportsImpl gameExports) {
+    public static void ChasePrev(GameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (client.chase_target == null)
             return;
 
         int i = client.chase_target.index;
-        SubgameEntity e;
+        GameEntity e;
         do {
             i--;
             if (i < 1)
@@ -172,10 +172,10 @@ public class GameChase {
         client.update_chase = true;
     }
 
-    static void GetChaseTarget(SubgameEntity ent, GameExportsImpl gameExports) {
+    static void GetChaseTarget(GameEntity ent, GameExportsImpl gameExports) {
 
         for (int i = 1; i <= gameExports.game.maxclients; i++) {
-            SubgameEntity other = gameExports.g_edicts[i];
+            GameEntity other = gameExports.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && !otherClient.resp.spectator) {
                 gclient_t client = ent.getClient();

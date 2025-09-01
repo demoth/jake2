@@ -18,7 +18,7 @@ private const val TRIGGER_SPAWN = 1
 private const val ANIMATED = 2
 private const val ANIMATED_FAST = 4
 
-fun funcObject(self: SubgameEntity, game: GameExportsImpl) {
+fun funcObject(self: GameEntity, game: GameExportsImpl) {
     game.gameImports.setmodel(self, self.model)
 
     self.mins[0] += 1f

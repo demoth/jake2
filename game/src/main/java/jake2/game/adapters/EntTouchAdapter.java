@@ -24,11 +24,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game.adapters;
 
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
+import jake2.game.GameEntity;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
 
 public abstract class EntTouchAdapter extends SuperAdapter
 {
-	public abstract void touch(SubgameEntity self, SubgameEntity other, cplane_t plane, csurface_t surf, GameExportsImpl gameExports);
+	public abstract void touch(GameEntity self, GameEntity other, cplane_t plane, csurface_t surf, GameExportsImpl gameExports);
 }

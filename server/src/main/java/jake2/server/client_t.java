@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.netchan_t;
 import jake2.qcommon.usercmd_t;
@@ -66,7 +66,7 @@ public class client_t {
 	int surpressCount; // number of messages rate supressed
 
 	// pointer
-	edict_t edict; // EDICT_NUM(clientnum+1)
+	ServerEntity edict; // EDICT_NUM(clientnum+1)
 
 	//char				name[32];			// extracted from userinfo, high bits masked
 	String name = ""; // extracted from userinfo, high bits masked

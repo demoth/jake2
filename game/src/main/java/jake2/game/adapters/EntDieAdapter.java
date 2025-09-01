@@ -24,11 +24,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game.adapters;
 
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
+import jake2.game.GameEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class EntDieAdapter extends SuperAdapter
 {
-	public abstract void die(@NotNull SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker, int damage, @Nullable float[] point, @NotNull GameExportsImpl gameExports);
+	public abstract void die(@NotNull GameEntity self, GameEntity inflictor, GameEntity attacker, int damage, @Nullable float[] point, @NotNull GameExportsImpl gameExports);
 }

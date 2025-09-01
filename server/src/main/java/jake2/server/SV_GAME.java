@@ -61,7 +61,7 @@ public class SV_GAME {
     /**
      * Centerprintf for critical messages.
      */
-    public void PF_cprintfhigh(edict_t ent, String fmt) {
+    public void PF_cprintfhigh(ServerEntity ent, String fmt) {
     	PF_cprintf(ent, Defines.PRINT_HIGH, fmt);
     }
     
@@ -70,7 +70,7 @@ public class SV_GAME {
      * 
      * Print to a single client.
      */
-    public void PF_cprintf(edict_t ent, int level, String fmt) {
+    public void PF_cprintf(ServerEntity ent, int level, String fmt) {
 
         int n = 0;
 
@@ -100,7 +100,7 @@ public class SV_GAME {
      * 
      * Also sets mins and maxs for inline bmodels.
      */
-    public void PF_setmodel(edict_t ent, String name) {
+    public void PF_setmodel(ServerEntity ent, String name) {
 
         if (name == null) {
             Com.DPrintf( "Error: SV_GAME.PF_setmodel: name is null");
@@ -201,8 +201,8 @@ public class SV_GAME {
         return true;
     }
 
-    public void PF_StartSound(edict_t entity, int channel,
-            int sound_num, float volume, float attenuation, float timeofs) {
+    public void PF_StartSound(ServerEntity entity, int channel,
+                              int sound_num, float volume, float attenuation, float timeofs) {
 
         if (null == entity)
             return;
@@ -243,7 +243,7 @@ public class SV_GAME {
      */
     void SV_CreateBaseline() {
         for (int entnum = 1; entnum < gameImports.gameExports.getNumEdicts(); entnum++) {
-            edict_t svent = gameImports.gameExports.getEdict(entnum);
+            ServerEntity svent = gameImports.gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;

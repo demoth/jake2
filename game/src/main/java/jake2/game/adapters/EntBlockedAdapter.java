@@ -23,11 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game.adapters;
 
+import jake2.game.GameEntity;
 import jake2.game.GameExportsImpl;
-import jake2.game.SubgameEntity;
 
 public abstract class EntBlockedAdapter extends SuperAdapter
 {
 	// move to moveinfo?
-	public abstract void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports);
+	public abstract void blocked(GameEntity self, GameEntity obstacle, GameExportsImpl gameExports);
 }

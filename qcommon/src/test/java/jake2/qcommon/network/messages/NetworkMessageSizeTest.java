@@ -81,8 +81,8 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.TrailTEMessage", new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])});
         testMessages.add(new Object[]{"server.SoundMessage", new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})});
         // delta compressed
-        testMessages.add(new Object[]{"server.SpawnBaselineMessage.empty", new SpawnBaselineMessage(new entity_state_t(new edict_t(1)))});
-        entity_state_t entityState = new entity_state_t(new edict_t(1));
+        testMessages.add(new Object[]{"server.SpawnBaselineMessage.empty", new SpawnBaselineMessage(new entity_state_t(new ServerEntity(1)))});
+        entity_state_t entityState = new entity_state_t(new ServerEntity(1));
         {
             entityState.origin = new float[]{1, 2, 3};
             entityState.number = 1000;
@@ -131,12 +131,12 @@ public class NetworkMessageSizeTest {
         PacketEntitiesMessage packetEntitiesMessage = new PacketEntitiesMessage();
         {
             packetEntitiesMessage.updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
-            entity_state_t newState = new entity_state_t(new edict_t(1));
+            entity_state_t newState = new entity_state_t(new ServerEntity(1));
             {
                 newState.modelindex = 3;
                 newState.origin = new float[]{2, 3, 4};
             }
-            packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(new edict_t(1)), newState, false, true));
+            packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(new ServerEntity(1)), newState, false, true));
         }
         testMessages.add(new Object[]{"server.PacketEntitiesMessage", packetEntitiesMessage});
         //////////////////
