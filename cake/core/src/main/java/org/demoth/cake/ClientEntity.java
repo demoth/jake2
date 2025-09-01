@@ -30,9 +30,9 @@ import jake2.qcommon.entity_state_t;
  * centity_t
  */
 public class ClientEntity {
-	public entity_state_t baseline= new entity_state_t(null); // delta from this if not from a previous frame
-	public entity_state_t current= new entity_state_t(null);
-	public entity_state_t prev= new entity_state_t(null); // will always be valid, but might just be a copy of current
+	public entity_state_t baseline= new entity_state_t(); // delta from this if not from a previous frame
+	public entity_state_t current= new entity_state_t();
+	public entity_state_t prev= new entity_state_t(); // will always be valid, but might just be a copy of current
 
 	public int serverframe; // if not current, this ent isn't in the frame
 

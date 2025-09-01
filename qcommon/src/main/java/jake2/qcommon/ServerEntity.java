@@ -22,7 +22,11 @@
 
 package jake2.qcommon;
 
-public class ServerEntity {
+/**
+ * Server side information about an entity, used for collision detection, visibility, hearability, etc.
+ * All entities are initialized on the game side.
+ */
+public abstract class ServerEntity {
 
     /** Constructor. */
     public ServerEntity(int i) {
@@ -36,7 +40,7 @@ public class ServerEntity {
     }
 
     /** Integrated entity state. */
-    public entity_state_t s = new entity_state_t(this);
+    public entity_state_t s = new entity_state_t();
 
     public boolean inuse;
 
@@ -81,15 +85,7 @@ public class ServerEntity {
     /** Introduced by rst. */
     public int index;
 
-    public ServerEntity getOwner() {
-        throw new IllegalStateException("edict_t.getOwner() should not be called");
-    }
+    public abstract ServerEntity getOwner();
 
-    public ServerPlayerInfo getClient() {
-        throw new IllegalStateException("edict_t.getClient() should not be called");
-    }
-
-    /////////////////////////////////////////////////
-
-
+    public abstract ServerPlayerInfo getClient();
 }

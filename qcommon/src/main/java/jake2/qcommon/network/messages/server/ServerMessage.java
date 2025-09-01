@@ -49,7 +49,7 @@ public abstract class ServerMessage implements NetworkMessage {
      * former CL_ParseDelta
      */
     protected static entity_state_t parseEntityState(int number, int flags, sizebuf_t buffer) {
-        entity_state_t to = new entity_state_t(new ServerEntity(number));
+        entity_state_t to = new entity_state_t(number);
         to.number = number;
 
         if ((flags & Defines.U_MODEL) != 0)

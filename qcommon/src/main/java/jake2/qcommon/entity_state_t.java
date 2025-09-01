@@ -33,19 +33,15 @@ import java.util.Arrays;
  * in an update message about entities that the client will
  * need to render in some way.
  */
-public class entity_state_t implements Cloneable
-{
-	public entity_state_t(ServerEntity ent)
-	{
-		this.surrounding_ent = ent;
-		if (ent != null)
-		    number = ent.index;
+public class entity_state_t {
+	public entity_state_t(){}
+
+	public entity_state_t(int number) {
+		this.number = number;
 	}
 
 	/** edict index. TODO: this is critical. The index has to be proper managed. */
 	public int number = 0; 
-	// TODO: why was this introduced?
-	public ServerEntity surrounding_ent = null;
 	public float[] origin = { 0, 0, 0 };
 	public float[] angles = { 0, 0, 0 };
 	
@@ -71,7 +67,7 @@ public class entity_state_t implements Cloneable
 	/** Writes the entity state to the file. */
 	public void write(QuakeFile f) throws IOException
 	{
-		f.writeEdictRef(surrounding_ent);
+		f.writeEdictRef(null); // leftover from surrounding_ent
 		f.writeVector(origin);
 		f.writeVector(angles);
 		f.writeVector(old_origin);
@@ -97,7 +93,7 @@ public class entity_state_t implements Cloneable
 	/** Reads the entity state from the file. */
 	public void read(QuakeFile f, ServerEntity[] g_edicts) throws IOException
 	{
-		surrounding_ent = f.readEdictRef(g_edicts);
+		f.readEdictRef(g_edicts); // leftover from surrounding_ent
 		origin = f.readVector();
 		angles = f.readVector();
 		old_origin = f.readVector();
@@ -124,7 +120,7 @@ public class entity_state_t implements Cloneable
 
 	public entity_state_t getClone()
 	{
-		entity_state_t out = new entity_state_t(this.surrounding_ent);
+		entity_state_t out = new entity_state_t();
 		out.set(this);
 		return out;
 	}
@@ -209,7 +205,6 @@ public class entity_state_t implements Cloneable
 	{
 	    //TODO: this is critical. The index has to be proper managed.
 		number = 0;
-		surrounding_ent = null;
 		Math3D.VectorClear(origin);
 		Math3D.VectorClear(angles);
 		Math3D.VectorClear(old_origin);

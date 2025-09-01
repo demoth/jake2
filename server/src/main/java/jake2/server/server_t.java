@@ -38,7 +38,7 @@ class server_t {
         }
 
         for (int n = 0; n < Defines.MAX_EDICTS; n++) {
-            baselines[n] = new entity_state_t(null);
+            baselines[n] = new entity_state_t();
         }
 
         loadgame = changeMapInfo.isLoadgame;

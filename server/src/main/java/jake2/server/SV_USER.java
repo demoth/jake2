@@ -188,9 +188,6 @@ class SV_USER {
         // todo: validate argument
         int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
-        //memset (&nullstate, 0, sizeof(nullstate));
-        entity_state_t nullstate = new entity_state_t(null);
-
         // write a packet full of data
         int currentReliableSize = client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {

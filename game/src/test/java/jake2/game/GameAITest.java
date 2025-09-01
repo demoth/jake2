@@ -245,7 +245,7 @@ public class GameAITest {
     @Before
     public void setUp() {
         entity = new GameEntity(1);
-        entity.s = new entity_state_t(null);
+        entity.s = new entity_state_t();
         entity.s.clear();
 
         // Initialize entity position and bounds

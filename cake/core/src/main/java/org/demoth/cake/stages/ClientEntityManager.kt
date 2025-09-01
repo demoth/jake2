@@ -28,7 +28,7 @@ class ClientEntityManager {
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
-    private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t(null) }
+    private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t() }
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity("") }
 
     var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)

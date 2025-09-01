@@ -13,7 +13,7 @@ import jake2.qcommon.sizebuf_t;
 public class SpawnBaselineMessage extends ServerMessage {
 
     public entity_state_t entityState;
-    private final entity_state_t base = new entity_state_t(null);;
+    private final entity_state_t base = new entity_state_t();
 
     public SpawnBaselineMessage() {
         super(ServerMessageType.svc_spawnbaseline);

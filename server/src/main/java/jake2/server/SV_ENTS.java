@@ -60,7 +60,7 @@ public class SV_ENTS {
         // Clear all client entity states
         clientEntityStates = new entity_state_t[maxClientEntityStates];
         for (int n = 0; n < clientEntityStates.length; n++) {
-            clientEntityStates[n] = new entity_state_t(null);
+            clientEntityStates[n] = new entity_state_t();
         }
 
     }
