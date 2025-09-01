@@ -43,8 +43,11 @@ public class SV_ENTS {
 
     public final byte[] fatpvs; // 32767 is MAX_MAP_LEAFS
 
-    private final int maxClientEntities; // maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
-    private final entity_state_t[] client_entities; // [num_client_entities]
+    private final int maxClientEntityStates; // maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+
+    // common for all clients, represents current server frame, updated in SV_BuildClientFrame
+    private final entity_state_t[] clientEntityStates; // ring buffer of size [maxClientEntityStates]
+
     private int next_client_entities; // next client_entity to use
 
 
@@ -52,12 +55,12 @@ public class SV_ENTS {
         fatpvs = new byte[65536 / 8];
         this.gameImports = gameImports;
 
-        maxClientEntities = clientEntitiesMax;
+        maxClientEntityStates = clientEntitiesMax;
 
         // Clear all client entity states
-        client_entities = new entity_state_t[maxClientEntities];
-        for (int n = 0; n < client_entities.length; n++) {
-            client_entities[n] = new entity_state_t(null);
+        clientEntityStates = new entity_state_t[maxClientEntityStates];
+        for (int n = 0; n < clientEntityStates.length; n++) {
+            clientEntityStates[n] = new entity_state_t(null);
         }
 
     }
@@ -70,38 +73,20 @@ public class SV_ENTS {
     // todo: PlayerInfoMessage should hold only player state
     static PlayerInfoMessage buildPlayerInfoMessage(player_state_t lastFrameState, player_state_t currentPlayerState) {
         player_state_t ops = lastFrameState != null ? lastFrameState : new player_state_t();
-
-
         return new PlayerInfoMessage(ops, currentPlayerState);
-
-//        return new PlayerInfoMessage(
-//                messageFlags,
-//                currentState.pmove.pm_type,
-//                currentState.pmove.origin,
-//                currentState.pmove.velocity,
-//                currentState.pmove.pm_time,
-//                currentState.pmove.pm_flags,
-//                currentState.pmove.gravity,
-//                currentState.pmove.delta_angles,
-//                currentState.viewoffset,
-//                currentState.viewangles,
-//                currentState.kick_angles,
-//                currentState.gunindex,
-//                currentState.gunframe,
-//                currentState.gunoffset,
-//                currentState.gunangles,
-//                currentState.blend,
-//                currentState.fov,
-//                currentState.rdflags,
-//                statbits,
-//                currentState.stats
-//        );
     }
 
     /**
-     * Writes a frame to a client system.
+     * Build the frame and prepare a list of messages to a client system.
+     * @return - listOf(FrameHeaderMessage, PlayerInfoMessage, PacketEntitiesMessage)
+     *
+     * SV_WriteFrameToClient
      */
-    public Collection<ServerMessage> SV_WriteFrameToClient(client_t client) {
+    public Collection<ServerMessage> buildClientFrameMessages(client_t client) {
+        // first, build the "frame" (previously it was invoked outside of this method)
+        gameImports.sv_ents.SV_BuildClientFrame(client);
+
+        // now, build the messages
         List<ServerMessage> result = new ArrayList<>();
         // this is the frame we are creating
         client_frame_t currentFrame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
@@ -141,24 +126,24 @@ public class SV_ENTS {
         PacketEntitiesMessage packetEntities = buildPacketEntities(
                 lastReceivedFrame,
                 currentFrame,
-                client_entities,
+                clientEntityStates,
                 gameImports.sv.baselines,
-                maxClientEntities,
                 gameImports.serverMain.getClients().size());
         result.add(packetEntities);
         return result;
     }
 
     // SV_EmitPacketEntities
+    /**
+     * Encode recent entity updates into a message using the previously sent updates and the baseline (shared with the client in the beginning of the match).
+     */
     static PacketEntitiesMessage buildPacketEntities(client_frame_t lastReceivedFrame,
                                                       client_frame_t currentFrame,
-                                                      entity_state_t[] client_entities,
-                                                      entity_state_t[] baselines,
-                                                      int maxEntities,
+                                                      entity_state_t[] clientEntityStates, // many states per entity,
+                                                      entity_state_t[] baselines, // one state per entity, length = Defines.MAX_EDICTS
                                                       int maxClients) {
-        // assert client_entities.length == maxEntities;
-        // assert baselines.length == maxEntities;
-
+        assert baselines.length == Defines.MAX_EDICTS;
+        int maxEntityStates = clientEntityStates.length;
         PacketEntitiesMessage result = new PacketEntitiesMessage();
 
         // Write delta entity
@@ -178,7 +163,7 @@ public class SV_ENTS {
                 // does not exist in the frame
                 newnum = 9999;
             } else {
-                newState = client_entities[(currentFrame.first_entity + newindex) % maxEntities];
+                newState = clientEntityStates[(currentFrame.first_entity + newindex) % maxEntityStates];
                 newnum = newState.number;
             }
             final int oldnum;
@@ -186,7 +171,7 @@ public class SV_ENTS {
                 // does not exist in the frame
                 oldnum = 9999;
             else {
-                oldState = client_entities[(lastReceivedFrame.first_entity + oldindex) % maxEntities];
+                oldState = clientEntityStates[(lastReceivedFrame.first_entity + oldindex) % maxEntityStates];
                 oldnum = oldState.number;
             }
 
@@ -271,8 +256,8 @@ public class SV_ENTS {
     }
 
     /**
-     * Decides which entities are going to be visible to the client, and copies
-     * off the playerstat and areabits.
+     * Decides which entities are going to be visible to the client (update the clientEntityStates from game entities' state),
+     * and copies off the playerstat and areabits.
      */
     public void SV_BuildClientFrame(client_t client) {
 
@@ -374,15 +359,15 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = next_client_entities % maxClientEntities;
-            entity_state_t state = client_entities[ix];
+            int ix = next_client_entities % maxClientEntityStates;
+            entity_state_t state = clientEntityStates[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
                 ent.s.number = e;
             }
 
             //*state = ent.s;
-            client_entities[ix].set(ent.s);
+            clientEntityStates[ix].set(ent.s);
 
             // don't mark players missiles as solid
             if (ent.getOwner() == client.edict)

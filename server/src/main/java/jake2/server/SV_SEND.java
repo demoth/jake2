@@ -181,16 +181,15 @@ public class SV_SEND {
 	=======================
 	*/
 	public static void SV_SendClientDatagram(client_t client, GameImportsImpl gameImports) {
-		gameImports.sv_ents.SV_BuildClientFrame(client);
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
 		Collection<NetworkMessage> unreliable = new ArrayList<>();
-		unreliable.addAll(gameImports.sv_ents.SV_WriteFrameToClient(client));
+		unreliable.addAll(gameImports.sv_ents.buildClientFrameMessages(client)); // 3 messages
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
-		// it is necessary for this to be after the SV_WriteFrameToClient
+		// it is necessary for this to be after the buildClientFrameMessages (SV_BuildClientFrame)
 		// so that entity references will be current
 		unreliable.addAll(client.unreliable);
 		client.unreliable.clear();
