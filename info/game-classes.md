@@ -7,12 +7,6 @@
  * monsterinfo_t
  * AIAdapter - callback function called every frame
 
-## Client
-
- * gclient_t
- * client_respawn_t
- * client_persistant_t
-
 ## Game
 
  * GameExportsImpl

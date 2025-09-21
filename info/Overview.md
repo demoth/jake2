@@ -5,8 +5,9 @@ The project consists of several modules:
   * `game` - game related logic: monsters, items, weapons, game rules
   * `server` - server runtime: keeps master game state, sends game state updates to clients, receives client input 
   (over the network) and routes it to the `game`
-  * `client` - client is responsible for handling updates from the server, drawing nice picture, playing sounds,
+  * `client` - (Deprecated) client is responsible for handling updates from the server, drawing nice picture, playing sounds,
   getting inputs from human and send them over the net to the `server`
+  * `cake` - new reimplementation of jake2 client with libGDX engine
   
 In addition to that there are several auxiliary modules:
 
@@ -19,10 +20,10 @@ In addition to that there are several auxiliary modules:
 
 Game module handles all the gameplay code like movement, monsters behavior, weapons code, triggers etc.
 
-This was a usual place for modders to start in the original quake version.
-The famous mission pack and mods are actually the `game` + resources.
+This is a usual place for the modders to start in the original quake version.
+The famous mission packs and mods are actually the `game` + resources.
 
-All game entities (`SubgameEntity.java`) are created, updated and removed in this module.
+All game entities (`GameEntity.java`) are instantiated, updated and disposed in this module.
 
 The `game` and `server` modules are interacting via the `GameImports` and `GameExports` interfaces.
 
@@ -31,8 +32,18 @@ The `game` and `server` modules are interacting via the `GameImports` and `GameE
 Server manages:
 
 * connected clients - array of client states
-* bsp model - provide collisions functions to the `game` module
+* bsp model - provide collisions/visibility functions to the `game` module
 * networking code - sends/receives updates
+
+# Modules `cake`
+
+This module is the client facing interactive application and is responsible for gathering input, rendering the level and entities and playing sounds.
+
+# Module `client`
+
+This module is kept for the history and reference, it is no longer part of the project structure.
+Where it makes sense, it is possible to move an original file or class (preserving the history) into the new `cake` module and refactor later.
+
 
 # Notable patterns
 

@@ -2,12 +2,13 @@
 
 Config strings are a general means of communication from the server to all connected clients.
 
-Each config string can be at most MAX_QPATH characters.
+Each config string can be at most MAX_QPATH(64) characters.
 
 Config strings hold all the index strings, the lightstyles, and misc data like the sky definition and cdtrack.
 
 All of the current configstrings are sent to clients when they connect, and changes are sent to all connected clients.
 
+Overview of the config strings list array:
 
 	CS_NAME = 0;
 	CS_CDTRACK = 1;
@@ -29,6 +30,7 @@ All of the current configstrings are sent to clients when they connect, and chan
 	CS_PLAYERSKINS = (CS_ITEMS + MAX_ITEMS); +256
 	CS_GENERAL = (CS_PLAYERSKINS + MAX_CLIENTS); +256
 	
-	MAX_CONFIGSTRINGS = (CS_GENERAL + MAX_GENERAL);
+	MAX_CONFIGSTRINGS = (CS_GENERAL + MAX_GENERAL); // to be utilized in mods
 
-When the resources are registered by the game (sounds, models..) their index is saved to the config string array, 
+When the resources are registered by the game (sounds, models, textures, ...) their index is saved to the config string array.
+This way only an integer is transmitted over the network instead of a long string of characters. 

@@ -1,3 +1,6 @@
+DISCLAIMER: This document is preserved as is and refers to the quake2 entity structure.
+---------------------------------------------------------------------------------------
+
 Written by Davo (smithd6@cs.man.ac.uk)
 (parts marked //kami0 supplied by Michael 'kami0' DiGiovanni (kaze@concentric.net))
 
