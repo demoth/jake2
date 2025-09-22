@@ -42,27 +42,19 @@ And lastly, there is a libGDX framework that can provide a lot of useful functio
 The `client` and `fullgame` modules are excluded from the build. 
 The new `cake` module is introduced for the client side part (WIP).
 
-TODO: update readme
+See [README.md](cake/README.md)
 
 Installation and running
 ------------------------
 
-from binary distribution:
-
-- unzip the distribution(jake2-some_version.zip)
-- go to `bin` folder
-- run `./fullgame` (or `fullgame.bat` on windows)
-
 build from source:
-
-- run `gradle run` to build from source and run jake2
-- run `gradle distZip` to build the distribution
-
-If you don't have a gradle distribution you can use gradle wrapper, like `./gradlew run`.
+- `./gradlew build` - to build (and run tests) from source
+- `./gradlew run` - to run cake client
+- `./gradlew distZip` - to build the distribution
 
 If you run jake from an IDE:
-  1. add dependency to `gradle installDist` task before launch
-  2. add `-Djava.library.path` VM option to point to the location of native libs (they are copied to the `fullgame/build/install/fullgame` after the task mentioned above)
+  1. to run the server run `Jake2Dedicated.main` with the desired args (`+set coop 1 +map base1`)
+  2. to run the cake client run `Lwjgl3GameLauncher.main` and click `Multiplayer`
 
 Installation of Quake2 data:
 ----------------------------
@@ -87,24 +79,23 @@ Jake2 is compatible with all map/models/sounds/textures as id Quake 2.
 Goals of the project
 --------------------
 
-While Jake2 is a hobby project it is important to keep at least high level goals in mind:
+While Jake2 is a hobby project, it is important to keep at least high level goals in mind:
 
-  1. Maintain project runnable on modern machines and operating systems
+  1. Maintain the project runnable on modern machines and operating systems
   2. Bring the codebase up to contemporary expectations.
   3. Expand features of jake2 to bring more fun playing/modding it
 
-At the moment of writing the goal N1 is achieved and goad N2 is in progress.
+At the moment of writing the goal N1 is achieved, and goal N2 is in progress.
 
 Roadmap
 -------
 
-With accordance to the goals we can put a list of more concrete steps:
+With accordance to the goals, we can put a list of more concrete steps:
 
   * gather game state in classes. at the moment state of the process is scattered across many static fields.
   * code cleanup - move to modern libraries (filesystem, network, logging)
   * file formats - support modern file formats (zip, image, audio, video, models?)
   * support "brother projets" content: q2 mission packs, q1? q3? hl?
-  * replace q2 ui code (not 3d) with a library (i.e. nifty-gui)
 
 ### Crazy ideas area (proceed with caution):
 
