@@ -85,6 +85,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Gdx.app.exit()
         }
 
+        /**
+         * Changing_f
+         *
+         * Just sent as a hint to the client that they should drop to full console.
+         */
+        Cmd.AddCommand("changing") {
+            networkState = CONNECTED
+            // todo: indicate somehow about the map changing (loading screen or spinner)
+            // SCR.BeginLoadingPlaque();
+            Com.Printf("\nChanging map...\n");
+        }
+
         Cmd.AddCommand("connect") {
             // first disconnect
             Cbuf.AddAndExecute("disconnect")
