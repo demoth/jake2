@@ -97,6 +97,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Printf("\nChanging map...\n");
         }
 
+        // fixme: same as svc_reconnect
+        Cmd.AddCommand("reconnect") {
+            Com.Printf("Reconnecting..\n")
+            networkState = CONNECTING
+            // CheckForResend() will fire immediately
+            reconnectTimeout = 0f
+        }
+
         Cmd.AddCommand("connect") {
             // first disconnect
             Cbuf.AddAndExecute("disconnect")
@@ -373,7 +381,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     Com.Error(ERR_DISCONNECT, "Server disconnected\n")
                 }
 
+                // fixme: it is not sent during map change but the StuffTextMessage("reconnect")
                 is ReconnectMessage -> {
+                    Com.Printf("Reconnecting..\n")
                     networkState = CONNECTING
                     // CheckForResend() will fire immediately
                     reconnectTimeout = 0f
@@ -441,9 +451,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is InventoryMessage -> {
                     game3dScreen?.processInventoryMessage(msg)
                 }
-                else -> {
-//                    Com.Printf("Received ${msg.javaClass.name} message\n")
-                }
+
             }
         }
     }

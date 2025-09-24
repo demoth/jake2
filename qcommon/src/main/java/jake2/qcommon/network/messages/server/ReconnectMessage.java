@@ -2,6 +2,7 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
 
+// fixme: same as "reconnect" StuffTextMessage
 public class ReconnectMessage extends ServerMessage {
     public ReconnectMessage() {
         super(ServerMessageType.svc_reconnect);
