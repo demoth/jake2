@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -59,6 +60,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private var game3dScreen: Game3dScreen? = null
 
+    private val assetManager = AssetManager()
+
     init {
         Cmd.Init()
         Cvar.Init()
@@ -68,7 +71,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun create() {
-        Scene2DSkin.defaultSkin = Skin(Gdx.files.internal("ui/uiskin.json"))
+        val skinName = "ui/uiskin.json"
+        assetManager.load(skinName, Skin::class.java)
+        assetManager.finishLoading()
+        Scene2DSkin.defaultSkin = assetManager.get(skinName, Skin::class.java)
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         menuStage = MainMenuStage(viewport) // fixme: cvar
