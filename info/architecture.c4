@@ -1,0 +1,64 @@
+specification {
+    element System
+}
+
+model {
+    System server {
+        // todo structure
+        // todo game initialization
+    }
+    System client {
+        System Network 'Network' 'Parsing & sending of msg' {
+            -> Cmd 'stuff text (insert text into console)'
+        }
+        System Cmd 'Cmd' 'Command subsystem'
+        System Cake 'Cake' 'main application process / entrypoint'
+        System Menu 'Menu' 'UI menu: Main/Options/etc'
+        System Console 'Console' 'quake style console'
+        System Game3dScreen 'Game3dScreen' 'Per instance level rendering/sound/input' {
+            System InputManager
+            System ClientEntityManager 'ClientEntityManager' 'Manages entity visibility both client/server'
+            System ConfigString
+            System RenderState
+        }
+    }
+    System q2Game {
+        // todo
+    }
+
+    q2Game -> server {title "gameExports"}
+    server -> q2Game {title "gameImports"}
+    server -> client {title "network"}
+}
+
+views {
+    view index {
+        include *
+    }
+
+    view of client {
+        include *
+    }
+
+    view of Game3dScreen {
+        include *
+    }
+
+    dynamic view network_init {
+        title 'Client/server connection initialization'
+
+        client -> server "getchallenge"
+        server -> client "challenge" {notes 'int challenge'}
+        client -> server "connect"
+        server -> client "client_connect"
+        client -> server "new"
+        server -> client "ServerDataMessage"
+    }
+}
+
+/*
+- high level system landscape(done)
+- server system structure
+- client system structure
+- network initialization & runtime
+*/
