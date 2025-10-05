@@ -267,8 +267,9 @@ class Game3dScreen(
     override fun dispose() {
         spriteBatch.dispose()
         modelBatch.dispose()
-        // should we dispose the model instances first?
         gameConfig.dispose()
+        skyBox?.model?.dispose()
+        renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
     }
 
     /**

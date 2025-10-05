@@ -2,6 +2,7 @@ package org.demoth.cake
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
@@ -15,6 +16,7 @@ import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
+import jake2.qcommon.exec.Command
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
@@ -86,8 +88,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
 
         Cmd.AddCommand("quit") {
-            Cbuf.AddAndExecute("disconnect")
-
+            disconnect()
             Gdx.app.exit()
         }
 
@@ -100,20 +101,37 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             networkState = CONNECTED
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
-            Com.Printf("\nChanging map...\n");
+            Com.Printf("\nChanging map...\n")
+
+            // free unused resources
+            game3dScreen?.dispose()
+            game3dScreen = Game3dScreen()
+            updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
+
         }
 
-        // fixme: same as svc_reconnect
+        // like a connect but more lightweight
+        // fixme: not same as svc_reconnect?
         Cmd.AddCommand("reconnect") {
             Com.Printf("Reconnecting..\n")
-            networkState = CONNECTING
-            // CheckForResend() will fire immediately
-            reconnectTimeout = 0f
+
+            if (networkState == CONNECTED) { // set on "changing" command
+                Com.Printf("Sending 'new' to server\n")
+                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+
+            } else if (servername.isNotEmpty()) { // todo: check this condition
+                disconnect()
+                // CheckForResend() will fire immediately
+                reconnectTimeout = 0f
+                networkState = CONNECTING
+            }
+
         }
 
         Cmd.AddCommand("connect") {
+            Com.Printf("Connecting to ${it[1]}...\n")
             // first disconnect
-            Cbuf.AddAndExecute("disconnect")
+            disconnect()
 
             NET.Config(true) // allow remote
             servername = it[1]
@@ -291,10 +309,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         return true
     }
 
+    // fixme is it called from somewhere?
     override fun dispose() {
         menuStage.dispose()
         consoleStage.dispose()
         game3dScreen?.dispose()
+        game3dScreen = null
     }
 
     /**
@@ -315,7 +335,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             return
         }
         if (reconnectTimeout < 0) {
-            Com.Printf("${"Connecting to $servername"}...\n")
+            Com.Printf("${"CheckForResend ${networkState}: Connecting to $servername"}...\n")
             Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
             reconnectTimeout = 1f
         } else {
@@ -389,12 +409,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     Com.Error(ERR_DISCONNECT, "Server disconnected\n")
                 }
 
-                // fixme: it is not sent during map change but the StuffTextMessage("reconnect")
+                // NB: it is not sent during map change (instead - StuffTextMessage("reconnect"))
+                // sent on server restart
                 is ReconnectMessage -> {
-                    Com.Printf("Reconnecting..\n")
+                    Com.Printf("ReconnectMessage: Reconnecting..\n")
                     networkState = CONNECTING
                     // CheckForResend() will fire immediately
                     reconnectTimeout = 0f
+                    // todo: handle game screen disposal?
                 }
 
                 is StuffTextMessage -> {
