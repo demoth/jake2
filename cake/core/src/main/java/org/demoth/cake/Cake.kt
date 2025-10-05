@@ -123,20 +123,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
-        Cmd.AddCommand("disconnect") {
-            // todo: clear the game state and release resources
-            game3dScreen?.dispose() // or reset?
-            game3dScreen = null
-
-            // send a disconnect message to the server
-            netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
-
-            // reset network state
-            NET.Config(false)
-            networkState = DISCONNECTED
-            challenge = 0
-
-        }
+        Cmd.AddCommand("disconnect") { disconnect() }
 
         Cmd.AddCommand("userinfo") {
             val userInfo = Cvar.getInstance().Userinfo()
@@ -190,6 +177,22 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
         }
 
+    }
+
+    private fun disconnect() {
+        Com.Printf("Disconnecting from server...\n")
+        // todo: clear the game state and release resources
+        game3dScreen?.dispose()
+        game3dScreen = null
+        updateInputHandlers(true, false)
+
+        // send a disconnect message to the server
+        netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+
+        // reset network state
+        NET.Config(false)
+        networkState = DISCONNECTED
+        challenge = 0
     }
 
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
