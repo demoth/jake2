@@ -197,14 +197,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
         Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
 
-        val inputProcessor: InputProcessor? = when {
+        val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
             menuVisible -> menuStage
             else -> {
                 // delegate to the game screen
-                game3dScreen?.let { screen ->
-                    object : InputProcessor by screen {}
-                }
+                game3dScreen?.let { screen -> object : InputProcessor by screen {} }
+                    ?: InputAdapter() // or to an empty stub when no game is running
             }
         }
         // delegate the rest to the current 3d screen
