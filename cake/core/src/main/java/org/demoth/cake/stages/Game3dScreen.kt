@@ -38,6 +38,7 @@ import kotlin.math.sin
  * Also, it is responsible for loading/disposing of the required resources
  */
 class Game3dScreen(
+    val assetManager: AssetManager,
     val inputManager: InputManager = InputManager(),
     val renderState: RenderState = RenderState()
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
@@ -141,7 +142,7 @@ class Game3dScreen(
         val md2Shader = Md2Shader(
             md2Instance.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
             DefaultShader.Config(
-                Gdx.files.internal("shaders/vat.glsl").readString(),
+                assetManager.get(vatShader),
                 null, // use default fragment shader
             )
         )

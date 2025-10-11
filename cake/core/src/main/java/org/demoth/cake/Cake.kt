@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -33,7 +34,6 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
-const val cakeSkin = "ui/uiskin.json"
 
 private enum class ClientNetworkState {
     DISCONNECTED,
@@ -63,7 +63,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private var game3dScreen: Game3dScreen? = null
 
-    private val assetManager = AssetManager()
+    private val assetManager = AssetManager().apply {
+        setLoader(String::class.java, StringLoader(InternalFileHandleResolver()))
+    }
 
     init {
         Cmd.Init()
@@ -74,8 +76,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun create() {
+        // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
         assetManager.finishLoading()
+
+        // load async resources (will be used later in the game)
+        assetManager.load(vatShader, String::class.java)
+
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
@@ -105,7 +112,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
             // free unused resources
             game3dScreen?.dispose()
-            game3dScreen = Game3dScreen()
+            game3dScreen = Game3dScreen(assetManager)
             updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
         }
 
@@ -135,7 +142,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
-            game3dScreen = Game3dScreen()
+            game3dScreen = Game3dScreen(assetManager)
             updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
@@ -234,6 +241,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun render() {
+        assetManager.update() // todo: 1000/fps millis
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
         game3dScreen?.deltaTime = deltaSeconds
