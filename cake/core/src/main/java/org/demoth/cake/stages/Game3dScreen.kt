@@ -16,7 +16,6 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
@@ -126,7 +125,23 @@ class Game3dScreen(
         // create camera
         camera.update()
 
-        // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
+        // todo: move this to a dedicated render class
+        // force replace because the command lambdas capture the render state. fixme: make proper disposable approach
+        Cmd.AddCommand("toggle_skybox", true) {
+            renderState.drawSkybox = !renderState.drawSkybox
+        }
+        Cmd.AddCommand("toggle_level", true) {
+            renderState.drawLevel = !renderState.drawLevel
+        }
+        Cmd.AddCommand("toggle_entities", true) {
+            renderState.drawEntities = !renderState.drawEntities
+        }
+
+        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader()))
+    }
+
+    // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
+    private fun initializeMd2Shader(): Md2Shader {
         val md2 = Md2ModelLoader(locator).loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
         val model = createModel(md2.mesh, md2.material)
         val md2Instance = ModelInstance(model)
@@ -147,21 +162,7 @@ class Game3dScreen(
             )
         )
         md2Shader.init()
-
-        // todo: move this to a dedicated render class
-        // force replace because the command lambdas capture the render state. fixme: make proper disposable approach
-        Cmd.AddCommand("toggle_skybox", true) {
-            renderState.drawSkybox = !renderState.drawSkybox
-        }
-        Cmd.AddCommand("toggle_level", true) {
-            renderState.drawLevel = !renderState.drawLevel
-        }
-        Cmd.AddCommand("toggle_entities", true) {
-            renderState.drawEntities = !renderState.drawEntities
-        }
-
-        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
-
+        return md2Shader
     }
 
     private fun lerpAngle(from: Float, to: Float, fraction: Float): Float {
