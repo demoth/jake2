@@ -8,6 +8,7 @@ import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_STATS
 import jake2.qcommon.player_state_t
+import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.GameConfiguration
 
 /**
@@ -21,8 +22,8 @@ import org.demoth.cake.GameConfiguration
  */
 class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
-    private val skin: Skin
 ) {
+    private val skin = Scene2DSkin.defaultSkin
     private val skinFont = skin.getFont("default") as BitmapFont
 
     // Example stub for an image-drawing operation.

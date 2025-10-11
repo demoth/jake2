@@ -16,7 +16,6 @@ import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
-import jake2.qcommon.exec.Command
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
@@ -33,6 +32,8 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
+
+const val cakeSkin = "ui/uiskin.json"
 
 private enum class ClientNetworkState {
     DISCONNECTED,
@@ -73,10 +74,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun create() {
-        val skinName = "ui/uiskin.json"
-        assetManager.load(skinName, Skin::class.java)
+        assetManager.load(cakeSkin, Skin::class.java)
         assetManager.finishLoading()
-        Scene2DSkin.defaultSkin = assetManager.get(skinName, Skin::class.java)
+        Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         menuStage = MainMenuStage(viewport) // fixme: cvar
@@ -107,7 +107,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             game3dScreen?.dispose()
             game3dScreen = Game3dScreen()
             updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
-
         }
 
         // like a connect but more lightweight

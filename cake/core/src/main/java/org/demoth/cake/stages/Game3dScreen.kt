@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.Texture
@@ -67,8 +68,7 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private val skin = Skin(Gdx.files.internal("ui/uiskin.json"))
-    private val layoutExecutor = LayoutExecutor(spriteBatch, skin)
+    private val layoutExecutor = LayoutExecutor(spriteBatch)
 
 
     // interpolation factor between two server frames
