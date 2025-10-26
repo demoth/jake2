@@ -7,28 +7,34 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Array
+import java.io.ObjectInputStream
 
-class StringLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<String, StringLoader.Parameters>(resolver) {
+class ObjectLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<Any, ObjectLoader.Parameters>(resolver) {
 
-    class Parameters : AssetLoaderParameters<String>()
+    class Parameters : AssetLoaderParameters<Any>()
 
-    private var cache: String? = null
+    private var cache: Any? = null
 
     override fun loadAsync(
         manager: AssetManager, fileName: String, file: FileHandle, parameter: Parameters?
     ) {
         // run on AssetManager’s loader thread
-        cache = file.readString("UTF-8")
+        cache = readObjectFromFile(file)
     }
 
     override fun loadSync(
         manager: AssetManager, fileName: String, file: FileHandle, parameter: Parameters?
-    ): String {
-        val result = cache ?: file.readString("UTF-8")
+    ): Any {
+        val result: Any = cache ?: readObjectFromFile(file)
         cache = null
         return result
     }
 
+    private fun readObjectFromFile(file: FileHandle): Any {
+        return ObjectInputStream(file.read()).use { it.readObject() as Any }
+    }
+
+    // no dependencies
     override fun getDependencies(
         fileName: String, file: FileHandle, parameter: Parameters?
     ): Array<AssetDescriptor<*>>? = null

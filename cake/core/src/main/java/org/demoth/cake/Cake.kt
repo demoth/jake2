@@ -28,6 +28,7 @@ import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
+import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.stages.ConsoleStage
@@ -64,7 +65,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var game3dScreen: Game3dScreen? = null
 
     private val assetManager = AssetManager().apply {
-        setLoader(String::class.java, StringLoader(InternalFileHandleResolver()))
+        setLoader(String::class.java, TextAssetLoader(InternalFileHandleResolver()))
+        setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
     }
 
     init {
@@ -82,6 +84,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         // load async resources (will be used later in the game)
         assetManager.load(vatShader, String::class.java)
+
+        assetManager.load("q2palette.bin", Any::class.java)
+        println("palette loading...")
+        val paletteFile = assetManager.get("q2palette.bin", Any::class.java) //Gdx.files.internal("q2palette.bin")
+        println("palette loaded: $paletteFile")
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         // doesn't really stretch because we don't yet allow the window to freely resize

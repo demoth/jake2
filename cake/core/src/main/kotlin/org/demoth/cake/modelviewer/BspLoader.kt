@@ -1,6 +1,7 @@
 package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
@@ -13,16 +14,18 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.WAL
-import org.demoth.cake.GameResourceLocator
 import org.demoth.cake.ResourceLocator
 import java.io.File
 import java.nio.ByteBuffer
 
-class BspLoader(private val locator: ResourceLocator) {
+class BspLoader(private val locator: ResourceLocator, private val assetManager: AssetManager) {
 
     fun loadBspModels(bsdData: ByteArray): List<Model> {
         val bsp = Bsp(ByteBuffer.wrap(bsdData))
-        val palette = readPaletteFile(Gdx.files.internal("q2palette.bin").read())
+        assetManager.load("q2palette.bin", Any::class.java)
+        //Gdx.files.internal("q2palette.bin")
+        val paletteFile = assetManager.get("q2palette.bin", Any::class.java)
+        val palette = paletteFile as IntArray //readPaletteFile(paletteFile as IntArray)
 
         // create libgdx models from bsp models
         return bsp.models.mapIndexed { i, model ->

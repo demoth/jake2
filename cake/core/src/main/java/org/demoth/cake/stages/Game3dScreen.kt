@@ -284,7 +284,7 @@ class Game3dScreen(
         // load the level
         val mapName = gameConfig.getMapName() // fixme: disconnect with an error if is null
         val bsp = locator.findMap(mapName!!) // todo: cache
-        val brushModels = BspLoader(locator).loadBspModels(bsp)
+        val brushModels = BspLoader(locator, assetManager).loadBspModels(bsp)
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
