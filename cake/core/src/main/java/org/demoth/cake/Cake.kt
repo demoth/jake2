@@ -65,8 +65,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var game3dScreen: Game3dScreen? = null
 
     private val assetManager = AssetManager().apply {
+        // todo: implement resolvers for pak files
+        // for loading shaders and other text files
         setLoader(String::class.java, TextAssetLoader(InternalFileHandleResolver()))
-        setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
     }
 
     init {
