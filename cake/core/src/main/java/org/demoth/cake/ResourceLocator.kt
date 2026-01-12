@@ -1,5 +1,9 @@
 package org.demoth.cake
 
+/**
+ * Abstracts the way how the resources are located (how name is resolved) and loaded.
+ * Two implementations exist for Game and ModelViewer
+ */
 interface ResourceLocator {
 
     fun findMap(mapName: String): ByteArray

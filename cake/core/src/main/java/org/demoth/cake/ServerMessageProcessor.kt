@@ -3,7 +3,8 @@ package org.demoth.cake
 import jake2.qcommon.network.messages.server.*
 
 /**
- * Handle updates from server
+ * This interface describes the layer of client message processing (it processes messages from the server)
+ * for easier cognitive understanding. One implementation is expected.
  */
 interface ServerMessageProcessor {
 
