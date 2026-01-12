@@ -344,7 +344,6 @@ class Game3dScreen(
             }
         }
 
-
         gameConfig.getSkyname()?.let { skyName ->
             skyBox = SkyLoader(locator).load(skyName)
         }

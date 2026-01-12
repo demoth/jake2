@@ -23,7 +23,8 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
     fun loadBspModels(bsdData: ByteArray): List<Model> {
         val bsp = Bsp(ByteBuffer.wrap(bsdData))
         assetManager.load("q2palette.bin", Any::class.java)
-        //Gdx.files.internal("q2palette.bin")
+        // ensure the palette is loaded before accessing it via AssetManager
+        assetManager.finishLoadingAsset<Any>("q2palette.bin")
         val paletteFile = assetManager.get("q2palette.bin", Any::class.java)
         val palette = paletteFile as IntArray //readPaletteFile(paletteFile as IntArray)
 

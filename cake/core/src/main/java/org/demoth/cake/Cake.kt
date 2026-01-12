@@ -68,6 +68,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: implement resolvers for pak files
         // for loading shaders and other text files
         setLoader(String::class.java, TextAssetLoader(InternalFileHandleResolver()))
+        // for loading binary files
+        setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
+
     }
 
     init {
@@ -84,6 +87,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         assetManager.finishLoading()
 
         // load async resources (will be used later in the game)
+
+        // todo: make an pluggable system for queueing resource loading which will be required during the game
+        assetManager.load("q2palette.bin", Any::class.java)
         assetManager.load(vatShader, String::class.java)
 
         assetManager.load("q2palette.bin", Any::class.java)
