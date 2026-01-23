@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
@@ -70,6 +71,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(String::class.java, TextAssetLoader(InternalFileHandleResolver()))
         // for loading binary files
         setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
+        // for loading binary blobs from the filesystem (e.g. BSP maps)
+        setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
 
     }
 
@@ -84,18 +87,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun create() {
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
-        assetManager.finishLoading()
 
         // load async resources (will be used later in the game)
 
         // todo: make an pluggable system for queueing resource loading which will be required during the game
         assetManager.load("q2palette.bin", Any::class.java)
         assetManager.load(vatShader, String::class.java)
-
-        assetManager.load("q2palette.bin", Any::class.java)
-        println("palette loading...")
-        val paletteFile = assetManager.get("q2palette.bin", Any::class.java) //Gdx.files.internal("q2palette.bin")
-        println("palette loaded: $paletteFile")
+        assetManager.finishLoading() // these assets are necessary anyway
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         // doesn't really stretch because we don't yet allow the window to freely resize

@@ -6,7 +6,6 @@ package org.demoth.cake
  */
 interface ResourceLocator {
 
-    fun findMap(mapName: String): ByteArray
     fun findModel(modelName: String): ByteArray?
     fun findSound(soundName: String): ByteArrayFileHandle?
     fun findImage(imageName: String, location: String = "textures"): ByteArray?

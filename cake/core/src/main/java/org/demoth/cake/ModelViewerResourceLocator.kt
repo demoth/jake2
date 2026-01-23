@@ -4,10 +4,6 @@ import java.io.File
 
 class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator {
 
-    override fun findMap(mapName: String): ByteArray {
-        TODO("Not yet implemented")
-    }
-
     /**
      * Expect the full model file path
      */

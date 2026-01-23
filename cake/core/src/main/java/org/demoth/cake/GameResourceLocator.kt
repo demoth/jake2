@@ -11,13 +11,6 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
     var gameName: String = "baseq2"
 
-    /**
-     * [mapName] already has 'maps/' prefix
-     */
-    override fun findMap(mapName: String): ByteArray {
-        return File("$baseDir/$gameName/$mapName").readBytes()
-    }
-
     override fun findModel(modelName: String): ByteArray? {
         if (modelName.isEmpty()) {
             // todo: throw error?

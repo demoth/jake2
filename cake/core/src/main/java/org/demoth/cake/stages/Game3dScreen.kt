@@ -282,8 +282,11 @@ class Game3dScreen(
         // load resources referenced in the config strings
 
         // load the level
-        val mapName = gameConfig.getMapName() // fixme: disconnect with an error if is null
-        val bsp = locator.findMap(mapName!!) // todo: cache
+        val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
+        val mapPath = "${System.getProperty("basedir")}/$gameName/$mapName"
+        assetManager.load(mapPath, ByteArray::class.java)
+        assetManager.finishLoadingAsset<ByteArray>(mapPath)
+        val bsp = assetManager.get(mapPath, ByteArray::class.java)
         val brushModels = BspLoader(locator, assetManager).loadBspModels(bsp)
 
         // load inline bmodels
