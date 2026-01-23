@@ -1,10 +1,20 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Root Gradle build with multiple modules: `game/`, `qcommon/`, `server/`, `client/`, `dedicated/`, `fullgame/`, `maptools/`, and the newer client in `cake/`.
+
+- Root Gradle build with multiple modules
+    - `qcommon/` - Common module with classes, functions and utilities
+    - `game/` - Game logic related code (monsters, weapons, etc.) - server side
+    - `server/` - Server-side game logic like networking and server state
+    - `dedicated/` - Thin wrapper around the server module
+    - `cake/` -  New client implementation (libgdx based)
+    - `client/` - (Deprecated) Old Client-side code (for reference)
+    - `fullgame/` - (Deprecated) Wrapper around all modules
+    - `maptools/` - WIP - Map editing tools and utilities
 - Source code lives under each module’s `src/main/java` or `src/main/kotlin`.
 - Tests live under `src/test/java` or `src/test/kotlin` in each module.
-- Shared assets and game data live in `assets/`, `resources/`, and module resources (for example `game/src/main/resources`).
+- Shared assets and game data live in `assets/`, `resources/`, and module resources (for example
+  `game/src/main/resources`).
 
 ## Build, Test, and Development Commands
 - `./gradlew build` builds all enabled modules and runs tests.
@@ -22,6 +32,7 @@
 ## Testing Guidelines
 - Primary test framework is JUnit 4 (see root `build.gradle`); Kotlin tests live alongside Java tests.
 - Run all tests with `./gradlew test` or target a module with `./gradlew :qcommon:test`.
+- Test classes should be in the same package as the module they verify.
 - Keep tests deterministic and colocated with the module they verify.
 
 ## Commit & Pull Request Guidelines
