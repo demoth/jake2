@@ -1,6 +1,5 @@
 package org.demoth.cake.modelviewer
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
@@ -40,7 +39,14 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
 
             // skies are rendered separately, see: SkyLoader
             facesByTexture.filter { !it.key.contains("sky") }.forEach { (textureName, faces) ->
-                val walTexture = WAL(locator.findImage("$textureName.wal")!!) // todo: cache
+                val walPath = requireNotNull(locator.findImagePath("$textureName.wal")) {
+                    "Missing WAL texture: $textureName.wal"
+                }
+                if (!assetManager.isLoaded(walPath, ByteArray::class.java)) {
+                    assetManager.load(walPath, ByteArray::class.java)
+                    assetManager.finishLoadingAsset<ByteArray>(walPath)
+                }
+                val walTexture = WAL(assetManager.get(walPath, ByteArray::class.java)) // todo: cache
                 val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
                 // todo: bsp level textures always wrap?
                 texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
@@ -95,6 +101,7 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
         }
     }
 
+    // unused now
     fun loadBSPModelWireFrame(file: File): ModelInstance {
         val bsp = Bsp(ByteBuffer.wrap(file.readBytes()))
 

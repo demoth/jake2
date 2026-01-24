@@ -69,6 +69,22 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
         }
     }
 
+    override fun findImagePath(imageName: String, location: String): String? {
+        val file = File("$baseDir/$gameName/$location/$imageName")
+        return if (file.exists()) {
+            file.absolutePath
+        } else {
+            // fixme: use proper case insensitive search
+            val lowercaseFile = File("$baseDir/$gameName/textures/${imageName.lowercase()}")
+            if (lowercaseFile.exists()) {
+                println("Warn: $imageName was found by lowercase name")
+                lowercaseFile.absolutePath
+            } else {
+                null
+            }
+        }
+    }
+
     override fun findSkin(skinName: String): ByteArray {
         return File("$baseDir/$gameName/$skinName").readBytes()
     }

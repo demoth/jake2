@@ -19,6 +19,11 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
         TODO("Not yet implemented")
     }
 
+    override fun findImagePath(imageName: String, location: String): String? {
+        val file = File("$currentDirectory/$imageName")
+        return if (file.exists()) file.absolutePath else null
+    }
+
     override fun findSkin(skinName: String): ByteArray {
         val fileName = skinName.substring(skinName.lastIndexOf('/') + 1)
         return File("$currentDirectory/$fileName").readBytes()

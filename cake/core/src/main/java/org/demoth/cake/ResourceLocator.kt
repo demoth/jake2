@@ -9,6 +9,7 @@ interface ResourceLocator {
     fun findModel(modelName: String): ByteArray?
     fun findSound(soundName: String): ByteArrayFileHandle?
     fun findImage(imageName: String, location: String = "textures"): ByteArray?
+    fun findImagePath(imageName: String, location: String = "textures"): String?
 
     /**
      * skin name should contain the file extension
