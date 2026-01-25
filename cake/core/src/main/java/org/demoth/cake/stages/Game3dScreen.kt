@@ -270,7 +270,7 @@ class Game3dScreen(
     override fun dispose() {
         spriteBatch.dispose()
         modelBatch.dispose()
-        gameConfig.dispose()
+        gameConfig.disposeUnmanagedResources()
         skyBox?.model?.dispose()
         renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
     }
@@ -502,7 +502,7 @@ class Game3dScreen(
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
-        gameConfig[msg.index]?.resource?.dispose() // todo: check if it can even happen?
+        gameConfig.disposeUnmanagedResource(gameConfig[msg.index]) // todo: check if it can even happen?
         gameConfig[msg.index] = Config(msg.config)
     }
 

@@ -1,5 +1,6 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -74,8 +75,19 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
         return configStrings.sliceArray(CS_IMAGES + 1 .. CS_IMAGES + MAX_IMAGES)
     }
 
-    fun dispose() {
-        configStrings.forEach { it?.resource?.dispose() }
+    fun disposeUnmanagedResources() {
+        configStrings.forEach { disposeUnmanagedResource(it) }
+    }
+
+    /**
+     * Disposes resources that are not managed by the asset manager
+     */
+    fun disposeUnmanagedResource(config: Config?) {
+        val resource = config?.resource ?: return
+        if (resource is Sound) {
+            return
+        }
+        resource.dispose()
     }
 
     fun getStatusBarLayout(): String? {
