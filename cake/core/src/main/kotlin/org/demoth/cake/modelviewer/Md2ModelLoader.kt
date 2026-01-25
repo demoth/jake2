@@ -1,6 +1,7 @@
 package org.demoth.cake.modelviewer
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
@@ -20,25 +21,31 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.jvm.java
 
-class Md2ModelLoader(private val locator: ResourceLocator) {
+class Md2ModelLoader(
+    private val locator: ResourceLocator,
+    private val assetManager: AssetManager
+) {
 
     fun loadMd2ModelData(
         modelName: String,
         playerSkin: String? = null,
         skinIndex: Int,
     ): Md2ModelData? {
-        val findModel = locator.findModel(modelName) ?: return null
-        val md2Model: Md2Model = readMd2Model(findModel)
+        val modelPath = locator.findModelPath(modelName) ?: return null
+        val md2Model: Md2Model = readMd2Model(assetManager.getLoaded(modelPath))
 
         val embeddedSkins = md2Model.skinNames.map {
-            locator.findSkin(it)
+            val skinPath = requireNotNull(locator.findSkinPath(it)) { "Missing skin: $it" }
+            assetManager.getLoaded<ByteArray>(skinPath)
         }
         val modelSkin: ByteArray = if (embeddedSkins.isNotEmpty()) {
             embeddedSkins[skinIndex]
         } else {
             if (playerSkin != null) {
-                locator.findSkin(playerSkin)
+                val skinPath = requireNotNull(locator.findSkinPath(playerSkin)) { "Missing skin: $playerSkin" }
+                assetManager.getLoaded(skinPath)
             } else throw IllegalStateException("No skin found in the model, no player skin provided")
         }
 
@@ -88,6 +95,17 @@ class Md2ModelLoader(private val locator: ResourceLocator) {
             )
         )
     }
+}
+
+/**
+ * Get an asset ensuring it's loaded. Blocking operation.
+ */
+private inline fun <reified T> AssetManager.getLoaded(path: String): T {
+    if (!isLoaded(path, T::class.java)) {
+        load(path, T::class.java)
+        finishLoadingAsset<T>(path)
+    }
+    return get(path, T::class.java)
 }
 
 class Md2ModelData(val mesh: Mesh, val material: Material, val frames: Int)
@@ -186,4 +204,3 @@ private fun readMd2Model(modelData: ByteArray): Md2Model {
         .order(ByteOrder.LITTLE_ENDIAN)
     return Md2Model(byteBuffer)
 }
-

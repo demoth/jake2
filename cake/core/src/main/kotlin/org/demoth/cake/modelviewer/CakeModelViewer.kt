@@ -3,6 +3,8 @@ package org.demoth.cake.modelviewer
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -18,6 +20,7 @@ import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.ModelViewerResourceLocator
+import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.clientcommon.FlyingCameraController
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -44,6 +47,9 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var md2AnimationFrameTime = 0.1f
     private var md2AnimationTime = 0.0f
     private var playingMd2Animation = false
+    private val assetManager = AssetManager().apply {
+        setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
+    }
 
     override fun create() {
 
@@ -68,7 +74,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "md2" -> {
 
-                val md2 = Md2ModelLoader(locator).loadMd2ModelData(file.absolutePath, null, 0)!!
+                val md2 = Md2ModelLoader(locator, assetManager).loadMd2ModelData(file.absolutePath, null, 0)!!
                 val model = createModel(md2.mesh, md2.material)
                 md2Instance = ModelInstance(model) // ok
                 md2Instance!!.userData = Md2CustomData(

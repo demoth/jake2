@@ -6,7 +6,7 @@ package org.demoth.cake
  */
 interface ResourceLocator {
 
-    fun findModel(modelName: String): ByteArray?
+    fun findModelPath(modelName: String): String?
     fun findSound(soundName: String): ByteArrayFileHandle?
     fun findImage(imageName: String, location: String = "textures"): ByteArray?
     fun findImagePath(imageName: String, location: String = "textures"): String?
@@ -15,5 +15,6 @@ interface ResourceLocator {
      * skin name should contain the file extension
      */
     fun findSkin(skinName: String): ByteArray
+    fun findSkinPath(skinName: String): String?
     fun findSky(skyName: String): ByteArray
 }

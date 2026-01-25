@@ -7,8 +7,9 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
     /**
      * Expect the full model file path
      */
-    override fun findModel(modelName: String): ByteArray? {
-        return File(modelName).readBytes()
+    override fun findModelPath(modelName: String): String? {
+        val file = File(modelName)
+        return if (file.exists()) file.absolutePath else null
     }
 
     override fun findSound(soundName: String): ByteArrayFileHandle? {
@@ -27,6 +28,12 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
     override fun findSkin(skinName: String): ByteArray {
         val fileName = skinName.substring(skinName.lastIndexOf('/') + 1)
         return File("$currentDirectory/$fileName").readBytes()
+    }
+
+    override fun findSkinPath(skinName: String): String? {
+        val fileName = skinName.substring(skinName.lastIndexOf('/') + 1)
+        val file = File("$currentDirectory/$fileName")
+        return if (file.exists()) file.absolutePath else null
     }
 
     override fun findSky(skyName: String): ByteArray {

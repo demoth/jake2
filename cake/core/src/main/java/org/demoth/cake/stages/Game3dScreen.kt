@@ -142,7 +142,8 @@ class Game3dScreen(
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
     private fun initializeMd2Shader(): Md2Shader {
-        val md2 = Md2ModelLoader(locator).loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
+        val md2 = Md2ModelLoader(locator, assetManager)
+            .loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
         val model = createModel(md2.mesh, md2.material)
         val md2Instance = ModelInstance(model)
 
@@ -311,7 +312,7 @@ class Game3dScreen(
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    val md2 = Md2ModelLoader(locator).loadMd2ModelData(it, skinIndex = 0)
+                    val md2 = Md2ModelLoader(locator, assetManager).loadMd2ModelData(it, skinIndex = 0)
                     if (md2 != null) {
                         config.resource = createModel(md2.mesh, md2.material)
                     } else {
@@ -322,7 +323,7 @@ class Game3dScreen(
         }
 
         // temporary: load one fixed player model
-        val playerModelData = Md2ModelLoader(locator).loadMd2ModelData(
+        val playerModelData = Md2ModelLoader(locator, assetManager).loadMd2ModelData(
             modelName = playerModelPath,
             playerSkin = playerSkinPath,
             skinIndex = 0,

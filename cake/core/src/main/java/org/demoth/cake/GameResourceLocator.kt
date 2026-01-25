@@ -11,7 +11,7 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
     var gameName: String = "baseq2"
 
-    override fun findModel(modelName: String): ByteArray? {
+    override fun findModelPath(modelName: String): String? {
         if (modelName.isEmpty()) {
             // todo: throw error?
             return null
@@ -19,8 +19,8 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
             // TODO: handle view models separately
             return null
         } else {
-            // /models/ is already part of the value (in contrast to sounds)
-            return File("$baseDir/$gameName/$modelName").readBytes()
+            val file = File("$baseDir/$gameName/$modelName")
+            return if (file.exists()) file.absolutePath else null
         }
     }
 
@@ -87,6 +87,11 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     override fun findSkin(skinName: String): ByteArray {
         return File("$baseDir/$gameName/$skinName").readBytes()
+    }
+
+    override fun findSkinPath(skinName: String): String? {
+        val file = File("$baseDir/$gameName/$skinName")
+        return if (file.exists()) file.absolutePath else null
     }
 
     override fun findSky(skyName: String): ByteArray {
