@@ -16,10 +16,6 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
         TODO("Not yet implemented")
     }
 
-    override fun findImage(imageName: String, location: String): ByteArray? {
-        TODO("Not yet implemented")
-    }
-
     override fun findImagePath(imageName: String, location: String): String? {
         val file = File("$currentDirectory/$imageName")
         return if (file.exists()) file.absolutePath else null

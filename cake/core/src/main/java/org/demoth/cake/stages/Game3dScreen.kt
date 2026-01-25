@@ -341,8 +341,9 @@ class Game3dScreen(
 
         gameConfig.getImages().forEach { config ->
             if (config != null) {
-                val textureFile = locator.findImage("${config.value}.pcx", "pics")
-                if (textureFile != null) {
+                val texturePath = locator.findImagePath("${config.value}.pcx", "pics")
+                if (texturePath != null) {
+                    val textureFile = assetManager.getLoaded<ByteArray>(texturePath)
                     config.resource = Texture(fromPCX(PCX(textureFile)))
                 }
             }

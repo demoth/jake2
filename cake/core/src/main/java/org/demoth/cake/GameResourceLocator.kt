@@ -50,25 +50,6 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
         }
     }
 
-    /**
-     * [imageName] should contain the file extension
-     */
-    override fun findImage(imageName: String, location: String): ByteArray? {
-        val file = File("$baseDir/$gameName/$location/$imageName")
-        return if (file.exists()) {
-            file.readBytes()
-        } else {
-            // fixme: use proper case insensitive search
-            val lowercaseFile = File("$baseDir/$gameName/textures/${imageName.lowercase()}")
-            if (lowercaseFile.exists()) {
-                println("Warn: $imageName was found by lowercase name")
-                lowercaseFile.readBytes()
-            } else {
-                null
-            }
-        }
-    }
-
     override fun findImagePath(imageName: String, location: String): String? {
         val file = File("$baseDir/$gameName/$location/$imageName")
         return if (file.exists()) {
