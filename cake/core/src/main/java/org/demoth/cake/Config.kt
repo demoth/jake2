@@ -22,7 +22,7 @@ data class Config(
 class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
 
     init {
-        Cmd.AddCommand("print_configs") {
+        Cmd.AddCommand("print_configs", true) {
             configStrings.forEachIndexed { i, c ->
                 if (c != null) {
                     Com.Printf("ConfigString[$i] = ${c.value}, loaded = ${c.resource != null}\n")
