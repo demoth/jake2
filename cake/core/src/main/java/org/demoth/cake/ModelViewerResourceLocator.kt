@@ -12,7 +12,7 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
         return if (file.exists()) file.absolutePath else null
     }
 
-    override fun findSound(soundName: String): ByteArrayFileHandle? {
+    override fun findSoundPath(soundName: String): String? {
         TODO("Not yet implemented")
     }
 

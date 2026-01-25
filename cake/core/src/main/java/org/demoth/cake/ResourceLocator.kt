@@ -8,7 +8,7 @@ package org.demoth.cake
 interface ResourceLocator {
 
     fun findModelPath(modelName: String): String?
-    fun findSound(soundName: String): ByteArrayFileHandle?
+    fun findSoundPath(soundName: String): String?
     fun findImagePath(imageName: String, location: String = "textures"): String?
 
     /**

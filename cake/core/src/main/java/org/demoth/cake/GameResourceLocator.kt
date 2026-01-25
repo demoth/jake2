@@ -1,11 +1,15 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import java.io.File
+import java.util.ArrayDeque
 
 /**
  * Responsible for finding resources, in paks or on the filesystem.
  */
 // todo: cache? move to streams instead?
+// todo: get rid of File(...) usages where possible
 class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
@@ -24,29 +28,27 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
         }
     }
 
-    override fun findSound(soundName: String): ByteArrayFileHandle? {
+    override fun findSoundPath(soundName: String): String? {
         if (soundName.isEmpty()) {
             return null
         } else if (soundName.startsWith("*")) {
             // TODO: implement male/female/cyborg sounds
             return null
         } else {
-            val soundFile = File("$baseDir/$gameName/sound/$soundName")
+            val soundPath = "$baseDir/$gameName/sound/$soundName"
+            val soundFile = Gdx.files.absolute(soundPath)
             if (soundFile.exists()) {
-                return ByteArrayFileHandle(soundFile.readBytes(), soundName)
-            } else {
-                val soundDir = File("$baseDir/$gameName/sound")
-                // Search for the file ignoring case sensitivity, todo: make an index?
-                val matchingFile = soundDir.walkTopDown().find { file ->
-                    file.isFile && file.name.equals(soundName.substring(soundName.lastIndexOf('/') + 1), ignoreCase = true)
-                }
-
-                if (matchingFile != null) {
-                    return ByteArrayFileHandle(matchingFile.readBytes(), soundName)
-                }
-                println("ERROR! could now find file: $soundName")
-                return null
+                return soundFile.path()
             }
+
+            val soundDir = Gdx.files.absolute("$baseDir/$gameName/sound")
+            val targetName = soundName.substring(soundName.lastIndexOf('/') + 1)
+            val matchingFile = findFileCaseInsensitive(soundDir, targetName)
+            if (matchingFile != null) {
+                return matchingFile.path()
+            }
+            println("ERROR! could now find file: $soundName")
+            return null
         }
     }
 
@@ -77,5 +79,24 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     override fun findSky(skyName: String): ByteArray {
         return File("$baseDir/$gameName/env/$skyName.pcx").readBytes()
+    }
+
+    private fun findFileCaseInsensitive(dir: FileHandle, targetName: String): FileHandle? {
+        if (!dir.exists() || !dir.isDirectory) {
+            return null
+        }
+        val stack = ArrayDeque<FileHandle>()
+        stack.add(dir)
+        while (stack.isNotEmpty()) {
+            val current = stack.removeLast()
+            current.list().forEach { child ->
+                if (child.isDirectory) {
+                    stack.add(child)
+                } else if (child.name().equals(targetName, ignoreCase = true)) {
+                    return child
+                }
+            }
+        }
+        return null
     }
 }

@@ -6,8 +6,10 @@ import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.SoundLoader
 import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -73,6 +75,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
         // for loading binary blobs from the filesystem (e.g. BSP maps)
         setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
+        // for loading sounds from the filesystem
+        setLoader(Sound::class.java, SoundLoader(AbsoluteFileHandleResolver()))
 
     }
 

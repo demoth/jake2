@@ -332,9 +332,8 @@ class Game3dScreen(
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {
-                val soundFile = locator.findSound(config.value)
-                if (soundFile != null) {
-                    config.resource = Gdx.audio.newSound(soundFile)
+                locator.findSoundPath(config.value)?.let { soundPath ->
+                    config.resource = assetManager.getLoaded<Sound>(soundPath)
                 }
             }
         }
@@ -357,8 +356,8 @@ class Game3dScreen(
         // these are expected to be loaded
         weaponSoundPaths.forEach { (index, path) ->
             if (path != null) {
-                locator.findSound(path)?.let {
-                    weaponSounds[index] = Gdx.audio.newSound(it)
+                locator.findSoundPath(path)?.let { soundPath ->
+                    weaponSounds[index] = assetManager.getLoaded<Sound>(soundPath)
                 }
             }
         }
