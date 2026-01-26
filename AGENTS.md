@@ -42,4 +42,4 @@
 
 ## Configuration Tips
 - Jake2 requires original Quake2 data files. If auto-detection fails, pass a base dir: `+set basedir "/path/to/Quake 2"`.
-- JDK 11 is required; newer JVMs may cause LWJGL issues on Linux.
+- JDK 21 is recommended (11 and 17 also work)

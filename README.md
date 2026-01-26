@@ -17,10 +17,7 @@ Currently, Jake2 supports every Java supported platform.
 
 Requirements:
 
- * jdk version 11 to build and run Jake2
-
-Please note that there is an issue with more recent java versions (17) on linux with lwjgl natives.
-
+ * jdk version 21 recommended (11 and 17 also work)
 
 Documentation & Info
 --------------------
