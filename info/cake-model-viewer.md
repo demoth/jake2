@@ -3,18 +3,22 @@
 ![screenshot](screenshots/md2-viewer.png)
 ![screenshot](screenshots/bsp-viewer.png)
 
-This small app can display .md2, .bsp and .pcx files (provided as an argument)
+This small app can display .md2, .bsp, .pcx and .wal files (provided as an argument).
+It is part of the `cake` module and has its own LWJGL3 entrypoint.
+
+### How to run
+Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher.main` and pass a file path as the program argument.
 
 ### How to build
-To build run `gradle :cake-model-viewer:build`.
+Build the Cake desktop app with `./gradlew :cake:lwjgl3:build`.
 
 ### Native build
 Alternatively, you can build a native (so you have easier time to associate with the files in OS)
-`gradle :cake-model-viewer:nativeBuild` (requires graalvm jdk 17)
-You will find the executable in `cake-model-viewer/build/native/nativeCompile`
+`./gradlew :cake:lwjgl3:nativeBuild` (requires GraalVM JDK 17)
+You will find the executable in `cake/lwjgl3/build/native/nativeCompile`
 
 ## List of features
- - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .mdl file)
+ - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .md2 file)
  - can also render `.pcx` & `.wal` images
  - grid & axes
  - TODO: change skins
@@ -61,4 +65,3 @@ Then update database `update-desktop-database ~/.local/share/applications`
 
 
 Run `xdg-mime default cake-md2-viewer.desktop application/x-quake-md2`
-

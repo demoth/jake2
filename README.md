@@ -13,7 +13,7 @@ visual rendering, input processing and audio playback (OpenAL) functionality.
 
 Jake2 is still under development. Feel free to send bug report if you find one.
 
-Currently, Jake2 supports every Java supported platform.
+Currently, Jake2 supports most platforms supported by Java.
 
 Requirements:
 
@@ -45,8 +45,8 @@ Installation and running
 ------------------------
 
 build from source:
-- `./gradlew build` - to build (and run tests) from source
-- `./gradlew run` - to run cake client
+- `./gradlew build` - to build (and run tests) from source. Building and testing does not require quake2 game files.
+- `./gradlew run` - to run cake client (running the game requires quake2 game files)
 - `./gradlew distZip` - to build the distribution
 
 If you run jake from an IDE:
@@ -92,17 +92,17 @@ With accordance to the goals, we can put a list of more concrete steps:
   * gather game state in classes. at the moment state of the process is scattered across many static fields.
   * code cleanup - move to modern libraries (filesystem, network, logging)
   * file formats - support modern file formats (zip, image, audio, video, models?)
-  * support "brother projets" content: q2 mission packs, q1? q3? hl?
+  * support "brother projects" content: q2 mission packs, q1? q3? hl?
 
 ### Crazy ideas area (proceed with caution):
 
-  * add script support: graalvm support many scripting jvm languages, with little overhead. implement monster, items behavior with scripts
+  * add script support: GraalVM supports many scripting JVM languages, with little overhead. implement monster, items behavior with scripts
   * change 3d rendering code to something more recent (like yq2 gl3, q2xp?...)
   * implement mmo-like replayable campaign for q2:
  npc, quests, character progression, item & monster randomization, trading
-  * jake2 game engine suit (unreal like):
+  * Jake2 game engine suite (unreal like):
 full set of tools to support game development and creation of new games.
-3d editor, entitity editor, scripting, and so on
+3d editor, entity editor, scripting, and so on
   * procedural map generation
   * utilize kotlin multiplatform support and create jake2 clients for various platforms (desktop, web, android, ios)
 

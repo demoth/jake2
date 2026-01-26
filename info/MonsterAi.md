@@ -27,4 +27,4 @@ Behaviour Trees for decision-making and State Machine for managing the state of 
 and correct transitions between the states.
 
 ### Draft of the new and old monster related components:
-![](/home/daniil/GameDev/quake/q2/jake2/info/new-character-design-draft.png "new-character-design-draft")
+![](new-character-design-draft.png "new-character-design-draft")

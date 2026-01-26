@@ -15,7 +15,7 @@ There are predefined light styles for common effects, see `jake2.game.GameSpawn.
 Static lights have the style id set to `0` (default value).
 
 ## Predefined dynamic lights
-These can used styles are defined in `jake2.game.GameSpawn.defileLightStyles` from id `1` to `11`
+These styles are defined in `jake2.game.GameSpawn.defineLightStyles` from id `1` to `11`
 
 ## Switchable dynamic lights
 Such dynamic lights can be targeted by a normal trigger (switch on/off) or a `target_lightramp` entity for a more smooth transition.

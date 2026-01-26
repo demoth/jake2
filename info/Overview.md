@@ -5,15 +5,15 @@ The project consists of several modules:
   * `game` - game related logic: monsters, items, weapons, game rules
   * `server` - server runtime: keeps master game state, sends game state updates to clients, receives client input 
   (over the network) and routes it to the `game`
-  * `client` - (Deprecated) client is responsible for handling updates from the server, drawing nice picture, playing sounds,
-  getting inputs from human and send them over the net to the `server`
-  * `cake` - new reimplementation of jake2 client with libGDX engine
+  * `client` - (Deprecated) client is responsible for handling updates from the server, drawing picture, playing sounds,
+  getting inputs from human and sending them over the net to the `server` (excluded from the build)
+  * `cake` - new reimplementation of Jake2 client with libGDX engine
   
 In addition to that there are several auxiliary modules:
 
   * `qcommon` - a common module with necessary data classes, utility functions, file formats, etc
   * `dedicated` - **executable** for the dedicated server - contains `server` and `game` modules.
-  * `fullgame` - **executable** with all the modules (except `dedicated`), with single/multiplayer modes
+  * `fullgame` - (Deprecated) legacy executable with all the modules (except `dedicated`), excluded from the build
   * `maptools` - set of tools (WIP) for map -> bsp pipeline
 
 # Module `game`
@@ -35,13 +35,13 @@ Server manages:
 * bsp model - provide collisions/visibility functions to the `game` module
 * networking code - sends/receives updates
 
-# Modules `cake`
+# Module `cake`
 
 This module is the client facing interactive application and is responsible for gathering input, rendering the level and entities and playing sounds.
 
-# Module `client`
+# Module `client` (deprecated)
 
-This module is kept for the history and reference, it is no longer part of the project structure.
+This module is kept for history and reference and is not part of the active build.
 Where it makes sense, it is possible to move an original file or class (preserving the history) into the new `cake` module and refactor later.
 
 
@@ -60,7 +60,7 @@ Apart from the problem of uncontrolled state scope and visibility, such approach
 ## God object
 https://en.wikipedia.org/wiki/God_object
 
-Quake uses `edict_t` & `SubgameEntity` (introduced in jake2) structures that have all possible fields for every scenario.
+Quake uses `edict_t` & `GameEntity` (introduced in jake2) structures that have all possible fields for every scenario.
 Thus, a debris gib, a monster and an ammo clip will have the same class.
 
 **state**: todo - split into components

@@ -42,7 +42,7 @@ see package `jake2.qcommon.network.messages.client`
 see jake2.server.ClientStates
 
 # Connection initialization
-The following diagram illustrates client/server communication when client connectos to server.
+The following diagram illustrates client/server communication when client connects to server.
 Starting from typing connect 'someaddress' and until client becomes connected and receives the updates from the server. 
 
 ```mermaid

@@ -8,7 +8,7 @@ A high level (and subjective) overview of the code state at the moment of 2022.
 | Common | Network communication    | Todo                     | Review & restructure, migrate to modern approach                            |
 | Common | Network protocol         | [Ok](info/Networking.md) |                                                                             |
 | Common | Collision code (BSP)     | Todo                     | Review & restructure, add support to qbsp2                                  |
-| Client | 3D rendering/input/sound | WIP                      | Migrating to ligGDX                                                         |
+| Client | 3D rendering/input/sound | WIP                      | Migrating to libGDX                                                         |
 | Game   | Entity framework         | Not great                | Not terrible though, other alternatives (like ECS) will also have drawbacks |
 | Game   | Character animation      | WIP                      | Decouple from AI and Monster logic                                          |
 | Game   | AI                       | WIP                      | Decouple from animation                                                     |
