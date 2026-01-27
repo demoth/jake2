@@ -537,8 +537,11 @@ class Game3dScreen(
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound
         if (sound != null) {
-            // volume should already be in [0,1]: byte / 255f
-            sound.play(msg.volume)
+            // msg.volume should already be in [0,1]: byte / 255f
+            val volume = (msg.volume * calculateSoundAttenuation(msg)).coerceIn(0f, 1f)
+            if (volume > 0f) {
+                sound.play(volume)
+            }
         } else {
             Com.Warn("sound ${msg.soundIndex} not found")
         }
@@ -565,6 +568,30 @@ class Game3dScreen(
         for (i in 0..<MAX_ITEMS) {
             gameConfig.inventory[i] = msg.inventory[i]
         }
+    }
+
+    private fun calculateSoundAttenuation(msg: SoundMessage): Float {
+        if (msg.attenuation <= 0f) {
+            return 1f
+        }
+
+        val soundOrigin = when {
+            msg.origin != null -> Vector3(msg.origin[0], msg.origin[1], msg.origin[2])
+            msg.entityIndex > 0 -> entityManager.getEntitySoundOrigin(msg.entityIndex)
+            else -> null
+        }
+
+        if (soundOrigin == null) {
+            return 1f
+        }
+
+        val distance = soundOrigin.dst(camera.position)
+        val rolloff = if (msg.attenuation == ATTN_STATIC.toFloat()) msg.attenuation * 2f else msg.attenuation
+        val referenceDistance = 200f
+        if (distance <= referenceDistance) {
+            return 1f
+        }
+        return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
     }
 
 

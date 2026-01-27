@@ -2,6 +2,10 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * Firing effect for monsters (very similar to WeaponSoundMessage)
+ * [entityIndex] - index of the owner
+ */
 public class MuzzleFlash2Message extends ServerMessage {
     public int entityIndex;
     public int flashType;

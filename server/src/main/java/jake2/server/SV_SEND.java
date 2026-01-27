@@ -61,10 +61,10 @@ public class SV_SEND {
 	==================
 	SV_StartSound
 	
-	Each entity can have eight independant sound sources, like voice,
+	Each entity can have eight independent sound sources, like voice,
 	weapon, feet, etc.
 	
-	If cahnnel & 8, the sound will be sent to everyone, not just
+	If channel & 8, the sound will be sent to everyone, not just
 	things in the PHS.
 	
 	FIXME: if entity isn't in PHS, they must be forced to be sent or

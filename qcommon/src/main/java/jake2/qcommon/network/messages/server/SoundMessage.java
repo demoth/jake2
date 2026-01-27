@@ -98,7 +98,7 @@ public class SoundMessage extends ServerMessage {
         else
             timeOffset = 0;
 
-        if ((flags & Defines.SND_ENT) != 0) { // entity reletive
+        if ((flags & Defines.SND_ENT) != 0) { // entity relative
             sendchan = buffer.readShort();
             entityIndex = sendchan >> 3;
             if (entityIndex > Defines.MAX_EDICTS)

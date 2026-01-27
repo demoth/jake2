@@ -2,11 +2,14 @@ package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
 
+/**
+ * Effect for player firing (very similar to MuzzleFlash2Message)
+ */
 public class WeaponSoundMessage extends ServerMessage {
 
     /**
      * @param type - weapon index and silenced flag packed together into 1 byte
-     * @param entityIndex - index of the owner
+     * @param entityIndex - index of the owner (player)
      */
     public WeaponSoundMessage(int entityIndex, int type) {
         this();

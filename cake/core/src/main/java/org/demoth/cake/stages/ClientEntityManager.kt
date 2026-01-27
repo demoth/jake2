@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.CS_MODELS
@@ -40,6 +41,14 @@ class ClientEntityManager {
     var visibleEntities = mutableListOf<ClientEntity>()
 
     var surpressCount = 0
+
+    fun getEntitySoundOrigin(entityIndex: Int): Vector3? {
+        if (entityIndex !in 0..<MAX_EDICTS) {
+            return null // todo: warn
+        }
+        val entity = clientEntities[entityIndex]
+        return Vector3(entity.current.origin[0], entity.current.origin[1], entity.current.origin[2])
+    }
 
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         clientEntities[msg.entityState.index].baseline.set(msg.entityState)
