@@ -537,8 +537,8 @@ class Game3dScreen(
         val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound
         if (sound != null) {
-            // todo:  use other msg properties (like volume, origin)
-            sound.play()
+            // volume should already be in [0,1]: byte / 255f
+            sound.play(msg.volume)
         } else {
             Com.Warn("sound ${msg.soundIndex} not found")
         }
