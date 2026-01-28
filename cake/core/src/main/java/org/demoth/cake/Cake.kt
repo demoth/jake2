@@ -38,7 +38,6 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
-
 private enum class ClientNetworkState {
     DISCONNECTED,
     CONNECTING, // started the connection procedure
@@ -55,8 +54,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var consoleStage: ConsoleStage
     private lateinit var viewport: StretchViewport
 
+    // whenever these are changed, input handlers should be updated
     private var consoleVisible = false
+        set(value) {
+            field = value
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
+
     private var menuVisible = true
+        set(value) {
+            field = value
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
 
     // network
     private var networkState = DISCONNECTED
@@ -66,6 +75,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private val netchan = netchan_t()
 
     private var game3dScreen: Game3dScreen? = null
+        set(value) {
+            field = value
+            // allow the game screen to receive the input
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
 
     private val assetManager = AssetManager().apply {
         // todo: implement resolvers for pak files
@@ -129,7 +143,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // free unused resources
             game3dScreen?.dispose()
             game3dScreen = Game3dScreen(assetManager)
-            updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
         }
 
         // like a connect but more lightweight
@@ -159,7 +172,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             servername = it[1]
             networkState = CONNECTING
             game3dScreen = Game3dScreen(assetManager)
-            updateInputHandlers(consoleVisible, menuVisible) // allow the game screen to receive the input
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
@@ -224,7 +236,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: clear the game state and release resources
         game3dScreen?.dispose()
         game3dScreen = null
-        updateInputHandlers(true, false)
 
         // send a disconnect message to the server
         netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
@@ -321,14 +332,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
             }
             Input.Keys.ESCAPE -> {
-                consoleVisible = false
-                menuVisible = !menuVisible
+                if (consoleVisible)
+                    consoleVisible = false
+                else menuVisible = !menuVisible
             }
             else -> return false
         }
-
-
-        updateInputHandlers(consoleVisible, menuVisible)
         return true
     }
 
@@ -457,7 +466,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
                     menuVisible = false
-                    updateInputHandlers(consoleVisible, menuVisible)
 
                 }
 
