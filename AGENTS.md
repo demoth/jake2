@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+For an evaluation of this repository's readiness for LLM agents, see [AGENTS_READINESS.md](AGENTS_READINESS.md).
+
 ## Project Structure & Module Organization
 
 - Root Gradle build with multiple modules
