@@ -57,13 +57,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var consoleVisible = false
         set(value) {
             field = value
-            updateInputHandlers(consoleVisible, menuVisible)
+            updateInputHandlers(field, menuVisible)
         }
 
     private var menuVisible = true
         set(value) {
             field = value
-            updateInputHandlers(consoleVisible, menuVisible)
+            updateInputHandlers(consoleVisible, field)
         }
 
     // network
