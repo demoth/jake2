@@ -18,7 +18,7 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.GameConfiguration
-import org.demoth.cake.modelviewer.Md2CustomData
+import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
@@ -29,7 +29,7 @@ class ClientEntityManager {
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
-    private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t() }
+    private val cl_parse_entities = Array(MAX_PARSE_ENTITIES) { entity_state_t() }
     private val clientEntities = Array(MAX_EDICTS) { ClientEntity("") }
 
     var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
@@ -146,7 +146,7 @@ class ClientEntityManager {
     private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
         val entity: ClientEntity = clientEntities[newnum]
         // parse_entities now points to the last state from last frame
-        val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
+        val newState: entity_state_t = cl_parse_entities[parse_entities and (MAX_PARSE_ENTITIES - 1)]
         parse_entities++ // we will need this for the next frame
         frame.num_entities++
 
@@ -235,7 +235,7 @@ class ClientEntityManager {
             visibleEntities += renderState.levelModel!!
         }
 
-        val mask = Defines.MAX_PARSE_ENTITIES - 1
+        val mask = MAX_PARSE_ENTITIES - 1
 
         for (i in 0 until currentFrame.num_entities) {
             // Make the mask application explicit to avoid any precedence confusion
@@ -257,8 +257,8 @@ class ClientEntityManager {
                     }
                     entity.name = "player"
                 } else {
-                    val modelConfig = gameConfig[Defines.CS_MODELS + modelIndex]
-                    val model = modelConfig?.resource as? com.badlogic.gdx.graphics.g3d.Model
+                    val modelConfig = gameConfig[CS_MODELS + modelIndex]
+                    val model = modelConfig?.resource as? Model
                     if (model != null) {
                         entity.name = modelConfig.value
                         entity.modelInstance = ModelInstance(model).apply {
@@ -333,7 +333,7 @@ class ClientEntityManager {
             if (deltaFrame.serverframe != currentFrame.deltaframe) {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
                 Com.Printf("Delta frame too old.\n")
-            } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
+            } else if (parse_entities - deltaFrame.parse_entities > MAX_PARSE_ENTITIES - 128) {
                 Com.Printf("Delta parse_entities too old.\n")
             } else {
                 currentFrame.valid = true  // valid delta parse

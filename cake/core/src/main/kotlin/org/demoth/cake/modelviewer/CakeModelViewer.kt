@@ -21,14 +21,16 @@ import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader
+import org.demoth.cake.assets.Md2Shader
+import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.PCXTextureData
 import org.demoth.cake.assets.WalTextureData
 import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.fromWal
 import org.demoth.cake.assets.readPaletteFile
-import org.demoth.cake.clientcommon.FlyingCameraController
 import java.io.File
 import kotlin.system.measureTimeMillis
 

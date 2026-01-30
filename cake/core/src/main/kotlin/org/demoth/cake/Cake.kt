@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
 import jake2.qcommon.Com
-import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
@@ -536,7 +535,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                 } else {
                     networkState = CONNECTED // Defines.ca_connected
-                    netchan.setup(Defines.NS_CLIENT, packet.from, packet.qport) // fixme: port isn't needed? should it be Netchan.qport?
+                    netchan.setup(NS_CLIENT, packet.from, packet.qport) // fixme: port isn't needed? should it be Netchan.qport?
                     netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW));
                     Com.Println("Connected!")
                 }

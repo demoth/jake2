@@ -3,7 +3,6 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_STATS

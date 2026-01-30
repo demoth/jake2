@@ -26,12 +26,14 @@ import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader
+import org.demoth.cake.assets.Md2Shader
+import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.getLoaded
-import org.demoth.cake.modelviewer.*
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.cos
@@ -540,7 +542,7 @@ class Game3dScreen(
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val config = gameConfig[Defines.CS_SOUNDS + msg.soundIndex]
+        val config = gameConfig[CS_SOUNDS + msg.soundIndex]
         val sound = config?.resource as? Sound
         if (sound != null) {
             // msg.volume should already be in [0,1]: byte / 255f

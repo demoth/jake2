@@ -3,7 +3,6 @@ package org.demoth.cake
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
-import jake2.qcommon.Defines
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
 
@@ -40,7 +39,7 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
      */
     var layout: String = ""
 
-    val inventory: IntArray = IntArray(Defines.MAX_ITEMS) { 0 }
+    val inventory: IntArray = IntArray(MAX_ITEMS) { 0 }
 
     private val configStrings = Array<Config?>(size) { null }
 
