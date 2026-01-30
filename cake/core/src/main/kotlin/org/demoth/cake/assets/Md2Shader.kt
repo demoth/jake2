@@ -36,7 +36,6 @@ class AnimationTextureAttribute(val texture: Texture): TextureAttribute(Animatio
 }
 
 private const val md2ShaderPrefix = """
-    #version 130
     #define diffuseTextureFlag
 """
 

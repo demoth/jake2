@@ -8,6 +8,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.SoundLoader
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
@@ -107,6 +108,24 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun create() {
+        ShaderProgram.prependVertexCode = """
+            #version 150
+            #define GLSL3
+            #define attribute in
+            #define varying out
+            #define texture2D texture
+            #define textureCube texture
+        """.trimIndent() + "\n"
+        ShaderProgram.prependFragmentCode = """
+            #version 150
+            #define GLSL3
+            #define varying in
+            #define texture2D texture
+            #define textureCube texture
+            out vec4 fragColor;
+            #define gl_FragColor fragColor
+        """.trimIndent() + "\n"
+
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
 
