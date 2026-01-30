@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.assets
 
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.Texture

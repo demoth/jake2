@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
@@ -17,6 +17,7 @@ import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.buildVertexData
 import org.demoth.cake.ResourceLocator
+import org.demoth.cake.modelviewer.AnimationTextureAttribute
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

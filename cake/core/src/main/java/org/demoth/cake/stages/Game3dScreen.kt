@@ -25,6 +25,12 @@ import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
+import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.Md2ModelLoader
+import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.createModel
+import org.demoth.cake.assets.fromPCX
+import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.modelviewer.*
 import java.util.*
 import kotlin.math.abs

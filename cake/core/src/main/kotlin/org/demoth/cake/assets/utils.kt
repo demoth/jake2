@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.assets
 
 import jake2.qcommon.filesystem.PCX
 import java.io.File

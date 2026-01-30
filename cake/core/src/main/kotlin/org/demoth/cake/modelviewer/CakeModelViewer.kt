@@ -21,6 +21,13 @@ import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.ModelViewerResourceLocator
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.assets.Md2ModelLoader
+import org.demoth.cake.assets.PCXTextureData
+import org.demoth.cake.assets.WalTextureData
+import org.demoth.cake.assets.createModel
+import org.demoth.cake.assets.fromPCX
+import org.demoth.cake.assets.fromWal
+import org.demoth.cake.assets.readPaletteFile
 import org.demoth.cake.clientcommon.FlyingCameraController
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -70,7 +77,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
             }
             "wal" -> {
-                image = Texture(WalTextureData(fromWal(WAL(file.readBytes()), readPaletteFile(Gdx.files.internal("q2palette.bin").read()))))
+                image = Texture(
+                    WalTextureData(
+                        fromWal(
+                            WAL(file.readBytes()),
+                            readPaletteFile(Gdx.files.internal("q2palette.bin").read())
+                        )
+                    )
+                )
             }
             "md2" -> {
 
