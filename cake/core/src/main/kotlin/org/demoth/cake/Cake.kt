@@ -7,8 +7,6 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.SoundLoader
-import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
@@ -33,6 +31,7 @@ import ktx.app.KtxInputAdapter
 import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
+import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
@@ -80,16 +79,17 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             updateInputHandlers(consoleVisible, menuVisible)
         }
 
+    private var fileResolver = CakeFileResolver()
+
     private val assetManager = AssetManager().apply {
-        // todo: implement resolvers for pak files
         // for loading shaders and other text files
-        setLoader(String::class.java, TextAssetLoader(InternalFileHandleResolver()))
+        setLoader(String::class.java, TextAssetLoader(fileResolver))
         // for loading binary files
-        setLoader(Any::class.java, ObjectLoader(InternalFileHandleResolver()))
+        setLoader(Any::class.java, ObjectLoader(fileResolver))
         // for loading binary blobs from the filesystem (e.g. BSP maps)
-        setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
+        setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
         // for loading sounds from the filesystem
-        setLoader(Sound::class.java, SoundLoader(AbsoluteFileHandleResolver()))
+        setLoader(Sound::class.java, SoundLoader(fileResolver))
 
     }
 
@@ -460,6 +460,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     // new game is starting
                     Cbuf.Execute()
                     netchan.reliablePending.clear()
+
+                    if (!msg.gameName.isNullOrBlank()) {
+                        fileResolver.gamemod = msg.gameName
+                    }
 
                     game3dScreen?.processServerDataMessage(msg)
                     // networkState = CONNECTED // fixme: required?

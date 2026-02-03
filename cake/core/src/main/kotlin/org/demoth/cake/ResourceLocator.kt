@@ -14,7 +14,6 @@ interface ResourceLocator {
     /**
      * skin name should contain the file extension
      */
-    fun findSkin(skinName: String): ByteArray
     fun findSkinPath(skinName: String): String?
     fun findSky(skyName: String): ByteArray
 }

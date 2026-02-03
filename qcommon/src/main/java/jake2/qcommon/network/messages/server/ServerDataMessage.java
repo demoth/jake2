@@ -18,6 +18,9 @@ public class ServerDataMessage extends ServerMessage {
         super(ServerMessageType.svc_serverdata);
     }
 
+    /**
+     * @param gameName - name of the mod folder, empty means "baseq2"
+     */
     public ServerDataMessage(int protocol, int spawnCount, boolean demo, String gameName, int playerNumber, String levelString) {
         this();
         this.protocol = protocol;
