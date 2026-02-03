@@ -14,7 +14,8 @@ import jake2.qcommon.exec.Cmd
  */
 data class Config(
     val value: String,
-    var resource: Disposable? = null
+    var resource: Disposable? = null,
+    var managedByAssetManager: Boolean = false
 )
 
 // may not be great to have a big array of nulls, but configs are accessed by the index (maybe use map int->config?)
@@ -83,7 +84,7 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
      */
     fun disposeUnmanagedResource(config: Config?) {
         val resource = config?.resource ?: return
-        if (resource is Sound) {
+        if (config.managedByAssetManager) {
             return
         }
         resource.dispose()

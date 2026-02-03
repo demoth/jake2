@@ -8,6 +8,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.SoundLoader
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -33,6 +34,7 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.assets.ObjectLoader
+import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
@@ -91,6 +93,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
         // for loading sounds from the filesystem
         setLoader(Sound::class.java, SoundLoader(fileResolver))
+        // for loading PCX textures via assetManager.load("path/to/file.pcx")
+        setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
 
     }
 

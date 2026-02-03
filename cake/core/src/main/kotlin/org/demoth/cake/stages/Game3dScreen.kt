@@ -19,7 +19,6 @@ import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
-import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
@@ -33,7 +32,6 @@ import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.createModel
-import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
@@ -343,6 +341,7 @@ class Game3dScreen(
             if (config != null) {
                 locator.findSoundPath(config.value)?.let { soundPath ->
                     config.resource = assetManager.getLoaded<Sound>(soundPath)
+                    config.managedByAssetManager = true
                 }
             }
         }
@@ -351,8 +350,8 @@ class Game3dScreen(
             if (config != null) {
                 val texturePath = locator.findImagePath("${config.value}.pcx", "pics")
                 if (texturePath != null) {
-                    val textureFile = assetManager.getLoaded<ByteArray>(texturePath)
-                    config.resource = Texture(fromPCX(PCX(textureFile)))
+                    config.resource = assetManager.getLoaded<Texture>(texturePath)
+                    config.managedByAssetManager = true
                 }
             }
         }
@@ -360,7 +359,6 @@ class Game3dScreen(
         gameConfig.getSkyname()?.let { skyName ->
             skyBox = SkyLoader(locator).load(skyName)
         }
-
 
         // these are expected to be loaded
         weaponSoundPaths.forEach { (index, path) ->
