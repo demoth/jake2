@@ -82,7 +82,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             updateInputHandlers(consoleVisible, menuVisible)
         }
 
-    private var fileResolver = CakeFileResolver()
+    private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
     private val assetManager = AssetManager().apply {
         // for loading shaders and other text files

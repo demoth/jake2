@@ -10,6 +10,7 @@ import java.util.ArrayDeque
  */
 // todo: cache? move to streams instead?
 // todo: get rid of File(...) usages where possible
+@Deprecated("Migrate to AssetManager locator logic")
 class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     // todo: support other gameNames - be able to locate mod resources (fallback to baseq2 or smth else)
@@ -75,11 +76,6 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
 
     override fun findSky(skyName: String): ByteArray {
         return File("$baseDir/$gameName/env/$skyName.pcx").readBytes()
-    }
-
-    fun findSkyPath(skyName: String): String? {
-        val file = File("$baseDir/$gameName/env/$skyName.pcx")
-        return if (file.exists()) file.absolutePath else null
     }
 
     private fun findFileCaseInsensitive(dir: FileHandle, targetName: String): FileHandle? {

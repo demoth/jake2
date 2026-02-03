@@ -59,9 +59,7 @@ class PCXTextureData(private var pixmap: Pixmap) : TextureData {
     }
 }
 
-class PcxLoader(
-    resolver: FileHandleResolver
-) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(resolver) {
+class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(resolver) {
 
     class Parameters : AssetLoaderParameters<Texture>() {
         var externalPalette: IntArray? = null
@@ -95,7 +93,7 @@ class PcxLoader(
 
     override fun getDependencies(
         fileName: String,
-        file: FileHandle,
+        file: FileHandle?,
         parameter: Parameters?
     ): Array<AssetDescriptor<*>>? = null
 }

@@ -13,10 +13,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 /**
  * This class is responsible for building the skybox geometry and assigning proper textures
  */
-class SkyLoader(
-    private val resourceLocator: GameResourceLocator,
-    private val assetManager: AssetManager
-) {
+class SkyLoader(private val assetManager: AssetManager) {
 
     private val parts = listOf("rt", "bk", "lf", "ft", "up", "dn")
     private val s = 2048f // size
@@ -26,10 +23,7 @@ class SkyLoader(
      */
     fun load(name: String): ModelInstance {
         val textures = parts.associateWith { part ->
-            val texturePath = requireNotNull(resourceLocator.findSkyPath("$name$part")) {
-                "Missing sky texture: $name$part.pcx"
-            }
-            assetManager.getLoaded<Texture>(texturePath)
+            assetManager.getLoaded<Texture>("env/$name$part.pcx")
         }
 
         val modelBuilder = ModelBuilder()
