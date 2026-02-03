@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
@@ -66,10 +66,6 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
                 null
             }
         }
-    }
-
-    override fun findSkin(skinName: String): ByteArray {
-        return File("$baseDir/$gameName/$skinName").readBytes()
     }
 
     override fun findSkinPath(skinName: String): String? {

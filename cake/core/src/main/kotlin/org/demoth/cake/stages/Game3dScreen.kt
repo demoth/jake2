@@ -26,6 +26,7 @@ import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.GameResourceLocator
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader
 import org.demoth.cake.assets.Md2Shader

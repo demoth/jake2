@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
-import org.demoth.cake.ModelViewerResourceLocator
+import org.demoth.cake.assets.ModelViewerResourceLocator
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader

@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.WAL
-import org.demoth.cake.ResourceLocator
 import java.io.File
 import java.nio.ByteBuffer
 

@@ -16,7 +16,6 @@ import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.Md2VertexData
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.buildVertexData
-import org.demoth.cake.ResourceLocator
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.assets
 
 import java.io.File
 
@@ -19,11 +19,6 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
     override fun findImagePath(imageName: String, location: String): String? {
         val file = File("$currentDirectory/$imageName")
         return if (file.exists()) file.absolutePath else null
-    }
-
-    override fun findSkin(skinName: String): ByteArray {
-        val fileName = skinName.substring(skinName.lastIndexOf('/') + 1)
-        return File("$currentDirectory/$fileName").readBytes()
     }
 
     override fun findSkinPath(skinName: String): String? {

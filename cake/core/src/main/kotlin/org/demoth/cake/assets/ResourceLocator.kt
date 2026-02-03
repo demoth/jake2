@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.assets
 
 /**
  * Abstracts the way how the resources are located (how name is resolved) and loaded.

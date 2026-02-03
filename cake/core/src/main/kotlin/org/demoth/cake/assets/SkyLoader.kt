@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.PCX
-import org.demoth.cake.GameResourceLocator
 
 /**
  * This class is responsible for building the skybox geometry and assigning proper textures
