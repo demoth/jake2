@@ -357,7 +357,7 @@ class Game3dScreen(
         }
 
         gameConfig.getSkyname()?.let { skyName ->
-            skyBox = SkyLoader(locator).load(skyName)
+            skyBox = SkyLoader(locator, assetManager).load(skyName)
         }
 
         // these are expected to be loaded
