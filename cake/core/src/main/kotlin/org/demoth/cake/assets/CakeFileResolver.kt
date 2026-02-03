@@ -34,7 +34,18 @@ class CakeFileResolver(
      *      4.2 basedir/basemod/other_pak_files
      *      4.3 basedir/basemod/pak\d+.pak files
      */
-    override fun resolve(fileName: String?): FileHandle? {
+    override fun resolve(fileName: String): FileHandle? {
+        val file = resolveInternal(fileName)
+        if (file != null) return file
+        val lowercase = resolveInternal(fileName.lowercase())
+        if (lowercase != null) {
+            Com.Warn("Resource $fileName was found with lowercase")
+            return lowercase
+        }
+        return null
+    }
+
+    private fun resolveInternal(fileName: String): FileHandle? {
         // bootstrap assets - not overridable
         var file = Gdx.files.classpath(fileName)
         if (file.exists()) return file
@@ -60,5 +71,6 @@ class CakeFileResolver(
 
         Com.Warn("Resource $fileName was not found")
         return null
+
     }
 }
