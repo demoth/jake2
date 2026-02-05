@@ -13,13 +13,17 @@ import jake2.qcommon.Com
  * [basedir] Game installation directory, should be an absolute path
  * [basemod] Base game mod, default is "baseq2"
  * [gamemod] Game mod override like rogue or xatrix, has higher priority than the basemod
+ * todo: implement resolvers for pak files
+ * todo: implement indexing of pak files
+ * todo: impelment setters for basedir/gamemod, with reindexing of pak files
  */
 class CakeFileResolver(
     var basedir: String? = null,
-    var basemod: String = "baseq2",
     var gamemod: String? = null
 ) : FileHandleResolver {
-    // todo: implement resolvers for pak files
+
+    // tothink: do we need to be able to override this? like for q1 it will be id1
+    private val basemod: String = "baseq2"
 
     /**
      * look for files in the following order:
@@ -37,11 +41,13 @@ class CakeFileResolver(
     override fun resolve(fileName: String): FileHandle? {
         val file = resolveInternal(fileName)
         if (file != null) return file
+        // maybe add a cvar switch to disable/enable lowercase file resolving?
         val lowercase = resolveInternal(fileName.lowercase())
         if (lowercase != null) {
             Com.Warn("Resource $fileName was found with lowercase")
             return lowercase
         }
+        Com.Warn("Resource $fileName was not found")
         return null
     }
 
@@ -60,16 +66,14 @@ class CakeFileResolver(
                 file = Gdx.files.absolute("$basedir/$gamemod/$fileName")
                 if (file.exists()) return file
 
-                // todo: check the pak files
+                // todo: check the game mod pak files
             }
             // fallback to the base mod
             file = Gdx.files.absolute("$basedir/$basemod/$fileName")
             if (file.exists()) return file
 
-            // todo: check the pak files
+            // todo: check the basemod pak files
         }
-
-        Com.Warn("Resource $fileName was not found")
         return null
 
     }
