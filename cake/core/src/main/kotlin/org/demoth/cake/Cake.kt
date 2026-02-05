@@ -35,6 +35,7 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
+import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
@@ -91,10 +92,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Any::class.java, ObjectLoader(fileResolver))
         // for loading binary blobs from the filesystem (e.g. BSP maps)
         setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
-        // for loading sounds from the filesystem
         setLoader(Sound::class.java, SoundLoader(fileResolver))
-        // for loading PCX textures via assetManager.load("path/to/file.pcx")
         setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
+        setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
 
     }
 

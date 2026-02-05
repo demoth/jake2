@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import jake2.qcommon.filesystem.Bsp
-import jake2.qcommon.filesystem.WAL
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -20,11 +19,6 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
 
     fun loadBspModels(bsdData: ByteArray): List<Model> {
         val bsp = Bsp(ByteBuffer.wrap(bsdData))
-        assetManager.load("q2palette.bin", Any::class.java)
-        // ensure the palette is loaded before accessing it via AssetManager
-        assetManager.finishLoadingAsset<Any>("q2palette.bin")
-        val paletteFile = assetManager.get("q2palette.bin", Any::class.java)
-        val palette = paletteFile as IntArray //readPaletteFile(paletteFile as IntArray)
 
         // create libgdx models from bsp models
         return bsp.models.mapIndexed { i, model ->
@@ -38,17 +32,13 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
 
             // skies are rendered separately, see: SkyLoader
             facesByTexture.filter { !it.key.contains("sky") }.forEach { (textureName, faces) ->
-                val walPath = requireNotNull(locator.findImagePath("$textureName.wal")) {
-                    "Missing WAL texture: $textureName.wal"
+
+                val params = WalLoader.Parameters().apply {
+                    wrapU = Texture.TextureWrap.Repeat
+                    wrapV = Texture.TextureWrap.Repeat
                 }
-                if (!assetManager.isLoaded(walPath, ByteArray::class.java)) {
-                    assetManager.load(walPath, ByteArray::class.java)
-                    assetManager.finishLoadingAsset<ByteArray>(walPath)
-                }
-                val walTexture = WAL(assetManager.get(walPath, ByteArray::class.java)) // todo: cache
-                val texture = Texture(WalTextureData(fromWal(walTexture, palette)))
-                // todo: bsp level textures always wrap?
-                texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
+
+                val texture = assetManager.getLoaded<Texture>("textures/$textureName.wal", params)
                 val meshBuilder = modelBuilder.part(
                     "part1",
                     GL_TRIANGLES,
@@ -83,9 +73,9 @@ class BspLoader(private val locator: ResourceLocator, private val assetManager: 
                         val v0 = bsp.vertices[vertices.first()]
                         val v1 = bsp.vertices[i1]
                         val v2 = bsp.vertices[i2]
-                        val uv0 = textureInfo.calculateUV(v0, walTexture.width, walTexture.height)
-                        val uv1 = textureInfo.calculateUV(v1, walTexture.width, walTexture.height)
-                        val uv2 = textureInfo.calculateUV(v2, walTexture.width, walTexture.height)
+                        val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
+                        val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
+                        val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
                         listOf(
                             v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
                             v1.x, v1.y, v1.z, uv1.first(), uv1.last(),

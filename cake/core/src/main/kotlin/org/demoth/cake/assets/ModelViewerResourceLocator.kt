@@ -26,8 +26,4 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
         val file = File("$currentDirectory/$fileName")
         return if (file.exists()) file.absolutePath else null
     }
-
-    override fun findSky(skyName: String): ByteArray {
-        TODO("Not yet implemented")
-    }
 }

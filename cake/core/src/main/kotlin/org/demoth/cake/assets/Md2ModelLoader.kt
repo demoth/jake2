@@ -1,6 +1,7 @@
 package org.demoth.cake.assets
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
@@ -102,6 +103,17 @@ class Md2ModelLoader(
 inline fun <reified T> AssetManager.getLoaded(path: String): T {
     if (!isLoaded(path, T::class.java)) {
         load(path, T::class.java)
+        finishLoadingAsset<T>(path)
+    }
+    return get(path, T::class.java)
+}
+
+/**
+ * Get an asset ensuring it's loaded. Blocking operation.
+ */
+inline fun <reified T> AssetManager.getLoaded(path: String, parameter: AssetLoaderParameters<T>): T {
+    if (!isLoaded(path, T::class.java)) {
+        load(path, T::class.java, parameter)
         finishLoadingAsset<T>(path)
     }
     return get(path, T::class.java)

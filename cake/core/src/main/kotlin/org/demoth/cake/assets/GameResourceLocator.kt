@@ -59,7 +59,7 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
             file.absolutePath
         } else {
             // fixme: use proper case insensitive search
-            val lowercaseFile = File("$baseDir/$gameName/textures/${imageName.lowercase()}")
+            val lowercaseFile = File("$baseDir/$gameName/$location/${imageName.lowercase()}")
             if (lowercaseFile.exists()) {
                 println("Warn: $imageName was found by lowercase name")
                 lowercaseFile.absolutePath
@@ -72,10 +72,6 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
     override fun findSkinPath(skinName: String): String? {
         val file = File("$baseDir/$gameName/$skinName")
         return if (file.exists()) file.absolutePath else null
-    }
-
-    override fun findSky(skyName: String): ByteArray {
-        return File("$baseDir/$gameName/env/$skyName.pcx").readBytes()
     }
 
     private fun findFileCaseInsensitive(dir: FileHandle, targetName: String): FileHandle? {
