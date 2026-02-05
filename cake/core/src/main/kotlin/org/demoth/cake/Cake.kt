@@ -85,7 +85,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
-    private val assetManager = AssetManager().apply {
+    private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
         setLoader(String::class.java, TextAssetLoader(fileResolver))
         // for loading binary files

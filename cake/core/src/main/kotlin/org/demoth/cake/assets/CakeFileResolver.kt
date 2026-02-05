@@ -56,7 +56,7 @@ class CakeFileResolver(
         var file = Gdx.files.classpath(fileName)
         if (file.exists()) return file
 
-        // "assets" folder
+        // engine "assets" folder
         file = Gdx.files.internal(fileName)
         if (file.exists()) return file
 

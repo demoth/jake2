@@ -8,8 +8,6 @@ package org.demoth.cake.assets
 interface ResourceLocator {
 
     fun findModelPath(modelName: String): String?
-    fun findSoundPath(soundName: String): String?
-    fun findImagePath(imageName: String, location: String = "textures"): String?
 
     /**
      * skin name should contain the file extension

@@ -29,67 +29,9 @@ class GameResourceLocator(private val baseDir: String) : ResourceLocator {
         }
     }
 
-    override fun findSoundPath(soundName: String): String? {
-        if (soundName.isEmpty()) {
-            return null
-        } else if (soundName.startsWith("*")) {
-            // TODO: implement male/female/cyborg sounds
-            return null
-        } else {
-            val soundPath = "$baseDir/$gameName/sound/$soundName"
-            val soundFile = Gdx.files.absolute(soundPath)
-            if (soundFile.exists()) {
-                return soundFile.path()
-            }
-
-            val soundDir = Gdx.files.absolute("$baseDir/$gameName/sound")
-            val targetName = soundName.substring(soundName.lastIndexOf('/') + 1)
-            val matchingFile = findFileCaseInsensitive(soundDir, targetName)
-            if (matchingFile != null) {
-                return matchingFile.path()
-            }
-            println("ERROR! could now find file: $soundName")
-            return null
-        }
-    }
-
-    override fun findImagePath(imageName: String, location: String): String? {
-        val file = File("$baseDir/$gameName/$location/$imageName")
-        return if (file.exists()) {
-            file.absolutePath
-        } else {
-            // fixme: use proper case insensitive search
-            val lowercaseFile = File("$baseDir/$gameName/$location/${imageName.lowercase()}")
-            if (lowercaseFile.exists()) {
-                println("Warn: $imageName was found by lowercase name")
-                lowercaseFile.absolutePath
-            } else {
-                null
-            }
-        }
-    }
-
     override fun findSkinPath(skinName: String): String? {
         val file = File("$baseDir/$gameName/$skinName")
         return if (file.exists()) file.absolutePath else null
     }
 
-    private fun findFileCaseInsensitive(dir: FileHandle, targetName: String): FileHandle? {
-        if (!dir.exists() || !dir.isDirectory) {
-            return null
-        }
-        val stack = ArrayDeque<FileHandle>()
-        stack.add(dir)
-        while (stack.isNotEmpty()) {
-            val current = stack.removeLast()
-            current.list().forEach { child ->
-                if (child.isDirectory) {
-                    stack.add(child)
-                } else if (child.name().equals(targetName, ignoreCase = true)) {
-                    return child
-                }
-            }
-        }
-        return null
-    }
 }

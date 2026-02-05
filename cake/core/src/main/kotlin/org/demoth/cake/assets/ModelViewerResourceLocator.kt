@@ -12,15 +12,6 @@ class ModelViewerResourceLocator(val currentDirectory: String) : ResourceLocator
         return if (file.exists()) file.absolutePath else null
     }
 
-    override fun findSoundPath(soundName: String): String? {
-        TODO("Not yet implemented")
-    }
-
-    override fun findImagePath(imageName: String, location: String): String? {
-        val file = File("$currentDirectory/$imageName")
-        return if (file.exists()) file.absolutePath else null
-    }
-
     override fun findSkinPath(skinName: String): String? {
         val fileName = skinName.substring(skinName.lastIndexOf('/') + 1)
         val file = File("$currentDirectory/$fileName")
