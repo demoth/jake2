@@ -492,6 +492,7 @@ class Game3dScreen(
         )
     }
 
+    // region SERVER MESSAGE PARSING
 
     /**
      * CL_ParseServerData
@@ -547,7 +548,7 @@ class Game3dScreen(
                 sound.play(volume)
             }
         } else {
-            Com.Warn("sound ${msg.soundIndex} not found")
+            Com.Warn("sound ${msg.soundIndex} (${config?.value}) not found")
         }
     }
 
@@ -573,6 +574,8 @@ class Game3dScreen(
             gameConfig.inventory[i] = msg.inventory[i]
         }
     }
+
+    // endregion
 
     private fun calculateSoundAttenuation(msg: SoundMessage): Float {
         if (msg.attenuation <= 0f) {

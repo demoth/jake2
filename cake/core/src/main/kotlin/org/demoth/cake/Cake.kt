@@ -399,7 +399,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         )
     }
 
-    fun CL_ReadPackets() {
+    private fun CL_ReadPackets() {
         while (true) {
             val networkPacket = NET.receiveNetworkPacket(
                 NET.ip_sockets[NS_CLIENT],
