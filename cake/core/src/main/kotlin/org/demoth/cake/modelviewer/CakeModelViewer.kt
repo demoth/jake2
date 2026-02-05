@@ -21,12 +21,11 @@ import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.assets.ModelViewerResourceLocator
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.assets.CakeTextureData
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
-import org.demoth.cake.assets.PCXTextureData
-import org.demoth.cake.assets.WalTextureData
 import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.fromWal
@@ -76,11 +75,11 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         when (file.extension) {
             "pcx" -> {
-                image = Texture(PCXTextureData(fromPCX(PCX(file.readBytes()))))
+                image = Texture(CakeTextureData(fromPCX(PCX(file.readBytes()))))
             }
             "wal" -> {
                 image = Texture(
-                    WalTextureData(
+                    CakeTextureData(
                         fromWal(
                             WAL(file.readBytes()),
                             readPaletteFile(Gdx.files.internal("q2palette.bin").read())

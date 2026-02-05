@@ -49,7 +49,7 @@ class Md2ModelLoader(
             } else throw IllegalStateException("No skin found in the model, no player skin provided")
         }
 
-        val diffuse = Texture(PCXTextureData(fromPCX(PCX(modelSkin))))
+        val diffuse = Texture(CakeTextureData(fromPCX(PCX(modelSkin))))
 
         val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
 

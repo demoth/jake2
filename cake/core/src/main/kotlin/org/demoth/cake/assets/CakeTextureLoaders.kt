@@ -11,10 +11,13 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureData
 import com.badlogic.gdx.graphics.TextureData.TextureDataType
 import com.badlogic.gdx.utils.Array
+import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 
-// fixme: Same as PCXTextureData?
-class WalTextureData(private var pixmap: Pixmap) : TextureData {
+/**
+ * Common TextureData for PCX and WAL texture formats
+ */
+class CakeTextureData(private var pixmap: Pixmap) : TextureData {
 
     override fun getType(): TextureDataType {
         return TextureDataType.Pixmap
@@ -81,7 +84,7 @@ class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
         val palette = parameter?.externalPalette
             ?: manager.get(parameter?.paletteAssetPath ?: "q2palette.bin", Any::class.java) as IntArray
         val pixmap = fromWal(wal, palette)
-        val texture = Texture(WalTextureData(pixmap))
+        val texture = Texture(CakeTextureData(pixmap))
         val minFilter = parameter?.minFilter
         val magFilter = parameter?.magFilter
         if (minFilter != null || magFilter != null) {
@@ -111,7 +114,7 @@ class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
 }
 
 /**
- * @param palette RBBA8888 format, used instead of [pcx.colors] if provided
+ * @param [palette] wal file relies on external palette
  */
 internal fun fromWal(wal: WAL, palette: IntArray): Pixmap {
     val pixmap = Pixmap(wal.width, wal.height, Pixmap.Format.RGBA8888)
@@ -121,11 +124,65 @@ internal fun fromWal(wal: WAL, palette: IntArray): Pixmap {
             val intPixelValue = wal.imageData[offset++].toInt()
             val colorIndex = 0xFF and intPixelValue // unsigned
             val color = palette[colorIndex]
-            // split color packed RGBA8888 into separate components for debug
-            val r = color shr 24 and 0xFF
-            val g = color shr 16 and 0xFF
-            val b = color shr 8 and 0xFF
-            val a = color and 0xFF
+            pixmap.drawPixel(x, y, color)
+        }
+    }
+    return pixmap
+}
+
+class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(resolver) {
+
+    class Parameters : AssetLoaderParameters<Texture>() {
+        var externalPalette: IntArray? = null
+        var minFilter: Texture.TextureFilter? = null
+        var magFilter: Texture.TextureFilter? = null
+        var wrapU: Texture.TextureWrap? = null
+        var wrapV: Texture.TextureWrap? = null
+    }
+
+    override fun load(
+        manager: AssetManager,
+        fileName: String,
+        file: FileHandle,
+        parameter: Parameters?
+    ): Texture {
+        val pcx = PCX(file.readBytes())
+        val pixmap = fromPCX(pcx, parameter?.externalPalette)
+        val texture = Texture(CakeTextureData(pixmap))
+        val minFilter = parameter?.minFilter
+        val magFilter = parameter?.magFilter
+        if (minFilter != null || magFilter != null) {
+            texture.setFilter(minFilter ?: texture.minFilter, magFilter ?: texture.magFilter)
+        }
+        val wrapU = parameter?.wrapU
+        val wrapV = parameter?.wrapV
+        if (wrapU != null || wrapV != null) {
+            texture.setWrap(wrapU ?: texture.uWrap, wrapV ?: texture.vWrap)
+        }
+        return texture
+    }
+
+    // todo: define palette as a dependency
+    override fun getDependencies(
+        fileName: String,
+        file: FileHandle?,
+        parameter: Parameters?
+    ): Array<AssetDescriptor<*>>? = null
+}
+
+/**
+ * @param externalPalette RBBA8888 format, used instead of [pcx.colors] if provided
+ */
+internal fun fromPCX(pcx: PCX, externalPalette: IntArray? = null): Pixmap {
+    val pixmap = Pixmap(pcx.width, pcx.height, Pixmap.Format.RGBA8888)
+    var offset = 0
+    for (y in 0 until pcx.height) {
+        for (x in 0 until pcx.width) {
+            val colorIndex = 0xFF and pcx.imageData[offset++].toInt() // unsigned
+            val color = if (externalPalette != null)
+                externalPalette[colorIndex]
+            else
+                pcx.colors[colorIndex]
             pixmap.drawPixel(x, y, color)
         }
     }
