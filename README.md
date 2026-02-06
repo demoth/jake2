@@ -21,8 +21,9 @@ Requirements:
 
 Documentation & Info
 --------------------
- * [Overview](info/Overview.md)
- * [BSP file format](info/BSP.md)
+The `info` folder contains documentation and other useful information:
+
+ * [Project Overview](info/Overview.md)
  * [Networking](info/Networking.md)
 
 What is Cake? Important note about client side code
