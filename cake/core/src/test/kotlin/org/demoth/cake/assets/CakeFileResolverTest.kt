@@ -58,6 +58,16 @@ class CakeFileResolverTest {
         assertTrue(resolved.file().absolutePath.contains("${File.separator}rogue${File.separator}"))
     }
 
+    @Test
+    fun resolvesVirtualSkyAssetWithoutPhysicalFile() {
+        val resolver = CakeFileResolver()
+
+        val resolved = resolver.resolve("sky/desert_.sky")
+
+        assertNotNull(resolved)
+        assertTrue(resolved!!.exists())
+    }
+
     private fun createFile(relativePath: String): File {
         val file = File(temp.root, relativePath)
         file.parentFile.mkdirs()

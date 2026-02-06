@@ -69,7 +69,6 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
-    private var loadedSkyAssetPath: String? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -280,14 +279,14 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
-        loadedSkyAssetPath?.let { skyAssetPath ->
+        renderState.dispose() // fixme: what else should be disposed?
+        // todo: implement a clear and reusable approach for such resources that need to be disposed
+        gameConfig.getSkyname()?.let { skyName ->
+            val skyAssetPath = SkyLoader.assetPath(skyName)
             if (assetManager.isLoaded(skyAssetPath, Model::class.java)) {
                 assetManager.unload(skyAssetPath)
             }
         }
-        loadedSkyAssetPath = null
-        skyBox = null
-        renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
         gameConfig.getMapName()?.let { mapAssetPath ->
             if (assetManager.isLoaded(mapAssetPath, BspMapAsset::class.java)) {
                 assetManager.unload(mapAssetPath)
@@ -366,26 +365,8 @@ class Game3dScreen(
         }
 
         gameConfig.getSkyname()?.let { skyName ->
-            loadedSkyAssetPath?.let { oldSkyAssetPath ->
-                if (assetManager.isLoaded(oldSkyAssetPath, Model::class.java)) {
-                    assetManager.unload(oldSkyAssetPath)
-                }
-            }
-            val skyAssetPath = SkyLoader.assetPath()
-            val skyModel = assetManager.getLoaded<Model>(
-                skyAssetPath,
-                SkyLoader.Parameters().apply { this.skyName = skyName }
-            )
-            loadedSkyAssetPath = skyAssetPath
+            val skyModel = assetManager.getLoaded<Model>(SkyLoader.assetPath(skyName))
             skyBox = ModelInstance(skyModel)
-        } ?: run {
-            loadedSkyAssetPath?.let { oldSkyAssetPath ->
-                if (assetManager.isLoaded(oldSkyAssetPath, Model::class.java)) {
-                    assetManager.unload(oldSkyAssetPath)
-                }
-            }
-            loadedSkyAssetPath = null
-            skyBox = null
         }
 
         // these are expected to be loaded

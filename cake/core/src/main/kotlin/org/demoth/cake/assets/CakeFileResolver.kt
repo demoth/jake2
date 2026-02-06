@@ -55,7 +55,12 @@ class CakeFileResolver(
     }
 
     private fun resolveInternal(fileName: String, caseInsensitive: Boolean): FileHandle? {
-        val normalized = fileName.replace('\\', '/')
+
+        // SkyLoader uses synthetic keys like sky/<name>.sky; no physical file is required.
+        val normalized = fileName.replace('\\', '/').lowercase()
+        if (normalized.startsWith("sky/") && normalized.endsWith(".sky")) {
+            return Gdx.files.internal("") // return an empty file handle
+        }
 
         val roots = mutableListOf<FileHandle>()
         // bootstrap assets - not overridable
