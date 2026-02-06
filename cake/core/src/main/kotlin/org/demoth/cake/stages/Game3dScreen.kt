@@ -24,7 +24,7 @@ import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
-import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.GameResourceLocator
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2ModelLoader
@@ -68,6 +68,7 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
+    private var loadedMapAssetPath: String? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -280,6 +281,12 @@ class Game3dScreen(
         gameConfig.disposeUnmanagedResources()
         skyBox?.model?.dispose()
         renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
+        loadedMapAssetPath?.let { mapAssetPath ->
+            if (assetManager.isLoaded(mapAssetPath, BspMapAsset::class.java)) {
+                assetManager.unload(mapAssetPath)
+            }
+        }
+        loadedMapAssetPath = null
     }
 
     /**
@@ -292,10 +299,18 @@ class Game3dScreen(
         // load the level
         val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
         val mapPath = "${System.getProperty("basedir")}/$gameName/$mapName"
-        assetManager.load(mapPath, ByteArray::class.java)
-        assetManager.finishLoadingAsset<ByteArray>(mapPath)
-        val bsp = assetManager.get(mapPath, ByteArray::class.java)
-        val brushModels = BspLoader(locator, assetManager).loadBspModels(bsp)
+        loadedMapAssetPath?.let { currentMapAssetPath ->
+            if (currentMapAssetPath != mapPath && assetManager.isLoaded(currentMapAssetPath, BspMapAsset::class.java)) {
+                assetManager.unload(currentMapAssetPath)
+            }
+        }
+        if (!assetManager.isLoaded(mapPath, BspMapAsset::class.java)) {
+            assetManager.load(mapPath, BspMapAsset::class.java)
+            assetManager.finishLoadingAsset<BspMapAsset>(mapPath)
+        }
+        loadedMapAssetPath = mapPath
+        val bspMap = assetManager.get(mapPath, BspMapAsset::class.java)
+        val brushModels = bspMap.models
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
@@ -304,6 +319,7 @@ class Game3dScreen(
             if (index != 0)
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
+            configString.managedByAssetManager = true
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
@@ -311,7 +327,7 @@ class Game3dScreen(
             modelInstance = ModelInstance(brushModels.first())
         }
 
-        collisionModel.CM_LoadMapFile(bsp, mapName, IntArray(1) {0})
+        collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
 
         // load md2 models
         // index of md2 models in the config string

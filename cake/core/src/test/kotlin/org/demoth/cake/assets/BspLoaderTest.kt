@@ -1,0 +1,108 @@
+package org.demoth.cake.assets
+
+import jake2.qcommon.Defines
+import jake2.qcommon.filesystem.IDBSPHEADER
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+class BspLoaderTest {
+
+    @Test
+    fun collectWalTexturePathsSkipsSkyAndDeduplicates() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("floor", "skybox", "floor", " ", "lava")
+        )
+
+        val paths = collectWalTexturePaths(bspData)
+
+        assertEquals(
+            listOf(
+                "textures/floor.wal",
+                "textures/lava.wal",
+            ),
+            paths
+        )
+    }
+
+    private fun minimalBspWithTextures(textureNames: List<String>): ByteArray {
+        val faceCount = textureNames.size
+        val facesData = ByteBuffer.allocate(faceCount * 20)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                repeat(faceCount) { faceIndex ->
+                    putShort(0) // plane
+                    putShort(0) // plane side
+                    putInt(0) // first edge index
+                    putShort(0) // num edges
+                    putShort(faceIndex.toShort()) // texture info index
+                    put(byteArrayOf(0, 0, 0, 0)) // light styles
+                    putInt(0) // light map offset
+                }
+            }
+            .array()
+
+        val texturesData = ByteBuffer.allocate(textureNames.size * 76)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                textureNames.forEach { textureName ->
+                    repeat(8) { putFloat(0f) } // uAxis + uOffset + vAxis + vOffset
+                    putInt(0) // flags
+                    putInt(0) // value
+                    val nameBytes = ByteArray(32)
+                    val rawNameBytes = textureName.toByteArray(Charsets.US_ASCII)
+                    val copyLen = minOf(rawNameBytes.size, nameBytes.size)
+                    System.arraycopy(rawNameBytes, 0, nameBytes, 0, copyLen)
+                    put(nameBytes)
+                    putInt(0) // next
+                }
+            }
+            .array()
+
+        val modelsData = ByteBuffer.allocate(48)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                repeat(9) { putFloat(0f) } // mins + maxs + origin
+                putInt(0) // headNode
+                putInt(0) // firstFace
+                putInt(faceCount) // faceCount
+            }
+            .array()
+
+        val headerSize = 8 + Defines.HEADER_LUMPS * 8
+        val lumpOffsets = IntArray(Defines.HEADER_LUMPS) { 0 }
+        val lumpLengths = IntArray(Defines.HEADER_LUMPS) { 0 }
+
+        var cursor = headerSize
+        // LUMP_TEXINFO
+        lumpOffsets[5] = cursor
+        lumpLengths[5] = texturesData.size
+        cursor += texturesData.size
+        // LUMP_FACES
+        lumpOffsets[6] = cursor
+        lumpLengths[6] = facesData.size
+        cursor += facesData.size
+        // LUMP_MODELS
+        lumpOffsets[13] = cursor
+        lumpLengths[13] = modelsData.size
+        cursor += modelsData.size
+
+        val result = ByteBuffer.allocate(cursor).order(ByteOrder.LITTLE_ENDIAN)
+        result.putInt(IDBSPHEADER)
+        result.putInt(38) // Quake2 BSP version
+
+        for (i in 0 until Defines.HEADER_LUMPS) {
+            result.putInt(lumpOffsets[i])
+            result.putInt(lumpLengths[i])
+        }
+
+        result.position(lumpOffsets[5])
+        result.put(texturesData)
+        result.position(lumpOffsets[6])
+        result.put(facesData)
+        result.position(lumpOffsets[13])
+        result.put(modelsData)
+        return result.array()
+    }
+}
