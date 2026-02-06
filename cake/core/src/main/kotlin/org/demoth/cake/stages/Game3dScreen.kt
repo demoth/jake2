@@ -68,7 +68,6 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
-    private var loadedMapAssetPath: String? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -281,12 +280,11 @@ class Game3dScreen(
         gameConfig.disposeUnmanagedResources()
         skyBox?.model?.dispose()
         renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
-        loadedMapAssetPath?.let { mapAssetPath ->
+        gameConfig.getMapName()?.let { mapAssetPath ->
             if (assetManager.isLoaded(mapAssetPath, BspMapAsset::class.java)) {
                 assetManager.unload(mapAssetPath)
             }
         }
-        loadedMapAssetPath = null
     }
 
     /**
@@ -298,18 +296,7 @@ class Game3dScreen(
 
         // load the level
         val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
-        val mapPath = "${System.getProperty("basedir")}/$gameName/$mapName"
-        loadedMapAssetPath?.let { currentMapAssetPath ->
-            if (currentMapAssetPath != mapPath && assetManager.isLoaded(currentMapAssetPath, BspMapAsset::class.java)) {
-                assetManager.unload(currentMapAssetPath)
-            }
-        }
-        if (!assetManager.isLoaded(mapPath, BspMapAsset::class.java)) {
-            assetManager.load(mapPath, BspMapAsset::class.java)
-            assetManager.finishLoadingAsset<BspMapAsset>(mapPath)
-        }
-        loadedMapAssetPath = mapPath
-        val bspMap = assetManager.get(mapPath, BspMapAsset::class.java)
+        val bspMap = assetManager.getLoaded<BspMapAsset>(mapName)
         val brushModels = bspMap.models
 
         // load inline bmodels
