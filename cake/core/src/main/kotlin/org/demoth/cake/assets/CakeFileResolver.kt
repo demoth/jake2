@@ -39,13 +39,14 @@ class CakeFileResolver(
      *      4.3 basedir/basemod/pak\d+.pak files
      */
     override fun resolve(fileName: String): FileHandle? {
+        // first try to resolve the file matching the case
         val file = resolveInternal(fileName)
         if (file != null) return file
-        // maybe add a cvar switch to disable/enable lowercase file resolving?
-        val lowercase = resolveInternal(fileName.lowercase())
-        if (lowercase != null) {
-            Com.Warn("Resource $fileName was found with lowercase")
-            return lowercase
+        // fallback to case-insensitive lookup using libgdx FileHandle API
+        val caseInsensitive = resolveCaseInsensitive(fileName)
+        if (caseInsensitive != null) {
+            Com.Warn("Resource $fileName was found with different case")
+            return caseInsensitive
         }
         Com.Warn("Resource $fileName was not found")
         return null
@@ -76,5 +77,55 @@ class CakeFileResolver(
         }
         return null
 
+    }
+
+    private fun resolveCaseInsensitive(fileName: String): FileHandle? {
+        val normalized = fileName.replace('\\', '/')
+
+        // classpath
+        findCaseInsensitive(Gdx.files.classpath(""), normalized)?.let { if (it.exists()) return it }
+
+        // engine "assets" folder
+        findCaseInsensitive(Gdx.files.internal(""), normalized)?.let { if (it.exists()) return it }
+
+        if (basedir != null) {
+            // check mod override
+            if (gamemod != null) {
+                findCaseInsensitive(
+                    Gdx.files.absolute("$basedir/$gamemod"),
+                    normalized
+                )?.let { if (it.exists()) return it }
+
+                // todo: check the game mod pak files
+            }
+            // fallback to the base mod
+            findCaseInsensitive(
+                Gdx.files.absolute("$basedir/$basemod"),
+                normalized
+            )?.let { if (it.exists()) return it }
+
+            // todo: check the basemod pak files
+        }
+        return null
+    }
+
+    /**
+     * Resolves a relative path under [root] by matching each path segment case-insensitively.
+     * This exists to handle Quake2 assets whose on-disk casing does not match the requested path.
+     */
+    private fun findCaseInsensitive(root: FileHandle, relativePath: String): FileHandle? {
+        val parts = relativePath.split('/').filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return null
+
+        var current = root
+        for ((index, part) in parts.withIndex()) {
+            if (!current.exists()) return null
+            if (index < parts.lastIndex && !current.isDirectory) return null
+
+            val next = current.list().firstOrNull { it.name().equals(part, ignoreCase = true) }
+                ?: return null
+            current = next
+        }
+        return current
     }
 }
