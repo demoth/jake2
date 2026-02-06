@@ -37,6 +37,8 @@ class CakeFileResolver(
      *      4.1 basedir/basemod/
      *      4.2 basedir/basemod/other_pak_files
      *      4.3 basedir/basemod/pak\d+.pak files
+     *
+     *  supports case-insensitive lookup if the exact match is not found
      */
     override fun resolve(fileName: String): FileHandle? {
         // first try to resolve the file matching the case

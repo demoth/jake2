@@ -18,4 +18,6 @@ dependencies {
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
 
   implementation(project(":qcommon"))
+  testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+  testRuntimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
