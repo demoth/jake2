@@ -40,10 +40,10 @@ class CakeFileResolver(
      */
     override fun resolve(fileName: String): FileHandle? {
         // first try to resolve the file matching the case
-        val file = resolveInternal(fileName)
+        val file = resolveInternal(fileName, caseInsensitive = false)
         if (file != null) return file
         // fallback to case-insensitive lookup using libgdx FileHandle API
-        val caseInsensitive = resolveCaseInsensitive(fileName)
+        val caseInsensitive = resolveInternal(fileName, caseInsensitive = true)
         if (caseInsensitive != null) {
             Com.Warn("Resource $fileName was found with different case")
             return caseInsensitive
@@ -52,59 +52,33 @@ class CakeFileResolver(
         return null
     }
 
-    private fun resolveInternal(fileName: String): FileHandle? {
-        // bootstrap assets - not overridable
-        var file = Gdx.files.classpath(fileName)
-        if (file.exists()) return file
-
-        // engine "assets" folder
-        file = Gdx.files.internal(fileName)
-        if (file.exists()) return file
-
-        if (basedir != null) {
-            // check mod override
-            if (gamemod != null) {
-                file = Gdx.files.absolute("$basedir/$gamemod/$fileName")
-                if (file.exists()) return file
-
-                // todo: check the game mod pak files
-            }
-            // fallback to the base mod
-            file = Gdx.files.absolute("$basedir/$basemod/$fileName")
-            if (file.exists()) return file
-
-            // todo: check the basemod pak files
-        }
-        return null
-
-    }
-
-    private fun resolveCaseInsensitive(fileName: String): FileHandle? {
+    private fun resolveInternal(fileName: String, caseInsensitive: Boolean): FileHandle? {
         val normalized = fileName.replace('\\', '/')
 
-        // classpath
-        findCaseInsensitive(Gdx.files.classpath(""), normalized)?.let { if (it.exists()) return it }
-
+        val roots = mutableListOf<FileHandle>()
+        // bootstrap assets - not overridable
+        roots.add(Gdx.files.classpath(""))
         // engine "assets" folder
-        findCaseInsensitive(Gdx.files.internal(""), normalized)?.let { if (it.exists()) return it }
+        roots.add(Gdx.files.internal(""))
 
         if (basedir != null) {
             // check mod override
             if (gamemod != null) {
-                findCaseInsensitive(
-                    Gdx.files.absolute("$basedir/$gamemod"),
-                    normalized
-                )?.let { if (it.exists()) return it }
-
+                roots.add(Gdx.files.absolute("$basedir/$gamemod"))
                 // todo: check the game mod pak files
             }
             // fallback to the base mod
-            findCaseInsensitive(
-                Gdx.files.absolute("$basedir/$basemod"),
-                normalized
-            )?.let { if (it.exists()) return it }
-
+            roots.add(Gdx.files.absolute("$basedir/$basemod"))
             // todo: check the basemod pak files
+        }
+
+        for (root in roots) {
+            val resolved = if (caseInsensitive) {
+                findCaseInsensitive(root, normalized)
+            } else {
+                root.child(fileName)
+            }
+            if (resolved != null && resolved.exists()) return resolved
         }
         return null
     }
