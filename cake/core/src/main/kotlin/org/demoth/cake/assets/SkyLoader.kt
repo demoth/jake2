@@ -1,31 +1,57 @@
 package org.demoth.cake.assets
 
+import com.badlogic.gdx.assets.AssetDescriptor
+import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.FileHandleResolver
+import com.badlogic.gdx.assets.loaders.SynchronousAssetLoader
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.g3d.Material
-import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.utils.Array
 
 /**
- * This class is responsible for building the skybox geometry and assigning proper textures
+ * Loads a skybox model and declares all six sky textures as dependencies.
  */
-class SkyLoader(private val assetManager: AssetManager) {
+class SkyLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Model, SkyLoader.Parameters>(resolver) {
 
-    private val parts = listOf("rt", "bk", "lf", "ft", "up", "dn")
-    private val s = 2048f // size
+    class Parameters : AssetLoaderParameters<Model>() {
+        var skyName: String? = null
+    }
 
-    /**
-     * [name] the name of the unit or set of the skybox images, usually ends with an underscore
-     */
-    fun load(name: String): ModelInstance {
-        val textures = parts.associateWith { part ->
-            assetManager.getLoaded<Texture>("env/$name$part.pcx")
+    override fun load(
+        manager: AssetManager,
+        fileName: String,
+        file: FileHandle,
+        parameter: Parameters?
+    ): Model {
+        val skyName = requireSkyName(parameter)
+        val textures = PARTS.associateWith { part ->
+            manager.get(toTexturePath(skyName, part), Texture::class.java)
         }
+        return buildSkyModel(textures)
+    }
 
+    override fun getDependencies(
+        fileName: String,
+        file: FileHandle?,
+        parameter: Parameters?
+    ): Array<AssetDescriptor<*>> {
+        val skyName = requireSkyName(parameter)
+        return Array<AssetDescriptor<*>>(PARTS.size).apply {
+            PARTS.forEach { part ->
+                add(AssetDescriptor(toTexturePath(skyName, part), Texture::class.java))
+            }
+        }
+    }
+
+    private fun buildSkyModel(textures: Map<String, Texture>): Model {
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
 
@@ -78,9 +104,23 @@ class SkyLoader(private val assetManager: AssetManager) {
             0f, 0f, 1f
         )
         val model = modelBuilder.end()
-        return ModelInstance(model)
+        return model
     }
 
+    private fun requireSkyName(parameter: Parameters?): String {
+        return parameter?.skyName?.takeIf { it.isNotBlank() }
+            ?: throw IllegalArgumentException("SkyLoader requires a non-empty skyName parameter")
+    }
+
+    companion object {
+        private val PARTS = listOf("rt", "bk", "lf", "ft", "up", "dn")
+        private const val s = 2048f
+        private const val SKY_ASSET_PATH = "sky/skybox.sky"
+
+        fun assetPath(): String = SKY_ASSET_PATH
+
+        private fun toTexturePath(skyName: String, part: String): String = "env/$skyName$part.pcx"
+    }
 }
 
 private fun ModelBuilder.skyPart(
