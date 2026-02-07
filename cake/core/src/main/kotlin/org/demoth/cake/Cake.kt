@@ -37,6 +37,8 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.assets.BspLoader
 import org.demoth.cake.assets.BspMapAsset
+import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.SkyLoader
@@ -101,6 +103,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
         setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
+        setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 
     }

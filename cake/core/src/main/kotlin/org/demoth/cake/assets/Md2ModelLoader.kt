@@ -1,10 +1,20 @@
 package org.demoth.cake.assets
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetDescriptor
 import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
+import com.badlogic.gdx.assets.loaders.FileHandleResolver
+import com.badlogic.gdx.assets.loaders.SynchronousAssetLoader
+import com.badlogic.gdx.files.FileHandle
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.GL30
+import com.badlogic.gdx.graphics.Mesh
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.TextureData
+import com.badlogic.gdx.graphics.VertexAttribute
+import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
@@ -12,10 +22,11 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute.Diffuse
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.utils.Array
+import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.filesystem.Md2Model
 import jake2.qcommon.filesystem.Md2VertexData
-import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.buildVertexData
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -23,60 +34,128 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.jvm.java
 
-class Md2ModelLoader(
-    private val locator: ResourceLocator,
-    private val assetManager: AssetManager
-) {
+class Md2Asset(
+    val model: Model,
+    val frames: Int,
+    val skins: List<Texture>,
+) : Disposable {
+    override fun dispose() {
+        model.dispose()
+    }
+}
 
-    fun loadMd2ModelData(
-        modelName: String,
-        playerSkin: String? = null,
-        skinIndex: Int,
-    ): Md2ModelData? {
-        val modelPath = locator.findModelPath(modelName) ?: return null
-        val md2Model: Md2Model = readMd2Model(assetManager.getLoaded(modelPath))
+class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
 
-        val embeddedSkins = md2Model.skinNames.map {
-            val skinPath = requireNotNull(locator.findSkinPath(it)) { "Missing skin: $it" }
-            assetManager.getLoaded<ByteArray>(skinPath)
+    class Parameters : AssetLoaderParameters<Md2Asset>() {
+        var externalSkinPath: String? = null
+        var skinIndex: Int = 0
+        var loadAllEmbeddedSkins: Boolean = true
+    }
+
+    override fun getDependencies(
+        fileName: String,
+        file: FileHandle?,
+        parameter: Parameters?
+    ): Array<AssetDescriptor<*>>? {
+        if (file == null) {
+            return null
         }
-        val modelSkin: ByteArray = if (embeddedSkins.isNotEmpty()) {
-            embeddedSkins[skinIndex]
-        } else {
-            if (playerSkin != null) {
-                val skinPath = requireNotNull(locator.findSkinPath(playerSkin)) { "Missing skin: $playerSkin" }
-                assetManager.getLoaded(skinPath)
-            } else throw IllegalStateException("No skin found in the model, no player skin provided")
+        val md2 = readMd2Model(file.readBytes())
+        val skinPaths = resolveDependencySkinPaths(md2, parameter)
+        if (skinPaths.isEmpty()) {
+            return null
+        }
+        return Array<AssetDescriptor<*>>(skinPaths.size).apply {
+            skinPaths.forEach { add(AssetDescriptor(it, Texture::class.java)) }
+        }
+    }
+
+    override fun load(
+        manager: AssetManager,
+        fileName: String,
+        file: FileHandle,
+        parameter: Parameters?
+    ): Md2Asset {
+        val md2 = readMd2Model(file.readBytes())
+
+        val selectedSkinPath = resolveSelectedSkinPath(md2, parameter)
+        val dependencySkinPaths = resolveDependencySkinPaths(md2, parameter)
+        val texturesByPath = dependencySkinPaths.associateWith { path ->
+            manager.get(path, Texture::class.java)
         }
 
-        val diffuse = Texture(CakeTextureData(fromPCX(PCX(modelSkin))))
+        val skinTexturesByIndex = when {
+            parameter?.externalSkinPath?.isNullOrBlank() == false -> {
+                listOf(texturesByPath.getValue(selectedSkinPath))
+            }
+            else -> {
+                md2.skinNames.map { skinPath ->
+                    val texture = texturesByPath[skinPath]
+                    check(texture != null) { "Missing dependency texture for MD2 skin: $skinPath" }
+                    texture
+                }
+            }
+        }
+        val diffuse = texturesByPath.getValue(selectedSkinPath)
 
-        val vertexData = buildVertexData(md2Model.glCommands, md2Model.frames)
-
+        val vertexData = buildVertexData(md2.glCommands, md2.frames)
         val mesh = Mesh(
             true,
             vertexData.vertexAttributes.size,
             vertexData.indices.size,
             VertexAttributes(
                 VertexAttribute(Generic, 1, "a_vat_index"),
-                TexCoords(1) // in future, normals can also be added here
+                TexCoords(1)
             )
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
-        return Md2ModelData(
-            mesh = mesh,
-            material = createMd2Material(diffuse, createVat(vertexData)),
-            frames = md2Model.frames.size // :thinking: used only in the model viewer, otherwise we could have return a `Model` here
+        val material = createMd2Material(diffuse, createVat(vertexData))
+        return Md2Asset(
+            model = createModel(mesh, material),
+            frames = md2.frames.size,
+            skins = skinTexturesByIndex,
         )
     }
 
-    private fun createMd2Material(diffuse: Texture, vat: Texture): Material {
-        // need to call static init explicitly?
-        // without it, I get the error about an invalid attribute type from 'register'
-        AnimationTextureAttribute.init()
+    private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
+        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
+        if (external != null) {
+            return listOf(external)
+        }
+        if (md2.skinNames.isEmpty()) {
+            return emptyList()
+        }
+        val embedded = md2.skinNames
+        return if (parameter?.loadAllEmbeddedSkins == false) {
+            listOf(embedded[normalizedSkinIndex(parameter.skinIndex, embedded.size)])
+        } else {
+            embedded.distinct()
+        }
+    }
 
-        // create the material with diffuse and an "animation" attribute
+    private fun resolveSelectedSkinPath(md2: Md2Model, parameter: Parameters?): String {
+        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
+        if (external != null) {
+            return external
+        }
+
+        check(md2.skinNames.isNotEmpty()) {
+            "No embedded skin found in model and no external skin was provided"
+        }
+        val selectedIndex = normalizedSkinIndex(parameter?.skinIndex ?: 0, md2.skinNames.size)
+        return md2.skinNames[selectedIndex]
+    }
+
+    private fun normalizedSkinIndex(index: Int, size: Int): Int {
+        check(size > 0) { "Cannot normalize skin index for empty skin set" }
+        val modulo = index % size
+        return if (modulo < 0) modulo + size else modulo
+    }
+
+    private fun createMd2Material(diffuse: Texture, vat: Texture): Material {
+        // required for registering the custom VAT texture attribute
+        AnimationTextureAttribute.init()
         return Material(
             TextureAttribute(Diffuse, diffuse),
             AnimationTextureAttribute(vat)
@@ -119,8 +198,6 @@ inline fun <reified T> AssetManager.getLoaded(path: String, parameter: AssetLoad
     return get(path, T::class.java)
 }
 
-class Md2ModelData(val mesh: Mesh, val material: Material, val frames: Int)
-
 // Helper class to create TextureData from a vertex position data buffer
 private class CustomTextureData(
     private val width: Int,
@@ -133,7 +210,6 @@ private class CustomTextureData(
     private var isPrepared = false
 
     override fun getType(): TextureData.TextureDataType {
-        // means it doesn't rely on the pixmap format
         return TextureData.TextureDataType.Custom
     }
 
@@ -154,20 +230,19 @@ private class CustomTextureData(
         return false
     }
 
-
     override fun consumeCustomData(target: Int) {
         if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
 
         Gdx.gl.glTexImage2D(
-            /* target = */ target,
-            /* level = */ 0,
-            /* internalformat = */ glInternalFormat,
-            /* width = */ width,
-            /* height = */ height,
-            /* border = */ 0,
-            /* format = */ glFormat,
-            /* type = */ glType,
-            /* pixels = */ buffer
+            target,
+            0,
+            glInternalFormat,
+            width,
+            height,
+            0,
+            glFormat,
+            glType,
+            buffer
         )
     }
 
@@ -188,14 +263,14 @@ private class CustomTextureData(
     }
 
     override fun isManaged(): Boolean {
-        return true // LibGDX will manage this texture
+        return true
     }
 }
 
 fun createModel(mesh: Mesh, material: Material): Model {
     return ModelBuilder().apply {
         begin()
-        part("part1", mesh, GL_TRIANGLES, material)
+        part("part1", mesh, GL20.GL_TRIANGLES, material)
     }.end()
 }
 

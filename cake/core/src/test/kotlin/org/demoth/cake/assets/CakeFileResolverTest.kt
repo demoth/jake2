@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -66,6 +67,15 @@ class CakeFileResolverTest {
 
         assertNotNull(resolved)
         assertTrue(resolved!!.exists())
+    }
+
+    @Test
+    fun missingAssetReturnsNullWithoutThrowing() {
+        val resolver = CakeFileResolver()
+
+        val resolved = resolver.resolve("models/missing/file.md2")
+
+        assertNull(resolved)
     }
 
     private fun createFile(relativePath: String): File {

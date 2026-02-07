@@ -27,12 +27,12 @@ import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.GameResourceLocator
+import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2ModelLoader
+import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
-import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
@@ -69,6 +69,7 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
+    private val loadedMd2AssetPaths: MutableSet<String> = mutableSetOf()
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -150,16 +151,16 @@ class Game3dScreen(
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
     private fun initializeMd2Shader(): Md2Shader {
-        val md2 = Md2ModelLoader(locator, assetManager)
-            .loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
-        val model = createModel(md2.mesh, md2.material)
-        val md2Instance = ModelInstance(model)
+        val md2Path = "models/monsters/berserk/tris.md2"
+        val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
+        loadedMd2AssetPaths += md2Path
+        val md2Instance = ModelInstance(md2Asset.model)
 
         md2Instance.userData = Md2CustomData(
             0,
-            if (md2.frames > 1) 1 else 0,
+            if (md2Asset.frames > 1) 1 else 0,
             0f,
-            md2.frames
+            md2Asset.frames
         )
 
         val tempRenderable = Renderable()
@@ -279,6 +280,12 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
+        loadedMd2AssetPaths.forEach { md2Path ->
+            if (assetManager.isLoaded(md2Path, Md2Asset::class.java)) {
+                assetManager.unload(md2Path)
+            }
+        }
+        loadedMd2AssetPaths.clear()
         renderState.dispose() // fixme: what else should be disposed?
         // todo: implement a clear and reusable approach for such resources that need to be disposed
         gameConfig.getSkyname()?.let { skyName ->
@@ -329,9 +336,14 @@ class Game3dScreen(
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    val md2 = Md2ModelLoader(locator, assetManager).loadMd2ModelData(it, skinIndex = 0)
-                    if (md2 != null) {
-                        config.resource = createModel(md2.mesh, md2.material)
+                    if (assetManager.fileHandleResolver.resolve(it) != null) {
+                        val md2Asset = assetManager.getLoaded<Md2Asset>(
+                            it,
+                            Md2Loader.Parameters().apply { skinIndex = 0 }
+                        )
+                        loadedMd2AssetPaths += it
+                        config.resource = md2Asset.model
+                        config.managedByAssetManager = true
                     } else {
                         println("Failed to load MD2 model data for config ${config.value}")
                     }
@@ -340,12 +352,16 @@ class Game3dScreen(
         }
 
         // temporary: load one fixed player model
-        val playerModelData = Md2ModelLoader(locator, assetManager).loadMd2ModelData(
-            modelName = playerModelPath,
-            playerSkin = playerSkinPath,
-            skinIndex = 0,
-        )!!
-        renderState.playerModel = createModel(playerModelData.mesh, playerModelData.material)
+        val playerMd2Asset = assetManager.getLoaded<Md2Asset>(
+            playerModelPath,
+            Md2Loader.Parameters().apply {
+                externalSkinPath = playerSkinPath
+                skinIndex = 0
+                loadAllEmbeddedSkins = false
+            }
+        )
+        loadedMd2AssetPaths += playerModelPath
+        renderState.playerModel = playerMd2Asset.model
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {

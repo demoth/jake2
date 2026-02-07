@@ -17,7 +17,8 @@ data class Md2CustomData(
     var frame1: Int,
     var frame2: Int,
     var interpolation: Float,
-    val frames: Int
+    val frames: Int,
+    var skinIndex: Int = 0
 )
 
 /**

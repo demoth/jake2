@@ -15,6 +15,7 @@ data class RenderState(
     var playerModel: Model? = null
 ) {
     fun dispose() {
-        playerModel?.dispose()
+        playerModel = null // not required anymore
+        gun = null
     }
 }
