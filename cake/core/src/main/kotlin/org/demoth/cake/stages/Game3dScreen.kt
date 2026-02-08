@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -25,13 +24,14 @@ import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
-import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.GameResourceLocator
 import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
+import org.demoth.cake.assets.Md2ModelLoader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
@@ -52,6 +52,7 @@ class Game3dScreen(
 
     private val modelBatch: ModelBatch
     private val collisionModel = CM()
+    private val locator = GameResourceLocator(System.getProperty("basedir"))
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -67,7 +68,6 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
-    private val loadedMd2AssetPaths: MutableSet<String> = mutableSetOf()
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -149,16 +149,16 @@ class Game3dScreen(
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
     private fun initializeMd2Shader(): Md2Shader {
-        val md2Path = "models/monsters/berserk/tris.md2"
-        val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
-        loadedMd2AssetPaths += md2Path
-        val md2Instance = ModelInstance(md2Asset.model)
+        val md2 = Md2ModelLoader(locator, assetManager)
+            .loadMd2ModelData("models/monsters/berserk/tris.md2", null, 0)!!
+        val model = createModel(md2.mesh, md2.material)
+        val md2Instance = ModelInstance(model)
 
         md2Instance.userData = Md2CustomData(
             0,
-            if (md2Asset.frames > 1) 1 else 0,
+            if (md2.frames > 1) 1 else 0,
             0f,
-            md2Asset.frames
+            md2.frames
         )
 
         val tempRenderable = Renderable()
@@ -278,24 +278,8 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
-        loadedMd2AssetPaths.forEach { md2Path ->
-            if (assetManager.isLoaded(md2Path, Md2Asset::class.java)) {
-                assetManager.unload(md2Path)
-            }
-        }
-        loadedMd2AssetPaths.clear()
-        // todo: implement a clear and reusable approach for such resources that need to be disposed
-        gameConfig.getSkyname()?.let { skyName ->
-            val skyAssetPath = SkyLoader.assetPath(skyName)
-            if (assetManager.isLoaded(skyAssetPath, Model::class.java)) {
-                assetManager.unload(skyAssetPath)
-            }
-        }
-        gameConfig.getMapName()?.let { mapAssetPath ->
-            if (assetManager.isLoaded(mapAssetPath, BspMapAsset::class.java)) {
-                assetManager.unload(mapAssetPath)
-            }
-        }
+        skyBox?.model?.dispose()
+        renderState.dispose() // fixme: what else should be disposed? move skybox into the renderState?
     }
 
     /**
@@ -307,8 +291,11 @@ class Game3dScreen(
 
         // load the level
         val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
-        val bspMap = assetManager.getLoaded<BspMapAsset>(mapName)
-        val brushModels = bspMap.models
+        val mapPath = "${System.getProperty("basedir")}/$gameName/$mapName"
+        assetManager.load(mapPath, ByteArray::class.java)
+        assetManager.finishLoadingAsset<ByteArray>(mapPath)
+        val bsp = assetManager.get(mapPath, ByteArray::class.java)
+        val brushModels = BspLoader(locator, assetManager).loadBspModels(bsp)
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
@@ -317,7 +304,6 @@ class Game3dScreen(
             if (index != 0)
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
-            configString.managedByAssetManager = true
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
@@ -325,7 +311,7 @@ class Game3dScreen(
             modelInstance = ModelInstance(brushModels.first())
         }
 
-        collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
+        collisionModel.CM_LoadMapFile(bsp, mapName, IntArray(1) {0})
 
         // load md2 models
         // index of md2 models in the config string
@@ -333,14 +319,9 @@ class Game3dScreen(
         for (i in startIndex .. MAX_MODELS) {
             gameConfig[i]?.let { config ->
                 config.value.let {
-                    if (assetManager.fileHandleResolver.resolve(it) != null) {
-                        val md2Asset = assetManager.getLoaded<Md2Asset>(
-                            it,
-                            Md2Loader.Parameters(skinIndex = 0)
-                        )
-                        loadedMd2AssetPaths += it
-                        config.resource = md2Asset.model
-                        config.managedByAssetManager = true
+                    val md2 = Md2ModelLoader(locator, assetManager).loadMd2ModelData(it, skinIndex = 0)
+                    if (md2 != null) {
+                        config.resource = createModel(md2.mesh, md2.material)
                     } else {
                         println("Failed to load MD2 model data for config ${config.value}")
                     }
@@ -349,16 +330,12 @@ class Game3dScreen(
         }
 
         // temporary: load one fixed player model
-        val playerMd2Asset = assetManager.getLoaded<Md2Asset>(
-            playerModelPath,
-            Md2Loader.Parameters(
-                externalSkinPath = playerSkinPath,
-                skinIndex = 0,
-                loadAllEmbeddedSkins = false,
-            )
-        )
-        loadedMd2AssetPaths += playerModelPath
-        renderState.playerModel = playerMd2Asset.model
+        val playerModelData = Md2ModelLoader(locator, assetManager).loadMd2ModelData(
+            modelName = playerModelPath,
+            playerSkin = playerSkinPath,
+            skinIndex = 0,
+        )!!
+        renderState.playerModel = createModel(playerModelData.mesh, playerModelData.material)
 
         gameConfig.getSounds().forEach { config ->
             if (config != null) {
@@ -378,8 +355,7 @@ class Game3dScreen(
         }
 
         gameConfig.getSkyname()?.let { skyName ->
-            val skyModel = assetManager.getLoaded<Model>(SkyLoader.assetPath(skyName))
-            skyBox = ModelInstance(skyModel)
+            skyBox = SkyLoader(assetManager).load(skyName)
         }
 
         // these are expected to be loaded
@@ -528,6 +504,8 @@ class Game3dScreen(
         levelString = msg.levelString
         renderState.playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
+
+        locator.gameName = gameName
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {

@@ -36,7 +36,6 @@ import jake2.qcommon.network.messages.server.PrintCenterMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.util.Date;
@@ -453,8 +452,8 @@ public class GameImportsImpl implements GameImports {
             if (ClientStates.CS_FREE == cl.state)
                 continue;
 
-            Com.Printf("%3i ", new Vargs().add(i));
-            Com.Printf("%5i ", new Vargs().add(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]));
+            Com.Printf("%3i ", i);
+            Com.Printf("%5i ", cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]);
 
             if (cl.state == ClientStates.CS_CONNECTED)
                 Com.Printf("CNCT ");
@@ -462,16 +461,16 @@ public class GameImportsImpl implements GameImports {
                 Com.Printf("ZMBI ");
             else {
                 int ping = cl.ping < 9999 ? cl.ping : 9999;
-                Com.Printf("%4i ", new Vargs().add(ping));
+                Com.Printf("%4i ", ping);
             }
 
-            Com.Printf("%s", new Vargs().add(cl.name));
+            Com.Printf("%s", cl.name);
             int l = 16 - cl.name.length();
             int j;
             for (j = 0; j < l; j++)
                 Com.Printf(" ");
 
-            Com.Printf("%7i ", new Vargs().add(realtime - cl.lastmessage));
+            Com.Printf("%7i ", realtime - cl.lastmessage);
 
             String s = cl.netchan.remote_address.toString();
             Com.Printf(s);
@@ -479,7 +478,7 @@ public class GameImportsImpl implements GameImports {
             for (j = 0; j < l; j++)
                 Com.Printf(" ");
 
-            Com.Printf("%5i", new Vargs().add(cl.netchan.qport));
+            Com.Printf("%5i", cl.netchan.qport);
 
             Com.Printf("\n");
             i++;

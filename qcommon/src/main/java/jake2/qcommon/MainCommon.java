@@ -1,7 +1,5 @@
 package jake2.qcommon;
 
-import jake2.qcommon.util.Vargs;
-
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -11,7 +9,7 @@ import java.io.IOException;
 public class MainCommon {
     public static void debugLogTraces() {
         if (Globals.showtrace.value != 0.0f) {
-            Com.Printf("%4i traces  %4i points\n", new Vargs(2).add(Globals.c_traces).add(Globals.c_pointcontents));
+            Com.Printf("%4i traces  %4i points\n", Globals.c_traces, Globals.c_pointcontents);
             Globals.c_traces= 0;
             Globals.c_brush_traces= 0;
             Globals.c_pointcontents= 0;

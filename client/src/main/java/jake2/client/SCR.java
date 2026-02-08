@@ -36,7 +36,6 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.sys.Timer;
-import jake2.qcommon.util.Vargs;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
@@ -627,8 +626,7 @@ public final class SCR extends Globals {
 
         stop = Timer.Milliseconds();
         time = (stop - start) / 1000.0f;
-        Com.Printf("%f seconds (%f fps)\n", new Vargs(2).add(time).add(
-                128.0f / time));
+        Com.Printf("%f seconds (%f fps)\n", time, 128.0f / time);
     }
 
     static void DirtyScreen() {
@@ -991,8 +989,7 @@ public final class SCR extends Globals {
                     ping = 999;
 
                 // sprintf(block, "%3d %3d %-12.12s", score, ping, ci->name);
-                String block = Com.sprintf("%3d %3d %-12.12s", new Vargs(3)
-                        .add(score).add(ping).add(ci.name));
+                String block = Com.sprintf("%3d %3d %-12.12s", score, ping, ci.name);
 
                 if (value == ClientGlobals.cl.playernum)
                     Console.DrawAltString(x, y, block);

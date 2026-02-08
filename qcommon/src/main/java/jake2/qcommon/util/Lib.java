@@ -51,7 +51,7 @@ public class Lib {
 	
 	/** Converts a vector to a beatiful string. */
 	public static String vtofsbeaty(float[] v) {
-		return Com.sprintf("%8.2f %8.2f %8.2f", new Vargs().add(v[0]).add(v[1]).add(v[2]));
+		return Com.sprintf("%8.2f %8.2f %8.2f", v[0], v[1], v[2]);
 	}
 	
 	/** Like in  libc. */

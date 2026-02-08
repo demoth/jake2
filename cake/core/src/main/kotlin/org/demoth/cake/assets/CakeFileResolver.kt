@@ -3,7 +3,6 @@ package org.demoth.cake.assets
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.files.FileHandle
-import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 
 
@@ -38,82 +37,44 @@ class CakeFileResolver(
      *      4.1 basedir/basemod/
      *      4.2 basedir/basemod/other_pak_files
      *      4.3 basedir/basemod/pak\d+.pak files
-     *
-     *  supports case-insensitive lookup if the exact match is not found
      */
     override fun resolve(fileName: String): FileHandle? {
-        // first try to resolve the file matching the case
-        val file = resolveInternal(fileName, caseInsensitive = false)
+        val file = resolveInternal(fileName)
         if (file != null) return file
-        // fallback to case-insensitive lookup using libgdx FileHandle API
-        val caseInsensitive = resolveInternal(fileName, caseInsensitive = true)
-        if (caseInsensitive != null) {
-            Com.Warn("Resource $fileName was found with different case")
-            return caseInsensitive
+        // maybe add a cvar switch to disable/enable lowercase file resolving?
+        val lowercase = resolveInternal(fileName.lowercase())
+        if (lowercase != null) {
+            Com.Warn("Resource $fileName was found with lowercase")
+            return lowercase
         }
         Com.Warn("Resource $fileName was not found")
         return null
     }
 
-    private fun resolveInternal(fileName: String, caseInsensitive: Boolean): FileHandle? {
-
-        // SkyLoader uses synthetic keys like sky/<name>.sky; no physical file is required.
-        val normalized = fileName.replace('\\', '/').lowercase()
-        if (normalized.startsWith("sky/") && normalized.endsWith(".sky")) {
-            return Gdx.files.internal("") // return an empty file handle
-        }
-
-        val roots = mutableListOf<FileHandle>()
+    private fun resolveInternal(fileName: String): FileHandle? {
         // bootstrap assets - not overridable
-        roots.add(Gdx.files.classpath(""))
+        var file = Gdx.files.classpath(fileName)
+        if (file.exists()) return file
+
         // engine "assets" folder
-        roots.add(Gdx.files.internal(""))
+        file = Gdx.files.internal(fileName)
+        if (file.exists()) return file
 
         if (basedir != null) {
             // check mod override
             if (gamemod != null) {
-                roots.add(Gdx.files.absolute("$basedir/$gamemod"))
+                file = Gdx.files.absolute("$basedir/$gamemod/$fileName")
+                if (file.exists()) return file
+
                 // todo: check the game mod pak files
             }
             // fallback to the base mod
-            roots.add(Gdx.files.absolute("$basedir/$basemod"))
+            file = Gdx.files.absolute("$basedir/$basemod/$fileName")
+            if (file.exists()) return file
+
             // todo: check the basemod pak files
         }
-
-        for (root in roots) {
-            val resolved = if (caseInsensitive) {
-                findCaseInsensitive(root, normalized)
-            } else {
-                root.child(fileName)
-            }
-            if (resolved != null && resolved.exists()) return resolved
-        }
         return null
-    }
 
-    /**
-     * Resolves a relative path under [root] by matching each path segment case-insensitively.
-     * This exists to handle Quake2 assets whose on-disk casing does not match the requested path.
-     */
-    private fun findCaseInsensitive(root: FileHandle, relativePath: String): FileHandle? {
-        val parts = relativePath.split('/').filter { it.isNotEmpty() }
-        if (parts.isEmpty()) return null
-
-        var current = root
-        for ((index, part) in parts.withIndex()) {
-            if (!current.exists()) return null
-            if (index < parts.lastIndex && !current.isDirectory) return null
-
-            val entries = try {
-                current.list()
-            } catch (_: GdxRuntimeException) {
-                // Some backends (classpath root) do not support listing; skip this root.
-                return null
-            }
-            val next = entries.firstOrNull { it.name().equals(part, ignoreCase = true) }
-                ?: return null
-            current = next
-        }
-        return current
     }
 }

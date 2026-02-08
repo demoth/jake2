@@ -32,7 +32,6 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Vargs;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
@@ -341,8 +340,8 @@ public abstract class Image extends Main {
 			Com.Printf(
 				Defines.PRINT_ALL,
 				" %3i %3i %s: %s\n",
-				new Vargs(4).add(image.upload_width).add(image.upload_height).add(palstrings[(image.paletted) ? 1 : 0]).add(
-					image.name));
+				image.upload_width, image.upload_height, palstrings[(image.paletted) ? 1 : 0],
+					image.name);
 		}
 		Com.Printf(Defines.PRINT_ALL, "Total texel count (not counting mipmaps): " + texels + '\n');
 	}

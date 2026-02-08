@@ -8,9 +8,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.SoundLoader
 import com.badlogic.gdx.audio.Sound
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -35,13 +33,8 @@ import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.CakeFileResolver
-import org.demoth.cake.assets.BspLoader
-import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
-import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
@@ -102,9 +95,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Sound::class.java, SoundLoader(fileResolver))
         setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
-        setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
-        setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
-        setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 
     }
 
@@ -117,24 +107,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun create() {
-        ShaderProgram.prependVertexCode = """
-            #version 150
-            #define GLSL3
-            #define attribute in
-            #define varying out
-            #define texture2D texture
-            #define textureCube texture
-        """.trimIndent() + "\n"
-        ShaderProgram.prependFragmentCode = """
-            #version 150
-            #define GLSL3
-            #define varying in
-            #define texture2D texture
-            #define textureCube texture
-            out vec4 fragColor;
-            #define gl_FragColor fragColor
-        """.trimIndent() + "\n"
-
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
 

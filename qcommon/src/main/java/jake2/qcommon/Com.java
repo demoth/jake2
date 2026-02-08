@@ -28,7 +28,6 @@ package jake2.qcommon;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.PrintfFormat;
-import jake2.qcommon.util.Vargs;
 
 /**
  * Common print related functions including redirection
@@ -41,14 +40,14 @@ public final class Com
     private static String _debugContext = "";
     
 	public static void Printf(int print_level, String fmt) {
-		Printf(print_level, fmt, null);
+		Printf(print_level, fmt, (Object[]) null);
 	}
 
-	public static void Printf(int print_level, String fmt, Vargs vargs) {
+	public static void Printf(int print_level, String fmt, Object... args) {
 		if (print_level == Defines.PRINT_ALL)
-			Printf(fmt, vargs);
+			Printf(fmt, args);
 		else
-			DPrintf(fmt, vargs);
+			DPrintf(fmt, args);
 	}
 
 	public interface RD_Flusher {
@@ -235,10 +234,10 @@ public final class Com
 
 	public static void Error(int code, String fmt) throws longjmpException
 	{
-		Error(code, fmt, null);
+		Error(code, fmt, (Object[]) null);
 	}
 
-	public static void Error(int code, String fmt, Vargs vargs) throws longjmpException
+	public static void Error(int code, String fmt, Object... args) throws longjmpException
 	{
 		if (recursive)
 		{
@@ -246,7 +245,7 @@ public final class Com
 		}
 		recursive= true;
 
-		msg= sprintf(fmt, vargs);
+		msg= sprintf(fmt, args);
 
 		if (code == Defines.ERR_DISCONNECT)
 		{
@@ -271,36 +270,24 @@ public final class Com
 		Sys.Error(msg);
 	}
 
-	public static void DPrintf(String fmt)
-	{
-	    _debugContext = debugContext;
-		DPrintf(fmt, null);
-		_debugContext = "";
-	}
-	
-	public static void dprintln(String fmt)
-	{
-		DPrintf(_debugContext + fmt + "\n", null);
-	}
-
-	public static void Printf(String fmt)
-	{
-		Printf(_debugContext + fmt, null);
-	}
-
-	public static void DPrintf(String fmt, Vargs vargs)
+	public static void DPrintf(String fmt, Object... args)
 	{
 		if (Globals.developer == null || Globals.developer.value == 0)
 			return; // don't confuse non-developers with techie stuff...
 		_debugContext = debugContext;
-		Printf(fmt, vargs);
+		Printf(fmt, args);
 		_debugContext="";
 	}
 
-	/** Prints out messages, which can also be redirected to a remote client. */
-	public static void Printf(String fmt, Vargs vargs)
+	public static void dprintln(String fmt)
 	{
-		String msg= sprintf(_debugContext + fmt, vargs);
+		DPrintf(_debugContext + fmt + "\n");
+	}
+
+	/** Prints out messages, which can also be redirected to a remote client. */
+	public static void Printf(String fmt, Object... args)
+	{
+		String msg= sprintf(_debugContext + fmt, args);
 		if (rd_flusher != null)
 		{
 			if ((msg.length() + rd_buffer.length()) > (rd_buffersize - 1))
@@ -329,12 +316,11 @@ public final class Com
         Printf("Warn: " + fmt + "\n");
     }
 
-	@Deprecated
-	public static String sprintf(String fmt, Vargs vargs) {
-		if (vargs == null || vargs.size() == 0) {
+	public static String sprintf(String fmt, Object... args) {
+		if (args == null || args.length == 0) {
 			return fmt;
 		} else {
-			return new PrintfFormat(fmt).sprintf(vargs.toArray());
+			return new PrintfFormat(fmt).sprintf(args);
 		}
 	}
 

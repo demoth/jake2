@@ -1,0 +1,45 @@
+[versions]
+kotlin = "2.1.0"
+kotlinxCoroutines = "1.9.0"
+gdx = "1.12.1"
+gdxControllers = "2.2.3"
+ktx = "1.12.1-rc1"
+commonsCsv = "1.9.0"
+junit = "4.12"
+logback = "1.4.14"
+badassRuntime = "1.13.0"
+graalvmNative = "0.9.28"
+graalHelper = "2.0.1"
+
+[libraries]
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+gdx = { group = "com.badlogicgames.gdx", name = "gdx", version.ref = "gdx" }
+gdx-freetype = { group = "com.badlogicgames.gdx", name = "gdx-freetype", version.ref = "gdx" }
+gdx-backend-lwjgl3 = { group = "com.badlogicgames.gdx", name = "gdx-backend-lwjgl3", version.ref = "gdx" }
+gdx-platform = { group = "com.badlogicgames.gdx", name = "gdx-platform", version.ref = "gdx" }
+gdx-freetype-platform = { group = "com.badlogicgames.gdx", name = "gdx-freetype-platform", version.ref = "gdx" }
+gdx-controllers-core = { group = "com.badlogicgames.gdx-controllers", name = "gdx-controllers-core", version.ref = "gdxControllers" }
+gdx-controllers-desktop = { group = "com.badlogicgames.gdx-controllers", name = "gdx-controllers-desktop", version.ref = "gdxControllers" }
+ktx-actors = { group = "io.github.libktx", name = "ktx-actors", version.ref = "ktx" }
+ktx-app = { group = "io.github.libktx", name = "ktx-app", version.ref = "ktx" }
+ktx-assets-async = { group = "io.github.libktx", name = "ktx-assets-async", version.ref = "ktx" }
+ktx-assets = { group = "io.github.libktx", name = "ktx-assets", version.ref = "ktx" }
+ktx-async = { group = "io.github.libktx", name = "ktx-async", version.ref = "ktx" }
+ktx-collections = { group = "io.github.libktx", name = "ktx-collections", version.ref = "ktx" }
+ktx-freetype-async = { group = "io.github.libktx", name = "ktx-freetype-async", version.ref = "ktx" }
+ktx-freetype = { group = "io.github.libktx", name = "ktx-freetype", version.ref = "ktx" }
+ktx-graphics = { group = "io.github.libktx", name = "ktx-graphics", version.ref = "ktx" }
+ktx-log = { group = "io.github.libktx", name = "ktx-log", version.ref = "ktx" }
+ktx-scene2d = { group = "io.github.libktx", name = "ktx-scene2d", version.ref = "ktx" }
+commons-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commonsCsv" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+gdx-svmhelper-backend-lwjgl3 = { group = "io.github.berstanio", name = "gdx-svmhelper-backend-lwjgl3", version.ref = "graalHelper" }
+gdx-svmhelper-extension-freetype = { group = "io.github.berstanio", name = "gdx-svmhelper-extension-freetype", version.ref = "graalHelper" }
+gdx-svmhelper-annotations = { group = "io.github.berstanio", name = "gdx-svmhelper-annotations", version.ref = "graalHelper" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+badass-runtime = { id = "org.beryx.runtime", version.ref = "badassRuntime" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvmNative" }

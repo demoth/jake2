@@ -1,0 +1,20 @@
+dependencies {
+    api(libs.gdx.controllers.core)
+    api(libs.gdx.freetype)
+    api(libs.gdx)
+    // api(libs.gdx.scene2d.ui)
+    api(libs.ktx.actors)
+    api(libs.ktx.app)
+    api(libs.ktx.assets.async)
+    api(libs.ktx.assets)
+    api(libs.ktx.async)
+    api(libs.ktx.collections)
+    api(libs.ktx.freetype.async)
+    api(libs.ktx.freetype)
+    api(libs.ktx.graphics)
+    api(libs.ktx.log)
+    api(libs.ktx.scene2d)
+    api(libs.kotlinx.coroutines.core)
+
+    implementation(project(":qcommon"))
+}

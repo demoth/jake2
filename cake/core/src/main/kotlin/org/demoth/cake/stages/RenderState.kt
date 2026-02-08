@@ -13,4 +13,8 @@ data class RenderState(
     var gun: ClientEntity? = null,
     var levelModel: ClientEntity? = null,
     var playerModel: Model? = null
-)
+) {
+    fun dispose() {
+        playerModel?.dispose()
+    }
+}

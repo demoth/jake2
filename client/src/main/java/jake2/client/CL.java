@@ -43,7 +43,6 @@ import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -670,9 +669,9 @@ public final class CL {
             time = (int) (Timer.Milliseconds() - ClientGlobals.cl.timedemo_start);
             if (time > 0)
                 Com.Printf("%i frames, %3.1f seconds: %3.1f fps\n",
-                        new Vargs(3).add(ClientGlobals.cl.timedemo_frames).add(
-                                time / 1000.0).add(
-                                ClientGlobals.cl.timedemo_frames * 1000.0 / time));
+                        ClientGlobals.cl.timedemo_frames,
+                                time / 1000.0,
+                                ClientGlobals.cl.timedemo_frames * 1000.0 / time);
         }
 
         Math3D.VectorClear(ClientGlobals.cl.refdef.blend);
