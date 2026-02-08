@@ -9,6 +9,12 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Array
 import java.io.ObjectInputStream
 
+/**
+ * Loads Java-serialized objects via AssetManager.
+ *
+ * This loader uses Java ObjectInputStream, so it must only be used with trusted data sources.
+ * Deserialization runs in [loadAsync], with [loadSync] returning the cached result.
+ */
 class ObjectLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<Any, ObjectLoader.Parameters>(resolver) {
 
     class Parameters : AssetLoaderParameters<Any>()
@@ -30,6 +36,11 @@ class ObjectLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<Any, 
         return result
     }
 
+    /**
+     * Deserialize one object from file content.
+     *
+     * Security note: do not point this at untrusted user-controlled files.
+     */
     private fun readObjectFromFile(file: FileHandle): Any {
         return ObjectInputStream(file.read()).use { it.readObject() as Any }
     }

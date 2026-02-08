@@ -20,6 +20,12 @@ import jake2.qcommon.filesystem.Bsp
 import java.nio.ByteBuffer
 import java.util.LinkedHashSet
 
+/**
+ * Loaded BSP map data.
+ *
+ * [models] are generated GPU resources owned by this asset instance.
+ * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
+ */
 class BspMapAsset(
     val mapData: ByteArray,
     val models: List<Model>
@@ -29,8 +35,21 @@ class BspMapAsset(
     }
 }
 
+/**
+ * Loads Quake2 BSP maps into renderable libGDX models.
+ *
+ * Loader flow:
+ * 1. [getDependencies] parses BSP bytes and declares all referenced WAL textures.
+ * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
+ * 3. Faces are grouped by texture and triangulated as triangle fans.
+ *
+ * This keeps texture lifecycle in AssetManager while model lifecycle is handled by [BspMapAsset].
+ */
 class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAsset, BspLoader.Parameters>(resolver) {
 
+    /**
+     * Parameters forwarded to dependent WAL texture loads.
+     */
     class Parameters : AssetLoaderParameters<BspMapAsset>() {
         var walParameters: WalLoader.Parameters = defaultWalParameters()
     }
@@ -64,6 +83,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         }
     }
 
+    /**
+     * Builds one [Model] per BSP model and one mesh part per texture group.
+     */
     private fun buildModels(bsp: Bsp, manager: AssetManager): List<Model> {
         return bsp.models.map { model ->
             val modelBuilder = ModelBuilder()
@@ -130,6 +152,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     }
 }
 
+/**
+ * Parses BSP bytes and returns unique WAL texture dependency paths.
+ */
 internal fun collectWalTexturePaths(bspData: ByteArray): List<String> {
     val bsp = Bsp(ByteBuffer.wrap(bspData))
     val texturePaths = LinkedHashSet<String>()

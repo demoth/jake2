@@ -34,6 +34,16 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.jvm.java
 
+/**
+ * Loaded MD2 asset bundle.
+ *
+ * [model] is the renderable geometry using the VAT shader attributes.
+ * [frames] is frame count metadata used by animation code.
+ * [skins] contains resolved skin textures in MD2 skin index order when available.
+ *
+ * This allows future runtime skin switching (for example normal/injured monster skin)
+ * without replacing model geometry.
+ */
 class Md2Asset(
     val model: Model,
     val frames: Int,
@@ -44,8 +54,25 @@ class Md2Asset(
     }
 }
 
+/**
+ * Loads MD2 geometry and prepares textures required by the model material.
+ *
+ * Dependency policy:
+ * - external skin path provided -> load only that texture.
+ * - embedded skins + loadAllEmbeddedSkins=true -> preload all embedded skins.
+ * - embedded skins + loadAllEmbeddedSkins=false -> load only selected skinIndex.
+ *
+ * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
+ */
 class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
 
+    /**
+     * MD2 loading options.
+     *
+     * [externalSkinPath] overrides embedded MD2 skin names.
+     * [skinIndex] selects default embedded skin (wrapped with modulo).
+     * [loadAllEmbeddedSkins] preloads all embedded skins to support quick runtime switching.
+     */
     class Parameters : AssetLoaderParameters<Md2Asset>() {
         var externalSkinPath: String? = null
         var skinIndex: Int = 0
@@ -105,7 +132,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             vertexData.indices.size,
             VertexAttributes(
                 VertexAttribute(Generic, 1, "a_vat_index"),
-                TexCoords(1)
+                TexCoords(1) // in future, normals can also be added here
             )
         )
         mesh.setVertices(vertexData.vertexAttributes)
@@ -113,11 +140,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         val material = createMd2Material(diffuse, createVat(vertexData))
         return Md2Asset(
             model = createModel(mesh, material),
-            frames = md2.frames.size,
+            frames = md2.frames.size, // :thinking: used only in the model viewer, otherwise we could have return a `Model` here
             skins = skinTexturesByIndex,
         )
     }
 
+    /**
+     * Computes texture dependency paths from MD2 skin metadata and parameters.
+     */
     private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
         val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
         if (external != null) {
@@ -134,6 +164,9 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         }
     }
 
+    /**
+     * Computes the skin path used as diffuse texture for the created material.
+     */
     private fun resolveSelectedSkinPath(md2: Md2Model, parameter: Parameters?): String {
         val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
         if (external != null) {
@@ -156,12 +189,17 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     private fun createMd2Material(diffuse: Texture, vat: Texture): Material {
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
+
+        // create the material with diffuse and an "animation" attribute
         return Material(
             TextureAttribute(Diffuse, diffuse),
             AnimationTextureAttribute(vat)
         )
     }
 
+    /**
+     * Builds the vertex-animation texture containing frame vertex positions.
+     */
     private fun createVat(vertexData: Md2VertexData): Texture {
         return Texture(
             CustomTextureData(
@@ -210,6 +248,7 @@ private class CustomTextureData(
     private var isPrepared = false
 
     override fun getType(): TextureData.TextureDataType {
+        // means it doesn't rely on the pixmap format
         return TextureData.TextureDataType.Custom
     }
 
@@ -234,15 +273,15 @@ private class CustomTextureData(
         if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
 
         Gdx.gl.glTexImage2D(
-            target,
-            0,
-            glInternalFormat,
-            width,
-            height,
-            0,
-            glFormat,
-            glType,
-            buffer
+            /* target = */ target,
+            /* level = */ 0,
+            /* internalformat = */ glInternalFormat,
+            /* width = */ width,
+            /* height = */ height,
+            /* border = */ 0,
+            /* format = */ glFormat,
+            /* type = */ glType,
+            /* pixels = */ buffer
         )
     }
 
@@ -263,7 +302,7 @@ private class CustomTextureData(
     }
 
     override fun isManaged(): Boolean {
-        return true
+        return true // LibGDX will manage this texture
     }
 }
 
