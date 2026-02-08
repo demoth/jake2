@@ -137,7 +137,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
-        val material = createMd2Material(diffuse, createVat(vertexData))
+        val material = createMd2Material(diffuse, createVat(vertexData), skinTexturesByIndex)
         return Md2Asset(
             model = createModel(mesh, material),
             frames = md2.frames.size, // :thinking: used only in the model viewer, otherwise we could have return a `Model` here
@@ -187,13 +187,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         return if (modulo < 0) modulo + size else modulo
     }
 
-    private fun createMd2Material(diffuse: Texture, vat: Texture): Material {
+    private fun createMd2Material(diffuse: Texture, vat: Texture, skins: List<Texture>): Material {
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
 
-        // create the material with diffuse and an "animation" attribute
+        // create the material with diffuse + all skins + animation VAT texture
         return Material(
             TextureAttribute(Diffuse, diffuse),
+            Md2SkinTexturesAttribute(skins.take(MAX_MD2_SKIN_TEXTURES)), // todo: warning if skins has more than MAX_MD2_SKIN_TEXTURES
             AnimationTextureAttribute(vat)
         )
     }

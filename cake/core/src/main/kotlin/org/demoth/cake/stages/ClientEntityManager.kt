@@ -278,6 +278,7 @@ class ClientEntityManager {
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                     userData.frame1 = entity.prev.frame
                     userData.frame2 = newState.frame
+                    userData.skinIndex = newState.skinnum
                 }
                 visibleEntities += entity
             }

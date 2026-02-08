@@ -142,7 +142,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         // todo: make an pluggable system for queueing resource loading which will be required during the game
         assetManager.load("q2palette.bin", Any::class.java) // todo: use original baseq2/pics/colormap.pcx
-        assetManager.load(vatShader, String::class.java)
+        assetManager.load(md2VatShader, String::class.java)
+        assetManager.load(md2FragmentShader, String::class.java)
         assetManager.finishLoading() // these assets are necessary anyway
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)

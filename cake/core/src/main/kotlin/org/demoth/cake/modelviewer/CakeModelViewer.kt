@@ -20,6 +20,7 @@ import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.CakeTextureData
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
@@ -31,6 +32,7 @@ import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.fromWal
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.assets.readPaletteFile
+import org.demoth.cake.md2VatShader
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -103,8 +105,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 val md2Shader = Md2Shader(
                     md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
                     DefaultShader.Config(
-                        Gdx.files.internal("shaders/vat.glsl").readString(),
-                        null, // use default fragment shader
+                        Gdx.files.internal(md2VatShader).readString(),
+                        Gdx.files.internal(md2FragmentShader).readString(),
                     )
                 )
                 md2Shader.init()

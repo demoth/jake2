@@ -165,8 +165,8 @@ class Game3dScreen(
         val md2Shader = Md2Shader(
             md2Instance.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
             DefaultShader.Config(
-                assetManager.get(vatShader),
-                null, // use default fragment shader
+                assetManager.get(md2VatShader),
+                assetManager.get(md2FragmentShader),
             )
         )
         md2Shader.init()
