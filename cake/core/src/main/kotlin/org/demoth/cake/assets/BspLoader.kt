@@ -50,9 +50,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     /**
      * Parameters forwarded to dependent WAL texture loads.
      */
-    class Parameters : AssetLoaderParameters<BspMapAsset>() {
-        var walParameters: WalLoader.Parameters = defaultWalParameters()
-    }
+    data class Parameters(
+        val walParameters: WalLoader.Parameters = defaultWalParameters()
+    ) : AssetLoaderParameters<BspMapAsset>()
 
     override fun load(
         manager: AssetManager,
@@ -179,7 +179,7 @@ private fun shouldLoadWalTexture(textureName: String): Boolean {
     return normalized.isNotEmpty() && !normalized.contains("sky", ignoreCase = true)
 }
 
-private fun defaultWalParameters() = WalLoader.Parameters().apply {
-    wrapU = Texture.TextureWrap.Repeat
-    wrapV = Texture.TextureWrap.Repeat
-}
+private fun defaultWalParameters() = WalLoader.Parameters(
+    wrapU = Texture.TextureWrap.Repeat,
+    wrapV = Texture.TextureWrap.Repeat,
+)

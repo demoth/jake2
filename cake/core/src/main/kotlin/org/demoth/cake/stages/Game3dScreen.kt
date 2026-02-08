@@ -26,7 +26,6 @@ import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.GameResourceLocator
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Loader
@@ -53,7 +52,6 @@ class Game3dScreen(
 
     private val modelBatch: ModelBatch
     private val collisionModel = CM()
-    private val locator = GameResourceLocator(System.getProperty("basedir"))
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -286,7 +284,6 @@ class Game3dScreen(
             }
         }
         loadedMd2AssetPaths.clear()
-        renderState.dispose() // fixme: what else should be disposed?
         // todo: implement a clear and reusable approach for such resources that need to be disposed
         gameConfig.getSkyname()?.let { skyName ->
             val skyAssetPath = SkyLoader.assetPath(skyName)
@@ -339,7 +336,7 @@ class Game3dScreen(
                     if (assetManager.fileHandleResolver.resolve(it) != null) {
                         val md2Asset = assetManager.getLoaded<Md2Asset>(
                             it,
-                            Md2Loader.Parameters().apply { skinIndex = 0 }
+                            Md2Loader.Parameters(skinIndex = 0)
                         )
                         loadedMd2AssetPaths += it
                         config.resource = md2Asset.model
@@ -354,11 +351,11 @@ class Game3dScreen(
         // temporary: load one fixed player model
         val playerMd2Asset = assetManager.getLoaded<Md2Asset>(
             playerModelPath,
-            Md2Loader.Parameters().apply {
-                externalSkinPath = playerSkinPath
-                skinIndex = 0
-                loadAllEmbeddedSkins = false
-            }
+            Md2Loader.Parameters(
+                externalSkinPath = playerSkinPath,
+                skinIndex = 0,
+                loadAllEmbeddedSkins = false,
+            )
         )
         loadedMd2AssetPaths += playerModelPath
         renderState.playerModel = playerMd2Asset.model
@@ -531,8 +528,6 @@ class Game3dScreen(
         levelString = msg.levelString
         renderState.playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
-
-        locator.gameName = gameName
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {

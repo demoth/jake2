@@ -28,6 +28,7 @@
 - The codebase mixes legacy C-inspired naming; keep existing patterns in touched files for consistency.
 - When renaming critical functions, keep the old C name in a brief comment for traceability.
 - Use `*Test` suffixes for test classes (for example `Vector3fTest.kt`).
+- Do not delete existing comments if they are not addressed in the change.
 
 ## Testing Guidelines
 - Primary test framework is JUnit 4 (see root `build.gradle`); Kotlin tests live alongside Java tests.

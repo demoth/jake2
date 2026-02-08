@@ -18,7 +18,7 @@ data class Md2CustomData(
     var frame2: Int,
     var interpolation: Float,
     val frames: Int,
-    var skinIndex: Int = 0
+    var skinIndex: Int = 0 // used for normal->pain skin switching
 )
 
 /**

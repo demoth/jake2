@@ -73,11 +73,11 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      * [skinIndex] selects default embedded skin (wrapped with modulo).
      * [loadAllEmbeddedSkins] preloads all embedded skins to support quick runtime switching.
      */
-    class Parameters : AssetLoaderParameters<Md2Asset>() {
-        var externalSkinPath: String? = null
-        var skinIndex: Int = 0
-        var loadAllEmbeddedSkins: Boolean = true
-    }
+    data class Parameters(
+        val externalSkinPath: String? = null,
+        val skinIndex: Int = 0,
+        val loadAllEmbeddedSkins: Boolean = true,
+    ) : AssetLoaderParameters<Md2Asset>()
 
     override fun getDependencies(
         fileName: String,
@@ -112,7 +112,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         }
 
         val skinTexturesByIndex = when {
-            parameter?.externalSkinPath?.isNullOrBlank() == false -> {
+            parameter?.externalSkinPath?.isBlank() == false -> {
                 listOf(texturesByPath.getValue(selectedSkinPath))
             }
             else -> {
@@ -149,6 +149,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      * Computes texture dependency paths from MD2 skin metadata and parameters.
      */
     private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
+        // player models provide skin path externally
         val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
         if (external != null) {
             return listOf(external)
