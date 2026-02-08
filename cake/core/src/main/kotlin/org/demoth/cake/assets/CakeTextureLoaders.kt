@@ -65,14 +65,14 @@ class CakeTextureData(private var pixmap: Pixmap) : TextureData {
 
 class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, WalLoader.Parameters>(resolver) {
 
-    data class Parameters(
-        val externalPalette: IntArray? = null,
-        val paletteAssetPath: String = "q2palette.bin",
-        val minFilter: Texture.TextureFilter? = null,
-        val magFilter: Texture.TextureFilter? = null,
-        val wrapU: Texture.TextureWrap? = null,
-        val wrapV: Texture.TextureWrap? = null,
-    ) : AssetLoaderParameters<Texture>()
+    class Parameters : AssetLoaderParameters<Texture>() {
+        var externalPalette: IntArray? = null
+        var paletteAssetPath: String = "q2palette.bin"
+        var minFilter: Texture.TextureFilter? = null
+        var magFilter: Texture.TextureFilter? = null
+        var wrapU: Texture.TextureWrap? = null
+        var wrapV: Texture.TextureWrap? = null
+    }
 
     override fun load(
         manager: AssetManager,
@@ -132,13 +132,13 @@ internal fun fromWal(wal: WAL, palette: IntArray): Pixmap {
 
 class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(resolver) {
 
-    data class Parameters(
-        val externalPalette: IntArray? = null,
-        val minFilter: Texture.TextureFilter? = null,
-        val magFilter: Texture.TextureFilter? = null,
-        val wrapU: Texture.TextureWrap? = null,
-        val wrapV: Texture.TextureWrap? = null,
-    ) : AssetLoaderParameters<Texture>()
+    class Parameters : AssetLoaderParameters<Texture>() {
+        var externalPalette: IntArray? = null
+        var minFilter: Texture.TextureFilter? = null
+        var magFilter: Texture.TextureFilter? = null
+        var wrapU: Texture.TextureWrap? = null
+        var wrapV: Texture.TextureWrap? = null
+    }
 
     override fun load(
         manager: AssetManager,

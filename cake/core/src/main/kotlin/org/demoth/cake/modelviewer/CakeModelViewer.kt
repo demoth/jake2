@@ -19,17 +19,16 @@ import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
+import org.demoth.cake.assets.ModelViewerResourceLocator
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.assets.CakeTextureData
-import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
-import org.demoth.cake.assets.PcxLoader
+import org.demoth.cake.assets.Md2ModelLoader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
+import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.fromPCX
 import org.demoth.cake.assets.fromWal
-import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.assets.readPaletteFile
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -56,10 +55,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var md2AnimationFrameTime = 0.1f
     private var md2AnimationTime = 0.0f
     private var playingMd2Animation = false
-    private val assetManager = AssetManager(AbsoluteFileHandleResolver()).apply {
+    private val assetManager = AssetManager().apply {
         setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
-        setLoader(Texture::class.java, "pcx", PcxLoader(AbsoluteFileHandleResolver()))
-        setLoader(Md2Asset::class.java, "md2", Md2Loader(AbsoluteFileHandleResolver()))
     }
 
     override fun create() {
@@ -73,6 +70,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
         }
+        val locator = ModelViewerResourceLocator(file.parent)
         font = BitmapFont()
 
         when (file.extension) {
@@ -90,8 +88,10 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 )
             }
             "md2" -> {
-                val md2 = assetManager.getLoaded<Md2Asset>(file.absolutePath)
-                md2Instance = ModelInstance(md2.model)
+
+                val md2 = Md2ModelLoader(locator, assetManager).loadMd2ModelData(file.absolutePath, null, 0)!!
+                val model = createModel(md2.mesh, md2.material)
+                md2Instance = ModelInstance(model) // ok
                 md2Instance!!.userData = Md2CustomData(
                     0,
                     if (md2.frames > 1) 1 else 0,
@@ -204,9 +204,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     override fun dispose() {
         batch.dispose()
         image?.dispose()
-        instances.filter { it !== md2Instance }.forEach { it.model.dispose() }
+        instances.forEach { it.model.dispose() }
         modelBatch.dispose()
-        assetManager.dispose()
     }
 }
 

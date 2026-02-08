@@ -17,6 +17,4 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 
     implementation(project(":qcommon"))
-    testImplementation(libs.gdx.backend.headless)
-    testRuntimeOnly("com.badlogicgames.gdx:gdx-platform:${libs.versions.gdx.get()}:natives-desktop")
 }

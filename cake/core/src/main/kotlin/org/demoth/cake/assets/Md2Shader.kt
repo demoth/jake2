@@ -17,8 +17,7 @@ data class Md2CustomData(
     var frame1: Int,
     var frame2: Int,
     var interpolation: Float,
-    val frames: Int,
-    var skinIndex: Int = 0 // used for normal->pain skin switching
+    val frames: Int
 )
 
 /**
@@ -37,6 +36,7 @@ class AnimationTextureAttribute(val texture: Texture): TextureAttribute(Animatio
 }
 
 private const val md2ShaderPrefix = """
+    #version 130
     #define diffuseTextureFlag
 """
 

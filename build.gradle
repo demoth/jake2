@@ -10,15 +10,15 @@ configure(subprojects) {
   apply plugin: 'java-library'
   apply plugin: 'kotlin'
   java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
   }
   compileJava {
     options.incremental = true
   }
 
-  compileKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
-  compileTestKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+  compileKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+  compileTestKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 
 }
 

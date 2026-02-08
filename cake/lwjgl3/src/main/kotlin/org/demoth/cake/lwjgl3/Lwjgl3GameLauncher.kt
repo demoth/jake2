@@ -19,7 +19,6 @@ object Lwjgl3GameLauncher {
     private fun getDefaultConfiguration(): Lwjgl3ApplicationConfiguration {
         return Lwjgl3ApplicationConfiguration().apply {
             setTitle("cake-engine")
-            setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
             setBackBufferConfig(
                 /* r = */ 8,
                 /* g = */ 8,
@@ -34,7 +33,7 @@ object Lwjgl3GameLauncher {
             useVsync(true)
             setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
             setResizable(false)
-            setWindowedMode(640, 480)
+            setWindowedMode(1200, 900)
 //            setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
             setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
         }
