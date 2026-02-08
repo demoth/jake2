@@ -1,6 +1,6 @@
 [versions]
-kotlin = "1.9.22"
-kotlinxCoroutines = "1.6.4"
+kotlin = "2.1.0"
+kotlinxCoroutines = "1.9.0"
 gdx = "1.12.1"
 gdxControllers = "2.2.3"
 ktx = "1.12.1-rc1"

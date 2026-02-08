@@ -8,7 +8,7 @@ plugins {
 
 configure(subprojects) {
   apply plugin: 'java-library'
-  apply plugin: 'kotlin'
+  apply plugin: 'org.jetbrains.kotlin.jvm'
   java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21

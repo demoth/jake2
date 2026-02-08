@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.Gdx

@@ -102,12 +102,12 @@ abstract class SuperAdapter {
             return adapter
         }
 
-        fun registerTouch(id: String, touch: (self: GameEntity, other: GameEntity, plane: cplane_t, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
+        fun registerTouch(id: String, touch: (self: GameEntity, other: GameEntity, plane: cplane_t?, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
             val adapter = object : EntTouchAdapter() {
                 override fun touch(
                     self: GameEntity,
                     other: GameEntity,
-                    plane: cplane_t,
+                    plane: cplane_t?,
                     surf: csurface_t?,
                     game: GameExportsImpl
                 ) {
