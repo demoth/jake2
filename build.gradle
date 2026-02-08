@@ -1,18 +1,9 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-buildscript {
-  repositories {
-    mavenCentral()
-    maven { url 'https://s01.oss.sonatype.org' }
-    gradlePluginPortal()
-    mavenLocal()
-    google()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-  }
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-  }
+plugins {
+  alias(libs.plugins.kotlin.jvm) apply false
+  alias(libs.plugins.badass.runtime) apply false
+  alias(libs.plugins.graalvm.native) apply false
 }
 
 configure(subprojects) {
@@ -35,16 +26,7 @@ subprojects {
   group = 'org.demoth'
   version = '1.0.0'
   ext.appName = 'cake'
-  repositories {
-    mavenCentral()
-    maven { url 'https://s01.oss.sonatype.org' }
-    // You may want to remove the following line if you have errors downloading dependencies.
-    mavenLocal()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://jitpack.io' }
-  }
   dependencies {
-    testImplementation('junit:junit:4.12')
+    testImplementation(libs.junit)
   }
 }

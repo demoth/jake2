@@ -2,8 +2,8 @@ project(":cake:lwjgl3") {
   apply plugin: "org.graalvm.buildtools.native"
 
   dependencies {
-    implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
-    implementation "io.github.berstanio:gdx-svmhelper-extension-freetype:$graalHelperVersion"
+    implementation libs.gdx.svmhelper.backend.lwjgl3
+    implementation libs.gdx.svmhelper.extension.freetype
   }
   graalvmNative {
     binaries {
@@ -25,6 +25,6 @@ project(":cake:lwjgl3") {
 
 project(":cake:core") {
   dependencies {
-    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+    implementation libs.gdx.svmhelper.annotations
   }
 }
