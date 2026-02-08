@@ -19,8 +19,6 @@ import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute.Diffuse
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
@@ -58,9 +56,8 @@ class Md2Asset(
  * Loads MD2 geometry and prepares textures required by the model material.
  *
  * Dependency policy:
- * - external skin path provided -> load only that texture.
- * - embedded skins + loadAllEmbeddedSkins=true -> preload all embedded skins.
- * - embedded skins + loadAllEmbeddedSkins=false -> load only selected skinIndex.
+ * - external skin path provided -> load only that texture (player model case).
+ * - otherwise load embedded MD2 skin paths in index order.
  *
  * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
  */
@@ -69,14 +66,10 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     /**
      * MD2 loading options.
      *
-     * [externalSkinPath] overrides embedded MD2 skin names.
-     * [skinIndex] selects default embedded skin (wrapped with modulo).
-     * [loadAllEmbeddedSkins] preloads all embedded skins to support quick runtime switching.
+     * [externalSkinPath] overrides embedded MD2 skin names and loads exactly one skin.
      */
     data class Parameters(
         val externalSkinPath: String? = null,
-        val skinIndex: Int = 0,
-        val loadAllEmbeddedSkins: Boolean = true,
     ) : AssetLoaderParameters<Md2Asset>()
 
     override fun getDependencies(
@@ -88,7 +81,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             return null
         }
         val md2 = readMd2Model(file.readBytes())
-        val skinPaths = resolveDependencySkinPaths(md2, parameter)
+        val skinPaths = resolveDependencySkinPaths(md2, parameter?.externalSkinPath)
         if (skinPaths.isEmpty()) {
             return null
         }
@@ -105,26 +98,13 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     ): Md2Asset {
         val md2 = readMd2Model(file.readBytes())
 
-        val selectedSkinPath = resolveSelectedSkinPath(md2, parameter)
-        val dependencySkinPaths = resolveDependencySkinPaths(md2, parameter)
-        val texturesByPath = dependencySkinPaths.associateWith { path ->
+        val skinPaths = resolveDependencySkinPaths(md2, parameter?.externalSkinPath)
+        check(skinPaths.isNotEmpty()) {
+            "No MD2 skins found and no external skin was provided for $fileName"
+        }
+        val skins = skinPaths.map { path ->
             manager.get(path, Texture::class.java)
         }
-
-        val skinTexturesByIndex = when {
-            parameter?.externalSkinPath?.isBlank() == false -> {
-                listOf(texturesByPath.getValue(selectedSkinPath))
-            }
-            else -> {
-                md2.skinNames.map { skinPath ->
-                    val texture = texturesByPath[skinPath]
-                    check(texture != null) { "Missing dependency texture for MD2 skin: $skinPath" }
-                    texture
-                }
-            }
-        }
-        val diffuse = texturesByPath.getValue(selectedSkinPath)
-
         val vertexData = buildVertexData(md2.glCommands, md2.frames)
         val mesh = Mesh(
             true,
@@ -137,63 +117,32 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
-        val material = createMd2Material(diffuse, createVat(vertexData), skinTexturesByIndex)
+        val material = createMd2Material(createVat(vertexData), skins)
         return Md2Asset(
             model = createModel(mesh, material),
-            frames = md2.frames.size, // :thinking: used only in the model viewer, otherwise we could have return a `Model` here
-            skins = skinTexturesByIndex,
+            frames = md2.frames.size,
+            skins = skins,
         )
     }
 
     /**
      * Computes texture dependency paths from MD2 skin metadata and parameters.
      */
-    private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
+    private fun resolveDependencySkinPaths(md2: Md2Model, externalSkinPath: String?): List<String> {
         // player models provide skin path externally
-        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
+        val external = externalSkinPath?.takeIf { it.isNotBlank() }
         if (external != null) {
             return listOf(external)
         }
-        if (md2.skinNames.isEmpty()) {
-            return emptyList()
-        }
-        val embedded = md2.skinNames
-        return if (parameter?.loadAllEmbeddedSkins == false) {
-            listOf(embedded[normalizedSkinIndex(parameter.skinIndex, embedded.size)])
-        } else {
-            embedded.distinct()
-        }
+        return md2.skinNames
     }
 
-    /**
-     * Computes the skin path used as diffuse texture for the created material.
-     */
-    private fun resolveSelectedSkinPath(md2: Md2Model, parameter: Parameters?): String {
-        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
-        if (external != null) {
-            return external
-        }
-
-        check(md2.skinNames.isNotEmpty()) {
-            "No embedded skin found in model and no external skin was provided"
-        }
-        val selectedIndex = normalizedSkinIndex(parameter?.skinIndex ?: 0, md2.skinNames.size)
-        return md2.skinNames[selectedIndex]
-    }
-
-    private fun normalizedSkinIndex(index: Int, size: Int): Int {
-        check(size > 0) { "Cannot normalize skin index for empty skin set" }
-        val modulo = index % size
-        return if (modulo < 0) modulo + size else modulo
-    }
-
-    private fun createMd2Material(diffuse: Texture, vat: Texture, skins: List<Texture>): Material {
+    private fun createMd2Material(vat: Texture, skins: List<Texture>): Material {
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
 
-        // create the material with diffuse + all skins + animation VAT texture
+        // create the material with all skins + animation VAT texture
         return Material(
-            TextureAttribute(Diffuse, diffuse),
             Md2SkinTexturesAttribute(skins.take(MAX_MD2_SKIN_TEXTURES)), // todo: warning if skins has more than MAX_MD2_SKIN_TEXTURES
             AnimationTextureAttribute(vat)
         )

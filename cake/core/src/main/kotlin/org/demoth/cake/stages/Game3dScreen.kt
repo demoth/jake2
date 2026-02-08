@@ -278,13 +278,13 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
+        // todo: implement a clear and reusable approach for such resources that need to be unloaded
         loadedMd2AssetPaths.forEach { md2Path ->
             if (assetManager.isLoaded(md2Path, Md2Asset::class.java)) {
                 assetManager.unload(md2Path)
             }
         }
         loadedMd2AssetPaths.clear()
-        // todo: implement a clear and reusable approach for such resources that need to be disposed
         gameConfig.getSkyname()?.let { skyName ->
             val skyAssetPath = SkyLoader.assetPath(skyName)
             if (assetManager.isLoaded(skyAssetPath, Model::class.java)) {
@@ -300,7 +300,7 @@ class Game3dScreen(
 
     /**
      * Load resources into the memory, that are referenced in the config strings or assumed always required (like weapon sounds)
-     * todo: move to assetManager, make resource loading asynchronous
+     * todo: make resource loading asynchronous
      */
     fun precache() {
         // load resources referenced in the config strings
@@ -334,10 +334,7 @@ class Game3dScreen(
             gameConfig[i]?.let { config ->
                 config.value.let {
                     if (assetManager.fileHandleResolver.resolve(it) != null) {
-                        val md2Asset = assetManager.getLoaded<Md2Asset>(
-                            it,
-                            Md2Loader.Parameters(skinIndex = 0)
-                        )
+                        val md2Asset = assetManager.getLoaded<Md2Asset>(it)
                         loadedMd2AssetPaths += it
                         config.resource = md2Asset.model
                         config.managedByAssetManager = true
@@ -351,11 +348,7 @@ class Game3dScreen(
         // temporary: load one fixed player model
         val playerMd2Asset = assetManager.getLoaded<Md2Asset>(
             playerModelPath,
-            Md2Loader.Parameters(
-                externalSkinPath = playerSkinPath,
-                skinIndex = 0,
-                loadAllEmbeddedSkins = false,
-            )
+            Md2Loader.Parameters(playerSkinPath),
         )
         loadedMd2AssetPaths += playerModelPath
         renderState.playerModel = playerMd2Asset.model
