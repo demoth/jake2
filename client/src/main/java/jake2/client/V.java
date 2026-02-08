@@ -34,7 +34,6 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -433,8 +432,8 @@ public final class V extends Globals {
         // CDawg 
         
         if (cl_stats.value != 0.0f)
-            Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(
-                    r_numentities).add(r_numdlights).add(r_numparticles));
+            Com.Printf("ent:%i  lt:%i  part:%i\n",
+                    r_numentities, r_numdlights, r_numparticles);
 
         SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x, ClientGlobals.scr_vrect.y);
         SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x + ClientGlobals.scr_vrect.width - 1, ClientGlobals.scr_vrect.y
@@ -446,10 +445,10 @@ public final class V extends Globals {
     /*
      * ============= V_Viewpos_f =============
      */
-    private static Command Viewpos_f = (List<String> args) -> Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
-            (int) ClientGlobals.cl.refdef.vieworg[0]).add((int) ClientGlobals.cl.refdef.vieworg[1])
-            .add((int) ClientGlobals.cl.refdef.vieworg[2]).add(
-                    (int) ClientGlobals.cl.refdef.viewangles[YAW]));
+    private static Command Viewpos_f = (List<String> args) -> Com.Printf("(%i %i %i) : %i\n",
+            (int) ClientGlobals.cl.refdef.vieworg[0], (int) ClientGlobals.cl.refdef.vieworg[1],
+            (int) ClientGlobals.cl.refdef.vieworg[2],
+            (int) ClientGlobals.cl.refdef.viewangles[YAW]);
 
     public static void Init() {
         Cmd.AddCommand("gun_next", Gun_Next_f);

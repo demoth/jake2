@@ -31,7 +31,6 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.messages.server.InventoryMessage;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Vargs;
 
 /**
  * CL_inv
@@ -127,8 +126,8 @@ public class CL_inv {
 					break;
 				}
 
-			string = Com.sprintf("%6s %3i %s", new Vargs(3).add(bind).add(ClientGlobals.cl.inventory[item]).add(
-					ClientGlobals.cl.configstrings[Defines.CS_ITEMS + item]));
+			string = Com.sprintf("%6s %3i %s", bind, ClientGlobals.cl.inventory[item],
+					ClientGlobals.cl.configstrings[Defines.CS_ITEMS + item]);
 			if (item != selected)
 				string = getHighBitString(string);
 			else // draw a blinky cursor by the selected item

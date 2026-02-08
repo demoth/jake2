@@ -39,7 +39,6 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 import java.awt.*;
 import java.nio.FloatBuffer;
@@ -876,7 +875,7 @@ public abstract class Main extends Base {
 			Com.Printf(
 				Defines.PRINT_ALL,
 				"%4i wpoly %4i epoly %i tex %i lmaps\n",
-				new Vargs(4).add(c_brush_polys).add(c_alias_polys).add(c_visible_textures).add(c_visible_lightmaps));
+				c_brush_polys, c_alias_polys, c_visible_textures, c_visible_lightmaps);
 		}
 	}
 
@@ -1293,7 +1292,7 @@ public abstract class Main extends Base {
 			Com.Printf(
 				Defines.PRINT_ALL,
 				"gl.glGetError() = 0x%x\n\t%s\n",
-				new Vargs(2).add(err).add("" + gl.glGetString(err)));
+				err, gl.glGetString(err));
 
         glImpl.endFrame();
 		return true;

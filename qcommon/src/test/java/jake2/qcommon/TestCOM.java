@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-@SuppressWarnings("deprecation")
 public class TestCOM {
 
     @Test

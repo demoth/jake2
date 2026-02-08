@@ -17,7 +17,6 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.Vargs;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -523,7 +522,7 @@ public final class LWJGLSoundImpl implements Sound {
 		    Com.Printf("L");
 		else
 		    Com.Printf(" ");
-		Com.Printf("(%2db) %6i : %s\n", new Vargs(3).add(sc.width * 8).add(size).add(sfx.name));
+		Com.Printf("(%2db) %6i : %s\n", sc.width * 8, size, sfx.name);
 	    } else {
 		if (sfx.name.charAt(0) == '*')
 		    Com.Printf("  placeholder : " + sfx.name + "\n");
@@ -536,10 +535,10 @@ public final class LWJGLSoundImpl implements Sound {
 
     void SoundInfo_f() {
 
-	Com.Printf("%5d stereo\n", new Vargs(1).add(1));
-	Com.Printf("%5d samples\n", new Vargs(1).add(22050));
-	Com.Printf("%5d samplebits\n", new Vargs(1).add(16));
-	Com.Printf("%5d speed\n", new Vargs(1).add(44100));
+	Com.Printf("%5d stereo\n", 1);
+	Com.Printf("%5d samples\n", 22050);
+	Com.Printf("%5d samplebits\n", 16);
+	Com.Printf("%5d speed\n", 44100);
     }
 
 }

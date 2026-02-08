@@ -118,15 +118,6 @@ class SV_WORLD {
     static void SV_ClearWorld(GameImportsImpl gameImports) {
         gameImports.world.clearAreaNodes();
         SV_CreateAreaNode(0, gameImports.sv.models[1].mins, gameImports.sv.models[1].maxs, gameImports);
-        /*
-         * Com.p("areanodes:" + sv_numareanodes + " (sollten 32 sein)."); for
-         * (int n = 0; n < sv_numareanodes; n++) { Com.Printf( "|%3i|%2i|%8.2f
-         * |%8.2f|%8.2f|%8.2f| %8.2f|%8.2f|%8.2f|\n", new Vargs() .add(n)
-         * .add(sv_areanodes[n].axis) .add(sv_areanodes[n].dist)
-         * .add(sv_areanodes[n].mins_rst[0]) .add(sv_areanodes[n].mins_rst[1])
-         * .add(sv_areanodes[n].mins_rst[2]) .add(sv_areanodes[n].maxs_rst[0])
-         * .add(sv_areanodes[n].maxs_rst[1]) .add(sv_areanodes[n].maxs_rst[2])); }
-         */
     }
 
     /*
