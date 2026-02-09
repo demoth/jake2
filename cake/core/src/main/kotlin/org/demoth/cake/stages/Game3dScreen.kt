@@ -8,8 +8,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
-import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -23,6 +23,7 @@ import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
+import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
@@ -30,7 +31,6 @@ import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
-import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
@@ -65,6 +65,7 @@ class Game3dScreen(
 
     private var skyBox: ModelInstance? = null
     private val loadedMd2AssetPaths: MutableSet<String> = mutableSetOf()
+    private val beamRenderer = BeamRenderer(assetManager)
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -217,6 +218,9 @@ class Game3dScreen(
             }
             modelBatch.render(it.modelInstance, environment)
         }
+        entityManager.visibleBeams.forEach {
+            beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
+        }
         modelBatch.end()
 
         // draw hud
@@ -263,6 +267,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
@@ -610,3 +615,4 @@ class Game3dScreen(
 
 
 }
+

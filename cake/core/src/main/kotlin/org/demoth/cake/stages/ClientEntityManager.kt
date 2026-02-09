@@ -39,6 +39,8 @@ class ClientEntityManager {
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
+    // RF_BEAM entities are collected separately because they are rendered as generated geometry.
+    var visibleBeams = mutableListOf<ClientEntity>()
 
     var surpressCount = 0
 
@@ -216,6 +218,7 @@ class ClientEntityManager {
      * - Adds grid and origin visualization models to the visible entities.
      * - Iterates over the entities in the current frame, instantiating their models if they
      *   haven't been loaded yet and updating them according to the game state.
+     * - Collects RF_BEAM entities into [visibleBeams] for dedicated beam rendering.
      * - Attempts to load and manage the player's weapon model, updating its animation frames
      *   as necessary.
      *
@@ -230,6 +233,7 @@ class ClientEntityManager {
     fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration) {
         renderState.lerpAcc = 0f
         visibleEntities.clear()
+        visibleBeams.clear()
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
         if (renderState.levelModel != null && renderState.drawLevel) {
@@ -252,6 +256,9 @@ class ClientEntityManager {
             // network visibility behavior compatible with the original protocol.
             if ((newState.renderfx and Defines.RF_BEAM) != 0) {
                 entity.modelInstance = null
+                if (renderState.drawEntities) {
+                    visibleBeams += entity
+                }
                 continue
             }
 
