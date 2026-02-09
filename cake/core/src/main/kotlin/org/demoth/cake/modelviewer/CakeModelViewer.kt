@@ -19,6 +19,7 @@ import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.CakeTextureData
 import org.demoth.cake.assets.Md2Asset
@@ -61,13 +62,14 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var playingMd2Animation = false
 
     override fun create() {
+        initializeShaderCompatibility()
 
-        if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().endsWith(it) }) {
+        if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
             return
         }
-        val file = File(args[0])
+        val file = File(expandTildePath(args[0]))
         if (!file.exists() || !file.canRead()) {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
@@ -88,7 +90,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         modelBatch = ModelBatch()
         font = BitmapFont()
 
-        when (file.extension) {
+        when (file.extension.lowercase()) {
             "pcx" -> {
                 image = Texture(CakeTextureData(fromPCX(PCX(file.readBytes()))))
             }
@@ -157,6 +159,9 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun render() {
+        if (!::camera.isInitialized || !::batch.isInitialized || !::modelBatch.isInitialized) {
+            return
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             playingMd2Animation = !playingMd2Animation
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -212,12 +217,28 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun dispose() {
-        batch.dispose()
+        if (::batch.isInitialized) {
+            batch.dispose()
+        }
         image?.dispose()
         instances.filter { it !== md2Instance }.forEach { it.model.dispose() }
-        modelBatch.dispose()
-        assetManager.dispose()
+        if (::modelBatch.isInitialized) {
+            modelBatch.dispose()
+        }
+        if (::assetManager.isInitialized) {
+            assetManager.dispose()
+        }
     }
+}
+
+internal fun expandTildePath(path: String): String {
+    if (path == "~") {
+        return System.getProperty("user.home")
+    }
+    if (path.startsWith("~/") || path.startsWith("~\\")) {
+        return System.getProperty("user.home") + path.substring(1)
+    }
+    return path
 }
 
 private fun changeFrame(delta: Int, md2CustomData: Md2CustomData, md2Frames: Int) {
