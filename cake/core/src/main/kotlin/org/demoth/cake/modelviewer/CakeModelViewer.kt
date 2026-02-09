@@ -4,7 +4,6 @@ import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -45,6 +44,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
     private lateinit var modelBatch: ModelBatch
+    private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
@@ -59,23 +59,33 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var md2AnimationFrameTime = 0.1f
     private var md2AnimationTime = 0.0f
     private var playingMd2Animation = false
-    private val assetManager = AssetManager(AbsoluteFileHandleResolver()).apply {
-        setLoader(ByteArray::class.java, ByteArrayLoader(AbsoluteFileHandleResolver()))
-        setLoader(Texture::class.java, "pcx", PcxLoader(AbsoluteFileHandleResolver()))
-        setLoader(Md2Asset::class.java, "md2", Md2Loader(AbsoluteFileHandleResolver()))
-    }
 
     override fun create() {
 
         if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().endsWith(it) }) {
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
+            return
         }
         val file = File(args[0])
         if (!file.exists() || !file.canRead()) {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
+            return
         }
+
+        val fileResolver = ModelViewerFileResolver(
+            openedFilePath = file.absolutePath,
+            basedir = System.getProperty("basedir"),
+            gamemod = System.getProperty("game"),
+        )
+        assetManager = AssetManager(fileResolver).apply {
+            setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
+            setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
+            setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
+        }
+
+        modelBatch = ModelBatch()
         font = BitmapFont()
 
         when (file.extension) {
@@ -116,7 +126,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
-                modelBatch = ModelBatch()
                 // todo: fix bsp back!
 //                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
 //                models.addAll(BspLoader(gameDir).loadBspModels(file))
@@ -126,6 +135,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             else -> {
                 println("Unsupported file format ${file.extension}")
                 Gdx.app.exit()
+                return
             }
         }
 
