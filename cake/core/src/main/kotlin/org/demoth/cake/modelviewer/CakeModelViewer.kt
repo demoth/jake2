@@ -58,7 +58,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var md2Frames = 1
     private var md2Instance: ModelInstance? = null // to control the model animation
     private var md2AnimationFrameTime = 0.1f
-    private var md2AnimationTime = 0.0f
+    private var md2FrameLerp = 0.0f
     private var playingMd2Animation = false
 
     override fun create() {
@@ -162,25 +162,28 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (!::camera.isInitialized || !::batch.isInitialized || !::modelBatch.isInitialized) {
             return
         }
+
+        val md2Data = md2Instance?.getMd2CustomData()
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             playingMd2Animation = !playingMd2Animation
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-            md2AnimationTime = 0f
-            changeFrame(1, md2Instance!!.getMd2CustomData(), md2Frames)
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-            md2AnimationTime = 0f
-            changeFrame(-1, md2Instance!!.getMd2CustomData(), md2Frames)
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && md2Data != null) {
+            md2FrameLerp = 0f
+            changeFrame(1, md2Data, md2Frames)
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && md2Data != null) {
+            md2FrameLerp = 0f
+            changeFrame(-1, md2Data, md2Frames)
         }
 
-        if (playingMd2Animation) {
-            md2AnimationTime += Gdx.graphics.deltaTime
-            if (md2AnimationTime >  md2AnimationFrameTime) {
-                md2AnimationTime = 0f
-                changeFrame(1, md2Instance!!.getMd2CustomData(), md2Frames)
+        if (playingMd2Animation && md2Data != null) {
+            md2FrameLerp += Gdx.graphics.deltaTime
+            if (md2FrameLerp >=  md2AnimationFrameTime) {
+                md2FrameLerp = 0f
+                changeFrame(1, md2Data, md2Frames)
             }
-            md2Instance!!.getMd2CustomData().interpolation = md2AnimationTime / md2AnimationFrameTime
+            md2Data.interpolation = md2FrameLerp / md2AnimationFrameTime
 
         }
 
@@ -242,8 +245,8 @@ internal fun expandTildePath(path: String): String {
 }
 
 private fun changeFrame(delta: Int, md2CustomData: Md2CustomData, md2Frames: Int) {
-    // advance animation frames: frame1++ frame2++, keep in mind number of frames
-    md2CustomData.frame1 = (md2CustomData.frame1 + delta) % md2Frames
+    // Keep frame1 as the previous pose and frame2 as the target pose for smooth interpolation.
+    md2CustomData.frame1 = md2CustomData.frame2
     md2CustomData.frame2 = (md2CustomData.frame2 + delta) % md2Frames
     if (md2CustomData.frame1 < 0) {
         md2CustomData.frame1 += md2Frames
