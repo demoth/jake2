@@ -18,10 +18,16 @@ import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 data class Md2CustomData(
     var frame1: Int,
     var frame2: Int,
-    var interpolation: Float,
-    val frames: Int,
-    var skinIndex: Int = 0 // entity_state_t.skinnum from the server
-)
+    var interpolation: Float, // in range (0,1)
+    var skinIndex: Int // entity_state_t.skinnum from the server
+) {
+    companion object {
+        /**
+         * Initial values before frame data arrives from the server.
+         */
+        fun empty() = Md2CustomData(0, 0, 0f, 0)
+    }
+}
 
 // max number of skins, usually there are only 2 (normal+pain), but the soldier monster has 6 variations
 const val MAX_MD2_SKIN_TEXTURES = 12
@@ -177,7 +183,9 @@ class Md2Shader(
  */
 class Md2ShaderProvider(private val shader: Shader): DefaultShaderProvider() {
     override fun getShader(renderable: Renderable): Shader? {
-        return if (renderable.userData is Md2CustomData) {
+        return if (renderable.userData is Md2CustomData &&
+            renderable.material.has(AnimationTextureAttribute.Type)
+        ) {
             shader
         } else super.getShader(renderable)
     }

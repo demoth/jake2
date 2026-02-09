@@ -18,6 +18,7 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.GameConfiguration
+import org.demoth.cake.assets.AnimationTextureAttribute
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
@@ -252,21 +253,26 @@ class ClientEntityManager {
                 val modelIndex = newState.modelindex
                 if (modelIndex == 255) {
                     // player
-                    entity.modelInstance = ModelInstance(renderState.playerModel).apply {
-                        userData = Md2CustomData(0, 0, 0f, 1)
+                    val model = renderState.playerModel
+                    if (model != null) {
+                        entity.name = "player"
+                        entity.modelInstance = ModelInstance(model).apply {
+                            if (model.isMd2Model()) {
+                                userData = Md2CustomData.empty()
+                            }
+                        }
                     }
-                    entity.name = "player"
                 } else {
                     val modelConfig = gameConfig[CS_MODELS + modelIndex]
                     val model = modelConfig?.resource as? Model
                     if (model != null) {
                         entity.name = modelConfig.value
                         entity.modelInstance = ModelInstance(model).apply {
-                            if (!modelConfig.value.contains("*")) {
-                                userData = Md2CustomData(0, 0, 0f, 1)
+                            if (model.isMd2Model()) {
+                                userData = Md2CustomData.empty()
                             }
                         }
-                    }
+                    } // todo: warning!
                 }
             }
 
@@ -292,7 +298,9 @@ class ClientEntityManager {
             if (model != null) {
                 renderState.gun = ClientEntity("gun").apply {
                     modelInstance = ModelInstance(model).apply {
-                        userData = Md2CustomData(0, 0, 0f ,1)
+                        if (model.isMd2Model()) {
+                            userData = Md2CustomData.empty()
+                        }
                     }
                 }
             }
@@ -410,6 +418,12 @@ class ClientEntityManager {
             if ((msg.statbits and (1 shl i)) != 0) {
                 currentPlayerState.stats[i] = msg.currentState.stats[i];
             }
+        }
+    }
+
+    private fun Model.isMd2Model(): Boolean {
+        return materials.any { material ->
+            material.has(AnimationTextureAttribute.Type)
         }
     }
 }

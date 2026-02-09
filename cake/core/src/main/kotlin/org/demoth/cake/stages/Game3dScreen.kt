@@ -138,12 +138,7 @@ class Game3dScreen(
         loadedMd2AssetPaths += md2Path
         val md2Instance = ModelInstance(md2Asset.model)
 
-        md2Instance.userData = Md2CustomData(
-            0,
-            if (md2Asset.frames > 1) 1 else 0,
-            0f,
-            md2Asset.frames
-        )
+        md2Instance.userData = Md2CustomData.empty()
 
         val tempRenderable = Renderable()
         val md2Shader = Md2Shader(
@@ -165,7 +160,7 @@ class Game3dScreen(
         // old renderer quirks:
         // - alias models (md2): effective pitch sign is positive
         // - inline brush models: effective pitch and roll signs are positive
-        val pitchForModel = if (isMd2Model || isBrushModel) pitch else -pitch
+        val pitchForModel = if (isMd2Model || isBrushModel) pitch else -pitch  // sigh, see Mesh.java GL_DrawAliasFrameLerp
         val rollForModel = if (isBrushModel) roll else -roll
 
         // Match legacy entity rotation order:
@@ -184,7 +179,6 @@ class Game3dScreen(
         lerpFrac = (renderState.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
 
         updatePlayerCamera(lerpFrac)
-        //updatePlayerGun(lerpFrac)
 
         modelBatch.begin(camera)
 

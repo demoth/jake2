@@ -54,6 +54,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private var frameTime = 0f // to have an idea of the fps
 
     // md2 related stuff
+    private var md2Frames = 1
     private var md2Instance: ModelInstance? = null // to control the model animation
     private var md2AnimationFrameTime = 0.1f
     private var md2AnimationTime = 0.0f
@@ -93,13 +94,10 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "md2" -> {
                 val md2 = assetManager.getLoaded<Md2Asset>(file.absolutePath)
-                md2Instance = ModelInstance(md2.model)
-                md2Instance!!.userData = Md2CustomData(
-                    0,
-                    if (md2.frames > 1) 1 else 0,
-                    0f,
-                    md2.frames
-                )
+                md2Instance = ModelInstance(md2.model).apply {
+                    userData = Md2CustomData.empty()
+                }
+                md2Frames = md2.frames
 
                 val tempRenderable = Renderable()
                 val md2Shader = Md2Shader(
@@ -155,17 +153,17 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.app.exit()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             md2AnimationTime = 0f
-            changeFrame(1, md2Instance!!.getMd2CustomData())
+            changeFrame(1, md2Instance!!.getMd2CustomData(), md2Frames)
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
             md2AnimationTime = 0f
-            changeFrame(-1, md2Instance!!.getMd2CustomData())
+            changeFrame(-1, md2Instance!!.getMd2CustomData(), md2Frames)
         }
 
         if (playingMd2Animation) {
             md2AnimationTime += Gdx.graphics.deltaTime
             if (md2AnimationTime >  md2AnimationFrameTime) {
                 md2AnimationTime = 0f
-                changeFrame(1, md2Instance!!.getMd2CustomData())
+                changeFrame(1, md2Instance!!.getMd2CustomData(), md2Frames)
             }
             md2Instance!!.getMd2CustomData().interpolation = md2AnimationTime / md2AnimationFrameTime
 
@@ -212,15 +210,15 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 }
 
-private fun changeFrame(delta: Int, md2CustomData: Md2CustomData) {
+private fun changeFrame(delta: Int, md2CustomData: Md2CustomData, md2Frames: Int) {
     // advance animation frames: frame1++ frame2++, keep in mind number of frames
-    md2CustomData.frame1 = (md2CustomData.frame1 + delta) % md2CustomData.frames
-    md2CustomData.frame2 = (md2CustomData.frame2 + delta) % md2CustomData.frames
+    md2CustomData.frame1 = (md2CustomData.frame1 + delta) % md2Frames
+    md2CustomData.frame2 = (md2CustomData.frame2 + delta) % md2Frames
     if (md2CustomData.frame1 < 0) {
-        md2CustomData.frame1 += md2CustomData.frames
+        md2CustomData.frame1 += md2Frames
     }
     if (md2CustomData.frame2 < 0) {
-        md2CustomData.frame2 += md2CustomData.frames
+        md2CustomData.frame2 += md2Frames
     }
     md2CustomData.interpolation = 0f
 }
