@@ -180,6 +180,18 @@ class Game3dScreen(
         return from + delta * fraction
     }
 
+    private fun applyQuakeEntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
+        val isAliasModel = entity.modelInstance.userData is Md2CustomData
+        val pitchForModel = if (isAliasModel) pitch else -pitch
+
+        // Match legacy entity rotation order:
+        // yaw around Z, pitch around Y, roll around X.
+        entity.modelInstance.transform.idt()
+        entity.modelInstance.transform.rotate(Vector3.Z, yaw)
+        entity.modelInstance.transform.rotate(Vector3.Y, pitchForModel)
+        entity.modelInstance.transform.rotate(Vector3.X, -roll)
+    }
+
     override fun render(delta: Float) {
         if (!precached)
             return
@@ -210,10 +222,9 @@ class Game3dScreen(
             } else {
                 val pitch = lerpAngle(it.prev.angles[PITCH], it.current.angles[PITCH], lerpFrac)
                 val yaw = lerpAngle(it.prev.angles[YAW], it.current.angles[YAW], lerpFrac)
-                // todo: roll
+                val roll = lerpAngle(it.prev.angles[ROLL], it.current.angles[ROLL], lerpFrac)
 
-                it.modelInstance.transform.setToRotation(Vector3.X, pitch)
-                it.modelInstance.transform.rotate(Vector3.Z, yaw)
+                applyQuakeEntityRotation(it, pitch, yaw, roll)
 
             }
 
@@ -440,27 +451,37 @@ class Game3dScreen(
         // process mouse movement
         inputManager.updateAngles()
 
-        // calculate where the camera should look at on this frame
-        val direction: Vector3 = if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
-            // calculate the camera direction based on local angles + kick angle.
-            // don't need to interpolate rotation because it is locally based
-            val kickAnglePitch = lerpAngle(previousState.kick_angles[PITCH], currentState.kick_angles[PITCH], lerp)
-            val kickAngleYaw = lerpAngle(previousState.kick_angles[YAW], currentState.kick_angles[YAW], lerp)
-            quakeForward(
-                inputManager.localPitch + kickAnglePitch,
-                inputManager.localYaw + kickAngleYaw
-            )
-
-
+        val oldViewPitch: Float
+        val oldViewYaw: Float
+        val oldViewRoll: Float
+        val currentViewPitch: Float
+        val currentViewYaw: Float
+        val currentViewRoll: Float
+        if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
+            // same as old client: locally controlled view + replicated kick angles
+            oldViewPitch = inputManager.localPitch + previousState.kick_angles[PITCH]
+            oldViewYaw = inputManager.localYaw + previousState.kick_angles[YAW]
+            oldViewRoll = previousState.kick_angles[ROLL]
+            currentViewPitch = inputManager.localPitch + currentState.kick_angles[PITCH]
+            currentViewYaw = inputManager.localYaw + currentState.kick_angles[YAW]
+            currentViewRoll = currentState.kick_angles[ROLL]
         } else {
-            // no camera controls for PM_DEAD PM_GIB PM_FREEZE, just interpolate server values
-            quakeForward(
-                lerpAngle(previousState.viewangles[PITCH], currentState.viewangles[PITCH], lerp),
-                lerpAngle(previousState.viewangles[YAW], currentState.viewangles[YAW], lerp),
-            )
+            // no local camera controls for PM_DEAD / PM_GIB / PM_FREEZE
+            oldViewPitch = previousState.viewangles[PITCH] + previousState.kick_angles[PITCH]
+            oldViewYaw = previousState.viewangles[YAW] + previousState.kick_angles[YAW]
+            oldViewRoll = previousState.viewangles[ROLL] + previousState.kick_angles[ROLL]
+            currentViewPitch = currentState.viewangles[PITCH] + currentState.kick_angles[PITCH]
+            currentViewYaw = currentState.viewangles[YAW] + currentState.kick_angles[YAW]
+            currentViewRoll = currentState.viewangles[ROLL] + currentState.kick_angles[ROLL]
         }
 
-        camera.direction.set(direction)
+        val viewPitch = lerpAngle(oldViewPitch, currentViewPitch, lerp)
+        val viewYaw = lerpAngle(oldViewYaw, currentViewYaw, lerp)
+        val viewRoll = lerpAngle(oldViewRoll, currentViewRoll, lerp)
+        val (forward, up) = toForwardUp(viewPitch, viewYaw, viewRoll)
+
+        camera.direction.set(forward)
+        camera.up.set(up)
         camera.update()
 
         // update the gun position
@@ -472,9 +493,6 @@ class Game3dScreen(
         val oldGunOffsetZ = previousState.gunoffset[2]
 
         // set the previous and current state: interpolation will happen with all other client entities
-        // ideally, we want the gun to follow the camera direction.
-        // The problem is that gun position/rotation is partially local (localYaw) and partially replicated (gun offset)
-        // todo: think of a better approach
         renderState.gun?.prev?.origin = floatArrayOf(
             oldGunOffsetX + oldX,
             oldGunOffsetY + oldY,
@@ -486,29 +504,54 @@ class Game3dScreen(
             currentGunOffsetZ + newZ,
         )
 
-        // todo: fix pitch
-        renderState.gun?.current?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
-        renderState.gun?.prev?.angles = floatArrayOf(0f, inputManager.localYaw, 0f)
+        val oldGunAnglePitch = previousState.gunangles[PITCH]
+        val oldGunAngleYaw = previousState.gunangles[YAW]
+        val oldGunAngleRoll = previousState.gunangles[ROLL]
+        val currentGunAnglePitch = currentState.gunangles[PITCH]
+        val currentGunAngleYaw = currentState.gunangles[YAW]
+        val currentGunAngleRoll = currentState.gunangles[ROLL]
+
+        // old client behavior: gun angles are view angles + replicated gun angles
+        renderState.gun?.prev?.angles = floatArrayOf(
+            oldViewPitch + oldGunAnglePitch,
+            oldViewYaw + oldGunAngleYaw,
+            oldViewRoll + oldGunAngleRoll
+        )
+        renderState.gun?.current?.angles = floatArrayOf(
+            currentViewPitch + currentGunAnglePitch,
+            currentViewYaw + currentGunAngleYaw,
+            currentViewRoll + currentGunAngleRoll
+        )
         (renderState.gun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
         }
     }
 
-    private fun quakeForward(pitchDeg: Float, yawDeg: Float): Vector3 {
+    private fun toForwardUp(pitchDeg: Float, yawDeg: Float, rollDeg: Float): Pair<Vector3, Vector3> {
         val pitch = pitchDeg * degRad
         val yaw = yawDeg * degRad
-        // roll not used in forward direction
+        val roll = rollDeg * degRad
 
         val cp = cos(pitch)
         val sp = sin(pitch)
         val cy = cos(yaw)
         val sy = sin(yaw)
+        val cr = cos(roll)
+        val sr = sin(roll)
 
-        return Vector3(
+        // Matches Math3D.AngleVectors from the original client code.
+        val forward = Vector3(
             cp * cy,
             cp * sy,
             -sp
         )
+        val up = Vector3(
+            cr * sp * cy + sr * sy,
+            cr * sp * sy - sr * cy,
+            cr * cp
+        )
+
+        return forward to up
     }
 
     // region SERVER MESSAGE PARSING
