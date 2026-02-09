@@ -218,6 +218,30 @@ class Game3dScreen(
         return true
     }
 
+    private fun loadSkyConfigResource(config: Config): Boolean {
+        val skyName = config.value
+        if (skyName.isBlank()) {
+            skyBox = null
+            return false
+        }
+        val skyAssetPath = SkyLoader.assetPath(skyName)
+        if (assetManager.fileHandleResolver.resolve(skyAssetPath) == null) {
+            return false
+        }
+        skyBox = ModelInstance(assetManager.getLoaded<Model>(skyAssetPath))
+        return true
+    }
+
+    private fun loadConfigResource(index: Int, config: Config): Boolean {
+        return when (index) {
+            in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS) -> loadModelConfigResource(config)
+            in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS) -> loadSoundConfigResource(config)
+            in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES) -> loadImageConfigResource(config)
+            CS_SKY -> loadSkyConfigResource(config)
+            else -> false
+        }
+    }
+
     override fun render(delta: Float) {
         if (!precached)
             return
@@ -374,7 +398,7 @@ class Game3dScreen(
         val endIndex = CS_MODELS + MAX_MODELS - 1
         for (i in startIndex..endIndex) {
             val config = gameConfig[i] ?: continue
-            if (!loadModelConfigResource(config)) {
+            if (!loadConfigResource(i, config)) {
                 val modelPath = config.value
                 if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
                     Com.Warn("Failed to load model data for config $modelPath")
@@ -390,27 +414,17 @@ class Game3dScreen(
         loadedMd2AssetPaths += playerModelPath
         renderState.playerModel = playerMd2Asset.model
 
-        gameConfig.getSounds().forEach { config ->
-            if (config != null) {
-                val soundLocation = "sound/${config.value}"
-                if (assetManager.fileHandleResolver.resolve(soundLocation) != null) {
-                    config.resource = assetManager.getLoaded<Sound>(soundLocation)
-                    config.managedByAssetManager = true
-                }
-            }
+        for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
+            val config = gameConfig[i] ?: continue
+            loadConfigResource(i, config)
         }
 
-        gameConfig.getImages().forEach { config ->
-            if (config != null) {
-                config.resource = assetManager.getLoaded<Texture>("pics/${config.value}.pcx")
-                config.managedByAssetManager = true
-            }
+        for (i in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES)) {
+            val config = gameConfig[i] ?: continue
+            loadConfigResource(i, config)
         }
 
-        gameConfig.getSkyname()?.let { skyName ->
-            val skyModel = assetManager.getLoaded<Model>(SkyLoader.assetPath(skyName))
-            skyBox = ModelInstance(skyModel)
-        }
+        gameConfig[CS_SKY]?.let { loadConfigResource(CS_SKY, it) }
 
         // these are expected to be loaded
         weaponSoundPaths.forEach { (index, path) ->
@@ -566,28 +580,12 @@ class Game3dScreen(
         val config = Config(msg.config)
         gameConfig[msg.index] = config
 
+        // Resource-bearing configstrings can arrive/refresh during active gameplay.
         when (msg.index) {
-            in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS) -> {
-                // Model indices can be added during the game (e.g. newly used weapon view models).
-                loadModelConfigResource(config)
-            }
-
-            in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS) -> {
-                loadSoundConfigResource(config)
-            }
-
-            in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES) -> {
-                loadImageConfigResource(config)
-            }
-
-            CS_SKY -> {
-                gameConfig.getSkyname()?.let { skyName ->
-                    val skyAssetPath = SkyLoader.assetPath(skyName)
-                    if (assetManager.fileHandleResolver.resolve(skyAssetPath) != null) {
-                        skyBox = ModelInstance(assetManager.getLoaded<Model>(skyAssetPath))
-                    }
-                }
-            }
+            in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS),
+            in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS),
+            in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES),
+            CS_SKY -> loadConfigResource(msg.index, config)
         }
     }
 
