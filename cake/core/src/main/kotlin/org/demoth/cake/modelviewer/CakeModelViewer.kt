@@ -15,23 +15,20 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
-import jake2.qcommon.filesystem.PCX
-import jake2.qcommon.filesystem.WAL
+import ktx.assets.TextAssetLoader
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
-import org.demoth.cake.assets.CakeTextureData
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Loader
+import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
-import org.demoth.cake.assets.fromPCX
-import org.demoth.cake.assets.fromWal
+import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
-import org.demoth.cake.assets.readPaletteFile
 import org.demoth.cake.md2VatShader
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -67,13 +64,11 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
-            return
         }
         val file = File(expandTildePath(args[0]))
         if (!file.exists() || !file.canRead()) {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
-            return
         }
 
         val fileResolver = ModelViewerFileResolver(
@@ -82,8 +77,11 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             gamemod = System.getProperty("game"),
         )
         assetManager = AssetManager(fileResolver).apply {
+            setLoader(String::class.java, TextAssetLoader(fileResolver))
+            setLoader(Any::class.java, ObjectLoader(fileResolver))
             setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
             setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
+            setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
@@ -92,17 +90,10 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
 
         when (file.extension.lowercase()) {
             "pcx" -> {
-                image = Texture(CakeTextureData(fromPCX(PCX(file.readBytes()))))
+                image = assetManager.getLoaded(file.absolutePath)
             }
             "wal" -> {
-                image = Texture(
-                    CakeTextureData(
-                        fromWal(
-                            WAL(file.readBytes()),
-                            readPaletteFile(Gdx.files.internal("q2palette.bin").read())
-                        )
-                    )
-                )
+                image = assetManager.getLoaded(file.absolutePath)
             }
             "md2" -> {
                 val md2 = assetManager.getLoaded<Md2Asset>(file.absolutePath)
@@ -115,8 +106,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 val md2Shader = Md2Shader(
                     md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
                     DefaultShader.Config(
-                        Gdx.files.internal(md2VatShader).readString(),
-                        Gdx.files.internal(md2FragmentShader).readString(),
+                        assetManager.getLoaded(md2VatShader),
+                        assetManager.getLoaded(md2FragmentShader),
                     )
                 )
                 md2Shader.init()
@@ -137,7 +128,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             else -> {
                 println("Unsupported file format ${file.extension}")
                 Gdx.app.exit()
-                return
             }
         }
 
@@ -163,7 +153,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             return
         }
 
-        val md2Data = md2Instance?.getMd2CustomData()
+        val md2Data = md2Instance?.let { it.userData as Md2CustomData }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             playingMd2Animation = !playingMd2Animation
@@ -223,7 +213,6 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (::batch.isInitialized) {
             batch.dispose()
         }
-        image?.dispose()
         instances.filter { it !== md2Instance }.forEach { it.model.dispose() }
         if (::modelBatch.isInitialized) {
             modelBatch.dispose()
@@ -256,8 +245,6 @@ private fun changeFrame(delta: Int, md2CustomData: Md2CustomData, md2Frames: Int
     }
     md2CustomData.interpolation = 0f
 }
-
-fun ModelInstance.getMd2CustomData(): Md2CustomData = userData as Md2CustomData
 
 fun createGrid(size: Float, divisions: Int): ModelInstance {
     val modelBuilder = ModelBuilder()
