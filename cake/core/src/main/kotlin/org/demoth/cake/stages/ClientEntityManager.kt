@@ -1,7 +1,6 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -18,8 +17,8 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.GameConfiguration
-import org.demoth.cake.assets.AnimationTextureAttribute
 import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.createModelInstance
 import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
@@ -205,7 +204,7 @@ class ClientEntityManager {
         }
         entity.serverframe = frame.serverframe
         // Copy !
-        entity.current.set(newState) // fixme: use assignment instead of copying fields?
+        entity.current.set(newState)
     }
 
     /**
@@ -249,31 +248,25 @@ class ClientEntityManager {
                 continue
             }
 
+            // assign a visible 3d model
             if (entity.modelInstance == null) {
                 val modelIndex = newState.modelindex
                 if (modelIndex == 255) {
                     // player
                     val model = renderState.playerModel
+                    entity.name = "player"
                     if (model != null) {
-                        entity.name = "player"
-                        entity.modelInstance = ModelInstance(model).apply {
-                            if (model.isMd2Model()) {
-                                userData = Md2CustomData.empty()
-                            }
-                        }
+                        entity.modelInstance = createModelInstance(model)
                     }
                 } else {
                     val modelConfig = gameConfig[CS_MODELS + modelIndex]
                     val model = modelConfig?.resource as? Model
+                    entity.name = modelConfig?.value
                     if (model != null) {
-                        entity.name = modelConfig.value
-                        entity.modelInstance = ModelInstance(model).apply {
-                            if (model.isMd2Model()) {
-                                userData = Md2CustomData.empty()
-                            }
-                        }
-                    } // todo: warning!
+                        entity.modelInstance = createModelInstance(model)
+                    }
                 }
+                // todo: warning if the model was not found!
             }
 
             // render it if the model was successfully loaded
@@ -297,11 +290,7 @@ class ClientEntityManager {
             val model = gameConfig[CS_MODELS + currentFrame.playerstate.gunindex]?.resource as? Model
             if (model != null) {
                 renderState.gun = ClientEntity("gun").apply {
-                    modelInstance = ModelInstance(model).apply {
-                        if (model.isMd2Model()) {
-                            userData = Md2CustomData.empty()
-                        }
-                    }
+                    modelInstance = createModelInstance(model)
                 }
             }
         }
@@ -418,12 +407,6 @@ class ClientEntityManager {
             if ((msg.statbits and (1 shl i)) != 0) {
                 currentPlayerState.stats[i] = msg.currentState.stats[i];
             }
-        }
-    }
-
-    private fun Model.isMd2Model(): Boolean {
-        return materials.any { material ->
-            material.has(AnimationTextureAttribute.Type)
         }
     }
 }

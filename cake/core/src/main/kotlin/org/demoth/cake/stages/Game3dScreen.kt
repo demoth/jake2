@@ -30,6 +30,7 @@ import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.createModel
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
@@ -136,9 +137,7 @@ class Game3dScreen(
         val md2Path = "models/monsters/berserk/tris.md2"
         val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
         loadedMd2AssetPaths += md2Path
-        val md2Instance = ModelInstance(md2Asset.model)
-
-        md2Instance.userData = Md2CustomData.empty()
+        val md2Instance = createModelInstance(md2Asset.model)
 
         val tempRenderable = Renderable()
         val md2Shader = Md2Shader(
