@@ -166,9 +166,10 @@ class ClientEntityManager {
                     (newState.modelindex2 != entity.current.modelindex2) ||
                     (newState.modelindex3 != entity.current.modelindex3) ||
                     (newState.modelindex4 != entity.current.modelindex4)
+        val becameBeam = (newState.renderfx and Defines.RF_BEAM) != 0
         val becameInvisible = newState.modelindex == 0
 
-        if (reappeared || modelIndexChanged || becameInvisible) {
+        if (reappeared || modelIndexChanged || becameInvisible || becameBeam) {
             // Any time visibility or model identity changes across frames, drop the cached instance.
             entity.modelInstance = null
         }
@@ -245,6 +246,12 @@ class ClientEntityManager {
 
             // not visible to client
             if (newState.modelindex == 0) {
+                continue
+            }
+            // Beam entities are rendered via a dedicated path; modelindex is non-zero only to keep
+            // network visibility behavior compatible with the original protocol.
+            if ((newState.renderfx and Defines.RF_BEAM) != 0) {
+                entity.modelInstance = null
                 continue
             }
 
