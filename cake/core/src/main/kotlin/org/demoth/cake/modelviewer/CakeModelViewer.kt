@@ -20,6 +20,8 @@ import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
+import org.demoth.cake.assets.BspLoader
+import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Loader
@@ -47,6 +49,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
     private val instances: MutableList<ModelInstance> = mutableListOf()
+    // models created directly in the viewer (grid/origin), not owned by AssetManager
+    private val ownedModels: MutableList<Model> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var font: BitmapFont
     private var frameTime = 0f // to have an idea of the fps
@@ -64,11 +68,13 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
+            return
         }
         val file = File(expandTildePath(args[0]))
         if (!file.exists() || !file.canRead()) {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
+            return
         }
 
         val fileResolver = ModelViewerFileResolver(
@@ -82,6 +88,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
             setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
             setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
+            setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
@@ -112,22 +119,25 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 )
                 md2Shader.init()
 
+                modelBatch.dispose()
                 modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
 
                 instances.add(md2Instance!!)
-                instances.add(createOriginArrows(GRID_SIZE))
-                instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                addOwnedInstance(createOriginArrows(GRID_SIZE))
+                addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
-                // todo: fix bsp back!
-//                models.add(BspLoader().loadBSPModelWireFrame(file).transformQ2toLibgdx())
-//                models.addAll(BspLoader(gameDir).loadBspModels(file))
-                instances.add(createOriginArrows(GRID_SIZE))
-                instances.add(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                val bspMap = assetManager.getLoaded<BspMapAsset>(file.absolutePath)
+                bspMap.models.forEach { model ->
+                    instances.add(ModelInstance(model))
+                }
+                addOwnedInstance(createOriginArrows(GRID_SIZE))
+                addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             else -> {
                 println("Unsupported file format ${file.extension}")
                 Gdx.app.exit()
+                return
             }
         }
 
@@ -153,7 +163,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             return
         }
 
-        val md2Data = md2Instance?.let { it.userData as Md2CustomData }
+        val md2Data = md2Instance?.let { it.userData as? Md2CustomData }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             playingMd2Animation = !playingMd2Animation
@@ -213,13 +223,19 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
         if (::batch.isInitialized) {
             batch.dispose()
         }
-        instances.filter { it !== md2Instance }.forEach { it.model.dispose() }
+        ownedModels.forEach { it.dispose() }
+        ownedModels.clear()
         if (::modelBatch.isInitialized) {
             modelBatch.dispose()
         }
         if (::assetManager.isInitialized) {
             assetManager.dispose()
         }
+    }
+
+    private fun addOwnedInstance(instance: ModelInstance) {
+        instances.add(instance)
+        ownedModels.add(instance.model)
     }
 }
 

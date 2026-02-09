@@ -73,6 +73,18 @@ class ModelViewerFileResolverTest {
     }
 
     @Test
+    fun resolvesMapTextureFromParentFolder() {
+        val openedMap = createFile("baseq2/maps/base1.bsp")
+        val texture = createFile("baseq2/textures/e1u1/wall.wal")
+        val resolver = ModelViewerFileResolver(openedMap.absolutePath)
+
+        val resolved = resolver.resolve("textures/e1u1/wall.wal")
+
+        assertNotNull(resolved)
+        assertEquals(texture.absolutePath, resolved!!.file().absolutePath)
+    }
+
+    @Test
     fun returnsNullForMissingAsset() {
         val openedFile = createFile("viewer/tris.md2")
         val resolver = ModelViewerFileResolver(openedFile.absolutePath)

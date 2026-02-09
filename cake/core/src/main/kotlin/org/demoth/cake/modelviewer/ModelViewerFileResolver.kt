@@ -5,13 +5,14 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import java.io.File
+import java.util.LinkedHashSet
 
 /**
  * Lightweight resolver for the standalone model viewer.
  *
  * Lookup order:
  * 1. classpath/internal assets (viewer shaders, palette, icons)
- * 2. opened file folder (for ad-hoc local model bundles)
+ * 2. opened file folder and its parents (for local model/map bundles)
  * 3. optional basedir/mod fallback (same convention as the game client)
  */
 class ModelViewerFileResolver(
@@ -20,9 +21,8 @@ class ModelViewerFileResolver(
     private val gamemod: String? = null,
 ) : FileHandleResolver {
 
-    private val openedFileDirectory = Gdx.files.absolute(
-        File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
-    )
+    private val openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
+    private val openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
 
     private val basemod: String = "baseq2"
 
@@ -40,7 +40,7 @@ class ModelViewerFileResolver(
         val roots = mutableListOf<FileHandle>().apply {
             add(Gdx.files.classpath(""))
             add(Gdx.files.internal(""))
-            add(openedFileDirectory)
+            addAll(openedDirectoryAncestors())
 
             if (basedir != null) {
                 if (gamemod != null) {
@@ -48,7 +48,7 @@ class ModelViewerFileResolver(
                 }
                 add(Gdx.files.absolute("$basedir/$basemod"))
             }
-        }
+        }.distinctBy { it.path() }
 
         resolveCaseSensitive(roots, fileName)?.let { return it }
         resolveCaseInsensitive(roots, normalized.lowercase())?.let { return it }
@@ -102,5 +102,15 @@ class ModelViewerFileResolver(
             current = next
         }
         return current
+    }
+
+    private fun openedDirectoryAncestors(): List<FileHandle> {
+        val roots = LinkedHashSet<String>()
+        var current: File? = File(openedFileDirectoryPath)
+        while (current != null) {
+            roots.add(current.absolutePath)
+            current = current.parentFile
+        }
+        return roots.map { Gdx.files.absolute(it) }
     }
 }
