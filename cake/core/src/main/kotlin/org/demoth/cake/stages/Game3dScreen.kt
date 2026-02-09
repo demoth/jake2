@@ -128,21 +128,6 @@ class Game3dScreen(
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
-        // create camera
-        camera.update()
-
-        // todo: move this to a dedicated render class
-        // force replace because the command lambdas capture the render state. fixme: make proper disposable approach
-        Cmd.AddCommand("toggle_skybox", true) {
-            renderState.drawSkybox = !renderState.drawSkybox
-        }
-        Cmd.AddCommand("toggle_level", true) {
-            renderState.drawLevel = !renderState.drawLevel
-        }
-        Cmd.AddCommand("toggle_entities", true) {
-            renderState.drawEntities = !renderState.drawEntities
-        }
-
         modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader()))
     }
 
