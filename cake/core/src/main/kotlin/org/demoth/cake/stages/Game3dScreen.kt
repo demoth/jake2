@@ -158,16 +158,22 @@ class Game3dScreen(
     }
 
 
+    // todo: a lot of hacks/quirks - explain & document
     private fun applyQuakeEntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
         val isMd2Model = entity.modelInstance.userData is Md2CustomData
-        val pitchForModel = if (isMd2Model) pitch else -pitch // sigh, see Mesh.java GL_DrawAliasFrameLerp
+        val isBrushModel = entity.name.startsWith("*")
+        // old renderer quirks:
+        // - alias models (md2): effective pitch sign is positive
+        // - inline brush models: effective pitch and roll signs are positive
+        val pitchForModel = if (isMd2Model || isBrushModel) pitch else -pitch
+        val rollForModel = if (isBrushModel) roll else -roll
 
         // Match legacy entity rotation order:
         // yaw around Z, pitch around Y, roll around X.
         entity.modelInstance.transform.idt()
         entity.modelInstance.transform.rotate(Vector3.Z, yaw)
         entity.modelInstance.transform.rotate(Vector3.Y, pitchForModel)
-        entity.modelInstance.transform.rotate(Vector3.X, -roll)
+        entity.modelInstance.transform.rotate(Vector3.X, rollForModel)
     }
 
     override fun render(delta: Float) {
