@@ -15,11 +15,9 @@ import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
-import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.*
 import jake2.qcommon.Defines.*
-import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
@@ -35,8 +33,6 @@ import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.getLoaded
 import java.util.*
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Represents the 3d screen where the game is actually happening.
@@ -120,12 +116,15 @@ class Game3dScreen(
     )
 
     init {
+        // create camera
         camera.position.set(0f, 0f, 0f);
         camera.near = 1f
         camera.far = 4096f
         camera.up.set(0f, 0f, 1f) // make z up
         camera.direction.set(0f, 1f, 0f) // make y forward
+        camera.update()
 
+        // todo: infer from the level?
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
@@ -173,16 +172,10 @@ class Game3dScreen(
         return md2Shader
     }
 
-    private fun lerpAngle(from: Float, to: Float, fraction: Float): Float {
-        var delta = to - from
-        if (delta > 180) delta -= 360
-        if (delta < -180) delta += 360
-        return from + delta * fraction
-    }
 
     private fun applyQuakeEntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
-        val isAliasModel = entity.modelInstance.userData is Md2CustomData
-        val pitchForModel = if (isAliasModel) pitch else -pitch
+        val isMd2Model = entity.modelInstance.userData is Md2CustomData
+        val pitchForModel = if (isMd2Model) pitch else -pitch // sigh, see Mesh.java GL_DrawAliasFrameLerp
 
         // Match legacy entity rotation order:
         // yaw around Z, pitch around Y, roll around X.
@@ -289,6 +282,7 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         gameConfig.disposeUnmanagedResources()
+        renderState.dispose()
         // todo: implement a clear and reusable approach for such resources that need to be unloaded
         loadedMd2AssetPaths.forEach { md2Path ->
             if (assetManager.isLoaded(md2Path, Md2Asset::class.java)) {
@@ -442,11 +436,7 @@ class Game3dScreen(
 
         // todo: think about - smooth out stair climbing - is it really needed?
 
-        camera.position.set(
-            interpolatedX,
-            interpolatedY,
-            interpolatedZ
-        )
+        camera.position.set(interpolatedX, interpolatedY, interpolatedZ)
 
         // process mouse movement
         inputManager.updateAngles()
@@ -527,33 +517,6 @@ class Game3dScreen(
         }
     }
 
-    private fun toForwardUp(pitchDeg: Float, yawDeg: Float, rollDeg: Float): Pair<Vector3, Vector3> {
-        val pitch = pitchDeg * degRad
-        val yaw = yawDeg * degRad
-        val roll = rollDeg * degRad
-
-        val cp = cos(pitch)
-        val sp = sin(pitch)
-        val cy = cos(yaw)
-        val sy = sin(yaw)
-        val cr = cos(roll)
-        val sr = sin(roll)
-
-        // Matches Math3D.AngleVectors from the original client code.
-        val forward = Vector3(
-            cp * cy,
-            cp * sy,
-            -sp
-        )
-        val up = Vector3(
-            cr * sp * cy + sr * sy,
-            cr * sp * sy - sr * cy,
-            cr * cp
-        )
-
-        return forward to up
-    }
-
     // region SERVER MESSAGE PARSING
 
     /**
@@ -568,7 +531,7 @@ class Game3dScreen(
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
         gameConfig.disposeUnmanagedResource(gameConfig[msg.index]) // todo: check if it can even happen?
-        gameConfig[msg.index] = Config(msg.config)
+        gameConfig[msg.index] = Config(msg.config) // todo: when updated at runtime, load the asset
     }
 
     override fun processBaselineMessage(msg: SpawnBaselineMessage) {
