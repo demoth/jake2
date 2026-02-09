@@ -171,6 +171,53 @@ class Game3dScreen(
         entity.modelInstance.transform.rotate(Vector3.X, rollForModel)
     }
 
+    private fun loadModelConfigResource(config: Config): Boolean {
+        val modelPath = config.value
+        if (modelPath.isBlank() || modelPath.startsWith("*") || modelPath.startsWith("#")) {
+            return false
+        }
+        if (!modelPath.endsWith(".md2", ignoreCase = true)) {
+            // sprite models (.sp2) and others are handled by dedicated render paths.
+            return false
+        }
+        if (assetManager.fileHandleResolver.resolve(modelPath) == null) {
+            return false
+        } // todo: warning if not found!
+        val md2Asset = assetManager.getLoaded<Md2Asset>(modelPath)
+        loadedMd2AssetPaths += modelPath
+        config.resource = md2Asset.model
+        config.managedByAssetManager = true
+        return true
+    }
+
+    private fun loadSoundConfigResource(config: Config): Boolean {
+        val soundPath = config.value
+        if (soundPath.isBlank() || soundPath.startsWith("*")) {
+            return false
+        }
+        val assetPath = "sound/$soundPath"
+        if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
+            return false
+        } // todo: warning if not found!
+        config.resource = assetManager.getLoaded<Sound>(assetPath)
+        config.managedByAssetManager = true
+        return true
+    }
+
+    private fun loadImageConfigResource(config: Config): Boolean {
+        val imageName = config.value
+        if (imageName.isBlank()) {
+            return false
+        }
+        val assetPath = "pics/$imageName.pcx"
+        if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
+            return false
+        } // todo: warning if not found!
+        config.resource = assetManager.getLoaded<Texture>(assetPath)
+        config.managedByAssetManager = true
+        return true
+    }
+
     override fun render(delta: Float) {
         if (!precached)
             return
@@ -321,20 +368,16 @@ class Game3dScreen(
 
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
 
-        // load md2 models
-        // index of md2 models in the config string
+        // load model resources referenced in config strings
+        // after world + inline brush models, only non-inline model paths are expected.
         val startIndex = CS_MODELS + 1 + brushModels.size
-        for (i in startIndex .. MAX_MODELS) {
-            gameConfig[i]?.let { config ->
-                config.value.let {
-                    if (assetManager.fileHandleResolver.resolve(it) != null) {
-                        val md2Asset = assetManager.getLoaded<Md2Asset>(it)
-                        loadedMd2AssetPaths += it
-                        config.resource = md2Asset.model
-                        config.managedByAssetManager = true
-                    } else {
-                        println("Failed to load MD2 model data for config ${config.value}")
-                    }
+        val endIndex = CS_MODELS + MAX_MODELS - 1
+        for (i in startIndex..endIndex) {
+            val config = gameConfig[i] ?: continue
+            if (!loadModelConfigResource(config)) {
+                val modelPath = config.value
+                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
+                    Com.Warn("Failed to load model data for config $modelPath")
                 }
             }
         }
@@ -520,7 +563,32 @@ class Game3dScreen(
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
         gameConfig.disposeUnmanagedResource(gameConfig[msg.index]) // todo: check if it can even happen?
-        gameConfig[msg.index] = Config(msg.config) // todo: when updated at runtime, load the asset
+        val config = Config(msg.config)
+        gameConfig[msg.index] = config
+
+        when (msg.index) {
+            in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS) -> {
+                // Model indices can be added during the game (e.g. newly used weapon view models).
+                loadModelConfigResource(config)
+            }
+
+            in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS) -> {
+                loadSoundConfigResource(config)
+            }
+
+            in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES) -> {
+                loadImageConfigResource(config)
+            }
+
+            CS_SKY -> {
+                gameConfig.getSkyname()?.let { skyName ->
+                    val skyAssetPath = SkyLoader.assetPath(skyName)
+                    if (assetManager.fileHandleResolver.resolve(skyAssetPath) != null) {
+                        skyBox = ModelInstance(assetManager.getLoaded<Model>(skyAssetPath))
+                    }
+                }
+            }
+        }
     }
 
     override fun processBaselineMessage(msg: SpawnBaselineMessage) {
@@ -615,4 +683,3 @@ class Game3dScreen(
 
 
 }
-

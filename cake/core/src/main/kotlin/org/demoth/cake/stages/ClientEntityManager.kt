@@ -297,23 +297,36 @@ class ClientEntityManager {
             }
         }
 
-        // fixme: update the model if the weapon was changed
-        // update player gun model
-        if (renderState.gun == null) {
-            // try to load the model
-            val model = gameConfig[CS_MODELS + currentFrame.playerstate.gunindex]?.resource as? Model
-            if (model != null) {
-                renderState.gun = ClientEntity("gun").apply {
-                    modelInstance = createModelInstance(model)
+        // update player gun model and switch it when weapon changes
+        var gunModelChanged = false
+        val gunIndex = currentFrame.playerstate.gunindex
+        if (gunIndex <= 0) {
+            renderState.gun = null
+        } else {
+            val gunModelConfig = gameConfig[CS_MODELS + gunIndex]
+            val gunModel = gunModelConfig?.resource as? Model
+            if (gunModel == null) {
+                renderState.gun = null
+            } else {
+                val currentGun = renderState.gun
+                if (currentGun == null || currentGun.modelInstance.model !== gunModel) {
+                    renderState.gun = ClientEntity(gunModelConfig.value).apply {
+                        modelInstance = createModelInstance(gunModel)
+                    }
+                    gunModelChanged = true
                 }
             }
         }
 
         // update the gun animation
-        renderState.gun?.let {
-            visibleEntities += it
-            (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
-                userData.frame1 = previousFrame?.playerstate?.gunframe ?: currentFrame.playerstate.gunframe
+        renderState.gun?.let { gun ->
+            visibleEntities += gun
+            (gun.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                userData.frame1 = when {
+                    gunModelChanged -> currentFrame.playerstate.gunframe
+                    currentFrame.playerstate.gunframe == 0 -> 0
+                    else -> previousFrame?.playerstate?.gunframe ?: currentFrame.playerstate.gunframe
+                }
                 userData.frame2 = currentFrame.playerstate.gunframe
             }
         }
@@ -340,7 +353,7 @@ class ClientEntityManager {
         } else {
             deltaFrame = frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
             if (!deltaFrame.valid) { // should never happen
-                Com.Printf("Delta from invalid frame (not supposed to happen!).\n")
+                Com.Printf("asdfasdfasdfDelta from invalid frame (not supposed to happen!).\n")
             }
             if (deltaFrame.serverframe != currentFrame.deltaframe) {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
