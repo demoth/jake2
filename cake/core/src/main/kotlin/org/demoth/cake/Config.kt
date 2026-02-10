@@ -2,10 +2,13 @@ package org.demoth.cake
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
+import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.getLoaded
 
 /**
@@ -46,6 +49,10 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
     private val configStrings = Array<Config?>(size) { null }
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private val loadedWeaponSoundAssetPaths: MutableSet<String> = mutableSetOf()
+    private var playerModel: Model? = null
+    private var loadedPlayerModelAssetPath: String? = null
+    private val playerModelPath = "players/male/tris.md2"
+    private val playerSkinPath = "players/male/grunt.pcx"
 
     private val weaponSoundPaths = mapOf(
         MZ_BLASTER to "weapons/blastf1a.wav",
@@ -95,6 +102,29 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
 
     fun getSkyName(): String? {
         return configStrings[CS_SKY]?.value
+    }
+
+    fun preloadPlayerAssets(assetManager: AssetManager) {
+        val playerMd2Asset = assetManager.getLoaded(
+            playerModelPath,
+            Md2Loader.Parameters(playerSkinPath),
+        )
+        loadedPlayerModelAssetPath = playerModelPath
+        playerModel = playerMd2Asset.model
+    }
+
+    fun getPlayerModel(): Model? {
+        return playerModel
+    }
+
+    fun disposePlayerAssets(assetManager: AssetManager) {
+        loadedPlayerModelAssetPath?.let { assetPath ->
+            if (assetManager.isLoaded(assetPath, Md2Asset::class.java)) {
+                assetManager.unload(assetPath)
+            }
+        }
+        loadedPlayerModelAssetPath = null
+        playerModel = null
     }
 
     fun preloadWeaponSounds(assetManager: AssetManager) {

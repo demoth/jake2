@@ -27,7 +27,6 @@ import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.SkyLoader
@@ -78,10 +77,6 @@ class Game3dScreen(
 
     // interpolation factor between two server frames
     private var lerpFrac: Float = 0f
-
-    // todo: make proper player loader
-    private val playerModelPath = "players/male/tris.md2"
-    private val playerSkinPath = "players/male/grunt.pcx"
 
     init {
         // create camera
@@ -321,6 +316,7 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         renderState.dispose()
+        gameConfig.disposePlayerAssets(assetManager)
         gameConfig.disposeWeaponSounds(assetManager)
         unloadTrackedAssets()
     }
@@ -368,13 +364,8 @@ class Game3dScreen(
             }
         }
 
-        // temporary: load one fixed player model
-        val playerMd2Asset = assetManager.getLoaded<Md2Asset>(
-            playerModelPath,
-            Md2Loader.Parameters(playerSkinPath),
-        )
-        trackLoadedAsset(playerModelPath, Md2Asset::class.java)
-        renderState.playerModel = playerMd2Asset.model
+        gameConfig.preloadPlayerAssets(assetManager)
+        renderState.playerModel = gameConfig.getPlayerModel()
 
         for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
             val config = gameConfig[i] ?: continue
