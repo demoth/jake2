@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.ClientEntity
@@ -13,8 +12,7 @@ data class RenderState(
     var playerNumber: Int = 1,
     // client side models
     var gun: ClientEntity? = null,
-    var levelModel: ClientEntity? = null,
-    var playerModel: Model? = null
+    var levelModel: ClientEntity? = null
 ): Disposable {
     init {
         // force replace because the command lambdas capture the render state.

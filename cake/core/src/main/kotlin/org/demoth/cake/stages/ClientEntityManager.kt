@@ -267,7 +267,7 @@ class ClientEntityManager {
                 val modelIndex = newState.modelindex
                 if (modelIndex == 255) {
                     // player
-                    val model = renderState.playerModel
+                    val model = gameConfig.getPlayerModel()
                     entity.name = "player"
                     if (model != null) {
                         entity.modelInstance = createModelInstance(model)
