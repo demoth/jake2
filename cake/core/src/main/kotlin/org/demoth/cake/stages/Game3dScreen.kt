@@ -7,7 +7,6 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.Renderable
@@ -279,7 +278,7 @@ class Game3dScreen(
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
-        renderState.levelModel = ClientEntity("level").apply {
+        entityManager.levelEntity = ClientEntity("level").apply {
             modelInstance = ModelInstance(brushModels.first())
         }
 
@@ -383,12 +382,12 @@ class Game3dScreen(
         val oldGunOffsetZ = previousState.gunoffset[2]
 
         // set the previous and current state: interpolation will happen with all other client entities
-        renderState.gun?.prev?.origin = floatArrayOf(
+        entityManager.viewGun?.prev?.origin = floatArrayOf(
             oldGunOffsetX + oldX,
             oldGunOffsetY + oldY,
             oldGunOffsetZ + oldZ,
         )
-        renderState.gun?.current?.origin = floatArrayOf(
+        entityManager.viewGun?.current?.origin = floatArrayOf(
             currentGunOffsetX + newX,
             currentGunOffsetY + newY,
             currentGunOffsetZ + newZ,
@@ -402,17 +401,17 @@ class Game3dScreen(
         val currentGunAngleRoll = currentState.gunangles[ROLL]
 
         // old client behavior: gun angles are view angles + replicated gun angles
-        renderState.gun?.prev?.angles = floatArrayOf(
+        entityManager.viewGun?.prev?.angles = floatArrayOf(
             oldViewPitch + oldGunAnglePitch,
             oldViewYaw + oldGunAngleYaw,
             oldViewRoll + oldGunAngleRoll
         )
-        renderState.gun?.current?.angles = floatArrayOf(
+        entityManager.viewGun?.current?.angles = floatArrayOf(
             currentViewPitch + currentGunAnglePitch,
             currentViewYaw + currentGunAngleYaw,
             currentViewRoll + currentGunAngleRoll
         )
-        (renderState.gun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
+        (entityManager.viewGun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
         }
     }

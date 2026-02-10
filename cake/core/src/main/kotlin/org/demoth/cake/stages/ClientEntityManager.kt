@@ -24,6 +24,7 @@ import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
 
 // responsible for managing entity states which are updated from the server
+// also manages client side entities (gun model, level model)
 class ClientEntityManager {
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
 
@@ -41,6 +42,10 @@ class ClientEntityManager {
     var visibleEntities = mutableListOf<ClientEntity>()
     // RF_BEAM entities are collected separately because they are rendered as generated geometry.
     var visibleBeams = mutableListOf<ClientEntity>()
+
+    var viewGun: ClientEntity? = null
+
+    var levelEntity: ClientEntity? = null
 
     var surpressCount = 0
 
@@ -236,8 +241,8 @@ class ClientEntityManager {
         visibleBeams.clear()
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
-        if (renderState.levelModel != null && renderState.drawLevel) {
-            visibleEntities += renderState.levelModel!!
+        if (levelEntity != null && renderState.drawLevel) {
+            visibleEntities += levelEntity!!
         }
 
         val mask = MAX_PARSE_ENTITIES - 1
@@ -285,7 +290,7 @@ class ClientEntityManager {
 
             // render it if the model was successfully loaded
             if (entity.modelInstance != null
-                && newState.index != renderState.playerNumber + 1
+                && newState.index != renderState.playerNumber + 1 // do not render our own model
                 && renderState.drawEntities
             ) {
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
@@ -301,16 +306,16 @@ class ClientEntityManager {
         var gunModelChanged = false
         val gunIndex = currentFrame.playerstate.gunindex
         if (gunIndex <= 0) {
-            renderState.gun = null
+            viewGun = null
         } else {
             val gunModelConfig = gameConfig[CS_MODELS + gunIndex]
             val gunModel = gunModelConfig?.resource as? Model
             if (gunModel == null) {
-                renderState.gun = null
+                viewGun = null
             } else {
-                val currentGun = renderState.gun
+                val currentGun = viewGun
                 if (currentGun == null || currentGun.modelInstance.model !== gunModel) {
-                    renderState.gun = ClientEntity(gunModelConfig.value).apply {
+                    viewGun = ClientEntity(gunModelConfig.value).apply {
                         modelInstance = createModelInstance(gunModel)
                     }
                     gunModelChanged = true
@@ -319,7 +324,7 @@ class ClientEntityManager {
         }
 
         // update the gun animation
-        renderState.gun?.let { gun ->
+        viewGun?.let { gun ->
             visibleEntities += gun
             (gun.modelInstance.userData as? Md2CustomData)?.let { userData ->
                 userData.frame1 = when {
@@ -359,7 +364,7 @@ class ClientEntityManager {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
                 Com.Printf("Delta frame too old.\n")
             } else if (parse_entities - deltaFrame.parse_entities > MAX_PARSE_ENTITIES - 128) {
-                Com.Printf("Delta parse_entities too old.\n")
+                Com.Printf("Delta parse_entities too old.123123123\n")
             } else {
                 currentFrame.valid = true  // valid delta parse
             }

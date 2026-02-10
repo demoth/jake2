@@ -2,17 +2,14 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.exec.Cmd
-import org.demoth.cake.ClientEntity
 
+// todo: maybe remove this class: dissolve into ClientEntityManager?
 data class RenderState(
     var drawEntities: Boolean = true,
     var drawLevel: Boolean = true,
     var drawSkybox: Boolean = true,
     var lerpAcc: Float = 0f,
     var playerNumber: Int = 1,
-    // client side models
-    var gun: ClientEntity? = null,
-    var levelModel: ClientEntity? = null
 ): Disposable {
     init {
         // force replace because the command lambdas capture the render state.
