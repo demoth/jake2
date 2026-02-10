@@ -18,6 +18,19 @@ import org.demoth.cake.assets.SkyLoader
  * Store all configuration related to the current map.
  * Updated from server.
  *
+ * Asset ownership model:
+ * - This object owns gameplay/map assets acquired from configstrings and fixed gameplay lookups
+ *   (map BSP, models, sounds, HUD images, sky model, player model, weapon sounds).
+ * - Ownership is expressed via AssetManager reference counting: each GameConfiguration acquires each
+ *   path once and unloads it once in [unloadAssets].
+ * - This allows old/new configurations to overlap during map transition without dropping shared assets.
+ *
+ * Lifetime:
+ * 1. receive configstrings via [applyConfigString]
+ * 2. [loadMapAsset] and [loadAssets] during precache
+ * 3. read via typed getters during gameplay
+ * 4. [unloadAssets] when this configuration is retired
+ *
  * tothink: This could be moved to common and reused on the server side?
  */
 data class Config(
@@ -268,7 +281,11 @@ class GameConfiguration(
      */
     private fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
         val trackedType = trackedLoadedAssets[path]
-        if (trackedType == null) {
+        if (trackedType == null || !assetManager.isLoaded(path, assetClass)) {
+            if (trackedType != null) {
+                // Defensive recovery: something external unloaded this path, so reacquire ownership.
+                Com.Warn("Reacquiring unexpectedly unloaded asset: $path")
+            }
             loadAsset()
             assetManager.finishLoadingAsset<T>(path)
             trackedLoadedAssets[path] = assetClass

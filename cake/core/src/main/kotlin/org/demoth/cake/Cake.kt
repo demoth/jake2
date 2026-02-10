@@ -89,6 +89,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             updateInputHandlers(consoleVisible, menuVisible)
         }
     private var deferredConfigUnloadScreen: Game3dScreen? = null
+    // During map change, the previous screen is disposed first but its config assets are kept alive
+    // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
@@ -241,7 +243,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             val precache_spawncount = it[1].toInt()
             // no udp downloads anymore!!
 
-            game3dScreen?.precache()
+            val activeScreen = game3dScreen
+            if (activeScreen == null) {
+                Com.Warn("precache called without an active game screen")
+                return@AddCommand
+            }
+            activeScreen.precache()
             releaseDeferredConfigUnload()
 
             // we are ready to start the game!
@@ -368,6 +375,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         releaseDeferredConfigUnload()
     }
 
+    /**
+     * Dispose the active game screen. Config asset unloading is optional to support map transition
+     * handover where old assets stay alive until new precache completes.
+     */
     private fun disposeGame3dScreen(unloadConfigAssets: Boolean = true): Game3dScreen? {
         val screen = game3dScreen
         if (screen != null) {
@@ -380,6 +391,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         return screen
     }
 
+    /**
+     * Finalize deferred old-screen retirement by unloading its configuration-owned assets.
+     */
     private fun releaseDeferredConfigUnload() {
         deferredConfigUnloadScreen?.unloadConfigAssets()
         deferredConfigUnloadScreen = null

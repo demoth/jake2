@@ -3,7 +3,6 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
@@ -27,7 +26,6 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
-import java.util.*
 import kotlin.math.abs
 
 /**
@@ -57,7 +55,6 @@ class Game3dScreen(
     private var gameName: String = "baseq2"
     private var spawnCount = 0
 
-    private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val beamRenderer = BeamRenderer(assetManager)
 
     /**
@@ -92,7 +89,6 @@ class Game3dScreen(
     private fun initializeMd2Shader(): Md2Shader {
         val md2Path = "models/monsters/berserk/tris.md2"
         val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
-        trackLoadedAsset(md2Path, Md2Asset::class.java)
         val md2Instance = createModelInstance(md2Asset.model)
 
         val tempRenderable = Renderable()
@@ -104,22 +100,9 @@ class Game3dScreen(
             )
         )
         md2Shader.init()
+        assetManager.unload(md2Path)
         return md2Shader
     }
-
-    private fun trackLoadedAsset(path: String, assetClass: Class<*>) {
-        trackedLoadedAssets[path] = assetClass
-    }
-
-    private fun unloadTrackedAssets() {
-        trackedLoadedAssets.forEach { (path, assetClass) ->
-            if (assetManager.isLoaded(path, assetClass as Class<Any>)) {
-                assetManager.unload(path)
-            }
-        }
-        trackedLoadedAssets.clear()
-    }
-
 
     // todo: a lot of hacks/quirks - explain & document
     private fun applyQuakeEntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
@@ -243,7 +226,6 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         entityManager.dispose()
-        unloadTrackedAssets()
     }
 
     fun unloadConfigAssets() {
@@ -255,10 +237,17 @@ class Game3dScreen(
      * todo: make resource loading asynchronous
      */
     fun precache() {
+        if (precached) {
+            Com.Warn("precache called for an already-precached Game3dScreen")
+            return
+        }
+
         // load resources referenced in the config strings
 
         // load the level
-        val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
+        val mapName = requireNotNull(gameConfig.getMapName()) {
+            "Missing map config string at index ${CS_MODELS + 1}"
+        }
         val bspMap = gameConfig.loadMapAsset()
         val brushModels = bspMap.models
 
