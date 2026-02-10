@@ -83,40 +83,6 @@ class Game3dScreen(
     private val playerModelPath = "players/male/tris.md2"
     private val playerSkinPath = "players/male/grunt.pcx"
 
-    // todo: think about designing an extendable client side effect system
-    private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
-    private val weaponSoundPaths = mapOf(
-        MZ_BLASTER to "weapons/blastf1a.wav",
-        MZ_MACHINEGUN to "weapons/machgf1b.wav", // todo: random
-        MZ_SHOTGUN to "weapons/shotgf1b.wav",
-        MZ_CHAINGUN1 to "weapons/machgf1b.wav",
-        MZ_CHAINGUN2 to "weapons/machgf1b.wav",
-        MZ_CHAINGUN3 to "weapons/machgf1b.wav",
-        MZ_RAILGUN to "weapons/railgf1a.wav",
-        MZ_ROCKET to "weapons/rocklf1a.wav",
-        MZ_GRENADE to "weapons/grenlf1a.wav",
-        MZ_LOGIN to "weapons/grenlf1a.wav",
-        MZ_LOGOUT to "weapons/grenlf1a.wav",
-        MZ_RESPAWN to "weapons/grenlf1a.wav",
-        MZ_BFG to "weapons/bfg__f1y.wav",
-        MZ_SSHOTGUN to "weapons/sshotf1b.wav",
-        MZ_HYPERBLASTER to "weapons/hyprbf1a.wav",
-        MZ_ITEMRESPAWN to null,
-        MZ_IONRIPPER to "weapons/rippfire.wav",
-        MZ_BLUEHYPERBLASTER to "weapons/hyprbf1a.wav",
-        MZ_PHALANX to "weapons/plasshot.wav",
-        MZ_ETF_RIFLE to "weapons/nail1.wav",
-        MZ_UNUSED to null,
-        MZ_SHOTGUN2 to "weapons/shotg2.wav",
-        MZ_HEATBEAM to null,
-        MZ_BLASTER2 to "weapons/blastf1a.wav",
-        MZ_TRACKER to "weapons/disint2.wav",
-        MZ_NUKE1 to null,
-        MZ_NUKE2 to null,
-        MZ_NUKE4 to null,
-        MZ_NUKE8 to null,
-    )
-
     init {
         // create camera
         camera.position.set(0f, 0f, 0f);
@@ -355,8 +321,8 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         renderState.dispose()
+        gameConfig.disposeWeaponSounds(assetManager)
         unloadTrackedAssets()
-        weaponSounds.clear()
     }
 
     /**
@@ -422,16 +388,7 @@ class Game3dScreen(
 
         gameConfig[CS_SKY]?.let { loadConfigResource(CS_SKY, it) }
 
-        // these are expected to be loaded
-        weaponSoundPaths.forEach { (index, path) ->
-            if (path != null) {
-                val soundLocation = "sound/${path}"
-                if (assetManager.fileHandleResolver.resolve(soundLocation) != null) {
-                    weaponSounds[index] = assetManager.getLoaded<Sound>(soundLocation)
-                    trackLoadedAsset(soundLocation, Sound::class.java)
-                }
-            }
-        }
+        gameConfig.preloadWeaponSounds(assetManager)
 
         precached = true
     }
@@ -631,7 +588,7 @@ class Game3dScreen(
         val weaponType = msg.type and 0x7F
         // the silenced flag is stored in the first bit
         val silenced = (msg.type and 0x80) != 0
-        val sound = weaponSounds[weaponType]
+        val sound = gameConfig.getWeaponSound(weaponType)
         if (sound != null) {
             sound.play(if (silenced) 0.2f else 1f)
         } else {
