@@ -58,6 +58,11 @@ private enum class ClientNetworkState {
  *
  */
 class Cake : KtxApplicationAdapter, KtxInputAdapter {
+    companion object {
+        private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
+        private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
+    }
+
     private lateinit var menuStage: MainMenuStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var viewport: StretchViewport
@@ -79,7 +84,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var networkState = DISCONNECTED
     private var servername = "localhost"
     private var challenge = 0
-    private var reconnectTimeout = 1f // todo: use proper timer
+    private var reconnectTimeout = 0f // fire first connect attempt immediately
     private val netchan = netchan_t()
 
     private var game3dScreen: Game3dScreen? = null
@@ -191,6 +196,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             NET.Config(true) // allow remote
             servername = it[1]
             networkState = CONNECTING
+            reconnectTimeout = 0f
             game3dScreen = Game3dScreen(assetManager)
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
@@ -328,11 +334,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         when (networkState) {
             CONNECTING, DISCONNECTED -> return
             CONNECTED -> {
-                if (netchan.reliablePending.isNotEmpty()) {
-                    if (Globals.curtime - netchan.last_sent > 1000) {
-                        // fixme: proper timers
-                        netchan.transmit(null)
-                    }
+                if (netchan.reliablePending.isNotEmpty() || Globals.curtime - netchan.last_sent > CONNECTED_KEEPALIVE_TIMEOUT_MS) {
+                    // send pending reliable messages (e.g. "new") immediately
+                    netchan.transmit(null)
                 }
             }
             ACTIVE -> {
@@ -416,10 +420,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             reconnectTimeout = 0f
             return
         }
-        if (reconnectTimeout < 0) {
+        if (reconnectTimeout <= 0f) {
             Com.Printf("${"CheckForResend ${networkState}: Connecting to $servername"}...\n")
             Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
-            reconnectTimeout = 1f
+            reconnectTimeout = CONNECT_RETRY_TIMEOUT_SECONDS
         } else {
             reconnectTimeout -= deltaSeconds
         }
@@ -469,7 +473,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // packet from server
             //
             if (!networkPacket.from.compareIp(netchan.remote_address)) {
-                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
+                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connectifffffffffon\n")
                 continue
             }
 
