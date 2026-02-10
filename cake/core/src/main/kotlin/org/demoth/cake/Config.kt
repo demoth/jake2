@@ -1,6 +1,7 @@
 package org.demoth.cake
 
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
@@ -11,7 +12,6 @@ import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.SkyLoader
-import org.demoth.cake.assets.getLoaded
 
 /**
  * Store all configuration related to the current map.
@@ -120,11 +120,10 @@ class GameConfiguration(
     }
 
     fun preloadPlayerAssets() {
-        val playerMd2Asset = assetManager.getLoaded(
+        val playerMd2Asset = acquireAsset(
             playerModelPath,
             Md2Loader.Parameters(playerSkinPath),
         )
-        trackLoadedAsset(playerModelPath, Md2Asset::class.java)
         playerModel = playerMd2Asset.model
     }
 
@@ -142,8 +141,7 @@ class GameConfiguration(
             if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
                 return@forEach
             }
-            weaponSounds[weaponType] = assetManager.getLoaded(assetPath)
-            trackLoadedAsset(assetPath, Sound::class.java)
+            weaponSounds[weaponType] = acquireAsset<Sound>(assetPath)
         }
     }
 
@@ -196,8 +194,41 @@ class GameConfiguration(
         configStrings.forEach { config -> config?.resource = null }
     }
 
-    private fun trackLoadedAsset(path: String, assetClass: Class<*>) {
-        trackedLoadedAssets[path] = assetClass
+    private inline fun <reified T> acquireAsset(path: String): T {
+        return acquireAsset(path, T::class.java) {
+            assetManager.load(path, T::class.java)
+        }
+    }
+
+    private inline fun <reified T> acquireAsset(path: String, parameter: AssetLoaderParameters<T>): T {
+        return acquireAsset(path, T::class.java) {
+            assetManager.load(path, T::class.java, parameter)
+        }
+    }
+
+    /**
+     * Acquire this configuration's ownership for an asset path and return the loaded instance.
+     *
+     * Why this exists:
+     * each [GameConfiguration] must contribute exactly one AssetManager reference per path it uses.
+     * We rely on this during map/screen handover: old and new configs can coexist, both referencing
+     * shared assets, and unloading the old config must not drop assets still needed by the new one.
+     *
+     * Rules enforced here:
+     * - First acquisition of a path by this config: call [loadAsset], finish loading, remember ownership.
+     * - Re-acquisition of the same path by this config: do not load again, just return the asset.
+     *
+     * This gives deterministic "one config -> one ownership slot per path", so [unloadAssets] can
+     * safely release all tracked paths once and let AssetManager refcounting decide the final lifetime.
+     */
+    private fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
+        val trackedType = trackedLoadedAssets[path]
+        if (trackedType == null) {
+            loadAsset()
+            assetManager.finishLoadingAsset<T>(path)
+            trackedLoadedAssets[path] = assetClass
+        }
+        return assetManager.get(path, assetClass)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -222,8 +253,7 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(modelPath) == null) {
             return false
         } // todo: warning if not found!
-        val md2Asset = assetManager.getLoaded<Md2Asset>(modelPath)
-        trackLoadedAsset(modelPath, Md2Asset::class.java)
+        val md2Asset = acquireAsset<Md2Asset>(modelPath)
         config.resource = md2Asset.model
         return true
     }
@@ -237,8 +267,7 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
             return false
         } // todo: warning if not found!
-        config.resource = assetManager.getLoaded<Sound>(assetPath)
-        trackLoadedAsset(assetPath, Sound::class.java)
+        config.resource = acquireAsset<Sound>(assetPath)
         return true
     }
 
@@ -251,8 +280,7 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
             return false
         } // todo: warning if not found!
-        config.resource = assetManager.getLoaded<Texture>(assetPath)
-        trackLoadedAsset(assetPath, Texture::class.java)
+        config.resource = acquireAsset<Texture>(assetPath)
         return true
     }
 
@@ -266,8 +294,7 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(skyAssetPath) == null) {
             return false
         }
-        config.resource = assetManager.getLoaded<Model>(skyAssetPath)
-        trackLoadedAsset(skyAssetPath, Model::class.java)
+        config.resource = acquireAsset<Model>(skyAssetPath)
         return true
     }
 }
