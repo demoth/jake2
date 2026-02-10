@@ -320,9 +320,6 @@ class Game3dScreen(
 
         camera.position.set(interpolatedX, interpolatedY, interpolatedZ)
 
-        // process mouse movement
-        inputManager.updateAngles()
-
         val oldViewPitch: Float
         val oldViewYaw: Float
         val oldViewRoll: Float

@@ -142,6 +142,9 @@ class InputManager : InputProcessor {
 
         }
 
+        // Apply pending mouse input before encoding command angles, so the sent move
+        // and rendered camera use the same orientation this frame.
+        applyPendingMouseLook()
 
         // set the angles
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
@@ -160,7 +163,7 @@ class InputManager : InputProcessor {
         )
     }
 
-    fun updateAngles() {
+    private fun applyPendingMouseLook() {
         if (mouseWasMoved) {
             mouseWasMoved = false
 
