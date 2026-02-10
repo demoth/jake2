@@ -64,9 +64,7 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private var skyBox: ModelInstance? = null
-    private val loadedMd2AssetPaths: MutableSet<String> = mutableSetOf()
-    private val loadedSoundAssetPaths: MutableSet<String> = mutableSetOf()
-    private val loadedImageAssetPaths: MutableSet<String> = mutableSetOf()
+    private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val beamRenderer = BeamRenderer(assetManager)
 
     /**
@@ -139,7 +137,7 @@ class Game3dScreen(
     private fun initializeMd2Shader(): Md2Shader {
         val md2Path = "models/monsters/berserk/tris.md2"
         val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
-        loadedMd2AssetPaths += md2Path
+        trackLoadedAsset(md2Path, Md2Asset::class.java)
         val md2Instance = createModelInstance(md2Asset.model)
 
         val tempRenderable = Renderable()
@@ -152,6 +150,19 @@ class Game3dScreen(
         )
         md2Shader.init()
         return md2Shader
+    }
+
+    private fun trackLoadedAsset(path: String, assetClass: Class<*>) {
+        trackedLoadedAssets[path] = assetClass
+    }
+
+    private fun unloadTrackedAssets() {
+        trackedLoadedAssets.forEach { (path, assetClass) ->
+            if (assetManager.isLoaded(path, assetClass as Class<Any>)) {
+                assetManager.unload(path)
+            }
+        }
+        trackedLoadedAssets.clear()
     }
 
 
@@ -186,7 +197,7 @@ class Game3dScreen(
             return false
         } // todo: warning if not found!
         val md2Asset = assetManager.getLoaded<Md2Asset>(modelPath)
-        loadedMd2AssetPaths += modelPath
+        trackLoadedAsset(modelPath, Md2Asset::class.java)
         config.resource = md2Asset.model
         return true
     }
@@ -201,7 +212,7 @@ class Game3dScreen(
             return false
         } // todo: warning if not found!
         config.resource = assetManager.getLoaded<Sound>(assetPath)
-        loadedSoundAssetPaths += assetPath
+        trackLoadedAsset(assetPath, Sound::class.java)
         return true
     }
 
@@ -215,7 +226,7 @@ class Game3dScreen(
             return false
         } // todo: warning if not found!
         config.resource = assetManager.getLoaded<Texture>(assetPath)
-        loadedImageAssetPaths += assetPath
+        trackLoadedAsset(assetPath, Texture::class.java)
         return true
     }
 
@@ -230,6 +241,7 @@ class Game3dScreen(
             return false
         }
         skyBox = ModelInstance(assetManager.getLoaded<Model>(skyAssetPath))
+        trackLoadedAsset(skyAssetPath, Model::class.java)
         return true
     }
 
@@ -343,37 +355,8 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         renderState.dispose()
-        // todo: implement a clear and reusable approach for such resources that need to be unloaded
-        loadedMd2AssetPaths.forEach { md2Path ->
-            if (assetManager.isLoaded(md2Path, Md2Asset::class.java)) {
-                assetManager.unload(md2Path)
-            }
-        }
-        loadedMd2AssetPaths.clear()
-        loadedImageAssetPaths.forEach { imagePath ->
-            if (assetManager.isLoaded(imagePath, Texture::class.java)) {
-                assetManager.unload(imagePath)
-            }
-        }
-        loadedImageAssetPaths.clear()
-        loadedSoundAssetPaths.forEach { soundPath ->
-            if (assetManager.isLoaded(soundPath, Sound::class.java)) {
-                assetManager.unload(soundPath)
-            }
-        }
-        loadedSoundAssetPaths.clear()
+        unloadTrackedAssets()
         weaponSounds.clear()
-        gameConfig.getSkyName()?.let { skyName ->
-            val skyAssetPath = SkyLoader.assetPath(skyName)
-            if (assetManager.isLoaded(skyAssetPath, Model::class.java)) {
-                assetManager.unload(skyAssetPath)
-            }
-        }
-        gameConfig.getMapName()?.let { mapAssetPath ->
-            if (assetManager.isLoaded(mapAssetPath, BspMapAsset::class.java)) {
-                assetManager.unload(mapAssetPath)
-            }
-        }
     }
 
     /**
@@ -386,6 +369,7 @@ class Game3dScreen(
         // load the level
         val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
         val bspMap = assetManager.getLoaded<BspMapAsset>(mapName)
+        trackLoadedAsset(mapName, BspMapAsset::class.java)
         val brushModels = bspMap.models
 
         // load inline bmodels
@@ -423,7 +407,7 @@ class Game3dScreen(
             playerModelPath,
             Md2Loader.Parameters(playerSkinPath),
         )
-        loadedMd2AssetPaths += playerModelPath
+        trackLoadedAsset(playerModelPath, Md2Asset::class.java)
         renderState.playerModel = playerMd2Asset.model
 
         for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
@@ -444,7 +428,7 @@ class Game3dScreen(
                 val soundLocation = "sound/${path}"
                 if (assetManager.fileHandleResolver.resolve(soundLocation) != null) {
                     weaponSounds[index] = assetManager.getLoaded<Sound>(soundLocation)
-                    loadedSoundAssetPaths += soundLocation
+                    trackLoadedAsset(soundLocation, Sound::class.java)
                 }
             }
         }
