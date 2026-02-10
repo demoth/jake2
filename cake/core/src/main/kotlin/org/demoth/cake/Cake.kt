@@ -157,7 +157,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Printf("\nChanging map...\n")
 
             // free unused resources
-            game3dScreen?.dispose()
+            disposeGame3dScreen()
             game3dScreen = Game3dScreen(assetManager)
         }
 
@@ -250,8 +250,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun disconnect() {
         Com.Printf("Disconnecting from server...\n")
         // todo: clear the game state and release resources
-        game3dScreen?.dispose()
-        game3dScreen = null
+        disposeGame3dScreen()
 
         // send a disconnect message to the server
         netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
@@ -361,7 +360,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun dispose() {
         menuStage.dispose()
         consoleStage.dispose()
-        game3dScreen?.dispose()
+        disposeGame3dScreen()
+    }
+
+    private fun disposeGame3dScreen(unloadConfigAssets: Boolean = true) {
+        game3dScreen?.let { screen ->
+            if (unloadConfigAssets) {
+                screen.unloadConfigAssets()
+            }
+            screen.dispose()
+        }
         game3dScreen = null
     }
 

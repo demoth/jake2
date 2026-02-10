@@ -243,8 +243,11 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         entityManager.dispose()
-        gameConfig.unloadAssets()
         unloadTrackedAssets()
+    }
+
+    fun unloadConfigAssets() {
+        gameConfig.unloadAssets()
     }
 
     /**
