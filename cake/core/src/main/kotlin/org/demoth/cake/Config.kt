@@ -90,12 +90,6 @@ class GameConfiguration(
         MZ_NUKE8 to null,
     )
 
-    operator fun get(index: Int) = configStrings[index]
-
-    operator fun set(index: Int, config: Config) {
-        configStrings[index] = config
-    }
-
     fun applyConfigString(index: Int, value: String, loadResource: Boolean = false): Config {
         val config = Config(value)
         configStrings[index] = config
@@ -105,9 +99,64 @@ class GameConfiguration(
         return config
     }
 
+    // region GET ASSETS
+
+    operator fun get(index: Int) = configStrings[index]
+
+    operator fun set(index: Int, config: Config) {
+        configStrings[index] = config
+    }
+
     fun getMapName(): String? {
         return configStrings[CS_MODELS + 1]?.value
     }
+
+    fun getStatusBarLayout(): String? {
+        return configStrings[CS_STATUSBAR]?.value
+    }
+
+    fun getSkyModel(): Model? {
+        return configStrings[CS_SKY]?.resource as? Model
+    }
+
+    fun getModel(modelIndex: Int): Model? {
+        return configStrings.getOrNull(CS_MODELS + modelIndex)?.resource as? Model
+    }
+
+    fun getModelName(modelIndex: Int): String? {
+        return configStrings.getOrNull(CS_MODELS + modelIndex)?.value
+    }
+
+    fun getSound(soundIndex: Int): Sound? {
+        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.resource as? Sound
+    }
+
+    fun getSoundPath(soundIndex: Int): String? {
+        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.value
+    }
+
+    fun getImage(imageIndex: Int): Texture? {
+        return configStrings.getOrNull(CS_IMAGES + imageIndex)?.resource as? Texture
+    }
+
+    fun getItemName(itemIndex: Int): String? {
+        return configStrings.getOrNull(CS_ITEMS + itemIndex)?.value
+    }
+
+    fun getConfigValue(configIndex: Int): String? {
+        return configStrings.getOrNull(configIndex)?.value
+    }
+
+    fun getWeaponSound(weaponType: Int): Sound? {
+        return weaponSounds[weaponType]
+    }
+
+    fun getPlayerModel(): Model? {
+        return playerModel
+    }
+    // endregion
+
+    // region LOAD ASSETS
 
     fun loadMapAsset(): BspMapAsset {
         val mapPath = getMapName()
@@ -117,67 +166,6 @@ class GameConfiguration(
         return loaded
     }
 
-    fun getMapAsset(): BspMapAsset? {
-        return mapAsset
-    }
-
-    fun getStatusBarLayout(): String? {
-        return configStrings[CS_STATUSBAR]?.value
-    }
-
-    fun getSkyName(): String? {
-        return configStrings[CS_SKY]?.value
-    }
-
-    fun getSkyModel(): Model? {
-        return configStrings[CS_SKY]?.resource as? Model
-    }
-
-    fun getModel(modelIndex: Int): Model? {
-        if (modelIndex <= 0) {
-            return null
-        }
-        return configStrings.getOrNull(CS_MODELS + modelIndex)?.resource as? Model
-    }
-
-    fun getModelName(modelIndex: Int): String? {
-        if (modelIndex <= 0) {
-            return null
-        }
-        return configStrings.getOrNull(CS_MODELS + modelIndex)?.value
-    }
-
-    fun getSound(soundIndex: Int): Sound? {
-        if (soundIndex <= 0) {
-            return null
-        }
-        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.resource as? Sound
-    }
-
-    fun getSoundPath(soundIndex: Int): String? {
-        if (soundIndex <= 0) {
-            return null
-        }
-        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.value
-    }
-
-    fun getImage(imageIndex: Int): Texture? {
-        if (imageIndex <= 0) {
-            return null
-        }
-        return configStrings.getOrNull(CS_IMAGES + imageIndex)?.resource as? Texture
-    }
-
-    fun getItemName(itemIndex: Int): String? {
-        if (itemIndex !in 0..<MAX_ITEMS) {
-            return null
-        }
-        return configStrings.getOrNull(CS_ITEMS + itemIndex)?.value
-    }
-
-    fun getConfigValue(configIndex: Int): String? {
-        return configStrings.getOrNull(configIndex)?.value
-    }
 
     fun preloadPlayerAssets() {
         val playerMd2Asset = acquireAsset(
@@ -187,9 +175,6 @@ class GameConfiguration(
         playerModel = playerMd2Asset.model
     }
 
-    fun getPlayerModel(): Model? {
-        return playerModel
-    }
 
     fun preloadWeaponSounds() {
         weaponSounds.clear()
@@ -205,11 +190,8 @@ class GameConfiguration(
         }
     }
 
-    fun getWeaponSound(weaponType: Int): Sound? {
-        return weaponSounds[weaponType]
-    }
 
-    fun loadConfigResource(index: Int, config: Config): Boolean {
+    private fun loadConfigResource(index: Int, config: Config): Boolean {
         return when (index) {
             in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS) -> loadModelConfigResource(config)
             in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS) -> loadSoundConfigResource(config)
@@ -246,6 +228,8 @@ class GameConfiguration(
         preloadPlayerAssets()
         preloadWeaponSounds()
     }
+
+    // endregion
 
     fun unloadAssets() {
         unloadTrackedAssets()
