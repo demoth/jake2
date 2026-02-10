@@ -168,20 +168,9 @@ class InputManager : InputProcessor {
         if (mouseWasMoved) {
             mouseWasMoved = false
 
-            localYaw -= deltaX
-            localPitch += deltaY
-
-            // wrap yaw
-            if (localYaw <= -180f) localYaw += 360f
-            if (localYaw >= 180f) localYaw -= 360f
-
-            // first wrap the pitch
-            if (localPitch <= -180f) localPitch += 360f
-            if (localPitch >= 180f) localPitch -= 360f
-
-            // clamp pitch
-            if (localPitch >= 89f) localPitch = 89f
-            if (localPitch <= -89f) localPitch = -89f
+            localYaw = wrapSignedAngle(localYaw - deltaX)
+            // todo: invert mouse cvar
+            localPitch = clampPitch(localPitch + deltaY)
         }
     }
 
