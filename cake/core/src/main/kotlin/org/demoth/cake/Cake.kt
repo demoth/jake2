@@ -88,6 +88,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // allow the game screen to receive the input
             updateInputHandlers(consoleVisible, menuVisible)
         }
+    private var deferredConfigUnloadScreen: Game3dScreen? = null
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
@@ -156,8 +157,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // SCR.BeginLoadingPlaque();
             Com.Printf("\nChanging map...\n")
 
-            // free unused resources
-            disposeGame3dScreen()
+            // Keep old map assets until the new map has been precached.
+            releaseDeferredConfigUnload()
+            deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
             game3dScreen = Game3dScreen(assetManager)
         }
 
@@ -240,6 +242,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // no udp downloads anymore!!
 
             game3dScreen?.precache()
+            releaseDeferredConfigUnload()
 
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
@@ -251,6 +254,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Com.Printf("Disconnecting from server...\n")
         // todo: clear the game state and release resources
         disposeGame3dScreen()
+        releaseDeferredConfigUnload()
 
         // send a disconnect message to the server
         netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
@@ -361,16 +365,24 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuStage.dispose()
         consoleStage.dispose()
         disposeGame3dScreen()
+        releaseDeferredConfigUnload()
     }
 
-    private fun disposeGame3dScreen(unloadConfigAssets: Boolean = true) {
-        game3dScreen?.let { screen ->
+    private fun disposeGame3dScreen(unloadConfigAssets: Boolean = true): Game3dScreen? {
+        val screen = game3dScreen
+        if (screen != null) {
             if (unloadConfigAssets) {
                 screen.unloadConfigAssets()
             }
             screen.dispose()
         }
         game3dScreen = null
+        return screen
+    }
+
+    private fun releaseDeferredConfigUnload() {
+        deferredConfigUnloadScreen?.unloadConfigAssets()
+        deferredConfigUnloadScreen = null
     }
 
     /**
