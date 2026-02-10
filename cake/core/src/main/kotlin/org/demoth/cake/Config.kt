@@ -13,8 +13,7 @@ import jake2.qcommon.exec.Cmd
  */
 data class Config(
     val value: String,
-    var resource: Disposable? = null,
-    var managedByAssetManager: Boolean = false
+    var resource: Disposable? = null
 )
 
 // may not be great to have a big array of nulls, but configs are accessed by the index (maybe use map int->config?)
@@ -53,26 +52,11 @@ class GameConfiguration(size: Int = MAX_CONFIGSTRINGS) {
         return configStrings[CS_MODELS + 1]?.value
     }
 
-    fun disposeUnmanagedResources() {
-        configStrings.forEach { disposeUnmanagedResource(it) }
-    }
-
-    /**
-     * Disposes resources that are not managed by the asset manager
-     */
-    fun disposeUnmanagedResource(config: Config?) {
-        val resource = config?.resource ?: return
-        if (config.managedByAssetManager) {
-            return
-        }
-        resource.dispose()
-    }
-
     fun getStatusBarLayout(): String? {
         return configStrings[CS_STATUSBAR]?.value
     }
 
-    fun getSkyname(): String? {
+    fun getSkyName(): String? {
         return configStrings[CS_SKY]?.value
     }
 }

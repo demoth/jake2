@@ -41,10 +41,10 @@ import kotlin.math.abs
  * Also, it is responsible for loading/disposing of the required resources
  */
 class Game3dScreen(
-    val assetManager: AssetManager,
-    val inputManager: InputManager = InputManager(),
-    val renderState: RenderState = RenderState()
+    private val assetManager: AssetManager,
+    private val inputManager: InputManager = InputManager(),
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
+    private val renderState: RenderState = RenderState()
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
@@ -65,6 +65,8 @@ class Game3dScreen(
 
     private var skyBox: ModelInstance? = null
     private val loadedMd2AssetPaths: MutableSet<String> = mutableSetOf()
+    private val loadedSoundAssetPaths: MutableSet<String> = mutableSetOf()
+    private val loadedImageAssetPaths: MutableSet<String> = mutableSetOf()
     private val beamRenderer = BeamRenderer(assetManager)
 
     /**
@@ -186,7 +188,6 @@ class Game3dScreen(
         val md2Asset = assetManager.getLoaded<Md2Asset>(modelPath)
         loadedMd2AssetPaths += modelPath
         config.resource = md2Asset.model
-        config.managedByAssetManager = true
         return true
     }
 
@@ -200,7 +201,7 @@ class Game3dScreen(
             return false
         } // todo: warning if not found!
         config.resource = assetManager.getLoaded<Sound>(assetPath)
-        config.managedByAssetManager = true
+        loadedSoundAssetPaths += assetPath
         return true
     }
 
@@ -214,7 +215,7 @@ class Game3dScreen(
             return false
         } // todo: warning if not found!
         config.resource = assetManager.getLoaded<Texture>(assetPath)
-        config.managedByAssetManager = true
+        loadedImageAssetPaths += assetPath
         return true
     }
 
@@ -341,7 +342,6 @@ class Game3dScreen(
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
-        gameConfig.disposeUnmanagedResources()
         renderState.dispose()
         // todo: implement a clear and reusable approach for such resources that need to be unloaded
         loadedMd2AssetPaths.forEach { md2Path ->
@@ -350,7 +350,20 @@ class Game3dScreen(
             }
         }
         loadedMd2AssetPaths.clear()
-        gameConfig.getSkyname()?.let { skyName ->
+        loadedImageAssetPaths.forEach { imagePath ->
+            if (assetManager.isLoaded(imagePath, Texture::class.java)) {
+                assetManager.unload(imagePath)
+            }
+        }
+        loadedImageAssetPaths.clear()
+        loadedSoundAssetPaths.forEach { soundPath ->
+            if (assetManager.isLoaded(soundPath, Sound::class.java)) {
+                assetManager.unload(soundPath)
+            }
+        }
+        loadedSoundAssetPaths.clear()
+        weaponSounds.clear()
+        gameConfig.getSkyName()?.let { skyName ->
             val skyAssetPath = SkyLoader.assetPath(skyName)
             if (assetManager.isLoaded(skyAssetPath, Model::class.java)) {
                 assetManager.unload(skyAssetPath)
@@ -382,7 +395,6 @@ class Game3dScreen(
             if (index != 0)
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
-            configString.managedByAssetManager = true
         }
 
         // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
@@ -432,6 +444,7 @@ class Game3dScreen(
                 val soundLocation = "sound/${path}"
                 if (assetManager.fileHandleResolver.resolve(soundLocation) != null) {
                     weaponSounds[index] = assetManager.getLoaded<Sound>(soundLocation)
+                    loadedSoundAssetPaths += soundLocation
                 }
             }
         }
@@ -576,7 +589,6 @@ class Game3dScreen(
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
-        gameConfig.disposeUnmanagedResource(gameConfig[msg.index]) // todo: check if it can even happen?
         val config = Config(msg.config)
         gameConfig[msg.index] = config
 
