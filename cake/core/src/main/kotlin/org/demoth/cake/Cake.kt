@@ -282,6 +282,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
         Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
+        game3dScreen?.resetInputLookReference()
 
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage

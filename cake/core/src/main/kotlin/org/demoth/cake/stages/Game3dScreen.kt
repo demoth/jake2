@@ -279,6 +279,10 @@ class Game3dScreen(
         return inputManager.gatherInput(outgoingSequence, deltaTime, entityManager.currentFrame)
     }
 
+    fun resetInputLookReference() {
+        inputManager.resetMouseLookReference()
+    }
+
     /**
      * CL_CalcViewValues
      * Updates camera transformation according to player input and player info

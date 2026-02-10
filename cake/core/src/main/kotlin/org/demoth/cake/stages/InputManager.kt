@@ -45,6 +45,7 @@ class InputManager : InputProcessor {
     private var previousY = 0f
     private var deltaX = 0f
     private var deltaY = 0f
+    private var hasMouseReference = false
     private val sensitivity = 25f
     private var mouseWasMoved = false
 
@@ -249,12 +250,34 @@ class InputManager : InputProcessor {
     // endregion
 
     private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
+        if (!hasMouseReference) {
+            previousX = screenX.toFloat()
+            previousY = screenY.toFloat()
+            hasMouseReference = true
+            deltaX = 0f
+            deltaY = 0f
+            mouseWasMoved = false
+        }
+
         deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
         deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
         previousX = screenX.toFloat()
         previousY = screenY.toFloat()
         mouseWasMoved = true
         return true // consume the event
+    }
+
+    /**
+     * Rearms mouse delta tracking so the next mouse event only establishes a baseline position.
+     *
+     * This prevents a large one-frame jump after input focus/context changes (menu/console toggles,
+     * cursor capture changes, etc.) where historical coordinates are no longer meaningful.
+     */
+    fun resetMouseLookReference() {
+        hasMouseReference = false
+        mouseWasMoved = false
+        deltaX = 0f
+        deltaY = 0f
     }
 
     /**
