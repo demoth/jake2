@@ -94,12 +94,29 @@ class GameConfiguration(
         configStrings[index] = config
     }
 
+    fun applyConfigString(index: Int, value: String, loadResource: Boolean = false): Config {
+        val config = Config(value)
+        configStrings[index] = config
+        if (loadResource) {
+            loadConfigResource(index, config)
+        }
+        return config
+    }
+
     fun getMapName(): String? {
         return configStrings[CS_MODELS + 1]?.value
     }
 
     fun getStatusBarLayout(): String? {
         return configStrings[CS_STATUSBAR]?.value
+    }
+
+    fun getSkyName(): String? {
+        return configStrings[CS_SKY]?.value
+    }
+
+    fun getSkyModel(): Model? {
+        return configStrings[CS_SKY]?.resource as? Model
     }
 
     fun preloadPlayerAssets() {
@@ -142,6 +159,34 @@ class GameConfiguration(
             CS_SKY -> loadSkyConfigResource(config)
             else -> false
         }
+    }
+
+    fun loadAssets(firstNonInlineModelConfigIndex: Int) {
+        val lastModelConfigIndex = CS_MODELS + MAX_MODELS - 1
+        for (i in firstNonInlineModelConfigIndex..lastModelConfigIndex) {
+            val config = configStrings[i] ?: continue
+            if (!loadConfigResource(i, config)) {
+                val modelPath = config.value
+                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
+                    Com.Warn("Failed to load model data for config $modelPath")
+                }
+            }
+        }
+
+        for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
+            val config = configStrings[i] ?: continue
+            loadConfigResource(i, config)
+        }
+
+        for (i in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES)) {
+            val config = configStrings[i] ?: continue
+            loadConfigResource(i, config)
+        }
+
+        configStrings[CS_SKY]?.let { loadConfigResource(CS_SKY, it) }
+
+        preloadPlayerAssets()
+        preloadWeaponSounds()
     }
 
     fun unloadAssets() {

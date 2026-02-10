@@ -144,7 +144,7 @@ class Game3dScreen(
     }
 
     private fun refreshSkyBox() {
-        val skyModel = gameConfig[CS_SKY]?.resource as? Model
+        val skyModel = gameConfig.getSkyModel()
         skyBox = if (skyModel == null) {
             null
         } else {
@@ -285,37 +285,11 @@ class Game3dScreen(
 
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
 
-        // load model resources referenced in config strings
         // after world + inline brush models, only non-inline model paths are expected.
         val startIndex = CS_MODELS + 1 + brushModels.size
-        val endIndex = CS_MODELS + MAX_MODELS - 1
-        for (i in startIndex..endIndex) {
-            val config = gameConfig[i] ?: continue
-            if (!gameConfig.loadConfigResource(i, config)) {
-                val modelPath = config.value
-                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
-                    Com.Warn("Failed to load model data for config $modelPath")
-                }
-            }
-        }
-
-        gameConfig.preloadPlayerAssets()
+        gameConfig.loadAssets(startIndex)
         renderState.playerModel = gameConfig.getPlayerModel()
-
-        for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
-            val config = gameConfig[i] ?: continue
-            gameConfig.loadConfigResource(i, config)
-        }
-
-        for (i in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES)) {
-            val config = gameConfig[i] ?: continue
-            gameConfig.loadConfigResource(i, config)
-        }
-
-        gameConfig[CS_SKY]?.let { gameConfig.loadConfigResource(CS_SKY, it) }
         refreshSkyBox()
-
-        gameConfig.preloadWeaponSounds()
 
         precached = true
     }
@@ -457,16 +431,7 @@ class Game3dScreen(
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
-        val config = Config(msg.config)
-        gameConfig[msg.index] = config
-
-        // Resource-bearing configstrings can arrive/refresh during active gameplay.
-        when (msg.index) {
-            in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS),
-            in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS),
-            in (CS_IMAGES + 1)..<(CS_IMAGES + MAX_IMAGES),
-            CS_SKY -> gameConfig.loadConfigResource(msg.index, config)
-        }
+        gameConfig.applyConfigString(msg.index, msg.config, loadResource = precached)
 
         if (msg.index == CS_SKY) {
             refreshSkyBox()
