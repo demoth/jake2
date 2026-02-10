@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.Input
 import jake2.qcommon.Defines.PM_DEAD
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.PITCH
@@ -59,6 +60,25 @@ class InputManagerAngleSyncTest {
         assertEquals(90f, input.localYaw, angleEpsilon)
         assertEquals(30f, input.initialYaw!!, angleEpsilon)
         assertEquals(60f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW].toInt())), cmdAngleEpsilon)
+    }
+
+    @Test
+    fun oppositeMovementKeysCancelOut() {
+        val input = InputManager()
+        val frame = frame(pmType = PM_NORMAL, viewYaw = 0f, deltaYaw = 0f)
+
+        input.keyDown(Input.Keys.W)
+        input.keyDown(Input.Keys.S)
+        input.keyDown(Input.Keys.A)
+        input.keyDown(Input.Keys.D)
+        input.keyDown(Input.Keys.SPACE)
+        input.keyDown(Input.Keys.C)
+
+        val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame)
+
+        assertEquals(0, msg.newCmd.forwardmove.toInt())
+        assertEquals(0, msg.newCmd.sidemove.toInt())
+        assertEquals(0, msg.newCmd.upmove.toInt())
     }
 
     private fun frame(

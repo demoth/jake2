@@ -108,29 +108,17 @@ class InputManager : InputProcessor {
             cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
         }
 
-        if (commandsState[in_forward] == true) {
-            cmd.forwardmove = clientSpeed;
-        }
+        // pressing both W and S should cancel the forward movement (same for other axes)
+        val forwardMove = (if (commandsState[in_forward] == true) clientSpeed.toInt() else 0) +
+            (if (commandsState[in_back] == true) -clientSpeed.toInt() else 0)
+        val sideMove = (if (commandsState[in_moveright] == true) clientSpeed.toInt() else 0) +
+            (if (commandsState[in_moveleft] == true) -clientSpeed.toInt() else 0)
+        val upMove = (if (commandsState[in_moveup] == true) clientSpeed.toInt() else 0) +
+            (if (commandsState[in_movedown] == true) -clientSpeed.toInt() else 0)
 
-        if (commandsState[in_back] == true) {
-            cmd.forwardmove = (-clientSpeed).toShort()
-        }
-
-        if (commandsState[in_moveleft] == true) {
-            cmd.sidemove = (-clientSpeed).toShort()
-        }
-
-        if (commandsState[in_moveright] == true) {
-            cmd.sidemove = clientSpeed
-        }
-
-        if (commandsState[in_moveup] == true) {
-            cmd.upmove = clientSpeed
-        }
-
-        if (commandsState[in_movedown] == true) {
-            cmd.upmove = (-clientSpeed).toShort()
-        }
+        cmd.forwardmove = forwardMove.toShort()
+        cmd.sidemove = sideMove.toShort()
+        cmd.upmove = upMove.toShort()
 
         // update camera direction right on the client side and sent to the server
         if (commandsState[in_left] == true || commandsState[in_right] == true) {
