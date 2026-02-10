@@ -455,8 +455,7 @@ class Game3dScreen(
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val config = gameConfig[CS_SOUNDS + msg.soundIndex]
-        val sound = config?.resource as? Sound
+        val sound = gameConfig.getSound(msg.soundIndex)
         if (sound != null) {
             // msg.volume should already be in [0,1]: byte / 255f
             val volume = (msg.volume * calculateSoundAttenuation(msg)).coerceIn(0f, 1f)
@@ -464,7 +463,7 @@ class Game3dScreen(
                 sound.play(volume)
             }
         } else {
-            Com.Warn("sound ${msg.soundIndex} (${config?.value}) not found")
+            Com.Warn("sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
         }
     }
 

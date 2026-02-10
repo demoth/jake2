@@ -101,9 +101,7 @@ class LayoutExecutor(
                     // Next token is a stat index used as an image reference.
                     val statIndex = tokens.removeFirst().toInt()
                     val imageIndex = stats[statIndex]
-                    gameConfig[Defines.CS_IMAGES + imageIndex.toInt()]?.let {
-                        drawImage(x, y, it.resource as? Texture)
-                    }
+                    drawImage(x, y, gameConfig.getImage(imageIndex.toInt()))
                 }
 
                 "client" -> { // draw a deathmatch client block
@@ -169,7 +167,7 @@ class LayoutExecutor(
                         throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
                     }
                     val configIndex = stats[statIndex]
-                    val value = gameConfig.get(configIndex.toInt())?.value ?: ""
+                    val value = gameConfig.getConfigValue(configIndex.toInt()) ?: ""
                     drawText(x, y, value, false)
                 }
 
@@ -216,7 +214,7 @@ class LayoutExecutor(
                 y -= 16;
                 val selectedPrefix = if (i == selectedIndex) "->" else "  "
                 val amountText = amount.toString().padStart(3)
-                val text = "$selectedPrefix $amountText ${gameConfig[Defines.CS_ITEMS + i]?.value ?: ""}"
+                val text = "$selectedPrefix $amountText ${gameConfig.getItemName(i) ?: ""}"
                 drawText(x, y, text, false)
             }
         }

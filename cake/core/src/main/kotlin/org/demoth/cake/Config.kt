@@ -133,6 +133,52 @@ class GameConfiguration(
         return configStrings[CS_SKY]?.resource as? Model
     }
 
+    fun getModel(modelIndex: Int): Model? {
+        if (modelIndex <= 0) {
+            return null
+        }
+        return configStrings.getOrNull(CS_MODELS + modelIndex)?.resource as? Model
+    }
+
+    fun getModelName(modelIndex: Int): String? {
+        if (modelIndex <= 0) {
+            return null
+        }
+        return configStrings.getOrNull(CS_MODELS + modelIndex)?.value
+    }
+
+    fun getSound(soundIndex: Int): Sound? {
+        if (soundIndex <= 0) {
+            return null
+        }
+        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.resource as? Sound
+    }
+
+    fun getSoundPath(soundIndex: Int): String? {
+        if (soundIndex <= 0) {
+            return null
+        }
+        return configStrings.getOrNull(CS_SOUNDS + soundIndex)?.value
+    }
+
+    fun getImage(imageIndex: Int): Texture? {
+        if (imageIndex <= 0) {
+            return null
+        }
+        return configStrings.getOrNull(CS_IMAGES + imageIndex)?.resource as? Texture
+    }
+
+    fun getItemName(itemIndex: Int): String? {
+        if (itemIndex !in 0..<MAX_ITEMS) {
+            return null
+        }
+        return configStrings.getOrNull(CS_ITEMS + itemIndex)?.value
+    }
+
+    fun getConfigValue(configIndex: Int): String? {
+        return configStrings.getOrNull(configIndex)?.value
+    }
+
     fun preloadPlayerAssets() {
         val playerMd2Asset = acquireAsset(
             playerModelPath,

@@ -300,9 +300,8 @@ class ClientEntityManager: Disposable {
                         entity.modelInstance = createModelInstance(model)
                     }
                 } else {
-                    val modelConfig = gameConfig[CS_MODELS + modelIndex]
-                    val model = modelConfig?.resource as? Model
-                    entity.name = modelConfig?.value
+                    val model = gameConfig.getModel(modelIndex)
+                    entity.name = gameConfig.getModelName(modelIndex)
                     if (model != null) {
                         entity.modelInstance = createModelInstance(model)
                     }
@@ -330,14 +329,13 @@ class ClientEntityManager: Disposable {
         if (gunIndex <= 0) {
             viewGun = null
         } else {
-            val gunModelConfig = gameConfig[CS_MODELS + gunIndex]
-            val gunModel = gunModelConfig?.resource as? Model
+            val gunModel = gameConfig.getModel(gunIndex)
             if (gunModel == null) {
                 viewGun = null
             } else {
                 val currentGun = viewGun
                 if (currentGun == null || currentGun.modelInstance.model !== gunModel) {
-                    viewGun = ClientEntity(gunModelConfig.value).apply {
+                    viewGun = ClientEntity(gameConfig.getModelName(gunIndex) ?: "gun_$gunIndex").apply {
                         modelInstance = createModelInstance(gunModel)
                     }
                     gunModelChanged = true
