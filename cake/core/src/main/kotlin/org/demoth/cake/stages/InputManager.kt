@@ -16,7 +16,6 @@ import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.clampPitch
-import java.util.EnumMap
 import org.demoth.cake.stages.ClientCommands.*
 import org.demoth.cake.wrapSignedAngle
 import kotlin.experimental.or
@@ -24,7 +23,7 @@ import kotlin.math.abs
 
 // CL_input
 class InputManager : InputProcessor {
-    private val commandsState: EnumMap<ClientCommands, Boolean> = EnumMap(ClientCommands::class.java)
+    private val commandsState = BooleanArray(ClientCommands.entries.size)
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
     private val clientSpeed: Short = 100 // todo: cvar
 
@@ -88,10 +87,6 @@ class InputManager : InputProcessor {
         Input.Keys.F7 to "toggle_entities",
     )
 
-    init {
-        ClientCommands.entries.forEach { commandsState[it] = false }
-    }
-
     // called at server rate
     fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
         syncViewAnglesWithServer(currentFrame)
@@ -104,31 +99,29 @@ class InputManager : InputProcessor {
         val cmd = userCommands[cmdIndex]
         cmd.clear()
 
-        if (commandsState[in_attack] == true) {
+        if (isPressed(in_attack)) {
             cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
         }
 
         // pressing both W and S should cancel the forward movement (same for other axes)
-        val forwardMove = (if (commandsState[in_forward] == true) clientSpeed.toInt() else 0) +
-            (if (commandsState[in_back] == true) -clientSpeed.toInt() else 0)
-        val sideMove = (if (commandsState[in_moveright] == true) clientSpeed.toInt() else 0) +
-            (if (commandsState[in_moveleft] == true) -clientSpeed.toInt() else 0)
-        val upMove = (if (commandsState[in_moveup] == true) clientSpeed.toInt() else 0) +
-            (if (commandsState[in_movedown] == true) -clientSpeed.toInt() else 0)
+        val forwardMove = (if (isPressed(in_forward)) clientSpeed.toInt() else 0) +
+            (if (isPressed(in_back)) -clientSpeed.toInt() else 0)
+        val sideMove = (if (isPressed(in_moveright)) clientSpeed.toInt() else 0) +
+            (if (isPressed(in_moveleft)) -clientSpeed.toInt() else 0)
+        val upMove = (if (isPressed(in_moveup)) clientSpeed.toInt() else 0) +
+            (if (isPressed(in_movedown)) -clientSpeed.toInt() else 0)
 
         cmd.forwardmove = forwardMove.toShort()
         cmd.sidemove = sideMove.toShort()
         cmd.upmove = upMove.toShort()
 
         // update camera direction right on the client side and sent to the server
-        if (commandsState[in_left] == true || commandsState[in_right] == true) {
+        if (isPressed(in_left) || isPressed(in_right)) {
             var delta = deltaTime * cameraKeyboardRotationSpeed
-            if (commandsState[in_right] == true) {
+            if (isPressed(in_right)) {
                 delta *= -1
             }
-
             localYaw += delta
-
         }
 
         // Apply pending mouse input before encoding command angles, so the sent move
@@ -165,22 +158,19 @@ class InputManager : InputProcessor {
     // region INPUT PROCESSOR
 
     override fun keyDown(keycode: Int): Boolean {
-        if (inputKeyMappings[keycode] != null) {
-            commandsState[inputKeyMappings[keycode]] = true
-            return true
-        } else {
-            return false
-        }
+        val mappedCommand = inputKeyMappings[keycode] ?: return false
+        setPressed(mappedCommand, true)
+        return true
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        if (inputKeyMappings[keycode] != null) {
-            commandsState[inputKeyMappings[keycode]] = false
+        val mappedCommand = inputKeyMappings[keycode]
+        if (mappedCommand != null) {
+            setPressed(mappedCommand, false)
             return true
         } else if (inputBindings[keycode] != null) {
             val cmd = inputBindings[keycode]
             if (cmd != null) {
-                println("Executing command: $cmd")
                 Cbuf.AddText(cmd)
             }
             return true
@@ -198,7 +188,7 @@ class InputManager : InputProcessor {
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.LEFT) {
-            commandsState[in_attack] = true
+            setPressed(in_attack, true)
             return true
         }
         return false
@@ -206,7 +196,7 @@ class InputManager : InputProcessor {
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.LEFT) {
-            commandsState[in_attack] = false
+            setPressed(in_attack, false)
             return true
         }
         return false
@@ -226,6 +216,12 @@ class InputManager : InputProcessor {
 
     // endregion
 
+    private fun isPressed(command: ClientCommands): Boolean = commandsState[command.ordinal]
+
+    private fun setPressed(command: ClientCommands, pressed: Boolean) {
+        commandsState[command.ordinal] = pressed
+    }
+
     private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
         if (!hasMouseReference) {
             previousX = screenX.toFloat()
@@ -234,13 +230,13 @@ class InputManager : InputProcessor {
             deltaX = 0f
             deltaY = 0f
             mouseWasMoved = false
+        } else {
+            deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
+            deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+            previousX = screenX.toFloat()
+            previousY = screenY.toFloat()
+            mouseWasMoved = true
         }
-
-        deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
-        deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
-        previousX = screenX.toFloat()
-        previousY = screenY.toFloat()
-        mouseWasMoved = true
         return true // consume the event
     }
 
