@@ -1,13 +1,16 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.MAX_EDICTS
 import jake2.qcommon.Defines.MAX_PARSE_ENTITIES
 import jake2.qcommon.entity_state_t
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
@@ -25,7 +28,7 @@ import kotlin.math.abs
 
 // responsible for managing entity states which are updated from the server
 // also manages client side entities (gun model, level model)
-class ClientEntityManager {
+class ClientEntityManager: Disposable {
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
@@ -37,6 +40,11 @@ class ClientEntityManager {
     val currentFrame = ClientFrame() // latest frame information received from the server
 
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
+    var drawEntities: Boolean = true
+    var drawLevel: Boolean = true
+    var drawSkybox: Boolean = true
+    var lerpAcc: Float = 0f
+    var playerNumber: Int = 1
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
@@ -46,8 +54,22 @@ class ClientEntityManager {
     var viewGun: ClientEntity? = null
 
     var levelEntity: ClientEntity? = null
+    var skyEntity: ClientEntity? = null
 
     var surpressCount = 0
+
+    init {
+        // force replace because the command lambdas capture this manager.
+        Cmd.AddCommand("toggle_skybox", true) {
+            drawSkybox = !drawSkybox
+        }
+        Cmd.AddCommand("toggle_level", true) {
+            drawLevel = !drawLevel
+        }
+        Cmd.AddCommand("toggle_entities", true) {
+            drawEntities = !drawEntities
+        }
+    }
 
     fun getEntitySoundOrigin(entityIndex: Int): Vector3? {
         if (entityIndex !in 0..<MAX_EDICTS) {
@@ -235,13 +257,13 @@ class ClientEntityManager {
      *
      *  Former `CL_AddPacketEntities`
      */
-    fun computeVisibleEntities(renderState: RenderState, gameConfig: GameConfiguration) {
-        renderState.lerpAcc = 0f
+    fun computeVisibleEntities(gameConfig: GameConfiguration) {
+        lerpAcc = 0f
         visibleEntities.clear()
         visibleBeams.clear()
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
-        if (levelEntity != null && renderState.drawLevel) {
+        if (levelEntity != null && drawLevel) {
             visibleEntities += levelEntity!!
         }
 
@@ -261,7 +283,7 @@ class ClientEntityManager {
             // network visibility behavior compatible with the original protocol.
             if ((newState.renderfx and Defines.RF_BEAM) != 0) {
                 entity.modelInstance = null
-                if (renderState.drawEntities) {
+                if (drawEntities) {
                     visibleBeams += entity
                 }
                 continue
@@ -290,8 +312,8 @@ class ClientEntityManager {
 
             // render it if the model was successfully loaded
             if (entity.modelInstance != null
-                && newState.index != renderState.playerNumber + 1 // do not render our own model
-                && renderState.drawEntities
+                && newState.index != playerNumber + 1 // do not render our own model
+                && drawEntities
             ) {
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                     userData.frame1 = entity.prev.frame
@@ -333,6 +355,16 @@ class ClientEntityManager {
                     else -> previousFrame?.playerstate?.gunframe ?: currentFrame.playerstate.gunframe
                 }
                 userData.frame2 = currentFrame.playerstate.gunframe
+            }
+        }
+    }
+
+    fun setSkyModel(model: Model?) {
+        skyEntity = if (model == null) {
+            null
+        } else {
+            ClientEntity("sky").apply {
+                modelInstance = ModelInstance(model)
             }
         }
     }
@@ -440,5 +472,11 @@ class ClientEntityManager {
                 currentPlayerState.stats[i] = msg.currentState.stats[i];
             }
         }
+    }
+
+    override fun dispose() {
+        Cmd.RemoveCommand("toggle_skybox")
+        Cmd.RemoveCommand("toggle_level")
+        Cmd.RemoveCommand("toggle_entities")
     }
 }

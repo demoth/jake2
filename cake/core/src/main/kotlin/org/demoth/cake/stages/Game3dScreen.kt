@@ -40,7 +40,6 @@ class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager = InputManager(),
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
-    private val renderState: RenderState = RenderState()
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
@@ -59,7 +58,6 @@ class Game3dScreen(
     private var gameName: String = "baseq2"
     private var spawnCount = 0
 
-    private var skyBox: ModelInstance? = null
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val beamRenderer = BeamRenderer(assetManager)
 
@@ -143,12 +141,7 @@ class Game3dScreen(
     }
 
     private fun refreshSkyBox() {
-        val skyModel = gameConfig.getSkyModel()
-        skyBox = if (skyModel == null) {
-            null
-        } else {
-            ModelInstance(skyModel)
-        }
+        entityManager.setSkyModel(gameConfig.getSkyModel())
     }
 
     override fun render(delta: Float) {
@@ -156,18 +149,18 @@ class Game3dScreen(
             return
 
         val serverFrameTime = 1f/10f // 10Hz server updates
-        lerpFrac = (renderState.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+        lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
 
         updatePlayerCamera(lerpFrac)
 
         modelBatch.begin(camera)
 
-        if (renderState.drawSkybox)
-            skyBox?.let {
+        if (entityManager.drawSkybox)
+            entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
                 Gdx.gl.glDepthMask(false)
                 // TODO: rotate skybox: skyBox.transform.setToRotation(...)
-                it.transform.setTranslation(camera.position) // follow the camera
-                modelBatch.render(skyBox)
+                skyModelInstance.transform.setTranslation(camera.position) // follow the camera
+                modelBatch.render(skyModelInstance)
                 Gdx.gl.glDepthMask(true)
             }
 
@@ -243,14 +236,14 @@ class Game3dScreen(
             }
 
         }
-        renderState.lerpAcc += delta
+        entityManager.lerpAcc += delta
     }
 
     override fun dispose() {
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
-        renderState.dispose()
+        entityManager.dispose()
         gameConfig.unloadAssets()
         unloadTrackedAssets()
     }
@@ -424,7 +417,7 @@ class Game3dScreen(
     override fun processServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
-        renderState.playerNumber = msg.playerNumber
+        entityManager.playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
     }
 
@@ -458,7 +451,7 @@ class Game3dScreen(
     override fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean {
         val validMessage = entityManager.processPacketEntitiesMessage(msg)
         if (validMessage) {
-            entityManager.computeVisibleEntities(renderState, gameConfig)
+            entityManager.computeVisibleEntities(gameConfig)
         }
         return validMessage
     }
