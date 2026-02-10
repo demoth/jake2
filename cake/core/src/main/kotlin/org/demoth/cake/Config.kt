@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
+import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.SkyLoader
@@ -52,6 +53,7 @@ class GameConfiguration(
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
+    private var mapAsset: BspMapAsset? = null
     private var playerModel: Model? = null
     private val playerModelPath = "players/male/tris.md2"
     private val playerSkinPath = "players/male/grunt.pcx"
@@ -105,6 +107,18 @@ class GameConfiguration(
 
     fun getMapName(): String? {
         return configStrings[CS_MODELS + 1]?.value
+    }
+
+    fun loadMapAsset(): BspMapAsset {
+        val mapPath = getMapName()
+            ?: error("Map config string is missing at index ${CS_MODELS + 1}")
+        val loaded = acquireAsset<BspMapAsset>(mapPath)
+        mapAsset = loaded
+        return loaded
+    }
+
+    fun getMapAsset(): BspMapAsset? {
+        return mapAsset
     }
 
     fun getStatusBarLayout(): String? {
@@ -189,6 +203,7 @@ class GameConfiguration(
 
     fun unloadAssets() {
         unloadTrackedAssets()
+        mapAsset = null
         weaponSounds.clear()
         playerModel = null
         configStrings.forEach { config -> config?.resource = null }

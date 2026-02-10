@@ -22,7 +22,6 @@ import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
 import org.demoth.cake.assets.BeamRenderer
-import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
@@ -257,8 +256,7 @@ class Game3dScreen(
 
         // load the level
         val mapName = gameConfig.getMapName()!! // fixme: disconnect with an error if is null
-        val bspMap = assetManager.getLoaded<BspMapAsset>(mapName)
-        trackLoadedAsset(mapName, BspMapAsset::class.java)
+        val bspMap = gameConfig.loadMapAsset()
         val brushModels = bspMap.models
 
         // load inline bmodels
