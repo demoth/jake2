@@ -52,3 +52,29 @@ fun createModelInstance(model: Model): ModelInstance {
     }
 }
 
+/**
+ * Normalizes an angle to the signed range (-180, 180].
+ *
+ * This representation is preferred in input/prediction code because difference/rebase operations
+ * remain intuitive when crossing the 0/360 seam.
+ *
+ * `CL_input.ClampPitch()`
+ */
+fun wrapSignedAngle(value: Float): Float {
+    var angle = value
+    while (angle <= -180f) angle += 360f
+    while (angle > 180f) angle -= 360f
+    return angle
+}
+
+/**
+ * Applies Quake-style view pitch limits after signed normalization.
+ *
+ * Pitch is clamped to +/-89 to match PMove constraints and avoid producing commands outside
+ * server-accepted vertical look range.
+ *
+ * `CL_input.ClampPitch()` and `PMove.PM_ClampAngles()`
+ */
+fun clampPitch(value: Float): Float {
+    return wrapSignedAngle(value).coerceIn(-89f, 89f)
+}

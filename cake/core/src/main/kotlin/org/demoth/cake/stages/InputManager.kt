@@ -5,6 +5,8 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.CMD_BACKUP
+import jake2.qcommon.Defines.PM_NORMAL
+import jake2.qcommon.Defines.PM_SPECTATOR
 import jake2.qcommon.Defines.PITCH
 import jake2.qcommon.Defines.ROLL
 import jake2.qcommon.Defines.YAW
@@ -13,9 +15,12 @@ import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
+import org.demoth.cake.clampPitch
 import java.util.EnumMap
 import org.demoth.cake.stages.ClientCommands.*
+import org.demoth.cake.wrapSignedAngle
 import kotlin.experimental.or
+import kotlin.math.abs
 
 // CL_input
 class InputManager : InputProcessor {
@@ -30,6 +35,11 @@ class InputManager : InputProcessor {
     // local camera angle
     var localYaw: Float = 0f
     var localPitch: Float = 0f
+
+    // Tracks whether previous frame used locally controlled view (PM_NORMAL/PM_SPECTATOR).
+    // We need this to force one-shot resync when coming back from server-controlled camera
+    // states (PM_DEAD/PM_GIB/PM_FREEZE), where local angles are intentionally ignored.
+    private var hadLocalViewControl = false
 
     private var previousX = 0f
     private var previousY = 0f
@@ -83,6 +93,8 @@ class InputManager : InputProcessor {
 
     // called at server rate
     fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
+        syncViewAnglesWithServer(currentFrame)
+
         // assemble the inputs and commands, then transmit them
         val cmdIndex: Int = outgoingSequence and (userCommands.size - 1)
         val oldCmdIndex: Int = (outgoingSequence - 1) and (userCommands.size - 1)
@@ -117,18 +129,6 @@ class InputManager : InputProcessor {
 
         if (commandsState[in_movedown] == true) {
             cmd.upmove = (-clientSpeed).toShort()
-        }
-
-        // degrees
-        // If we haven't initialized yet, do so
-        if (initialYaw == null) {
-            initialYaw = currentFrame.playerstate.viewangles[YAW]
-            localYaw = initialYaw!!
-        }
-
-        if (initialPitch == null) {
-            initialPitch = currentFrame.playerstate.viewangles[PITCH]
-            localPitch = initialPitch!!
         }
 
         // update camera direction right on the client side and sent to the server
@@ -179,8 +179,9 @@ class InputManager : InputProcessor {
             if (localPitch >= 89f) localPitch = 89f
             if (localPitch <= -89f) localPitch = -89f
         }
-
     }
+
+    // region INPUT PROCESSOR
 
     override fun keyDown(keycode: Int): Boolean {
         if (inputKeyMappings[keycode] != null) {
@@ -242,6 +243,8 @@ class InputManager : InputProcessor {
         return false
     }
 
+    // endregion
+
     private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
         deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
         deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
@@ -251,6 +254,68 @@ class InputManager : InputProcessor {
         return true // consume the event
     }
 
+    /**
+     * Keeps local camera/cmd angle state aligned with the server's authoritative angle basis.
+     *
+     * `usercmd.angles` are interpreted relative to `pmove.delta_angles`, not as absolute world angles.
+     * Also, server code can change `delta_angles` without local mouse input (e.g. rotating platforms, teleports,
+     *   respawn initialization).
+     *
+     * To prevent desync of the angles:
+     * - In server-controlled view modes, we mirror server view and basis directly.
+     * - On first frame back to local control, we hard-resync.
+     * - During local control, we rebase `local*` angles and `initial*` angles by the same delta when server `delta_angles`
+     *   changed, preserving a continuous `(local - initial)` command stream.
+     */
+    private fun syncViewAnglesWithServer(currentFrame: ClientFrame) {
+        /*
+         * Cross-reference to old client (`client/`):
+         * - Local angle accumulation: `CL_input.AdjustAngles()`
+         * - Writing command angles: `CL_input.BaseMove()` + `CL_input.FinishMove()`
+         * - Receiving `delta_angles`: `CL_ents.ParsePlayerstate()`
+         * - Applying `cmd + delta` to view angles: `CL_pred.PredictMovement()` and `PMove.PM_ClampAngles()`
+         */
+        val state = currentFrame.playerstate
+        val hasLocalControl = state.pmove.pm_type == PM_NORMAL || state.pmove.pm_type == PM_SPECTATOR
+
+        val serverViewYaw = wrapSignedAngle(state.viewangles[YAW])
+        val serverViewPitch = clampPitch(state.viewangles[PITCH])
+        val serverDeltaYaw = wrapSignedAngle(Math3D.SHORT2ANGLE(state.pmove.delta_angles[YAW].toInt()))
+        val serverDeltaPitch = wrapSignedAngle(Math3D.SHORT2ANGLE(state.pmove.delta_angles[PITCH].toInt()))
+
+        if (!hasLocalControl) {
+            initialYaw = serverDeltaYaw
+            initialPitch = serverDeltaPitch
+            localYaw = serverViewYaw
+            localPitch = serverViewPitch
+            hadLocalViewControl = false
+            return
+        }
+
+        // first frame of local control
+        if (initialYaw == null || initialPitch == null || !hadLocalViewControl) {
+            initialYaw = serverDeltaYaw
+            initialPitch = serverDeltaPitch
+            localYaw = serverViewYaw
+            localPitch = serverViewPitch
+            hadLocalViewControl = true
+            return
+        }
+
+        // Server can change delta angles (e.g. rotating platforms / respawn). Rebase local and initial together.
+        val yawRebase = wrapSignedAngle(serverDeltaYaw - initialYaw!!)
+        if (abs(yawRebase) > 0.01f) {
+            localYaw = wrapSignedAngle(localYaw + yawRebase)
+            initialYaw = wrapSignedAngle(initialYaw!! + yawRebase)
+        }
+
+        val pitchRebase = wrapSignedAngle(serverDeltaPitch - initialPitch!!)
+        if (abs(pitchRebase) > 0.01f) {
+            localPitch = clampPitch(localPitch + pitchRebase)
+            initialPitch = wrapSignedAngle(initialPitch!! + pitchRebase)
+        }
+        hadLocalViewControl = true
+    }
 }
 
 enum class ClientCommands {
