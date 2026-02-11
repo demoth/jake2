@@ -22,8 +22,6 @@
 // $Id: PMove.java,v 1.8 2006-01-21 21:53:32 salomo Exp $
 package jake2.qcommon;
 
-import jake2.qcommon.util.Math3D;
-
 import java.util.Objects;
 
 public class PMove {
@@ -101,7 +99,7 @@ public class PMove {
             // Compatibility bridge for tests and any external diagnostics that read PMove.pm/pml.
             PMove.pm = currentPm;
             PMove.pml = currentPml;
-            runLegacyPmove(currentPm, currentPml, currentPlanes);
+            currentPm.runLegacyPmove(currentPml, currentPlanes);
         }
     }
 
@@ -133,160 +131,12 @@ public class PMove {
      *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
      *   PM_WaterMove (migrated), PM_AirMove (migrated), PM_FlyMove (migrated), PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
      * - processor shell behavior:
-     *   Pmove, runLegacyPmove.
+     *   Pmove.
      */
     /**
      * Can be called by either the server or the client.
      */
     public static void Pmove(pmove_t pmove) {
         processor.move(pmove);
-    }
-
-    // C reference: Pmove in qcommon/pmove.c. Kept as static legacy body while migration proceeds.
-    private static void runLegacyPmove(pmove_t pm, pml_t pml, float[][] planes) {
-        // clear results
-        pm.numtouch = 0;
-        Math3D.VectorClear(pm.viewangles);
-        pm.viewheight = 0;
-        pm.groundentity = null;
-        pm.watertype = 0;
-        pm.waterlevel = 0;
-
-        pm.groundsurface = null;
-        pm.groundcontents = 0;
-
-        // convert origin and velocity to float values
-        pml.origin[0] = pm.s.origin[0] * 0.125f;
-        pml.origin[1] = pm.s.origin[1] * 0.125f;
-        pml.origin[2] = pm.s.origin[2] * 0.125f;
-
-        pml.velocity[0] = pm.s.velocity[0] * 0.125f;
-        pml.velocity[1] = pm.s.velocity[1] * 0.125f;
-        pml.velocity[2] = pm.s.velocity[2] * 0.125f;
-
-        // save old org in case we get stuck
-        Math3D.VectorCopy(pm.s.origin, pml.previous_origin);
-
-        pml.frametime = (pm.cmd.msec & 0xFF) * 0.001f;
-
-        pm.clampAngles(pml.forward, pml.right, pml.up);
-
-        if (pm.s.pm_type == Defines.PM_SPECTATOR) {
-            pm.flyMove(
-                    pml.forward,
-                    pml.right,
-                    pml.origin,
-                    pml.velocity,
-                    pml.frametime,
-                    pm_stopspeed,
-                    pm_friction,
-                    pm_accelerate,
-                    pm_maxspeed,
-                    false
-            );
-            pm.snapPosition(pml.origin, pml.velocity, pml.previous_origin, jitterbits);
-            return;
-        }
-
-        if (pm.s.pm_type >= Defines.PM_DEAD) {
-            pm.cmd.forwardmove = 0;
-            pm.cmd.sidemove = 0;
-            pm.cmd.upmove = 0;
-        }
-
-        if (pm.s.pm_type == Defines.PM_FREEZE)
-            return; // no movement at all
-
-        // set mins, maxs, and viewheight
-        pm.checkDuck(pml.origin);
-
-        if (pm.snapinitial)
-            pm.initialSnapPosition(pml.origin, pml.previous_origin, offset);
-
-        // set groundentity, watertype, and waterlevel
-        pm.categorizePosition(pml.origin, pml.velocity);
-
-        if (pm.s.pm_type == Defines.PM_DEAD)
-            pm.deadMove(pml.velocity);
-
-        pm.checkSpecialMovement(pml.origin, pml.forward, pml.velocity);
-
-        // drop timing counter
-        if (pm.s.pm_time != 0) {
-            int msec;
-
-            // TOD o bugfix cwei
-            msec = pm.cmd.msec >>> 3;
-            if (msec == 0)
-                msec = 1;
-            if (msec >= (pm.s.pm_time & 0xFF)) {
-                pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
-                        | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
-                pm.s.pm_time = 0;
-            } else
-                pm.s.pm_time = (byte) ((pm.s.pm_time & 0xFF) - msec);
-        }
-
-        if ((pm.s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
-        	// teleport pause stays exaclty in place
-        } else if ((pm.s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
-        	// waterjump has no control, but falls 
-            pml.velocity[2] -= pm.s.gravity * pml.frametime;
-            if (pml.velocity[2] < 0) { 
-            	// cancel as soon as we are falling down again
-                pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
-                        | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
-                pm.s.pm_time = 0;
-            }
-
-            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
-        } else {
-            pm.checkJump(pml.velocity);
-
-            pm.friction(pml.velocity, pml.frametime, pm_stopspeed, pm_friction, pm_waterfriction);
-
-            if (pm.waterlevel >= 2)
-                pm.waterMove(
-                        pml.forward,
-                        pml.right,
-                        pml.origin,
-                        pml.velocity,
-                        pml.frametime,
-                        pm_maxspeed,
-                        pm_wateraccelerate,
-                        pm_waterspeed,
-                        planes
-                );
-            else {
-                float[] angles = { 0, 0, 0 };
-
-                Math3D.VectorCopy(pm.viewangles, angles);
-                
-                if (angles[Defines.PITCH] > 180)
-                    angles[Defines.PITCH] = angles[Defines.PITCH] - 360;
-                
-                angles[Defines.PITCH] /= 3;
-
-                Math3D.AngleVectors(angles, pml.forward, pml.right, pml.up);
-
-                pm.airMove(
-                        pml.forward,
-                        pml.right,
-                        pml.origin,
-                        pml.velocity,
-                        pml.frametime,
-                        pm_duckspeed,
-                        pm_maxspeed,
-                        pm_waterspeed,
-                        pm_accelerate,
-                        pm_airaccelerate,
-                        planes
-                );
-            }
-        }
-
-        // set groundentity, watertype, and waterlevel for final spot
-        pm.categorizePosition(pml.origin, pml.velocity);
-        pm.snapPosition(pml.origin, pml.velocity, pml.previous_origin, jitterbits);
     }
 }

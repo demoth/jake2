@@ -973,6 +973,144 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Legacy Quake2 movement execution order preserved for client/server determinism.
+     * Extracted from PMove.runLegacyPmove so pmove_t owns mutation of its own state.
+     */
+    void runLegacyPmove(PMove.pml_t pml, float[][] planes) {
+        numtouch = 0;
+        Math3D.VectorClear(viewangles);
+        viewheight = 0;
+        groundentity = null;
+        watertype = 0;
+        waterlevel = 0;
+        groundsurface = null;
+        groundcontents = 0;
+
+        pml.origin[0] = s.origin[0] * 0.125f;
+        pml.origin[1] = s.origin[1] * 0.125f;
+        pml.origin[2] = s.origin[2] * 0.125f;
+
+        pml.velocity[0] = s.velocity[0] * 0.125f;
+        pml.velocity[1] = s.velocity[1] * 0.125f;
+        pml.velocity[2] = s.velocity[2] * 0.125f;
+
+        Math3D.VectorCopy(s.origin, pml.previous_origin);
+        pml.frametime = (cmd.msec & 0xFF) * 0.001f;
+
+        clampAngles(pml.forward, pml.right, pml.up);
+
+        if (s.pm_type == Defines.PM_SPECTATOR) {
+            flyMove(
+                    pml.forward,
+                    pml.right,
+                    pml.origin,
+                    pml.velocity,
+                    pml.frametime,
+                    PMove.pm_stopspeed,
+                    PMove.pm_friction,
+                    PMove.pm_accelerate,
+                    PMove.pm_maxspeed,
+                    false
+            );
+            snapPosition(pml.origin, pml.velocity, pml.previous_origin, PMove.jitterbits);
+            return;
+        }
+
+        if (s.pm_type >= Defines.PM_DEAD) {
+            cmd.forwardmove = 0;
+            cmd.sidemove = 0;
+            cmd.upmove = 0;
+        }
+
+        if (s.pm_type == Defines.PM_FREEZE) {
+            return;
+        }
+
+        checkDuck(pml.origin);
+
+        if (snapinitial) {
+            initialSnapPosition(pml.origin, pml.previous_origin, PMove.offset);
+        }
+
+        categorizePosition(pml.origin, pml.velocity);
+
+        if (s.pm_type == Defines.PM_DEAD) {
+            deadMove(pml.velocity);
+        }
+
+        checkSpecialMovement(pml.origin, pml.forward, pml.velocity);
+
+        if (s.pm_time != 0) {
+            int msec = cmd.msec >>> 3;
+            if (msec == 0) {
+                msec = 1;
+            }
+            if (msec >= (s.pm_time & 0xFF)) {
+                s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
+                s.pm_time = 0;
+            } else {
+                s.pm_time = (byte) ((s.pm_time & 0xFF) - msec);
+            }
+        }
+
+        if ((s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
+            // teleport pause stays exactly in place
+        } else if ((s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
+            pml.velocity[2] -= s.gravity * pml.frametime;
+            if (pml.velocity[2] < 0) {
+                s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
+                s.pm_time = 0;
+            }
+
+            stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
+        } else {
+            checkJump(pml.velocity);
+            friction(pml.velocity, pml.frametime, PMove.pm_stopspeed, PMove.pm_friction, PMove.pm_waterfriction);
+
+            if (waterlevel >= 2) {
+                waterMove(
+                        pml.forward,
+                        pml.right,
+                        pml.origin,
+                        pml.velocity,
+                        pml.frametime,
+                        PMove.pm_maxspeed,
+                        PMove.pm_wateraccelerate,
+                        PMove.pm_waterspeed,
+                        planes
+                );
+            } else {
+                float[] angles = { 0, 0, 0 };
+                Math3D.VectorCopy(viewangles, angles);
+
+                if (angles[Defines.PITCH] > 180) {
+                    angles[Defines.PITCH] = angles[Defines.PITCH] - 360;
+                }
+                angles[Defines.PITCH] /= 3;
+
+                Math3D.AngleVectors(angles, pml.forward, pml.right, pml.up);
+
+                airMove(
+                        pml.forward,
+                        pml.right,
+                        pml.origin,
+                        pml.velocity,
+                        pml.frametime,
+                        PMove.pm_duckspeed,
+                        PMove.pm_maxspeed,
+                        PMove.pm_waterspeed,
+                        PMove.pm_accelerate,
+                        PMove.pm_airaccelerate,
+                        planes
+                );
+            }
+        }
+
+        categorizePosition(pml.origin, pml.velocity);
+        snapPosition(pml.origin, pml.velocity, pml.previous_origin, PMove.jitterbits);
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
