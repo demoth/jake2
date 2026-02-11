@@ -162,6 +162,57 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Handles jump command transitions (ground jump and water jump impulse).
+     * Extracted from PMove.PM_CheckJump as part of static-to-instance migration.
+     */
+    public void checkJump(float[] velocity) {
+        if ((s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
+            return;
+        }
+
+        if (cmd.upmove < 10) {
+            s.pm_flags &= ~Defines.PMF_JUMP_HELD;
+            return;
+        }
+
+        if ((s.pm_flags & Defines.PMF_JUMP_HELD) != 0) {
+            return;
+        }
+
+        if (s.pm_type == Defines.PM_DEAD) {
+            return;
+        }
+
+        if (waterlevel >= 2) {
+            groundentity = null;
+
+            if (velocity[2] <= -300) {
+                return;
+            }
+
+            if (watertype == Defines.CONTENTS_WATER) {
+                velocity[2] = 100;
+            } else if (watertype == Defines.CONTENTS_SLIME) {
+                velocity[2] = 80;
+            } else {
+                velocity[2] = 50;
+            }
+            return;
+        }
+
+        if (groundentity == null) {
+            return;
+        }
+
+        s.pm_flags |= Defines.PMF_JUMP_HELD;
+        groundentity = null;
+        velocity[2] += 270;
+        if (velocity[2] < 270) {
+            velocity[2] = 270;
+        }
+    }
+
     public void clear() {
         groundentity = null;
         waterlevel = watertype = 0;

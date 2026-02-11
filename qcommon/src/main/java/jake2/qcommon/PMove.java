@@ -133,7 +133,7 @@ public class PMove {
     /*
      * OOP migration ownership map:
      * - pmove_t instance behavior:
-     *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition, PM_CheckJump,
+     *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition, PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement, PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
@@ -703,53 +703,6 @@ public class PMove {
     }
 
     /**
-     * PM_CheckJump.
-     */
-    private static void PM_CheckJump(pmove_t pm, pml_t pml) {
-        if ((pm.s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
-            // hasn't been long enough since landing to jump again
-            return;
-        }
-
-        if (pm.cmd.upmove < 10) { // not holding jump
-            pm.s.pm_flags &= ~Defines.PMF_JUMP_HELD;
-            return;
-        }
-
-        // must wait for jump to be released
-        if ((pm.s.pm_flags & Defines.PMF_JUMP_HELD) != 0)
-            return;
-
-        if (pm.s.pm_type == Defines.PM_DEAD)
-            return;
-
-        if (pm.waterlevel >= 2) { // swimming, not jumping
-            pm.groundentity = null;
-
-            if (pml.velocity[2] <= -300)
-                return;
-
-            if (pm.watertype == Defines.CONTENTS_WATER)
-                pml.velocity[2] = 100;
-            else if (pm.watertype == Defines.CONTENTS_SLIME)
-                pml.velocity[2] = 80;
-            else
-                pml.velocity[2] = 50;
-            return;
-        }
-
-        if (pm.groundentity == null)
-            return; // in air, so no effect
-
-        pm.s.pm_flags |= Defines.PMF_JUMP_HELD;
-
-        pm.groundentity = null;
-        pml.velocity[2] += 270;
-        if (pml.velocity[2] < 270)
-            pml.velocity[2] = 270;
-    }
-
-    /**
      * PM_CheckSpecialMovement.
      */
     private static void PM_CheckSpecialMovement(pmove_t pm, pml_t pml) {
@@ -1062,7 +1015,7 @@ public class PMove {
 
             PM_StepSlideMove(pm, pml, planes);
         } else {
-            PM_CheckJump(pm, pml);
+            pm.checkJump(pml.velocity);
 
             PM_Friction(pm, pml);
 
