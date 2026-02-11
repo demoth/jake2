@@ -42,10 +42,6 @@ public class PMove {
 
         public float frametime;
 
-        public csurface_t groundsurface;
-
-        public int groundcontents;
-
         public float[] previous_origin = { 0, 0, 0 };
 
         public boolean ladder;
@@ -133,7 +129,7 @@ public class PMove {
     /*
      * OOP migration ownership map:
      * - pmove_t instance behavior:
-     *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition, PM_CheckJump (migrated),
+     *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement, PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
@@ -355,8 +351,8 @@ public class PMove {
         drop = 0;
 
         // apply ground friction
-        if ((pm.groundentity != null && pml.groundsurface != null && 
-        		0 == (pml.groundsurface.flags & Defines.SURF_SLICK))
+        if ((pm.groundentity != null && pm.groundsurface != null &&
+        		0 == (pm.groundsurface.flags & Defines.SURF_SLICK))
                 || (pml.ladder)) {
             friction = pm_friction;
             control = speed < pm_stopspeed ? pm_stopspeed : speed;
@@ -485,17 +481,17 @@ public class PMove {
         if (pm.groundentity != null) {
             Math3D.VectorClear(v);
 
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_0) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_0) != 0)
                 v[0] += 1;
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_90) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_90) != 0)
                 v[1] += 1;
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_180) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_180) != 0)
                 v[0] -= 1;
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_270) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_270) != 0)
                 v[1] -= 1;
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_UP) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_UP) != 0)
                 v[2] += 1;
-            if ((pml.groundcontents & Defines.CONTENTS_CURRENT_DOWN) != 0)
+            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_DOWN) != 0)
                 v[2] -= 1;
 
             Math3D.VectorMA(wishvel, 100 /* pm.groundentity.speed */, v, wishvel);
@@ -609,97 +605,6 @@ public class PMove {
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
             PM_StepSlideMove(pm, pml, planes);
         }
-    }
-
-    /** 
-     * PM_CatagorizePosition.
-     */
-    private static void PM_CatagorizePosition(pmove_t pm, pml_t pml) {
-        float[] point = { 0, 0, 0 };
-        int cont;
-        trace_t trace;
-        int sample1;
-        int sample2;
-
-        // if the player hull point one unit down is solid, the player
-        // is on ground
-
-        // see if standing on something solid
-        point[0] = pml.origin[0];
-        point[1] = pml.origin[1];
-        point[2] = pml.origin[2] - 0.25f;
-        if (pml.velocity[2] > 180) //!!ZOID changed from 100 to 180 (ramp
-                                         // accel)
-        {
-            pm.s.pm_flags &= ~Defines.PMF_ON_GROUND;
-            pm.groundentity = null;
-        } else {
-            trace = pm.trace.trace(pml.origin, pm.mins,
-                    pm.maxs, point);
-            pml.groundsurface = trace.surface;
-            pml.groundcontents = trace.contents;
-
-            if (null == trace.ent
-                    || (trace.plane.normal[2] < 0.7 && !trace.startsolid)) {
-                pm.groundentity = null;
-                pm.s.pm_flags &= ~Defines.PMF_ON_GROUND;
-            } else {
-                pm.groundentity = trace.ent;
-                // hitting solid ground will end a waterjump
-                if ((pm.s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
-                    pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
-                            | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
-                    pm.s.pm_time = 0;
-                }
-
-                if (0 == (pm.s.pm_flags & Defines.PMF_ON_GROUND)) {
-                	
-                	// just hit the ground
-                    pm.s.pm_flags |= Defines.PMF_ON_GROUND;
-                    // don't do landing time if we were just going down a slope
-                    if (pml.velocity[2] < -200) {
-                        pm.s.pm_flags |= Defines.PMF_TIME_LAND;
-                        // don't allow another jump for a little while
-                        if (pml.velocity[2] < -400)
-                            pm.s.pm_time = 25;
-                        else
-                            pm.s.pm_time = 18;
-                    }
-                }
-            }
-
-            if (pm.numtouch < Defines.MAXTOUCH && trace.ent != null) {
-                pm.touchents[pm.numtouch] = trace.ent;
-                pm.numtouch++;
-            }
-        }
-
-
-        // get waterlevel, accounting for ducking
-        
-        pm.waterlevel = 0;
-        pm.watertype = 0;
-
-        sample2 = (int) (pm.viewheight - pm.mins[2]);
-        sample1 = sample2 / 2;
-
-        point[2] = pml.origin[2] + pm.mins[2] + 1;
-        cont = pm.pointcontents.pointcontents(point);
-
-        if ((cont & Defines.MASK_WATER) != 0) {
-            pm.watertype = cont;
-            pm.waterlevel = 1;
-            point[2] = pml.origin[2] + pm.mins[2] + sample1;
-            cont = pm.pointcontents.pointcontents(point);
-            if ((cont & Defines.MASK_WATER) != 0) {
-                pm.waterlevel = 2;
-                point[2] = pml.origin[2] + pm.mins[2] + sample2;
-                cont = pm.pointcontents.pointcontents(point);
-                if ((cont & Defines.MASK_WATER) != 0)
-                    pm.waterlevel = 3;
-            }
-        }
-
     }
 
     /**
@@ -937,8 +842,8 @@ public class PMove {
         pm.watertype = 0;
         pm.waterlevel = 0;
 
-        pml.groundsurface = null;
-        pml.groundcontents = 0;
+        pm.groundsurface = null;
+        pm.groundcontents = 0;
 
         // convert origin and velocity to float values
         pml.origin[0] = pm.s.origin[0] * 0.125f;
@@ -978,7 +883,7 @@ public class PMove {
             PM_InitialSnapPosition(pm, pml);
 
         // set groundentity, watertype, and waterlevel
-        PM_CatagorizePosition(pm, pml);
+        pm.categorizePosition(pml.origin, pml.velocity);
 
         if (pm.s.pm_type == Defines.PM_DEAD)
             pm.deadMove(pml.velocity);
@@ -1038,7 +943,7 @@ public class PMove {
         }
 
         // set groundentity, watertype, and waterlevel for final spot
-        PM_CatagorizePosition(pm, pml);
+        pm.categorizePosition(pml.origin, pml.velocity);
         PM_SnapPosition(pm, pml);
     }
 }

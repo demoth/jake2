@@ -62,6 +62,10 @@ public class pmove_t {
 
     public ServerEntity groundentity;
 
+    public csurface_t groundsurface;
+
+    public int groundcontents;
+
     public int watertype;
 
     public int waterlevel;
@@ -213,8 +217,86 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Updates ground contact, touch entities, and water level state.
+     * Extracted from PMove.PM_CatagorizePosition as part of static-to-instance migration.
+     */
+    public void categorizePosition(float[] origin, float[] velocity) {
+        float[] point = { 0, 0, 0 };
+        int cont;
+        trace_t trace;
+        int sample1;
+        int sample2;
+
+        point[0] = origin[0];
+        point[1] = origin[1];
+        point[2] = origin[2] - 0.25f;
+        if (velocity[2] > 180) {
+            s.pm_flags &= ~Defines.PMF_ON_GROUND;
+            groundentity = null;
+        } else {
+            trace = this.trace.trace(origin, mins, maxs, point);
+            groundsurface = trace.surface;
+            groundcontents = trace.contents;
+
+            if (trace.ent == null || (trace.plane.normal[2] < 0.7 && !trace.startsolid)) {
+                groundentity = null;
+                s.pm_flags &= ~Defines.PMF_ON_GROUND;
+            } else {
+                groundentity = trace.ent;
+                if ((s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
+                    s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
+                    s.pm_time = 0;
+                }
+
+                if ((s.pm_flags & Defines.PMF_ON_GROUND) == 0) {
+                    s.pm_flags |= Defines.PMF_ON_GROUND;
+                    if (velocity[2] < -200) {
+                        s.pm_flags |= Defines.PMF_TIME_LAND;
+                        if (velocity[2] < -400) {
+                            s.pm_time = 25;
+                        } else {
+                            s.pm_time = 18;
+                        }
+                    }
+                }
+            }
+
+            if (numtouch < Defines.MAXTOUCH && trace.ent != null) {
+                touchents[numtouch] = trace.ent;
+                numtouch++;
+            }
+        }
+
+        waterlevel = 0;
+        watertype = 0;
+
+        sample2 = (int) (viewheight - mins[2]);
+        sample1 = sample2 / 2;
+
+        point[2] = origin[2] + mins[2] + 1;
+        cont = pointcontents.pointcontents(point);
+
+        if ((cont & Defines.MASK_WATER) != 0) {
+            watertype = cont;
+            waterlevel = 1;
+            point[2] = origin[2] + mins[2] + sample1;
+            cont = pointcontents.pointcontents(point);
+            if ((cont & Defines.MASK_WATER) != 0) {
+                waterlevel = 2;
+                point[2] = origin[2] + mins[2] + sample2;
+                cont = pointcontents.pointcontents(point);
+                if ((cont & Defines.MASK_WATER) != 0) {
+                    waterlevel = 3;
+                }
+            }
+        }
+    }
+
     public void clear() {
         groundentity = null;
+        groundsurface = null;
+        groundcontents = 0;
         waterlevel = watertype = 0;
         trace = null;
         pointcontents = null;
