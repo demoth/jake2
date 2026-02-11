@@ -368,6 +368,48 @@ public class pmove_t {
         return !trace.allsolid;
     }
 
+    /**
+     * Snaps movement outputs to network 1/8th grid while preserving a valid position.
+     * Extracted from PMove.PM_SnapPosition as part of static-to-instance migration.
+     */
+    public void snapPosition(float[] origin, float[] velocity, float[] previousOrigin, int[] jitterBits) {
+        int[] sign = { 0, 0, 0 };
+        short[] base = { 0, 0, 0 };
+
+        for (int i = 0; i < 3; i++) {
+            s.velocity[i] = (short) (velocity[i] * 8);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            if (origin[i] >= 0) {
+                sign[i] = 1;
+            } else {
+                sign[i] = -1;
+            }
+            s.origin[i] = (short) (origin[i] * 8);
+            if (s.origin[i] * 0.125 == origin[i]) {
+                sign[i] = 0;
+            }
+        }
+        Math3D.VectorCopy(s.origin, base);
+
+        for (int j = 0; j < 8; j++) {
+            int bits = jitterBits[j];
+            Math3D.VectorCopy(base, s.origin);
+            for (int i = 0; i < 3; i++) {
+                if ((bits & (1 << i)) != 0) {
+                    s.origin[i] += sign[i];
+                }
+            }
+
+            if (goodPosition()) {
+                return;
+            }
+        }
+
+        Math3D.VectorCopy(previousOrigin, s.origin);
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

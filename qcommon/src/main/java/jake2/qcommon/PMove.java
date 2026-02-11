@@ -130,7 +130,7 @@ public class PMove {
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition,
-     *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
+     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
@@ -688,48 +688,6 @@ public class PMove {
         }
     }
 
-    /**
-     * On exit, the origin will have a value that is pre-quantized to the 0.125
-     * precision of the network channel and in a valid position.
-     */
-
-    private static void PM_SnapPosition(pmove_t pm, pml_t pml) {
-        int sign[] = { 0, 0, 0 };
-        int i, j, bits;
-        short base[] = { 0, 0, 0 };
-
-        // snap velocity to eigths
-        for (i = 0; i < 3; i++)
-            pm.s.velocity[i] = (short) (pml.velocity[i] * 8);
-
-        for (i = 0; i < 3; i++) {
-            if (pml.origin[i] >= 0)
-                sign[i] = 1;
-            else
-                sign[i] = -1;
-            pm.s.origin[i] = (short) (pml.origin[i] * 8);
-            if (pm.s.origin[i] * 0.125 == pml.origin[i])
-                sign[i] = 0;
-        }
-        Math3D.VectorCopy(pm.s.origin, base);
-
-        // try all combinations
-        for (j = 0; j < 8; j++) {
-            bits = jitterbits[j];
-            Math3D.VectorCopy(base, pm.s.origin);
-            for (i = 0; i < 3; i++)
-                if ((bits & (1 << i)) != 0)
-                    pm.s.origin[i] += sign[i];
-
-            if (pm.goodPosition())
-                return;
-        }
-
-        // go back to the last position
-        Math3D.VectorCopy(pml.previous_origin, pm.s.origin);
-        // Com.DPrintf("using previous_origin\n");
-    }
-
     /** 
      * Snaps the origin of the player move to 0.125 grid.
      */
@@ -798,7 +756,7 @@ public class PMove {
 
         if (pm.s.pm_type == Defines.PM_SPECTATOR) {
             PM_FlyMove(pm, pml, false);
-            PM_SnapPosition(pm, pml);
+            pm.snapPosition(pml.origin, pml.velocity, pml.previous_origin, jitterbits);
             return;
         }
 
@@ -879,6 +837,6 @@ public class PMove {
 
         // set groundentity, watertype, and waterlevel for final spot
         pm.categorizePosition(pml.origin, pml.velocity);
-        PM_SnapPosition(pm, pml);
+        pm.snapPosition(pml.origin, pml.velocity, pml.previous_origin, jitterbits);
     }
 }
