@@ -43,35 +43,35 @@ public class pmove_t {
     }
 
     // state (in / out)
-    public pmove_state_t s = new pmove_state_t();
+    public final pmove_state_t s = new pmove_state_t();
 
     // command (in)
-    public usercmd_t cmd = new usercmd_t();
+    public final usercmd_t cmd = new usercmd_t();
 
     public boolean snapinitial; // if s has been changed outside pmove
 
     // results (out)
     public int numtouch;
 
-    public ServerEntity touchents[] = new ServerEntity[Defines.MAXTOUCH];
+    public final ServerEntity touchents[] = new ServerEntity[Defines.MAXTOUCH];
 
-    public float[] viewangles = { 0, 0, 0 }; // clamped
+    public final float[] viewangles = { 0, 0, 0 }; // clamped
 
     public float viewheight;
 
-    public float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
+    public final float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
 
     public ServerEntity groundentity;
 
-    public csurface_t groundsurface;
+    private csurface_t groundsurface;
 
-    public int groundcontents;
+    private int groundcontents;
 
     public int watertype;
 
     public int waterlevel;
 
-    public boolean ladder;
+    private boolean ladder;
 
     public TraceAdapter trace;
 
@@ -81,7 +81,7 @@ public class pmove_t {
      * Resolves final pmove view angles from user command angles and server delta angles.
      * Extracted from PMove.PM_ClampAngles as part of static-to-instance migration.
      */
-    public void clampAngles(float[] forward, float[] right, float[] up) {
+    private void clampAngles(float[] forward, float[] right, float[] up) {
         short temp;
 
         if ((s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
@@ -108,7 +108,7 @@ public class pmove_t {
      * Updates collision bounds and view height based on movement type / duck state.
      * Extracted from PMove.PM_CheckDuck as part of static-to-instance migration.
      */
-    public void checkDuck(float[] origin) {
+    private void checkDuck(float[] origin) {
         trace_t trace;
 
         mins[0] = -16;
@@ -152,7 +152,7 @@ public class pmove_t {
      * Applies extra friction to dead bodies while grounded.
      * Extracted from PMove.PM_DeadMove as part of static-to-instance migration.
      */
-    public void deadMove(float[] velocity) {
+    private void deadMove(float[] velocity) {
         float forward;
 
         if (groundentity == null) {
@@ -173,7 +173,7 @@ public class pmove_t {
      * Handles jump command transitions (ground jump and water jump impulse).
      * Extracted from PMove.PM_CheckJump as part of static-to-instance migration.
      */
-    public void checkJump(float[] velocity) {
+    private void checkJump(float[] velocity) {
         if ((s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
             return;
         }
@@ -224,7 +224,7 @@ public class pmove_t {
      * Updates ground contact, touch entities, and water level state.
      * Extracted from PMove.PM_CatagorizePosition as part of static-to-instance migration.
      */
-    public void categorizePosition(float[] origin, float[] velocity) {
+    private void categorizePosition(float[] origin, float[] velocity) {
         float[] point = { 0, 0, 0 };
         int cont;
         trace_t trace;
@@ -300,7 +300,7 @@ public class pmove_t {
      * Detects ladder state and water-jump trigger.
      * Extracted from PMove.PM_CheckSpecialMovement as part of static-to-instance migration.
      */
-    public void checkSpecialMovement(float[] origin, float[] forward, float[] velocity) {
+    private void checkSpecialMovement(float[] origin, float[] forward, float[] velocity) {
         float[] spot = { 0, 0, 0 };
         int cont;
         float[] flatforward = { 0, 0, 0 };
@@ -351,7 +351,7 @@ public class pmove_t {
      * Validates that current snapped origin is not fully embedded in solid.
      * Extracted from PMove.PM_GoodPosition as part of static-to-instance migration.
      */
-    public boolean goodPosition() {
+    private boolean goodPosition() {
         trace_t trace;
         float[] origin = { 0, 0, 0 };
         float[] end = { 0, 0, 0 };
@@ -373,7 +373,7 @@ public class pmove_t {
      * Snaps movement outputs to network 1/8th grid while preserving a valid position.
      * Extracted from PMove.PM_SnapPosition as part of static-to-instance migration.
      */
-    public void snapPosition(float[] origin, float[] velocity, float[] previousOrigin, int[] jitterBits) {
+    private void snapPosition(float[] origin, float[] velocity, float[] previousOrigin, int[] jitterBits) {
         int[] sign = { 0, 0, 0 };
         short[] base = { 0, 0, 0 };
 
@@ -415,7 +415,7 @@ public class pmove_t {
      * Attempts nearby snapped positions after teleport/state correction to find a valid hull.
      * Extracted from PMove.PM_InitialSnapPosition as part of static-to-instance migration.
      */
-    public void initialSnapPosition(float[] origin, float[] previousOrigin, int[] offset) {
+    private void initialSnapPosition(float[] origin, float[] previousOrigin, int[] offset) {
         int x;
         int y;
         int z;
@@ -447,7 +447,7 @@ public class pmove_t {
      * Applies ground and water friction to current velocity.
      * Extracted from PMove.PM_Friction as part of static-to-instance migration.
      */
-    public void friction(float[] velocity, float frameTime, float stopSpeed, float friction, float waterFriction) {
+    private void friction(float[] velocity, float frameTime, float stopSpeed, float friction, float waterFriction) {
         float speed;
         float newspeed;
         float control;
@@ -487,7 +487,7 @@ public class pmove_t {
      * Applies standard acceleration along the desired movement direction.
      * Extracted from PMove.PM_Accelerate as part of static-to-instance migration.
      */
-    public void accelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
+    private void accelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
         float currentspeed = Math3D.DotProduct(velocity, wishdir);
         float addspeed = wishspeed - currentspeed;
         if (addspeed <= 0) {
@@ -507,7 +507,7 @@ public class pmove_t {
      * Applies air acceleration with the Quake2 wishspeed cap.
      * Extracted from PMove.PM_AirAccelerate as part of static-to-instance migration.
      */
-    public void airAccelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
+    private void airAccelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
         float wishspd = wishspeed;
         if (wishspd > 30) {
             wishspd = 30;
@@ -533,7 +533,7 @@ public class pmove_t {
      * Applies ladder, water-current, and conveyor contributions to wish velocity.
      * Extracted from PMove.PM_AddCurrents as part of static-to-instance migration.
      */
-    public void addCurrents(float[] velocity, float waterSpeed, float[] wishvel) {
+    private void addCurrents(float[] velocity, float waterSpeed, float[] wishvel) {
         float[] v = { 0, 0, 0 };
         float s;
 
@@ -715,7 +715,7 @@ public class pmove_t {
      * Performs Quake2 step-slide movement against world geometry.
      * Extracted from PMove.PM_StepSlideMove as part of static-to-instance migration.
      */
-    public void stepSlideMove(float[] origin, float[] velocity, float frameTime, float[][] planes) {
+    private void stepSlideMove(float[] origin, float[] velocity, float frameTime, float[][] planes) {
         float[] startO = { 0, 0, 0 };
         float[] startV = { 0, 0, 0 };
         float[] downO = { 0, 0, 0 };
@@ -769,7 +769,7 @@ public class pmove_t {
      * Executes swimming movement branch including currents, acceleration, and collision response.
      * Extracted from PMove.PM_WaterMove as part of static-to-instance migration.
      */
-    public void waterMove(
+    private void waterMove(
             float[] forward,
             float[] right,
             float[] origin,
@@ -812,7 +812,7 @@ public class pmove_t {
      * Executes walking/air/ladder movement branch.
      * Extracted from PMove.PM_AirMove as part of static-to-instance migration.
      */
-    public void airMove(
+    private void airMove(
             float[] forward,
             float[] right,
             float[] origin,
@@ -892,7 +892,7 @@ public class pmove_t {
      * Executes spectator/no-clip style movement branch with optional collision clipping.
      * Extracted from PMove.PM_FlyMove as part of static-to-instance migration.
      */
-    public void flyMove(
+    private void flyMove(
             float[] forward,
             float[] right,
             float[] origin,
@@ -1111,7 +1111,7 @@ public class pmove_t {
         snapPosition(pml.origin, pml.velocity, pml.previous_origin, PMove.jitterbits);
     }
 
-    public void clear() {
+    void clear() {
         groundentity = null;
         groundsurface = null;
         groundcontents = 0;
