@@ -98,14 +98,15 @@ public class PMove {
     private static final class LegacyPmoveProcessor implements PmoveProcessor {
         private pmove_t currentPm;
         private final pml_t currentPml = new pml_t();
+        private final float[][] currentPlanes = new float[MAX_CLIP_PLANES][3];
 
         @Override
         public synchronized void move(pmove_t pmove) {
             currentPm = pmove;
-            // Compatibility bridge while helper functions still read static PMove.pm/pml.
+            // Compatibility bridge for tests and any external diagnostics that read PMove.pm/pml.
             PMove.pm = currentPm;
             PMove.pml = currentPml;
-            runLegacyPmove();
+            runLegacyPmove(currentPm, currentPml, currentPlanes);
         }
     }
 
@@ -149,7 +150,6 @@ public class PMove {
      * 1 = floor 2 = wall / step 4 = dead stop
      */
     public final static int MAX_CLIP_PLANES = 5;
-    static float[] planes[] = new float[MAX_CLIP_PLANES][3];
     
     private static void PM_StepSlideMove_(pmove_t pm, pml_t pml, float[][] planes) {
         int bumpcount, numbumps;
@@ -1047,7 +1047,7 @@ public class PMove {
     }
 
     // C reference: Pmove in qcommon/pmove.c. Kept as static legacy body while migration proceeds.
-    private static void runLegacyPmove() {
+    private static void runLegacyPmove(pmove_t pm, pml_t pml, float[][] planes) {
         // clear results
         pm.numtouch = 0;
         Math3D.VectorClear(pm.viewangles);
