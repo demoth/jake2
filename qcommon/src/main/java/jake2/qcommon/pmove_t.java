@@ -807,6 +807,86 @@ public class pmove_t {
         stepSlideMove(origin, velocity, frameTime, planes);
     }
 
+    /**
+     * Executes walking/air/ladder movement branch.
+     * Extracted from PMove.PM_AirMove as part of static-to-instance migration.
+     */
+    public void airMove(
+            float[] forward,
+            float[] right,
+            float[] origin,
+            float[] velocity,
+            float frameTime,
+            float duckSpeed,
+            float maxSpeed,
+            float waterSpeed,
+            float accelerate,
+            float airAccelerate,
+            float[][] planes
+    ) {
+        float[] wishvel = { 0, 0, 0 };
+        float[] wishdir = { 0, 0, 0 };
+
+        float fmove = cmd.forwardmove;
+        float smove = cmd.sidemove;
+
+        wishvel[0] = forward[0] * fmove + right[0] * smove;
+        wishvel[1] = forward[1] * fmove + right[1] * smove;
+        wishvel[2] = 0;
+
+        addCurrents(velocity, waterSpeed, wishvel);
+
+        Math3D.VectorCopy(wishvel, wishdir);
+        float wishspeed = Math3D.VectorNormalize(wishdir);
+
+        float cappedMaxSpeed = (s.pm_flags & Defines.PMF_DUCKED) != 0 ? duckSpeed : maxSpeed;
+        if (wishspeed > cappedMaxSpeed) {
+            Math3D.VectorScale(wishvel, cappedMaxSpeed / wishspeed, wishvel);
+            wishspeed = cappedMaxSpeed;
+        }
+
+        if (ladder) {
+            accelerate(velocity, frameTime, wishdir, wishspeed, accelerate);
+            if (wishvel[2] == 0f) {
+                if (velocity[2] > 0) {
+                    velocity[2] -= s.gravity * frameTime;
+                    if (velocity[2] < 0) {
+                        velocity[2] = 0;
+                    }
+                } else {
+                    velocity[2] += s.gravity * frameTime;
+                    if (velocity[2] > 0) {
+                        velocity[2] = 0;
+                    }
+                }
+            }
+            stepSlideMove(origin, velocity, frameTime, planes);
+        } else if (groundentity != null) {
+            velocity[2] = 0;
+            accelerate(velocity, frameTime, wishdir, wishspeed, accelerate);
+
+            if (s.gravity > 0) {
+                velocity[2] = 0;
+            } else {
+                velocity[2] -= s.gravity * frameTime;
+            }
+
+            if (velocity[0] == 0f && velocity[1] == 0f) {
+                return;
+            }
+            stepSlideMove(origin, velocity, frameTime, planes);
+        } else {
+            if (airAccelerate != 0f) {
+                airAccelerate(velocity, frameTime, wishdir, wishspeed, accelerate);
+            } else {
+                accelerate(velocity, frameTime, wishdir, wishspeed, 1f);
+            }
+
+            velocity[2] -= s.gravity * frameTime;
+            stepSlideMove(origin, velocity, frameTime, planes);
+        }
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

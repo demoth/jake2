@@ -131,83 +131,11 @@ public class PMove {
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
      *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
-     *   PM_WaterMove (migrated), PM_AirMove, PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
+     *   PM_WaterMove (migrated), PM_AirMove (migrated), PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
      */
     public final static int MAX_CLIP_PLANES = 5;
-
-    /**
-     * PM_AirMove.
-     */
-    private static void PM_AirMove(pmove_t pm, pml_t pml, float[][] planes) {
-        float[] wishvel = { 0, 0, 0 };
-        float fmove, smove;
-        float[] wishdir = { 0, 0, 0 };
-        float wishspeed;
-        float maxspeed;
-
-        fmove = pm.cmd.forwardmove;
-        smove = pm.cmd.sidemove;
-
-        wishvel[0] = pml.forward[0] * fmove + pml.right[0] * smove;
-        wishvel[1] = pml.forward[1] * fmove + pml.right[1] * smove;
-        
-        wishvel[2] = 0;
-
-        pm.addCurrents(pml.velocity, pm_waterspeed, wishvel);
-
-        Math3D.VectorCopy(wishvel, wishdir);
-        wishspeed = Math3D.VectorNormalize(wishdir);
-
-        
-        // clamp to server defined max speed
-        maxspeed = (pm.s.pm_flags & Defines.PMF_DUCKED) != 0 ? pm_duckspeed
-                : pm_maxspeed;
-
-        if (wishspeed > maxspeed) {
-            Math3D.VectorScale(wishvel, maxspeed / wishspeed, wishvel);
-            wishspeed = maxspeed;
-        }
-
-        if (pm.ladder) {
-            pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
-            if (0 == wishvel[2]) {
-                if (pml.velocity[2] > 0) {
-                    pml.velocity[2] -= pm.s.gravity * pml.frametime;
-                    if (pml.velocity[2] < 0)
-                        pml.velocity[2] = 0;
-                } else {
-                    pml.velocity[2] += pm.s.gravity * pml.frametime;
-                    if (pml.velocity[2] > 0)
-                        pml.velocity[2] = 0;
-                }
-            }
-            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
-        } else if (pm.groundentity != null) { // walking on ground
-            pml.velocity[2] = 0; //!!! this is before the accel
-            pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
-
-            // PGM -- fix for negative trigger_gravity fields
-            //		pml.velocity[2] = 0;
-            if (pm.s.gravity > 0)
-                pml.velocity[2] = 0;
-            else
-                pml.velocity[2] -= pm.s.gravity * pml.frametime;
-            // PGM
-            if (0 == pml.velocity[0] && 0 == pml.velocity[1])
-                return;
-            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
-        } else { // not on ground, so little effect on velocity
-            if (pm_airaccelerate != 0)
-                pm.airAccelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
-            else
-                pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, 1);
-            // add gravity
-            pml.velocity[2] -= pm.s.gravity * pml.frametime;
-            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
-        }
-    }
 
     /**
      * PM_FlyMove.
@@ -414,7 +342,19 @@ public class PMove {
 
                 Math3D.AngleVectors(angles, pml.forward, pml.right, pml.up);
 
-                PM_AirMove(pm, pml, planes);
+                pm.airMove(
+                        pml.forward,
+                        pml.right,
+                        pml.origin,
+                        pml.velocity,
+                        pml.frametime,
+                        pm_duckspeed,
+                        pm_maxspeed,
+                        pm_waterspeed,
+                        pm_accelerate,
+                        pm_airaccelerate,
+                        planes
+                );
             }
         }
 
