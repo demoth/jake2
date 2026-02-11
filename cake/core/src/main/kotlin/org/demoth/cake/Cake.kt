@@ -120,6 +120,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cvar.Init()
         Cbuf.AddText("set thinclient 1")
         initUserInfoCvars()
+        initClientCvars()
         Netchan.Netchan_Init()
     }
 
@@ -199,6 +200,49 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             reconnectTimeout = 0f
             game3dScreen = Game3dScreen(assetManager)
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
+        }
+
+        /*
+         * Rcon_f
+         *
+         * Send the rest of the command line over as an unconnected command.
+         */
+        Cmd.AddCommand("rcon") { args ->
+            val rconPassword = Cvar.getInstance().VariableString("rcon_password")
+            if (rconPassword.isEmpty()) {
+                Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
+                return@AddCommand
+            }
+
+            // allow remote
+            NET.Config(true)
+
+            // assemble password and arguments into a string and send
+            val message = buildString {
+                append(" ")
+                append(rconPassword)
+                append(" ")
+                if (args.size > 1) {
+                    append(getArguments(args))
+                    append(" ")
+                }
+            }
+
+            val to = if (networkState == CONNECTED || networkState == ACTIVE) {
+                netchan.remote_address
+            } else {
+                val rconAddress = Cvar.getInstance().VariableString("rcon_address")
+                if (rconAddress.isEmpty()) {
+                    Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
+                    return@AddCommand
+                }
+                netadr_t.fromString(rconAddress, PORT_SERVER) ?: run {
+                    Com.Warn("Bad rcon_address\n")
+                    return@AddCommand
+                }
+            }
+
+            Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
         }
 
         Cmd.AddCommand("disconnect") { disconnect() }
@@ -616,6 +660,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     Com.Println("Connected!")
                 }
             }
+            ConnectionlessCommand.print -> {
+                if (!packet.connectionlessParameters.isNullOrEmpty()) {
+                    Com.Printf(packet.connectionlessParameters)
+                }
+            }
             else -> {
                 println("not yet implemented, no need")
             }
@@ -636,6 +685,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE)
+    }
+
+    private fun initClientCvars() {
+        Cvar.getInstance().Get("rcon_password", "", 0)
+        Cvar.getInstance().Get("rcon_address", "", 0)
     }
 
 }
