@@ -24,6 +24,8 @@ package jake2.qcommon;
 
 import jake2.qcommon.util.Math3D;
 
+import java.util.Objects;
+
 public class PMove {
 
     // all of the locals will be zeroed before each
@@ -87,6 +89,23 @@ public class PMove {
     public static int jitterbits[] = { 0, 4, 1, 2, 3, 5, 6, 7 };
 
     public static int offset[] = { 0, -1, 1 };
+
+    @FunctionalInterface
+    interface PmoveProcessor {
+        void move(pmove_t pmove);
+    }
+
+    private static final PmoveProcessor LEGACY_PROCESSOR = PMove::runLegacyPmove;
+    private static PmoveProcessor processor = LEGACY_PROCESSOR;
+
+    // Test seam for the incremental OOP migration; production code keeps the legacy processor.
+    static void setProcessor(PmoveProcessor nextProcessor) {
+        processor = Objects.requireNonNull(nextProcessor, "nextProcessor");
+    }
+
+    static void resetProcessor() {
+        processor = LEGACY_PROCESSOR;
+    }
 
 
     /**
@@ -1010,6 +1029,11 @@ public class PMove {
      * Can be called by either the server or the client.
      */
     public static void Pmove(pmove_t pmove) {
+        processor.move(pmove);
+    }
+
+    // C reference: Pmove in qcommon/pmove.c. Kept as static legacy body while migration proceeds.
+    private static void runLegacyPmove(pmove_t pmove) {
         pm = pmove;
 
         // clear results

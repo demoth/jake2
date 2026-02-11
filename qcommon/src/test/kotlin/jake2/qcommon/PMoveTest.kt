@@ -202,6 +202,24 @@ class PMoveTest {
         }
     }
 
+    @Test
+    fun `Pmove delegates through processor seam`() {
+        val pm = defaultPmove(Defines.PM_FREEZE)
+        var invoked = false
+        PMove.setProcessor { delegated ->
+            invoked = true
+            delegated.viewheight = 123f
+        }
+        try {
+            PMove.Pmove(pm)
+        } finally {
+            PMove.resetProcessor()
+        }
+
+        assertTrue(invoked)
+        assertEquals(123f, pm.viewheight, TOLERANCE)
+    }
+
     private fun defaultPmove(pmType: Int): pmove_t {
         val pm = pmove_t()
         pm.s.pm_type = pmType
