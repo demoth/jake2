@@ -129,7 +129,7 @@ public class PMove {
      * OOP migration ownership map:
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
-     *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition,
+     *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
      *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
@@ -688,36 +688,6 @@ public class PMove {
         }
     }
 
-    /** 
-     * Snaps the origin of the player move to 0.125 grid.
-     */
-    private static void PM_InitialSnapPosition(pmove_t pm, pml_t pml) {
-        int x, y, z;
-        short base[] = { 0, 0, 0 };
-
-        Math3D.VectorCopy(pm.s.origin, base);
-
-        for (z = 0; z < 3; z++) {
-            pm.s.origin[2] = (short) (base[2] + offset[z]);
-            for (y = 0; y < 3; y++) {
-                pm.s.origin[1] = (short) (base[1] + offset[y]);
-                for (x = 0; x < 3; x++) {
-                    pm.s.origin[0] = (short) (base[0] + offset[x]);
-                    if (pm.goodPosition()) {
-                        pml.origin[0] = pm.s.origin[0] * 0.125f;
-                        pml.origin[1] = pm.s.origin[1] * 0.125f;
-                        pml.origin[2] = pm.s.origin[2] * 0.125f;
-                        Math3D.VectorCopy(pm.s.origin,
-                                pml.previous_origin);
-                        return;
-                    }
-                }
-            }
-        }
-
-        Com.DPrintf("Bad InitialSnapPosition\n");
-    }
-
     /**
      * Can be called by either the server or the client.
      */
@@ -773,7 +743,7 @@ public class PMove {
         pm.checkDuck(pml.origin);
 
         if (pm.snapinitial)
-            PM_InitialSnapPosition(pm, pml);
+            pm.initialSnapPosition(pml.origin, pml.previous_origin, offset);
 
         // set groundentity, watertype, and waterlevel
         pm.categorizePosition(pml.origin, pml.velocity);

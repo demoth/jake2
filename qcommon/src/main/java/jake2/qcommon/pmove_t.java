@@ -410,6 +410,38 @@ public class pmove_t {
         Math3D.VectorCopy(previousOrigin, s.origin);
     }
 
+    /**
+     * Attempts nearby snapped positions after teleport/state correction to find a valid hull.
+     * Extracted from PMove.PM_InitialSnapPosition as part of static-to-instance migration.
+     */
+    public void initialSnapPosition(float[] origin, float[] previousOrigin, int[] offset) {
+        int x;
+        int y;
+        int z;
+        short[] base = { 0, 0, 0 };
+
+        Math3D.VectorCopy(s.origin, base);
+
+        for (z = 0; z < 3; z++) {
+            s.origin[2] = (short) (base[2] + offset[z]);
+            for (y = 0; y < 3; y++) {
+                s.origin[1] = (short) (base[1] + offset[y]);
+                for (x = 0; x < 3; x++) {
+                    s.origin[0] = (short) (base[0] + offset[x]);
+                    if (goodPosition()) {
+                        origin[0] = s.origin[0] * 0.125f;
+                        origin[1] = s.origin[1] * 0.125f;
+                        origin[2] = s.origin[2] * 0.125f;
+                        Math3D.VectorCopy(s.origin, previousOrigin);
+                        return;
+                    }
+                }
+            }
+        }
+
+        Com.DPrintf("Bad InitialSnapPosition\n");
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
