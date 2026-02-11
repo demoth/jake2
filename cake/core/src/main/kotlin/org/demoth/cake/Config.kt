@@ -6,6 +6,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.utils.Disposable
+import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
@@ -52,7 +53,15 @@ class GameConfiguration(
                 }
             }
         }
-
+        Cmd.AddCommand("print_asset_errors", true) {
+            if (failedAssets.isEmpty()) {
+                Com.Printf("No failed sound assets\n")
+                return@AddCommand
+            }
+            failedAssets.forEach { (path, error) ->
+                Com.Printf("Failed sound asset: $path -> $error\n")
+            }
+        }
     }
 
     /**
@@ -65,6 +74,7 @@ class GameConfiguration(
 
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
+    private val failedAssets: MutableMap<String, String> = mutableMapOf()
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private var mapAsset: BspMapAsset? = null
     private var playerModel: Model? = null
@@ -167,6 +177,7 @@ class GameConfiguration(
     fun getPlayerModel(): Model? {
         return playerModel
     }
+
     // endregion
 
     // region LOAD ASSETS
@@ -199,7 +210,9 @@ class GameConfiguration(
             if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
                 return@forEach
             }
-            weaponSounds[weaponType] = acquireAsset<Sound>(assetPath)
+            tryAquireAsset<Sound>(assetPath)?.let { loaded ->
+                weaponSounds[weaponType] = loaded
+            }
         }
     }
 
@@ -249,6 +262,7 @@ class GameConfiguration(
         mapAsset = null
         weaponSounds.clear()
         playerModel = null
+        failedAssets.clear()
         configStrings.forEach { config -> config?.resource = null }
     }
 
@@ -329,8 +343,30 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
             return false
         } // todo: warning if not found!
-        config.resource = acquireAsset<Sound>(assetPath)
-        return true
+        config.resource = tryAquireAsset(assetPath)
+        return config.resource != null
+    }
+
+    private inline fun <reified T> tryAquireAsset(assetPath: String): T? {
+        if (failedAssets.containsKey(assetPath)) {
+            return null
+        }
+        return try {
+            acquireAsset<T>(assetPath)
+        } catch (e: GdxRuntimeException) {
+            val error = rootCauseMessage(e)
+            failedAssets[assetPath] = error
+            Com.Warn("Failed to load sound $assetPath: $error")
+            null
+        }
+    }
+
+    private fun rootCauseMessage(t: Throwable): String {
+        var root: Throwable = t
+        while (root.cause != null) {
+            root = root.cause!!
+        }
+        return root.message ?: root.javaClass.simpleName
     }
 
     private fun loadImageConfigResource(config: Config): Boolean {

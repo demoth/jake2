@@ -6,7 +6,6 @@ import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.assets.loaders.SoundLoader
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
@@ -41,6 +40,7 @@ import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
@@ -106,7 +106,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Any::class.java, ObjectLoader(fileResolver))
         // for loading binary blobs from the filesystem (e.g. BSP maps)
         setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
-        setLoader(Sound::class.java, SoundLoader(fileResolver))
+        setLoader(Sound::class.java, ConvertingSoundLoader(fileResolver))
         setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
         setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
@@ -664,9 +664,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun CL_ConnectionlessPacket(packet: NetworkPacket) {
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args[0]
-        Com.Println(packet.from.toString() + ": " + c)
         val cmd = ConnectionlessCommand.fromString(c)
-        Com.Println("received: $cmd")
 
         when (cmd) {
             ConnectionlessCommand.challenge -> {
