@@ -131,203 +131,11 @@ public class PMove {
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
      *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
-     *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
+     *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
-     * - shared math utility:
-     *   PM_ClipVelocity.
-     */
-
-
-    /**
-     * Slide off of the impacting object returns the blocked flags (1 = floor, 2 = step / wall)
-     */
-    private static void PM_ClipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
-        float backoff;
-        float change;
-        int i;
-
-        backoff = Math3D.DotProduct(in, normal) * overbounce;
-
-        for (i = 0; i < 3; i++) {
-            change = normal[i] * backoff;
-            out[i] = in[i] - change;
-            if (out[i] > -Defines.MOVE_STOP_EPSILON
-                    && out[i] < Defines.MOVE_STOP_EPSILON)
-                out[i] = 0;
-        }
-    }
-
-    /**
-     * SV_FlyMove
-     *
-     * The basic solid body movement clip that slides along multiple planes
-     * Returns the clipflags if the velocity was modified (hit something solid)
-     * 1 = floor 2 = wall / step 4 = dead stop
      */
     public final static int MAX_CLIP_PLANES = 5;
-    
-    private static void PM_StepSlideMove_(pmove_t pm, pml_t pml, float[][] planes) {
-        int bumpcount, numbumps;
-        float[] dir = { 0, 0, 0 };
-        float d;
-        int numplanes;
-        
-        float[] primal_velocity = { 0, 0, 0 };
-        int i, j;
-        trace_t trace;
-        float[] end = { 0, 0, 0 };
-        float time_left;
-
-        numbumps = 4;
-
-        Math3D.VectorCopy(pml.velocity, primal_velocity);
-        numplanes = 0;
-
-        time_left = pml.frametime;
-
-        for (bumpcount = 0; bumpcount < numbumps; bumpcount++) {
-            for (i = 0; i < 3; i++)
-                end[i] = pml.origin[i] + time_left
-                        * pml.velocity[i];
-
-            trace = pm.trace.trace(pml.origin, pm.mins,
-                    pm.maxs, end);
-
-            if (trace.allsolid) { // entity is trapped in another solid
-                pml.velocity[2] = 0; // don't build up falling damage
-                return;
-            }
-
-            if (trace.fraction > 0) { // actually covered some distance
-                Math3D.VectorCopy(trace.endpos, pml.origin);
-                numplanes = 0;
-            }
-
-            if (trace.fraction == 1)
-                break; // moved the entire distance
-
-            // save entity for contact
-            if (pm.numtouch < Defines.MAXTOUCH && trace.ent != null) {
-                pm.touchents[pm.numtouch] = trace.ent;
-                pm.numtouch++;
-            }
-
-            time_left -= time_left * trace.fraction;
-
-            // slide along this plane
-            if (numplanes >= MAX_CLIP_PLANES) {
-            	// this shouldn't really happen
-                Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
-                break;
-            }
-
-            Math3D.VectorCopy(trace.plane.normal, planes[numplanes]);
-            numplanes++;
-
-            // modify original_velocity so it parallels all of the clip planes
-            for (i = 0; i < numplanes; i++) {
-                PM_ClipVelocity(pml.velocity, planes[i],
-                        pml.velocity, 1.01f);
-                for (j = 0; j < numplanes; j++)
-                    if (j != i) {
-                        if (Math3D.DotProduct(pml.velocity, planes[j]) < 0)
-                            break; // not ok
-                    }
-                if (j == numplanes)
-                    break;
-            }
-
-            if (i != numplanes) { 
-            	// go along this plane
-            } else { 
-            	// go along the crease
-                if (numplanes != 2) {
-                    // Com.printf("clip velocity, numplanes == " + numplanes + "\n");
-                    Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
-                    break;
-                }
-                Math3D.CrossProduct(planes[0], planes[1], dir);
-                d = Math3D.DotProduct(dir, pml.velocity);
-                Math3D.VectorScale(dir, d, pml.velocity);
-            }
-
-
-            // if velocity is against the original velocity, stop dead
-            // to avoid tiny occilations in sloping corners
-            if (Math3D.DotProduct(pml.velocity, primal_velocity) <= 0) {
-                Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
-                break;
-            }
-        }
-
-        if (pm.s.pm_time != 0) {
-            Math3D.VectorCopy(primal_velocity, pml.velocity);
-        }
-    }
-
-    /**
-     * Each intersection will try to step over the obstruction instead of 
-     * sliding along it.
-     * 
-     * Returns a new origin, velocity, and contact entity.
-     * Does not modify any world state?
-     */
-    private static void PM_StepSlideMove(pmove_t pm, pml_t pml, float[][] planes) {
-        float[] start_o = { 0, 0, 0 }, start_v = { 0, 0, 0 };
-        float[] down_o = { 0, 0, 0 }, down_v = { 0, 0, 0 };
-        trace_t trace;
-        float down_dist, up_dist;
-        //	float [] delta;
-        float[] up = { 0, 0, 0 }, down = { 0, 0, 0 };
-
-        Math3D.VectorCopy(pml.origin, start_o);
-        Math3D.VectorCopy(pml.velocity, start_v);
-
-        PM_StepSlideMove_(pm, pml, planes);
-
-        Math3D.VectorCopy(pml.origin, down_o);
-        Math3D.VectorCopy(pml.velocity, down_v);
-
-        Math3D.VectorCopy(start_o, up);
-        up[2] += Defines.STEPSIZE;
-
-        trace = pm.trace.trace(up, pm.mins, pm.maxs, up);
-        if (trace.allsolid)
-            return; // can't step up
-
-        // try sliding above
-        Math3D.VectorCopy(up, pml.origin);
-        Math3D.VectorCopy(start_v, pml.velocity);
-
-        PM_StepSlideMove_(pm, pml, planes);
-
-        // push down the final amount
-        Math3D.VectorCopy(pml.origin, down);
-        down[2] -= Defines.STEPSIZE;
-        trace = pm.trace.trace(pml.origin, pm.mins,
-                pm.maxs, down);
-        if (!trace.allsolid) {
-            Math3D.VectorCopy(trace.endpos, pml.origin);
-        }
-
-        Math3D.VectorCopy(pml.origin, up);
-
-        // decide which one went farther
-        down_dist = (down_o[0] - start_o[0]) * (down_o[0] - start_o[0])
-                + (down_o[1] - start_o[1]) * (down_o[1] - start_o[1]);
-        up_dist = (up[0] - start_o[0]) * (up[0] - start_o[0])
-                + (up[1] - start_o[1]) * (up[1] - start_o[1]);
-
-        if (down_dist > up_dist || trace.plane.normal[2] < Defines.MIN_STEP_NORMAL) {
-            Math3D.VectorCopy(down_o, pml.origin);
-            Math3D.VectorCopy(down_v, pml.velocity);
-            return;
-        }
-        //!! Special case
-        // if we were walking along a plane, then we need to copy the Z over
-        pml.velocity[2] = down_v[2];
-    }
 
     /**
      * PM_WaterMove.
@@ -363,7 +171,7 @@ public class PMove {
 
         pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_wateraccelerate);
 
-        PM_StepSlideMove(pm, pml, planes);
+        pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
     }
 
     /**
@@ -412,7 +220,7 @@ public class PMove {
                         pml.velocity[2] = 0;
                 }
             }
-            PM_StepSlideMove(pm, pml, planes);
+            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
         } else if (pm.groundentity != null) { // walking on ground
             pml.velocity[2] = 0; //!!! this is before the accel
             pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
@@ -426,7 +234,7 @@ public class PMove {
             // PGM
             if (0 == pml.velocity[0] && 0 == pml.velocity[1])
                 return;
-            PM_StepSlideMove(pm, pml, planes);
+            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
         } else { // not on ground, so little effect on velocity
             if (pm_airaccelerate != 0)
                 pm.airAccelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
@@ -434,7 +242,7 @@ public class PMove {
                 pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, 1);
             // add gravity
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
-            PM_StepSlideMove(pm, pml, planes);
+            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
         }
     }
 
@@ -613,7 +421,7 @@ public class PMove {
                 pm.s.pm_time = 0;
             }
 
-            PM_StepSlideMove(pm, pml, planes);
+            pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
         } else {
             pm.checkJump(pml.velocity);
 

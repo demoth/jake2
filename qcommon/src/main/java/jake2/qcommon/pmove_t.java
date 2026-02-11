@@ -618,6 +618,152 @@ public class pmove_t {
         }
     }
 
+    private static void clipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
+        float backoff = Math3D.DotProduct(in, normal) * overbounce;
+
+        for (int i = 0; i < 3; i++) {
+            float change = normal[i] * backoff;
+            out[i] = in[i] - change;
+            if (out[i] > -Defines.MOVE_STOP_EPSILON && out[i] < Defines.MOVE_STOP_EPSILON) {
+                out[i] = 0;
+            }
+        }
+    }
+
+    private void stepSlideMoveCore(float[] origin, float[] velocity, float frameTime, float[][] planes) {
+        float[] dir = { 0, 0, 0 };
+        float[] primalVelocity = { 0, 0, 0 };
+        float[] end = { 0, 0, 0 };
+        int numplanes = 0;
+        float timeLeft = frameTime;
+
+        Math3D.VectorCopy(velocity, primalVelocity);
+
+        for (int bumpcount = 0; bumpcount < 4; bumpcount++) {
+            for (int i = 0; i < 3; i++) {
+                end[i] = origin[i] + timeLeft * velocity[i];
+            }
+
+            trace_t trace = this.trace.trace(origin, mins, maxs, end);
+
+            if (trace.allsolid) {
+                velocity[2] = 0;
+                return;
+            }
+
+            if (trace.fraction > 0) {
+                Math3D.VectorCopy(trace.endpos, origin);
+                numplanes = 0;
+            }
+
+            if (trace.fraction == 1) {
+                break;
+            }
+
+            if (numtouch < Defines.MAXTOUCH && trace.ent != null) {
+                touchents[numtouch] = trace.ent;
+                numtouch++;
+            }
+
+            timeLeft -= timeLeft * trace.fraction;
+
+            if (numplanes >= PMove.MAX_CLIP_PLANES) {
+                Math3D.VectorCopy(Globals.vec3_origin, velocity);
+                break;
+            }
+
+            Math3D.VectorCopy(trace.plane.normal, planes[numplanes]);
+            numplanes++;
+
+            int i;
+            int j;
+            for (i = 0; i < numplanes; i++) {
+                clipVelocity(velocity, planes[i], velocity, 1.01f);
+                for (j = 0; j < numplanes; j++) {
+                    if (j != i && Math3D.DotProduct(velocity, planes[j]) < 0) {
+                        break;
+                    }
+                }
+                if (j == numplanes) {
+                    break;
+                }
+            }
+
+            if (i == numplanes) {
+                if (numplanes != 2) {
+                    Math3D.VectorCopy(Globals.vec3_origin, velocity);
+                    break;
+                }
+                Math3D.CrossProduct(planes[0], planes[1], dir);
+                float d = Math3D.DotProduct(dir, velocity);
+                Math3D.VectorScale(dir, d, velocity);
+            }
+
+            if (Math3D.DotProduct(velocity, primalVelocity) <= 0) {
+                Math3D.VectorCopy(Globals.vec3_origin, velocity);
+                break;
+            }
+        }
+
+        if (s.pm_time != 0) {
+            Math3D.VectorCopy(primalVelocity, velocity);
+        }
+    }
+
+    /**
+     * Performs Quake2 step-slide movement against world geometry.
+     * Extracted from PMove.PM_StepSlideMove as part of static-to-instance migration.
+     */
+    public void stepSlideMove(float[] origin, float[] velocity, float frameTime, float[][] planes) {
+        float[] startO = { 0, 0, 0 };
+        float[] startV = { 0, 0, 0 };
+        float[] downO = { 0, 0, 0 };
+        float[] downV = { 0, 0, 0 };
+        float[] up = { 0, 0, 0 };
+        float[] down = { 0, 0, 0 };
+
+        Math3D.VectorCopy(origin, startO);
+        Math3D.VectorCopy(velocity, startV);
+
+        stepSlideMoveCore(origin, velocity, frameTime, planes);
+
+        Math3D.VectorCopy(origin, downO);
+        Math3D.VectorCopy(velocity, downV);
+
+        Math3D.VectorCopy(startO, up);
+        up[2] += Defines.STEPSIZE;
+
+        trace_t trace = this.trace.trace(up, mins, maxs, up);
+        if (trace.allsolid) {
+            return;
+        }
+
+        Math3D.VectorCopy(up, origin);
+        Math3D.VectorCopy(startV, velocity);
+
+        stepSlideMoveCore(origin, velocity, frameTime, planes);
+
+        Math3D.VectorCopy(origin, down);
+        down[2] -= Defines.STEPSIZE;
+        trace = this.trace.trace(origin, mins, maxs, down);
+        if (!trace.allsolid) {
+            Math3D.VectorCopy(trace.endpos, origin);
+        }
+
+        Math3D.VectorCopy(origin, up);
+
+        float downDist = (downO[0] - startO[0]) * (downO[0] - startO[0]) + (downO[1] - startO[1]) * (downO[1] - startO[1]);
+        float upDist = (up[0] - startO[0]) * (up[0] - startO[0]) + (up[1] - startO[1]) * (up[1] - startO[1]);
+
+        if (downDist > upDist || trace.plane.normal[2] < Defines.MIN_STEP_NORMAL) {
+            Math3D.VectorCopy(downO, origin);
+            Math3D.VectorCopy(downV, velocity);
+            return;
+        }
+
+        velocity[2] = downV[2];
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
