@@ -27,6 +27,7 @@ import jake2.qcommon.util.Math3D;
 import java.util.Arrays;
 
 public class pmove_t {
+    public static final int MAX_CLIP_PLANES = 5;
 
     public interface PointContentsAdapter {
         // callbacks to test the world
@@ -667,7 +668,7 @@ public class pmove_t {
 
             timeLeft -= timeLeft * trace.fraction;
 
-            if (numplanes >= PMove.MAX_CLIP_PLANES) {
+            if (numplanes >= MAX_CLIP_PLANES) {
                 Math3D.VectorCopy(Globals.vec3_origin, velocity);
                 break;
             }

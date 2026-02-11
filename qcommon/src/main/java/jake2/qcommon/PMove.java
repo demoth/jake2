@@ -93,7 +93,7 @@ public class PMove {
     private static final class LegacyPmoveProcessor implements PmoveProcessor {
         private pmove_t currentPm;
         private final pml_t currentPml = new pml_t();
-        private final float[][] currentPlanes = new float[MAX_CLIP_PLANES][3];
+        private final float[][] currentPlanes = new float[pmove_t.MAX_CLIP_PLANES][3];
 
         @Override
         public synchronized void move(pmove_t pmove) {
@@ -135,8 +135,6 @@ public class PMove {
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
      */
-    public final static int MAX_CLIP_PLANES = 5;
-
     /**
      * Can be called by either the server or the client.
      */

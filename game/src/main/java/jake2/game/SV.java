@@ -117,7 +117,7 @@ final class SV {
         float[] dir = { 0.0f, 0.0f, 0.0f };
         float d;
         int numplanes;
-        float[][] planes = new float[PMove.MAX_CLIP_PLANES][3];
+        float[][] planes = new float[pmove_t.MAX_CLIP_PLANES][3];
         float[] primal_velocity = { 0.0f, 0.0f, 0.0f };
         float[] original_velocity = { 0.0f, 0.0f, 0.0f };
         float[] new_velocity = { 0.0f, 0.0f, 0.0f };
@@ -181,7 +181,7 @@ final class SV {
             time_left -= time_left * trace.fraction;
 
             // cliped to another plane
-            if (numplanes >= PMove.MAX_CLIP_PLANES) { // this shouldn't
+            if (numplanes >= pmove_t.MAX_CLIP_PLANES) { // this shouldn't
                                                          // really happen
                 Math3D.VectorCopy(Globals.vec3_origin, ent.velocity);
                 return 3;
