@@ -70,6 +70,8 @@ public class pmove_t {
 
     public int waterlevel;
 
+    public boolean ladder;
+
     public TraceAdapter trace;
 
     public PointContentsAdapter pointcontents;
@@ -298,6 +300,7 @@ public class pmove_t {
         groundsurface = null;
         groundcontents = 0;
         waterlevel = watertype = 0;
+        ladder = false;
         trace = null;
         pointcontents = null;
         Math3D.VectorClear(mins);

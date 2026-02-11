@@ -44,7 +44,6 @@ public class PMove {
 
         public float[] previous_origin = { 0, 0, 0 };
 
-        public boolean ladder;
     }
 
     public static pmove_t pm;
@@ -353,14 +352,14 @@ public class PMove {
         // apply ground friction
         if ((pm.groundentity != null && pm.groundsurface != null &&
         		0 == (pm.groundsurface.flags & Defines.SURF_SLICK))
-                || (pml.ladder)) {
+                || (pm.ladder)) {
             friction = pm_friction;
             control = speed < pm_stopspeed ? pm_stopspeed : speed;
             drop += control * friction * pml.frametime;
         }
 
         // apply water friction
-        if (pm.waterlevel != 0 && !pml.ladder)
+        if (pm.waterlevel != 0 && !pm.ladder)
             drop += speed * pm_waterfriction * pm.waterlevel
                     * pml.frametime;
 
@@ -427,7 +426,7 @@ public class PMove {
         float s;
 
         // account for ladders
-        if (pml.ladder && Math.abs(pml.velocity[2]) <= 200) {
+        if (pm.ladder && Math.abs(pml.velocity[2]) <= 200) {
             if ((pm.viewangles[Defines.PITCH] <= -15)
                     && (pm.cmd.forwardmove > 0))
                 wishvel[2] = 200;
@@ -568,7 +567,7 @@ public class PMove {
             wishspeed = maxspeed;
         }
 
-        if (pml.ladder) {
+        if (pm.ladder) {
             PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
             if (0 == wishvel[2]) {
                 if (pml.velocity[2] > 0) {
@@ -619,7 +618,7 @@ public class PMove {
         if (pm.s.pm_time != 0)
             return;
 
-        pml.ladder = false;
+        pm.ladder = false;
 
         // check for ladder
         flatforward[0] = pml.forward[0];
@@ -632,7 +631,7 @@ public class PMove {
                 pm.maxs, spot);
         if ((trace.fraction < 1)
                 && (trace.contents & Defines.CONTENTS_LADDER) != 0)
-            pml.ladder = true;
+            pm.ladder = true;
 
         // check for water jump
         if (pm.waterlevel != 2)
