@@ -322,41 +322,47 @@ class Game3dScreen(
             oldZ = newZ
         }
 
-        val interpolatedX = oldX + (newX - oldX) * lerp
-        val interpolatedY = oldY + (newY - oldY) * lerp
-        val interpolatedZ = oldZ + (newZ - oldZ) * lerp
+        val predictionEnabled = (currentState.pmove.pm_flags.toInt() and PMF_NO_PREDICTION) == 0
+        val interpolatedX: Float
+        val interpolatedY: Float
+        val interpolatedZ: Float
+        if (predictionEnabled) {
+            // Old client path: predicted origin + interpolated viewoffset - smoothed prediction error.
+            val backLerp = 1f - lerp
+            val viewOffsetX = previousState.viewoffset[0] + lerp * (currentState.viewoffset[0] - previousState.viewoffset[0])
+            val viewOffsetY = previousState.viewoffset[1] + lerp * (currentState.viewoffset[1] - previousState.viewoffset[1])
+            val viewOffsetZ = previousState.viewoffset[2] + lerp * (currentState.viewoffset[2] - previousState.viewoffset[2])
 
-        // todo: think about - smooth out stair climbing - is it really needed?
+            interpolatedX = prediction.predictedOrigin[0] + viewOffsetX - backLerp * prediction.predictionError[0]
+            interpolatedY = prediction.predictedOrigin[1] + viewOffsetY - backLerp * prediction.predictionError[1]
+            interpolatedZ = prediction.predictedOrigin[2] + viewOffsetZ - backLerp * prediction.predictionError[2] -
+                prediction.smoothedStepOffset(Globals.curtime)
+        } else {
+            interpolatedX = oldX + (newX - oldX) * lerp
+            interpolatedY = oldY + (newY - oldY) * lerp
+            interpolatedZ = oldZ + (newZ - oldZ) * lerp
+        }
 
         camera.position.set(interpolatedX, interpolatedY, interpolatedZ)
 
-        val oldViewPitch: Float
-        val oldViewYaw: Float
-        val oldViewRoll: Float
-        val currentViewPitch: Float
-        val currentViewYaw: Float
-        val currentViewRoll: Float
-        if (currentState.pmove.pm_type == PM_NORMAL || currentState.pmove.pm_type == PM_SPECTATOR) {
-            // same as old client: locally controlled view + replicated kick angles
-            oldViewPitch = inputManager.localPitch + previousState.kick_angles[PITCH]
-            oldViewYaw = inputManager.localYaw + previousState.kick_angles[YAW]
-            oldViewRoll = previousState.kick_angles[ROLL]
-            currentViewPitch = inputManager.localPitch + currentState.kick_angles[PITCH]
-            currentViewYaw = inputManager.localYaw + currentState.kick_angles[YAW]
-            currentViewRoll = currentState.kick_angles[ROLL]
+        val baseViewPitch: Float
+        val baseViewYaw: Float
+        val baseViewRoll: Float
+        if (currentState.pmove.pm_type < PM_DEAD && predictionEnabled) {
+            // Old client path: use predicted view angles when locally controlling movement.
+            baseViewPitch = prediction.predictedAngles[PITCH]
+            baseViewYaw = prediction.predictedAngles[YAW]
+            baseViewRoll = prediction.predictedAngles[ROLL]
         } else {
-            // no local camera controls for PM_DEAD / PM_GIB / PM_FREEZE
-            oldViewPitch = previousState.viewangles[PITCH] + previousState.kick_angles[PITCH]
-            oldViewYaw = previousState.viewangles[YAW] + previousState.kick_angles[YAW]
-            oldViewRoll = previousState.viewangles[ROLL] + previousState.kick_angles[ROLL]
-            currentViewPitch = currentState.viewangles[PITCH] + currentState.kick_angles[PITCH]
-            currentViewYaw = currentState.viewangles[YAW] + currentState.kick_angles[YAW]
-            currentViewRoll = currentState.viewangles[ROLL] + currentState.kick_angles[ROLL]
+            // No local prediction for PM_DEAD / PM_GIB / PM_FREEZE.
+            baseViewPitch = lerpAngle(previousState.viewangles[PITCH], currentState.viewangles[PITCH], lerp)
+            baseViewYaw = lerpAngle(previousState.viewangles[YAW], currentState.viewangles[YAW], lerp)
+            baseViewRoll = lerpAngle(previousState.viewangles[ROLL], currentState.viewangles[ROLL], lerp)
         }
 
-        val viewPitch = lerpAngle(oldViewPitch, currentViewPitch, lerp)
-        val viewYaw = lerpAngle(oldViewYaw, currentViewYaw, lerp)
-        val viewRoll = lerpAngle(oldViewRoll, currentViewRoll, lerp)
+        val viewPitch = baseViewPitch + lerpAngle(previousState.kick_angles[PITCH], currentState.kick_angles[PITCH], lerp)
+        val viewYaw = baseViewYaw + lerpAngle(previousState.kick_angles[YAW], currentState.kick_angles[YAW], lerp)
+        val viewRoll = baseViewRoll + lerpAngle(previousState.kick_angles[ROLL], currentState.kick_angles[ROLL], lerp)
         val (forward, up) = toForwardUp(viewPitch, viewYaw, viewRoll)
 
         camera.direction.set(forward)
@@ -372,16 +378,32 @@ class Game3dScreen(
         val oldGunOffsetZ = previousState.gunoffset[2]
 
         // set the previous and current state: interpolation will happen with all other client entities
-        entityManager.viewGun?.prev?.origin = floatArrayOf(
-            oldGunOffsetX + oldX,
-            oldGunOffsetY + oldY,
-            oldGunOffsetZ + oldZ,
-        )
-        entityManager.viewGun?.current?.origin = floatArrayOf(
-            currentGunOffsetX + newX,
-            currentGunOffsetY + newY,
-            currentGunOffsetZ + newZ,
-        )
+        if (predictionEnabled) {
+            val baseX = camera.position.x
+            val baseY = camera.position.y
+            val baseZ = camera.position.z
+            entityManager.viewGun?.prev?.origin = floatArrayOf(
+                oldGunOffsetX + baseX,
+                oldGunOffsetY + baseY,
+                oldGunOffsetZ + baseZ,
+            )
+            entityManager.viewGun?.current?.origin = floatArrayOf(
+                currentGunOffsetX + baseX,
+                currentGunOffsetY + baseY,
+                currentGunOffsetZ + baseZ,
+            )
+        } else {
+            entityManager.viewGun?.prev?.origin = floatArrayOf(
+                oldGunOffsetX + oldX,
+                oldGunOffsetY + oldY,
+                oldGunOffsetZ + oldZ,
+            )
+            entityManager.viewGun?.current?.origin = floatArrayOf(
+                currentGunOffsetX + newX,
+                currentGunOffsetY + newY,
+                currentGunOffsetZ + newZ,
+            )
+        }
 
         val oldGunAnglePitch = previousState.gunangles[PITCH]
         val oldGunAngleYaw = previousState.gunangles[YAW]
@@ -392,14 +414,14 @@ class Game3dScreen(
 
         // old client behavior: gun angles are view angles + replicated gun angles
         entityManager.viewGun?.prev?.angles = floatArrayOf(
-            oldViewPitch + oldGunAnglePitch,
-            oldViewYaw + oldGunAngleYaw,
-            oldViewRoll + oldGunAngleRoll
+            viewPitch + oldGunAnglePitch,
+            viewYaw + oldGunAngleYaw,
+            viewRoll + oldGunAngleRoll
         )
         entityManager.viewGun?.current?.angles = floatArrayOf(
-            currentViewPitch + currentGunAnglePitch,
-            currentViewYaw + currentGunAngleYaw,
-            currentViewRoll + currentGunAngleRoll
+            viewPitch + currentGunAnglePitch,
+            viewYaw + currentGunAngleYaw,
+            viewRoll + currentGunAngleRoll
         )
         (entityManager.viewGun?.modelInstance?.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
