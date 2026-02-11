@@ -148,6 +148,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         updateInputHandlers(false, true)
 
+        // region COMMANDS
 
         Cmd.AddCommand("quit") {
             disconnect()
@@ -165,10 +166,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // SCR.BeginLoadingPlaque();
             Com.Printf("\nChanging map...\n")
 
-            // Keep old map assets until the new map has been precached.
-            releaseDeferredConfigUnload()
-            deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
-            game3dScreen = Game3dScreen(assetManager)
+            beginMapTransitionRetainingConfigAssets()
         }
 
         // like a connect but more lightweight
@@ -198,7 +196,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             servername = it[1]
             networkState = CONNECTING
             reconnectTimeout = 0f
-            game3dScreen = Game3dScreen(assetManager)
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
         }
 
@@ -221,10 +218,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             val message = buildString {
                 append(" ")
                 append(rconPassword)
-                append(" ")
                 if (args.size > 1) {
-                    append(getArguments(args))
                     append(" ")
+                    append(getArguments(args))
                 }
             }
 
@@ -260,7 +256,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Println("Total: ${rt.totalMemory() / 1024 / 1024} MB")
             Com.Println("Max: ${rt.maxMemory() / 1024 / 1024} MB")
         }
-
 
         Cmd.AddCommand("print_cbuf") {
             Com.Println(Cbuf.contents())
@@ -302,8 +297,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             releaseDeferredConfigUnload()
 
             // we are ready to start the game!
-            netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"));
+            netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
         }
+
+        // endregion
 
     }
 
@@ -560,10 +557,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 // sent on server restart
                 is ReconnectMessage -> {
                     Com.Printf("ReconnectMessage: Reconnecting..\n")
+                    beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
                     // CheckForResend() will fire immediately
                     reconnectTimeout = 0f
-                    // todo: handle game screen disposal?
                 }
 
                 is StuffTextMessage -> {
@@ -575,6 +572,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
                     // new game is starting
                     Cbuf.Execute()
+                    resetClientStateForServerData()
                     netchan.reliablePending.clear()
 
                     if (!msg.gameName.isNullOrBlank()) {
@@ -636,6 +634,32 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
+    /**
+     * Reset local client state for a fresh serverdata sequence.
+     *
+     * Mirrors legacy CL_ParseServerData -> CL.ClearState behavior, which is required
+     * for reconnect-based map changes (e.g. `rcon map`).
+     */
+    private fun resetClientStateForServerData() {
+        // If serverdata arrives while a screen is still active, stage transition first.
+        if (game3dScreen != null) {
+            beginMapTransitionRetainingConfigAssets()
+        }
+        if (game3dScreen == null) {
+            game3dScreen = Game3dScreen(assetManager)
+        }
+        // todo: stop sounds, effects, etc..
+    }
+
+    /**
+     * Stage a map transition while keeping old config-owned resources alive until the next map finishes precache.
+     */
+    private fun beginMapTransitionRetainingConfigAssets() {
+        // if a prior transition was still deferred, retire it first
+        releaseDeferredConfigUnload()
+        deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
+    }
+
 
     private fun CL_ConnectionlessPacket(packet: NetworkPacket) {
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
@@ -656,7 +680,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 } else {
                     networkState = CONNECTED // Defines.ca_connected
                     netchan.setup(NS_CLIENT, packet.from, packet.qport) // fixme: port isn't needed? should it be Netchan.qport?
-                    netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW));
+                    netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
                     Com.Println("Connected!")
                 }
             }
@@ -688,8 +712,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun initClientCvars() {
-        Cvar.getInstance().Get("rcon_password", "", 0)
-        Cvar.getInstance().Get("rcon_address", "", 0)
+        // todo: cleanup after hot development phase
+        Cvar.getInstance().Get("rcon_password", "asdf", 0)
+        Cvar.getInstance().Get("rcon_address", "127.0.0.1", 0)
     }
 
 }

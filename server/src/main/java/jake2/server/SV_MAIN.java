@@ -1201,9 +1201,14 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         String mapName = args.get(1);
 
         final int clientIndex;
-        if (args.size() > 2)
-            clientIndex = Integer.parseInt(args.get(2));
-        else
+        if (args.size() > 2 && !args.get(2).isBlank()) {
+            try {
+                clientIndex = Integer.parseInt(args.get(2));
+            } catch (NumberFormatException e) {
+                Com.Printf("USAGE: gamemap <map>\n <client>\n");
+                return;
+            }
+        } else
             clientIndex = 0;
 
         Com.DPrintf("SV_GameMap(" + mapName + ")\n");
