@@ -131,93 +131,11 @@ public class PMove {
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
      *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
-     *   PM_WaterMove (migrated), PM_AirMove (migrated), PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
+     *   PM_WaterMove (migrated), PM_AirMove (migrated), PM_FlyMove (migrated), PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
      */
     public final static int MAX_CLIP_PLANES = 5;
-
-    /**
-     * PM_FlyMove.
-     */
-    private static void PM_FlyMove(pmove_t pm, pml_t pml, boolean doclip) {
-        float speed, drop, friction, control, newspeed;
-        float currentspeed, addspeed, accelspeed;
-        int i;
-        float[] wishvel = { 0, 0, 0 };
-        float fmove, smove;
-        float[] wishdir = { 0, 0, 0 };
-        float wishspeed;
-        float[] end = { 0, 0, 0 };
-        trace_t trace;
-
-        pm.viewheight = 22;
-
-        // friction
-
-        speed = Math3D.VectorLength(pml.velocity);
-        if (speed < 1) {
-            Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
-        } else {
-            drop = 0;
-
-            friction = pm_friction * 1.5f; // extra friction
-            control = speed < pm_stopspeed ? pm_stopspeed : speed;
-            drop += control * friction * pml.frametime;
-
-            // scale the velocity
-            newspeed = speed - drop;
-            if (newspeed < 0)
-                newspeed = 0;
-            newspeed /= speed;
-
-            Math3D.VectorScale(pml.velocity, newspeed, pml.velocity);
-        }
-
-        // accelerate
-        fmove = pm.cmd.forwardmove;
-        smove = pm.cmd.sidemove;
-
-        Math3D.VectorNormalize(pml.forward);
-        Math3D.VectorNormalize(pml.right);
-
-        for (i = 0; i < 3; i++)
-            wishvel[i] = pml.forward[i] * fmove + pml.right[i]
-                    * smove;
-        wishvel[2] += pm.cmd.upmove;
-
-        Math3D.VectorCopy(wishvel, wishdir);
-        wishspeed = Math3D.VectorNormalize(wishdir);
-
-        // clamp to server defined max speed
-        if (wishspeed > pm_maxspeed) {
-            Math3D.VectorScale(wishvel, pm_maxspeed / wishspeed, wishvel);
-            wishspeed = pm_maxspeed;
-        }
-
-        currentspeed = Math3D.DotProduct(pml.velocity, wishdir);
-        addspeed = wishspeed - currentspeed;
-        if (addspeed <= 0)
-            return;
-        accelspeed = pm_accelerate * pml.frametime * wishspeed;
-        if (accelspeed > addspeed)
-            accelspeed = addspeed;
-
-        for (i = 0; i < 3; i++)
-            pml.velocity[i] += accelspeed * wishdir[i];
-
-        if (doclip) {
-            for (i = 0; i < 3; i++)
-                end[i] = pml.origin[i] + pml.frametime * pml.velocity[i];
-
-            trace = pm.trace.trace(pml.origin, pm.mins, pm.maxs, end);
-
-            Math3D.VectorCopy(trace.endpos, pml.origin);
-        } else {
-            // move
-            Math3D.VectorMA(pml.origin, pml.frametime, pml.velocity, pml.origin);
-        }
-    }
 
     /**
      * Can be called by either the server or the client.
@@ -256,7 +174,18 @@ public class PMove {
         pm.clampAngles(pml.forward, pml.right, pml.up);
 
         if (pm.s.pm_type == Defines.PM_SPECTATOR) {
-            PM_FlyMove(pm, pml, false);
+            pm.flyMove(
+                    pml.forward,
+                    pml.right,
+                    pml.origin,
+                    pml.velocity,
+                    pml.frametime,
+                    pm_stopspeed,
+                    pm_friction,
+                    pm_accelerate,
+                    pm_maxspeed,
+                    false
+            );
             pm.snapPosition(pml.origin, pml.velocity, pml.previous_origin, jitterbits);
             return;
         }

@@ -887,6 +887,91 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Executes spectator/no-clip style movement branch with optional collision clipping.
+     * Extracted from PMove.PM_FlyMove as part of static-to-instance migration.
+     */
+    public void flyMove(
+            float[] forward,
+            float[] right,
+            float[] origin,
+            float[] velocity,
+            float frameTime,
+            float stopSpeed,
+            float friction,
+            float accelerate,
+            float maxSpeed,
+            boolean doclip
+    ) {
+        viewheight = 22;
+
+        float speed = Math3D.VectorLength(velocity);
+        if (speed < 1) {
+            Math3D.VectorCopy(Globals.vec3_origin, velocity);
+        } else {
+            float drop = 0;
+            float effectiveFriction = friction * 1.5f;
+            float control = speed < stopSpeed ? stopSpeed : speed;
+            drop += control * effectiveFriction * frameTime;
+
+            float newspeed = speed - drop;
+            if (newspeed < 0) {
+                newspeed = 0;
+            }
+            newspeed /= speed;
+
+            Math3D.VectorScale(velocity, newspeed, velocity);
+        }
+
+        float fmove = cmd.forwardmove;
+        float smove = cmd.sidemove;
+
+        Math3D.VectorNormalize(forward);
+        Math3D.VectorNormalize(right);
+
+        float[] wishvel = { 0, 0, 0 };
+        float[] wishdir = { 0, 0, 0 };
+        for (int i = 0; i < 3; i++) {
+            wishvel[i] = forward[i] * fmove + right[i] * smove;
+        }
+        wishvel[2] += cmd.upmove;
+
+        Math3D.VectorCopy(wishvel, wishdir);
+        float wishspeed = Math3D.VectorNormalize(wishdir);
+
+        if (wishspeed > maxSpeed) {
+            Math3D.VectorScale(wishvel, maxSpeed / wishspeed, wishvel);
+            wishspeed = maxSpeed;
+        }
+
+        float currentspeed = Math3D.DotProduct(velocity, wishdir);
+        float addspeed = wishspeed - currentspeed;
+        if (addspeed <= 0) {
+            return;
+        }
+
+        float accelspeed = accelerate * frameTime * wishspeed;
+        if (accelspeed > addspeed) {
+            accelspeed = addspeed;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            velocity[i] += accelspeed * wishdir[i];
+        }
+
+        if (doclip) {
+            float[] end = { 0, 0, 0 };
+            for (int i = 0; i < 3; i++) {
+                end[i] = origin[i] + frameTime * velocity[i];
+            }
+
+            trace_t trace = this.trace.trace(origin, mins, maxs, end);
+            Math3D.VectorCopy(trace.endpos, origin);
+        } else {
+            Math3D.VectorMA(origin, frameTime, velocity, origin);
+        }
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
