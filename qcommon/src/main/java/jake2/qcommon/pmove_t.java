@@ -97,6 +97,50 @@ public class pmove_t {
         Math3D.AngleVectors(viewangles, forward, right, up);
     }
 
+    /**
+     * Updates collision bounds and view height based on movement type / duck state.
+     * Extracted from PMove.PM_CheckDuck as part of static-to-instance migration.
+     */
+    public void checkDuck(float[] origin) {
+        trace_t trace;
+
+        mins[0] = -16;
+        mins[1] = -16;
+        maxs[0] = 16;
+        maxs[1] = 16;
+
+        if (s.pm_type == Defines.PM_GIB) {
+            mins[2] = 0;
+            maxs[2] = 16;
+            viewheight = 8;
+            return;
+        }
+
+        mins[2] = -24;
+
+        if (s.pm_type == Defines.PM_DEAD) {
+            s.pm_flags |= Defines.PMF_DUCKED;
+        } else if (cmd.upmove < 0 && (s.pm_flags & Defines.PMF_ON_GROUND) != 0) {
+            s.pm_flags |= Defines.PMF_DUCKED;
+        } else {
+            if ((s.pm_flags & Defines.PMF_DUCKED) != 0) {
+                maxs[2] = 32;
+                trace = this.trace.trace(origin, mins, maxs, origin);
+                if (!trace.allsolid) {
+                    s.pm_flags &= ~Defines.PMF_DUCKED;
+                }
+            }
+        }
+
+        if ((s.pm_flags & Defines.PMF_DUCKED) != 0) {
+            maxs[2] = 4;
+            viewheight = -2;
+        } else {
+            maxs[2] = 32;
+            viewheight = 22;
+        }
+    }
+
     public void clear() {
         groundentity = null;
         waterlevel = watertype = 0;

@@ -133,7 +133,7 @@ public class PMove {
     /*
      * OOP migration ownership map:
      * - pmove_t instance behavior:
-     *   PM_ClampAngles (migrated), PM_CheckDuck, PM_CatagorizePosition, PM_CheckJump,
+     *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition, PM_CheckJump,
      *   PM_CheckSpecialMovement, PM_DeadMove, PM_GoodPosition, PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
@@ -881,50 +881,6 @@ public class PMove {
     }
 
     /**
-     * Sets mins, maxs, and pm.viewheight.
-     */
-    private static void PM_CheckDuck(pmove_t pm, pml_t pml) {
-        trace_t trace;
-
-        pm.mins[0] = -16;
-        pm.mins[1] = -16;
-
-        pm.maxs[0] = 16;
-        pm.maxs[1] = 16;
-
-        if (pm.s.pm_type == Defines.PM_GIB) {
-            pm.mins[2] = 0;
-            pm.maxs[2] = 16;
-            pm.viewheight = 8;
-            return;
-        }
-
-        pm.mins[2] = -24;
-
-        if (pm.s.pm_type == Defines.PM_DEAD) {
-            pm.s.pm_flags |= Defines.PMF_DUCKED;
-        } else if (pm.cmd.upmove < 0 && (pm.s.pm_flags & Defines.PMF_ON_GROUND) != 0) { // duck
-            pm.s.pm_flags |= Defines.PMF_DUCKED;
-        } else { // stand up if possible
-            if ((pm.s.pm_flags & Defines.PMF_DUCKED) != 0) {
-                // try to stand up
-                pm.maxs[2] = 32;
-                trace = pm.trace.trace(pml.origin, pm.mins, pm.maxs, pml.origin);
-                if (!trace.allsolid)
-                    pm.s.pm_flags &= ~Defines.PMF_DUCKED;
-            }
-        }
-
-        if ((pm.s.pm_flags & Defines.PMF_DUCKED) != 0) {
-            pm.maxs[2] = 4;
-            pm.viewheight = -2;
-        } else {
-            pm.maxs[2] = 32;
-            pm.viewheight = 22;
-        }
-    }
-
-    /**
      * Dead bodies have extra friction.
      */
     private static void PM_DeadMove(pmove_t pm, pml_t pml) {
@@ -1083,7 +1039,7 @@ public class PMove {
             return; // no movement at all
 
         // set mins, maxs, and viewheight
-        PM_CheckDuck(pm, pml);
+        pm.checkDuck(pml.origin);
 
         if (pm.snapinitial)
             PM_InitialSnapPosition(pm, pml);
