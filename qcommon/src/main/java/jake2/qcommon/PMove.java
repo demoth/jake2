@@ -923,7 +923,7 @@ public class PMove {
         }
     }
 
-    private static boolean PM_GoodPosition() {
+    private static boolean PM_GoodPosition(pmove_t pm) {
         trace_t trace;
         float[] origin = { 0, 0, 0 }, end = { 0, 0, 0 };
         int i;
@@ -943,7 +943,7 @@ public class PMove {
      * precision of the network channel and in a valid position.
      */
 
-    private static void PM_SnapPosition() {
+    private static void PM_SnapPosition(pmove_t pm, pml_t pml) {
         int sign[] = { 0, 0, 0 };
         int i, j, bits;
         short base[] = { 0, 0, 0 };
@@ -971,7 +971,7 @@ public class PMove {
                 if ((bits & (1 << i)) != 0)
                     pm.s.origin[i] += sign[i];
 
-            if (PM_GoodPosition())
+            if (PM_GoodPosition(pm))
                 return;
         }
 
@@ -983,7 +983,7 @@ public class PMove {
     /** 
      * Snaps the origin of the player move to 0.125 grid.
      */
-    private static void PM_InitialSnapPosition() {
+    private static void PM_InitialSnapPosition(pmove_t pm, pml_t pml) {
         int x, y, z;
         short base[] = { 0, 0, 0 };
 
@@ -995,7 +995,7 @@ public class PMove {
                 pm.s.origin[1] = (short) (base[1] + offset[y]);
                 for (x = 0; x < 3; x++) {
                     pm.s.origin[0] = (short) (base[0] + offset[x]);
-                    if (PM_GoodPosition()) {
+                    if (PM_GoodPosition(pm)) {
                         pml.origin[0] = pm.s.origin[0] * 0.125f;
                         pml.origin[1] = pm.s.origin[1] * 0.125f;
                         pml.origin[2] = pm.s.origin[2] * 0.125f;
@@ -1013,7 +1013,7 @@ public class PMove {
     /**
      * PM_ClampAngles.
      */
-    private static void PM_ClampAngles() {
+    private static void PM_ClampAngles(pmove_t pm, pml_t pml) {
         short temp;
         int i;
 
@@ -1073,11 +1073,11 @@ public class PMove {
 
         pml.frametime = (pm.cmd.msec & 0xFF) * 0.001f;
 
-        PM_ClampAngles();
+        PM_ClampAngles(pm, pml);
 
         if (pm.s.pm_type == Defines.PM_SPECTATOR) {
             PM_FlyMove(false);
-            PM_SnapPosition();
+            PM_SnapPosition(pm, pml);
             return;
         }
 
@@ -1094,7 +1094,7 @@ public class PMove {
         PM_CheckDuck();
 
         if (pm.snapinitial)
-            PM_InitialSnapPosition();
+            PM_InitialSnapPosition(pm, pml);
 
         // set groundentity, watertype, and waterlevel
         PM_CatagorizePosition();
@@ -1158,6 +1158,6 @@ public class PMove {
 
         // set groundentity, watertype, and waterlevel for final spot
         PM_CatagorizePosition();
-        PM_SnapPosition();
+        PM_SnapPosition(pm, pml);
     }
 }
