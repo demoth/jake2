@@ -228,6 +228,7 @@ class Game3dScreen(
         spriteBatch.dispose()
         modelBatch.dispose()
         entityManager.dispose()
+        prediction.reset()
     }
 
     fun unloadConfigAssets() {
@@ -243,6 +244,7 @@ class Game3dScreen(
             Com.Warn("precache called for an already-precached Game3dScreen")
             return
         }
+        prediction.reset()
 
         // load resources referenced in the config strings
 

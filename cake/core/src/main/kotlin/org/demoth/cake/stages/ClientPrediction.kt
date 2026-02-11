@@ -115,6 +115,11 @@ class ClientPrediction(
             return
         }
 
+        if (outgoingSequence <= incomingAcknowledged) {
+            syncFromServerFrame(currentFrame)
+            return
+        }
+
         if (outgoingSequence - incomingAcknowledged >= CMD_BACKUP) {
             return
         }
@@ -240,9 +245,10 @@ class ClientPrediction(
                 angles
             )
             if (entityTrace.allsolid || entityTrace.startsolid || entityTrace.fraction < outTrace.fraction) {
+                val hadStartSolid = outTrace.startsolid
                 entityTrace.ent = dummyTraceEntity
                 outTrace.set(entityTrace)
-                outTrace.startsolid = outTrace.startsolid || entityTrace.startsolid
+                outTrace.startsolid = hadStartSolid || entityTrace.startsolid
             } else if (entityTrace.startsolid) {
                 outTrace.startsolid = true
             }
