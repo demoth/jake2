@@ -92,7 +92,7 @@ public class PMove {
     /**
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 = step / wall)
      */
-    public static void PM_ClipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
+    private static void PM_ClipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
         float backoff;
         float change;
         int i;
@@ -118,7 +118,7 @@ public class PMove {
     public final static int MAX_CLIP_PLANES = 5;
     static float[] planes[] = new float[MAX_CLIP_PLANES][3];
     
-    public static void PM_StepSlideMove_() {
+    private static void PM_StepSlideMove_() {
         int bumpcount, numbumps;
         float[] dir = { 0, 0, 0 };
         float d;
@@ -224,7 +224,7 @@ public class PMove {
      * Returns a new origin, velocity, and contact entity.
      * Does not modify any world state?
      */
-    public static void PM_StepSlideMove() {
+    private static void PM_StepSlideMove() {
         float[] start_o = { 0, 0, 0 }, start_v = { 0, 0, 0 };
         float[] down_o = { 0, 0, 0 }, down_v = { 0, 0, 0 };
         trace_t trace;
@@ -283,7 +283,7 @@ public class PMove {
     /**
      * Handles both ground friction and water friction.
      */
-    public static void PM_Friction() {
+    private static void PM_Friction() {
         float vel[];
         float speed, newspeed, control;
         float friction;
@@ -329,7 +329,7 @@ public class PMove {
     /**
      * Handles user intended acceleration.
      */
-    public static void PM_Accelerate(float[] wishdir, float wishspeed,
+    private static void PM_Accelerate(float[] wishdir, float wishspeed,
             float accel) {
         int i;
         float addspeed, accelspeed, currentspeed;
@@ -350,7 +350,7 @@ public class PMove {
      * PM_AirAccelerate.
      */
 
-    public static void PM_AirAccelerate(float[] wishdir, float wishspeed,
+    private static void PM_AirAccelerate(float[] wishdir, float wishspeed,
             float accel) {
         int i;
         float addspeed, accelspeed, currentspeed, wishspd = wishspeed;
@@ -372,7 +372,7 @@ public class PMove {
     /**
      * PM_AddCurrents.
      */
-    public static void PM_AddCurrents(float[] wishvel) {
+    private static void PM_AddCurrents(float[] wishvel) {
         float[] v = { 0, 0, 0 };
         float s;
 
@@ -451,7 +451,7 @@ public class PMove {
     /**
      * PM_WaterMove.
      */
-    public static void PM_WaterMove() {
+    private static void PM_WaterMove() {
         int i;
         float[] wishvel = { 0, 0, 0 };
         float wishspeed;
@@ -488,7 +488,7 @@ public class PMove {
     /**
      * PM_AirMove.
      */
-    public static void PM_AirMove() {
+    private static void PM_AirMove() {
         float[] wishvel = { 0, 0, 0 };
         float fmove, smove;
         float[] wishdir = { 0, 0, 0 };
@@ -560,7 +560,7 @@ public class PMove {
     /** 
      * PM_CatagorizePosition.
      */
-    public static void PM_CatagorizePosition() {
+    private static void PM_CatagorizePosition() {
         float[] point = { 0, 0, 0 };
         int cont;
         trace_t trace;
@@ -651,7 +651,7 @@ public class PMove {
     /**
      * PM_CheckJump.
      */
-    public static void PM_CheckJump() {
+    private static void PM_CheckJump() {
         if ((pm.s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
             // hasn't been long enough since landing to jump again
             return;
@@ -698,7 +698,7 @@ public class PMove {
     /**
      * PM_CheckSpecialMovement.
      */
-    public static void PM_CheckSpecialMovement() {
+    private static void PM_CheckSpecialMovement() {
         float[] spot = { 0, 0, 0 };
         int cont;
         float[] flatforward = { 0, 0, 0 };
@@ -747,7 +747,7 @@ public class PMove {
     /**
      * PM_FlyMove.
      */
-    public static void PM_FlyMove(boolean doclip) {
+    private static void PM_FlyMove(boolean doclip) {
         float speed, drop, friction, control, newspeed;
         float currentspeed, addspeed, accelspeed;
         int i;
@@ -829,7 +829,7 @@ public class PMove {
     /**
      * Sets mins, maxs, and pm.viewheight.
      */
-    public static void PM_CheckDuck() {
+    private static void PM_CheckDuck() {
         trace_t trace;
 
         pm.mins[0] = -16;
@@ -873,7 +873,7 @@ public class PMove {
     /**
      * Dead bodies have extra friction.
      */
-    public static void PM_DeadMove() {
+    private static void PM_DeadMove() {
         float forward;
 
         if (null == pm.groundentity)
@@ -890,7 +890,7 @@ public class PMove {
         }
     }
 
-    public static boolean PM_GoodPosition() {
+    private static boolean PM_GoodPosition() {
         trace_t trace;
         float[] origin = { 0, 0, 0 }, end = { 0, 0, 0 };
         int i;
@@ -910,7 +910,7 @@ public class PMove {
      * precision of the network channel and in a valid position.
      */
 
-    public static void PM_SnapPosition() {
+    private static void PM_SnapPosition() {
         int sign[] = { 0, 0, 0 };
         int i, j, bits;
         short base[] = { 0, 0, 0 };
@@ -950,7 +950,7 @@ public class PMove {
     /** 
      * Snaps the origin of the player move to 0.125 grid.
      */
-    public static void PM_InitialSnapPosition() {
+    private static void PM_InitialSnapPosition() {
         int x, y, z;
         short base[] = { 0, 0, 0 };
 
@@ -980,7 +980,7 @@ public class PMove {
     /**
      * PM_ClampAngles.
      */
-    public static void PM_ClampAngles() {
+    private static void PM_ClampAngles() {
         short temp;
         int i;
 
