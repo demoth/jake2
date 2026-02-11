@@ -95,7 +95,21 @@ public class PMove {
         void move(pmove_t pmove);
     }
 
-    private static final PmoveProcessor LEGACY_PROCESSOR = PMove::runLegacyPmove;
+    private static final class LegacyPmoveProcessor implements PmoveProcessor {
+        private pmove_t currentPm;
+        private final pml_t currentPml = new pml_t();
+
+        @Override
+        public synchronized void move(pmove_t pmove) {
+            currentPm = pmove;
+            // Compatibility bridge while helper functions still read static PMove.pm/pml.
+            PMove.pm = currentPm;
+            PMove.pml = currentPml;
+            runLegacyPmove();
+        }
+    }
+
+    private static final PmoveProcessor LEGACY_PROCESSOR = new LegacyPmoveProcessor();
     private static PmoveProcessor processor = LEGACY_PROCESSOR;
 
     // Test seam for the incremental OOP migration; production code keeps the legacy processor.
@@ -1033,9 +1047,7 @@ public class PMove {
     }
 
     // C reference: Pmove in qcommon/pmove.c. Kept as static legacy body while migration proceeds.
-    private static void runLegacyPmove(pmove_t pmove) {
-        pm = pmove;
-
+    private static void runLegacyPmove() {
         // clear results
         pm.numtouch = 0;
         Math3D.VectorClear(pm.viewangles);
