@@ -314,6 +314,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cbuf.Execute()
 
         if (game3dScreen != null) {
+            // Keep prediction state aligned with netchan before render-time replay.
+            // Cross-reference: old client reads `cls.netchan.incoming_acknowledged/outgoing_sequence`
+            // in `CL_pred.PredictMovement`.
             game3dScreen?.updatePredictionNetworkState(
                 netchan.incoming_acknowledged,
                 netchan.outgoing_sequence,
@@ -495,6 +498,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * CL_ParseServerMessage
      */
     private fun parseServerMessage(messages: Collection<ServerMessage>) {
+        // Important ordering quirk: accept() updates netchan ack from packet header before parsing
+        // payload messages. We push those values into prediction first, mirroring old `CL_ReadPackets`
+        // + `CL_pred.CheckPredictionError/PredictMovement` data flow.
         game3dScreen?.updatePredictionNetworkState(
             netchan.incoming_acknowledged,
             netchan.outgoing_sequence,

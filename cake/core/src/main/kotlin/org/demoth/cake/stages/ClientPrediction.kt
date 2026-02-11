@@ -16,9 +16,14 @@ import org.demoth.cake.GameConfiguration
 import kotlin.math.abs
 
 /**
- * Old-client style movement prediction (`CL_pred`) adapted for Cake.
+ * Client side movement prediction.
  *
  * Replays unacknowledged user commands against server pmove state using local collision.
+ *
+ * Cross-reference (old client):
+ * - `client/CL_pred.PredictMovement`
+ * - `client/CL_pred.CheckPredictionError`
+ * - `client/CL_pred.PMTrace` + `CL_pred.ClipMoveToEntities` + `CL_pred.PMpointcontents`
  */
 class ClientPrediction(
     private val collisionModel: CM,
@@ -42,6 +47,8 @@ class ClientPrediction(
     private var currentTimeMs = 0
     private var hasPredictedState = false
 
+    // Quirk: PMove expects a non-null touch/ground entity on collisions, but Cake client has no
+    // game-side edicts. We use a sentinel ServerEntity only to satisfy PMove's contract.
     private val dummyTraceEntity = object : ServerEntity(-1) {
         override fun getOwner(): ServerEntity = this
         override fun getClient(): ServerPlayerInfo = throw UnsupportedOperationException("dummy")
@@ -92,6 +99,8 @@ class ClientPrediction(
         val deltaZ = serverOrigin[2].toInt() - predictedOrigins[frame][2]
         val deltaLen = abs(deltaX) + abs(deltaY) + abs(deltaZ)
 
+        // `CL_pred.CheckPredictionError` treats large deltas as teleports and
+        // drops smoothing correction instead of trying to blend.
         if (deltaLen > 640) {
             predictionError.fill(0f)
             return
@@ -120,6 +129,7 @@ class ClientPrediction(
             return
         }
 
+        // `CL_pred.PredictMovement` freezes when replay window exceeds CMD_BACKUP.
         if (outgoingSequence - incomingAcknowledged >= CMD_BACKUP) {
             return
         }
@@ -139,8 +149,12 @@ class ClientPrediction(
         PMove.pm_airaccelerate = gameConfig.getConfigValue(CS_AIRACCEL)?.toFloatOrNull() ?: 0f
 
         var ack = incomingAcknowledged
+        // Key behavior: replay exactly the unacknowledged command range (ack+1 .. outgoing-1).
+        // This depends on InputManager sequence-indexed history.
         while (++ack < outgoingSequence) {
             val cmd = inputManager.getCommandForSequence(ack) ?: run {
+                // Quirk: if history wrapped or a command is missing, predicted state is no longer
+                // trustworthy; snap to server-authoritative frame to avoid drift accumulation.
                 syncFromServerFrame(currentFrame)
                 return
             }
@@ -156,6 +170,7 @@ class ClientPrediction(
         val oldFrame = (ack - 2) and (CMD_BACKUP - 1)
         val oldZ = predictedOrigins[oldFrame][2]
         val step = pm.s.origin[2].toInt() - oldZ
+        // Cross-reference: old stair smoothing heuristic from `CL_pred.PredictMovement`.
         if (step > 63 && step < 160 && (pm.s.pm_flags.toInt() and PMF_ON_GROUND) != 0) {
             predictedStep = step * 0.125f
             predictedStepTimeMs = currentTimeMs
@@ -183,6 +198,7 @@ class ClientPrediction(
         return (currentFrame.playerstate.pmove.pm_flags.toInt() and PMF_NO_PREDICTION) == 0
     }
 
+    // Cross-reference: `CL_pred.PMTrace`.
     private fun pmTrace(start: FloatArray, mins: FloatArray, maxs: FloatArray, end: FloatArray): trace_t {
         val result = collisionModel.BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID)
         if (result.fraction < 1f) {
@@ -199,14 +215,15 @@ class ClientPrediction(
         end: FloatArray,
         outTrace: trace_t,
     ) {
+        // Cross-reference: `CL_pred.ClipMoveToEntities`.
         entityManager.forEachCurrentEntityState { entity ->
-            if (entity.solid == 0 || entity.index == entityManager.playerNumber + 1) {
+            if (entity.solid == 0 || entity.index == entityManager.playerNumber + 1) { // solid=0 means non-solid network entity
                 return@forEachCurrentEntityState
             }
 
             val headnode: Int
             val angles: FloatArray
-            if (entity.solid == 31) {
+            if (entity.solid == 31) { // 31 is the protocol sentinel for inline brush model collision
                 val modelName = gameConfig.getModelName(entity.modelindex) ?: return@forEachCurrentEntityState
                 if (!modelName.startsWith("*")) {
                     return@forEachCurrentEntityState
@@ -216,9 +233,9 @@ class ClientPrediction(
                 headnode = cmodel.headnode
                 angles = entity.angles
             } else {
-                val x = 8 * (entity.solid and 31)
-                val zd = 8 * ((entity.solid ushr 5) and 31)
-                val zu = 8 * ((entity.solid ushr 10) and 63) - 32
+                val x = 8 * (entity.solid and 31) // low 5 bits (mask 31): encoded XY half-extent in 8-unit steps
+                val zd = 8 * ((entity.solid ushr 5) and 31) // next 5 bits (mask 31): encoded Z-down extent
+                val zu = 8 * ((entity.solid ushr 10) and 63) - 32 // top 6 bits (mask 63): encoded Z-up extent with -32 bias
                 tempBoxMins[0] = -x.toFloat()
                 tempBoxMins[1] = -x.toFloat()
                 tempBoxMins[2] = -zd.toFloat()
@@ -244,21 +261,25 @@ class ClientPrediction(
                 entity.origin,
                 angles
             )
+            // Note: `startsolid` is intentionally part of the main replacement condition to
+            // mirror old `CL_pred.ClipMoveToEntities` behavior. Because of that, a separate
+            // `else if (entityTrace.startsolid)` branch would be unreachable here.
             if (entityTrace.allsolid || entityTrace.startsolid || entityTrace.fraction < outTrace.fraction) {
                 val hadStartSolid = outTrace.startsolid
                 entityTrace.ent = dummyTraceEntity
                 outTrace.set(entityTrace)
+                // Quirk: trace_t.set() copies startsolid from allsolid in this codebase, so we
+                // preserve prior startsolid explicitly to keep PMove behavior stable.
                 outTrace.startsolid = hadStartSolid || entityTrace.startsolid
-            } else if (entityTrace.startsolid) {
-                outTrace.startsolid = true
             }
         }
     }
 
+    // Cross-reference: `CL_pred.PMpointcontents`.
     private fun pmPointContents(point: FloatArray): Int {
         var contents = collisionModel.PointContents(point, 0)
         entityManager.forEachCurrentEntityState { entity ->
-            if (entity.solid != 31) {
+            if (entity.solid != 31) { // only inline brush models (solid=31) contribute transformed point contents
                 return@forEachCurrentEntityState
             }
 

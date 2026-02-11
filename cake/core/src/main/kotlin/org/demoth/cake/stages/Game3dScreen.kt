@@ -133,6 +133,8 @@ class Game3dScreen(
 
         val serverFrameTime = 1f/10f // 10Hz server updates
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+        // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
+        // before calculating render view (`CL_ents.CalcViewValues`).
         prediction.predictMovement(entityManager.currentFrame, inputManager)
 
         updatePlayerCamera(lerpFrac)
@@ -288,12 +290,16 @@ class Game3dScreen(
     }
 
     fun updatePredictionNetworkState(incomingAcknowledged: Int, outgoingSequence: Int, currentTimeMs: Int) {
+        // Quirk: prediction must observe fresh netchan ack/sequence from packet headers before
+        // replaying movement or computing error correction.
         prediction.updateNetworkState(incomingAcknowledged, outgoingSequence, currentTimeMs)
     }
 
     /**
      * CL_CalcViewValues
      * Updates camera transformation according to player input and player info
+     *
+     * Cross-reference (old client): `CL_ents.CalcViewValues`.
      */
     private fun updatePlayerCamera(lerp: Float) {
         val currentFrame = entityManager.currentFrame
@@ -318,6 +324,7 @@ class Game3dScreen(
             || abs(oldZ - newZ) > 256 * 8)
         {
             // don't interpolate
+            // Cross-reference: same teleport discontinuity guard in `CL_ents.CalcViewValues`.
             // fixme: what if teleportation was for a short distance?
             oldX = newX
             oldY = newY
@@ -330,6 +337,7 @@ class Game3dScreen(
         val interpolatedZ: Float
         if (predictionEnabled) {
             // Old client path: predicted origin + interpolated viewoffset - smoothed prediction error.
+            // Cross-reference: `CL_ents.CalcViewValues` predicted vieworg branch.
             val backLerp = 1f - lerp
             val viewOffsetX = previousState.viewoffset[0] + lerp * (currentState.viewoffset[0] - previousState.viewoffset[0])
             val viewOffsetY = previousState.viewoffset[1] + lerp * (currentState.viewoffset[1] - previousState.viewoffset[1])
@@ -352,6 +360,7 @@ class Game3dScreen(
         val baseViewRoll: Float
         if (currentState.pmove.pm_type < PM_DEAD && predictionEnabled) {
             // Old client path: use predicted view angles when locally controlling movement.
+            // Cross-reference: `CL_ents.CalcViewValues` predicted viewangles branch.
             baseViewPitch = prediction.predictedAngles[PITCH]
             baseViewYaw = prediction.predictedAngles[YAW]
             baseViewRoll = prediction.predictedAngles[ROLL]
@@ -381,6 +390,8 @@ class Game3dScreen(
 
         // set the previous and current state: interpolation will happen with all other client entities
         if (predictionEnabled) {
+            // Quirk: view weapon should track predicted camera origin, not interpolated pmove origin,
+            // otherwise the gun lags/jitters while world view uses prediction.
             val baseX = camera.position.x
             val baseY = camera.position.y
             val baseZ = camera.position.z
@@ -473,6 +484,8 @@ class Game3dScreen(
         val validMessage = entityManager.processPacketEntitiesMessage(msg)
         if (validMessage) {
             entityManager.computeVisibleEntities(gameConfig)
+            // Cross-reference: old `CL_ents.parsePacketEntities` calls `CL_pred.CheckPredictionError`
+            // once a valid frame has been fully reconstructed.
             prediction.onServerFrameParsed(entityManager.currentFrame)
         }
         return validMessage
