@@ -442,6 +442,46 @@ public class pmove_t {
         Com.DPrintf("Bad InitialSnapPosition\n");
     }
 
+    /**
+     * Applies ground and water friction to current velocity.
+     * Extracted from PMove.PM_Friction as part of static-to-instance migration.
+     */
+    public void friction(float[] velocity, float frameTime, float stopSpeed, float friction, float waterFriction) {
+        float speed;
+        float newspeed;
+        float control;
+        float drop;
+
+        speed = (float) (Math.sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]));
+        if (speed < 1) {
+            velocity[0] = 0;
+            velocity[1] = 0;
+            return;
+        }
+
+        drop = 0;
+
+        if ((groundentity != null && groundsurface != null && (groundsurface.flags & Defines.SURF_SLICK) == 0)
+                || ladder) {
+            control = speed < stopSpeed ? stopSpeed : speed;
+            drop += control * friction * frameTime;
+        }
+
+        if (waterlevel != 0 && !ladder) {
+            drop += speed * waterFriction * waterlevel * frameTime;
+        }
+
+        newspeed = speed - drop;
+        if (newspeed < 0) {
+            newspeed = 0;
+        }
+        newspeed /= speed;
+
+        velocity[0] = velocity[0] * newspeed;
+        velocity[1] = velocity[1] * newspeed;
+        velocity[2] = velocity[2] * newspeed;
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

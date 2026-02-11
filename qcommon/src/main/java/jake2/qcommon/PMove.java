@@ -130,7 +130,7 @@ public class PMove {
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
-     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
+     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction (migrated), PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
@@ -327,52 +327,6 @@ public class PMove {
         //!! Special case
         // if we were walking along a plane, then we need to copy the Z over
         pml.velocity[2] = down_v[2];
-    }
-
-    /**
-     * Handles both ground friction and water friction.
-     */
-    private static void PM_Friction(pmove_t pm, pml_t pml) {
-        float vel[];
-        float speed, newspeed, control;
-        float friction;
-        float drop;
-
-        vel = pml.velocity;
-
-        speed = (float) (Math.sqrt(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]));
-        if (speed < 1) {
-            vel[0] = 0;
-            vel[1] = 0;
-            return;
-        }
-
-        drop = 0;
-
-        // apply ground friction
-        if ((pm.groundentity != null && pm.groundsurface != null &&
-        		0 == (pm.groundsurface.flags & Defines.SURF_SLICK))
-                || (pm.ladder)) {
-            friction = pm_friction;
-            control = speed < pm_stopspeed ? pm_stopspeed : speed;
-            drop += control * friction * pml.frametime;
-        }
-
-        // apply water friction
-        if (pm.waterlevel != 0 && !pm.ladder)
-            drop += speed * pm_waterfriction * pm.waterlevel
-                    * pml.frametime;
-
-        // scale the velocity
-        newspeed = speed - drop;
-        if (newspeed < 0) {
-            newspeed = 0;
-        }
-        newspeed /= speed;
-
-        vel[0] = vel[0] * newspeed;
-        vel[1] = vel[1] * newspeed;
-        vel[2] = vel[2] * newspeed;
     }
 
     /**
@@ -785,7 +739,7 @@ public class PMove {
         } else {
             pm.checkJump(pml.velocity);
 
-            PM_Friction(pm, pml);
+            pm.friction(pml.velocity, pml.frametime, pm_stopspeed, pm_friction, pm_waterfriction);
 
             if (pm.waterlevel >= 2)
                 PM_WaterMove(pm, pml, planes);
