@@ -22,10 +22,12 @@ import kotlin.experimental.or
 import kotlin.math.abs
 
 // CL_input
-class InputManager : InputProcessor {
+class InputManager(
+    private val nowNanosProvider: () -> Long = System::nanoTime
+) : InputProcessor {
     private val commandsState = BooleanArray(ClientCommands.entries.size)
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
-    private val clientSpeed: Short = 100 // todo: cvar
+    private val clientSpeed: Short = 200 // todo: cvar
 
     // the angle that the player spawned with
     var initialYaw: Float? = null
@@ -48,7 +50,11 @@ class InputManager : InputProcessor {
     private val sensitivity = 25f
     private var mouseWasMoved = false
 
-    private val cameraKeyboardRotationSpeed = 140f // degrees per second
+    private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
+    private val commandSequence = IntArray(CMD_BACKUP) { Int.MIN_VALUE }
+    private val commandTimestampNanos = LongArray(CMD_BACKUP)
+    private var lastCommandBuildNanos: Long? = null
+    private val emptyCommand = usercmd_t()
 
     // mappings for input command: which are sent on every client update frame
     private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
@@ -89,12 +95,11 @@ class InputManager : InputProcessor {
 
     // called at server rate
     fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
+        val nowNanos = nowNanosProvider()
         syncViewAnglesWithServer(currentFrame)
 
         // assemble the inputs and commands, then transmit them
         val cmdIndex: Int = outgoingSequence and (userCommands.size - 1)
-        val oldCmdIndex: Int = (outgoingSequence - 1) and (userCommands.size - 1)
-        val oldestCmdIndex: Int = (outgoingSequence - 2) and (userCommands.size - 1)
 
         val cmd = userCommands[cmdIndex]
         cmd.clear()
@@ -133,13 +138,19 @@ class InputManager : InputProcessor {
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
 
-        cmd.msec = 16 // todo: calculate based on time between client frames (actually between "sending" frames)
+        cmd.msec = computeCommandMsec(nowNanos).toByte()
+        commandSequence[cmdIndex] = outgoingSequence
+        commandTimestampNanos[cmdIndex] = nowNanos
+
+        val oldCmd = getHistoricalCommand(outgoingSequence - 1)
+        val oldestCmd = getHistoricalCommand(outgoingSequence - 2)
+
         // deliver the message
         return MoveMessage(
             false, // todo
             currentFrame.serverframe,
-            userCommands[oldestCmdIndex],
-            userCommands[oldCmdIndex],
+            oldestCmd,
+            oldCmd,
             userCommands[cmdIndex],
             outgoingSequence
         )
@@ -171,6 +182,7 @@ class InputManager : InputProcessor {
         } else if (inputBindings[keycode] != null) {
             val cmd = inputBindings[keycode]
             if (cmd != null) {
+                println("Executing command: $cmd")
                 Cbuf.AddText(cmd)
             }
             return true
@@ -220,6 +232,37 @@ class InputManager : InputProcessor {
 
     private fun setPressed(command: ClientCommands, pressed: Boolean) {
         commandsState[command.ordinal] = pressed
+    }
+
+    private fun computeCommandMsec(nowNanos: Long): Int {
+        val previous = lastCommandBuildNanos
+        lastCommandBuildNanos = nowNanos
+        if (previous == null) {
+            return 16 // happens only on the first frame, so ok
+        }
+
+        val elapsedMs = ((nowNanos - previous) / 1_000_000L).toInt()
+        // CL_input.FinishMove
+        return if (elapsedMs > 250) {
+            100 // time was unreasonable
+        } else {
+            elapsedMs
+        }
+    }
+
+    private fun getHistoricalCommand(sequence: Int): usercmd_t {
+        val index = sequence and (CMD_BACKUP - 1)
+        return if (commandSequence[index] == sequence) userCommands[index] else emptyCommand
+    }
+
+    fun getCommandForSequence(sequence: Int): usercmd_t? {
+        val index = sequence and (CMD_BACKUP - 1)
+        return if (commandSequence[index] == sequence) userCommands[index] else null
+    }
+
+    fun getCommandTimestampNanos(sequence: Int): Long? {
+        val index = sequence and (CMD_BACKUP - 1)
+        return if (commandSequence[index] == sequence) commandTimestampNanos[index] else null
     }
 
     private fun processCameraRotation(screenX: Int, screenY: Int): Boolean {
