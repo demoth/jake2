@@ -593,7 +593,7 @@ public class PMove {
     /** 
      * PM_CatagorizePosition.
      */
-    private static void PM_CatagorizePosition() {
+    private static void PM_CatagorizePosition(pmove_t pm, pml_t pml) {
         float[] point = { 0, 0, 0 };
         int cont;
         trace_t trace;
@@ -731,7 +731,7 @@ public class PMove {
     /**
      * PM_CheckSpecialMovement.
      */
-    private static void PM_CheckSpecialMovement() {
+    private static void PM_CheckSpecialMovement(pmove_t pm, pml_t pml) {
         float[] spot = { 0, 0, 0 };
         int cont;
         float[] flatforward = { 0, 0, 0 };
@@ -862,7 +862,7 @@ public class PMove {
     /**
      * Sets mins, maxs, and pm.viewheight.
      */
-    private static void PM_CheckDuck() {
+    private static void PM_CheckDuck(pmove_t pm, pml_t pml) {
         trace_t trace;
 
         pm.mins[0] = -16;
@@ -906,7 +906,7 @@ public class PMove {
     /**
      * Dead bodies have extra friction.
      */
-    private static void PM_DeadMove() {
+    private static void PM_DeadMove(pmove_t pm, pml_t pml) {
         float forward;
 
         if (null == pm.groundentity)
@@ -1091,18 +1091,18 @@ public class PMove {
             return; // no movement at all
 
         // set mins, maxs, and viewheight
-        PM_CheckDuck();
+        PM_CheckDuck(pm, pml);
 
         if (pm.snapinitial)
             PM_InitialSnapPosition(pm, pml);
 
         // set groundentity, watertype, and waterlevel
-        PM_CatagorizePosition();
+        PM_CatagorizePosition(pm, pml);
 
         if (pm.s.pm_type == Defines.PM_DEAD)
-            PM_DeadMove();
+            PM_DeadMove(pm, pml);
 
-        PM_CheckSpecialMovement();
+        PM_CheckSpecialMovement(pm, pml);
 
         // drop timing counter
         if (pm.s.pm_time != 0) {
@@ -1157,7 +1157,7 @@ public class PMove {
         }
 
         // set groundentity, watertype, and waterlevel for final spot
-        PM_CatagorizePosition();
+        PM_CatagorizePosition(pm, pml);
         PM_SnapPosition(pm, pml);
     }
 }
