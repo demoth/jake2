@@ -130,7 +130,7 @@ public class PMove {
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
-     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction (migrated), PM_Accelerate, PM_AirAccelerate,
+     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
@@ -330,49 +330,6 @@ public class PMove {
     }
 
     /**
-     * Handles user intended acceleration.
-     */
-    private static void PM_Accelerate(pml_t pml, float[] wishdir, float wishspeed,
-            float accel) {
-        int i;
-        float addspeed, accelspeed, currentspeed;
-
-        currentspeed = Math3D.DotProduct(pml.velocity, wishdir);
-        addspeed = wishspeed - currentspeed;
-        if (addspeed <= 0)
-            return;
-        accelspeed = accel * pml.frametime * wishspeed;
-        if (accelspeed > addspeed)
-            accelspeed = addspeed;
-
-        for (i = 0; i < 3; i++)
-            pml.velocity[i] += accelspeed * wishdir[i];
-    }
-    
-    /**
-     * PM_AirAccelerate.
-     */
-
-    private static void PM_AirAccelerate(pml_t pml, float[] wishdir, float wishspeed,
-            float accel) {
-        int i;
-        float addspeed, accelspeed, currentspeed, wishspd = wishspeed;
-
-        if (wishspd > 30)
-            wishspd = 30;
-        currentspeed = Math3D.DotProduct(pml.velocity, wishdir);
-        addspeed = wishspd - currentspeed;
-        if (addspeed <= 0)
-            return;
-        accelspeed = accel * wishspeed * pml.frametime;
-        if (accelspeed > addspeed)
-            accelspeed = addspeed;
-
-        for (i = 0; i < 3; i++)
-            pml.velocity[i] += accelspeed * wishdir[i];
-    }
-
-    /**
      * PM_AddCurrents.
      */
     private static void PM_AddCurrents(pmove_t pm, pml_t pml, float[] wishvel) {
@@ -483,7 +440,7 @@ public class PMove {
         }
         wishspeed *= 0.5;
 
-        PM_Accelerate(pml, wishdir, wishspeed, pm_wateraccelerate);
+        pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_wateraccelerate);
 
         PM_StepSlideMove(pm, pml, planes);
     }
@@ -522,7 +479,7 @@ public class PMove {
         }
 
         if (pm.ladder) {
-            PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
+            pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
             if (0 == wishvel[2]) {
                 if (pml.velocity[2] > 0) {
                     pml.velocity[2] -= pm.s.gravity * pml.frametime;
@@ -537,7 +494,7 @@ public class PMove {
             PM_StepSlideMove(pm, pml, planes);
         } else if (pm.groundentity != null) { // walking on ground
             pml.velocity[2] = 0; //!!! this is before the accel
-            PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
+            pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
 
             // PGM -- fix for negative trigger_gravity fields
             //		pml.velocity[2] = 0;
@@ -551,9 +508,9 @@ public class PMove {
             PM_StepSlideMove(pm, pml, planes);
         } else { // not on ground, so little effect on velocity
             if (pm_airaccelerate != 0)
-                PM_AirAccelerate(pml, wishdir, wishspeed, pm_accelerate);
+                pm.airAccelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_accelerate);
             else
-                PM_Accelerate(pml, wishdir, wishspeed, 1);
+                pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, 1);
             // add gravity
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
             PM_StepSlideMove(pm, pml, planes);

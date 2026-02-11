@@ -482,6 +482,52 @@ public class pmove_t {
         velocity[2] = velocity[2] * newspeed;
     }
 
+    /**
+     * Applies standard acceleration along the desired movement direction.
+     * Extracted from PMove.PM_Accelerate as part of static-to-instance migration.
+     */
+    public void accelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
+        float currentspeed = Math3D.DotProduct(velocity, wishdir);
+        float addspeed = wishspeed - currentspeed;
+        if (addspeed <= 0) {
+            return;
+        }
+        float accelspeed = accel * frameTime * wishspeed;
+        if (accelspeed > addspeed) {
+            accelspeed = addspeed;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            velocity[i] += accelspeed * wishdir[i];
+        }
+    }
+
+    /**
+     * Applies air acceleration with the Quake2 wishspeed cap.
+     * Extracted from PMove.PM_AirAccelerate as part of static-to-instance migration.
+     */
+    public void airAccelerate(float[] velocity, float frameTime, float[] wishdir, float wishspeed, float accel) {
+        float wishspd = wishspeed;
+        if (wishspd > 30) {
+            wishspd = 30;
+        }
+
+        float currentspeed = Math3D.DotProduct(velocity, wishdir);
+        float addspeed = wishspd - currentspeed;
+        if (addspeed <= 0) {
+            return;
+        }
+
+        float accelspeed = accel * wishspeed * frameTime;
+        if (accelspeed > addspeed) {
+            accelspeed = addspeed;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            velocity[i] += accelspeed * wishdir[i];
+        }
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
