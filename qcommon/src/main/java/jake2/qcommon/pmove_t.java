@@ -528,6 +528,96 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Applies ladder, water-current, and conveyor contributions to wish velocity.
+     * Extracted from PMove.PM_AddCurrents as part of static-to-instance migration.
+     */
+    public void addCurrents(float[] velocity, float waterSpeed, float[] wishvel) {
+        float[] v = { 0, 0, 0 };
+        float s;
+
+        if (ladder && Math.abs(velocity[2]) <= 200) {
+            if ((viewangles[Defines.PITCH] <= -15) && (cmd.forwardmove > 0)) {
+                wishvel[2] = 200;
+            } else if ((viewangles[Defines.PITCH] >= 15) && (cmd.forwardmove > 0)) {
+                wishvel[2] = -200;
+            } else if (cmd.upmove > 0) {
+                wishvel[2] = 200;
+            } else if (cmd.upmove < 0) {
+                wishvel[2] = -200;
+            } else {
+                wishvel[2] = 0;
+            }
+
+            if (wishvel[0] < -25) {
+                wishvel[0] = -25;
+            } else if (wishvel[0] > 25) {
+                wishvel[0] = 25;
+            }
+
+            if (wishvel[1] < -25) {
+                wishvel[1] = -25;
+            } else if (wishvel[1] > 25) {
+                wishvel[1] = 25;
+            }
+        }
+
+        if ((watertype & Defines.MASK_CURRENT) != 0) {
+            Math3D.VectorClear(v);
+
+            if ((watertype & Defines.CONTENTS_CURRENT_0) != 0) {
+                v[0] += 1;
+            }
+            if ((watertype & Defines.CONTENTS_CURRENT_90) != 0) {
+                v[1] += 1;
+            }
+            if ((watertype & Defines.CONTENTS_CURRENT_180) != 0) {
+                v[0] -= 1;
+            }
+            if ((watertype & Defines.CONTENTS_CURRENT_270) != 0) {
+                v[1] -= 1;
+            }
+            if ((watertype & Defines.CONTENTS_CURRENT_UP) != 0) {
+                v[2] += 1;
+            }
+            if ((watertype & Defines.CONTENTS_CURRENT_DOWN) != 0) {
+                v[2] -= 1;
+            }
+
+            s = waterSpeed;
+            if (waterlevel == 1 && groundentity != null) {
+                s /= 2;
+            }
+
+            Math3D.VectorMA(wishvel, s, v, wishvel);
+        }
+
+        if (groundentity != null) {
+            Math3D.VectorClear(v);
+
+            if ((groundcontents & Defines.CONTENTS_CURRENT_0) != 0) {
+                v[0] += 1;
+            }
+            if ((groundcontents & Defines.CONTENTS_CURRENT_90) != 0) {
+                v[1] += 1;
+            }
+            if ((groundcontents & Defines.CONTENTS_CURRENT_180) != 0) {
+                v[0] -= 1;
+            }
+            if ((groundcontents & Defines.CONTENTS_CURRENT_270) != 0) {
+                v[1] -= 1;
+            }
+            if ((groundcontents & Defines.CONTENTS_CURRENT_UP) != 0) {
+                v[2] += 1;
+            }
+            if ((groundcontents & Defines.CONTENTS_CURRENT_DOWN) != 0) {
+                v[2] -= 1;
+            }
+
+            Math3D.VectorMA(wishvel, 100, v, wishvel);
+        }
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

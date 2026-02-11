@@ -130,7 +130,7 @@ public class PMove {
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
-     *   PM_SnapPosition (migrated), PM_AddCurrents, PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
+     *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
@@ -330,85 +330,6 @@ public class PMove {
     }
 
     /**
-     * PM_AddCurrents.
-     */
-    private static void PM_AddCurrents(pmove_t pm, pml_t pml, float[] wishvel) {
-        float[] v = { 0, 0, 0 };
-        float s;
-
-        // account for ladders
-        if (pm.ladder && Math.abs(pml.velocity[2]) <= 200) {
-            if ((pm.viewangles[Defines.PITCH] <= -15)
-                    && (pm.cmd.forwardmove > 0))
-                wishvel[2] = 200;
-            else if ((pm.viewangles[Defines.PITCH] >= 15)
-                    && (pm.cmd.forwardmove > 0))
-                wishvel[2] = -200;
-            else if (pm.cmd.upmove > 0)
-                wishvel[2] = 200;
-            else if (pm.cmd.upmove < 0)
-                wishvel[2] = -200;
-            else
-                wishvel[2] = 0;
-
-            // limit horizontal speed when on a ladder
-            if (wishvel[0] < -25)
-                wishvel[0] = -25;
-            else if (wishvel[0] > 25)
-                wishvel[0] = 25;
-
-            if (wishvel[1] < -25)
-                wishvel[1] = -25;
-            else if (wishvel[1] > 25)
-                wishvel[1] = 25;
-        }
-
-        // add water currents
-        if ((pm.watertype & Defines.MASK_CURRENT) != 0) {
-            Math3D.VectorClear(v);
-
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_0) != 0)
-                v[0] += 1;
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_90) != 0)
-                v[1] += 1;
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_180) != 0)
-                v[0] -= 1;
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_270) != 0)
-                v[1] -= 1;
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_UP) != 0)
-                v[2] += 1;
-            if ((pm.watertype & Defines.CONTENTS_CURRENT_DOWN) != 0)
-                v[2] -= 1;
-
-            s = pm_waterspeed;
-            if ((pm.waterlevel == 1) && (pm.groundentity != null))
-                s /= 2;
-
-            Math3D.VectorMA(wishvel, s, v, wishvel);
-        }
-
-        // add conveyor belt velocities
-        if (pm.groundentity != null) {
-            Math3D.VectorClear(v);
-
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_0) != 0)
-                v[0] += 1;
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_90) != 0)
-                v[1] += 1;
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_180) != 0)
-                v[0] -= 1;
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_270) != 0)
-                v[1] -= 1;
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_UP) != 0)
-                v[2] += 1;
-            if ((pm.groundcontents & Defines.CONTENTS_CURRENT_DOWN) != 0)
-                v[2] -= 1;
-
-            Math3D.VectorMA(wishvel, 100 /* pm.groundentity.speed */, v, wishvel);
-        }
-    }
-
-    /**
      * PM_WaterMove.
      */
     private static void PM_WaterMove(pmove_t pm, pml_t pml, float[][] planes) {
@@ -429,7 +350,7 @@ public class PMove {
         else
             wishvel[2] += pm.cmd.upmove;
 
-        PM_AddCurrents(pm, pml, wishvel);
+        pm.addCurrents(pml.velocity, pm_waterspeed, wishvel);
 
         Math3D.VectorCopy(wishvel, wishdir);
         wishspeed = Math3D.VectorNormalize(wishdir);
@@ -463,7 +384,7 @@ public class PMove {
         
         wishvel[2] = 0;
 
-        PM_AddCurrents(pm, pml, wishvel);
+        pm.addCurrents(pml.velocity, pm_waterspeed, wishvel);
 
         Math3D.VectorCopy(wishvel, wishdir);
         wishspeed = Math3D.VectorNormalize(wishdir);
