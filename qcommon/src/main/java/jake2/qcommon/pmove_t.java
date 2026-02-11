@@ -764,6 +764,49 @@ public class pmove_t {
         velocity[2] = downV[2];
     }
 
+    /**
+     * Executes swimming movement branch including currents, acceleration, and collision response.
+     * Extracted from PMove.PM_WaterMove as part of static-to-instance migration.
+     */
+    public void waterMove(
+            float[] forward,
+            float[] right,
+            float[] origin,
+            float[] velocity,
+            float frameTime,
+            float maxSpeed,
+            float waterAccelerate,
+            float waterSpeed,
+            float[][] planes
+    ) {
+        float[] wishvel = { 0, 0, 0 };
+        float[] wishdir = { 0, 0, 0 };
+
+        for (int i = 0; i < 3; i++) {
+            wishvel[i] = forward[i] * cmd.forwardmove + right[i] * cmd.sidemove;
+        }
+
+        if (cmd.forwardmove == 0 && cmd.sidemove == 0 && cmd.upmove == 0) {
+            wishvel[2] -= 60;
+        } else {
+            wishvel[2] += cmd.upmove;
+        }
+
+        addCurrents(velocity, waterSpeed, wishvel);
+
+        Math3D.VectorCopy(wishvel, wishdir);
+        float wishspeed = Math3D.VectorNormalize(wishdir);
+
+        if (wishspeed > maxSpeed) {
+            Math3D.VectorScale(wishvel, maxSpeed / wishspeed, wishvel);
+            wishspeed = maxSpeed;
+        }
+        wishspeed *= 0.5f;
+
+        accelerate(velocity, frameTime, wishdir, wishspeed, waterAccelerate);
+        stepSlideMove(origin, velocity, frameTime, planes);
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

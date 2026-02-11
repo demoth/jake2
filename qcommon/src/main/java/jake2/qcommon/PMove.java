@@ -131,48 +131,11 @@ public class PMove {
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
      *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition (migrated),
      *   PM_SnapPosition (migrated), PM_AddCurrents (migrated), PM_Friction (migrated), PM_Accelerate (migrated), PM_AirAccelerate (migrated),
-     *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
+     *   PM_WaterMove (migrated), PM_AirMove, PM_FlyMove, PM_StepSlideMove_ (migrated), PM_StepSlideMove (migrated).
      * - processor shell behavior:
      *   Pmove, runLegacyPmove.
      */
     public final static int MAX_CLIP_PLANES = 5;
-
-    /**
-     * PM_WaterMove.
-     */
-    private static void PM_WaterMove(pmove_t pm, pml_t pml, float[][] planes) {
-        int i;
-        float[] wishvel = { 0, 0, 0 };
-        float wishspeed;
-        float[] wishdir = { 0, 0, 0 };
-
-      
-        // user intentions
-        for (i = 0; i < 3; i++)
-            wishvel[i] = pml.forward[i] * pm.cmd.forwardmove
-                    + pml.right[i] * pm.cmd.sidemove;
-
-        if (0 == pm.cmd.forwardmove && 0 == pm.cmd.sidemove
-                && 0 == pm.cmd.upmove)
-            wishvel[2] -= 60; // drift towards bottom
-        else
-            wishvel[2] += pm.cmd.upmove;
-
-        pm.addCurrents(pml.velocity, pm_waterspeed, wishvel);
-
-        Math3D.VectorCopy(wishvel, wishdir);
-        wishspeed = Math3D.VectorNormalize(wishdir);
-
-        if (wishspeed > pm_maxspeed) {
-            Math3D.VectorScale(wishvel, pm_maxspeed / wishspeed, wishvel);
-            wishspeed = pm_maxspeed;
-        }
-        wishspeed *= 0.5;
-
-        pm.accelerate(pml.velocity, pml.frametime, wishdir, wishspeed, pm_wateraccelerate);
-
-        pm.stepSlideMove(pml.origin, pml.velocity, pml.frametime, planes);
-    }
 
     /**
      * PM_AirMove.
@@ -428,7 +391,17 @@ public class PMove {
             pm.friction(pml.velocity, pml.frametime, pm_stopspeed, pm_friction, pm_waterfriction);
 
             if (pm.waterlevel >= 2)
-                PM_WaterMove(pm, pml, planes);
+                pm.waterMove(
+                        pml.forward,
+                        pml.right,
+                        pml.origin,
+                        pml.velocity,
+                        pml.frametime,
+                        pm_maxspeed,
+                        pm_wateraccelerate,
+                        pm_waterspeed,
+                        planes
+                );
             else {
                 float[] angles = { 0, 0, 0 };
 
