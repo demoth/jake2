@@ -151,7 +151,7 @@ public class PMove {
     public final static int MAX_CLIP_PLANES = 5;
     static float[] planes[] = new float[MAX_CLIP_PLANES][3];
     
-    private static void PM_StepSlideMove_() {
+    private static void PM_StepSlideMove_(pmove_t pm, pml_t pml, float[][] planes) {
         int bumpcount, numbumps;
         float[] dir = { 0, 0, 0 };
         float d;
@@ -257,7 +257,7 @@ public class PMove {
      * Returns a new origin, velocity, and contact entity.
      * Does not modify any world state?
      */
-    private static void PM_StepSlideMove() {
+    private static void PM_StepSlideMove(pmove_t pm, pml_t pml, float[][] planes) {
         float[] start_o = { 0, 0, 0 }, start_v = { 0, 0, 0 };
         float[] down_o = { 0, 0, 0 }, down_v = { 0, 0, 0 };
         trace_t trace;
@@ -268,7 +268,7 @@ public class PMove {
         Math3D.VectorCopy(pml.origin, start_o);
         Math3D.VectorCopy(pml.velocity, start_v);
 
-        PM_StepSlideMove_();
+        PM_StepSlideMove_(pm, pml, planes);
 
         Math3D.VectorCopy(pml.origin, down_o);
         Math3D.VectorCopy(pml.velocity, down_v);
@@ -284,7 +284,7 @@ public class PMove {
         Math3D.VectorCopy(up, pml.origin);
         Math3D.VectorCopy(start_v, pml.velocity);
 
-        PM_StepSlideMove_();
+        PM_StepSlideMove_(pm, pml, planes);
 
         // push down the final amount
         Math3D.VectorCopy(pml.origin, down);
@@ -484,7 +484,7 @@ public class PMove {
     /**
      * PM_WaterMove.
      */
-    private static void PM_WaterMove() {
+    private static void PM_WaterMove(pmove_t pm, pml_t pml, float[][] planes) {
         int i;
         float[] wishvel = { 0, 0, 0 };
         float wishspeed;
@@ -515,13 +515,13 @@ public class PMove {
 
         PM_Accelerate(pml, wishdir, wishspeed, pm_wateraccelerate);
 
-        PM_StepSlideMove();
+        PM_StepSlideMove(pm, pml, planes);
     }
 
     /**
      * PM_AirMove.
      */
-    private static void PM_AirMove() {
+    private static void PM_AirMove(pmove_t pm, pml_t pml, float[][] planes) {
         float[] wishvel = { 0, 0, 0 };
         float fmove, smove;
         float[] wishdir = { 0, 0, 0 };
@@ -564,7 +564,7 @@ public class PMove {
                         pml.velocity[2] = 0;
                 }
             }
-            PM_StepSlideMove();
+            PM_StepSlideMove(pm, pml, planes);
         } else if (pm.groundentity != null) { // walking on ground
             pml.velocity[2] = 0; //!!! this is before the accel
             PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
@@ -578,7 +578,7 @@ public class PMove {
             // PGM
             if (0 == pml.velocity[0] && 0 == pml.velocity[1])
                 return;
-            PM_StepSlideMove();
+            PM_StepSlideMove(pm, pml, planes);
         } else { // not on ground, so little effect on velocity
             if (pm_airaccelerate != 0)
                 PM_AirAccelerate(pml, wishdir, wishspeed, pm_accelerate);
@@ -586,7 +586,7 @@ public class PMove {
                 PM_Accelerate(pml, wishdir, wishspeed, 1);
             // add gravity
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
-            PM_StepSlideMove();
+            PM_StepSlideMove(pm, pml, planes);
         }
     }
 
@@ -780,7 +780,7 @@ public class PMove {
     /**
      * PM_FlyMove.
      */
-    private static void PM_FlyMove(boolean doclip) {
+    private static void PM_FlyMove(pmove_t pm, pml_t pml, boolean doclip) {
         float speed, drop, friction, control, newspeed;
         float currentspeed, addspeed, accelspeed;
         int i;
@@ -1076,7 +1076,7 @@ public class PMove {
         PM_ClampAngles(pm, pml);
 
         if (pm.s.pm_type == Defines.PM_SPECTATOR) {
-            PM_FlyMove(false);
+            PM_FlyMove(pm, pml, false);
             PM_SnapPosition(pm, pml);
             return;
         }
@@ -1132,14 +1132,14 @@ public class PMove {
                 pm.s.pm_time = 0;
             }
 
-            PM_StepSlideMove();
+            PM_StepSlideMove(pm, pml, planes);
         } else {
             PM_CheckJump(pm, pml);
 
             PM_Friction(pm, pml);
 
             if (pm.waterlevel >= 2)
-                PM_WaterMove();
+                PM_WaterMove(pm, pml, planes);
             else {
                 float[] angles = { 0, 0, 0 };
 
@@ -1152,7 +1152,7 @@ public class PMove {
 
                 Math3D.AngleVectors(angles, pml.forward, pml.right, pml.up);
 
-                PM_AirMove();
+                PM_AirMove(pm, pml, planes);
             }
         }
 
