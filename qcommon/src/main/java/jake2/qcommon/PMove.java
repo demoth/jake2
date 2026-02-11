@@ -316,7 +316,7 @@ public class PMove {
     /**
      * Handles both ground friction and water friction.
      */
-    private static void PM_Friction() {
+    private static void PM_Friction(pmove_t pm, pml_t pml) {
         float vel[];
         float speed, newspeed, control;
         float friction;
@@ -362,7 +362,7 @@ public class PMove {
     /**
      * Handles user intended acceleration.
      */
-    private static void PM_Accelerate(float[] wishdir, float wishspeed,
+    private static void PM_Accelerate(pml_t pml, float[] wishdir, float wishspeed,
             float accel) {
         int i;
         float addspeed, accelspeed, currentspeed;
@@ -383,7 +383,7 @@ public class PMove {
      * PM_AirAccelerate.
      */
 
-    private static void PM_AirAccelerate(float[] wishdir, float wishspeed,
+    private static void PM_AirAccelerate(pml_t pml, float[] wishdir, float wishspeed,
             float accel) {
         int i;
         float addspeed, accelspeed, currentspeed, wishspd = wishspeed;
@@ -405,7 +405,7 @@ public class PMove {
     /**
      * PM_AddCurrents.
      */
-    private static void PM_AddCurrents(float[] wishvel) {
+    private static void PM_AddCurrents(pmove_t pm, pml_t pml, float[] wishvel) {
         float[] v = { 0, 0, 0 };
         float s;
 
@@ -502,7 +502,7 @@ public class PMove {
         else
             wishvel[2] += pm.cmd.upmove;
 
-        PM_AddCurrents(wishvel);
+        PM_AddCurrents(pm, pml, wishvel);
 
         Math3D.VectorCopy(wishvel, wishdir);
         wishspeed = Math3D.VectorNormalize(wishdir);
@@ -513,7 +513,7 @@ public class PMove {
         }
         wishspeed *= 0.5;
 
-        PM_Accelerate(wishdir, wishspeed, pm_wateraccelerate);
+        PM_Accelerate(pml, wishdir, wishspeed, pm_wateraccelerate);
 
         PM_StepSlideMove();
     }
@@ -536,7 +536,7 @@ public class PMove {
         
         wishvel[2] = 0;
 
-        PM_AddCurrents(wishvel);
+        PM_AddCurrents(pm, pml, wishvel);
 
         Math3D.VectorCopy(wishvel, wishdir);
         wishspeed = Math3D.VectorNormalize(wishdir);
@@ -552,7 +552,7 @@ public class PMove {
         }
 
         if (pml.ladder) {
-            PM_Accelerate(wishdir, wishspeed, pm_accelerate);
+            PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
             if (0 == wishvel[2]) {
                 if (pml.velocity[2] > 0) {
                     pml.velocity[2] -= pm.s.gravity * pml.frametime;
@@ -567,7 +567,7 @@ public class PMove {
             PM_StepSlideMove();
         } else if (pm.groundentity != null) { // walking on ground
             pml.velocity[2] = 0; //!!! this is before the accel
-            PM_Accelerate(wishdir, wishspeed, pm_accelerate);
+            PM_Accelerate(pml, wishdir, wishspeed, pm_accelerate);
 
             // PGM -- fix for negative trigger_gravity fields
             //		pml.velocity[2] = 0;
@@ -581,9 +581,9 @@ public class PMove {
             PM_StepSlideMove();
         } else { // not on ground, so little effect on velocity
             if (pm_airaccelerate != 0)
-                PM_AirAccelerate(wishdir, wishspeed, pm_accelerate);
+                PM_AirAccelerate(pml, wishdir, wishspeed, pm_accelerate);
             else
-                PM_Accelerate(wishdir, wishspeed, 1);
+                PM_Accelerate(pml, wishdir, wishspeed, 1);
             // add gravity
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
             PM_StepSlideMove();
@@ -684,7 +684,7 @@ public class PMove {
     /**
      * PM_CheckJump.
      */
-    private static void PM_CheckJump() {
+    private static void PM_CheckJump(pmove_t pm, pml_t pml) {
         if ((pm.s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
             // hasn't been long enough since landing to jump again
             return;
@@ -1134,9 +1134,9 @@ public class PMove {
 
             PM_StepSlideMove();
         } else {
-            PM_CheckJump();
+            PM_CheckJump(pm, pml);
 
-            PM_Friction();
+            PM_Friction(pm, pml);
 
             if (pm.waterlevel >= 2)
                 PM_WaterMove();
