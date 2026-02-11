@@ -129,7 +129,7 @@ public class PMove {
      * OOP migration ownership map:
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
-     *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
+     *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition (migrated), PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
@@ -688,21 +688,6 @@ public class PMove {
         }
     }
 
-    private static boolean PM_GoodPosition(pmove_t pm) {
-        trace_t trace;
-        float[] origin = { 0, 0, 0 }, end = { 0, 0, 0 };
-        int i;
-
-        if (pm.s.pm_type == Defines.PM_SPECTATOR)
-            return true;
-
-        for (i = 0; i < 3; i++)
-            origin[i] = end[i] = pm.s.origin[i] * 0.125f;
-        trace = pm.trace.trace(origin, pm.mins, pm.maxs, end);
-
-        return !trace.allsolid;
-    }
-
     /**
      * On exit, the origin will have a value that is pre-quantized to the 0.125
      * precision of the network channel and in a valid position.
@@ -736,7 +721,7 @@ public class PMove {
                 if ((bits & (1 << i)) != 0)
                     pm.s.origin[i] += sign[i];
 
-            if (PM_GoodPosition(pm))
+            if (pm.goodPosition())
                 return;
         }
 
@@ -760,7 +745,7 @@ public class PMove {
                 pm.s.origin[1] = (short) (base[1] + offset[y]);
                 for (x = 0; x < 3; x++) {
                     pm.s.origin[0] = (short) (base[0] + offset[x]);
-                    if (PM_GoodPosition(pm)) {
+                    if (pm.goodPosition()) {
                         pml.origin[0] = pm.s.origin[0] * 0.125f;
                         pml.origin[1] = pm.s.origin[1] * 0.125f;
                         pml.origin[2] = pm.s.origin[2] * 0.125f;

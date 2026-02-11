@@ -346,6 +346,28 @@ public class pmove_t {
         s.pm_time = -1;
     }
 
+    /**
+     * Validates that current snapped origin is not fully embedded in solid.
+     * Extracted from PMove.PM_GoodPosition as part of static-to-instance migration.
+     */
+    public boolean goodPosition() {
+        trace_t trace;
+        float[] origin = { 0, 0, 0 };
+        float[] end = { 0, 0, 0 };
+
+        if (s.pm_type == Defines.PM_SPECTATOR) {
+            return true;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            origin[i] = s.origin[i] * 0.125f;
+            end[i] = s.origin[i] * 0.125f;
+        }
+        trace = this.trace.trace(origin, mins, maxs, end);
+
+        return !trace.allsolid;
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;
