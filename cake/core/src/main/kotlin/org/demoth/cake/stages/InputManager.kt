@@ -315,7 +315,7 @@ class InputManager(
          * - Local angle accumulation: `CL_input.AdjustAngles()`
          * - Writing command angles: `CL_input.BaseMove()` + `CL_input.FinishMove()`
          * - Receiving `delta_angles`: `CL_ents.ParsePlayerstate()`
-         * - Applying `cmd + delta` to view angles: `CL_pred.PredictMovement()` and `PMove.PM_ClampAngles()`
+         * - Applying `cmd + delta` to view angles: `CL_pred.PredictMovement()` and `pmove_t.clampAngles()`
          */
         val state = currentFrame.playerstate
         val hasLocalControl = state.pmove.pm_type == PM_NORMAL || state.pmove.pm_type == PM_SPECTATOR

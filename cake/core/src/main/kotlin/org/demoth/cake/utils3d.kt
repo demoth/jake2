@@ -73,7 +73,7 @@ fun wrapSignedAngle(value: Float): Float {
  * Pitch is clamped to +/-89 to match PMove constraints and avoid producing commands outside
  * server-accepted vertical look range.
  *
- * `CL_input.ClampPitch()` and `PMove.PM_ClampAngles()`
+ * `CL_input.ClampPitch()` and `pmove_t.clampAngles()`
  */
 fun clampPitch(value: Float): Float {
     return wrapSignedAngle(value).coerceIn(-89f, 89f)

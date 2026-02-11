@@ -130,6 +130,19 @@ public class PMove {
         processor = LEGACY_PROCESSOR;
     }
 
+    /*
+     * OOP migration ownership map:
+     * - pmove_t instance behavior:
+     *   PM_ClampAngles (migrated), PM_CheckDuck, PM_CatagorizePosition, PM_CheckJump,
+     *   PM_CheckSpecialMovement, PM_DeadMove, PM_GoodPosition, PM_InitialSnapPosition,
+     *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
+     *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
+     * - processor shell behavior:
+     *   Pmove, runLegacyPmove.
+     * - shared math utility:
+     *   PM_ClipVelocity.
+     */
+
 
     /**
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 = step / wall)
@@ -1019,35 +1032,6 @@ public class PMove {
     }
 
     /**
-     * PM_ClampAngles.
-     */
-    private static void PM_ClampAngles(pmove_t pm, pml_t pml) {
-        short temp;
-        int i;
-
-        if ((pm.s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
-            pm.viewangles[Defines.YAW] = Math3D
-                    .SHORT2ANGLE(pm.cmd.angles[Defines.YAW]
-                            + pm.s.delta_angles[Defines.YAW]);
-            pm.viewangles[Defines.PITCH] = 0;
-            pm.viewangles[Defines.ROLL] = 0;
-        } else {
-            // circularly clamp the angles with deltas
-            for (i = 0; i < 3; i++) {
-                temp = (short) (pm.cmd.angles[i] + pm.s.delta_angles[i]);
-                pm.viewangles[i] = Math3D.SHORT2ANGLE(temp);
-            }
-
-            // don't let the player look up or down more than 90 degrees
-            if (pm.viewangles[Defines.PITCH] > 89 && pm.viewangles[Defines.PITCH] < 180)
-                pm.viewangles[Defines.PITCH] = 89;
-            else if (pm.viewangles[Defines.PITCH] < 271 && pm.viewangles[Defines.PITCH] >= 180)
-                pm.viewangles[Defines.PITCH] = 271;
-        }
-        Math3D.AngleVectors(pm.viewangles, pml.forward, pml.right, pml.up);
-    }
-
-    /**
      * Can be called by either the server or the client.
      */
     public static void Pmove(pmove_t pmove) {
@@ -1081,7 +1065,7 @@ public class PMove {
 
         pml.frametime = (pm.cmd.msec & 0xFF) * 0.001f;
 
-        PM_ClampAngles(pm, pml);
+        pm.clampAngles(pml.forward, pml.right, pml.up);
 
         if (pm.s.pm_type == Defines.PM_SPECTATOR) {
             PM_FlyMove(pm, pml, false);

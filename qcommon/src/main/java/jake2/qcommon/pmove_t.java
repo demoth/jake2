@@ -70,6 +70,33 @@ public class pmove_t {
 
     public PointContentsAdapter pointcontents;
 
+    /**
+     * Resolves final pmove view angles from user command angles and server delta angles.
+     * Extracted from PMove.PM_ClampAngles as part of static-to-instance migration.
+     */
+    public void clampAngles(float[] forward, float[] right, float[] up) {
+        short temp;
+
+        if ((s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
+            viewangles[Defines.YAW] = Math3D.SHORT2ANGLE(cmd.angles[Defines.YAW] + s.delta_angles[Defines.YAW]);
+            viewangles[Defines.PITCH] = 0;
+            viewangles[Defines.ROLL] = 0;
+        } else {
+            for (int i = 0; i < 3; i++) {
+                temp = (short) (cmd.angles[i] + s.delta_angles[i]);
+                viewangles[i] = Math3D.SHORT2ANGLE(temp);
+            }
+
+            if (viewangles[Defines.PITCH] > 89 && viewangles[Defines.PITCH] < 180) {
+                viewangles[Defines.PITCH] = 89;
+            } else if (viewangles[Defines.PITCH] < 271 && viewangles[Defines.PITCH] >= 180) {
+                viewangles[Defines.PITCH] = 271;
+            }
+        }
+
+        Math3D.AngleVectors(viewangles, forward, right, up);
+    }
+
     public void clear() {
         groundentity = null;
         waterlevel = watertype = 0;
