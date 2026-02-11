@@ -82,6 +82,7 @@ public class GameImportsImpl implements GameImports {
     SV_GAME sv_game;
 
     final float[] origin_v = { 0, 0, 0 };
+    private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
         this.serverMain = serverMain;
@@ -315,7 +316,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void Pmove(pmove_t pmove) {
-        PMove.Pmove(pmove);
+        pmoveProcessor.move(pmove);
     }
 
     /**

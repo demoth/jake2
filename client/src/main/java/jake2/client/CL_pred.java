@@ -33,6 +33,7 @@ import jake2.qcommon.util.Math3D;
  * CL_pred
  */
 public class CL_pred {
+    private static final PMove.PmoveProcessor PMOVE_PROCESSOR = PMove.newLegacyProcessor();
 
     /*
      * =================== CL_CheckPredictionError ===================
@@ -262,7 +263,7 @@ public class CL_pred {
 
             pm.cmd.set(cmd);
 
-            PMove.Pmove(pm);
+            PMOVE_PROCESSOR.move(pm);
 
             // save for debug checking
             Math3D.VectorCopy(pm.s.origin, ClientGlobals.cl.predicted_origins[frame]);

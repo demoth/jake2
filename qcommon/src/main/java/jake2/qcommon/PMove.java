@@ -91,7 +91,7 @@ public class PMove {
     public static int offset[] = { 0, -1, 1 };
 
     @FunctionalInterface
-    interface PmoveProcessor {
+    public interface PmoveProcessor {
         void move(pmove_t pmove);
     }
 
@@ -110,7 +110,15 @@ public class PMove {
         }
     }
 
-    private static final PmoveProcessor LEGACY_PROCESSOR = new LegacyPmoveProcessor();
+    /**
+     * Creates a dedicated pmove processor instance with isolated per-run mutable state.
+     * Useful for client/server separation while preserving legacy pmove behavior.
+     */
+    public static PmoveProcessor newLegacyProcessor() {
+        return new LegacyPmoveProcessor();
+    }
+
+    private static final PmoveProcessor LEGACY_PROCESSOR = newLegacyProcessor();
     private static PmoveProcessor processor = LEGACY_PROCESSOR;
 
     // Test seam for the incremental OOP migration; production code keeps the legacy processor.

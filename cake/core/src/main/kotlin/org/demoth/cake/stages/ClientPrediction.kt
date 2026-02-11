@@ -39,6 +39,7 @@ class ClientPrediction(
         private set
 
     private val predictedOrigins = Array(CMD_BACKUP) { IntArray(3) }
+    private val pmoveProcessor = PMove.newLegacyProcessor()
     private val zeroAngles = floatArrayOf(0f, 0f, 0f)
     private val tempBoxMins = floatArrayOf(0f, 0f, 0f)
     private val tempBoxMaxs = floatArrayOf(0f, 0f, 0f)
@@ -159,7 +160,7 @@ class ClientPrediction(
                 return
             }
             pm.cmd.set(cmd)
-            PMove.Pmove(pm)
+            pmoveProcessor.move(pm)
 
             val index = ack and (CMD_BACKUP - 1)
             predictedOrigins[index][0] = pm.s.origin[0].toInt()
