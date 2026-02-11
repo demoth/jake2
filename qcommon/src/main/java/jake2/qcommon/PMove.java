@@ -134,7 +134,7 @@ public class PMove {
      * OOP migration ownership map:
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition, PM_CheckJump,
-     *   PM_CheckSpecialMovement, PM_DeadMove, PM_GoodPosition, PM_InitialSnapPosition,
+     *   PM_CheckSpecialMovement, PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
@@ -880,26 +880,6 @@ public class PMove {
         }
     }
 
-    /**
-     * Dead bodies have extra friction.
-     */
-    private static void PM_DeadMove(pmove_t pm, pml_t pml) {
-        float forward;
-
-        if (null == pm.groundentity)
-            return;
-
-        // extra friction
-        forward = Math3D.VectorLength(pml.velocity);
-        forward -= 20;
-        if (forward <= 0) {
-            Math3D.VectorClear(pml.velocity);
-        } else {
-            Math3D.VectorNormalize(pml.velocity);
-            Math3D.VectorScale(pml.velocity, forward, pml.velocity);
-        }
-    }
-
     private static boolean PM_GoodPosition(pmove_t pm) {
         trace_t trace;
         float[] origin = { 0, 0, 0 }, end = { 0, 0, 0 };
@@ -1048,7 +1028,7 @@ public class PMove {
         PM_CatagorizePosition(pm, pml);
 
         if (pm.s.pm_type == Defines.PM_DEAD)
-            PM_DeadMove(pm, pml);
+            pm.deadMove(pml.velocity);
 
         PM_CheckSpecialMovement(pm, pml);
 

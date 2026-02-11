@@ -141,6 +141,27 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Applies extra friction to dead bodies while grounded.
+     * Extracted from PMove.PM_DeadMove as part of static-to-instance migration.
+     */
+    public void deadMove(float[] velocity) {
+        float forward;
+
+        if (groundentity == null) {
+            return;
+        }
+
+        forward = Math3D.VectorLength(velocity);
+        forward -= 20;
+        if (forward <= 0) {
+            Math3D.VectorClear(velocity);
+        } else {
+            Math3D.VectorNormalize(velocity);
+            Math3D.VectorScale(velocity, forward, velocity);
+        }
+    }
+
     public void clear() {
         groundentity = null;
         waterlevel = watertype = 0;
