@@ -41,6 +41,7 @@ class Game3dScreen(
 
     private val modelBatch: ModelBatch
     private val collisionModel = CM()
+    private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -132,6 +133,7 @@ class Game3dScreen(
 
         val serverFrameTime = 1f/10f // 10Hz server updates
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
+        prediction.predictMovement(entityManager.currentFrame, inputManager)
 
         updatePlayerCamera(lerpFrac)
 
@@ -281,6 +283,10 @@ class Game3dScreen(
 
     fun resetInputLookReference() {
         inputManager.resetMouseLookReference()
+    }
+
+    fun updatePredictionNetworkState(incomingAcknowledged: Int, outgoingSequence: Int, currentTimeMs: Int) {
+        prediction.updateNetworkState(incomingAcknowledged, outgoingSequence, currentTimeMs)
     }
 
     /**
@@ -443,6 +449,7 @@ class Game3dScreen(
         val validMessage = entityManager.processPacketEntitiesMessage(msg)
         if (validMessage) {
             entityManager.computeVisibleEntities(gameConfig)
+            prediction.onServerFrameParsed(entityManager.currentFrame)
         }
         return validMessage
     }

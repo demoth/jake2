@@ -83,6 +83,14 @@ class ClientEntityManager: Disposable {
         clientEntities[msg.entityState.index].baseline.set(msg.entityState)
     }
 
+    fun forEachCurrentEntityState(action: (entity_state_t) -> Unit) {
+        val mask = MAX_PARSE_ENTITIES - 1
+        for (i in 0 until currentFrame.num_entities) {
+            val idx = (currentFrame.parse_entities + i) and mask
+            action(cl_parse_entities[idx])
+        }
+    }
+
     /**
      * CL_ParsePacketEntities
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments

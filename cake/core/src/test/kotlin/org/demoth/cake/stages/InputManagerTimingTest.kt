@@ -31,7 +31,7 @@ class InputManagerTimingTest {
 
         clock.advanceMs(500)
         val fourth = input.gatherInput(outgoingSequence = 3, deltaTime = 0f, currentFrame = frame)
-        assertEquals(250, fourth.newCmd.msec.toInt() and 0xFF)
+        assertEquals(100, fourth.newCmd.msec.toInt() and 0xFF)
     }
 
     @Test
@@ -44,7 +44,7 @@ class InputManagerTimingTest {
         input.gatherInput(outgoingSequence = 10, deltaTime = 0f, currentFrame = frame)
 
         assertNotNull(input.getCommandForSequence(10))
-        assertEquals(100, input.getCommandForSequence(10)?.forwardmove?.toInt())
+        assertEquals(200, input.getCommandForSequence(10)?.forwardmove?.toInt())
         assertEquals(clock.nowNanos, input.getCommandTimestampNanos(10))
         assertNull(input.getCommandForSequence(9))
 

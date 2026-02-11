@@ -246,7 +246,7 @@ class InputManager(
         return if (elapsedMs > 250) {
             100 // time was unreasonable
         } else {
-            elapsedMs
+            elapsedMs.coerceAtLeast(1)
         }
     }
 

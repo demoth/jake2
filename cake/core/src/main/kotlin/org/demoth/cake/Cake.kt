@@ -314,6 +314,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cbuf.Execute()
 
         if (game3dScreen != null) {
+            game3dScreen?.updatePredictionNetworkState(
+                netchan.incoming_acknowledged,
+                netchan.outgoing_sequence,
+                Globals.curtime
+            )
             game3dScreen?.render(deltaSeconds)
         }
 
@@ -490,6 +495,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * CL_ParseServerMessage
      */
     private fun parseServerMessage(messages: Collection<ServerMessage>) {
+        game3dScreen?.updatePredictionNetworkState(
+            netchan.incoming_acknowledged,
+            netchan.outgoing_sequence,
+            Globals.curtime
+        )
         messages.forEach { msg ->
             when (msg) {
                 is DisconnectMessage -> {
