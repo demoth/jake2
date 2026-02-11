@@ -295,6 +295,57 @@ public class pmove_t {
         }
     }
 
+    /**
+     * Detects ladder state and water-jump trigger.
+     * Extracted from PMove.PM_CheckSpecialMovement as part of static-to-instance migration.
+     */
+    public void checkSpecialMovement(float[] origin, float[] forward, float[] velocity) {
+        float[] spot = { 0, 0, 0 };
+        int cont;
+        float[] flatforward = { 0, 0, 0 };
+        trace_t trace;
+
+        if (s.pm_time != 0) {
+            return;
+        }
+
+        ladder = false;
+
+        flatforward[0] = forward[0];
+        flatforward[1] = forward[1];
+        flatforward[2] = 0;
+        Math3D.VectorNormalize(flatforward);
+
+        Math3D.VectorMA(origin, 1, flatforward, spot);
+        trace = this.trace.trace(origin, mins, maxs, spot);
+        if ((trace.fraction < 1) && (trace.contents & Defines.CONTENTS_LADDER) != 0) {
+            ladder = true;
+        }
+
+        if (waterlevel != 2) {
+            return;
+        }
+
+        Math3D.VectorMA(origin, 30, flatforward, spot);
+        spot[2] += 4;
+        cont = pointcontents.pointcontents(spot);
+        if ((cont & Defines.CONTENTS_SOLID) == 0) {
+            return;
+        }
+
+        spot[2] += 16;
+        cont = pointcontents.pointcontents(spot);
+        if (cont != 0) {
+            return;
+        }
+
+        Math3D.VectorScale(flatforward, 50, velocity);
+        velocity[2] = 350;
+
+        s.pm_flags |= Defines.PMF_TIME_WATERJUMP;
+        s.pm_time = -1;
+    }
+
     public void clear() {
         groundentity = null;
         groundsurface = null;

@@ -129,7 +129,7 @@ public class PMove {
      * OOP migration ownership map:
      * - pmove_t instance behavior:
      *   PM_ClampAngles (migrated), PM_CheckDuck (migrated), PM_CatagorizePosition (migrated), PM_CheckJump (migrated),
-     *   PM_CheckSpecialMovement, PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
+     *   PM_CheckSpecialMovement (migrated), PM_DeadMove (migrated), PM_GoodPosition, PM_InitialSnapPosition,
      *   PM_SnapPosition, PM_AddCurrents, PM_Friction, PM_Accelerate, PM_AirAccelerate,
      *   PM_WaterMove, PM_AirMove, PM_FlyMove, PM_StepSlideMove_, PM_StepSlideMove.
      * - processor shell behavior:
@@ -607,55 +607,6 @@ public class PMove {
     }
 
     /**
-     * PM_CheckSpecialMovement.
-     */
-    private static void PM_CheckSpecialMovement(pmove_t pm, pml_t pml) {
-        float[] spot = { 0, 0, 0 };
-        int cont;
-        float[] flatforward = { 0, 0, 0 };
-        trace_t trace;
-
-        if (pm.s.pm_time != 0)
-            return;
-
-        pm.ladder = false;
-
-        // check for ladder
-        flatforward[0] = pml.forward[0];
-        flatforward[1] = pml.forward[1];
-        flatforward[2] = 0;
-        Math3D.VectorNormalize(flatforward);
-
-        Math3D.VectorMA(pml.origin, 1, flatforward, spot);
-        trace = pm.trace.trace(pml.origin, pm.mins,
-                pm.maxs, spot);
-        if ((trace.fraction < 1)
-                && (trace.contents & Defines.CONTENTS_LADDER) != 0)
-            pm.ladder = true;
-
-        // check for water jump
-        if (pm.waterlevel != 2)
-            return;
-
-        Math3D.VectorMA(pml.origin, 30, flatforward, spot);
-        spot[2] += 4;
-        cont = pm.pointcontents.pointcontents(spot);
-        if (0 == (cont & Defines.CONTENTS_SOLID))
-            return;
-
-        spot[2] += 16;
-        cont = pm.pointcontents.pointcontents(spot);
-        if (cont != 0)
-            return;
-        // jump out of water
-        Math3D.VectorScale(flatforward, 50, pml.velocity);
-        pml.velocity[2] = 350;
-
-        pm.s.pm_flags |= Defines.PMF_TIME_WATERJUMP;
-        pm.s.pm_time = -1; // was 255
-    }
-
-    /**
      * PM_FlyMove.
      */
     private static void PM_FlyMove(pmove_t pm, pml_t pml, boolean doclip) {
@@ -887,7 +838,7 @@ public class PMove {
         if (pm.s.pm_type == Defines.PM_DEAD)
             pm.deadMove(pml.velocity);
 
-        PM_CheckSpecialMovement(pm, pml);
+        pm.checkSpecialMovement(pml.origin, pml.forward, pml.velocity);
 
         // drop timing counter
         if (pm.s.pm_time != 0) {
