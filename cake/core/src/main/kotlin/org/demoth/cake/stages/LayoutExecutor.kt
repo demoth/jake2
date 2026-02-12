@@ -8,6 +8,8 @@ import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_STATS
 import jake2.qcommon.player_state_t
 import org.demoth.cake.GameConfiguration
+import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.HudNumberFont
 
 /**
  * A simplified and more readable function that consumes a layout string and a stats array.
@@ -20,7 +22,7 @@ import org.demoth.cake.GameConfiguration
  */
 class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
-    private val hudFont: BitmapFont,
+    private val style: GameUiStyle,
 ) {
     // Example stub for an image-drawing operation.
     // In real code, you might pass in your own rendering or context.
@@ -34,12 +36,12 @@ class LayoutExecutor(
 
     // Example stub for a text-drawing operation.
     private fun drawText(x: Int, y: Int, text: String, alt: Boolean) {
-        hudFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
+        style.hudFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
     }
 
     // Example stub for drawing a numeric field.
     private fun drawNumber(x: Int, y: Int, value: Short, width: Int, color: Int) {
-        hudFont.draw(spriteBatch, "$value", x.toFloat(), y.toFloat())
+        style.hudNumberFont.draw(spriteBatch, x, y, value, width, color)
     }
 
     /**

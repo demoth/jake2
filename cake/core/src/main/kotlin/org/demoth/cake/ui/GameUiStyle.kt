@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Disposable
  */
 interface GameUiStyle : Disposable {
     val hudFont: BitmapFont
+    val hudNumberFont: HudNumberFont
 }
 
 /**
@@ -18,8 +19,10 @@ interface GameUiStyle : Disposable {
 class EngineUiStyle(private val skin: Skin) : GameUiStyle {
     override val hudFont: BitmapFont
         get() = skin.getFont("default")
+    override val hudNumberFont: HudNumberFont = EngineHudNumberFont { hudFont }
 
     override fun dispose() {
+        hudNumberFont.dispose()
         // Skin owns the default font.
     }
 }

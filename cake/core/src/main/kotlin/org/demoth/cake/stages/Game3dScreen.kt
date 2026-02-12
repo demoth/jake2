@@ -3,7 +3,6 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
@@ -70,7 +69,7 @@ class Game3dScreen(
 
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
-    private var layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
+    private var layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle)
 
 
     // interpolation factor between two server frames
@@ -234,9 +233,6 @@ class Game3dScreen(
 
     override fun dispose() {
         gameUiStyle.dispose()
-        if (assetManager.isLoaded("pics/conchars.pcx", Texture::class.java)) {
-            assetManager.unload("pics/conchars.pcx")
-        }
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
@@ -572,7 +568,7 @@ class Game3dScreen(
             assetManager = assetManager,
             skin = Scene2DSkin.defaultSkin,
         )
-        layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
+        layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle)
         oldStyle.dispose()
     }
 
