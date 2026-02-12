@@ -98,10 +98,10 @@ object GameUiStyleFactory {
     }
 
     private fun loadTexture(assetManager: AssetManager, path: String, acquiredPaths: MutableList<String>): Texture {
-        if (!assetManager.isLoaded(path, Texture::class.java)) {
-            assetManager.load(path, Texture::class.java)
-            assetManager.finishLoadingAsset<Texture>(path)
-        }
+        // Always acquire one refcount slot for this UI style instance.
+        // AssetManager will increment refcount when already loaded.
+        assetManager.load(path, Texture::class.java)
+        assetManager.finishLoadingAsset<Texture>(path)
         acquiredPaths += path
         return assetManager.get(path, Texture::class.java)
     }
