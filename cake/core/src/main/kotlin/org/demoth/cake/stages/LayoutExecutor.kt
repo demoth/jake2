@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import jake2.qcommon.Globals
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CLIENTS
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
@@ -33,6 +34,12 @@ class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
     private val style: GameUiStyle,
 ) {
+    private companion object {
+        const val INVENTORY_DISPLAY_ITEMS = 17
+        const val INVENTORY_WIDTH = 256
+        const val INVENTORY_HEIGHT = 240
+    }
+
     internal sealed interface LayoutCommand {
         data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
         data class Text(
@@ -140,19 +147,51 @@ class LayoutExecutor(
     }
 
     fun drawInventory(gameConfig: GameConfiguration, screenWidth: Int, screenHeight: Int, playerstate: player_state_t) {
-        val x = screenWidth / 2
-        var y = screenHeight / 2
-        val selectedIndex = playerstate.stats[Defines.STAT_SELECTED_ITEM].toInt()
-        drawTextQuake(x, y, "Inventory:", false, null, screenHeight)
-        for (i in 0..<MAX_ITEMS) {
-            val amount = gameConfig.inventory[i]
-            if (amount > 0) {
-                y -= 16
-                val selectedPrefix = if (i == selectedIndex) "->" else "  "
-                val amountText = amount.toString().padStart(3)
-                val text = "$selectedPrefix $amountText ${gameConfig.getItemName(i) ?: ""}"
-                drawTextQuake(x, y, text, false, null, screenHeight)
+        val selected = playerstate.stats[Defines.STAT_SELECTED_ITEM].toInt()
+        val visibleItems = mutableListOf<Int>()
+        var selectedVisibleIndex = 0
+        for (i in 0 until MAX_ITEMS) {
+            if (i == selected) {
+                selectedVisibleIndex = visibleItems.size
             }
+            if (gameConfig.inventory[i] != 0) {
+                visibleItems += i
+            }
+        }
+
+        var top = selectedVisibleIndex - INVENTORY_DISPLAY_ITEMS / 2
+        if (visibleItems.size - top < INVENTORY_DISPLAY_ITEMS) {
+            top = visibleItems.size - INVENTORY_DISPLAY_ITEMS
+        }
+        if (top < 0) {
+            top = 0
+        }
+
+        val panelX = (screenWidth - INVENTORY_WIDTH) / 2
+        val panelY = (screenHeight - INVENTORY_HEIGHT) / 2
+        drawImageQuake(panelX, panelY + 8, gameConfig.getNamedPic("inventory"), screenHeight)
+
+        val textX = panelX + 24
+        var textY = panelY + 24
+        drawTextQuake(textX, textY, "hotkey ### item", false, null, screenHeight)
+        drawTextQuake(textX, textY + 8, "------ --- ----", false, null, screenHeight)
+        textY += 16
+
+        val last = minOf(visibleItems.size, top + INVENTORY_DISPLAY_ITEMS)
+        for (visibleIndex in top until last) {
+            val itemIndex = visibleItems[visibleIndex]
+            val amount = gameConfig.inventory[itemIndex]
+            val itemName = gameConfig.getItemName(itemIndex) ?: ""
+            val line = String.format("%6s %3d %s", "", amount, itemName)
+            if (itemIndex != selected) {
+                drawTextQuake(textX, textY, line, true, null, screenHeight)
+            } else {
+                if (((Globals.curtime / 100) and 1) != 0) {
+                    drawTextQuake(textX - 8, textY, Char(15).toString(), false, null, screenHeight)
+                }
+                drawTextQuake(textX, textY, line, false, null, screenHeight)
+            }
+            textY += 8
         }
     }
 
