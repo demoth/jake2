@@ -390,7 +390,7 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
             return false
         } // todo: warning if not found!
-        config.resource = tryAcquireAsset(assetPath)
+        config.resource = tryAcquireAsset<Sound>(assetPath)
         return config.resource != null
     }
 
