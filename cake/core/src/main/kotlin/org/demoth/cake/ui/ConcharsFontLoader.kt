@@ -8,7 +8,6 @@ import com.badlogic.gdx.utils.Array
 object ConcharsFontLoader {
     const val GRID_SIZE = 16
     const val GLYPH_COUNT = GRID_SIZE * GRID_SIZE
-    const val CELL_SIZE_PX = 16
 
     data class AtlasCell(
         val index: Int,
@@ -24,16 +23,19 @@ object ConcharsFontLoader {
     fun mapCells(
         textureWidth: Int,
         textureHeight: Int,
-        cellSizePx: Int = CELL_SIZE_PX,
     ): List<AtlasCell> {
-        val expectedWidth = GRID_SIZE * cellSizePx
-        val expectedHeight = GRID_SIZE * cellSizePx
-        require(textureWidth == expectedWidth) {
-            "Unexpected conchars width: $textureWidth, expected: $expectedWidth"
+        require(textureWidth % GRID_SIZE == 0) {
+            "Unexpected conchars width: $textureWidth, expected a multiple of $GRID_SIZE"
         }
-        require(textureHeight == expectedHeight) {
-            "Unexpected conchars height: $textureHeight, expected: $expectedHeight"
+        require(textureHeight % GRID_SIZE == 0) {
+            "Unexpected conchars height: $textureHeight, expected a multiple of $GRID_SIZE"
         }
+        val cellWidthPx = textureWidth / GRID_SIZE
+        val cellHeightPx = textureHeight / GRID_SIZE
+        require(cellWidthPx == cellHeightPx) {
+            "Unexpected conchars aspect ratio: cellWidth=$cellWidthPx cellHeight=$cellHeightPx"
+        }
+        val cellSizePx = cellWidthPx
 
         return List(GLYPH_COUNT) { index ->
             val row = index / GRID_SIZE
@@ -50,9 +52,9 @@ object ConcharsFontLoader {
 
     fun createBitmapFont(
         texture: Texture,
-        cellSizePx: Int = CELL_SIZE_PX,
     ): BitmapFont {
-        val cells = mapCells(texture.width, texture.height, cellSizePx)
+        val cells = mapCells(texture.width, texture.height)
+        val cellSizePx = cells.first().width
         val data = BitmapFont.BitmapFontData()
         val pageRegion = TextureRegion(texture)
         data.lineHeight = cellSizePx.toFloat()
