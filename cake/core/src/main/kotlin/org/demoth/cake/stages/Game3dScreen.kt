@@ -28,6 +28,7 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
@@ -68,12 +69,8 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private var gameUiStyle: GameUiStyle = GameUiStyleFactory.create(
-        gameName = gameName,
-        assetManager = assetManager,
-        skin = Scene2DSkin.defaultSkin,
-    )
-    private val layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
+    private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
+    private var layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
 
 
     // interpolation factor between two server frames
@@ -93,6 +90,7 @@ class Game3dScreen(
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
         modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader()))
+        reloadGameUiStyle()
     }
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
@@ -464,6 +462,7 @@ class Game3dScreen(
         levelString = msg.levelString
         entityManager.playerNumber = msg.playerNumber
         spawnCount = msg.spawnCount
+        reloadGameUiStyle()
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -564,6 +563,17 @@ class Game3dScreen(
             return 1f
         }
         return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
+    }
+
+    private fun reloadGameUiStyle() {
+        val oldStyle = gameUiStyle
+        gameUiStyle = GameUiStyleFactory.create(
+            gameName = gameName,
+            assetManager = assetManager,
+            skin = Scene2DSkin.defaultSkin,
+        )
+        layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
+        oldStyle.dispose()
     }
 
 
