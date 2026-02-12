@@ -23,7 +23,7 @@ class IdTech2HudNumberFont(
 ) : HudNumberFont {
     private val glyphAdvance = digitsByStyle[0][0].width
 
-    override fun draw(spriteBatch: SpriteBatch, x: Int, y: Int, value: Short, width: Int, color: Int) {
+    override fun draw(spriteBatch: SpriteBatch, x: Int, y: Int, value: Short, width: Int, color: Int, screenHeight: Int) {
         if (width < 1) return
 
         val clampedWidth = width.coerceAtMost(5)
@@ -39,8 +39,8 @@ class IdTech2HudNumberFont(
                 else -> continue
             }
             val glyph = digitsByStyle[style][frame]
-            // Quake HUD coordinates are top-left based.
-            spriteBatch.draw(glyph, drawX.toFloat(), (y - glyph.height).toFloat())
+            val gdxY = screenHeight - y - glyph.height
+            spriteBatch.draw(glyph, drawX.toFloat(), gdxY.toFloat())
             drawX += glyphAdvance
         }
     }
