@@ -125,7 +125,14 @@ class LayoutExecutor(
 
     private fun drawTextLineQuake(text: String, x: Int, y: Int, alt: Boolean, screenHeight: Int) {
         val gdxY = LayoutCoordinateMapper.textY(y, screenHeight)
-        style.hudFont.draw(spriteBatch, mapAltText(text, alt), x.toFloat(), gdxY.toFloat())
+        val font = style.hudFont
+        val prevR = font.color.r
+        val prevG = font.color.g
+        val prevB = font.color.b
+        val prevA = font.color.a
+        font.color.set(1f, 1f, 1f, 1f)
+        font.draw(spriteBatch, mapAltText(text, alt), x.toFloat(), gdxY.toFloat())
+        font.color.set(prevR, prevG, prevB, prevA)
     }
 
     private fun drawNumberQuake(x: Int, y: Int, value: Short, width: Int, color: Int, screenHeight: Int) {
@@ -157,7 +164,7 @@ class LayoutExecutor(
         if (!alt) return text
         val mapped = CharArray(text.length)
         for (i in text.indices) {
-            mapped[i] = (text[i].code or 0x80).coerceAtMost(0xFF).toChar()
+            mapped[i] = ((text[i].code xor 0x80) and 0xFF).toChar()
         }
         return String(mapped)
     }
