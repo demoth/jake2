@@ -68,12 +68,12 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private val layoutExecutor = LayoutExecutor(spriteBatch)
     private var gameUiStyle: GameUiStyle = GameUiStyleFactory.create(
         gameName = gameName,
         assetManager = assetManager,
         skin = Scene2DSkin.defaultSkin,
     )
+    private val layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle.hudFont)
 
 
     // interpolation factor between two server frames

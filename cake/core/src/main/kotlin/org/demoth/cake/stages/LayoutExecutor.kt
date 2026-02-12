@@ -7,7 +7,6 @@ import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_STATS
 import jake2.qcommon.player_state_t
-import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.GameConfiguration
 
 /**
@@ -21,10 +20,8 @@ import org.demoth.cake.GameConfiguration
  */
 class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
+    private val hudFont: BitmapFont,
 ) {
-    private val skin = Scene2DSkin.defaultSkin
-    private val skinFont = skin.getFont("default") as BitmapFont
-
     // Example stub for an image-drawing operation.
     // In real code, you might pass in your own rendering or context.
     private fun drawImage(x: Int, y: Int, texture: Texture?) {
@@ -37,12 +34,12 @@ class LayoutExecutor(
 
     // Example stub for a text-drawing operation.
     private fun drawText(x: Int, y: Int, text: String, alt: Boolean) {
-        skinFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
+        hudFont.draw(spriteBatch, text, x.toFloat(), y.toFloat())
     }
 
     // Example stub for drawing a numeric field.
     private fun drawNumber(x: Int, y: Int, value: Short, width: Int, color: Int) {
-        skinFont.draw(spriteBatch, "$value", x.toFloat(), y.toFloat())
+        hudFont.draw(spriteBatch, "$value", x.toFloat(), y.toFloat())
     }
 
     /**
