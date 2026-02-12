@@ -3,6 +3,7 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
@@ -19,6 +20,7 @@ import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import ktx.app.KtxScreen
 import ktx.graphics.use
+import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.*
 import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.assets.Md2Asset
@@ -26,6 +28,8 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
 
 /**
@@ -65,6 +69,11 @@ class Game3dScreen(
 
     private val spriteBatch = SpriteBatch()
     private val layoutExecutor = LayoutExecutor(spriteBatch)
+    private var gameUiStyle: GameUiStyle = GameUiStyleFactory.create(
+        gameName = gameName,
+        assetManager = assetManager,
+        skin = Scene2DSkin.defaultSkin,
+    )
 
 
     // interpolation factor between two server frames
@@ -226,6 +235,10 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        gameUiStyle.dispose()
+        if (assetManager.isLoaded("pics/conchars.pcx", Texture::class.java)) {
+            assetManager.unload("pics/conchars.pcx")
+        }
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
