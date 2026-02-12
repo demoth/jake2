@@ -16,7 +16,8 @@ interface GameUiStyle : Disposable {
  * Engine default style backed by the existing Scene2D skin.
  */
 class EngineUiStyle(private val skin: Skin) : GameUiStyle {
-    override val hudFont: BitmapFont = skin.getFont("default")
+    override val hudFont: BitmapFont
+        get() = skin.getFont("default")
 
     override fun dispose() {
         // Skin owns the default font.
