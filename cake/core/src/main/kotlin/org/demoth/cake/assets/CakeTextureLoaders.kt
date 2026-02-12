@@ -175,16 +175,48 @@ class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
  */
 internal fun fromPCX(pcx: PCX, externalPalette: IntArray? = null): Pixmap {
     val pixmap = Pixmap(pcx.width, pcx.height, Pixmap.Format.RGBA8888)
+    val palette = externalPalette ?: pcx.colors
     var offset = 0
     for (y in 0 until pcx.height) {
         for (x in 0 until pcx.width) {
-            val colorIndex = 0xFF and pcx.imageData[offset++].toInt() // unsigned
-            val color = if (externalPalette != null)
-                externalPalette[colorIndex]
-            else
-                pcx.colors[colorIndex]
+            val pixelIndex = offset++
+            val colorIndex = 0xFF and pcx.imageData[pixelIndex].toInt() // unsigned
+            val color = resolvePcxColor(colorIndex, pixelIndex, pcx.width, pcx.imageData, palette)
             pixmap.drawPixel(x, y, color)
         }
     }
     return pixmap
+}
+
+private const val TRANSPARENT_COLOR_INDEX = 255
+private const val RGB_MASK_RGBA8888 = 0xFFFFFF00.toInt()
+
+/**
+ * Mirrors legacy behavior:
+ * - palette index 255 is transparent
+ * - RGB for transparent pixels is borrowed from a non-transparent neighbor to reduce fringes
+ */
+internal fun resolvePcxColor(
+    colorIndex: Int,
+    pixelIndex: Int,
+    width: Int,
+    imageData: ByteArray,
+    palette: IntArray,
+): Int {
+    if (colorIndex != TRANSPARENT_COLOR_INDEX) {
+        return palette[colorIndex]
+    }
+
+    var neighborIndex = 0
+    if (pixelIndex >= width && (imageData[pixelIndex - width].toInt() and 0xFF) != TRANSPARENT_COLOR_INDEX) {
+        neighborIndex = imageData[pixelIndex - width].toInt() and 0xFF
+    } else if (pixelIndex < imageData.size - width && (imageData[pixelIndex + width].toInt() and 0xFF) != TRANSPARENT_COLOR_INDEX) {
+        neighborIndex = imageData[pixelIndex + width].toInt() and 0xFF
+    } else if (pixelIndex > 0 && (imageData[pixelIndex - 1].toInt() and 0xFF) != TRANSPARENT_COLOR_INDEX) {
+        neighborIndex = imageData[pixelIndex - 1].toInt() and 0xFF
+    } else if (pixelIndex < imageData.size - 1 && (imageData[pixelIndex + 1].toInt() and 0xFF) != TRANSPARENT_COLOR_INDEX) {
+        neighborIndex = imageData[pixelIndex + 1].toInt() and 0xFF
+    }
+
+    return palette[neighborIndex] and RGB_MASK_RGBA8888
 }
