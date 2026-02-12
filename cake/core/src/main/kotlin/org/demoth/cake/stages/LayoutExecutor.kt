@@ -37,148 +37,7 @@ class LayoutExecutor(
         screenWidth: Int,
         screenHeight: Int,
         dataProvider: LayoutDataProvider,
-    ): List<LayoutCommand> {
-        var x = 0
-        var y = 0
-        val commands = mutableListOf<LayoutCommand>()
-        val parser = LayoutParserCompat(layout)
-
-        while (parser.hasNext()) {
-            parser.next()
-            if (parser.tokenEquals("xl")) {
-                parser.next()
-                x = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xr")) {
-                parser.next()
-                x = screenWidth + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xv")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("yt")) {
-                parser.next()
-                y = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yb")) {
-                parser.next()
-                y = screenHeight + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yv")) {
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("pic")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val imageIndex = stats[statIndex]
-                commands += LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
-                continue
-            }
-
-            if (parser.tokenEquals("client")) {
-                // to be implemented
-                continue
-            }
-
-            if (parser.tokenEquals("ctf")) {
-                // to be implemented
-                continue
-            }
-
-            if (parser.tokenEquals("picn")) {
-                // to be implemented
-                continue
-            }
-
-            if (parser.tokenEquals("num")) {
-                parser.next()
-                val width = parser.tokenAsInt()
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                commands += LayoutCommand.Number(x, y, stats[statIndex], width, 0)
-                continue
-            }
-
-            if (parser.tokenEquals("hnum")) {
-                val health = stats[Defines.STAT_HEALTH]
-                val color = when {
-                    health > 25 -> 0
-                    health > 0 -> (serverFrame shr 2) and 1
-                    else -> 1
-                }
-                commands += LayoutCommand.Number(x, y, health, 3, color)
-                continue
-            }
-
-            if (parser.tokenEquals("anum")) {
-                val ammo = stats[Defines.STAT_AMMO]
-                if (ammo < 0) {
-                    continue
-                }
-                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
-                commands += LayoutCommand.Number(x, y, ammo, 3, color)
-                continue
-            }
-
-            if (parser.tokenEquals("rnum")) {
-                val armor = stats[Defines.STAT_ARMOR]
-                if (armor < 1) {
-                    continue
-                }
-                commands += LayoutCommand.Number(x, y, armor, 3, 0)
-                continue
-            }
-
-            if (parser.tokenEquals("stat_string")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                if (statIndex !in (0..MAX_STATS)) {
-                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
-                }
-                val configIndex = stats[statIndex]
-                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
-                commands += LayoutCommand.Text(x, y, value, false)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring") || parser.tokenEquals("string")) {
-                parser.next()
-                commands += LayoutCommand.Text(x, y, parser.token(), false)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring2") || parser.tokenEquals("string2")) {
-                parser.next()
-                commands += LayoutCommand.Text(x, y, parser.token(), true)
-                continue
-            }
-
-            if (parser.tokenEquals("if")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val value = stats[statIndex]
-                if (value.toInt() == 0) {
-                    parser.next()
-                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
-                        parser.next()
-                    }
-                }
-                continue
-            }
-        }
-
-        return commands
-    }
+    ): List<LayoutCommand> = LayoutCommandCompiler.compile(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
 
     fun executeLayoutString(
         layout: String?,
@@ -245,5 +104,157 @@ class LayoutExecutor(
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
         drawTextQuake(screenWidth / 2, screenHeight / 2, "+", false, screenHeight)
+    }
+}
+
+internal object LayoutCommandCompiler {
+    fun compile(
+        layout: String,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        dataProvider: LayoutDataProvider,
+    ): List<LayoutExecutor.LayoutCommand> {
+        var x = 0
+        var y = 0
+        val commands = mutableListOf<LayoutExecutor.LayoutCommand>()
+        val parser = LayoutParserCompat(layout)
+
+        while (parser.hasNext()) {
+            parser.next()
+            if (parser.tokenEquals("xl")) {
+                parser.next()
+                x = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xr")) {
+                parser.next()
+                x = screenWidth + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xv")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("yt")) {
+                parser.next()
+                y = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yb")) {
+                parser.next()
+                y = screenHeight + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yv")) {
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("pic")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val imageIndex = stats[statIndex]
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
+                continue
+            }
+
+            if (parser.tokenEquals("client")) {
+                // to be implemented
+                continue
+            }
+
+            if (parser.tokenEquals("ctf")) {
+                // to be implemented
+                continue
+            }
+
+            if (parser.tokenEquals("picn")) {
+                // to be implemented
+                continue
+            }
+
+            if (parser.tokenEquals("num")) {
+                parser.next()
+                val width = parser.tokenAsInt()
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, stats[statIndex], width, 0)
+                continue
+            }
+
+            if (parser.tokenEquals("hnum")) {
+                val health = stats[Defines.STAT_HEALTH]
+                val color = when {
+                    health > 25 -> 0
+                    health > 0 -> (serverFrame shr 2) and 1
+                    else -> 1
+                }
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, health, 3, color)
+                continue
+            }
+
+            if (parser.tokenEquals("anum")) {
+                val ammo = stats[Defines.STAT_AMMO]
+                if (ammo < 0) {
+                    continue
+                }
+                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, ammo, 3, color)
+                continue
+            }
+
+            if (parser.tokenEquals("rnum")) {
+                val armor = stats[Defines.STAT_ARMOR]
+                if (armor < 1) {
+                    continue
+                }
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, armor, 3, 0)
+                continue
+            }
+
+            if (parser.tokenEquals("stat_string")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                if (statIndex !in (0..MAX_STATS)) {
+                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                }
+                val configIndex = stats[statIndex]
+                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, value, false)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring") || parser.tokenEquals("string")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring2") || parser.tokenEquals("string2")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true)
+                continue
+            }
+
+            if (parser.tokenEquals("if")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val value = stats[statIndex]
+                if (value.toInt() == 0) {
+                    parser.next()
+                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
+                        parser.next()
+                    }
+                }
+                continue
+            }
+        }
+
+        return commands
     }
 }
