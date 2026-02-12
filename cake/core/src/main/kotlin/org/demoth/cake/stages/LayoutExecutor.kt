@@ -9,6 +9,11 @@ import jake2.qcommon.player_state_t
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
+internal interface LayoutDataProvider {
+    fun getImage(imageIndex: Int): Texture?
+    fun getConfigString(configIndex: Int): String?
+}
+
 /**
  * Executes Quake layout scripts and renders them in libGDX.
  *
@@ -31,7 +36,7 @@ class LayoutExecutor(
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        gameConfig: GameConfiguration,
+        dataProvider: LayoutDataProvider,
     ): List<LayoutCommand> {
         var x = 0
         var y = 0
@@ -76,7 +81,7 @@ class LayoutExecutor(
                 parser.next()
                 val statIndex = parser.tokenAsInt()
                 val imageIndex = stats[statIndex]
-                commands += LayoutCommand.Image(x, y, gameConfig.getImage(imageIndex.toInt()))
+                commands += LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
                 continue
             }
 
@@ -141,7 +146,7 @@ class LayoutExecutor(
                     throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
                 }
                 val configIndex = stats[statIndex]
-                val value = gameConfig.getConfigValue(configIndex.toInt()) ?: ""
+                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
                 commands += LayoutCommand.Text(x, y, value, false)
                 continue
             }
@@ -185,7 +190,11 @@ class LayoutExecutor(
     ) {
         if (layout.isNullOrEmpty()) return
 
-        val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, gameConfig)
+        val dataProvider = object : LayoutDataProvider {
+            override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
+            override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
+        }
+        val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
         for (command in commands) {
             when (command) {
                 is LayoutCommand.Image -> drawImageQuake(command.x, command.y, command.texture, screenHeight)
