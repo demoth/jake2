@@ -57,7 +57,7 @@ class Game3dScreen(
     private val environment = Environment()
 
     // game state
-    private var gameName: String = "baseq2"
+    private var gameName: String = ""
     private var spawnCount = 0
 
     private val beamRenderer = BeamRenderer(assetManager)
@@ -112,7 +112,7 @@ class Game3dScreen(
     }
 
     // todo: a lot of hacks/quirks - explain & document
-    private fun applyQuakeEntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
+    private fun applyIdTech2EntityRotation(entity: ClientEntity, pitch: Float, yaw: Float, roll: Float) {
         val isMd2Model = entity.modelInstance.userData is Md2CustomData
         val isBrushModel = entity.name.startsWith("*")
         // old renderer quirks:
@@ -167,7 +167,7 @@ class Game3dScreen(
                 val yaw = lerpAngle(it.prev.angles[YAW], it.current.angles[YAW], lerpFrac)
                 val roll = lerpAngle(it.prev.angles[ROLL], it.current.angles[ROLL], lerpFrac)
 
-                applyQuakeEntityRotation(it, pitch, yaw, roll)
+                applyIdTech2EntityRotation(it, pitch, yaw, roll)
 
             }
 
@@ -563,6 +563,13 @@ class Game3dScreen(
         return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
     }
 
+    /**
+     * Rebuilds HUD style resources for the current game/mod and swaps the layout executor binding.
+     *
+     * Quirk:
+     * this is called both during screen init and after `ServerDataMessage`, so style disposal
+     * must be safe when the previous style is an engine fallback.
+     */
     private fun reloadGameUiStyle() {
         val oldStyle = gameUiStyle
         gameUiStyle = GameUiStyleFactory.create(

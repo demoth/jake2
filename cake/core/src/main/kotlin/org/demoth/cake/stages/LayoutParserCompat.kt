@@ -3,7 +3,7 @@ package org.demoth.cake.stages
 import jake2.qcommon.Defines
 
 /**
- * Legacy-compatible layout tokenizer for Quake statusbar scripts.
+ * Legacy-compatible layout tokenizer for IdTech2 statusbar scripts.
  * Behavior is intentionally aligned with the old client LayoutParser.
  */
 internal class LayoutParserCompat(layout: String?) {

@@ -170,6 +170,9 @@ class GameConfiguration(
         return configStrings.getOrNull(configIndex)?.value
     }
 
+    /**
+     * Resolve and load a named IdTech2 HUD picture (layout `picn`/inventory backgrounds).
+     */
     fun getNamedPic(picName: String): Texture? {
         val normalized = picName.trim().removePrefix("/")
         if (normalized.isBlank()) {
@@ -199,6 +202,9 @@ class GameConfiguration(
         return parseClientInfo(clientIndex)?.name
     }
 
+    /**
+     * Resolve scoreboard icon matching IdTech2 player skin fallback behavior.
+     */
     fun getClientIcon(clientIndex: Int): Texture? {
         val info = parseClientInfo(clientIndex) ?: return null
         val candidatePaths = buildList {

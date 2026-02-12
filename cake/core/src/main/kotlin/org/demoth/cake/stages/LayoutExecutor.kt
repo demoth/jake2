@@ -11,6 +11,9 @@ import jake2.qcommon.player_state_t
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
+/**
+ * Data source used by layout compilation to resolve assets/config values.
+ */
 internal interface LayoutDataProvider {
     fun getImage(imageIndex: Int): Texture?
     fun getConfigString(configIndex: Int): String?
@@ -25,10 +28,10 @@ internal data class LayoutClientInfo(
 )
 
 /**
- * Executes Quake layout scripts and renders them in libGDX.
+ * Executes IdTech2 layout scripts and renders them in libGDX.
  *
- * Parsing and command emission happen in Quake screen space (top-left origin).
- * Rendering performs an explicit Quake->libGDX transform (bottom-left origin).
+ * Parsing and command emission happen in IdTech2 screen space (top-left origin).
+ * Rendering performs an explicit IdTech2->libGDX transform (bottom-left origin).
  */
 class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
@@ -85,8 +88,8 @@ class LayoutExecutor(
         val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
         for (command in commands) {
             when (command) {
-                is LayoutCommand.Image -> drawImageQuake(command.x, command.y, command.texture, screenHeight)
-                is LayoutCommand.Text -> drawTextQuake(
+                is LayoutCommand.Image -> drawImageIdTech2(command.x, command.y, command.texture, screenHeight)
+                is LayoutCommand.Text -> drawTextIdTech2(
                     command.x,
                     command.y,
                     command.text,
@@ -94,7 +97,7 @@ class LayoutExecutor(
                     command.centerWidth,
                     screenHeight
                 )
-                is LayoutCommand.Number -> drawNumberQuake(
+                is LayoutCommand.Number -> drawNumberIdTech2(
                     command.x,
                     command.y,
                     command.value,
@@ -106,31 +109,31 @@ class LayoutExecutor(
         }
     }
 
-    private fun drawImageQuake(x: Int, y: Int, texture: Texture?, screenHeight: Int) {
+    private fun drawImageIdTech2(x: Int, y: Int, texture: Texture?, screenHeight: Int) {
         if (texture == null) return
         val gdxY = LayoutCoordinateMapper.imageY(y, texture.height, screenHeight)
         spriteBatch.draw(texture, x.toFloat(), gdxY.toFloat())
     }
 
-    private fun drawTextQuake(x: Int, y: Int, text: String, alt: Boolean, centerWidth: Int?, screenHeight: Int) {
+    private fun drawTextIdTech2(x: Int, y: Int, text: String, alt: Boolean, centerWidth: Int?, screenHeight: Int) {
         if (centerWidth != null) {
-            drawHudStringQuake(text, x, y, centerWidth, alt, screenHeight)
+            drawHudStringIdTech2(text, x, y, centerWidth, alt, screenHeight)
             return
         }
-        drawTextLineQuake(text, x, y, alt, screenHeight)
+        drawTextLineIdTech2(text, x, y, alt, screenHeight)
     }
 
-    private fun drawHudStringQuake(text: String, x: Int, y: Int, centerWidth: Int, alt: Boolean, screenHeight: Int) {
+    private fun drawHudStringIdTech2(text: String, x: Int, y: Int, centerWidth: Int, alt: Boolean, screenHeight: Int) {
         var cursorY = y
         val lines = text.split('\n')
         for (line in lines) {
             val lineX = x + (centerWidth - line.length * 8) / 2
-            drawTextLineQuake(line, lineX, cursorY, alt, screenHeight)
+            drawTextLineIdTech2(line, lineX, cursorY, alt, screenHeight)
             cursorY += 8
         }
     }
 
-    private fun drawTextLineQuake(text: String, x: Int, y: Int, alt: Boolean, screenHeight: Int) {
+    private fun drawTextLineIdTech2(text: String, x: Int, y: Int, alt: Boolean, screenHeight: Int) {
         val gdxY = LayoutCoordinateMapper.textY(y, screenHeight)
         val font = style.hudFont
         val prevR = font.color.r
@@ -142,10 +145,17 @@ class LayoutExecutor(
         font.color.set(prevR, prevG, prevB, prevA)
     }
 
-    private fun drawNumberQuake(x: Int, y: Int, value: Short, width: Int, color: Int, screenHeight: Int) {
+    private fun drawNumberIdTech2(x: Int, y: Int, value: Short, width: Int, color: Int, screenHeight: Int) {
         style.hudNumberFont.draw(spriteBatch, x, y, value, width, color, screenHeight)
     }
 
+    /**
+     * Draws inventory panel with legacy IdTech2 layout metrics (256x240 panel + 17 visible rows).
+     *
+     * Quirk:
+     * hotkey bindings are not integrated with current input subsystem yet, so the hotkey column
+     * is intentionally rendered blank.
+     */
     fun drawInventory(gameConfig: GameConfiguration, screenWidth: Int, screenHeight: Int, playerstate: player_state_t) {
         val selected = playerstate.stats[Defines.STAT_SELECTED_ITEM].toInt()
         val visibleItems = mutableListOf<Int>()
@@ -169,12 +179,12 @@ class LayoutExecutor(
 
         val panelX = (screenWidth - INVENTORY_WIDTH) / 2
         val panelY = (screenHeight - INVENTORY_HEIGHT) / 2
-        drawImageQuake(panelX, panelY + 8, gameConfig.getNamedPic("inventory"), screenHeight)
+        drawImageIdTech2(panelX, panelY + 8, gameConfig.getNamedPic("inventory"), screenHeight)
 
         val textX = panelX + 24
         var textY = panelY + 24
-        drawTextQuake(textX, textY, "hotkey ### item", false, null, screenHeight)
-        drawTextQuake(textX, textY + 8, "------ --- ----", false, null, screenHeight)
+        drawTextIdTech2(textX, textY, "hotkey ### item", false, null, screenHeight)
+        drawTextIdTech2(textX, textY + 8, "------ --- ----", false, null, screenHeight)
         textY += 16
 
         val last = minOf(visibleItems.size, top + INVENTORY_DISPLAY_ITEMS)
@@ -184,21 +194,24 @@ class LayoutExecutor(
             val itemName = gameConfig.getItemName(itemIndex) ?: ""
             val line = String.format("%6s %3d %s", "", amount, itemName)
             if (itemIndex != selected) {
-                drawTextQuake(textX, textY, line, true, null, screenHeight)
+                drawTextIdTech2(textX, textY, line, true, null, screenHeight)
             } else {
                 if (((Globals.curtime / 100) and 1) != 0) {
-                    drawTextQuake(textX - 8, textY, Char(15).toString(), false, null, screenHeight)
+                    drawTextIdTech2(textX - 8, textY, Char(15).toString(), false, null, screenHeight)
                 }
-                drawTextQuake(textX, textY, line, false, null, screenHeight)
+                drawTextIdTech2(textX, textY, line, false, null, screenHeight)
             }
             textY += 8
         }
     }
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
-        drawTextQuake(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
+        drawTextIdTech2(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
     }
 
+    /**
+     * Apply legacy high-bit toggle used by IdTech2 alternate HUD text (`DrawAltString` / `^ 0x80`).
+     */
     private fun mapAltText(text: String, alt: Boolean): String {
         if (!alt) return text
         val mapped = CharArray(text.length)

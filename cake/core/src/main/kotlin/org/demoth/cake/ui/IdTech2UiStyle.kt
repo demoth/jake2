@@ -19,6 +19,9 @@ private val HUD_NUMBER_GLYPHS = arrayOf(
     arrayOf("anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5", "anum_6", "anum_7", "anum_8", "anum_9", "anum_minus"),
 )
 
+/**
+ * IdTech2 HUD numeric font backed by per-digit picture assets.
+ */
 class IdTech2HudNumberFont(
     private val digitsByStyle: Array<Array<Texture>>,
 ) : HudNumberFont {
@@ -64,6 +67,13 @@ class IdTech2UiStyle(
 }
 
 object GameUiStyleFactory {
+    /**
+     * Build game-specific HUD style resources.
+     *
+     * Quirk:
+     * styles are recreated when serverdata changes, so each style instance must
+     * acquire and release its own AssetManager references.
+     */
     fun create(
         gameName: String,
         assetManager: AssetManager,
@@ -107,6 +117,7 @@ object GameUiStyleFactory {
     }
 
     private fun unloadTextures(assetManager: AssetManager, paths: List<String>) {
+        // Release in reverse order to mirror acquisition sequence.
         for (path in paths.asReversed()) {
             if (assetManager.isLoaded(path, Texture::class.java)) {
                 assetManager.unload(path)

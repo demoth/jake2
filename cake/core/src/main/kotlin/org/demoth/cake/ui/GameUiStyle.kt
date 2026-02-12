@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.Disposable
 
 /**
  * Runtime UI style resources bound to the currently active game.
- * The initial scope is HUD bitmap font only.
+ * This wraps all HUD text resources that are swapped when the game/mod changes.
  */
 interface GameUiStyle : Disposable {
     val hudFont: BitmapFont
