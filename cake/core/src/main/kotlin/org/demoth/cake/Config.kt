@@ -55,11 +55,11 @@ class GameConfiguration(
         }
         Cmd.AddCommand("print_asset_errors", true) {
             if (failedAssets.isEmpty()) {
-                Com.Printf("No failed sound assets\n")
+                Com.Printf("No failed assets\n")
                 return@AddCommand
             }
             failedAssets.forEach { (path, error) ->
-                Com.Printf("Failed sound asset: $path -> $error\n")
+                Com.Printf("Failed asset: $path -> $error\n")
             }
         }
     }
@@ -170,6 +170,53 @@ class GameConfiguration(
         return configStrings.getOrNull(configIndex)?.value
     }
 
+    fun getNamedPic(picName: String): Texture? {
+        val normalized = picName.trim().removePrefix("/")
+        if (normalized.isBlank()) {
+            return null
+        }
+
+        val candidates = linkedSetOf<String>()
+        if (normalized.contains('/')) {
+            if (normalized.endsWith(".pcx", ignoreCase = true)) {
+                candidates += normalized
+            } else {
+                candidates += "$normalized.pcx"
+            }
+        } else {
+            candidates += "pics/$normalized.pcx"
+        }
+
+        for (path in candidates) {
+            if (assetManager.fileHandleResolver.resolve(path) != null) {
+                return tryAcquireAsset<Texture>(path)
+            }
+        }
+        return null
+    }
+
+    fun getClientName(clientIndex: Int): String? {
+        return parseClientInfo(clientIndex)?.name
+    }
+
+    fun getClientIcon(clientIndex: Int): Texture? {
+        val info = parseClientInfo(clientIndex) ?: return null
+        val candidatePaths = buildList {
+            add("players/${info.model}/${info.skin}_i.pcx")
+            if (!info.model.equals("male", ignoreCase = true)) {
+                add("players/male/${info.skin}_i.pcx")
+            }
+            add("players/male/grunt_i.pcx")
+        }
+
+        for (path in candidatePaths) {
+            if (assetManager.fileHandleResolver.resolve(path) != null) {
+                return tryAcquireAsset<Texture>(path)
+            }
+        }
+        return null
+    }
+
     fun getWeaponSound(weaponType: Int): Sound? {
         return weaponSounds[weaponType]
     }
@@ -210,7 +257,7 @@ class GameConfiguration(
             if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
                 return@forEach
             }
-            tryAquireAsset<Sound>(assetPath)?.let { loaded ->
+            tryAcquireAsset<Sound>(assetPath)?.let { loaded ->
                 weaponSounds[weaponType] = loaded
             }
         }
@@ -343,11 +390,11 @@ class GameConfiguration(
         if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
             return false
         } // todo: warning if not found!
-        config.resource = tryAquireAsset(assetPath)
+        config.resource = tryAcquireAsset(assetPath)
         return config.resource != null
     }
 
-    private inline fun <reified T> tryAquireAsset(assetPath: String): T? {
+    private inline fun <reified T> tryAcquireAsset(assetPath: String): T? {
         if (failedAssets.containsKey(assetPath)) {
             return null
         }
@@ -356,9 +403,37 @@ class GameConfiguration(
         } catch (e: GdxRuntimeException) {
             val error = rootCauseMessage(e)
             failedAssets[assetPath] = error
-            Com.Warn("Failed to load sound $assetPath: $error")
+            Com.Warn("Failed to load asset $assetPath: $error")
             null
         }
+    }
+
+    private data class ParsedClientInfo(
+        val name: String,
+        val model: String,
+        val skin: String,
+    )
+
+    private fun parseClientInfo(clientIndex: Int): ParsedClientInfo? {
+        if (clientIndex !in 0 until MAX_CLIENTS) {
+            return null
+        }
+        val rawValue = configStrings.getOrNull(CS_PLAYERSKINS + clientIndex)?.value ?: return null
+        if (rawValue.isBlank()) {
+            return null
+        }
+
+        val splitByName = rawValue.split('\\', limit = 2)
+        val name = splitByName.firstOrNull().orEmpty()
+        val modelAndSkin = splitByName.getOrNull(1).orEmpty()
+        if (modelAndSkin.isBlank()) {
+            return ParsedClientInfo(name = name, model = "male", skin = "grunt")
+        }
+
+        val splitBySkin = modelAndSkin.split('/', limit = 2)
+        val model = splitBySkin.firstOrNull().orEmpty().ifBlank { "male" }
+        val skin = splitBySkin.getOrNull(1).orEmpty().ifBlank { "grunt" }
+        return ParsedClientInfo(name = name, model = model, skin = skin)
     }
 
     private fun rootCauseMessage(t: Throwable): String {

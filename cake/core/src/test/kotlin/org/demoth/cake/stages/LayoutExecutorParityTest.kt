@@ -10,9 +10,17 @@ class LayoutExecutorParityTest {
             5 to "picked-up-item",
             9 to "ctf-flag"
         )
+        private val namedPics = mapOf("i_help" to null)
+        private val clients = mapOf(
+            1 to LayoutClientInfo(name = "PlayerOne", icon = null),
+            2 to LayoutClientInfo(name = "CurrentUser", icon = null),
+        )
 
         override fun getImage(imageIndex: Int) = null
         override fun getConfigString(configIndex: Int): String? = configStrings[configIndex]
+        override fun getNamedPic(picName: String) = namedPics[picName]
+        override fun getClientInfo(clientIndex: Int): LayoutClientInfo? = clients[clientIndex]
+        override fun getCurrentPlayerIndex(): Int = 2
     }
 
     @Test
@@ -70,6 +78,21 @@ class LayoutExecutorParityTest {
 
         val expected = LegacyLayoutCommandHarness.compileCommands(layout, 2, stats, 320, 240, provider)
         val actual = LayoutCommandCompiler.compile(layout, 2, stats, 320, 240, provider)
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun parityForPicnAndClientAndCtfBranches() {
+        val stats = ShortArray(64)
+        val layout = """
+            xv 0 yv 0 picn "i_help"
+            client 24 40 1 13 88 120
+            ctf 12 18 2 123 1001
+        """.trimIndent()
+
+        val expected = LegacyLayoutCommandHarness.compileCommands(layout, 2, stats, 800, 600, provider)
+        val actual = LayoutCommandCompiler.compile(layout, 2, stats, 800, 600, provider)
 
         assertEquals(expected, actual)
     }

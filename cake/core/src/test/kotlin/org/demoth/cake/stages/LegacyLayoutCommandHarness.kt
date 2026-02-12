@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
+import jake2.qcommon.Defines.MAX_CLIENTS
 
 /**
  * Legacy-like command compiler used for parity tests against the old client behavior.
@@ -61,6 +62,61 @@ internal object LegacyLayoutCommandHarness {
                 val statIndex = parser.tokenAsInt()
                 val imageIndex = stats[statIndex]
                 commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
+                continue
+            }
+
+            if (parser.tokenEquals("client")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+                parser.next()
+                val ping = parser.tokenAsInt()
+                parser.next()
+                val time = parser.tokenAsInt()
+
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, clientInfo?.icon)
+                continue
+            }
+
+            if (parser.tokenEquals("ctf")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+                parser.next()
+                val ping = parser.tokenAsInt().coerceAtMost(999)
+
+                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
+                val alt = clientIndex == dataProvider.getCurrentPlayerIndex()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, block, alt = alt)
+                continue
+            }
+
+            if (parser.tokenEquals("picn")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
                 continue
             }
 

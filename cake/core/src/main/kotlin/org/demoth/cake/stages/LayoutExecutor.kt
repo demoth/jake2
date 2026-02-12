@@ -3,8 +3,9 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import jake2.qcommon.Defines
+import jake2.qcommon.Defines.MAX_CLIENTS
+import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_ITEMS
-import jake2.qcommon.Defines.MAX_STATS
 import jake2.qcommon.player_state_t
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
@@ -12,7 +13,15 @@ import org.demoth.cake.ui.GameUiStyle
 internal interface LayoutDataProvider {
     fun getImage(imageIndex: Int): Texture?
     fun getConfigString(configIndex: Int): String?
+    fun getNamedPic(picName: String): Texture? = null
+    fun getClientInfo(clientIndex: Int): LayoutClientInfo? = null
+    fun getCurrentPlayerIndex(): Int = -1
 }
+
+internal data class LayoutClientInfo(
+    val name: String,
+    val icon: Texture?,
+)
 
 /**
  * Executes Quake layout scripts and renders them in libGDX.
@@ -51,13 +60,20 @@ class LayoutExecutor(
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        gameConfig: GameConfiguration
+        gameConfig: GameConfiguration,
+        playerIndex: Int = -1,
     ) {
         if (layout.isNullOrEmpty()) return
 
         val dataProvider = object : LayoutDataProvider {
             override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
             override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
+            override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
+            override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
+                val name = gameConfig.getClientName(clientIndex) ?: return null
+                return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
+            }
+            override fun getCurrentPlayerIndex(): Int = playerIndex
         }
         val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
         for (command in commands) {
@@ -109,7 +125,7 @@ class LayoutExecutor(
 
     private fun drawTextLineQuake(text: String, x: Int, y: Int, alt: Boolean, screenHeight: Int) {
         val gdxY = LayoutCoordinateMapper.textY(y, screenHeight)
-        style.hudFont.draw(spriteBatch, text, x.toFloat(), gdxY.toFloat())
+        style.hudFont.draw(spriteBatch, mapAltText(text, alt), x.toFloat(), gdxY.toFloat())
     }
 
     private fun drawNumberQuake(x: Int, y: Int, value: Short, width: Int, color: Int, screenHeight: Int) {
@@ -135,6 +151,15 @@ class LayoutExecutor(
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
         drawTextQuake(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
+    }
+
+    private fun mapAltText(text: String, alt: Boolean): String {
+        if (!alt) return text
+        val mapped = CharArray(text.length)
+        for (i in text.indices) {
+            mapped[i] = (text[i].code or 0x80).coerceAtMost(0xFF).toChar()
+        }
+        return String(mapped)
     }
 }
 
@@ -195,17 +220,62 @@ internal object LayoutCommandCompiler {
             }
 
             if (parser.tokenEquals("client")) {
-                // to be implemented
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt()
+
+                parser.next()
+                val time = parser.tokenAsInt()
+
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, clientInfo?.icon)
                 continue
             }
 
             if (parser.tokenEquals("ctf")) {
-                // to be implemented
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt().coerceAtMost(999)
+
+                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
+                val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, block, alt = isCurrentPlayer)
                 continue
             }
 
             if (parser.tokenEquals("picn")) {
-                // to be implemented
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
                 continue
             }
 
@@ -251,10 +321,13 @@ internal object LayoutCommandCompiler {
             if (parser.tokenEquals("stat_string")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                if (statIndex !in (0..MAX_STATS)) {
+                if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
                     throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
                 }
                 val configIndex = stats[statIndex]
+                if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
+                    throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
+                }
                 val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
                 commands += LayoutExecutor.LayoutCommand.Text(x, y, value, false)
                 continue

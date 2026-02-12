@@ -201,7 +201,8 @@ class Game3dScreen(
                 stats = entityManager.currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
-                gameConfig = gameConfig
+                gameConfig = gameConfig,
+                playerIndex = entityManager.playerNumber,
             )
 
             // draw additional layout, like help or score
@@ -213,7 +214,8 @@ class Game3dScreen(
                     stats = entityManager.currentFrame.playerstate.stats,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
-                    gameConfig = gameConfig
+                    gameConfig = gameConfig,
+                    playerIndex = entityManager.playerNumber,
                 )
             }
             // draw additional layout, like help or score
