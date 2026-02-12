@@ -89,7 +89,6 @@ class Game3dScreen(
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
         modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader()))
-        reloadGameUiStyle()
     }
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
