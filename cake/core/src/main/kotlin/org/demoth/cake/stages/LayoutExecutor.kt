@@ -26,7 +26,13 @@ class LayoutExecutor(
 ) {
     internal sealed interface LayoutCommand {
         data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
-        data class Text(val x: Int, val y: Int, val text: String, val alt: Boolean) : LayoutCommand
+        data class Text(
+            val x: Int,
+            val y: Int,
+            val text: String,
+            val alt: Boolean,
+            val centerWidth: Int? = null,
+        ) : LayoutCommand
         data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : LayoutCommand
     }
 
@@ -57,7 +63,14 @@ class LayoutExecutor(
         for (command in commands) {
             when (command) {
                 is LayoutCommand.Image -> drawImageQuake(command.x, command.y, command.texture, screenHeight)
-                is LayoutCommand.Text -> drawTextQuake(command.x, command.y, command.text, command.alt, screenHeight)
+                is LayoutCommand.Text -> drawTextQuake(
+                    command.x,
+                    command.y,
+                    command.text,
+                    command.alt,
+                    command.centerWidth,
+                    screenHeight
+                )
                 is LayoutCommand.Number -> drawNumberQuake(
                     command.x,
                     command.y,
@@ -76,7 +89,25 @@ class LayoutExecutor(
         spriteBatch.draw(texture, x.toFloat(), gdxY.toFloat())
     }
 
-    private fun drawTextQuake(x: Int, y: Int, text: String, alt: Boolean, screenHeight: Int) {
+    private fun drawTextQuake(x: Int, y: Int, text: String, alt: Boolean, centerWidth: Int?, screenHeight: Int) {
+        if (centerWidth != null) {
+            drawHudStringQuake(text, x, y, centerWidth, alt, screenHeight)
+            return
+        }
+        drawTextLineQuake(text, x, y, alt, screenHeight)
+    }
+
+    private fun drawHudStringQuake(text: String, x: Int, y: Int, centerWidth: Int, alt: Boolean, screenHeight: Int) {
+        var cursorY = y
+        val lines = text.split('\n')
+        for (line in lines) {
+            val lineX = x + (centerWidth - line.length * 8) / 2
+            drawTextLineQuake(line, lineX, cursorY, alt, screenHeight)
+            cursorY += 8
+        }
+    }
+
+    private fun drawTextLineQuake(text: String, x: Int, y: Int, alt: Boolean, screenHeight: Int) {
         val gdxY = LayoutCoordinateMapper.textY(y, screenHeight)
         style.hudFont.draw(spriteBatch, text, x.toFloat(), gdxY.toFloat())
     }
@@ -89,7 +120,7 @@ class LayoutExecutor(
         val x = screenWidth / 2
         var y = screenHeight / 2
         val selectedIndex = playerstate.stats[Defines.STAT_SELECTED_ITEM].toInt()
-        drawTextQuake(x, y, "Inventory:", false, screenHeight)
+        drawTextQuake(x, y, "Inventory:", false, null, screenHeight)
         for (i in 0..<MAX_ITEMS) {
             val amount = gameConfig.inventory[i]
             if (amount > 0) {
@@ -97,13 +128,13 @@ class LayoutExecutor(
                 val selectedPrefix = if (i == selectedIndex) "->" else "  "
                 val amountText = amount.toString().padStart(3)
                 val text = "$selectedPrefix $amountText ${gameConfig.getItemName(i) ?: ""}"
-                drawTextQuake(x, y, text, false, screenHeight)
+                drawTextQuake(x, y, text, false, null, screenHeight)
             }
         }
     }
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
-        drawTextQuake(screenWidth / 2, screenHeight / 2, "+", false, screenHeight)
+        drawTextQuake(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
     }
 }
 
@@ -229,13 +260,25 @@ internal object LayoutCommandCompiler {
                 continue
             }
 
-            if (parser.tokenEquals("cstring") || parser.tokenEquals("string")) {
+            if (parser.tokenEquals("cstring")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string")) {
                 parser.next()
                 commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false)
                 continue
             }
 
-            if (parser.tokenEquals("cstring2") || parser.tokenEquals("string2")) {
+            if (parser.tokenEquals("cstring2")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string2")) {
                 parser.next()
                 commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true)
                 continue

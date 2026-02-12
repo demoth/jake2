@@ -119,13 +119,25 @@ internal object LegacyLayoutCommandHarness {
                 continue
             }
 
-            if (parser.tokenEquals("cstring") || parser.tokenEquals("string")) {
+            if (parser.tokenEquals("cstring")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string")) {
                 parser.next()
                 commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false)
                 continue
             }
 
-            if (parser.tokenEquals("cstring2") || parser.tokenEquals("string2")) {
+            if (parser.tokenEquals("cstring2")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string2")) {
                 parser.next()
                 commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true)
                 continue
