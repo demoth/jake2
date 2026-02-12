@@ -72,12 +72,12 @@ class LayoutExecutor(
 
     private fun drawImageQuake(x: Int, y: Int, texture: Texture?, screenHeight: Int) {
         if (texture == null) return
-        val gdxY = screenHeight - y - texture.height
+        val gdxY = LayoutCoordinateMapper.imageY(y, texture.height, screenHeight)
         spriteBatch.draw(texture, x.toFloat(), gdxY.toFloat())
     }
 
     private fun drawTextQuake(x: Int, y: Int, text: String, alt: Boolean, screenHeight: Int) {
-        val gdxY = screenHeight - y
+        val gdxY = LayoutCoordinateMapper.textY(y, screenHeight)
         style.hudFont.draw(spriteBatch, text, x.toFloat(), gdxY.toFloat())
     }
 

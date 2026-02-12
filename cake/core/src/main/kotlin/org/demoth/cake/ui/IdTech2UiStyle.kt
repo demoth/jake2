@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Com
+import org.demoth.cake.stages.LayoutCoordinateMapper
 
 private val IDTECH2_GAME_NAMES = setOf("baseq2", "rogue", "xatrix", "ctf")
 private const val CONCHARS_PATH = "pics/conchars.pcx"
@@ -39,7 +40,7 @@ class IdTech2HudNumberFont(
                 else -> continue
             }
             val glyph = digitsByStyle[style][frame]
-            val gdxY = screenHeight - y - glyph.height
+            val gdxY = LayoutCoordinateMapper.imageY(y, glyph.height, screenHeight)
             spriteBatch.draw(glyph, drawX.toFloat(), gdxY.toFloat())
             drawX += glyphAdvance
         }
