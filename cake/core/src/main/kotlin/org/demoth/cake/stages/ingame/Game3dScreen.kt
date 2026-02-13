@@ -229,8 +229,8 @@ class Game3dScreen(
                 screenHeight = Gdx.graphics.height,
             )
 
-            layoutExecutor.executeLayoutString(
-                layout = gameConfig.getStatusBarLayout(),
+            layoutExecutor.executeLayoutProgram(
+                program = gameConfig.getStatusBarLayoutProgram(),
                 serverFrame = entityManager.currentFrame.serverframe,
                 stats = entityManager.currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
@@ -242,8 +242,8 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // SRC.DrawLayout
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                layoutExecutor.executeLayoutString(
-                    layout = gameConfig.layout,
+                layoutExecutor.executeLayoutProgram(
+                    program = gameConfig.getLayoutProgram(),
                     serverFrame = entityManager.currentFrame.serverframe,
                     stats = entityManager.currentFrame.playerstate.stats,
                     screenWidth = Gdx.graphics.width,
