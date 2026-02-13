@@ -88,4 +88,21 @@ class GameConfigurationLayoutProgramTest {
             assetManager.dispose()
         }
     }
+
+    @Test
+    fun unloadAssetsClearsCachedLayoutPrograms() {
+        val assetManager = AssetManager(resolver)
+        try {
+            val config = GameConfiguration(assetManager)
+            config.applyConfigString(CS_STATUSBAR, "xl 8")
+            config.layout = "xr -40"
+
+            config.unloadAssets()
+
+            assertNull(config.getStatusBarLayoutProgram())
+            assertNull(config.getLayoutProgram())
+        } finally {
+            assetManager.dispose()
+        }
+    }
 }
