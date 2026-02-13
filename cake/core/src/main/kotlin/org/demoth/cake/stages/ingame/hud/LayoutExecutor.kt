@@ -96,35 +96,6 @@ class LayoutExecutor(
             override fun getCurrentPlayerIndex(): Int = playerIndex
         }
         val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
-        drawCommands(commands, screenHeight)
-    }
-
-    /**
-     * Execute a precompiled layout program for the current frame.
-     */
-    fun executeLayoutProgram(
-        program: LayoutProgram?,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        gameConfig: GameConfiguration,
-        playerIndex: Int = -1,
-    ) {
-        if (program == null) return
-        val commands = LayoutCommandCompiler.evaluate(
-            program = program,
-            serverFrame = serverFrame,
-            stats = stats,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            gameConfig = gameConfig,
-            playerIndex = playerIndex,
-        )
-        drawCommands(commands, screenHeight)
-    }
-
-    private fun drawCommands(commands: List<LayoutCommand>, screenHeight: Int) {
         for (command in commands) {
             when (command) {
                 is LayoutCommand.Image -> drawImageIdTech2(command.x, command.y, command.texture, screenHeight)
@@ -279,8 +250,6 @@ class LayoutExecutor(
 }
 
 internal object LayoutCommandCompiler {
-    private data class Cursor(var x: Int = 0, var y: Int = 0)
-
     /**
      * Compile textual layout script into draw commands in IdTech2 coordinate space.
      *
@@ -295,209 +264,205 @@ internal object LayoutCommandCompiler {
         screenHeight: Int,
         dataProvider: LayoutDataProvider,
     ): List<LayoutExecutor.LayoutCommand> {
-        val program = LayoutProgramCompiler.compile(layout)
-        return evaluate(
-            program = program,
-            serverFrame = serverFrame,
-            stats = stats,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            dataProvider = dataProvider,
-            playerIndex = dataProvider.getCurrentPlayerIndex(),
-        )
-    }
-
-    fun evaluate(
-        program: LayoutProgram,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        gameConfig: GameConfiguration,
-        playerIndex: Int = -1,
-    ): List<LayoutExecutor.LayoutCommand> {
-        val provider = object : LayoutDataProvider {
-            override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
-            override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
-            override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
-            override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
-                val name = gameConfig.getClientName(clientIndex) ?: return null
-                return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
-            }
-
-            override fun getCurrentPlayerIndex(): Int = playerIndex
-        }
-        return evaluate(
-            program = program,
-            serverFrame = serverFrame,
-            stats = stats,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            dataProvider = provider,
-            playerIndex = playerIndex,
-        )
-    }
-
-    private fun evaluate(
-        program: LayoutProgram,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        dataProvider: LayoutDataProvider,
-        playerIndex: Int,
-    ): List<LayoutExecutor.LayoutCommand> {
+        var x = 0
+        var y = 0
         val commands = mutableListOf<LayoutExecutor.LayoutCommand>()
-        val cursor = Cursor()
-        evaluateOps(
-            ops = program.ops,
-            cursor = cursor,
-            serverFrame = serverFrame,
-            stats = stats,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            dataProvider = dataProvider,
-            playerIndex = playerIndex,
-            commands = commands,
-        )
-        return commands
-    }
+        val parser = LayoutParserCompat(layout)
 
-    private fun evaluateOps(
-        ops: List<LayoutOp>,
-        cursor: Cursor,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        dataProvider: LayoutDataProvider,
-        playerIndex: Int,
-        commands: MutableList<LayoutExecutor.LayoutCommand>,
-    ) {
-        for (op in ops) {
-            when (op) {
-                is LayoutOp.SetX -> {
-                    cursor.x = when (op.anchor) {
-                        LayoutXAnchor.LEFT -> op.value
-                        LayoutXAnchor.RIGHT -> screenWidth + op.value
-                        LayoutXAnchor.VIEW -> screenWidth / 2 - 160 + op.value
+        while (parser.hasNext()) {
+            parser.next()
+            if (parser.tokenEquals("xl")) {
+                parser.next()
+                x = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xr")) {
+                parser.next()
+                x = screenWidth + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xv")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("yt")) {
+                parser.next()
+                y = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yb")) {
+                parser.next()
+                y = screenHeight + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yv")) {
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("pic")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val imageIndex = stats[statIndex]
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
+                continue
+            }
+
+            if (parser.tokenEquals("client")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt()
+
+                parser.next()
+                val time = parser.tokenAsInt()
+
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, clientInfo?.icon)
+                continue
+            }
+
+            if (parser.tokenEquals("ctf")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt().coerceAtMost(999)
+
+                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
+                val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, block, alt = isCurrentPlayer)
+                continue
+            }
+
+            if (parser.tokenEquals("picn")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
+                continue
+            }
+
+            if (parser.tokenEquals("num")) {
+                parser.next()
+                val width = parser.tokenAsInt()
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, stats[statIndex], width, 0)
+                continue
+            }
+
+            if (parser.tokenEquals("hnum")) {
+                val health = stats[Defines.STAT_HEALTH]
+                val color = when {
+                    health > 25 -> 0
+                    health > 0 -> (serverFrame shr 2) and 1
+                    else -> 1
+                }
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, health, 3, color)
+                continue
+            }
+
+            if (parser.tokenEquals("anum")) {
+                val ammo = stats[Defines.STAT_AMMO]
+                if (ammo < 0) {
+                    continue
+                }
+                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, ammo, 3, color)
+                continue
+            }
+
+            if (parser.tokenEquals("rnum")) {
+                val armor = stats[Defines.STAT_ARMOR]
+                if (armor < 1) {
+                    continue
+                }
+                commands += LayoutExecutor.LayoutCommand.Number(x, y, armor, 3, 0)
+                continue
+            }
+
+            if (parser.tokenEquals("stat_string")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
+                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                }
+                val configIndex = stats[statIndex]
+                if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
+                    throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
+                }
+                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, value, false)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring2")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
+                continue
+            }
+
+            if (parser.tokenEquals("string2")) {
+                parser.next()
+                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true)
+                continue
+            }
+
+            if (parser.tokenEquals("if")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val value = stats[statIndex]
+                if (value.toInt() == 0) {
+                    parser.next()
+                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
+                        parser.next()
                     }
                 }
-
-                is LayoutOp.SetY -> {
-                    cursor.y = when (op.anchor) {
-                        LayoutYAnchor.TOP -> op.value
-                        LayoutYAnchor.BOTTOM -> screenHeight + op.value
-                        LayoutYAnchor.VIEW -> screenHeight / 2 - 120 + op.value
-                    }
-                }
-
-                is LayoutOp.Pic -> {
-                    val imageIndex = stats[op.statIndex]
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, dataProvider.getImage(imageIndex.toInt()))
-                }
-
-                is LayoutOp.Client -> {
-                    cursor.x = screenWidth / 2 - 160 + op.xOffset
-                    cursor.y = screenHeight / 2 - 120 + op.yOffset
-                    val clientIndex = op.clientIndex
-                    check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
-                    val clientInfo = dataProvider.getClientInfo(clientIndex)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y, clientInfo?.name ?: "", alt = true)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 8, "Score: ", alt = false)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32 + 7 * 8, cursor.y + 8, "${op.score}", alt = true)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 16, "Ping:  ${op.ping}", alt = false)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 24, "Time:  ${op.time}", alt = false)
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, clientInfo?.icon)
-                }
-
-                is LayoutOp.Ctf -> {
-                    cursor.x = screenWidth / 2 - 160 + op.xOffset
-                    cursor.y = screenHeight / 2 - 120 + op.yOffset
-                    val clientIndex = op.clientIndex
-                    check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
-                    val clientInfo = dataProvider.getClientInfo(clientIndex)
-                    val ping = op.ping.coerceAtMost(999)
-                    val block = String.format("%3d %3d %-12.12s", op.score, ping, clientInfo?.name ?: "")
-                    val isCurrentPlayer = clientIndex == playerIndex
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x, cursor.y, block, alt = isCurrentPlayer)
-                }
-
-                is LayoutOp.Picn -> {
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, dataProvider.getNamedPic(op.picName))
-                }
-
-                is LayoutOp.Num -> {
-                    commands += LayoutExecutor.LayoutCommand.Number(cursor.x, cursor.y, stats[op.statIndex], op.width, 0)
-                }
-
-                LayoutOp.HNum -> {
-                    val health = stats[Defines.STAT_HEALTH]
-                    val color = when {
-                        health > 25 -> 0
-                        health > 0 -> (serverFrame shr 2) and 1
-                        else -> 1
-                    }
-                    commands += LayoutExecutor.LayoutCommand.Number(cursor.x, cursor.y, health, 3, color)
-                }
-
-                LayoutOp.ANum -> {
-                    val ammo = stats[Defines.STAT_AMMO]
-                    if (ammo < 0) {
-                        continue
-                    }
-                    val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
-                    commands += LayoutExecutor.LayoutCommand.Number(cursor.x, cursor.y, ammo, 3, color)
-                }
-
-                LayoutOp.RNum -> {
-                    val armor = stats[Defines.STAT_ARMOR]
-                    if (armor < 1) {
-                        continue
-                    }
-                    commands += LayoutExecutor.LayoutCommand.Number(cursor.x, cursor.y, armor, 3, 0)
-                }
-
-                is LayoutOp.StatString -> {
-                    val statIndex = op.statIndex
-                    if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
-                        throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
-                    }
-                    val configIndex = stats[statIndex]
-                    if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                        throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
-                    }
-                    val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x, cursor.y, value, false)
-                }
-
-                is LayoutOp.Text -> {
-                    commands += LayoutExecutor.LayoutCommand.Text(
-                        x = cursor.x,
-                        y = cursor.y,
-                        text = op.text,
-                        alt = op.alt,
-                        centerWidth = if (op.centered) 320 else null,
-                    )
-                }
-
-                is LayoutOp.IfStat -> {
-                    val statIndex = op.statIndex
-                    if (stats[statIndex].toInt() != 0) {
-                        evaluateOps(
-                            ops = op.body,
-                            cursor = cursor,
-                            serverFrame = serverFrame,
-                            stats = stats,
-                            screenWidth = screenWidth,
-                            screenHeight = screenHeight,
-                            dataProvider = dataProvider,
-                            playerIndex = playerIndex,
-                            commands = commands,
-                        )
-                    }
-                }
+                continue
             }
         }
+
+        return commands
     }
 }
