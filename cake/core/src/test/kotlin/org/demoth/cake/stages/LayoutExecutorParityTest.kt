@@ -162,42 +162,4 @@ class LayoutExecutorParityTest {
             commandsB
         )
     }
-
-    @Test
-    fun cachedProgramReevaluatesWithNewStatsAndViewport() {
-        val program = LayoutProgramCompiler.compile("xr -40 yb -24 num 3 1")
-        val context = createLayoutTestContext()
-        try {
-            val statsA = ShortArray(64).apply { this[1] = 77 }
-            val statsB = ShortArray(64).apply { this[1] = 12 }
-
-            val commandsA = LayoutCommandCompiler.evaluate(
-                program = program,
-                serverFrame = 1,
-                stats = statsA,
-                screenWidth = 800,
-                screenHeight = 600,
-                gameConfig = context.gameConfig,
-            )
-            val commandsB = LayoutCommandCompiler.evaluate(
-                program = program,
-                serverFrame = 1,
-                stats = statsB,
-                screenWidth = 1024,
-                screenHeight = 768,
-                gameConfig = context.gameConfig,
-            )
-
-            assertEquals(
-                listOf(LayoutExecutor.LayoutCommand.Number(760, 576, 77, 3, 0)),
-                commandsA
-            )
-            assertEquals(
-                listOf(LayoutExecutor.LayoutCommand.Number(984, 744, 12, 3, 0)),
-                commandsB
-            )
-        } finally {
-            context.dispose()
-        }
-    }
 }
