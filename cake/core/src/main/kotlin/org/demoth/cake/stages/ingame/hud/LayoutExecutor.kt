@@ -77,15 +77,6 @@ class LayoutExecutor(
         data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : LayoutCommand
     }
 
-    internal fun compileLayoutCommands(
-        layout: String,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        dataProvider: LayoutDataProvider,
-    ): List<LayoutCommand> = LayoutCommandCompiler.compile(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
-
     /**
      * Parse and execute one server-provided layout string for the current frame.
      *
@@ -102,30 +93,201 @@ class LayoutExecutor(
     ) {
         if (layout.isNullOrEmpty()) return
 
-        val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
-        drawCommands(commands, screenHeight)
-    }
+        var x = 0
+        var y = 0
+        val parser = LayoutParserCompat(layout)
 
-    private fun drawCommands(commands: List<LayoutCommand>, screenHeight: Int) {
-        for (command in commands) {
-            when (command) {
-                is LayoutCommand.Image -> drawImageIdTech2(command.x, command.y, command.texture, screenHeight)
-                is LayoutCommand.Text -> drawTextIdTech2(
-                    command.x,
-                    command.y,
-                    command.text,
-                    command.alt,
-                    command.centerWidth,
-                    screenHeight
-                )
-                is LayoutCommand.Number -> drawNumberIdTech2(
-                    command.x,
-                    command.y,
-                    command.value,
-                    command.width,
-                    command.color,
-                    screenHeight
-                )
+        while (parser.hasNext()) {
+            parser.next()
+            if (parser.tokenEquals("xl")) {
+                parser.next()
+                x = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xr")) {
+                parser.next()
+                x = screenWidth + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("xv")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("yt")) {
+                parser.next()
+                y = parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yb")) {
+                parser.next()
+                y = screenHeight + parser.tokenAsInt()
+                continue
+            }
+            if (parser.tokenEquals("yv")) {
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+                continue
+            }
+
+            if (parser.tokenEquals("pic")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val imageIndex = stats[statIndex]
+                drawImageIdTech2(x, y, dataProvider.getImage(imageIndex.toInt()), screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("client")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt()
+
+                parser.next()
+                val time = parser.tokenAsInt()
+
+                drawTextIdTech2(x + 32, y, clientInfo?.name ?: "", alt = true, centerWidth = null, screenHeight = screenHeight)
+                drawTextIdTech2(x + 32, y + 8, "Score: ", alt = false, centerWidth = null, screenHeight = screenHeight)
+                drawTextIdTech2(x + 32 + 7 * 8, y + 8, "$score", alt = true, centerWidth = null, screenHeight = screenHeight)
+                drawTextIdTech2(x + 32, y + 16, "Ping:  $ping", alt = false, centerWidth = null, screenHeight = screenHeight)
+                drawTextIdTech2(x + 32, y + 24, "Time:  $time", alt = false, centerWidth = null, screenHeight = screenHeight)
+                drawImageIdTech2(x, y, clientInfo?.icon, screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("ctf")) {
+                parser.next()
+                x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+                parser.next()
+                y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+                parser.next()
+                val clientIndex = parser.tokenAsInt()
+                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+                parser.next()
+                val score = parser.tokenAsInt()
+
+                parser.next()
+                val ping = parser.tokenAsInt().coerceAtMost(999)
+
+                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
+                val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
+                drawTextIdTech2(x, y, block, alt = isCurrentPlayer, centerWidth = null, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("picn")) {
+                parser.next()
+                drawImageIdTech2(x, y, dataProvider.getNamedPic(parser.token()), screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("num")) {
+                parser.next()
+                val width = parser.tokenAsInt()
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                drawNumberIdTech2(x, y, stats[statIndex], width, 0, screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("hnum")) {
+                val health = stats[Defines.STAT_HEALTH]
+                val color = when {
+                    health > 25 -> 0
+                    health > 0 -> (serverFrame shr 2) and 1
+                    else -> 1
+                }
+                drawNumberIdTech2(x, y, health, 3, color, screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("anum")) {
+                val ammo = stats[Defines.STAT_AMMO]
+                if (ammo < 0) {
+                    continue
+                }
+                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
+                drawNumberIdTech2(x, y, ammo, 3, color, screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("rnum")) {
+                val armor = stats[Defines.STAT_ARMOR]
+                if (armor < 1) {
+                    continue
+                }
+                drawNumberIdTech2(x, y, armor, 3, 0, screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("stat_string")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
+                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                }
+                val configIndex = stats[statIndex]
+                if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
+                    throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
+                }
+                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
+                drawTextIdTech2(x, y, value, alt = false, centerWidth = null, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring")) {
+                parser.next()
+                drawTextIdTech2(x, y, parser.token(), alt = false, centerWidth = 320, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("string")) {
+                parser.next()
+                drawTextIdTech2(x, y, parser.token(), alt = false, centerWidth = null, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("cstring2")) {
+                parser.next()
+                drawTextIdTech2(x, y, parser.token(), alt = true, centerWidth = 320, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("string2")) {
+                parser.next()
+                drawTextIdTech2(x, y, parser.token(), alt = true, centerWidth = null, screenHeight = screenHeight)
+                continue
+            }
+
+            if (parser.tokenEquals("if")) {
+                parser.next()
+                val statIndex = parser.tokenAsInt()
+                val value = stats[statIndex]
+                if (value.toInt() == 0) {
+                    parser.next()
+                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
+                        parser.next()
+                    }
+                }
+                continue
             }
         }
     }
