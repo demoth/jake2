@@ -7,9 +7,19 @@ import com.badlogic.gdx.utils.Disposable
 /**
  * Runtime UI style resources bound to the currently active game.
  * This wraps all HUD text resources that are swapped when the game/mod changes.
+ *
+ * Ownership:
+ * created by `GameUiStyleFactory` and owned/disposed by `Game3dScreen`.
  */
 interface GameUiStyle : Disposable {
+    /**
+     * Primary HUD console font (`pics/conchars.pcx` for IdTech2 style).
+     */
     val hudFont: BitmapFont
+
+    /**
+     * Numeric HUD field renderer (`num_*` / `anum_*` for IdTech2 style).
+     */
     val hudNumberFont: HudNumberFont
 }
 

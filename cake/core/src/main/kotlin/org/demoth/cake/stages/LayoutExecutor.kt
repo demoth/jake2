@@ -32,6 +32,10 @@ internal data class LayoutClientInfo(
  *
  * Parsing and command emission happen in IdTech2 screen space (top-left origin).
  * Rendering performs an explicit IdTech2->libGDX transform (bottom-left origin).
+ *
+ * Legacy counterparts:
+ * - `client/SCR.ExecuteLayoutString` (status/layout script execution)
+ * - `client/CL_inv.DrawInventory` (inventory panel metrics and rows)
  */
 class LayoutExecutor(
     private val spriteBatch: SpriteBatch,
@@ -64,6 +68,12 @@ class LayoutExecutor(
         dataProvider: LayoutDataProvider,
     ): List<LayoutCommand> = LayoutCommandCompiler.compile(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
 
+    /**
+     * Compile and execute one server-provided layout string for the current frame.
+     *
+     * Invariant:
+     * all command coordinates are interpreted as IdTech2 top-left pixels before transform.
+     */
     fun executeLayoutString(
         layout: String?,
         serverFrame: Int,
@@ -223,6 +233,12 @@ class LayoutExecutor(
 }
 
 internal object LayoutCommandCompiler {
+    /**
+     * Compile textual layout script into draw commands in IdTech2 coordinate space.
+     *
+     * Legacy counterpart:
+     * `client/SCR.ExecuteLayoutString`.
+     */
     fun compile(
         layout: String,
         serverFrame: Int,

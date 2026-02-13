@@ -572,8 +572,8 @@ class Game3dScreen(
      * Rebuilds HUD style resources for the current game/mod and swaps the layout executor binding.
      *
      * Quirk:
-     * this is called both during screen init and after `ServerDataMessage`, so style disposal
-     * must be safe when the previous style is an engine fallback.
+     * this is called on each `ServerDataMessage` (map/reconnect transitions), so style disposal
+     * must be safe when the previous style is an engine fallback or already-disposed game style.
      */
     private fun reloadGameUiStyle() {
         val oldStyle = gameUiStyle

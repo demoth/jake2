@@ -19,6 +19,9 @@ object ConcharsFontLoader {
 
     /**
      * Maps 256 IdTech2 console glyph cells in row-major order on a fixed 16x16 grid.
+     *
+     * Legacy counterpart:
+     * `client/render/fast/Draw.Draw_Char` (row/col lookup from 8-bit glyph id).
      */
     fun mapCells(
         textureWidth: Int,

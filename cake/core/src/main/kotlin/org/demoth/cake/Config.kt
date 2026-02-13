@@ -172,6 +172,9 @@ class GameConfiguration(
 
     /**
      * Resolve and load a named IdTech2 HUD picture (layout `picn`/inventory backgrounds).
+     *
+     * Legacy counterpart:
+     * `client/SCR.ExecuteLayoutString` `picn` branch (`re.DrawPic(x, y, token)`).
      */
     fun getNamedPic(picName: String): Texture? {
         val normalized = picName.trim().removePrefix("/")
@@ -204,6 +207,9 @@ class GameConfiguration(
 
     /**
      * Resolve scoreboard icon matching IdTech2 player skin fallback behavior.
+     *
+     * Legacy counterpart:
+     * `client/CL_parse.LoadClientinfo` icon fallback rules.
      */
     fun getClientIcon(clientIndex: Int): Texture? {
         val info = parseClientInfo(clientIndex) ?: return null

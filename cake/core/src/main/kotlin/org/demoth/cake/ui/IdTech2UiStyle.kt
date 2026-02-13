@@ -21,6 +21,9 @@ private val HUD_NUMBER_GLYPHS = arrayOf(
 
 /**
  * IdTech2 HUD numeric font backed by per-digit picture assets.
+ *
+ * Legacy counterpart:
+ * `client/SCR.DrawField` + `SCR.sb_nums` glyph tables.
  */
 class IdTech2HudNumberFont(
     private val digitsByStyle: Array<Array<Texture>>,
@@ -73,6 +76,9 @@ object GameUiStyleFactory {
      * Quirk:
      * styles are recreated when serverdata changes, so each style instance must
      * acquire and release its own AssetManager references.
+     *
+     * Legacy counterpart:
+     * `client/SCR.TouchPics` pre-registering HUD assets.
      */
     fun create(
         gameName: String,
