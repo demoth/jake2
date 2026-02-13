@@ -21,6 +21,7 @@ interface ServerMessageProcessor {
     // These messages are sent occasionally
     fun processSoundMessage(msg: SoundMessage)
     fun processWeaponSoundMessage(msg: WeaponSoundMessage)
+    fun processPrintCenterMessage(msg: PrintCenterMessage)
     fun processLayoutMessage(msg: LayoutMessage)
     fun processInventoryMessage(msg: InventoryMessage)
 }

@@ -42,6 +42,15 @@ class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager,
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
+    companion object {
+        // Legacy `scr_centertime` default value from `client/SCR.Init`.
+        private const val CENTER_PRINT_TIMEOUT_SECONDS = 2.5f
+        private const val CENTER_PRINT_SHORT_MAX_LINES = 4
+        // Legacy center-print vertical anchors from `client/SCR.DrawCenterString`.
+        private const val CENTER_PRINT_SHORT_Y_RATIO = 0.35f
+        private const val CENTER_PRINT_LONG_TOP_Y = 48
+    }
+
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
@@ -71,6 +80,11 @@ class Game3dScreen(
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
     private var layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle)
+
+    // fixme: move this to the layout executor? in this case we will need to call layoutExecutor.update() in order to support disappearing text
+    private var centerPrintText: String = ""
+    private var centerPrintLineCount: Int = 0
+    private var centerPrintTimeLeftSeconds: Float = 0f
 
 
     // interpolation factor between two server frames
@@ -228,6 +242,12 @@ class Game3dScreen(
                     gameConfig = gameConfig
                 )
             }
+
+            drawCenterPrint(
+                delta = delta,
+                screenWidth = Gdx.graphics.width,
+                screenHeight = Gdx.graphics.height,
+            )
 
         }
         entityManager.lerpAcc += delta
@@ -532,6 +552,15 @@ class Game3dScreen(
         }
     }
 
+    override fun processPrintCenterMessage(msg: PrintCenterMessage) {
+        // Legacy behavior echoes center-print text to the console too.
+        Com.Printf("${msg.text}\n")
+
+        centerPrintText = msg.text
+        centerPrintLineCount = if (msg.text.isEmpty()) 0 else msg.text.count { it == '\n' } + 1
+        centerPrintTimeLeftSeconds = if (centerPrintLineCount == 0) 0f else CENTER_PRINT_TIMEOUT_SECONDS
+    }
+
     override fun processLayoutMessage(msg: LayoutMessage) {
          gameConfig.layout = msg.layout
     }
@@ -586,5 +615,31 @@ class Game3dScreen(
         oldStyle.dispose()
     }
 
+    private fun drawCenterPrint(delta: Float, screenWidth: Int, screenHeight: Int) {
+        if (centerPrintTimeLeftSeconds <= 0f || centerPrintText.isEmpty()) {
+            return
+        }
+
+        centerPrintTimeLeftSeconds -= delta
+        if (centerPrintTimeLeftSeconds <= 0f) {
+            centerPrintText = ""
+            centerPrintLineCount = 0
+            return
+        }
+
+        val idTech2TopY = if (centerPrintLineCount <= CENTER_PRINT_SHORT_MAX_LINES) {
+            (screenHeight * CENTER_PRINT_SHORT_Y_RATIO).toInt()
+        } else {
+            CENTER_PRINT_LONG_TOP_Y
+        }
+        layoutExecutor.drawText(
+            x = 0,
+            y = idTech2TopY,
+            text = centerPrintText,
+            screenHeight = screenHeight,
+            alt = false,
+            centerWidth = screenWidth,
+        )
+    }
 
 }

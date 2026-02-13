@@ -220,6 +220,23 @@ class LayoutExecutor(
     }
 
     /**
+     * Draw plain HUD text in IdTech2 screen coordinates.
+     *
+     * This is used by non-layout UI flows (for example center-print messages) that still need
+     * the same active game style fonts and IdTech2 coordinate transform.
+     */
+    fun drawText(
+        x: Int,
+        y: Int,
+        text: String,
+        screenHeight: Int,
+        alt: Boolean = false,
+        centerWidth: Int? = null,
+    ) {
+        drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
+    }
+
+    /**
      * Apply legacy high-bit toggle used by IdTech2 alternate HUD text (`DrawAltString` / `^ 0x80`).
      */
     private fun mapAltText(text: String, alt: Boolean): String {

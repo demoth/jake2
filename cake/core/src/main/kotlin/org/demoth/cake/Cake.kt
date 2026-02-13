@@ -624,8 +624,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     Com.Printf("${msg.text}\n")
                 }
                 is PrintCenterMessage -> {
-                    // todo: display on the hud
-                    Com.Printf("${msg.text}\n")
+                    game3dScreen?.processPrintCenterMessage(msg)
                 }
                 is LayoutMessage -> {
                     game3dScreen?.processLayoutMessage(msg)
