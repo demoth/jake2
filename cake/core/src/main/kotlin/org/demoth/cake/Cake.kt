@@ -95,9 +95,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // allow the game screen to receive the input
             updateInputHandlers(consoleVisible, menuVisible)
         }
-    private var deferredConfigUnloadScreen: Game3dScreen? = null
     // During map change, the previous screen is disposed first but its config assets are kept alive
     // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
+    private var deferredConfigUnloadScreen: Game3dScreen? = null
+    // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
+    // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
@@ -326,7 +328,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
         Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
-        game3dScreen?.resetInputLookReference()
         game3dScreen?.clearInputState()
 
         val inputProcessor: InputProcessor = when {

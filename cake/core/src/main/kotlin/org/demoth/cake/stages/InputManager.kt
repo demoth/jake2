@@ -22,7 +22,29 @@ import org.demoth.cake.wrapSignedAngle
 import kotlin.experimental.or
 import kotlin.math.abs
 
-// CL_input
+/**
+ * Builds movement/usercmd packets and bridges bind-driven input into immediate control state.
+ *
+ * Responsibilities:
+ * - Maintain immediate control state used every outgoing `MoveMessage` frame.
+ * - Accumulate local view angles (mouse + keyboard turn/look).
+ * - Keep local angle basis synchronized with server `pmove.delta_angles`.
+ * - Expose `InputProcessor` methods so physical events can be routed through [ClientBindings].
+ *
+ * Ownership/lifecycle:
+ * - Constructed by [org.demoth.cake.Cake] when creating a [Game3dScreen].
+ * - Bound [ClientBindings] instance is typically owned by `Cake` and reused across screens.
+ *
+ * Timing assumptions:
+ * - Runs on the LibGDX main thread.
+ * - [gatherInput] is called from the network send path; it must remain allocation-light.
+ *
+ * Invariants:
+ * - Immediate controls (`+forward`, `+attack`, etc.) are represented as action counters.
+ * - Opposing movement directions cancel on each axis.
+ * - `+use` sets `BUTTON_USE`; `+attack` sets `BUTTON_ATTACK`.
+ * - `clearInputState()` must be called when input routing/context changes to avoid stuck state.
+ */
 class InputManager(
     private val bindings: ClientBindings = ClientBindings(),
     private val nowNanosProvider: () -> Long = System::nanoTime,
@@ -203,6 +225,11 @@ class InputManager(
 
     // endregion
 
+    /**
+     * Resets all held immediate actions and pending button-release state.
+     *
+     * Call on menu/console/input-focus transitions before gameplay input resumes.
+     */
     fun clearInputState() {
         bindings.releaseAllActiveButtons()
         immediateStates.fill(0)

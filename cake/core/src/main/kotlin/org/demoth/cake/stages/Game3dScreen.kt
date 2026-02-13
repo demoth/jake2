@@ -293,10 +293,11 @@ class Game3dScreen(
         return inputManager.gatherInput(outgoingSequence, deltaTime, entityManager.currentFrame)
     }
 
-    fun resetInputLookReference() {
-        inputManager.resetMouseLookReference()
-    }
-
+    /**
+     * Clears held gameplay input state when focus/context changes.
+     *
+     * This prevents stuck movement/fire after switching between game/menu/console processors.
+     */
     fun clearInputState() {
         inputManager.clearInputState()
     }

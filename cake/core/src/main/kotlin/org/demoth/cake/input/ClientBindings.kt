@@ -6,9 +6,32 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 
 /**
- * Runtime key binding table and input event dispatcher for Cake.
+ * Runtime bind table and physical input dispatcher for the Cake client.
  *
- * Supports keyboard keys, mouse buttons and wheel pseudo-keys.
+ * Purpose:
+ * - Parse and store user bindings (`bind`, `unbind`, `unbindall`, `bindlist`).
+ * - Convert physical input events (keyboard/mouse/wheel) to command execution.
+ * - Preserve Quake-style distinction between:
+ *   - immediate button commands (`+forward`, `+attack`, etc.),
+ *   - command-style actions (`use shotgun`, `inven`, `weapnext`, etc.).
+ *
+ * Lifecycle/ownership:
+ * - Created once by [org.demoth.cake.Cake] and reused across map/screen recreation.
+ * - This keeps bindings session-stable while `Game3dScreen` instances are replaced.
+ *
+ * Timing assumptions:
+ * - Called from the LibGDX main thread through [com.badlogic.gdx.InputProcessor].
+ * - Not thread-safe; callers must not use this concurrently.
+ *
+ * Invariants:
+ * - Non-`+` bindings execute on key/button press only.
+ * - `+command` bindings execute once on press and emit matching `-command` on release.
+ * - Repeated key-down events for a held input do not duplicate `+command`.
+ * - Wheel binds are transient: `+command` emits immediate press+release in one event.
+ *
+ * Non-goals (current phase):
+ * - Persistence to config files.
+ * - Per-mod binding profiles.
  */
 class ClientBindings(
     private val executeImmediate: (String) -> Unit = Cmd::ExecuteString,
@@ -82,10 +105,13 @@ class ClientBindings(
         installDefaultBindings()
     }
 
+    /** Dispatches a keyboard press. Returns `true` when the key is bound. */
     fun handleKeyDown(keycode: Int): Boolean = onInputPressed(keycode)
 
+    /** Dispatches a keyboard release. Returns `true` when the key is/was bound. */
     fun handleKeyUp(keycode: Int): Boolean = onInputReleased(keycode)
 
+    /** Dispatches a mouse button press (left/right/middle). */
     fun handleMouseButtonDown(button: Int): Boolean {
         val keyCode = when (button) {
             Input.Buttons.LEFT -> MOUSE1
@@ -96,6 +122,7 @@ class ClientBindings(
         return onInputPressed(keyCode)
     }
 
+    /** Dispatches a mouse button release (left/right/middle). */
     fun handleMouseButtonUp(button: Int): Boolean {
         val keyCode = when (button) {
             Input.Buttons.LEFT -> MOUSE1
@@ -106,6 +133,11 @@ class ClientBindings(
         return onInputReleased(keyCode)
     }
 
+    /**
+     * Dispatches a wheel event to `MWHEELUP` / `MWHEELDOWN` pseudo-keys.
+     *
+     * Wheel binds do not have a held state. They are always treated as transient events.
+     */
     fun handleScroll(amountX: Float, amountY: Float): Boolean {
         var handled = false
 
@@ -124,22 +156,34 @@ class ClientBindings(
         return handled
     }
 
+    /** Assigns a bind by key name. Returns `false` if key name is unknown. */
     fun setBindingByName(keyName: String, binding: String): Boolean {
         val keyCode = parseKeyName(keyName) ?: return false
         setBinding(keyCode, binding)
         return true
     }
 
+    /** Returns bind text for the key name, or `null` when unknown/unbound. */
     fun getBindingByName(keyName: String): String? {
         val keyCode = parseKeyName(keyName) ?: return null
         return bindings[keyCode]
     }
 
+    /**
+     * Clears all bindings and releases active `+command` state.
+     *
+     * This is destructive for current runtime bind state and does not restore defaults.
+     */
     fun clearBindings() {
         bindings.clear()
         releaseAllActiveButtons()
     }
 
+    /**
+     * Emits all pending `-command` releases and clears held input bookkeeping.
+     *
+     * Used during input context switches to avoid stuck movement/fire state.
+     */
     fun releaseAllActiveButtons() {
         val active = activeButtonsByInput.values.flatMap { it }
         activeButtonsByInput.clear()
@@ -149,6 +193,7 @@ class ClientBindings(
         }
     }
 
+    /** Returns current bindings as `(displayKey, command)` pairs sorted by key name. */
     fun listBindings(): List<Pair<String, String>> {
         return bindings.entries
             .sortedBy { keyCodeToDisplayName(it.key) }
@@ -163,6 +208,13 @@ class ClientBindings(
         }
     }
 
+    /**
+     * Installs Cake runtime defaults.
+     *
+     * Notes:
+     * - Debug toggles (`toggle_skybox`/`toggle_level`/`toggle_entities`) are intentionally unbound.
+     * - Inventory defaults include `inven`, `invuse`, `invnext`, `invprev`.
+     */
     private fun installDefaultBindings() {
         setBindingByName("w", "+forward")
         setBindingByName("s", "+back")
