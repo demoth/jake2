@@ -66,4 +66,26 @@ class GameConfigurationLayoutProgramTest {
             assetManager.dispose()
         }
     }
+
+    @Test
+    fun compilesServerLayoutMessageTextOnSet() {
+        val assetManager = AssetManager(resolver)
+        try {
+            val config = GameConfiguration(assetManager)
+            config.layout = "xl 12 yt 34 string \"HELLO\""
+
+            val compiled = config.getLayoutProgram()
+            assertNotNull(compiled)
+            assertEquals(
+                listOf(
+                    LayoutOp.SetX(org.demoth.cake.stages.ingame.hud.LayoutXAnchor.LEFT, 12),
+                    LayoutOp.SetY(org.demoth.cake.stages.ingame.hud.LayoutYAnchor.TOP, 34),
+                    LayoutOp.Text(text = "HELLO", alt = false, centered = false),
+                ),
+                compiled!!.ops
+            )
+        } finally {
+            assetManager.dispose()
+        }
+    }
 }
