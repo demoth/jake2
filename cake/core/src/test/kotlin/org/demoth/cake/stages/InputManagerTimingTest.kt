@@ -6,6 +6,7 @@ import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
+import org.demoth.cake.input.InputManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull

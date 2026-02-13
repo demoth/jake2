@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.input
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -17,7 +17,6 @@ import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.clampPitch
-import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.wrapSignedAngle
 import kotlin.experimental.or
 import kotlin.math.abs
@@ -32,8 +31,8 @@ import kotlin.math.abs
  * - Expose `InputProcessor` methods so physical events can be routed through [ClientBindings].
  *
  * Ownership/lifecycle:
- * - Constructed by [org.demoth.cake.Cake] when creating a [Game3dScreen].
- * - Bound [ClientBindings] instance is typically owned by `Cake` and reused across screens.
+ * - Has the same lifetime as the [org.demoth.cake.stages.Game3dScreen].
+ * - Bound [ClientBindings] instance is typically owned by `Cake` and reused across screens (may change in future when bindings save restore is implemented)
  *
  * Timing assumptions:
  * - Runs on the LibGDX main thread.

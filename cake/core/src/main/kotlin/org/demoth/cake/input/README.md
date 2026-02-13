@@ -1,25 +1,27 @@
 # Cake Input Bindings
 
 ## Overview
-This package owns runtime key bindings for the Cake client and dispatches physical input events to engine commands.
+This package owns client input processing in Cake:
+- runtime bindings and physical-event dispatch,
+- immediate input state and usercmd assembly.
 
 It does **not** own:
-- usercmd assembly (`InputManager` in `stages` package),
 - persistence to `config.cfg`,
 - per-mod bind profiles.
 
 ## Key Types
 - `ClientBindings` - Runtime bind table + key/mouse/wheel event dispatcher.
+- `InputManager` - Immediate action state + angle sync + `MoveMessage` assembly.
 
 ## Data / Control Flow
 ```text
 LibGDX InputProcessor events
-  -> InputManager.key*/touch*/scrolled
+  -> input.InputManager.key*/touch*/scrolled
   -> ClientBindings.handle*
        - +commands: Cmd.ExecuteString("+...") / Cmd.ExecuteString("-...")
        - command-style: Cbuf.AddText("...\n")
   -> Cake.render(): Cbuf.Execute() BEFORE sendUpdates()
-  -> InputManager.gatherInput() builds MoveMessage using immediate action counters
+  -> input.InputManager.gatherInput() builds MoveMessage using immediate action counters
 ```
 
 ## Invariants

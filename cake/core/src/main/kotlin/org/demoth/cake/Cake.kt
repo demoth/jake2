@@ -43,9 +43,9 @@ import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
+import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
-import org.demoth.cake.stages.InputManager
 import org.demoth.cake.stages.MainMenuStage
 
 private enum class ClientNetworkState {

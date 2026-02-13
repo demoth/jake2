@@ -27,6 +27,7 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.input.InputManager
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
@@ -39,7 +40,7 @@ import kotlin.math.abs
  */
 class Game3dScreen(
     private val assetManager: AssetManager,
-    private val inputManager: InputManager = InputManager(),
+    private val inputManager: InputManager,
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     private var precached: Boolean = false
 
