@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame.hud
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -47,7 +47,7 @@ class LayoutExecutor(
         const val INVENTORY_HEIGHT = 240
     }
 
-    internal sealed interface LayoutCommand {
+    sealed interface LayoutCommand {
         data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
         data class Text(
             val x: Int,

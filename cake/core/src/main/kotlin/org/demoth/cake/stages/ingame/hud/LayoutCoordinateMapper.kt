@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame.hud
 
 internal object LayoutCoordinateMapper {
     /**

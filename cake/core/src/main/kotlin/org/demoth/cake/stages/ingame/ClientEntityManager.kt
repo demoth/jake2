@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame
 
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -6,9 +6,6 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
-import jake2.qcommon.Defines.CS_MODELS
-import jake2.qcommon.Defines.MAX_EDICTS
-import jake2.qcommon.Defines.MAX_PARSE_ENTITIES
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.messages.server.EntityUpdate
@@ -33,10 +30,11 @@ class ClientEntityManager: Disposable {
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
     // entity states - updated during processing of [PacketEntitiesMessage]
-    private val cl_parse_entities = Array(MAX_PARSE_ENTITIES) { entity_state_t() }
-    private val clientEntities = Array(MAX_EDICTS) { ClientEntity("") }
+    private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t() }
+    private val clientEntities = Array(Defines.MAX_EDICTS) { ClientEntity("") }
 
-    var previousFrame: ClientFrame? = ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
+    var previousFrame: ClientFrame? =
+        ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
     val currentFrame = ClientFrame() // latest frame information received from the server
 
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
@@ -72,7 +70,7 @@ class ClientEntityManager: Disposable {
     }
 
     fun getEntitySoundOrigin(entityIndex: Int): Vector3? {
-        if (entityIndex !in 0..<MAX_EDICTS) {
+        if (entityIndex !in 0..<Defines.MAX_EDICTS) {
             return null // todo: warn
         }
         val entity = clientEntities[entityIndex]
@@ -87,7 +85,7 @@ class ClientEntityManager: Disposable {
     // `CL_pred.ClipMoveToEntities` and `CL_pred.PMpointcontents` over
     // `cl.frame.num_entities` + `cl_parse_entities`.
     fun forEachCurrentEntityState(action: (entity_state_t) -> Unit) {
-        val mask = MAX_PARSE_ENTITIES - 1
+        val mask = Defines.MAX_PARSE_ENTITIES - 1
         for (i in 0 until currentFrame.num_entities) {
             val idx = (currentFrame.parse_entities + i) and mask
             action(cl_parse_entities[idx])
@@ -106,7 +104,7 @@ class ClientEntityManager: Disposable {
         // Determine if we have a valid previous frame to delta from
         val oldFrame = previousFrame?.takeIf { it.valid && it.num_entities > 0 }
 
-        val mask = MAX_PARSE_ENTITIES - 1
+        val mask = Defines.MAX_PARSE_ENTITIES - 1
 
         var oldindex = 0
         var oldstate: entity_state_t? = null
@@ -186,7 +184,7 @@ class ClientEntityManager: Disposable {
     private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
         val entity: ClientEntity = clientEntities[newnum]
         // parse_entities now points to the last state from last frame
-        val newState: entity_state_t = cl_parse_entities[parse_entities and (MAX_PARSE_ENTITIES - 1)]
+        val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
         parse_entities++ // we will need this for the next frame
         frame.num_entities++
 
@@ -278,7 +276,7 @@ class ClientEntityManager: Disposable {
             visibleEntities += levelEntity!!
         }
 
-        val mask = MAX_PARSE_ENTITIES - 1
+        val mask = Defines.MAX_PARSE_ENTITIES - 1
 
         for (i in 0 until currentFrame.num_entities) {
             // Make the mask application explicit to avoid any precedence confusion
@@ -404,7 +402,7 @@ class ClientEntityManager: Disposable {
             if (deltaFrame.serverframe != currentFrame.deltaframe) {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
                 Com.Printf("Delta frame too old.\n")
-            } else if (parse_entities - deltaFrame.parse_entities > MAX_PARSE_ENTITIES - 128) {
+            } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
                 Com.Printf("Delta parse_entities too old.123123123\n")
             } else {
                 currentFrame.valid = true  // valid delta parse

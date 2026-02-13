@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -1,7 +1,6 @@
 package org.demoth.cake.input
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.BUTTON_USE
@@ -31,7 +30,7 @@ import kotlin.math.abs
  * - Expose `InputProcessor` methods so physical events can be routed through [ClientBindings].
  *
  * Ownership/lifecycle:
- * - Has the same lifetime as the [org.demoth.cake.stages.Game3dScreen].
+ * - Has the same lifetime as the [org.demoth.cake.stages.ingame.Game3dScreen].
  * - Bound [ClientBindings] instance is typically owned by `Cake` and reused across screens (may change in future when bindings save restore is implemented)
  *
  * Timing assumptions:

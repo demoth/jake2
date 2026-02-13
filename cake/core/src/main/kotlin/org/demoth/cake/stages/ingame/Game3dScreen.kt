@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
@@ -13,21 +13,41 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.Vector3
-import jake2.qcommon.*
-import jake2.qcommon.Defines.*
+import jake2.qcommon.CM
+import jake2.qcommon.Com
+import jake2.qcommon.Defines
+import jake2.qcommon.Globals
 import jake2.qcommon.network.messages.client.MoveMessage
-import jake2.qcommon.network.messages.server.*
+import jake2.qcommon.network.messages.server.ConfigStringMessage
+import jake2.qcommon.network.messages.server.FrameHeaderMessage
+import jake2.qcommon.network.messages.server.InventoryMessage
+import jake2.qcommon.network.messages.server.LayoutMessage
+import jake2.qcommon.network.messages.server.PacketEntitiesMessage
+import jake2.qcommon.network.messages.server.PlayerInfoMessage
+import jake2.qcommon.network.messages.server.PrintCenterMessage
+import jake2.qcommon.network.messages.server.ServerDataMessage
+import jake2.qcommon.network.messages.server.SoundMessage
+import jake2.qcommon.network.messages.server.SpawnBaselineMessage
+import jake2.qcommon.network.messages.server.WeaponSoundMessage
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import ktx.scene2d.Scene2DSkin
-import org.demoth.cake.*
+import org.demoth.cake.ClientEntity
+import org.demoth.cake.GameConfiguration
+import org.demoth.cake.ServerMessageProcessor
 import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.createModelInstance
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.lerpAngle
+import org.demoth.cake.md2FragmentShader
+import org.demoth.cake.md2VatShader
+import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
@@ -173,13 +193,13 @@ class Game3dScreen(
         entityManager.visibleEntities.forEach {
 
             // apply client side effects
-            if (it.current.effects and EF_ROTATE != 0) {
+            if (it.current.effects and Defines.EF_ROTATE != 0) {
                 // rotate the model Instance, should to 180 degrees in 1 second
                 it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
             } else {
-                val pitch = lerpAngle(it.prev.angles[PITCH], it.current.angles[PITCH], lerpFrac)
-                val yaw = lerpAngle(it.prev.angles[YAW], it.current.angles[YAW], lerpFrac)
-                val roll = lerpAngle(it.prev.angles[ROLL], it.current.angles[ROLL], lerpFrac)
+                val pitch = lerpAngle(it.prev.angles[Defines.PITCH], it.current.angles[Defines.PITCH], lerpFrac)
+                val yaw = lerpAngle(it.prev.angles[Defines.YAW], it.current.angles[Defines.YAW], lerpFrac)
+                val roll = lerpAngle(it.prev.angles[Defines.ROLL], it.current.angles[Defines.ROLL], lerpFrac)
 
                 applyIdTech2EntityRotation(it, pitch, yaw, roll)
 
@@ -221,7 +241,7 @@ class Game3dScreen(
 
             // draw additional layout, like help or score
             // SRC.DrawLayout
-            if ((entityManager.currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 1) != 0) {
+            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
                 layoutExecutor.executeLayoutString(
                     layout = gameConfig.layout,
                     serverFrame = entityManager.currentFrame.serverframe,
@@ -234,7 +254,7 @@ class Game3dScreen(
             }
             // draw additional layout, like help or score
             // CL_inv.DrawInventory
-            if ((entityManager.currentFrame.playerstate.stats[STAT_LAYOUTS].toInt() and 2) != 0) {
+            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 2) != 0) {
                 layoutExecutor.drawInventory(
                     playerstate = entityManager.currentFrame.playerstate,
                     screenWidth = Gdx.graphics.width,
@@ -281,15 +301,15 @@ class Game3dScreen(
 
         // load the level
         val mapName = requireNotNull(gameConfig.getMapName()) {
-            "Missing map config string at index ${CS_MODELS + 1}"
+            "Missing map config string at index ${Defines.CS_MODELS + 1}"
         }
         val bspMap = gameConfig.loadMapAsset()
         val brushModels = bspMap.models
 
         // load inline bmodels
         brushModels.forEachIndexed { index, model ->
-            val configString = gameConfig[CS_MODELS + index + 1]
-            check(configString != null) { "Missing brush model for ${gameConfig[CS_MODELS + index + 1]?.value}" }
+            val configString = gameConfig[Defines.CS_MODELS + index + 1]
+            check(configString != null) { "Missing brush model for ${gameConfig[Defines.CS_MODELS + index + 1]?.value}" }
             if (index != 0)
                 check(configString.value == "*$index") { "Wrong config string value for inline model" }
             configString.resource = model
@@ -303,7 +323,7 @@ class Game3dScreen(
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
 
         // after world + inline brush models, only non-inline model paths are expected.
-        val startIndex = CS_MODELS + 1 + brushModels.size
+        val startIndex = Defines.CS_MODELS + 1 + brushModels.size
         gameConfig.loadAssets(startIndex)
         refreshSkyBox()
 
@@ -365,7 +385,7 @@ class Game3dScreen(
             oldZ = newZ
         }
 
-        val predictionEnabled = (currentState.pmove.pm_flags.toInt() and PMF_NO_PREDICTION) == 0
+        val predictionEnabled = (currentState.pmove.pm_flags.toInt() and Defines.PMF_NO_PREDICTION) == 0
         val interpolatedX: Float
         val interpolatedY: Float
         val interpolatedZ: Float
@@ -392,22 +412,36 @@ class Game3dScreen(
         val baseViewPitch: Float
         val baseViewYaw: Float
         val baseViewRoll: Float
-        if (currentState.pmove.pm_type < PM_DEAD && predictionEnabled) {
+        if (currentState.pmove.pm_type < Defines.PM_DEAD && predictionEnabled) {
             // Old client path: use predicted view angles when locally controlling movement.
             // Cross-reference: `CL_ents.CalcViewValues` predicted viewangles branch.
-            baseViewPitch = prediction.predictedAngles[PITCH]
-            baseViewYaw = prediction.predictedAngles[YAW]
-            baseViewRoll = prediction.predictedAngles[ROLL]
+            baseViewPitch = prediction.predictedAngles[Defines.PITCH]
+            baseViewYaw = prediction.predictedAngles[Defines.YAW]
+            baseViewRoll = prediction.predictedAngles[Defines.ROLL]
         } else {
             // No local prediction for PM_DEAD / PM_GIB / PM_FREEZE.
-            baseViewPitch = lerpAngle(previousState.viewangles[PITCH], currentState.viewangles[PITCH], lerp)
-            baseViewYaw = lerpAngle(previousState.viewangles[YAW], currentState.viewangles[YAW], lerp)
-            baseViewRoll = lerpAngle(previousState.viewangles[ROLL], currentState.viewangles[ROLL], lerp)
+            baseViewPitch =
+                lerpAngle(previousState.viewangles[Defines.PITCH], currentState.viewangles[Defines.PITCH], lerp)
+            baseViewYaw = lerpAngle(previousState.viewangles[Defines.YAW], currentState.viewangles[Defines.YAW], lerp)
+            baseViewRoll =
+                lerpAngle(previousState.viewangles[Defines.ROLL], currentState.viewangles[Defines.ROLL], lerp)
         }
 
-        val viewPitch = baseViewPitch + lerpAngle(previousState.kick_angles[PITCH], currentState.kick_angles[PITCH], lerp)
-        val viewYaw = baseViewYaw + lerpAngle(previousState.kick_angles[YAW], currentState.kick_angles[YAW], lerp)
-        val viewRoll = baseViewRoll + lerpAngle(previousState.kick_angles[ROLL], currentState.kick_angles[ROLL], lerp)
+        val viewPitch = baseViewPitch + lerpAngle(
+            previousState.kick_angles[Defines.PITCH],
+            currentState.kick_angles[Defines.PITCH],
+            lerp
+        )
+        val viewYaw = baseViewYaw + lerpAngle(
+            previousState.kick_angles[Defines.YAW],
+            currentState.kick_angles[Defines.YAW],
+            lerp
+        )
+        val viewRoll = baseViewRoll + lerpAngle(
+            previousState.kick_angles[Defines.ROLL],
+            currentState.kick_angles[Defines.ROLL],
+            lerp
+        )
         val (forward, up) = toForwardUp(viewPitch, viewYaw, viewRoll)
 
         camera.direction.set(forward)
@@ -452,12 +486,12 @@ class Game3dScreen(
             )
         }
 
-        val oldGunAnglePitch = previousState.gunangles[PITCH]
-        val oldGunAngleYaw = previousState.gunangles[YAW]
-        val oldGunAngleRoll = previousState.gunangles[ROLL]
-        val currentGunAnglePitch = currentState.gunangles[PITCH]
-        val currentGunAngleYaw = currentState.gunangles[YAW]
-        val currentGunAngleRoll = currentState.gunangles[ROLL]
+        val oldGunAnglePitch = previousState.gunangles[Defines.PITCH]
+        val oldGunAngleYaw = previousState.gunangles[Defines.YAW]
+        val oldGunAngleRoll = previousState.gunangles[Defines.ROLL]
+        val currentGunAnglePitch = currentState.gunangles[Defines.PITCH]
+        val currentGunAngleYaw = currentState.gunangles[Defines.YAW]
+        val currentGunAngleRoll = currentState.gunangles[Defines.ROLL]
 
         // old client behavior: gun angles are view angles + replicated gun angles
         entityManager.viewGun?.prev?.angles = floatArrayOf(
@@ -491,7 +525,7 @@ class Game3dScreen(
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
         gameConfig.applyConfigString(msg.index, msg.config, loadResource = precached)
 
-        if (msg.index == CS_SKY) {
+        if (msg.index == Defines.CS_SKY) {
             refreshSkyBox()
         }
     }
@@ -566,7 +600,7 @@ class Game3dScreen(
     }
 
     override fun processInventoryMessage(msg: InventoryMessage) {
-        for (i in 0..<MAX_ITEMS) {
+        for (i in 0..<Defines.MAX_ITEMS) {
             gameConfig.inventory[i] = msg.inventory[i]
         }
     }
@@ -589,7 +623,7 @@ class Game3dScreen(
         }
 
         val distance = soundOrigin.dst(camera.position)
-        val rolloff = if (msg.attenuation == ATTN_STATIC.toFloat()) msg.attenuation * 2f else msg.attenuation
+        val rolloff = if (msg.attenuation == Defines.ATTN_STATIC.toFloat()) msg.attenuation * 2f else msg.attenuation
         val referenceDistance = 200f
         if (distance <= referenceDistance) {
             return 1f

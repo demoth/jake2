@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Com
-import org.demoth.cake.stages.LayoutCoordinateMapper
+import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
 private val IDTECH2_GAME_NAMES = setOf("baseq2", "rogue", "xatrix", "ctf")
 private const val CONCHARS_PATH = "pics/conchars.pcx"

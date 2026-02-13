@@ -1,4 +1,4 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame.hud
 
 import jake2.qcommon.Defines
 

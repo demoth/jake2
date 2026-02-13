@@ -1,6 +1,9 @@
 package org.demoth.cake.stages
 
 import jake2.qcommon.Defines
+import org.demoth.cake.stages.ingame.hud.LayoutCommandCompiler
+import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
+import org.demoth.cake.stages.ingame.hud.LayoutExecutor
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

@@ -22,7 +22,7 @@ import kotlin.collections.plusAssign
 
 /**
  * Isolated renderer for RF_BEAM entities. Keeps beam-specific caches and temporary vectors out
- * of [org.demoth.cake.stages.Game3dScreen].
+ * of [org.demoth.cake.stages.ingame.Game3dScreen].
  */
 class BeamRenderer(
     private val assetManager: AssetManager

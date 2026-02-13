@@ -1,11 +1,7 @@
-package org.demoth.cake.stages
+package org.demoth.cake.stages.ingame
 
 import jake2.qcommon.CM
-import jake2.qcommon.Defines.CMD_BACKUP
-import jake2.qcommon.Defines.CS_AIRACCEL
-import jake2.qcommon.Defines.MASK_PLAYERSOLID
-import jake2.qcommon.Defines.PMF_NO_PREDICTION
-import jake2.qcommon.Defines.PMF_ON_GROUND
+import jake2.qcommon.Defines
 import jake2.qcommon.PMove
 import jake2.qcommon.ServerEntity
 import jake2.qcommon.ServerPlayerInfo
@@ -39,7 +35,7 @@ class ClientPrediction(
     var predictedStepTimeMs = 0
         private set
 
-    private val predictedOrigins = Array(CMD_BACKUP) { IntArray(3) }
+    private val predictedOrigins = Array(Defines.CMD_BACKUP) { IntArray(3) }
     private val pmoveProcessor = PMove.newLegacyProcessor()
     private val zeroAngles = floatArrayOf(0f, 0f, 0f)
     private val tempBoxMins = floatArrayOf(0f, 0f, 0f)
@@ -94,7 +90,7 @@ class ClientPrediction(
             syncFromServerFrame(currentFrame)
         }
 
-        val frame = incomingAcknowledged and (CMD_BACKUP - 1)
+        val frame = incomingAcknowledged and (Defines.CMD_BACKUP - 1)
         val serverOrigin = currentFrame.playerstate.pmove.origin
         val deltaX = serverOrigin[0].toInt() - predictedOrigins[frame][0]
         val deltaY = serverOrigin[1].toInt() - predictedOrigins[frame][1]
@@ -132,7 +128,7 @@ class ClientPrediction(
         }
 
         // `CL_pred.PredictMovement` freezes when replay window exceeds CMD_BACKUP.
-        if (outgoingSequence - incomingAcknowledged >= CMD_BACKUP) {
+        if (outgoingSequence - incomingAcknowledged >= Defines.CMD_BACKUP) {
             return
         }
 
@@ -148,7 +144,7 @@ class ClientPrediction(
             s.set(currentFrame.playerstate.pmove)
         }
 
-        PMove.pm_airaccelerate = gameConfig.getConfigValue(CS_AIRACCEL)?.toFloatOrNull() ?: 0f
+        PMove.pm_airaccelerate = gameConfig.getConfigValue(Defines.CS_AIRACCEL)?.toFloatOrNull() ?: 0f
 
         var ack = incomingAcknowledged
         // Key behavior: replay exactly the unacknowledged command range (ack+1 .. outgoing-1).
@@ -163,17 +159,17 @@ class ClientPrediction(
             pm.cmd.set(cmd)
             pmoveProcessor.move(pm)
 
-            val index = ack and (CMD_BACKUP - 1)
+            val index = ack and (Defines.CMD_BACKUP - 1)
             predictedOrigins[index][0] = pm.s.origin[0].toInt()
             predictedOrigins[index][1] = pm.s.origin[1].toInt()
             predictedOrigins[index][2] = pm.s.origin[2].toInt()
         }
 
-        val oldFrame = (ack - 2) and (CMD_BACKUP - 1)
+        val oldFrame = (ack - 2) and (Defines.CMD_BACKUP - 1)
         val oldZ = predictedOrigins[oldFrame][2]
         val step = pm.s.origin[2].toInt() - oldZ
         // Cross-reference: old stair smoothing heuristic from `CL_pred.PredictMovement`.
-        if (step > 63 && step < 160 && (pm.s.pm_flags.toInt() and PMF_ON_GROUND) != 0) {
+        if (step > 63 && step < 160 && (pm.s.pm_flags.toInt() and Defines.PMF_ON_GROUND) != 0) {
             predictedStep = step * 0.125f
             predictedStepTimeMs = currentTimeMs
         }
@@ -197,12 +193,12 @@ class ClientPrediction(
     }
 
     private fun isPredictionEnabled(currentFrame: ClientFrame): Boolean {
-        return (currentFrame.playerstate.pmove.pm_flags.toInt() and PMF_NO_PREDICTION) == 0
+        return (currentFrame.playerstate.pmove.pm_flags.toInt() and Defines.PMF_NO_PREDICTION) == 0
     }
 
     // Cross-reference: `CL_pred.PMTrace`.
     private fun pmTrace(start: FloatArray, mins: FloatArray, maxs: FloatArray, end: FloatArray): trace_t {
-        val result = collisionModel.BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID)
+        val result = collisionModel.BoxTrace(start, end, mins, maxs, 0, Defines.MASK_PLAYERSOLID)
         if (result.fraction < 1f) {
             result.ent = dummyTraceEntity
         }
@@ -259,7 +255,7 @@ class ClientPrediction(
                 mins,
                 maxs,
                 headnode,
-                MASK_PLAYERSOLID,
+                Defines.MASK_PLAYERSOLID,
                 entity.origin,
                 angles
             )
