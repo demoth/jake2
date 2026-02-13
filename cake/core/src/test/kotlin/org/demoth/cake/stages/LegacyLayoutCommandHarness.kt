@@ -1,11 +1,24 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.graphics.Texture
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_CLIENTS
-import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.LayoutExecutor
 import org.demoth.cake.stages.ingame.hud.LayoutParserCompat
+
+internal interface LegacyLayoutDataProvider {
+    fun getImage(imageIndex: Int): Texture?
+    fun getConfigString(configIndex: Int): String?
+    fun getNamedPic(picName: String): Texture? = null
+    fun getClientInfo(clientIndex: Int): LegacyLayoutClientInfo? = null
+    fun getCurrentPlayerIndex(): Int = -1
+}
+
+internal data class LegacyLayoutClientInfo(
+    val name: String,
+    val icon: Texture?,
+)
 
 /**
  * Legacy-like command compiler used for parity tests against the old client behavior.
@@ -19,7 +32,7 @@ internal object LegacyLayoutCommandHarness {
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        dataProvider: LayoutDataProvider,
+        dataProvider: LegacyLayoutDataProvider,
     ): List<LayoutExecutor.LayoutCommand> {
         var x = 0
         var y = 0

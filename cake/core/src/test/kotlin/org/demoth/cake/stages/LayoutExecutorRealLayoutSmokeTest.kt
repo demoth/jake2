@@ -2,17 +2,12 @@ package org.demoth.cake.stages
 
 import jake2.qcommon.Defines
 import org.demoth.cake.stages.ingame.hud.LayoutCommandCompiler
-import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.stages.ingame.hud.LayoutProgramCompiler
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LayoutExecutorRealLayoutSmokeTest {
-    private val provider = object : LayoutDataProvider {
-        override fun getImage(imageIndex: Int) = null
-        override fun getConfigString(configIndex: Int): String? = "cfg-$configIndex"
-    }
-
     @Test
     fun compilesSinglePlayerStatusbarLayout() {
         val stats = ShortArray(64)
@@ -28,14 +23,21 @@ class LayoutExecutorRealLayoutSmokeTest {
         stats[Defines.STAT_AMMO] = 20
         stats[Defines.STAT_ARMOR] = 50
 
-        val commands = LayoutCommandCompiler.compile(
-            SINGLE_STATUSBAR_LAYOUT,
-            serverFrame = 10,
-            stats = stats,
-            screenWidth = 800,
-            screenHeight = 600,
-            dataProvider = provider,
+        val context = createLayoutTestContext(
+            configStrings = mapOf(5 to "cfg-5")
         )
+        val commands = try {
+            LayoutCommandCompiler.evaluate(
+                program = LayoutProgramCompiler.compile(SINGLE_STATUSBAR_LAYOUT),
+                serverFrame = 10,
+                stats = stats,
+                screenWidth = 800,
+                screenHeight = 600,
+                gameConfig = context.gameConfig,
+            )
+        } finally {
+            context.dispose()
+        }
 
         assertTrue(commands.isNotEmpty())
         assertTrue(commands.any { it is LayoutExecutor.LayoutCommand.Number })
@@ -60,14 +62,24 @@ class LayoutExecutorRealLayoutSmokeTest {
         stats[Defines.STAT_AMMO] = 20
         stats[Defines.STAT_ARMOR] = 50
 
-        val commands = LayoutCommandCompiler.compile(
-            DEATHMATCH_STATUSBAR_LAYOUT,
-            serverFrame = 10,
-            stats = stats,
-            screenWidth = 800,
-            screenHeight = 600,
-            dataProvider = provider,
+        val context = createLayoutTestContext(
+            configStrings = mapOf(
+                5 to "cfg-5",
+                33 to "cfg-33",
+            )
         )
+        val commands = try {
+            LayoutCommandCompiler.evaluate(
+                program = LayoutProgramCompiler.compile(DEATHMATCH_STATUSBAR_LAYOUT),
+                serverFrame = 10,
+                stats = stats,
+                screenWidth = 800,
+                screenHeight = 600,
+                gameConfig = context.gameConfig,
+            )
+        } finally {
+            context.dispose()
+        }
 
         assertTrue(commands.any {
             it is LayoutExecutor.LayoutCommand.Text && it.text == "SPECTATOR MODE" && it.alt
