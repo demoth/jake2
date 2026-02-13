@@ -72,11 +72,6 @@ class GameConfiguration(
      * For some reason, it is not managed by the config strings.
      */
     var layout: String = ""
-        set(value) {
-            field = value
-            layoutProgram = compileLayoutProgram(value)
-        }
-    private var layoutProgram: LayoutProgram? = null
 
     val inventory: IntArray = IntArray(MAX_ITEMS) { 0 }
 
@@ -151,10 +146,6 @@ class GameConfiguration(
 
     fun getStatusBarLayoutProgram(): LayoutProgram? {
         return (configStrings[CS_STATUSBAR]?.resource as? CompiledLayoutResource)?.program
-    }
-
-    fun getLayoutProgram(): LayoutProgram? {
-        return layoutProgram
     }
 
     fun getSkyModel(): Model? {
@@ -340,8 +331,6 @@ class GameConfiguration(
         mapAsset = null
         weaponSounds.clear()
         playerModel = null
-        layoutProgram = null
-        layout = ""
         failedAssets.clear()
         configStrings.forEach { config -> config?.resource = null }
     }
@@ -505,16 +494,11 @@ class GameConfiguration(
     }
 
     private fun compileLayoutResource(layout: String): CompiledLayoutResource? {
-        val program = compileLayoutProgram(layout) ?: return null
-        return CompiledLayoutResource(program)
-    }
-
-    private fun compileLayoutProgram(layout: String): LayoutProgram? {
         if (layout.isBlank()) {
             return null
         }
         return try {
-            LayoutProgramCompiler.compile(layout)
+            CompiledLayoutResource(LayoutProgramCompiler.compile(layout))
         } catch (e: Exception) {
             Com.Warn("Failed to compile layout config: ${e.message}")
             null
