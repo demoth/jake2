@@ -46,6 +46,7 @@ import org.demoth.cake.input.InputManager
 import org.demoth.cake.lerpAngle
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.md2VatShader
+import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.LayoutExecutor
 import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.EngineUiStyle
@@ -84,6 +85,7 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
 
     private val entityManager = ClientEntityManager()
+    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig) { entityManager.playerNumber }
     private val environment = Environment()
 
     // game state
@@ -229,27 +231,25 @@ class Game3dScreen(
                 screenHeight = Gdx.graphics.height,
             )
 
-            layoutExecutor.executeLayoutString(
+            layoutExecutor.executePipeline(
                 layout = gameConfig.getStatusBarLayout(),
                 serverFrame = entityManager.currentFrame.serverframe,
                 stats = entityManager.currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
-                gameConfig = gameConfig,
-                playerIndex = entityManager.playerNumber,
+                dataProvider = hudLayoutDataProvider,
             )
 
             // draw additional layout, like help or score
             // SRC.DrawLayout
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                layoutExecutor.executeLayoutString(
+                layoutExecutor.executePipeline(
                     layout = gameConfig.layout,
                     serverFrame = entityManager.currentFrame.serverframe,
                     stats = entityManager.currentFrame.playerstate.stats,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
-                    gameConfig = gameConfig,
-                    playerIndex = entityManager.playerNumber,
+                    dataProvider = hudLayoutDataProvider,
                 )
             }
             // draw additional layout, like help or score

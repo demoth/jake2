@@ -28,6 +28,24 @@ internal data class LayoutClientInfo(
 )
 
 /**
+ * Default data provider backed by the active [GameConfiguration].
+ */
+internal class GameConfigLayoutDataProvider(
+    private val gameConfig: GameConfiguration,
+    private val currentPlayerIndexProvider: () -> Int = { -1 },
+) : LayoutDataProvider {
+    override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
+    override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
+    override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
+    override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
+        val name = gameConfig.getClientName(clientIndex) ?: return null
+        return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
+    }
+
+    override fun getCurrentPlayerIndex(): Int = currentPlayerIndexProvider()
+}
+
+/**
  * Executes IdTech2 layout scripts and renders them in libGDX.
  *
  * Parsing and command emission happen in IdTech2 screen space (top-left origin).
@@ -69,33 +87,26 @@ class LayoutExecutor(
     ): List<LayoutCommand> = LayoutCommandCompiler.compile(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
 
     /**
-     * Compile and execute one server-provided layout string for the current frame.
+     * Parse and execute one server-provided layout string for the current frame.
      *
      * Invariant:
      * all command coordinates are interpreted as IdTech2 top-left pixels before transform.
      */
-    fun executeLayoutString(
+    internal fun executePipeline(
         layout: String?,
         serverFrame: Int,
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        gameConfig: GameConfiguration,
-        playerIndex: Int = -1,
+        dataProvider: LayoutDataProvider,
     ) {
         if (layout.isNullOrEmpty()) return
 
-        val dataProvider = object : LayoutDataProvider {
-            override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
-            override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
-            override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
-            override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
-                val name = gameConfig.getClientName(clientIndex) ?: return null
-                return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
-            }
-            override fun getCurrentPlayerIndex(): Int = playerIndex
-        }
         val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
+        drawCommands(commands, screenHeight)
+    }
+
+    private fun drawCommands(commands: List<LayoutCommand>, screenHeight: Int) {
         for (command in commands) {
             when (command) {
                 is LayoutCommand.Image -> drawImageIdTech2(command.x, command.y, command.texture, screenHeight)
