@@ -14,6 +14,9 @@ import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.stages.ingame.hud.CompiledLayoutResource
+import org.demoth.cake.stages.ingame.hud.LayoutProgram
+import org.demoth.cake.stages.ingame.hud.LayoutProgramCompiler
 
 /**
  * Store all configuration related to the current map.
@@ -115,6 +118,9 @@ class GameConfiguration(
 
     fun applyConfigString(index: Int, value: String, loadResource: Boolean = false): Config {
         val config = Config(value)
+        if (index == CS_STATUSBAR) {
+            config.resource = compileLayoutResource(value)
+        }
         configStrings[index] = config
         if (loadResource) {
             loadConfigResource(index, config)
@@ -136,6 +142,10 @@ class GameConfiguration(
 
     fun getStatusBarLayout(): String? {
         return configStrings[CS_STATUSBAR]?.value
+    }
+
+    fun getStatusBarLayoutProgram(): LayoutProgram? {
+        return (configStrings[CS_STATUSBAR]?.resource as? CompiledLayoutResource)?.program
     }
 
     fun getSkyModel(): Model? {
@@ -481,5 +491,17 @@ class GameConfiguration(
         }
         config.resource = acquireAsset<Model>(skyAssetPath)
         return true
+    }
+
+    private fun compileLayoutResource(layout: String): CompiledLayoutResource? {
+        if (layout.isBlank()) {
+            return null
+        }
+        return try {
+            CompiledLayoutResource(LayoutProgramCompiler.compile(layout))
+        } catch (e: Exception) {
+            Com.Warn("Failed to compile layout config: ${e.message}")
+            null
+        }
     }
 }
