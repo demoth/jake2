@@ -4,6 +4,7 @@ import jake2.qcommon.Defines
 import org.demoth.cake.stages.ingame.hud.LayoutClientInfo
 import org.demoth.cake.stages.ingame.hud.LayoutCommandCompiler
 import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
+import org.demoth.cake.stages.ingame.hud.LayoutExecutor
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -98,5 +99,43 @@ class LayoutExecutorParityTest {
         val actual = LayoutCommandCompiler.compile(layout, 2, stats, 800, 600, provider)
 
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun hnumBlinkDependsOnServerFrame() {
+        val layout = "xl 0 yt 0 hnum"
+        val stats = ShortArray(64)
+        stats[Defines.STAT_HEALTH] = 10
+
+        val frame4 = LayoutCommandCompiler.compile(layout, 4, stats, 640, 480, provider)
+        val frame8 = LayoutCommandCompiler.compile(layout, 8, stats, 640, 480, provider)
+
+        assertEquals(
+            listOf(LayoutExecutor.LayoutCommand.Number(0, 0, 10, 3, 1)),
+            frame4
+        )
+        assertEquals(
+            listOf(LayoutExecutor.LayoutCommand.Number(0, 0, 10, 3, 0)),
+            frame8
+        )
+    }
+
+    @Test
+    fun statStringDependsOnCurrentStatValue() {
+        val layout = "xl 0 yt 0 stat_string 7"
+        val statsA = ShortArray(64).apply { this[7] = 5 }
+        val statsB = ShortArray(64).apply { this[7] = 9 }
+
+        val commandsA = LayoutCommandCompiler.compile(layout, 1, statsA, 640, 480, provider)
+        val commandsB = LayoutCommandCompiler.compile(layout, 1, statsB, 640, 480, provider)
+
+        assertEquals(
+            listOf(LayoutExecutor.LayoutCommand.Text(0, 0, "picked-up-item", alt = false)),
+            commandsA
+        )
+        assertEquals(
+            listOf(LayoutExecutor.LayoutCommand.Text(0, 0, "ctf-flag", alt = false)),
+            commandsB
+        )
     }
 }
