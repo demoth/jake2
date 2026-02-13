@@ -12,6 +12,22 @@ import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
 /**
+ * Data source used by layout compilation to resolve assets/config values.
+ */
+internal interface LayoutDataProvider {
+    fun getImage(imageIndex: Int): Texture?
+    fun getConfigString(configIndex: Int): String?
+    fun getNamedPic(picName: String): Texture? = null
+    fun getClientInfo(clientIndex: Int): LayoutClientInfo? = null
+    fun getCurrentPlayerIndex(): Int = -1
+}
+
+internal data class LayoutClientInfo(
+    val name: String,
+    val icon: Texture?,
+)
+
+/**
  * Executes IdTech2 layout scripts and renders them in libGDX.
  *
  * Parsing and command emission happen in IdTech2 screen space (top-left origin).
@@ -41,6 +57,46 @@ class LayoutExecutor(
             val centerWidth: Int? = null,
         ) : LayoutCommand
         data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : LayoutCommand
+    }
+
+    internal fun compileLayoutCommands(
+        layout: String,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        dataProvider: LayoutDataProvider,
+    ): List<LayoutCommand> = LayoutCommandCompiler.compile(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
+
+    /**
+     * Compile and execute one server-provided layout string for the current frame.
+     *
+     * Invariant:
+     * all command coordinates are interpreted as IdTech2 top-left pixels before transform.
+     */
+    fun executeLayoutString(
+        layout: String?,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        gameConfig: GameConfiguration,
+        playerIndex: Int = -1,
+    ) {
+        if (layout.isNullOrEmpty()) return
+
+        val dataProvider = object : LayoutDataProvider {
+            override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
+            override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
+            override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
+            override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
+                val name = gameConfig.getClientName(clientIndex) ?: return null
+                return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
+            }
+            override fun getCurrentPlayerIndex(): Int = playerIndex
+        }
+        val commands = compileLayoutCommands(layout, serverFrame, stats, screenWidth, screenHeight, dataProvider)
+        drawCommands(commands, screenHeight)
     }
 
     /**
@@ -225,6 +281,32 @@ class LayoutExecutor(
 internal object LayoutCommandCompiler {
     private data class Cursor(var x: Int = 0, var y: Int = 0)
 
+    /**
+     * Compile textual layout script into draw commands in IdTech2 coordinate space.
+     *
+     * Legacy counterpart:
+     * `client/SCR.ExecuteLayoutString`.
+     */
+    fun compile(
+        layout: String,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        dataProvider: LayoutDataProvider,
+    ): List<LayoutExecutor.LayoutCommand> {
+        val program = LayoutProgramCompiler.compile(layout)
+        return evaluate(
+            program = program,
+            serverFrame = serverFrame,
+            stats = stats,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            dataProvider = dataProvider,
+            playerIndex = dataProvider.getCurrentPlayerIndex(),
+        )
+    }
+
     fun evaluate(
         program: LayoutProgram,
         serverFrame: Int,
@@ -233,6 +315,37 @@ internal object LayoutCommandCompiler {
         screenHeight: Int,
         gameConfig: GameConfiguration,
         playerIndex: Int = -1,
+    ): List<LayoutExecutor.LayoutCommand> {
+        val provider = object : LayoutDataProvider {
+            override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
+            override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
+            override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
+            override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
+                val name = gameConfig.getClientName(clientIndex) ?: return null
+                return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
+            }
+
+            override fun getCurrentPlayerIndex(): Int = playerIndex
+        }
+        return evaluate(
+            program = program,
+            serverFrame = serverFrame,
+            stats = stats,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            dataProvider = provider,
+            playerIndex = playerIndex,
+        )
+    }
+
+    private fun evaluate(
+        program: LayoutProgram,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+        dataProvider: LayoutDataProvider,
+        playerIndex: Int,
     ): List<LayoutExecutor.LayoutCommand> {
         val commands = mutableListOf<LayoutExecutor.LayoutCommand>()
         val cursor = Cursor()
@@ -243,7 +356,7 @@ internal object LayoutCommandCompiler {
             stats = stats,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            gameConfig = gameConfig,
+            dataProvider = dataProvider,
             playerIndex = playerIndex,
             commands = commands,
         )
@@ -257,7 +370,7 @@ internal object LayoutCommandCompiler {
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        gameConfig: GameConfiguration,
+        dataProvider: LayoutDataProvider,
         playerIndex: Int,
         commands: MutableList<LayoutExecutor.LayoutCommand>,
     ) {
@@ -281,7 +394,7 @@ internal object LayoutCommandCompiler {
 
                 is LayoutOp.Pic -> {
                     val imageIndex = stats[op.statIndex]
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, gameConfig.getImage(imageIndex.toInt()))
+                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, dataProvider.getImage(imageIndex.toInt()))
                 }
 
                 is LayoutOp.Client -> {
@@ -289,14 +402,13 @@ internal object LayoutCommandCompiler {
                     cursor.y = screenHeight / 2 - 120 + op.yOffset
                     val clientIndex = op.clientIndex
                     check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
-                    val clientName = gameConfig.getClientName(clientIndex) ?: ""
-                    val clientIcon = gameConfig.getClientIcon(clientIndex)
-                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y, clientName, alt = true)
+                    val clientInfo = dataProvider.getClientInfo(clientIndex)
+                    commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y, clientInfo?.name ?: "", alt = true)
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 8, "Score: ", alt = false)
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32 + 7 * 8, cursor.y + 8, "${op.score}", alt = true)
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 16, "Ping:  ${op.ping}", alt = false)
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x + 32, cursor.y + 24, "Time:  ${op.time}", alt = false)
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, clientIcon)
+                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, clientInfo?.icon)
                 }
 
                 is LayoutOp.Ctf -> {
@@ -304,15 +416,15 @@ internal object LayoutCommandCompiler {
                     cursor.y = screenHeight / 2 - 120 + op.yOffset
                     val clientIndex = op.clientIndex
                     check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
-                    val clientName = gameConfig.getClientName(clientIndex) ?: ""
+                    val clientInfo = dataProvider.getClientInfo(clientIndex)
                     val ping = op.ping.coerceAtMost(999)
-                    val block = String.format("%3d %3d %-12.12s", op.score, ping, clientName)
+                    val block = String.format("%3d %3d %-12.12s", op.score, ping, clientInfo?.name ?: "")
                     val isCurrentPlayer = clientIndex == playerIndex
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x, cursor.y, block, alt = isCurrentPlayer)
                 }
 
                 is LayoutOp.Picn -> {
-                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, gameConfig.getNamedPic(op.picName))
+                    commands += LayoutExecutor.LayoutCommand.Image(cursor.x, cursor.y, dataProvider.getNamedPic(op.picName))
                 }
 
                 is LayoutOp.Num -> {
@@ -355,7 +467,7 @@ internal object LayoutCommandCompiler {
                     if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
                         throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
                     }
-                    val value = gameConfig.getConfigValue(configIndex.toInt()) ?: ""
+                    val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
                     commands += LayoutExecutor.LayoutCommand.Text(cursor.x, cursor.y, value, false)
                 }
 
@@ -379,7 +491,7 @@ internal object LayoutCommandCompiler {
                             stats = stats,
                             screenWidth = screenWidth,
                             screenHeight = screenHeight,
-                            gameConfig = gameConfig,
+                            dataProvider = dataProvider,
                             playerIndex = playerIndex,
                             commands = commands,
                         )
