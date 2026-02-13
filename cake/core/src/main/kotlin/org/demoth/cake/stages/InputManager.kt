@@ -4,28 +4,30 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import jake2.qcommon.Defines.BUTTON_ATTACK
+import jake2.qcommon.Defines.BUTTON_USE
 import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.PM_SPECTATOR
 import jake2.qcommon.Defines.PITCH
 import jake2.qcommon.Defines.ROLL
 import jake2.qcommon.Defines.YAW
-import jake2.qcommon.exec.Cbuf
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.clampPitch
-import org.demoth.cake.stages.ClientCommands.*
+import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.wrapSignedAngle
 import kotlin.experimental.or
 import kotlin.math.abs
 
 // CL_input
 class InputManager(
-    private val nowNanosProvider: () -> Long = System::nanoTime
+    private val bindings: ClientBindings = ClientBindings(),
+    private val nowNanosProvider: () -> Long = System::nanoTime,
 ) : InputProcessor {
-    private val commandsState = BooleanArray(ClientCommands.entries.size)
+    private val immediateStates = IntArray(ImmediateAction.entries.size)
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
     private val clientSpeed: Short = 200 // todo: cvar
 
@@ -56,42 +58,9 @@ class InputManager(
     private var lastCommandBuildNanos: Long? = null
     private val emptyCommand = usercmd_t()
 
-    // mappings for input command: which are sent on every client update frame
-    private val inputKeyMappings: MutableMap<Int, ClientCommands> = mutableMapOf(
-        Input.Keys.W to in_forward,
-        Input.Keys.S to in_back,
-        Input.Keys.A to in_moveleft,
-        Input.Keys.D to in_moveright,
-        Input.Keys.SPACE to in_moveup,
-        Input.Keys.C to in_movedown,
-        Input.Keys.LEFT to in_left,
-        Input.Keys.RIGHT to in_right,
-        Input.Keys.UP to in_lookup,
-        Input.Keys.DOWN to in_lookdown,
-        Input.Keys.CONTROL_LEFT to in_attack,
-    )
-
-    // default.cfg
-    // input mapping for string commands - sent on demand
-    private val inputBindings: MutableMap<Int, String> = mutableMapOf(
-        // fixme: are these commands also sent via 'cmd' ?
-        Input.Keys.NUM_1 to "use blaster",
-        Input.Keys.NUM_2 to "use shotgun",
-        Input.Keys.NUM_3 to "use super shotgun",
-        Input.Keys.NUM_4 to "use machinegun",
-        Input.Keys.NUM_5 to "use chaingun",
-        Input.Keys.NUM_6 to "use grenade launcher",
-        Input.Keys.NUM_7 to "use rocket launcher",
-        Input.Keys.NUM_8 to "use hyperblaster",
-        Input.Keys.NUM_9 to "use railgun",
-        Input.Keys.NUM_0 to "use bfg10k",
-        Input.Keys.G to "use grenades",
-        Input.Keys.TAB to "inven",
-        Input.Keys.F2 to "cmd help",
-        Input.Keys.F5 to "toggle_skybox",
-        Input.Keys.F6 to "toggle_level",
-        Input.Keys.F7 to "toggle_entities",
-    )
+    init {
+        registerImmediateActionCommands()
+    }
 
     // called at server rate
     fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
@@ -104,26 +73,30 @@ class InputManager(
         val cmd = userCommands[cmdIndex]
         cmd.clear()
 
-        if (isPressed(in_attack)) {
+        if (isActive(ImmediateAction.ATTACK)) {
             cmd.buttons = cmd.buttons or BUTTON_ATTACK.toByte()
         }
 
-        // pressing both W and S should cancel the forward movement (same for other axes)
-        val forwardMove = (if (isPressed(in_forward)) clientSpeed.toInt() else 0) +
-            (if (isPressed(in_back)) -clientSpeed.toInt() else 0)
-        val sideMove = (if (isPressed(in_moveright)) clientSpeed.toInt() else 0) +
-            (if (isPressed(in_moveleft)) -clientSpeed.toInt() else 0)
-        val upMove = (if (isPressed(in_moveup)) clientSpeed.toInt() else 0) +
-            (if (isPressed(in_movedown)) -clientSpeed.toInt() else 0)
+        if (isActive(ImmediateAction.USE)) {
+            cmd.buttons = cmd.buttons or BUTTON_USE.toByte()
+        }
+
+        // pressing opposite movement keys cancels movement (same for all axes)
+        val forwardMove = (if (isActive(ImmediateAction.FORWARD)) clientSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.BACK)) -clientSpeed.toInt() else 0)
+        val sideMove = (if (isActive(ImmediateAction.MOVERIGHT)) clientSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.MOVELEFT)) -clientSpeed.toInt() else 0)
+        val upMove = (if (isActive(ImmediateAction.MOVEUP)) clientSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.MOVEDOWN)) -clientSpeed.toInt() else 0)
 
         cmd.forwardmove = forwardMove.toShort()
         cmd.sidemove = sideMove.toShort()
         cmd.upmove = upMove.toShort()
 
         // update camera direction right on the client side and sent to the server
-        if (isPressed(in_left) || isPressed(in_right)) {
+        if (isActive(ImmediateAction.LEFT) || isActive(ImmediateAction.RIGHT)) {
             var delta = deltaTime * cameraKeyboardRotationSpeed
-            if (isPressed(in_right)) {
+            if (isActive(ImmediateAction.RIGHT)) {
                 delta *= -1
             }
             localYaw += delta
@@ -156,6 +129,30 @@ class InputManager(
         )
     }
 
+    private fun registerImmediateActionCommands() {
+        for (action in ImmediateAction.entries) {
+            Cmd.AddCommand("+${action.command}", true) {
+                pressAction(action)
+            }
+            Cmd.AddCommand("-${action.command}", true) {
+                releaseAction(action)
+            }
+        }
+    }
+
+    private fun pressAction(action: ImmediateAction) {
+        immediateStates[action.ordinal]++
+    }
+
+    private fun releaseAction(action: ImmediateAction) {
+        val idx = action.ordinal
+        if (immediateStates[idx] > 0) {
+            immediateStates[idx]--
+        }
+    }
+
+    private fun isActive(action: ImmediateAction): Boolean = immediateStates[action.ordinal] > 0
+
     private fun applyPendingMouseLook() {
         if (mouseWasMoved) {
             mouseWasMoved = false
@@ -169,25 +166,11 @@ class InputManager(
     // region INPUT PROCESSOR
 
     override fun keyDown(keycode: Int): Boolean {
-        val mappedCommand = inputKeyMappings[keycode] ?: return false
-        setPressed(mappedCommand, true)
-        return true
+        return bindings.handleKeyDown(keycode)
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        val mappedCommand = inputKeyMappings[keycode]
-        if (mappedCommand != null) {
-            setPressed(mappedCommand, false)
-            return true
-        } else if (inputBindings[keycode] != null) {
-            val cmd = inputBindings[keycode]
-            if (cmd != null) {
-                println("Executing command: $cmd")
-                Cbuf.AddText(cmd)
-            }
-            return true
-        }
-        return false
+        return bindings.handleKeyUp(keycode)
     }
 
     override fun keyTyped(character: Char): Boolean {
@@ -199,19 +182,11 @@ class InputManager(
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        if (button == Input.Buttons.LEFT) {
-            setPressed(in_attack, true)
-            return true
-        }
-        return false
+        return bindings.handleMouseButtonDown(button)
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        if (button == Input.Buttons.LEFT) {
-            setPressed(in_attack, false)
-            return true
-        }
-        return false
+        return bindings.handleMouseButtonUp(button)
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
@@ -223,15 +198,15 @@ class InputManager(
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        return false
+        return bindings.handleScroll(amountX, amountY)
     }
 
     // endregion
 
-    private fun isPressed(command: ClientCommands): Boolean = commandsState[command.ordinal]
-
-    private fun setPressed(command: ClientCommands, pressed: Boolean) {
-        commandsState[command.ordinal] = pressed
+    fun clearInputState() {
+        bindings.releaseAllActiveButtons()
+        immediateStates.fill(0)
+        resetMouseLookReference()
     }
 
     private fun computeCommandMsec(nowNanos: Long): Int {
@@ -360,20 +335,17 @@ class InputManager(
     }
 }
 
-enum class ClientCommands {
-    in_moveup,
-    in_movedown,
-    in_left,
-    in_right,
-    in_forward,
-    in_back,
-    in_lookup,
-    in_lookdown,
-    in_strafe,
-    in_moveleft,
-    in_moveright,
-    in_speed,
-    in_attack,
-    in_use,
-    in_klook,
+private enum class ImmediateAction(val command: String) {
+    MOVEUP("moveup"),
+    MOVEDOWN("movedown"),
+    LEFT("left"),
+    RIGHT("right"),
+    FORWARD("forward"),
+    BACK("back"),
+    LOOKUP("lookup"),
+    LOOKDOWN("lookdown"),
+    MOVELEFT("moveleft"),
+    MOVERIGHT("moveright"),
+    ATTACK("attack"),
+    USE("use"),
 }

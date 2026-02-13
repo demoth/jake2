@@ -42,8 +42,10 @@ import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
+import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.Game3dScreen
+import org.demoth.cake.stages.InputManager
 import org.demoth.cake.stages.MainMenuStage
 
 private enum class ClientNetworkState {
@@ -96,6 +98,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var deferredConfigUnloadScreen: Game3dScreen? = null
     // During map change, the previous screen is disposed first but its config assets are kept alive
     // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
+    private val clientBindings = ClientBindings()
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
@@ -324,6 +327,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
         Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
         game3dScreen?.resetInputLookReference()
+        game3dScreen?.clearInputState()
 
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
@@ -350,9 +354,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         CheckForResend(deltaSeconds)
         CL_ReadPackets()
-        sendUpdates()
-
         Cbuf.Execute()
+        sendUpdates()
 
         if (game3dScreen != null) {
             // Keep prediction state aligned with netchan before render-time replay.
@@ -646,7 +649,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             beginMapTransitionRetainingConfigAssets()
         }
         if (game3dScreen == null) {
-            game3dScreen = Game3dScreen(assetManager)
+            game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
         }
         // todo: stop sounds, effects, etc..
     }

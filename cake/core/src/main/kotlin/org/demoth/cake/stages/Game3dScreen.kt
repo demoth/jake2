@@ -297,6 +297,10 @@ class Game3dScreen(
         inputManager.resetMouseLookReference()
     }
 
+    fun clearInputState() {
+        inputManager.clearInputState()
+    }
+
     fun updatePredictionNetworkState(incomingAcknowledged: Int, outgoingSequence: Int, currentTimeMs: Int) {
         // Quirk: prediction must observe fresh netchan ack/sequence from packet headers before
         // replaying movement or computing error correction.
