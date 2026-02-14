@@ -69,6 +69,7 @@ class GameConfiguration(
      * For some reason, it is not managed by the config strings.
      */
     var layout: String = ""
+    var playerIndex: Int = 1
 
     val inventory: IntArray = IntArray(MAX_ITEMS) { 0 }
 
@@ -321,6 +322,7 @@ class GameConfiguration(
         mapAsset = null
         weaponSounds.clear()
         playerModel = null
+        playerIndex = 1
         failedAssets.clear()
         configStrings.forEach { config -> config?.resource = null }
     }

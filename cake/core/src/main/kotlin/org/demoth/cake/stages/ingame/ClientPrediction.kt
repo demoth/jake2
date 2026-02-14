@@ -215,7 +215,7 @@ class ClientPrediction(
     ) {
         // Cross-reference: `CL_pred.ClipMoveToEntities`.
         entityManager.forEachCurrentEntityState { entity ->
-            if (entity.solid == 0 || entity.index == entityManager.playerNumber + 1) { // solid=0 means non-solid network entity
+            if (entity.solid == 0 || entity.index == entityManager.playerIndex + 1) { // solid=0 means non-solid network entity
                 return@forEachCurrentEntityState
             }
 

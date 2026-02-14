@@ -25,7 +25,9 @@ import kotlin.math.abs
 
 // responsible for managing entity states which are updated from the server
 // also manages client side entities (gun model, level model)
-class ClientEntityManager: Disposable {
+class ClientEntityManager(
+    private val playerIndexProvider: () -> Int = { 1 },
+) : Disposable {
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
@@ -42,7 +44,8 @@ class ClientEntityManager: Disposable {
     var drawLevel: Boolean = true
     var drawSkybox: Boolean = true
     var lerpAcc: Float = 0f
-    var playerNumber: Int = 1
+    val playerIndex: Int
+        get() = playerIndexProvider()
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
@@ -320,7 +323,7 @@ class ClientEntityManager: Disposable {
 
             // render it if the model was successfully loaded
             if (entity.modelInstance != null
-                && newState.index != playerNumber + 1 // do not render our own model
+                && newState.index != playerIndex + 1 // do not render our own model
                 && drawEntities
             ) {
                 (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->

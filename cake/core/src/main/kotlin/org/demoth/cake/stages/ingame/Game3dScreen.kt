@@ -75,8 +75,8 @@ class Game3dScreen(
 
     private val gameConfig = GameConfiguration(assetManager)
 
-    private val entityManager = ClientEntityManager()
-    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig) { entityManager.playerNumber }
+    private val entityManager = ClientEntityManager { gameConfig.playerIndex }
+    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
     private val environment = Environment()
 
     // game state
@@ -498,7 +498,7 @@ class Game3dScreen(
     override fun processServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
-        entityManager.playerNumber = msg.playerNumber
+        gameConfig.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
         reloadGameUiStyle()
     }

@@ -32,7 +32,6 @@ internal data class LayoutClientInfo(
  */
 internal class GameConfigLayoutDataProvider(
     private val gameConfig: GameConfiguration,
-    private val currentPlayerIndexProvider: () -> Int = { -1 },
 ) : LayoutDataProvider {
     override fun getImage(imageIndex: Int): Texture? = gameConfig.getImage(imageIndex)
     override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
@@ -42,7 +41,7 @@ internal class GameConfigLayoutDataProvider(
         return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
     }
 
-    override fun getCurrentPlayerIndex(): Int = currentPlayerIndexProvider()
+    override fun getCurrentPlayerIndex(): Int = gameConfig.playerIndex
 }
 
 /**
