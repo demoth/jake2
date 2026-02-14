@@ -7,15 +7,20 @@ import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Sp2Asset
 
 /**
- * Effect-specific assets that are not guaranteed to be referenced by config strings.
+ * Effect-specific assets not guaranteed by configstrings.
  *
  * Ownership model:
- * - This catalog tracks only assets loaded through [precache] in [ownedAssetTypes].
- * - On [dispose], it unloads only those tracked assets, preserving unrelated `AssetManager` users.
+ * - Tracks only assets loaded through [precache] in [ownedAssetTypes].
+ * - On [dispose], unloads only tracked assets to avoid touching unrelated AssetManager users.
+ *
+ * Supported effect asset groups:
+ * - MD2 models ([EFFECT_MD2_MODELS])
+ * - SP2 sprites ([EFFECT_SP2_MODELS])
+ * - Sounds ([EFFECT_SOUNDS])
  *
  * Extension point:
- * add new effect resources to [EFFECT_MD2_MODELS] / [EFFECT_SOUNDS] and keep paths in
- * game-relative form (for sounds, include `sound/` prefix).
+ * - Add new asset path in the relevant list and access through typed getter.
+ * - Keep game-relative paths (`sound/...` for sounds).
  */
 class EffectAssetCatalog(
     private val assetManager: AssetManager

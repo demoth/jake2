@@ -42,8 +42,10 @@ public class ClientEntity {
 
 	int fly_stoptime;
 
-	public ModelInstance modelInstance;
-	public Sp2Asset spriteAsset;
+	public ModelInstance modelInstance; // md2/brush runtime instance; null for pure sprite entities
+	public Sp2Asset spriteAsset; // loaded .sp2 asset when entity is sprite-backed
+	// Resolved per-frame values after legacy compatibility rules in ClientEntityManager:
+	// frame (EF_ANIM*), translucency upgrades (EF_BFG/EF_PLASMA/EF_SPHERETRANS), and alpha.
 	public int resolvedFrame;
 	public int resolvedRenderFx;
 	public float alpha = 1.0f;

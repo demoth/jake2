@@ -10,6 +10,15 @@ import kotlin.math.floor
 
 /**
  * Time-bound `.sp2` sprite effect rendered as a camera-facing billboard.
+ *
+ * Behavior:
+ * - Advances frame by fixed [frameDurationMs].
+ * - Expires after `frameCount * frameDurationMs`.
+ * - Reuses [ClientEntity] sprite fields consumed by [Sp2Renderer].
+ *
+ * Constraints:
+ * - `frameCount > 0`, `frameDurationMs > 0`, and non-empty sprite frames are required.
+ * - Position is static for the effect lifetime (no motion interpolation).
  */
 class AnimatedSpriteEffect(
     private val spriteRenderer: Sp2Renderer,

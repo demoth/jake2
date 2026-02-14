@@ -22,9 +22,26 @@ import jake2.qcommon.Defines
 import org.demoth.cake.ClientEntity
 
 /**
- * Draws `.sp2` entities as camera-facing textured quads.
+ * Billboard renderer for replicated `.sp2` entities.
  *
- * Geometry/material are cached per (texture, translucent) style.
+ * Purpose:
+ * - Render sprite models without going through MD2/ModelInstance animation path.
+ *
+ * Ownership/Lifecycle:
+ * - Created by render owner (`Game3dScreen` and `ClientEffectsSystem`).
+ * - Internally caches model+material pairs by (texture, translucency).
+ * - Must be disposed to release cached models.
+ *
+ * Threading/Timing:
+ * - Call from render thread while [ModelBatch] is active.
+ *
+ * Invariants:
+ * - Caller must provide entity fields already resolved for current frame:
+ *   `resolvedFrame`, `resolvedRenderFx`, `alpha`.
+ * - Draw ordering (opaque vs translucent) is caller-owned; this renderer does not sort.
+ *
+ * Legacy counterpart:
+ * - `client/render/fast/Main.R_DrawSpriteModel`.
  */
 class Sp2Renderer : Disposable {
     private val right = Vector3()
@@ -35,6 +52,14 @@ class Sp2Renderer : Disposable {
 
     private val renderables = mutableMapOf<RenderKey, Renderable>()
 
+    /**
+     * Render one sprite entity as a camera-facing quad.
+     *
+     * Notes:
+     * - Uses interpolated entity origin (prev/current + [lerpFraction]).
+     * - Applies legacy sprite origin anchoring (`origin_x`, `origin_y`).
+     * - Uses alpha-test for opaque sprites and blending for translucent sprites.
+     */
     fun render(modelBatch: ModelBatch, entity: ClientEntity, camera: Camera, lerpFraction: Float) {
         val sp2Asset = entity.spriteAsset ?: return
         if (sp2Asset.frames.isEmpty()) {

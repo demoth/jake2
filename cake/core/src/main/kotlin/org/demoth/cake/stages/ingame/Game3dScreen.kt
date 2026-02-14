@@ -222,6 +222,8 @@ class Game3dScreen(
             entityManager.visibleBeams.forEach {
                 beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
             }
+            // Preserve legacy draw ordering: opaque first, translucent second.
+            // Do not merge into a naive single pass; mixed ordering breaks alpha/depth results.
             entityManager.visibleSprites.forEach {
                 if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
                     sp2Renderer.render(modelBatch, it, camera, lerpFrac)

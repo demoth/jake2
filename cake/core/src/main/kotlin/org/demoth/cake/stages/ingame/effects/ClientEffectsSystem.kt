@@ -29,25 +29,28 @@ import org.demoth.cake.stages.ingame.ClientEntityManager
  * Runtime owner for non-replicated client-side effects produced by server effect messages.
  *
  * Scope:
- * - TEMessage hierarchy
- * - MuzzleFlash2Message
+ * - `TEMessage` hierarchy handling.
+ * - `MuzzleFlash2Message` handling.
+ * - Effect-local asset ownership via [EffectAssetCatalog].
+ * - Transient MD2 and `.sp2` effect instances.
  *
  * Non-goals:
- * - replicated world/entity state (owned by [ClientEntityManager])
+ * - Replicated entity state reconstruction (owned by `ClientEntityManager`).
+ * - Generic world entity drawing (owned by `Game3dScreen`).
  *
  * Lifecycle:
- * - Constructed by [org.demoth.cake.stages.ingame.Game3dScreen] once per game screen instance.
- * - [precache] should be called after map/config assets are loaded.
- * - [update]/[render] must be called from the render thread once per frame.
- * - [dispose] releases only effect-owned assets and active transient instances.
+ * - Construct once per `Game3dScreen`.
+ * - Call [precache] after config/map precache.
+ * - Call [update]/[render] every frame on render thread.
+ * - Call [dispose] when screen is disposed.
  *
- * Legacy references:
+ * Constructor contract:
+ * - [listenerPositionProvider] is used for positional sound attenuation.
+ * - [cameraProvider] is required for billboard sprite effects (`.sp2`).
+ *
+ * Legacy counterparts:
  * - `client/CL_fx.ParseMuzzleFlash2`
  * - `client/CL_tent.ParseTEnt`
- *
- * Compatibility note:
- * this system intentionally mirrors only the TE variants currently parsed into message classes by
- * `qcommon.network.messages.server.ServerMessage`.
  */
 class ClientEffectsSystem(
     assetManager: AssetManager,

@@ -262,25 +262,25 @@ class ClientEntityManager : Disposable {
     }
 
     /**
-     * Computes the list of entities that should be visible during the current server frame.
+     * Computes frame-visible entity buckets for rendering.
      *
-     * Key functionalities:
-     * - Resets `lerpAcc` for server frame interpolation.
-     * - Adds grid and origin visualization models to the visible entities.
-     * - Iterates over the entities in the current frame, instantiating their models if they
-     *   haven't been loaded yet and updating them according to the game state.
-     * - Collects RF_BEAM entities into [visibleBeams] for dedicated beam rendering.
-     * - Attempts to load and manage the player's weapon model, updating its animation frames
-     *   as necessary.
-     * - Uses `gameConfig.playerIndex` as the local-player source of truth for self-model culling.
+     * Buckets:
+     * - [visibleEntities]: model-backed entities (MD2/brush/debug).
+     * - [visibleSprites]: `.sp2` billboard entities.
+     * - [visibleBeams]: RF_BEAM entities rendered by beam pipeline.
      *
-     * Known issues and TODOs:
-     * - Persistent storage for client entities is not implemented yet.
-     * - Visibility is not optimized using spatial partitioning or visibility clusters.
-     * - Handling of player models and skins is incomplete.
-     * - Updates for weapon models upon change are currently missing.
+     * Compatibility behavior:
+     * - Resolves legacy auto-frame flags (`EF_ANIM01/23/ALL/ALLFAST`).
+     * - Resolves legacy translucency upgrades from effects to renderfx.
+     * - Resolves legacy alpha overrides (`EF_BFG`, `EF_PLASMA`, `EF_SPHERETRANS`).
      *
-     *  Former `CL_AddPacketEntities`
+     * Invariants:
+     * - `visibleSprites` entities must have `spriteAsset != null` and `modelInstance == null`.
+     * - `visibleEntities` entities must have `modelInstance != null`.
+     * - Local player model remains culled from world entity bucket.
+     *
+     * Legacy counterpart:
+     * - `client/CL_ents.AddPacketEntities`.
      */
     fun computeVisibleEntities(gameConfig: GameConfiguration) {
         lerpAcc = 0f

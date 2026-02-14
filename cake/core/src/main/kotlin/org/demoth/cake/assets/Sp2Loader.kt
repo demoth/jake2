@@ -15,9 +15,21 @@ import java.nio.ByteOrder
 import java.util.LinkedHashSet
 
 /**
- * Runtime metadata + resolved frame textures for a Quake2 `.sp2` sprite model.
+ * Loaded `.sp2` sprite asset used by runtime billboard rendering.
  *
- * Texture lifecycle is still owned by AssetManager dependencies.
+ * Purpose:
+ * - Keep only render-relevant frame metadata and resolved textures.
+ *
+ * Ownership/Lifecycle:
+ * - Created by [Sp2Loader] via AssetManager.
+ * - Frame textures are AssetManager dependencies and are not disposed here.
+ *
+ * Invariants:
+ * - [frames] order matches on-disk frame order.
+ * - [Frame.imagePath] points to the texture path used to resolve [Frame.texture].
+ *
+ * Legacy counterpart:
+ * - `client/render/fast/Model.Mod_LoadSpriteModel` keeps per-frame image handles for `SPRITE` models.
  */
 class Sp2Asset(
     val frames: List<Frame>
@@ -37,7 +49,21 @@ class Sp2Asset(
 }
 
 /**
- * Loads `.sp2` sprite definitions and resolves referenced frame textures.
+ * AssetManager loader for Quake2 `.sp2` files.
+ *
+ * Threading/Timing:
+ * - Synchronous loader; called on AssetManager load path.
+ *
+ * Behavior:
+ * - Parses sprite header/frames from qcommon `qfiles.Sp2Sprite`.
+ * - Declares unique frame image dependencies (`.pcx`) in [getDependencies].
+ * - Produces [Sp2Asset] with resolved textures in [load].
+ *
+ * Constraint:
+ * - Missing frame textures fail at asset load time (manager.get).
+ *
+ * Extension point:
+ * - If future `.sp2` metadata is needed at runtime, extend [Sp2Asset.Frame] first.
  */
 class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset, AssetLoaderParameters<Sp2Asset>>(resolver) {
     override fun getDependencies(
