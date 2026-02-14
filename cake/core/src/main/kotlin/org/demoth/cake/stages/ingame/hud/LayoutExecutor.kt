@@ -60,10 +60,21 @@ class LayoutExecutor(
     private val style: GameUiStyle,
 ) {
     private companion object {
+        // Legacy `scr_centertime` default value from `client/SCR.Init`.
+        const val CENTER_PRINT_TIMEOUT_SECONDS = 2.5f
+        const val CENTER_PRINT_SHORT_MAX_LINES = 4
+        // Legacy center-print vertical anchors from `client/SCR.DrawCenterString`.
+        const val CENTER_PRINT_SHORT_Y_RATIO = 0.35f
+        const val CENTER_PRINT_LONG_TOP_Y = 48
+
         const val INVENTORY_DISPLAY_ITEMS = 17
         const val INVENTORY_WIDTH = 256
         const val INVENTORY_HEIGHT = 240
     }
+
+    private var centerPrintText: String = ""
+    private var centerPrintLineCount: Int = 0
+    private var centerPrintTimeLeftSeconds: Float = 0f
 
     sealed interface LayoutCommand {
         data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
@@ -390,6 +401,47 @@ class LayoutExecutor(
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
         drawTextIdTech2(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
+    }
+
+    /**
+     * Register a server center-print message for timed rendering.
+     */
+    fun showCenterPrint(text: String) {
+        centerPrintText = text
+        centerPrintLineCount = if (text.isEmpty()) 0 else text.count { it == '\n' } + 1
+        centerPrintTimeLeftSeconds = if (centerPrintLineCount == 0) 0f else CENTER_PRINT_TIMEOUT_SECONDS
+    }
+
+    /**
+     * Update and render timed HUD elements (for now: center-print).
+     *
+     * Call this once per rendered frame while `spriteBatch` is active.
+     */
+    fun update(delta: Float, screenWidth: Int, screenHeight: Int) {
+        if (centerPrintTimeLeftSeconds <= 0f || centerPrintText.isEmpty()) {
+            return
+        }
+
+        centerPrintTimeLeftSeconds -= delta
+        if (centerPrintTimeLeftSeconds <= 0f) {
+            centerPrintText = ""
+            centerPrintLineCount = 0
+            return
+        }
+
+        val idTech2TopY = if (centerPrintLineCount <= CENTER_PRINT_SHORT_MAX_LINES) {
+            (screenHeight * CENTER_PRINT_SHORT_Y_RATIO).toInt()
+        } else {
+            CENTER_PRINT_LONG_TOP_Y
+        }
+        drawTextIdTech2(
+            x = 0,
+            y = idTech2TopY,
+            text = centerPrintText,
+            alt = false,
+            centerWidth = screenWidth,
+            screenHeight = screenHeight,
+        )
     }
 
     /**
