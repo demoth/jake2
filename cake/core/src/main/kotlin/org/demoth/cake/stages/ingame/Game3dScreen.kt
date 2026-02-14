@@ -313,6 +313,7 @@ class Game3dScreen(
         // after world + inline brush models, only non-inline model paths are expected.
         val startIndex = Defines.CS_MODELS + 1 + brushModels.size
         gameConfig.loadAssets(startIndex)
+        effectsSystem.precache()
         refreshSkyBox()
 
         precached = true
