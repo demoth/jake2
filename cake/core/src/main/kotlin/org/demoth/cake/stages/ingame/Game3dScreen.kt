@@ -80,7 +80,7 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
 
     private val entityManager = ClientEntityManager()
-    private val effectsSystem = ClientEffectsSystem(assetManager, entityManager, gameConfig)
+    private val effectsSystem = ClientEffectsSystem(assetManager, entityManager, gameConfig) { camera.position }
     private val environment = Environment()
 
     // game state

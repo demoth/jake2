@@ -76,6 +76,13 @@ class ClientEntityManager : Disposable {
         return Vector3(entity.current.origin[0], entity.current.origin[1], entity.current.origin[2])
     }
 
+    fun getEntityAngles(entityIndex: Int): FloatArray? {
+        if (entityIndex !in 0..<Defines.MAX_EDICTS) {
+            return null // todo: warn
+        }
+        return clientEntities[entityIndex].current.angles.copyOf()
+    }
+
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         clientEntities[msg.entityState.index].baseline.set(msg.entityState)
     }
