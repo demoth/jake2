@@ -14,7 +14,14 @@ import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
 /**
- * Data source used by HUD layout parse/execute flow to resolve assets/config values.
+ * Read-only game-state bridge for IdTech2 HUD layout execution.
+ *
+ * Ownership/lifecycle:
+ * implemented by screen-level code (`Game3dScreen`) and passed to [Hud] at construction.
+ * The provider must stay valid for the full HUD lifetime.
+ *
+ * Invariant:
+ * every method is side-effect free for HUD code; parsing/rendering can call these on every frame.
  */
 internal interface LayoutDataProvider {
     fun getImage(imageIndex: Int): Texture?
@@ -34,6 +41,13 @@ internal data class LayoutClientInfo(
  *
  * Runtime path:
  * [Hud.executeLayout] wires parser callbacks directly to draw calls.
+ *
+ * Constraints:
+ * - Coordinates stay in IdTech2 top-left space here.
+ * - This function must never throw on malformed/invalid script values.
+ *
+ * Legacy counterpart:
+ * `client/SCR.ExecuteLayoutString`.
  */
 internal fun executeLayoutScript(
     layout: String,
@@ -271,6 +285,9 @@ internal fun executeLayoutScript(
  *
  * Ownership:
  * created and owned by `Game3dScreen` for the lifetime of a running game screen.
+ *
+ * Related component:
+ * legacy data comes from `cl.configstrings`, `cl.frame.playerstate.stats`, and `cl.clientinfo`.
  */
 internal class GameConfigLayoutDataProvider(
     private val gameConfig: GameConfiguration,
@@ -291,6 +308,15 @@ internal class GameConfigLayoutDataProvider(
  *
  * Parsing and command emission happen in IdTech2 screen space (top-left origin).
  * Rendering performs an explicit IdTech2->libGDX transform (bottom-left origin).
+ *
+ * Ownership/lifecycle:
+ * [Game3dScreen] creates one HUD per `ServerDataMessage`, uses it during render, then disposes it with the screen.
+ *
+ * Timing assumption:
+ * [update] and [executeLayout] are called on the render thread while [spriteBatch] is active.
+ *
+ * Extension point:
+ * add new script branches in [executeLayoutScript] and keep [HudTest] in sync.
  *
  * Legacy counterparts:
  * - `client/SCR.ExecuteLayoutString` (status/layout script execution)
@@ -485,7 +511,7 @@ internal class Hud(
     }
 
     /**
-     * Update and render timed HUD elements (for now: center-print).
+     * Update and render timed HUD overlays (notify prints + center prints).
      *
      * Call this once per rendered frame while `spriteBatch` is active.
      */
@@ -534,23 +560,6 @@ internal class Hud(
             )
             y += NOTIFY_CHAR_SIZE
         }
-    }
-
-    /**
-     * Draw plain HUD text in IdTech2 screen coordinates.
-     *
-     * This is used by non-layout UI flows (for example center-print messages) that still need
-     * the same active game style fonts and IdTech2 coordinate transform.
-     */
-    fun drawText(
-        x: Int,
-        y: Int,
-        text: String,
-        screenHeight: Int,
-        alt: Boolean = false,
-        centerWidth: Int? = null,
-    ) {
-        drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
     }
 
     /**

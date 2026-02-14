@@ -3,8 +3,16 @@ package org.demoth.cake
 import jake2.qcommon.network.messages.server.*
 
 /**
- * This interface describes the layer of client message processing (it processes messages from the server)
- * for easier cognitive understanding. One implementation is expected.
+ * Contract for processing server messages in client runtime order.
+ *
+ * Ownership/lifecycle:
+ * implemented by `Game3dScreen`, invoked by `Cake.parseServerMessage`.
+ *
+ * Timing:
+ * all callbacks run on the main render thread after packet acceptance.
+ *
+ * Legacy counterpart:
+ * grouped `CL_ParseServerMessage` branches in the old client.
  */
 interface ServerMessageProcessor {
 
@@ -18,7 +26,8 @@ interface ServerMessageProcessor {
     fun processPlayerInfoMessage(msg: PlayerInfoMessage)
     fun processPacketEntitiesMessage(msg: PacketEntitiesMessage): Boolean
 
-    // These messages are sent occasionally
+    // These messages are sent occasionally.
+    // Text messages are also echoed to console by the implementation to match legacy behavior.
     fun processSoundMessage(msg: SoundMessage)
     fun processWeaponSoundMessage(msg: WeaponSoundMessage)
     fun processPrintMessage(msg: PrintMessage)

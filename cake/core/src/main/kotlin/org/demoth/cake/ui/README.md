@@ -1,135 +1,109 @@
-# IdTech2 HUD Style
+# IdTech2 UI Style
 
 ## Overview
-This package owns runtime HUD style resources used by Cake when an IdTech2 game/mod is active.
+This package owns game-specific HUD style resources (`GameUiStyle`) used by runtime HUD rendering.
 
 Owned here:
-- Loading and disposing style-specific HUD textures/fonts.
-- Building `BitmapFont` from `pics/conchars.pcx`.
-- Rendering HUD number fields from `num_*` / `anum_*` glyph pictures.
+- Building HUD font from `pics/conchars.pcx` (`ConcharsFontLoader`).
+- Loading numeric HUD glyph pictures (`num_*`, `anum_*`) and exposing them as `HudNumberFont`.
+- Selecting style implementation in `GameUiStyleFactory`.
 
 Not owned here:
-- Layout script parsing/execution (`../stages/ingame/hud/Hud.kt`).
-- Server message timing/lifecycle (`../stages/ingame/Game3dScreen.kt`).
-- Configstring resource ownership (`../Config.kt`).
+- HUD layout parsing and draw command execution (`../stages/ingame/hud`).
+- Server message routing/timing (`../stages/ingame/Game3dScreen.kt`, `../Cake.kt`).
+- Configstring/gameplay resource ownership (`../Config.kt`).
 
 ## Key Types
-- `GameUiStyle` - Runtime style contract used by layout rendering.
-- `EngineUiStyle` - Scene2D fallback style.
-- `HudNumberFont` - Number-field rendering extension point.
-- `IdTech2HudNumberFont` - IdTech2 numeric glyph renderer.
-- `IdTech2UiStyle` - Concrete IdTech2 style aggregate.
-- `GameUiStyleFactory` - Style selection + resource acquisition/disposal.
-- `ConcharsFontLoader` - Converts IdTech2 conchars atlas into `BitmapFont` glyph data.
-
-Related components:
-- `../stages/ingame/hud/Hud.kt` consumes `GameUiStyle`.
-- `../stages/ingame/hud/README.md` documents HUD parse/execute ownership.
-- `../stages/ingame/Game3dScreen.kt` owns HUD lifecycle and style swap timing.
-- `../Config.kt` resolves named pictures and client icons used by layout commands.
+- `GameUiStyle` - Runtime style contract consumed by HUD.
+- `EngineUiStyle` - Fallback style backed by Scene2D default skin.
+- `IdTech2UiStyle` - IdTech2 style aggregate (`conchars` font + number font).
+- `GameUiStyleFactory` - Style selection and per-instance asset acquisition.
+- `ConcharsFontLoader` - Converts 16x16 conchars atlas into `BitmapFont` glyph set.
+- `IdTech2HudNumberFont` - Draws number fields with `num_*` / `anum_*` textures.
 
 ## Data / Control Flow
 ```text
 ServerDataMessage
   -> Game3dScreen.processServerDataMessage
-  -> reloadGameUiStyle()
-  -> GameUiStyleFactory.create(gameName)
-     -> load conchars + number glyph textures (AssetManager refs)
-     -> build IdTech2UiStyle or fallback EngineUiStyle
+  -> GameUiStyleFactory.create(gameName, assetManager, defaultSkin)
+  -> Hud(spriteBatch, style, dataProvider)
 
 Render frame
-  -> Hud executes layout script
-  -> draw text via style.hudFont
-  -> draw numbers via style.hudNumberFont
+  -> Hud.executeLayout(...)
+  -> style.hudFont for text
+  -> style.hudNumberFont for hnum/anum/rnum/num
 ```
 
 ## Invariants
-- Style swap happens on `ServerDataMessage`, not during `Game3dScreen` init.
-- Every `IdTech2UiStyle` instance acquires its own AssetManager refcounts and releases them on dispose.
-- `Hud` parses/executes commands in IdTech2 top-left space and transforms only at draw time.
-- Conchars atlas is always interpreted as a `16 x 16` grid (cell size derived from texture dimensions).
-- Alternate text style uses legacy high-bit toggle (`char ^ 0x80`).
+- Style swap happens at `ServerDataMessage` handling time.
+- Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and releases them in `dispose()`.
+- Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.
+- Alternate text color/style is represented by legacy high-bit glyph toggle (`char ^ 0x80`), not by tinting.
 
 ## Decision Log
 Newest first.
 
-### Decision: Reload game UI style only on `ServerDataMessage`
-- Context: style reload was happening both on screen init and serverdata, causing duplicate lifecycle churn.
+### Decision: Keep style selection in `GameUiStyleFactory` with IdTech2 game-name gate
+- Context: Cake still has no generic game-install registry.
 - Options considered:
-  - Keep init + serverdata reload.
-  - Reload only on serverdata.
-- Chosen option & rationale: Reload only on serverdata for a single authoritative game/mod switch point - we know which gamemod to use only when the ServerDataMessage arrives.
-- Consequences: initial pre-serverdata HUD uses engine fallback until first serverdata arrives.
+1. Add registry-driven style binding now.
+2. Keep explicit IdTech2 game-name check for now.
+- Chosen Option & Rationale: Use a small hardcoded gate (`baseq2`, `rogue`, `xatrix`, `ctf`) until generic game registration exists.
+- Consequences: adding another IdTech2-compatible game/mod requires code change in factory.
 - Status: accepted.
-- References: `6ac60a95`, thread discussion about duplicate reload.
-- Definition of Done: `reloadGameUiStyle()` has one call site in `processServerDataMessage`.
+- References: thread notes about future generic engine and deferred game installation model.
+- Definition of Done: non-IdTech2 game names use `EngineUiStyle`; IdTech2 set uses `IdTech2UiStyle`.
 
-### Decision: Acquire UI texture refs per style instance
-- Context: disposing an old style could unload textures still used by the active style.
+### Decision: Acquire/release style textures per style instance
+- Context: style ownership must follow HUD/screen lifecycle without unloading assets still in use by another owner.
 - Options considered:
-  - Reuse already-loaded textures without ref increment.
-  - Always acquire a refcount slot per style instance.
-- Chosen option & rationale: Always load+finishLoading to increment refcount deterministically.
-- Consequences: predictable unload behavior during style swaps/map transitions.
+1. Reuse existing loaded textures without ref increment.
+2. Always load/finalize for this style instance and unload on dispose.
+- Chosen Option & Rationale: Option 2 gives deterministic refcount behavior during transitions.
+- Consequences: additional explicit acquisition bookkeeping in factory.
 - Status: accepted.
-- References: `37d55e1a`, regression window around `3c125792`.
-- Definition of Done: each style dispose unloads only refs it acquired.
+- References: thread regression around style reload lifecycle.
+- Definition of Done: disposing `IdTech2UiStyle` unloads only paths acquired by that style instance.
 
-### Decision: Keep one HUD parser implementation for runtime and tests
-- Context: compile list per frame increased runtime complexity.
+### Decision: Build conchars font from raw atlas dimensions (not fixed pixel width)
+- Context: real conchars assets may be `128x128` (8px cell) or `256x256` (16px cell).
 - Options considered:
-  - Keep a separate parse implementation for tests.
-  - Share one parse routine between runtime draw and test callbacks.
-- Chosen option & rationale: `Hud.executeLayout` and HUD tests now use the same parser (`executeLayoutScript`) to avoid drift.
-- Consequences: no duplicated parsing logic; tests still assert parsed command semantics.
+1. Require fixed `256x256` atlas.
+2. Derive cell size from texture dimensions with fixed 16x16 grid.
+- Chosen Option & Rationale: Option 2 matches legacy 256-glyph indexing while supporting variant atlas sizes.
+- Consequences: glyph metrics scale with atlas cell size.
 - Status: accepted.
-- References: thread discussion around HUD simplification.
-- Definition of Done: there is one parser path; tests assert via `executeLayoutScript` callback collection.
+- References: thread issue `Unexpected conchars width: 128, expected: 256`.
+- Definition of Done: both `128x128` and `256x256` conchars atlases render all 256 glyphs.
 
-### Decision: Inventory panel follows legacy metrics; hotkey column intentionally blank
-- Context: original inventory placement/background diverged from legacy behavior.
+### Decision: Keep HUD number style separate from conchars font
+- Context: IdTech2 HUD numbers use dedicated picture glyphs and include red blink style.
 - Options considered:
-  - Keep simplified centered list.
-  - Match legacy panel dimensions and list window.
-- Chosen option & rationale: match legacy layout (`256x240`, `17` rows, background image).
-- Consequences: visuals align with original; hotkey bindings remain TODO.
-- Status: accepted (with known gap).
-- References: `b4fcef7f`, `client/CL_inv.DrawInventory`.
-- Definition of Done: panel centered with background and scrolling window around selected item.
-
-### Decision: Use dedicated numeric HUD font for `drawNumber`
-- Context: default font could not reproduce `num_*`/`anum_*` styles.
-- Options considered:
-  - Keep default bitmap font.
-  - Add numeric glyph renderer.
-- Chosen option & rationale: dedicated renderer matches legacy `DrawField` visuals.
-- Consequences: extra glyph assets and style resource ownership requirements.
+1. Draw numbers with generic bitmap font.
+2. Load `num_*` and `anum_*` pictures and use dedicated renderer.
+- Chosen Option & Rationale: Option 2 matches legacy `DrawField` output and blinking color branches.
+- Consequences: extra asset set and renderer path for numbers.
 - Status: accepted.
-- References: `3c125792`.
-- Definition of Done: health/ammo/armor number styles render from picture glyphs.
+- References: thread request for health/ammo custom number style in former `LayoutExecutor.drawNumber` path.
+- Definition of Done: `hnum`, `anum`, `rnum`, and `num` branches render with picture glyphs, including alt/red style.
 
 ## Quirks & Workarounds
-- Hotkey binding column in inventory is blank by design for now.
-  - Why: current input/bind data is not wired into Cake inventory rendering.
-  - Work with it: do not treat leading field as authoritative keybind output.
-  - Removal plan: integrate bind lookup equivalent to legacy `keybindings` map.
-- Style selection is hardcoded to known IdTech2 game names (`baseq2`, `rogue`, `xatrix`, `ctf`).
-  - Why: no generic style registry exists yet.
-  - Work with it: add game name to set only when it shares IdTech2 HUD resources.
-  - Removal plan: replace with pluggable style registry when game installation model exists.
-- Text drawing forces font color to white per draw call.
-  - Why: protects against external font color contamination in shared `BitmapFont` state.
-  - Work with it: color variants should use glyph atlas differences, not `BitmapFont` tint.
-  - Removal plan: optional if renderer state isolation is introduced globally.
+- Supported IdTech2 game names are currently hardcoded in factory.
+- Why: no game/style registry exists yet.
+- How to work with it: update `IDTECH2_GAME_NAMES` when enabling another IdTech2-compatible title/mod.
+- Removal plan: replace with registry-driven mapping when game-install configuration exists.
+
+- Conchars transparency depends on decoded texture data from Cake PCX pipeline.
+- Why: font loader builds glyph metrics only and does not post-process alpha.
+- How to work with it: keep PCX decoder behavior compatible with IdTech2 transparent palette handling.
+- Removal plan: none currently; this is expected responsibility split.
 
 ## How to Extend
-1. Add/implement a new `GameUiStyle` + `HudNumberFont` for your engine/game family.
-2. Add style selection logic in `GameUiStyleFactory.create` (prefer future registry when available).
-3. Ensure all style-loaded textures are reference-counted per instance and released in dispose.
-4. Keep layout command semantics in `Hud.executeLayoutScript` aligned with legacy counterpart before adding new branch logic.
-5. Add/extend `HudTest` cases for new layout branches and coordinate mapper assumptions.
+1. Add a new `GameUiStyle` implementation for a new engine/game family.
+2. Keep number rendering isolated behind `HudNumberFont`.
+3. Wire style selection in `GameUiStyleFactory.create`.
+4. Ensure style-owned assets are acquired/released per style instance.
+5. Add tests for atlas mapping and number renderer behavior.
 
 ## Open Questions
-- Should style selection be moved from hardcoded game-name checks to a registry/config-driven model?
-- Should UI resources adopt the same deferred-retirement semantics as `GameConfiguration` assets during map transitions?
-- Should inventory hotkey lookup be wired to current Cake input binding state now or deferred with UI system overhaul?
+- Should style selection move to a data-driven game registry once game installation metadata exists?

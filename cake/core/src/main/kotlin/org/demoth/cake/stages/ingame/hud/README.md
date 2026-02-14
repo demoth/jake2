@@ -1,92 +1,116 @@
 # IdTech2 HUD Runtime
 
 ## Overview
-This package owns IdTech2 HUD layout parsing and rendering during gameplay frames.
+This package owns IdTech2 HUD script execution and HUD-only overlays during gameplay rendering.
 
 Owned here:
-- Tokenizing IdTech2 layout strings (`LayoutParserCompat`).
-- Executing HUD layout commands directly against `SpriteBatch` (`Hud.executeLayout`).
-- IdTech2-to-libGDX coordinate conversion (`LayoutCoordinateMapper`).
-- Timed center-print and notify-print rendering state in HUD (`Hud.showCenterPrint`, `Hud.showPrintMessage`, `Hud.update`).
+- Tokenizing IdTech2 layout scripts (`LayoutParserCompat`).
+- Parsing + executing layout script commands on each frame (`executeLayoutScript`, `Hud.executeLayout`).
+- IdTech2-to-libGDX coordinate mapping (`LayoutCoordinateMapper`).
+- Timed HUD text overlays: center-print + top-left notify prints (`Hud.update`).
 
 Not owned here:
-- Configstring storage/resource lifetime (`org.demoth.cake.GameConfiguration`).
-- UI style creation/disposal (`org.demoth.cake.ui.GameUiStyleFactory`).
-- Server message dispatch and frame orchestration (`Game3dScreen`).
+- Server message dispatch (`org.demoth.cake.Cake`, `Game3dScreen`).
+- Configstring storage and asset ownership (`org.demoth.cake.GameConfiguration`).
+- Style resource loading (`org.demoth.cake.ui`).
 
 ## Key Types
-- `Hud` - Runtime HUD renderer for status layouts, inventory, crosshair, and center-print.
-- `LayoutDataProvider` - Abstraction for layout-facing game data lookups.
-- `GameConfigLayoutDataProvider` - `GameConfiguration` adapter used by `Game3dScreen`.
-- `LayoutParserCompat` - Legacy-compatible tokenizer for IdTech2 layout scripts.
-- `executeLayoutScript` - Shared parser routine used by runtime draw and HUD unit tests.
-- `LayoutCoordinateMapper` - Explicit coordinate origin conversion helpers.
+- `Hud` - Frame-time HUD renderer (layout, inventory, crosshair, notify, center print).
+- `LayoutDataProvider` - Read-only bridge for layout-facing game data.
+- `GameConfigLayoutDataProvider` - `GameConfiguration` adapter implementation.
+- `LayoutParserCompat` - Legacy-compatible tokenizer for layout scripts.
+- `executeLayoutScript` - Shared parser/executor used by runtime and tests.
+- `LayoutCoordinateMapper` - Explicit top-left (IdTech2) to bottom-left (libGDX) mapping.
 
 ## Data / Control Flow
 ```text
-Server messages
-  -> Game3dScreen updates GameConfiguration (config strings, layout, playerIndex)
-  -> Game3dScreen.render
-     -> Hud.update (center-print timer + draw)
-     -> Hud.executeLayout(statusbar layout)
-     -> optional Hud.executeLayout(extra layout)
-     -> optional Hud.drawInventory
-Server print path
-  -> Game3dScreen.processPrintMessage
-  -> Hud.showPrintMessage
-  -> Hud.update draws top-left timed notify lines
+ServerDataMessage
+  -> Game3dScreen.processServerDataMessage
+  -> Hud(..., GameConfigLayoutDataProvider(gameConfig))
+
+Frame render (SpriteBatch active)
+  -> Hud.update(delta, w, h)                // notify + center print
+  -> Hud.drawCrosshair(w, h)
+  -> Hud.executeLayout(statusbar, ...)
+  -> optional Hud.executeLayout(extra layout, ...)
+  -> optional Hud.drawInventory(...)
+
+PrintMessage / PrintCenterMessage
+  -> Game3dScreen.processPrintMessage / processPrintCenterMessage
+  -> Hud.showPrintMessage / Hud.showCenterPrint
 ```
 
 ## Invariants
-- HUD command coordinates are interpreted in IdTech2 top-left pixel space.
-- Rendering always applies explicit conversion to libGDX bottom-left origin.
-- `GameConfiguration.playerIndex` is the source of truth for local-player highlighting/filtering.
-- Layout parsing must never crash on malformed indices; invalid branches are skipped.
-- Notify print keeps the newest 4 lines and expires each line after 3 seconds.
+- Layout coordinates are interpreted as IdTech2 top-left pixels.
+- Coordinate conversion happens only at draw time.
+- Layout parsing must be fail-soft: invalid indices/tokens skip branch and continue.
+- `GameConfiguration.playerIndex` is the local-player source of truth for HUD-highlighted branches (`ctf`).
+- Notify print keeps max 4 visible lines and expires each line after 3000 ms.
+- Center print uses legacy-like timeout (2.5 s) and line-count-based vertical anchor.
 
 ## Decision Log
 Newest first.
 
-### Decision: Keep one parser for runtime draw and tests
-- Context: separate compile logic for tests risked semantic drift from runtime.
+### Decision: Keep direct parse+execute each frame (no compiled command cache)
+- Context: compile pipeline increased complexity while dynamic values (`stats`, config lookups) change every server frame.
 - Options considered:
-1. Keep a separate parser implementation for tests.
-2. Share one parse routine (`executeLayoutScript`) and call it from tests.
-- Chosen option & rationale: `Hud.executeLayout` and HUD tests share the same parser path.
-- Consequences: no duplicate parser implementation to keep in sync.
+1. Compile layout to command list and execute later.
+2. Parse and execute immediately each frame.
+- Chosen Option & Rationale: Option 2 keeps runtime logic simple and always reads fresh frame data.
+- Consequences: parser runs each frame; simplicity favored over precompilation.
 - Status: accepted.
+- References: thread section about simplifying former `LayoutExecutor` (now `Hud`) and dropping compilation stage.
+- Definition of Done: `Hud.executeLayout` invokes `executeLayoutScript` directly with current `stats` and `serverFrame`.
 
-### Decision: Keep `playerIndex` in `GameConfiguration` as source of truth
-- Context: HUD, prediction, and entity visibility all need the local player slot.
+### Decision: Inject `LayoutDataProvider` into `Hud` once
+- Context: passing provider on every execute call added plumbing noise and weakened ownership boundaries.
 - Options considered:
-1. Keep separate providers/lambdas per subsystem.
-2. Store authoritative value in `GameConfiguration` and consume it everywhere.
-- Chosen option & rationale: `GameConfiguration.playerIndex` avoids duplicated state and keeps serverdata ownership explicit.
-- Consequences: subsystems depend on config lifecycle; value is normalized to unknown/valid range.
+1. Pass provider per `executeLayout` call.
+2. Inject provider in HUD constructor.
+- Chosen Option & Rationale: Option 2 aligns ownership with screen lifetime and simplifies API.
+- Consequences: HUD assumes provider remains valid for its lifetime.
 - Status: accepted.
+- References: thread follow-up about HUD ownership simplification.
+- Definition of Done: `Hud.executeLayout` signature does not include provider; provider is constructor dependency.
 
-### Decision: Recreate game UI style only on `ServerDataMessage`
-- Context: duplicate style reload points caused unnecessary churn.
+### Decision: Route print/centerprint handling through `Game3dScreen` to `Hud`
+- Context: print messages were previously managed in root `Cake` layer, bypassing HUD style/timing concerns.
 - Options considered:
-1. Reload on init and serverdata.
-2. Reload only on serverdata.
-- Chosen option & rationale: serverdata is the authoritative point where game/mod is known.
-- Consequences: fallback style is used until serverdata arrives.
+1. Keep print rendering at root client layer.
+2. Delegate to game screen and HUD.
+- Chosen Option & Rationale: Option 2 centralizes UI rendering state with HUD style ownership.
+- Consequences: `Game3dScreen` now owns message-to-HUD routing; console echo is preserved for legacy parity.
 - Status: accepted.
+- References: thread section on `PrintCenterMessage`/`PrintMessage` ownership move.
+- Definition of Done: `Cake` forwards print messages to `Game3dScreen`; HUD renders timed notify/center text.
+
+### Decision: Share one layout parser path for runtime and tests
+- Context: separate runtime/test parse implementations risk semantic drift.
+- Options considered:
+1. Keep distinct test parser helpers.
+2. Expose one shared `executeLayoutScript` path.
+- Chosen Option & Rationale: Option 2 keeps behavior verification aligned with production parser.
+- Consequences: tests assert callback outputs, not renderer internals.
+- Status: accepted.
+- References: thread review of naive parser + verification against legacy behavior.
+- Definition of Done: `HudTest` calls `executeLayoutScript` and covers core command branches.
 
 ## Quirks & Workarounds
-- Inventory hotkey column is blank intentionally.
-- Why: bind lookup is not wired into Cake HUD yet.
-- Work with it: do not treat inventory hotkey text as authoritative.
-- Removal plan: integrate input bindings into inventory row formatting.
+- Inventory hotkey column is intentionally blank.
+- Why: key binding data is not yet integrated into HUD inventory rendering.
+- How to work with it: treat first inventory column as placeholder.
+- Removal plan: wire active input binds into inventory row formatting.
 
-- HUD tests call `executeLayoutScript` with local collectors, while runtime draws immediately.
-- Why: tests need deterministic assertions without SpriteBatch/GL runtime.
-- Work with it: use `Hud.executeLayout` in runtime code paths; in tests call `executeLayoutScript` and collect callbacks.
-- Removal plan: keep unless parser testing moves entirely to renderer-level integration harness.
+- Text alt style toggles glyph high-bit (`char ^ 0x80`) instead of applying color tint.
+- Why: mods may redefine alt glyphs/colors in conchars atlas.
+- How to work with it: preserve source text bytes and use `alt=true` path for legacy alternate text.
+- Removal plan: none planned; this is required compatibility behavior.
 
 ## How to Extend
-1. Add new IdTech2 command branch in `Hud.executeLayout`.
-2. Keep IdTech2 coordinate semantics and use `LayoutCoordinateMapper` only at draw call sites.
-3. Ensure the branch is implemented in the shared parser (`executeLayoutScript`) so runtime and tests stay aligned.
-4. Add or update `HudTest` coverage under `cake/core/src/test/kotlin/org/demoth/cake/stages`.
+1. Add branch handling in `executeLayoutScript` for the new token.
+2. Keep branch behavior fail-soft for invalid indices/tokens.
+3. Reuse `LayoutCoordinateMapper` only at draw sites.
+4. Add or update `HudTest` for command semantics and coordinate expectations.
+
+## Open Questions
+- Should `LayoutParserCompat` eventually move to `qcommon` for shared client/server tools, or remain client-local?

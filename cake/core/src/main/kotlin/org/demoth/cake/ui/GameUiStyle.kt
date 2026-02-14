@@ -10,6 +10,12 @@ import com.badlogic.gdx.utils.Disposable
  *
  * Ownership:
  * created by `GameUiStyleFactory` and owned/disposed by `Hud` (constructed by `Game3dScreen`).
+ *
+ * Timing:
+ * accessed only from render-thread HUD drawing code.
+ *
+ * Related component:
+ * `org.demoth.cake.stages.ingame.hud.Hud`.
  */
 interface GameUiStyle : Disposable {
     /**

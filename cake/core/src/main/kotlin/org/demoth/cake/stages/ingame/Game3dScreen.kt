@@ -92,7 +92,8 @@ class Game3dScreen(
 
     private val spriteBatch = SpriteBatch()
 
-    private var hud: Hud? = null // initialized when ServerDataMessage arrives
+    // Initialized on ServerDataMessage, then reused for this screen lifetime.
+    private var hud: Hud? = null
 
 
     // interpolation factor between two server frames, between 0 and 1
@@ -502,9 +503,9 @@ class Game3dScreen(
         gameConfig.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
 
-        // initialize HUD
-        // assumption: server data message arrives ONCE and only once during single game session.
-        // therefore we don't support hud reload/style switch -> don't dispose previous one
+        // ServerDataMessage is the authoritative game/mod style switch point.
+        // Cake recreates Game3dScreen for each fresh serverdata sequence, so one HUD per screen is expected.
+        hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
         val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
     }

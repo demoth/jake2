@@ -56,6 +56,8 @@ object ConcharsFontLoader {
     fun createBitmapFont(
         texture: Texture,
     ): BitmapFont {
+        // Texture alpha/transparency is expected to be already decoded by the PCX pipeline.
+        // This loader only maps glyph metrics/UVs.
         val cells = mapCells(texture.width, texture.height)
         val cellSizePx = cells.first().width
         val data = BitmapFont.BitmapFontData()
