@@ -10,6 +10,7 @@ import jake2.qcommon.Defines.MAX_CLIENTS
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.player_state_t
+import jake2.qcommon.exec.Cvar
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
@@ -26,15 +27,29 @@ import org.demoth.cake.ui.GameUiStyle
 internal interface LayoutDataProvider {
     fun getImage(imageIndex: Int): Texture?
     fun getConfigString(configIndex: Int): String?
-    fun getNamedPic(picName: String): Texture? = null
-    fun getClientInfo(clientIndex: Int): LayoutClientInfo? = null
-    fun getCurrentPlayerIndex(): Int = -1
+    fun getNamedPic(picName: String): Texture?
+    fun getClientInfo(clientIndex: Int): LayoutClientInfo?
+    fun getCurrentPlayerIndex(): Int
 }
 
 internal data class LayoutClientInfo(
     val name: String,
     val icon: Texture?,
 )
+
+/**
+ * Maps legacy `crosshair` cvar values to Quake2 crosshair picture names (`ch1..ch3`).
+ *
+ * Legacy counterpart:
+ * `client/SCR.TouchPics` and `client/SCR.DrawCrosshair`.
+ */
+internal fun resolveCrosshairPicName(crosshairValue: Float): String? {
+    if (crosshairValue == 0f) {
+        return null
+    }
+    val index = if (crosshairValue !in 0f..3f) 3 else crosshairValue.toInt()
+    return "ch$index"
+}
 
 /**
  * Shared IdTech2 HUD layout parser used by runtime rendering.
@@ -349,6 +364,9 @@ internal class Hud(
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
+    private val crosshairCvar = Cvar.getInstance().Get("crosshair", "0", Defines.CVAR_ARCHIVE)
+    private var crosshairPic: String? = null
+    private var crosshairTexture: Texture? = null
 
     private data class NotifyLine(
         val text: String,
@@ -479,7 +497,21 @@ internal class Hud(
     }
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
-        drawTextIdTech2(screenWidth / 2, screenHeight / 2, "+", false, null, screenHeight)
+        val nextCrosshairPic = resolveCrosshairPicName(crosshairCvar.value)
+        if (nextCrosshairPic == null) {
+            crosshairPic = null
+            crosshairTexture = null
+            return
+        }
+        if (nextCrosshairPic != crosshairPic) {
+            crosshairPic = nextCrosshairPic
+            crosshairTexture = dataProvider.getNamedPic(nextCrosshairPic)
+        }
+
+        val texture = crosshairTexture ?: return
+        val x = screenWidth / 2 - texture.width / 2
+        val y = screenHeight / 2 - texture.height / 2
+        drawImageIdTech2(x, y, texture, screenHeight)
     }
 
     /**

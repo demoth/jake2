@@ -212,6 +212,17 @@ class HudTest {
     }
 
     @Test
+    fun resolvesCrosshairPicFromLegacyCvarValues() {
+        Assert.assertNull(resolveCrosshairPicName(0f))
+        Assert.assertEquals("ch1", resolveCrosshairPicName(1f))
+        Assert.assertEquals("ch2", resolveCrosshairPicName(2f))
+        Assert.assertEquals("ch3", resolveCrosshairPicName(3f))
+        Assert.assertEquals("ch3", resolveCrosshairPicName(-1f))
+        Assert.assertEquals("ch3", resolveCrosshairPicName(4f))
+        Assert.assertEquals("ch0", resolveCrosshairPicName(0.5f))
+    }
+
+    @Test
     fun parsesRealStatusbarLayouts() {
         val singleStats = ShortArray(64).apply {
             this[2] = 1

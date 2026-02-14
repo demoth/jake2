@@ -721,6 +721,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: cleanup after hot development phase
         Cvar.getInstance().Get("rcon_password", "asdf", 0)
         Cvar.getInstance().Get("rcon_address", "127.0.0.1", 0)
+        Cvar.getInstance().Get("crosshair", "0", CVAR_ARCHIVE)
     }
 
 }
