@@ -1,6 +1,8 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
@@ -77,4 +79,11 @@ fun wrapSignedAngle(value: Float): Float {
  */
 fun clampPitch(value: Float): Float {
     return wrapSignedAngle(value).coerceIn(-89f, 89f)
+}
+
+// helper function to ensure begin/end call is made
+fun ModelBatch.use(camera: Camera, action: (ModelBatch) -> Unit) {
+    begin(camera)
+    action(this)
+    end()
 }

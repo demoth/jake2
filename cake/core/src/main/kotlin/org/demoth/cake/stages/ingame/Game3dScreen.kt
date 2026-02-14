@@ -50,6 +50,7 @@ import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.GameUiStyleFactory
+import org.demoth.cake.use
 import kotlin.math.abs
 
 /**
@@ -165,53 +166,50 @@ class Game3dScreen(
 
         updatePlayerView(lerpFrac)
 
-        // region DRAW ENTITIES
+        // render entities
+        modelBatch.use(camera) { modelBatch ->
+            if (entityManager.drawSkybox)
+                entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
+                    Gdx.gl.glDepthMask(false)
+                    // TODO: rotate skybox: skyBox.transform.setToRotation(...)
+                    skyModelInstance.transform.setTranslation(camera.position) // follow the camera
+                    modelBatch.render(skyModelInstance)
+                    Gdx.gl.glDepthMask(true)
+                }
 
-        modelBatch.begin(camera)
+            entityManager.visibleEntities.forEach {
 
-        if (entityManager.drawSkybox)
-            entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
-                Gdx.gl.glDepthMask(false)
-                // TODO: rotate skybox: skyBox.transform.setToRotation(...)
-                skyModelInstance.transform.setTranslation(camera.position) // follow the camera
-                modelBatch.render(skyModelInstance)
-                Gdx.gl.glDepthMask(true)
+                // apply client side effects
+                if (it.current.effects and Defines.EF_ROTATE != 0) {
+                    // rotate the model Instance, should to 180 degrees in 1 second
+                    it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
+                } else {
+                    val pitch = lerpAngle(it.prev.angles[Defines.PITCH], it.current.angles[Defines.PITCH], lerpFrac)
+                    val yaw = lerpAngle(it.prev.angles[Defines.YAW], it.current.angles[Defines.YAW], lerpFrac)
+                    val roll = lerpAngle(it.prev.angles[Defines.ROLL], it.current.angles[Defines.ROLL], lerpFrac)
+
+                    applyIdTech2EntityRotation(it, pitch, yaw, roll)
+
+                }
+
+                // interpolate position
+                val x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
+                val y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
+                val z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
+
+                it.modelInstance.transform.setTranslation(x, y, z)
+
+                (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                    userData.interpolation = lerpFrac
+                }
+                modelBatch.render(it.modelInstance, environment)
             }
-
-        entityManager.visibleEntities.forEach {
-
-            // apply client side effects
-            if (it.current.effects and Defines.EF_ROTATE != 0) {
-                // rotate the model Instance, should to 180 degrees in 1 second
-                it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
-            } else {
-                val pitch = lerpAngle(it.prev.angles[Defines.PITCH], it.current.angles[Defines.PITCH], lerpFrac)
-                val yaw = lerpAngle(it.prev.angles[Defines.YAW], it.current.angles[Defines.YAW], lerpFrac)
-                val roll = lerpAngle(it.prev.angles[Defines.ROLL], it.current.angles[Defines.ROLL], lerpFrac)
-
-                applyIdTech2EntityRotation(it, pitch, yaw, roll)
-
+            entityManager.visibleBeams.forEach {
+                beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
             }
+            entityManager.lerpAcc += delta
 
-            // interpolate position
-            val x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
-            val y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
-            val z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
-
-            it.modelInstance.transform.setTranslation(x, y, z)
-
-            (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
-                userData.interpolation = lerpFrac
-            }
-            modelBatch.render(it.modelInstance, environment)
         }
-        entityManager.visibleBeams.forEach {
-            beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
-        }
-        entityManager.lerpAcc += delta
-        modelBatch.end()
-
-        // endregion
 
         // draw hud
         spriteBatch.use {
