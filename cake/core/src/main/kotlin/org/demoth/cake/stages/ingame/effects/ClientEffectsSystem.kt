@@ -1,6 +1,7 @@
 package org.demoth.cake.stages.ingame.effects
 
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
@@ -140,9 +141,33 @@ class ClientEffectsSystem(
     }
 
     private fun handleTrailMessage(msg: TrailTEMessage) {
-        if (msg.style == Defines.TE_RAILTRAIL) {
-            val destination = toVector3(msg.destination) ?: return
-            playEffectSound("sound/weapons/railgf1a.wav", destination)
+        val start = toVector3(msg.position) ?: return
+        val end = toVector3(msg.destination) ?: return
+        when (msg.style) {
+            Defines.TE_RAILTRAIL -> {
+                activeEffects += LineBeamEffect(
+                    start = start,
+                    end = end,
+                    color = Color(0.55f, 0.7f, 1f, 1f),
+                    spawnTimeMs = Globals.curtime,
+                    durationMs = 140,
+                    radius = 0.9f,
+                    alpha = 0.85f,
+                )
+                playEffectSound("sound/weapons/railgf1a.wav", end)
+            }
+
+            Defines.TE_BFG_LASER -> {
+                activeEffects += LineBeamEffect(
+                    start = start,
+                    end = end,
+                    color = Color(0.2f, 1f, 0.25f, 1f),
+                    spawnTimeMs = Globals.curtime,
+                    durationMs = 110,
+                    radius = 0.8f,
+                    alpha = 0.35f,
+                )
+            }
         }
     }
 
