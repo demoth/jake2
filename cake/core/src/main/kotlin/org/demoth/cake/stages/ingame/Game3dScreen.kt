@@ -93,7 +93,7 @@ class Game3dScreen(
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
     private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
-    private var hud = Hud(spriteBatch, gameUiStyle)
+    private var hud = Hud(spriteBatch, gameUiStyle, hudLayoutDataProvider)
 
 
     // interpolation factor between two server frames, between 0 and 1
@@ -231,7 +231,6 @@ class Game3dScreen(
                 stats = entityManager.currentFrame.playerstate.stats,
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
-                dataProvider = hudLayoutDataProvider,
             )
 
             // draw additional layout, like help or score
@@ -243,7 +242,6 @@ class Game3dScreen(
                     stats = entityManager.currentFrame.playerstate.stats,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
-                    dataProvider = hudLayoutDataProvider,
                 )
             }
             // draw additional layout, like help or score
@@ -630,7 +628,7 @@ class Game3dScreen(
             assetManager = assetManager,
             skin = Scene2DSkin.defaultSkin,
         )
-        hud = Hud(spriteBatch, gameUiStyle)
+        hud = Hud(spriteBatch, gameUiStyle, hudLayoutDataProvider)
         oldStyle.dispose()
     }
 

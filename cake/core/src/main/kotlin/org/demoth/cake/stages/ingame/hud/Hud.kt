@@ -294,9 +294,10 @@ internal class GameConfigLayoutDataProvider(
  * - `client/SCR.ExecuteLayoutString` (status/layout script execution)
  * - `client/CL_inv.DrawInventory` (inventory panel metrics and rows)
  */
-class Hud(
+internal class Hud(
     private val spriteBatch: SpriteBatch,
     private val style: GameUiStyle,
+    private val dataProvider: LayoutDataProvider,
 ) {
     private companion object {
         // Legacy `scr_centertime` default value from `client/SCR.Init`.
@@ -327,7 +328,6 @@ class Hud(
         stats: ShortArray,
         screenWidth: Int,
         screenHeight: Int,
-        dataProvider: LayoutDataProvider,
     ) {
         executeLayoutScript(
             layout = layout ?: "",
@@ -337,9 +337,7 @@ class Hud(
             screenHeight = screenHeight,
             dataProvider = dataProvider,
             onImage = { x, y, texture -> drawImageIdTech2(x, y, texture, screenHeight) },
-            onText = { x, y, text, alt, centerWidth ->
-                drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
-            },
+            onText = { x, y, text, alt, centerWidth -> drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight) },
             onNumber = { x, y, value, width, color -> drawNumberIdTech2(x, y, value, width, color, screenHeight) },
         )
     }
