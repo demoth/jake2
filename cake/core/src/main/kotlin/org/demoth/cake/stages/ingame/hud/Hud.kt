@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame.hud
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Globals
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CLIENTS
@@ -298,7 +299,7 @@ internal class Hud(
     private val spriteBatch: SpriteBatch,
     private val style: GameUiStyle,
     private val dataProvider: LayoutDataProvider,
-) {
+) : Disposable {
     private companion object {
         // Legacy `scr_centertime` default value from `client/SCR.Init`.
         const val CENTER_PRINT_TIMEOUT_SECONDS = 2.5f
@@ -510,5 +511,9 @@ internal class Hud(
             mapped[i] = ((text[i].code xor 0x80) and 0xFF).toChar()
         }
         return String(mapped)
+    }
+
+    override fun dispose() {
+        style.dispose()
     }
 }

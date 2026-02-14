@@ -25,7 +25,7 @@ Not owned here:
 Related components:
 - `../stages/ingame/hud/Hud.kt` consumes `GameUiStyle`.
 - `../stages/ingame/hud/README.md` documents HUD parse/execute ownership.
-- `../stages/ingame/Game3dScreen.kt` owns style lifecycle and swap timing.
+- `../stages/ingame/Game3dScreen.kt` owns HUD lifecycle and style swap timing.
 - `../Config.kt` resolves named pictures and client icons used by layout commands.
 
 ## Data / Control Flow

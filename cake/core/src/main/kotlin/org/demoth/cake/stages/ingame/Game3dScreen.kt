@@ -91,9 +91,8 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
     private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
-    private var hud = Hud(spriteBatch, gameUiStyle, hudLayoutDataProvider)
+    private var hud = Hud(spriteBatch, EngineUiStyle(Scene2DSkin.defaultSkin), hudLayoutDataProvider)
 
 
     // interpolation factor between two server frames, between 0 and 1
@@ -258,7 +257,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
-        gameUiStyle.dispose()
+        hud.dispose()
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
@@ -615,21 +614,17 @@ class Game3dScreen(
     }
 
     /**
-     * Rebuilds HUD style resources for the current game/mod and swaps the layout executor binding.
+     * Rebuilds HUD style resources for the current game/mod and swaps HUD instance.
      *
      * Quirk:
-     * this is called on each `ServerDataMessage` (map/reconnect transitions), so style disposal
-     * must be safe when the previous style is an engine fallback or already-disposed game style.
+     * this is called on each `ServerDataMessage` (map/reconnect transitions), so old/new HUD
+     * handover must be safe for style-managed resources.
      */
     private fun reloadGameUiStyle() {
-        val oldStyle = gameUiStyle
-        gameUiStyle = GameUiStyleFactory.create(
-            gameName = gameName,
-            assetManager = assetManager,
-            skin = Scene2DSkin.defaultSkin,
-        )
+        val oldHud = hud
+        val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, hudLayoutDataProvider)
-        oldStyle.dispose()
+        oldHud.dispose()
     }
 
 }

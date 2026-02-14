@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Disposable
  * This wraps all HUD text resources that are swapped when the game/mod changes.
  *
  * Ownership:
- * created by `GameUiStyleFactory` and owned/disposed by `Game3dScreen`.
+ * created by `GameUiStyleFactory` and owned/disposed by `Hud` (constructed by `Game3dScreen`).
  */
 interface GameUiStyle : Disposable {
     /**
