@@ -44,6 +44,9 @@ public class ClientEntity {
 
 	public ModelInstance modelInstance;
 	public Sp2Asset spriteAsset;
+	public int resolvedFrame;
+	public int resolvedRenderFx;
+	public float alpha = 1.0f;
 
 	public String name;
 

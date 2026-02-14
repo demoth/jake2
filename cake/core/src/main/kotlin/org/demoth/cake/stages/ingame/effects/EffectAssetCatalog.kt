@@ -4,6 +4,7 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.utils.Disposable
 import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.Sp2Asset
 
 /**
  * Effect-specific assets that are not guaranteed to be referenced by config strings.
@@ -29,6 +30,9 @@ class EffectAssetCatalog(
         EFFECT_MD2_MODELS.forEach { path ->
             loadIfExists(path, Md2Asset::class.java)
         }
+        EFFECT_SP2_MODELS.forEach { path ->
+            loadIfExists(path, Sp2Asset::class.java)
+        }
         EFFECT_SOUNDS.forEach { path ->
             loadIfExists(path, Sound::class.java)
         }
@@ -45,6 +49,14 @@ class EffectAssetCatalog(
     fun getSound(path: String): Sound? {
         return if (assetManager.isLoaded(path, Sound::class.java)) {
             assetManager.get(path, Sound::class.java)
+        } else {
+            null
+        }
+    }
+
+    fun getSprite(path: String): Sp2Asset? {
+        return if (assetManager.isLoaded(path, Sp2Asset::class.java)) {
+            assetManager.get(path, Sp2Asset::class.java)
         } else {
             null
         }
@@ -85,6 +97,10 @@ private val EFFECT_MD2_MODELS = listOf(
     "models/monsters/parasite/tip/tris.md2",
     "models/objects/r_explode/tris.md2",
     "models/objects/r_explode2/tris.md2",
+)
+
+private val EFFECT_SP2_MODELS = listOf(
+    "sprites/s_bfg2.sp2",
 )
 
 private val EFFECT_SOUNDS = listOf(

@@ -41,7 +41,7 @@ class Sp2Renderer : Disposable {
             return
         }
 
-        val frameIndex = Math.floorMod(entity.current.frame, sp2Asset.frames.size)
+        val frameIndex = Math.floorMod(entity.resolvedFrame, sp2Asset.frames.size)
         val frame = sp2Asset.frames[frameIndex]
 
         val x = entity.prev.origin[0] + (entity.current.origin[0] - entity.prev.origin[0]) * lerpFraction
@@ -58,7 +58,7 @@ class Sp2Renderer : Disposable {
             .mulAdd(right, -frame.originX.toFloat())
             .mulAdd(up, -frame.originY.toFloat())
 
-        val translucent = (entity.current.renderfx and Defines.RF_TRANSLUCENT) != 0
+        val translucent = (entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0
         val renderable = getOrCreateRenderable(frame.texture, translucent)
         transformValues[Matrix4.M00] = right.x * frame.width
         transformValues[Matrix4.M10] = right.y * frame.width
@@ -78,7 +78,7 @@ class Sp2Renderer : Disposable {
         transformValues[Matrix4.M33] = 1f
         renderable.instance.transform.set(transformValues)
         if (renderable.blending != null) {
-            renderable.blending.opacity = 1f
+            renderable.blending.opacity = entity.alpha.coerceIn(0f, 1f)
         }
 
         modelBatch.render(renderable.instance)

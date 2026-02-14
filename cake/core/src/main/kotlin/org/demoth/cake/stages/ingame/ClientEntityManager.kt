@@ -300,6 +300,12 @@ class ClientEntityManager : Disposable {
             val idx = (currentFrame.parse_entities + i) and mask
             val newState = cl_parse_entities[idx]
             val entity = clientEntities[newState.index]
+            val resolvedFrame = resolveEntityFrame(newState)
+            val resolvedRenderFx = resolveEntityRenderFx(newState.effects, newState.renderfx)
+            val resolvedAlpha = resolveEntityAlpha(newState.effects, newState.renderfx)
+            entity.resolvedFrame = resolvedFrame
+            entity.resolvedRenderFx = resolvedRenderFx
+            entity.alpha = resolvedAlpha
 
             // not visible to client
             if (newState.modelindex == 0) {
@@ -346,7 +352,7 @@ class ClientEntityManager : Disposable {
                 if (entity.modelInstance != null) {
                     (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                         userData.frame1 = entity.prev.frame
-                        userData.frame2 = newState.frame
+                        userData.frame2 = resolvedFrame
                         userData.skinIndex = newState.skinnum
                     }
                     visibleEntities += entity
@@ -388,6 +394,55 @@ class ClientEntityManager : Disposable {
                 userData.frame2 = currentFrame.playerstate.gunframe
             }
         }
+    }
+
+    /**
+     * Mirrors legacy client frame selection in `CL_ents.AddPacketEntities`.
+     */
+    private fun resolveEntityFrame(state: entity_state_t): Int {
+        val effects = state.effects
+        val autoAnim = 2 * time / 1000
+        return when {
+            (effects and Defines.EF_ANIM01) != 0 -> autoAnim and 1
+            (effects and Defines.EF_ANIM23) != 0 -> 2 + (autoAnim and 1)
+            (effects and Defines.EF_ANIM_ALL) != 0 -> autoAnim
+            (effects and Defines.EF_ANIM_ALLFAST) != 0 -> time / 100
+            else -> state.frame
+        }
+    }
+
+    /**
+     * Mirrors legacy translucency flag upgrades in `CL_ents.AddPacketEntities`.
+     */
+    private fun resolveEntityRenderFx(effects: Int, renderFx: Int): Int {
+        var resolved = renderFx
+        if ((effects and Defines.EF_BFG) != 0 ||
+            (effects and Defines.EF_PLASMA) != 0 ||
+            (effects and Defines.EF_SPHERETRANS) != 0
+        ) {
+            resolved = resolved or Defines.RF_TRANSLUCENT
+        }
+        return resolved
+    }
+
+    /**
+     * Mirrors legacy alpha tweaks for translucent entity effects in `CL_ents.AddPacketEntities`.
+     */
+    private fun resolveEntityAlpha(effects: Int, renderFx: Int): Float {
+        var alpha = 1f
+        if (renderFx == Defines.RF_TRANSLUCENT) {
+            alpha = 0.70f
+        }
+        if ((effects and Defines.EF_BFG) != 0) {
+            alpha = 0.30f
+        }
+        if ((effects and Defines.EF_PLASMA) != 0) {
+            alpha = 0.60f
+        }
+        if ((effects and Defines.EF_SPHERETRANS) != 0) {
+            alpha = if ((effects and Defines.EF_TRACKERTRAIL) != 0) 0.60f else 0.30f
+        }
+        return alpha
     }
 
     fun setSkyModel(model: Model?) {

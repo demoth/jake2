@@ -82,7 +82,12 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
 
     private val entityManager = ClientEntityManager()
-    private val effectsSystem = ClientEffectsSystem(assetManager, entityManager) { camera.position }
+    private val effectsSystem = ClientEffectsSystem(
+        assetManager = assetManager,
+        entityManager = entityManager,
+        listenerPositionProvider = { camera.position },
+        cameraProvider = { camera },
+    )
     private val environment = Environment()
 
     // game state
@@ -218,7 +223,14 @@ class Game3dScreen(
                 beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
             }
             entityManager.visibleSprites.forEach {
-                sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
+                    sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+                }
+            }
+            entityManager.visibleSprites.forEach {
+                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
+                    sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+                }
             }
             effectsSystem.render(modelBatch)
             entityManager.lerpAcc += delta

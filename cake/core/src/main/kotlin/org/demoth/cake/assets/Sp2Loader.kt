@@ -20,7 +20,6 @@ import java.util.LinkedHashSet
  * Texture lifecycle is still owned by AssetManager dependencies.
  */
 class Sp2Asset(
-    val sprite: qfiles.Sp2Sprite,
     val frames: List<Frame>
 ) : Disposable {
     data class Frame(
@@ -85,7 +84,7 @@ class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset,
                 texture = manager.get(frame.imageFileName, Texture::class.java),
             )
         }
-        return Sp2Asset(sprite, frames)
+        return Sp2Asset(frames)
     }
 
     private fun readSp2(data: ByteArray, fileName: String): qfiles.Sp2Sprite {

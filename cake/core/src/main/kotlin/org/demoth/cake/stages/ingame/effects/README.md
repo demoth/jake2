@@ -113,10 +113,9 @@ Newest first.
 - How to work with it: treat current visuals as compatibility placeholders.
 - Removal plan: replace with dedicated renderer once sprite/particle support lands.
 
-- BFG projectile sprite is still missing.
-- Why: `.sp2` sprite models are not supported in cake runtime rendering.
-- How to work with it: use beam/explosion cues for gameplay feedback.
-- Removal plan: add sprite model rendering and hook projectile entities/effects to it.
+- BFG projectile/explosion now use `.sp2` sprite rendering path.
+- Why it changed: sprite model support was added in the runtime render pipeline and effect catalog.
+- Remaining gap: particle-heavy legacy companions around BFG visuals are still approximated.
 
 ## How to Extend
 1. Add asset paths in `EffectAssetCatalog` if new behavior needs non-configstring models/sounds.

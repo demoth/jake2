@@ -1,6 +1,7 @@
 package org.demoth.cake.stages.ingame.effects
 
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.math.Vector3
@@ -20,6 +21,7 @@ import jake2.qcommon.network.messages.server.TrailTEMessage
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.audio.SpatialSoundAttenuation
 import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
 
@@ -51,8 +53,10 @@ class ClientEffectsSystem(
     assetManager: AssetManager,
     private val entityManager: ClientEntityManager,
     private val listenerPositionProvider: () -> Vector3,
+    private val cameraProvider: () -> Camera,
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
+    private val spriteRenderer = Sp2Renderer()
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -134,6 +138,7 @@ class ClientEffectsSystem(
     override fun dispose() {
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()
+        spriteRenderer.dispose()
         assetCatalog.dispose()
     }
 
@@ -279,11 +284,14 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BFG_EXPLOSION -> {
-                spawnExplosionModel(
-                    modelPath = "models/objects/r_explode/tris.md2",
+                spawnAnimatedSpriteEffect(
+                    spritePath = "sprites/s_bfg2.sp2",
                     position = position,
-                    firstFrame = 0,
+                    firstFrame = 1,
                     frameCount = 4,
+                    frameDurationMs = 100,
+                    renderFx = Defines.RF_TRANSLUCENT,
+                    alpha = 0.30f,
                 )
             }
 
@@ -474,6 +482,30 @@ class ClientEffectsSystem(
             pitchDeg = pitchDeg,
             yawDeg = yawDeg,
             rollDeg = rollDeg,
+        )
+    }
+
+    private fun spawnAnimatedSpriteEffect(
+        spritePath: String,
+        position: Vector3,
+        firstFrame: Int,
+        frameCount: Int,
+        frameDurationMs: Int,
+        renderFx: Int = 0,
+        alpha: Float = 1f,
+    ) {
+        val sprite = assetCatalog.getSprite(spritePath) ?: return
+        activeEffects += AnimatedSpriteEffect(
+            spriteRenderer = spriteRenderer,
+            cameraProvider = cameraProvider,
+            sprite = sprite,
+            spawnTimeMs = Globals.curtime,
+            frameDurationMs = frameDurationMs,
+            firstFrame = firstFrame,
+            frameCount = frameCount,
+            position = Vector3(position),
+            renderFx = renderFx,
+            alpha = alpha,
         )
     }
 
