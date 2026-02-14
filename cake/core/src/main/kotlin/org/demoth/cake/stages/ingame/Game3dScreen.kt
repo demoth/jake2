@@ -24,6 +24,7 @@ import jake2.qcommon.network.messages.server.InventoryMessage
 import jake2.qcommon.network.messages.server.LayoutMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.PlayerInfoMessage
+import jake2.qcommon.network.messages.server.PrintMessage
 import jake2.qcommon.network.messages.server.PrintCenterMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
 import jake2.qcommon.network.messages.server.SoundMessage
@@ -570,6 +571,12 @@ class Game3dScreen(
         } else {
             Com.Warn("weapon sound $weaponType not found")
         }
+    }
+
+    override fun processPrintMessage(msg: PrintMessage) {
+        // Legacy behavior echoes server print messages to the console too.
+        Com.Printf(msg.text)
+        hud?.showPrintMessage(msg.level, msg.text)
     }
 
     override fun processPrintCenterMessage(msg: PrintCenterMessage) {

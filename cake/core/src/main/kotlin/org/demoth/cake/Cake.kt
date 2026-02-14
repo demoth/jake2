@@ -620,8 +620,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     game3dScreen?.processPlayerInfoMessage(msg)
                 }
                 is PrintMessage -> {
-                    // todo: print in the chat (upper left corner of the screen)
-                    Com.Printf("${msg.text}\n")
+                    game3dScreen?.processPrintMessage(msg)
                 }
                 is PrintCenterMessage -> {
                     game3dScreen?.processPrintCenterMessage(msg)

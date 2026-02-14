@@ -7,7 +7,7 @@ Owned here:
 - Tokenizing IdTech2 layout strings (`LayoutParserCompat`).
 - Executing HUD layout commands directly against `SpriteBatch` (`Hud.executeLayout`).
 - IdTech2-to-libGDX coordinate conversion (`LayoutCoordinateMapper`).
-- Timed center-print rendering state in HUD (`Hud.showCenterPrint`, `Hud.update`).
+- Timed center-print and notify-print rendering state in HUD (`Hud.showCenterPrint`, `Hud.showPrintMessage`, `Hud.update`).
 
 Not owned here:
 - Configstring storage/resource lifetime (`org.demoth.cake.GameConfiguration`).
@@ -31,6 +31,10 @@ Server messages
      -> Hud.executeLayout(statusbar layout)
      -> optional Hud.executeLayout(extra layout)
      -> optional Hud.drawInventory
+Server print path
+  -> Game3dScreen.processPrintMessage
+  -> Hud.showPrintMessage
+  -> Hud.update draws top-left timed notify lines
 ```
 
 ## Invariants
@@ -38,6 +42,7 @@ Server messages
 - Rendering always applies explicit conversion to libGDX bottom-left origin.
 - `GameConfiguration.playerIndex` is the source of truth for local-player highlighting/filtering.
 - Layout parsing must never crash on malformed indices; invalid branches are skipped.
+- Notify print keeps the newest 4 lines and expires each line after 3 seconds.
 
 ## Decision Log
 Newest first.

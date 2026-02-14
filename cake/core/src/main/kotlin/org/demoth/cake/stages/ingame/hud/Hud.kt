@@ -3,6 +3,7 @@ package org.demoth.cake.stages.ingame.hud
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Disposable
+import jake2.qcommon.Defines.PRINT_CHAT
 import jake2.qcommon.Globals
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CLIENTS
@@ -301,6 +302,11 @@ internal class Hud(
     private val dataProvider: LayoutDataProvider,
 ) : Disposable {
     private companion object {
+        // Legacy notify defaults from `client/Console` (`NUM_CON_TIMES`, `con_notifytime 3`).
+        const val NOTIFY_MAX_LINES = 4
+        const val NOTIFY_TIMEOUT_MS = 3000
+        const val NOTIFY_CHAR_SIZE = 8
+
         // Legacy `scr_centertime` default value from `client/SCR.Init`.
         const val CENTER_PRINT_TIMEOUT_SECONDS = 2.5f
         const val CENTER_PRINT_SHORT_MAX_LINES = 4
@@ -316,6 +322,13 @@ internal class Hud(
     private var centerPrintText: String = ""
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
+    private val notifyLines = mutableListOf<NotifyLine>()
+
+    private data class NotifyLine(
+        val text: String,
+        val alt: Boolean,
+        val expiresAtMs: Int,
+    )
 
     /**
      * Parse and execute one server-provided layout string for the current frame.
@@ -444,7 +457,7 @@ internal class Hud(
     }
 
     /**
-     * Register a server center-print message for timed rendering.
+     * Register a server center-print (`svc_centerprint`) message for timed rendering.
      */
     fun showCenterPrint(text: String) {
         centerPrintText = text
@@ -453,11 +466,32 @@ internal class Hud(
     }
 
     /**
+     * Register a server notify message (`svc_print`) for timed top-left rendering.
+     *
+     * Legacy counterpart:
+     * `Console.Print` + `Console.DrawNotify` (chat uses high-bit colored glyphs).
+     */
+    fun showPrintMessage(level: Int, text: String) {
+        if (text.isEmpty()) return
+        val expiresAtMs = Globals.curtime + NOTIFY_TIMEOUT_MS
+        val alt = level == PRINT_CHAT
+        for (line in text.replace('\r', '\n').split('\n')) {
+            if (line.isEmpty()) continue
+            notifyLines += NotifyLine(text = line, alt = alt, expiresAtMs = expiresAtMs)
+        }
+        if (notifyLines.size > 64) {
+            notifyLines.subList(0, notifyLines.size - 64).clear()
+        }
+    }
+
+    /**
      * Update and render timed HUD elements (for now: center-print).
      *
      * Call this once per rendered frame while `spriteBatch` is active.
      */
     fun update(delta: Float, screenWidth: Int, screenHeight: Int) {
+        drawNotifyMessages(screenHeight)
+
         if (centerPrintTimeLeftSeconds <= 0f || centerPrintText.isEmpty()) {
             return
         }
@@ -482,6 +516,24 @@ internal class Hud(
             centerWidth = screenWidth,
             screenHeight = screenHeight,
         )
+    }
+
+    private fun drawNotifyMessages(screenHeight: Int) {
+        val now = Globals.curtime
+        notifyLines.removeIf { it.expiresAtMs <= now }
+        val recent = notifyLines.takeLast(NOTIFY_MAX_LINES)
+        var y = 0
+        for (line in recent) {
+            drawTextIdTech2(
+                x = NOTIFY_CHAR_SIZE,
+                y = y,
+                text = line.text,
+                alt = line.alt,
+                centerWidth = null,
+                screenHeight = screenHeight,
+            )
+            y += NOTIFY_CHAR_SIZE
+        }
     }
 
     /**
