@@ -22,6 +22,7 @@ import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.InventoryMessage
 import jake2.qcommon.network.messages.server.LayoutMessage
+import jake2.qcommon.network.messages.server.MuzzleFlash2Message
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.PlayerInfoMessage
 import jake2.qcommon.network.messages.server.PrintMessage
@@ -29,6 +30,7 @@ import jake2.qcommon.network.messages.server.PrintCenterMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
 import jake2.qcommon.network.messages.server.SoundMessage
 import jake2.qcommon.network.messages.server.SpawnBaselineMessage
+import jake2.qcommon.network.messages.server.TEMessage
 import jake2.qcommon.network.messages.server.WeaponSoundMessage
 import ktx.app.KtxScreen
 import ktx.graphics.use
@@ -572,6 +574,14 @@ class Game3dScreen(
         } else {
             Com.Warn("weapon sound $weaponType not found")
         }
+    }
+
+    override fun processMuzzleFlash2Message(msg: MuzzleFlash2Message) {
+        // handled by ClientEffectsSystem (next step)
+    }
+
+    override fun processTempEntityMessage(msg: TEMessage) {
+        // handled by ClientEffectsSystem (next step)
     }
 
     override fun processPrintMessage(msg: PrintMessage) {

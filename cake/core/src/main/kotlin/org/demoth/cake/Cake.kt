@@ -606,6 +606,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is WeaponSoundMessage -> {
                     game3dScreen?.processWeaponSoundMessage(msg)
                 }
+                is MuzzleFlash2Message -> {
+                    game3dScreen?.processMuzzleFlash2Message(msg)
+                }
+                is TEMessage -> {
+                    game3dScreen?.processTempEntityMessage(msg)
+                }
                 is PacketEntitiesMessage -> {
                     if (game3dScreen?.processPacketEntitiesMessage(msg) == true) {
                         if (networkState != ACTIVE) {

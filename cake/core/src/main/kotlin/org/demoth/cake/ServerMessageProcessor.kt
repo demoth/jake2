@@ -30,6 +30,8 @@ interface ServerMessageProcessor {
     // Text messages are also echoed to console by the implementation to match legacy behavior.
     fun processSoundMessage(msg: SoundMessage)
     fun processWeaponSoundMessage(msg: WeaponSoundMessage)
+    fun processMuzzleFlash2Message(msg: MuzzleFlash2Message)
+    fun processTempEntityMessage(msg: TEMessage)
     fun processPrintMessage(msg: PrintMessage)
     fun processPrintCenterMessage(msg: PrintCenterMessage)
     fun processLayoutMessage(msg: LayoutMessage)
