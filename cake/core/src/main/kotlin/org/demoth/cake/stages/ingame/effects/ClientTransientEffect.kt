@@ -5,6 +5,13 @@ import com.badlogic.gdx.utils.Disposable
 
 /**
  * Runtime effect instance owned by [ClientEffectsSystem].
+ *
+ * Timing assumption:
+ * [update] and [render] are called from the render thread in order once per frame.
+ *
+ * Contract:
+ * - Return `false` from [update] to request removal and disposal in the same frame loop.
+ * - Implementations should not mutate global game state.
  */
 interface ClientTransientEffect : Disposable {
     /**

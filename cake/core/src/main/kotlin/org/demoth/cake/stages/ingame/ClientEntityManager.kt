@@ -76,6 +76,12 @@ class ClientEntityManager : Disposable {
         return Vector3(entity.current.origin[0], entity.current.origin[1], entity.current.origin[2])
     }
 
+    /**
+     * Read-only accessor for replicated entity angles.
+     *
+     * Effects code may use this for muzzle/beam orientation, but state mutation remains owned by this
+     * manager via server messages only.
+     */
     fun getEntityAngles(entityIndex: Int): FloatArray? {
         if (entityIndex !in 0..<Defines.MAX_EDICTS) {
             return null // todo: warn

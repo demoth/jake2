@@ -24,7 +24,7 @@ import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
 
 /**
- * Owns client-side transient effects produced by server effect messages.
+ * Runtime owner for non-replicated client-side effects produced by server effect messages.
  *
  * Scope:
  * - TEMessage hierarchy
@@ -32,6 +32,20 @@ import org.demoth.cake.stages.ingame.ClientEntityManager
  *
  * Non-goals:
  * - replicated world/entity state (owned by [ClientEntityManager])
+ *
+ * Lifecycle:
+ * - Constructed by [org.demoth.cake.stages.ingame.Game3dScreen] once per game screen instance.
+ * - [precache] should be called after map/config assets are loaded.
+ * - [update]/[render] must be called from the render thread once per frame.
+ * - [dispose] releases only effect-owned assets and active transient instances.
+ *
+ * Legacy references:
+ * - `client/CL_fx.ParseMuzzleFlash2`
+ * - `client/CL_tent.ParseTEnt`
+ *
+ * Compatibility note:
+ * this system intentionally mirrors only the TE variants currently parsed into message classes by
+ * `qcommon.network.messages.server.ServerMessage`.
  */
 class ClientEffectsSystem(
     assetManager: AssetManager,
@@ -39,12 +53,22 @@ class ClientEffectsSystem(
     private val listenerPositionProvider: () -> Vector3,
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
+    // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
+    /**
+     * Loads effect-only assets not guaranteed to come from configstrings.
+     *
+     * Call once during gameplay precache after base assets are available.
+     */
     fun precache() {
         assetCatalog.precache()
     }
 
+    /**
+     * Handles monster muzzle flashes (`svc_muzzleflash2`) using replicated entity pose and hardcoded
+     * [M_Flash.monster_flash_offset] indices.
+     */
     fun processMuzzleFlash2Message(msg: MuzzleFlash2Message) {
         if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
             Com.Warn("Ignoring MuzzleFlash2Message with invalid entity index ${msg.entityIndex}")
@@ -65,6 +89,11 @@ class ClientEffectsSystem(
         playRandomSound(profile.soundPaths, muzzleOrigin, profile.attenuation)
     }
 
+    /**
+     * Handles temp-entity messages (`svc_temp_entity`) already decoded into typed message classes.
+     *
+     * Unknown styles inside known message types are currently ignored silently by style branch fall-through.
+     */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
             is BeamOffsetTEMessage -> handleBeamOffsetMessage(msg)
@@ -90,6 +119,12 @@ class ClientEffectsSystem(
         }
     }
 
+    /**
+     * Renders all active transient effects.
+     *
+     * Ordering invariant: caller should invoke this after world entity rendering when overlays/trails
+     * are expected to appear on top.
+     */
     fun render(modelBatch: ModelBatch) {
         activeEffects.forEach { effect ->
             effect.render(modelBatch)

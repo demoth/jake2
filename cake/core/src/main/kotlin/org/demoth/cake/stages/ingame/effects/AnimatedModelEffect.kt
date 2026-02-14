@@ -8,6 +8,11 @@ import kotlin.math.floor
 
 /**
  * Time-bound effect rendered from a model instance, optionally animated using MD2 frame interpolation.
+ *
+ * Notes:
+ * - Frame interpolation writes to [Md2CustomData] when present.
+ * - Rotation order intentionally mirrors in-game entity conventions: yaw(Z) -> pitch(Y) -> roll(X).
+ * - Roll is sign-inverted to match existing idTech2 model orientation quirk in cake.
  */
 class AnimatedModelEffect(
     private val modelInstance: ModelInstance,

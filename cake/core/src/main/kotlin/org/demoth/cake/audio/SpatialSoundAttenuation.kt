@@ -3,6 +3,12 @@ package org.demoth.cake.audio
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 
+/**
+ * Shared distance attenuation rule for gameplay sounds.
+ *
+ * This keeps `SoundMessage` and client-side effects consistent, including the legacy `ATTN_STATIC`
+ * behavior tweak (stronger falloff).
+ */
 object SpatialSoundAttenuation {
     fun calculate(origin: Vector3, listener: Vector3, attenuation: Float): Float {
         if (attenuation <= 0f) {

@@ -7,12 +7,24 @@ import org.demoth.cake.assets.Md2Asset
 
 /**
  * Effect-specific assets that are not guaranteed to be referenced by config strings.
+ *
+ * Ownership model:
+ * - This catalog tracks only assets loaded through [precache] in [ownedAssetTypes].
+ * - On [dispose], it unloads only those tracked assets, preserving unrelated `AssetManager` users.
+ *
+ * Extension point:
+ * add new effect resources to [EFFECT_MD2_MODELS] / [EFFECT_SOUNDS] and keep paths in
+ * game-relative form (for sounds, include `sound/` prefix).
  */
 class EffectAssetCatalog(
     private val assetManager: AssetManager
 ) : Disposable {
     private val ownedAssetTypes = mutableMapOf<String, Class<*>>()
 
+    /**
+     * Best-effort preload:
+     * missing files are skipped without logging to keep optional mod assets non-fatal.
+     */
     fun precache() {
         EFFECT_MD2_MODELS.forEach { path ->
             loadIfExists(path, Md2Asset::class.java)

@@ -17,6 +17,12 @@ import com.badlogic.gdx.math.Vector3
 
 /**
  * Short-lived beam segment rendered as procedural cylinder geometry.
+ *
+ * Used for TE trail effects where no dedicated model/sprite path exists yet in cake
+ * (for example rail and BFG laser trails).
+ *
+ * Resource behavior:
+ * each instance owns a small generated [Model] and disposes it on expiry.
  */
 class LineBeamEffect(
     start: Vector3,
