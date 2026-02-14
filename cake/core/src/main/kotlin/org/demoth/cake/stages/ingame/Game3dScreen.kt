@@ -47,7 +47,7 @@ import org.demoth.cake.lerpAngle
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.md2VatShader
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
-import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
@@ -92,7 +92,7 @@ class Game3dScreen(
 
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
-    private var layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle)
+    private var hud = Hud(spriteBatch, gameUiStyle)
 
 
     // interpolation factor between two server frames
@@ -212,14 +212,14 @@ class Game3dScreen(
 
         // draw hud
         spriteBatch.use {
-            layoutExecutor.update(delta, Gdx.graphics.width, Gdx.graphics.height)
+            hud.update(delta, Gdx.graphics.width, Gdx.graphics.height)
 
-            layoutExecutor.drawCrosshair(
+            hud.drawCrosshair(
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
             )
 
-            layoutExecutor.executePipeline(
+            hud.executePipeline(
                 layout = gameConfig.getStatusBarLayout(),
                 serverFrame = entityManager.currentFrame.serverframe,
                 stats = entityManager.currentFrame.playerstate.stats,
@@ -231,7 +231,7 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // SRC.DrawLayout
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                layoutExecutor.executePipeline(
+                hud.executePipeline(
                     layout = gameConfig.layout,
                     serverFrame = entityManager.currentFrame.serverframe,
                     stats = entityManager.currentFrame.playerstate.stats,
@@ -243,7 +243,7 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // CL_inv.DrawInventory
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 2) != 0) {
-                layoutExecutor.drawInventory(
+                hud.drawInventory(
                     playerstate = entityManager.currentFrame.playerstate,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
@@ -570,7 +570,7 @@ class Game3dScreen(
     override fun processPrintCenterMessage(msg: PrintCenterMessage) {
         // Legacy behavior echoes center-print text to the console too.
         Com.Printf("${msg.text}\n")
-        layoutExecutor.showCenterPrint(msg.text)
+        hud.showCenterPrint(msg.text)
     }
 
     override fun processLayoutMessage(msg: LayoutMessage) {
@@ -623,7 +623,7 @@ class Game3dScreen(
             assetManager = assetManager,
             skin = Scene2DSkin.defaultSkin,
         )
-        layoutExecutor = LayoutExecutor(spriteBatch, gameUiStyle)
+        hud = Hud(spriteBatch, gameUiStyle)
         oldStyle.dispose()
     }
 

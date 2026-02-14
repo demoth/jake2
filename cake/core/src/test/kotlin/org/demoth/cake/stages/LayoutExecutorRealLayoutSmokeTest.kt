@@ -1,16 +1,16 @@
 package org.demoth.cake.stages
 
 import jake2.qcommon.Defines
-import org.demoth.cake.stages.ingame.hud.LayoutCommandCompiler
+import org.demoth.cake.stages.ingame.hud.LayoutParser
 import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
-import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.stages.ingame.hud.Hud
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LayoutExecutorRealLayoutSmokeTest {
     private val provider = object : LayoutDataProvider {
         override fun getImage(imageIndex: Int) = null
-        override fun getConfigString(configIndex: Int): String? = "cfg-$configIndex"
+        override fun getConfigString(configIndex: Int): String = "cfg-$configIndex"
     }
 
     @Test
@@ -28,7 +28,7 @@ class LayoutExecutorRealLayoutSmokeTest {
         stats[Defines.STAT_AMMO] = 20
         stats[Defines.STAT_ARMOR] = 50
 
-        val commands = LayoutCommandCompiler.compile(
+        val commands = LayoutParser.compile(
             SINGLE_STATUSBAR_LAYOUT,
             serverFrame = 10,
             stats = stats,
@@ -38,8 +38,8 @@ class LayoutExecutorRealLayoutSmokeTest {
         )
 
         assertTrue(commands.isNotEmpty())
-        assertTrue(commands.any { it is LayoutExecutor.LayoutCommand.Number })
-        assertTrue(commands.any { it is LayoutExecutor.LayoutCommand.Image })
+        assertTrue(commands.any { it is Hud.LayoutCommand.Number })
+        assertTrue(commands.any { it is Hud.LayoutCommand.Image })
     }
 
     @Test
@@ -60,7 +60,7 @@ class LayoutExecutorRealLayoutSmokeTest {
         stats[Defines.STAT_AMMO] = 20
         stats[Defines.STAT_ARMOR] = 50
 
-        val commands = LayoutCommandCompiler.compile(
+        val commands = LayoutParser.compile(
             DEATHMATCH_STATUSBAR_LAYOUT,
             serverFrame = 10,
             stats = stats,
@@ -70,10 +70,10 @@ class LayoutExecutorRealLayoutSmokeTest {
         )
 
         assertTrue(commands.any {
-            it is LayoutExecutor.LayoutCommand.Text && it.text == "SPECTATOR MODE" && it.alt
+            it is Hud.LayoutCommand.Text && it.text == "SPECTATOR MODE" && it.alt
         })
         assertTrue(commands.any {
-            it is LayoutExecutor.LayoutCommand.Text && it.text == "Chasing" && !it.alt
+            it is Hud.LayoutCommand.Text && it.text == "Chasing" && !it.alt
         })
     }
 

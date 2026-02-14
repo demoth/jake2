@@ -4,13 +4,13 @@ import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_CLIENTS
 import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
-import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.stages.ingame.hud.LayoutParserCompat
 
 /**
  * Legacy-like command compiler used for parity tests against the old client behavior.
  *
- * Scope intentionally matches branches currently implemented in Cake LayoutExecutor.
+ * Scope intentionally matches branches currently implemented in Cake Hud.
  */
 internal object LegacyLayoutCommandHarness {
     fun compileCommands(
@@ -20,10 +20,10 @@ internal object LegacyLayoutCommandHarness {
         screenWidth: Int,
         screenHeight: Int,
         dataProvider: LayoutDataProvider,
-    ): List<LayoutExecutor.LayoutCommand> {
+    ): List<Hud.LayoutCommand> {
         var x = 0
         var y = 0
-        val commands = mutableListOf<LayoutExecutor.LayoutCommand>()
+        val commands = mutableListOf<Hud.LayoutCommand>()
         val parser = LayoutParserCompat(layout)
 
         while (parser.hasNext()) {
@@ -64,7 +64,7 @@ internal object LegacyLayoutCommandHarness {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
                 val imageIndex = stats[statIndex]
-                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
+                commands += Hud.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
                 continue
             }
 
@@ -86,12 +86,12 @@ internal object LegacyLayoutCommandHarness {
                 parser.next()
                 val time = parser.tokenAsInt()
 
-                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
-                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
-                commands += LayoutExecutor.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
-                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
-                commands += LayoutExecutor.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
-                commands += LayoutExecutor.LayoutCommand.Image(x, y, clientInfo?.icon)
+                commands += Hud.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
+                commands += Hud.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
+                commands += Hud.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
+                commands += Hud.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
+                commands += Hud.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
+                commands += Hud.LayoutCommand.Image(x, y, clientInfo?.icon)
                 continue
             }
 
@@ -113,13 +113,13 @@ internal object LegacyLayoutCommandHarness {
 
                 val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
                 val alt = clientIndex == dataProvider.getCurrentPlayerIndex()
-                commands += LayoutExecutor.LayoutCommand.Text(x, y, block, alt = alt)
+                commands += Hud.LayoutCommand.Text(x, y, block, alt = alt)
                 continue
             }
 
             if (parser.tokenEquals("picn")) {
                 parser.next()
-                commands += LayoutExecutor.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
+                commands += Hud.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
                 continue
             }
 
@@ -129,7 +129,7 @@ internal object LegacyLayoutCommandHarness {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
                 val value = stats[statIndex]
-                commands += LayoutExecutor.LayoutCommand.Number(x, y, value, width, 0)
+                commands += Hud.LayoutCommand.Number(x, y, value, width, 0)
                 continue
             }
 
@@ -140,7 +140,7 @@ internal object LegacyLayoutCommandHarness {
                     value > 0 -> (serverFrame shr 2) and 1
                     else -> 1
                 }
-                commands += LayoutExecutor.LayoutCommand.Number(x, y, value, 3, color)
+                commands += Hud.LayoutCommand.Number(x, y, value, 3, color)
                 continue
             }
 
@@ -150,7 +150,7 @@ internal object LegacyLayoutCommandHarness {
                     continue
                 }
                 val color = if (value > 5) 0 else ((serverFrame shr 2) and 1)
-                commands += LayoutExecutor.LayoutCommand.Number(x, y, value, 3, color)
+                commands += Hud.LayoutCommand.Number(x, y, value, 3, color)
                 continue
             }
 
@@ -159,7 +159,7 @@ internal object LegacyLayoutCommandHarness {
                 if (value < 1) {
                     continue
                 }
-                commands += LayoutExecutor.LayoutCommand.Number(x, y, value, 3, 0)
+                commands += Hud.LayoutCommand.Number(x, y, value, 3, 0)
                 continue
             }
 
@@ -169,7 +169,7 @@ internal object LegacyLayoutCommandHarness {
                 check(index in 0 until MAX_CONFIGSTRINGS) { "Bad stat_string index" }
                 index = stats[index].toInt()
                 check(index in 0 until MAX_CONFIGSTRINGS) { "Bad stat_string index" }
-                commands += LayoutExecutor.LayoutCommand.Text(
+                commands += Hud.LayoutCommand.Text(
                     x = x,
                     y = y,
                     text = dataProvider.getConfigString(index) ?: "",
@@ -180,25 +180,25 @@ internal object LegacyLayoutCommandHarness {
 
             if (parser.tokenEquals("cstring")) {
                 parser.next()
-                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
+                commands += Hud.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
                 continue
             }
 
             if (parser.tokenEquals("string")) {
                 parser.next()
-                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), false)
+                commands += Hud.LayoutCommand.Text(x, y, parser.token(), false)
                 continue
             }
 
             if (parser.tokenEquals("cstring2")) {
                 parser.next()
-                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
+                commands += Hud.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
                 continue
             }
 
             if (parser.tokenEquals("string2")) {
                 parser.next()
-                commands += LayoutExecutor.LayoutCommand.Text(x, y, parser.token(), true)
+                commands += Hud.LayoutCommand.Text(x, y, parser.token(), true)
                 continue
             }
 

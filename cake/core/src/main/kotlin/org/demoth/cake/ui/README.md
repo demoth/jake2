@@ -9,7 +9,7 @@ Owned here:
 - Rendering HUD number fields from `num_*` / `anum_*` glyph pictures.
 
 Not owned here:
-- Layout script parsing/execution (`stages/LayoutExecutor.kt`).
+- Layout script parsing/execution (`stages/Hud.kt`).
 - Server message timing/lifecycle (`stages/Game3dScreen.kt`).
 - Configstring resource ownership (`Config.kt`).
 
@@ -23,7 +23,7 @@ Not owned here:
 - `ConcharsFontLoader` - Converts IdTech2 conchars atlas into `BitmapFont` glyph data.
 
 Related components:
-- `../stages/LayoutExecutor.kt` consumes `GameUiStyle`.
+- `../stages/Hud.kt` consumes `GameUiStyle`.
 - `../stages/Game3dScreen.kt` owns style lifecycle and swap timing.
 - `../Config.kt` resolves named pictures and client icons used by layout commands.
 
@@ -37,7 +37,7 @@ ServerDataMessage
      -> build IdTech2UiStyle or fallback EngineUiStyle
 
 Render frame
-  -> LayoutExecutor executes layout script
+  -> Hud executes layout script
   -> draw text via style.hudFont
   -> draw numbers via style.hudNumberFont
 ```
@@ -45,7 +45,7 @@ Render frame
 ## Invariants
 - Style swap happens on `ServerDataMessage`, not during `Game3dScreen` init.
 - Every `IdTech2UiStyle` instance acquires its own AssetManager refcounts and releases them on dispose.
-- `LayoutExecutor` compiles coordinates in IdTech2 top-left space and transforms only at draw time.
+- `Hud` compiles coordinates in IdTech2 top-left space and transforms only at draw time.
 - Conchars atlas is always interpreted as a `16 x 16` grid (cell size derived from texture dimensions).
 - Alternate text style uses legacy high-bit toggle (`char ^ 0x80`).
 

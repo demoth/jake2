@@ -1,13 +1,13 @@
 package org.demoth.cake.stages
 
 import org.demoth.cake.stages.ingame.hud.LayoutClientInfo
-import org.demoth.cake.stages.ingame.hud.LayoutCommandCompiler
+import org.demoth.cake.stages.ingame.hud.LayoutParser
 import org.demoth.cake.stages.ingame.hud.LayoutDataProvider
-import org.demoth.cake.stages.ingame.hud.LayoutExecutor
+import org.demoth.cake.stages.ingame.hud.Hud
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class LayoutExecutorRemainingBranchesTest {
+class HudRemainingBranchesTest {
     private val provider = object : LayoutDataProvider {
         override fun getImage(imageIndex: Int) = null
         override fun getConfigString(configIndex: Int): String? = null
@@ -23,7 +23,7 @@ class LayoutExecutorRemainingBranchesTest {
 
     @Test
     fun compilesPicnClientAndCtfWithLegacySemantics() {
-        val commands = LayoutCommandCompiler.compile(
+        val commands = LayoutParser.compile(
             layout = """
                 xv 0 yv 0 picn "i_help"
                 client 24 40 1 13 88 120
@@ -37,14 +37,14 @@ class LayoutExecutorRemainingBranchesTest {
         )
 
         val expected = listOf(
-            LayoutExecutor.LayoutCommand.Image(240, 180, null),
-            LayoutExecutor.LayoutCommand.Text(296, 220, "PlayerOne", alt = true),
-            LayoutExecutor.LayoutCommand.Text(296, 228, "Score: ", alt = false),
-            LayoutExecutor.LayoutCommand.Text(352, 228, "13", alt = true),
-            LayoutExecutor.LayoutCommand.Text(296, 236, "Ping:  88", alt = false),
-            LayoutExecutor.LayoutCommand.Text(296, 244, "Time:  120", alt = false),
-            LayoutExecutor.LayoutCommand.Image(264, 220, null),
-            LayoutExecutor.LayoutCommand.Text(252, 198, "123 999 CurrentUser ", alt = true),
+            Hud.LayoutCommand.Image(240, 180, null),
+            Hud.LayoutCommand.Text(296, 220, "PlayerOne", alt = true),
+            Hud.LayoutCommand.Text(296, 228, "Score: ", alt = false),
+            Hud.LayoutCommand.Text(352, 228, "13", alt = true),
+            Hud.LayoutCommand.Text(296, 236, "Ping:  88", alt = false),
+            Hud.LayoutCommand.Text(296, 244, "Time:  120", alt = false),
+            Hud.LayoutCommand.Image(264, 220, null),
+            Hud.LayoutCommand.Text(252, 198, "123 999 CurrentUser ", alt = true),
         )
         assertEquals(expected, commands)
     }
