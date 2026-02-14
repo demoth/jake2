@@ -43,6 +43,7 @@ import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
+import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.audio.SpatialSoundAttenuation
 import org.demoth.cake.createModelInstance
@@ -89,6 +90,7 @@ class Game3dScreen(
     private var spawnCount = 0
 
     private val beamRenderer = BeamRenderer(assetManager)
+    private val sp2Renderer = Sp2Renderer()
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -215,6 +217,9 @@ class Game3dScreen(
             entityManager.visibleBeams.forEach {
                 beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
             }
+            entityManager.visibleSprites.forEach {
+                sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+            }
             effectsSystem.render(modelBatch)
             entityManager.lerpAcc += delta
 
@@ -264,6 +269,7 @@ class Game3dScreen(
     override fun dispose() {
         hud?.dispose()
         beamRenderer.dispose()
+        sp2Renderer.dispose()
         effectsSystem.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()

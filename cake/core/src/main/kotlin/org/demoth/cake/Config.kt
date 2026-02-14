@@ -14,6 +14,7 @@ import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.Sp2Asset
 
 /**
  * Store all configuration related to the current map.
@@ -160,6 +161,10 @@ class GameConfiguration(
 
     fun getModel(modelIndex: Int): Model? {
         return configStrings.getOrNull(CS_MODELS + modelIndex)?.resource as? Model
+    }
+
+    fun getSpriteModel(modelIndex: Int): Sp2Asset? {
+        return configStrings.getOrNull(CS_MODELS + modelIndex)?.resource as? Sp2Asset
     }
 
     fun getModelName(modelIndex: Int): String? {
@@ -408,16 +413,23 @@ class GameConfiguration(
         if (modelPath.isBlank() || modelPath.startsWith("*") || modelPath.startsWith("#")) {
             return false
         }
-        if (!modelPath.endsWith(".md2", ignoreCase = true)) {
-            // sprite models (.sp2) and others are handled by dedicated render paths.
-            return false
-        }
         if (assetManager.fileHandleResolver.resolve(modelPath) == null) {
             return false
         } // todo: warning if not found!
-        val md2Asset = acquireAsset<Md2Asset>(modelPath)
-        config.resource = md2Asset.model
-        return true
+        return when {
+            modelPath.endsWith(".md2", ignoreCase = true) -> {
+                val md2Asset = acquireAsset<Md2Asset>(modelPath)
+                config.resource = md2Asset.model
+                true
+            }
+
+            modelPath.endsWith(".sp2", ignoreCase = true) -> {
+                config.resource = acquireAsset<Sp2Asset>(modelPath)
+                true
+            }
+
+            else -> false
+        }
     }
 
     private fun loadSoundConfigResource(config: Config): Boolean {

@@ -45,6 +45,8 @@ class ClientEntityManager : Disposable {
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
+    // `.sp2` entities are rendered as camera-facing quads via a dedicated sprite renderer.
+    var visibleSprites = mutableListOf<ClientEntity>()
     // RF_BEAM entities are collected separately because they are rendered as generated geometry.
     var visibleBeams = mutableListOf<ClientEntity>()
 
@@ -222,6 +224,7 @@ class ClientEntityManager : Disposable {
         if (reappeared || modelIndexChanged || becameInvisible || becameBeam) {
             // Any time visibility or model identity changes across frames, drop the cached instance.
             entity.modelInstance = null
+            entity.spriteAsset = null
         }
 
         // some data changes will force no lerping
@@ -282,6 +285,7 @@ class ClientEntityManager : Disposable {
     fun computeVisibleEntities(gameConfig: GameConfiguration) {
         lerpAcc = 0f
         visibleEntities.clear()
+        visibleSprites.clear()
         visibleBeams.clear()
         visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
         visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
@@ -320,28 +324,35 @@ class ClientEntityManager : Disposable {
                     entity.name = "player"
                     if (model != null) {
                         entity.modelInstance = createModelInstance(model)
+                        entity.spriteAsset = null
                     }
                 } else {
                     val model = gameConfig.getModel(modelIndex)
+                    val sprite = gameConfig.getSpriteModel(modelIndex)
                     entity.name = gameConfig.getModelName(modelIndex)
                     if (model != null) {
                         entity.modelInstance = createModelInstance(model)
+                        entity.spriteAsset = null
+                    } else if (sprite != null) {
+                        entity.modelInstance = null
+                        entity.spriteAsset = sprite
                     }
                 }
                 // todo: warning if the model was not found!
             }
 
             // render it if the model was successfully loaded
-            if (entity.modelInstance != null
-                && newState.index != gameConfig.playerIndex + 1 // do not render our own model
-                && drawEntities
-            ) {
-                (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
-                    userData.frame1 = entity.prev.frame
-                    userData.frame2 = newState.frame
-                    userData.skinIndex = newState.skinnum
+            if (newState.index != gameConfig.playerIndex + 1 && drawEntities) { // do not render our own model
+                if (entity.modelInstance != null) {
+                    (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                        userData.frame1 = entity.prev.frame
+                        userData.frame2 = newState.frame
+                        userData.skinIndex = newState.skinnum
+                    }
+                    visibleEntities += entity
+                } else if (entity.spriteAsset != null) {
+                    visibleSprites += entity
                 }
-                visibleEntities += entity
             }
         }
 

@@ -25,6 +25,7 @@ package org.demoth.cake;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import jake2.qcommon.entity_state_t;
+import org.demoth.cake.assets.Sp2Asset;
 
 /**
  * centity_t
@@ -42,6 +43,7 @@ public class ClientEntity {
 	int fly_stoptime;
 
 	public ModelInstance modelInstance;
+	public Sp2Asset spriteAsset;
 
 	public String name;
 

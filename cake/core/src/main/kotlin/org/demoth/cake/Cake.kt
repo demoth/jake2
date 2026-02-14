@@ -41,6 +41,8 @@ import org.demoth.cake.assets.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.SkyLoader
+import org.demoth.cake.assets.Sp2Asset
+import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
@@ -117,6 +119,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
         setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
         setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
+        setLoader(Sp2Asset::class.java, "sp2", Sp2Loader(fileResolver))
         setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 
     }
