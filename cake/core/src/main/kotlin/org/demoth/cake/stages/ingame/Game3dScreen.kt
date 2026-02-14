@@ -212,6 +212,8 @@ class Game3dScreen(
 
         // draw hud
         spriteBatch.use {
+            layoutExecutor.update(delta, Gdx.graphics.width, Gdx.graphics.height)
+
             layoutExecutor.drawCrosshair(
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
@@ -248,13 +250,6 @@ class Game3dScreen(
                     gameConfig = gameConfig
                 )
             }
-
-            layoutExecutor.update(
-                delta = delta,
-                screenWidth = Gdx.graphics.width,
-                screenHeight = Gdx.graphics.height,
-            )
-
         }
         entityManager.lerpAcc += delta
     }
