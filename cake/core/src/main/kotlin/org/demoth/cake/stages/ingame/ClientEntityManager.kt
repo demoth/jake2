@@ -211,8 +211,9 @@ class ClientEntityManager : Disposable {
             newState.setByFlags(update.newState, update.header.flags)
         }
 
-        // Cake: Decide if we should clear the cached model instance in certain cases
-        val reappeared = entity.serverframe != frame.serverframe - 1
+        // Cake: Decide if we should clear the cached model instance in certain cases.
+        // Keep this continuity check separate from no-lerp discontinuity handling below.
+        val wasInPreviousFrame = entity.serverframe == frame.serverframe - 1
         val modelIndexChanged =
             (newState.modelindex != entity.current.modelindex) ||
                     (newState.modelindex2 != entity.current.modelindex2) ||
@@ -221,7 +222,7 @@ class ClientEntityManager : Disposable {
         val becameBeam = (newState.renderfx and Defines.RF_BEAM) != 0
         val becameInvisible = newState.modelindex == 0
 
-        if (reappeared || modelIndexChanged || becameInvisible || becameBeam) {
+        if (!wasInPreviousFrame || modelIndexChanged || becameInvisible || becameBeam) {
             // Any time visibility or model identity changes across frames, drop the cached instance.
             entity.modelInstance = null
             entity.spriteAsset = null
@@ -240,6 +241,9 @@ class ClientEntityManager : Disposable {
             entity.serverframe = -99
         }
 
+        // Cross-reference legacy CL_ents.DeltaEntity ordering:
+        // this continuity check must happen after potential serverframe=-99 overrides.
+        val reappeared = entity.serverframe != frame.serverframe - 1
         if (!reappeared) { // shuffle the last state to previous
             // Copy !
             entity.prev.set(entity.current)
