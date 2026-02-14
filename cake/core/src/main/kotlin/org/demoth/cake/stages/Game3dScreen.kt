@@ -171,9 +171,22 @@ class Game3dScreen(
             }
 
             // interpolate position
-            val x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
-            val y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
-            val z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
+            // RF_FRAMELERP entities (monsters, characters) use discrete position stepping
+            // to match their frame-based animation, preventing rubberbanding on conveyors
+            val x: Float
+            val y: Float
+            val z: Float
+            if ((it.current.renderfx and RF_FRAMELERP) != 0) {
+                // Use current position directly (no interpolation)
+                x = it.current.origin[0]
+                y = it.current.origin[1]
+                z = it.current.origin[2]
+            } else {
+                // Interpolate position between prev and current
+                x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
+                y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
+                z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
+            }
 
             it.modelInstance.transform.setTranslation(x, y, z)
 
