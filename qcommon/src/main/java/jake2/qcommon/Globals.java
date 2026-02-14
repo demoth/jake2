@@ -235,6 +235,8 @@ public class Globals extends Defines {
 			-0.688191f, -0.587785f, -0.425325f }
 	};
 
+	// TODO(cvar-revamp): replace this global mutation flag with a dedicated client/cvar sync mechanism.
+	@Deprecated
 	public static boolean userinfo_modified = false;
 
 	public static int sys_frame_time;

@@ -24,6 +24,7 @@ import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
+import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
@@ -394,6 +395,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 }
             }
             ACTIVE -> {
+                queueUserInfoUpdateIfNeeded()
                 // fixme: send only at client rate, not every client frame
                 game3dScreen?.gatherInput(netchan.outgoing_sequence)?.let {
                     netchan.transmit(listOf(it))
@@ -401,6 +403,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             }
         }
 
+    }
+
+    private fun queueUserInfoUpdateIfNeeded() {
+        if (Globals.userinfo_modified) {
+            netchan.reliablePending.add(UserInfoMessage(Cvar.getInstance().Userinfo()))
+            Globals.userinfo_modified = false
+        }
     }
 
     /**
@@ -706,7 +715,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * populate default userinfo values - required for connecting to the server
      */
     private fun initUserInfoCvars() {
-//        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
+        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
         Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO)
         Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)
