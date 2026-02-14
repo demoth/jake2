@@ -16,7 +16,9 @@ class AnimatedModelEffect(
     private val firstFrame: Int,
     private val frameCount: Int,
     private val position: Vector3,
+    private val pitchDeg: Float = 0f,
     private val yawDeg: Float = 0f,
+    private val rollDeg: Float = 0f,
 ) : ClientTransientEffect {
     override fun update(nowMs: Int, deltaSeconds: Float): Boolean {
         val elapsedMs = nowMs - spawnTimeMs
@@ -43,6 +45,13 @@ class AnimatedModelEffect(
         modelInstance.transform.idt()
         if (yawDeg != 0f) {
             modelInstance.transform.rotate(Vector3.Z, yawDeg)
+        }
+        if (pitchDeg != 0f) {
+            modelInstance.transform.rotate(Vector3.Y, pitchDeg)
+        }
+        if (rollDeg != 0f) {
+            // Match existing idTech2 entity rotation convention for MD2 roll.
+            modelInstance.transform.rotate(Vector3.X, -rollDeg)
         }
         modelInstance.transform.setTranslation(position)
         return true
