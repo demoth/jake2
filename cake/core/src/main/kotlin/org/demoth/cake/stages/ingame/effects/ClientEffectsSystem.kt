@@ -17,6 +17,7 @@ import jake2.qcommon.network.messages.server.SplashTEMessage
 import jake2.qcommon.network.messages.server.TEMessage
 import jake2.qcommon.network.messages.server.TrailTEMessage
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.audio.SpatialSoundAttenuation
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
@@ -434,23 +435,10 @@ class ClientEffectsSystem(
     ) {
         val sound = assetCatalog.getSound(soundPath) ?: return
         val listener = listenerPositionProvider()
-        val gain = (volume * calculateAttenuation(origin, listener, attenuation)).coerceIn(0f, 1f)
+        val gain = (volume * SpatialSoundAttenuation.calculate(origin, listener, attenuation)).coerceIn(0f, 1f)
         if (gain > 0f) {
             sound.play(gain)
         }
-    }
-
-    private fun calculateAttenuation(origin: Vector3, listener: Vector3, attenuation: Float): Float {
-        if (attenuation <= 0f) {
-            return 1f
-        }
-        val distance = origin.dst(listener)
-        val rolloff = if (attenuation == Defines.ATTN_STATIC.toFloat()) attenuation * 2f else attenuation
-        val referenceDistance = 200f
-        if (distance <= referenceDistance) {
-            return 1f
-        }
-        return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
     }
 
     private fun toVector3(value: FloatArray?): Vector3? {

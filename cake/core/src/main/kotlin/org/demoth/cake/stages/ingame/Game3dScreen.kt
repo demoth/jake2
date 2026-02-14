@@ -44,6 +44,7 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.audio.SpatialSoundAttenuation
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.lerpAngle
@@ -628,14 +629,7 @@ class Game3dScreen(
         if (soundOrigin == null) {
             return 1f
         }
-
-        val distance = soundOrigin.dst(camera.position)
-        val rolloff = if (msg.attenuation == Defines.ATTN_STATIC.toFloat()) msg.attenuation * 2f else msg.attenuation
-        val referenceDistance = 200f
-        if (distance <= referenceDistance) {
-            return 1f
-        }
-        return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
+        return SpatialSoundAttenuation.calculate(soundOrigin, camera.position, msg.attenuation)
     }
 
 }
