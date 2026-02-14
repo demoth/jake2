@@ -148,7 +148,7 @@ class ClientEffectsSystem(
                 activeEffects += LineBeamEffect(
                     start = start,
                     end = end,
-                    color = Color(0.55f, 0.7f, 1f, 1f),
+                    color = Color(0.08f, 0.18f, 1f, 1f),
                     spawnTimeMs = Globals.curtime,
                     durationMs = 140,
                     radius = 0.9f,
