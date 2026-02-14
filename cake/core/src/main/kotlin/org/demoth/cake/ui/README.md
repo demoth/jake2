@@ -78,13 +78,13 @@ Newest first.
 ### Decision: Keep one HUD parser implementation for runtime and tests
 - Context: compile list per frame increased runtime complexity.
 - Options considered:
-  - Keep a separate compile implementation for tests.
-  - Share one parse routine between runtime draw and test command collection.
-- Chosen option & rationale: `Hud.executePipeline` and `collectHudCommands` now use the same parser (`executeLayoutScript`) to avoid drift.
+  - Keep a separate parse implementation for tests.
+  - Share one parse routine between runtime draw and test callbacks.
+- Chosen option & rationale: `Hud.executeLayout` and HUD tests now use the same parser (`executeLayoutScript`) to avoid drift.
 - Consequences: no duplicated parsing logic; tests still assert parsed command semantics.
 - Status: accepted.
 - References: thread discussion around HUD simplification.
-- Definition of Done: there is one parser path; tests assert through `collectHudCommands`.
+- Definition of Done: there is one parser path; tests assert via `executeLayoutScript` callback collection.
 
 ### Decision: Inventory panel follows legacy metrics; hotkey column intentionally blank
 - Context: original inventory placement/background diverged from legacy behavior.

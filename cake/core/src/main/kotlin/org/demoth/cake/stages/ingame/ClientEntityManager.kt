@@ -41,7 +41,7 @@ class ClientEntityManager : Disposable {
     var drawEntities: Boolean = true
     var drawLevel: Boolean = true
     var drawSkybox: Boolean = true
-    var lerpAcc: Float = 0f
+    var lerpAcc: Float = 0f // interpolation accumulator // (0, serverFrame)
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()

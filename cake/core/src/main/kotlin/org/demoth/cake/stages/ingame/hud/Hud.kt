@@ -2,7 +2,6 @@ package org.demoth.cake.stages.ingame.hud
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import jake2.qcommon.Com
 import jake2.qcommon.Globals
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CLIENTS
@@ -28,71 +27,29 @@ internal data class LayoutClientInfo(
     val icon: Texture?,
 )
 
-internal sealed interface HudCommand {
-    data class Image(val x: Int, val y: Int, val texture: Texture?) : HudCommand
-    data class Text(
-        val x: Int,
-        val y: Int,
-        val text: String,
-        val alt: Boolean,
-        val centerWidth: Int? = null,
-    ) : HudCommand
-    data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : HudCommand
-}
-
 /**
- * Collect parsed HUD commands using the same runtime parser used by [Hud.executePipeline].
+ * Shared IdTech2 HUD layout parser used by runtime rendering.
  *
- * This is test-oriented and intentionally separate from rendering.
+ * Runtime path:
+ * [Hud.executeLayout] wires parser callbacks directly to draw calls.
  */
-internal fun collectHudCommands(
-    layout: String?,
-    serverFrame: Int,
-    stats: ShortArray,
-    screenWidth: Int,
-    screenHeight: Int,
-    dataProvider: LayoutDataProvider,
-): List<HudCommand> {
-    if (layout.isNullOrEmpty()) return emptyList()
-
-    val emittedWarnings = hashSetOf<String>()
-    val commands = mutableListOf<HudCommand>()
-    executeLayoutScript(
-        layout = layout,
-        serverFrame = serverFrame,
-        stats = stats,
-        screenWidth = screenWidth,
-        screenHeight = screenHeight,
-        dataProvider = dataProvider,
-        warnOnce = { key, message ->
-            if (emittedWarnings.add(key)) {
-                Com.Warn("$message\n")
-            }
-        },
-        onImage = { x, y, texture -> commands += HudCommand.Image(x, y, texture) },
-        onText = { x, y, text, alt, centerWidth -> commands += HudCommand.Text(x, y, text, alt, centerWidth) },
-        onNumber = { x, y, value, width, color -> commands += HudCommand.Number(x, y, value, width, color) },
-    )
-    return commands
-}
-
-private fun executeLayoutScript(
+internal fun executeLayoutScript(
     layout: String,
     serverFrame: Int,
     stats: ShortArray,
     screenWidth: Int,
     screenHeight: Int,
     dataProvider: LayoutDataProvider,
-    warnOnce: (key: String, message: String) -> Unit,
     onImage: (x: Int, y: Int, texture: Texture?) -> Unit,
     onText: (x: Int, y: Int, text: String, alt: Boolean, centerWidth: Int?) -> Unit,
     onNumber: (x: Int, y: Int, value: Short, width: Int, color: Int) -> Unit,
 ) {
-    fun readStatOrNull(statIndex: Int, command: String): Short? {
+    if (layout.isEmpty()) return
+
+    fun readStatOrNull(statIndex: Int): Short? {
         if (statIndex in stats.indices) {
             return stats[statIndex]
         }
-        warnOnce("stat-$command-$statIndex", "Hud: skipping $command, invalid stat index $statIndex")
         return null
     }
 
@@ -139,7 +96,7 @@ private fun executeLayoutScript(
         if (parser.tokenEquals("pic")) {
             parser.next()
             val statIndex = parser.tokenAsInt()
-            val imageIndex = readStatOrNull(statIndex, "pic") ?: continue
+            val imageIndex = readStatOrNull(statIndex) ?: continue
             onImage(x, y, dataProvider.getImage(imageIndex.toInt()))
             continue
         }
@@ -154,7 +111,6 @@ private fun executeLayoutScript(
             parser.next()
             val clientIndex = parser.tokenAsInt()
             if (!isValidClientIndex(clientIndex)) {
-                warnOnce("client-index-$clientIndex", "Hud: skipping client command, invalid client index $clientIndex")
                 parser.next()
                 parser.next()
                 parser.next()
@@ -190,7 +146,6 @@ private fun executeLayoutScript(
             parser.next()
             val clientIndex = parser.tokenAsInt()
             if (!isValidClientIndex(clientIndex)) {
-                warnOnce("ctf-index-$clientIndex", "Hud: skipping ctf command, invalid client index $clientIndex")
                 parser.next()
                 parser.next()
                 continue
@@ -220,13 +175,13 @@ private fun executeLayoutScript(
             val width = parser.tokenAsInt()
             parser.next()
             val statIndex = parser.tokenAsInt()
-            val value = readStatOrNull(statIndex, "num") ?: continue
+            val value = readStatOrNull(statIndex) ?: continue
             onNumber(x, y, value, width, 0)
             continue
         }
 
         if (parser.tokenEquals("hnum")) {
-            val health = readStatOrNull(Defines.STAT_HEALTH, "hnum") ?: continue
+            val health = readStatOrNull(Defines.STAT_HEALTH) ?: continue
             val color = when {
                 health > 25 -> 0
                 health > 0 -> (serverFrame shr 2) and 1
@@ -237,7 +192,7 @@ private fun executeLayoutScript(
         }
 
         if (parser.tokenEquals("anum")) {
-            val ammo = readStatOrNull(Defines.STAT_AMMO, "anum") ?: continue
+            val ammo = readStatOrNull(Defines.STAT_AMMO) ?: continue
             if (ammo < 0) {
                 continue
             }
@@ -247,7 +202,7 @@ private fun executeLayoutScript(
         }
 
         if (parser.tokenEquals("rnum")) {
-            val armor = readStatOrNull(Defines.STAT_ARMOR, "rnum") ?: continue
+            val armor = readStatOrNull(Defines.STAT_ARMOR) ?: continue
             if (armor < 1) {
                 continue
             }
@@ -259,15 +214,10 @@ private fun executeLayoutScript(
             parser.next()
             val statIndex = parser.tokenAsInt()
             if (statIndex !in stats.indices) {
-                warnOnce("stat-string-stat-$statIndex", "Hud: skipping stat_string, invalid stat index $statIndex")
                 continue
             }
             val configIndex = stats[statIndex]
             if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                warnOnce(
-                    "stat-string-cfg-$configIndex",
-                    "Hud: skipping stat_string, invalid config string index $configIndex",
-                )
                 continue
             }
             val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
@@ -302,7 +252,7 @@ private fun executeLayoutScript(
         if (parser.tokenEquals("if")) {
             parser.next()
             val statIndex = parser.tokenAsInt()
-            val value = readStatOrNull(statIndex, "if") ?: 0
+            val value = readStatOrNull(statIndex) ?: 0
             if (value.toInt() == 0) {
                 parser.next()
                 while (parser.hasNext() && !parser.tokenEquals("endif")) {
@@ -364,7 +314,6 @@ class Hud(
     private var centerPrintText: String = ""
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
-    private val emittedWarnings = hashSetOf<String>()
 
     /**
      * Parse and execute one server-provided layout string for the current frame.
@@ -372,7 +321,7 @@ class Hud(
      * Invariant:
      * all command coordinates are interpreted as IdTech2 top-left pixels before transform.
      */
-    internal fun executePipeline(
+    internal fun executeLayout(
         layout: String?,
         serverFrame: Int,
         stats: ShortArray,
@@ -380,15 +329,13 @@ class Hud(
         screenHeight: Int,
         dataProvider: LayoutDataProvider,
     ) {
-        if (layout.isNullOrEmpty()) return
         executeLayoutScript(
-            layout = layout,
+            layout = layout ?: "",
             serverFrame = serverFrame,
             stats = stats,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             dataProvider = dataProvider,
-            warnOnce = ::warnOnce,
             onImage = { x, y, texture -> drawImageIdTech2(x, y, texture, screenHeight) },
             onText = { x, y, text, alt, centerWidth ->
                 drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
@@ -553,12 +500,6 @@ class Hud(
         centerWidth: Int? = null,
     ) {
         drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
-    }
-
-    private fun warnOnce(key: String, message: String) {
-        if (emittedWarnings.add(key)) {
-            Com.Warn("$message\n")
-        }
     }
 
     /**

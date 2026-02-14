@@ -92,11 +92,11 @@ class Game3dScreen(
 
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
-    private var hud = Hud(spriteBatch, gameUiStyle)
     private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
+    private var hud = Hud(spriteBatch, gameUiStyle)
 
 
-    // interpolation factor between two server frames
+    // interpolation factor between two server frames, between 0 and 1
     private var lerpFrac: Float = 0f
 
     init {
@@ -166,7 +166,9 @@ class Game3dScreen(
         // before calculating render view (`CL_ents.CalcViewValues`).
         prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerIndex)
 
-        updatePlayerCamera(lerpFrac)
+        updatePlayerView(lerpFrac)
+
+        // region DRAW ENTITIES
 
         modelBatch.begin(camera)
 
@@ -209,7 +211,10 @@ class Game3dScreen(
         entityManager.visibleBeams.forEach {
             beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
         }
+        entityManager.lerpAcc += delta
         modelBatch.end()
+
+        // endregion
 
         // draw hud
         spriteBatch.use {
@@ -220,7 +225,7 @@ class Game3dScreen(
                 screenHeight = Gdx.graphics.height,
             )
 
-            hud.executePipeline(
+            hud.executeLayout(
                 layout = gameConfig.getStatusBarLayout(),
                 serverFrame = entityManager.currentFrame.serverframe,
                 stats = entityManager.currentFrame.playerstate.stats,
@@ -232,7 +237,7 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // SRC.DrawLayout
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                hud.executePipeline(
+                hud.executeLayout(
                     layout = gameConfig.layout,
                     serverFrame = entityManager.currentFrame.serverframe,
                     stats = entityManager.currentFrame.playerstate.stats,
@@ -252,7 +257,6 @@ class Game3dScreen(
                 )
             }
         }
-        entityManager.lerpAcc += delta
     }
 
     override fun dispose() {
@@ -334,10 +338,11 @@ class Game3dScreen(
     /**
      * CL_CalcViewValues
      * Updates camera transformation according to player input and player info
+     * Updates player gun position/rotation
      *
      * Cross-reference (old client): `CL_ents.CalcViewValues`.
      */
-    private fun updatePlayerCamera(lerp: Float) {
+    private fun updatePlayerView(lerp: Float) {
         val currentFrame = entityManager.currentFrame
         val previousFrame = entityManager.previousFrame
         val currentState = currentFrame.playerstate

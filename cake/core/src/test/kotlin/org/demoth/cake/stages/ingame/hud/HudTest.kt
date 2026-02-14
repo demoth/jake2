@@ -5,6 +5,12 @@ import org.junit.Assert
 import org.junit.Test
 
 class HudTest {
+    private sealed interface TestCommand {
+        data class Image(val x: Int, val y: Int, val texture: Any?) : TestCommand
+        data class Text(val x: Int, val y: Int, val text: String, val alt: Boolean, val centerWidth: Int? = null) : TestCommand
+        data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : TestCommand
+    }
+
     private val provider = object : LayoutDataProvider {
         private val configStrings = mapOf(
             5 to "picked-up-item",
@@ -23,6 +29,30 @@ class HudTest {
         override fun getCurrentPlayerIndex(): Int = 2
     }
 
+    private fun collectCommands(
+        layout: String,
+        serverFrame: Int,
+        stats: ShortArray,
+        screenWidth: Int,
+        screenHeight: Int,
+    ): List<TestCommand> {
+        val commands = mutableListOf<TestCommand>()
+        executeLayoutScript(
+            layout = layout,
+            serverFrame = serverFrame,
+            stats = stats,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            dataProvider = provider,
+            onImage = { x, y, texture -> commands += TestCommand.Image(x, y, texture) },
+            onText = { x, y, text, alt, centerWidth ->
+                commands += TestCommand.Text(x, y, text, alt, centerWidth)
+            },
+            onNumber = { x, y, value, width, color -> commands += TestCommand.Number(x, y, value, width, color) },
+        )
+        return commands
+    }
+
     @Test
     fun parsesPositionAndNumericBranches() {
         val stats = ShortArray(64)
@@ -30,7 +60,7 @@ class HudTest {
         stats[Defines.STAT_AMMO] = 6
         stats[Defines.STAT_ARMOR] = 25
 
-        val commands = collectHudCommands(
+        val commands = collectCommands(
             layout = """
                 xl 8 yt 16 num 3 1
                 xr -40 yb -24 hnum
@@ -41,15 +71,14 @@ class HudTest {
             stats = stats,
             screenWidth = 800,
             screenHeight = 600,
-            dataProvider = provider,
         )
 
         Assert.assertEquals(
             listOf(
-                HudCommand.Number(8, 16, 14, 3, 0),
-                HudCommand.Number(760, 576, 14, 3, 1),
-                HudCommand.Number(264, 200, 6, 3, 0),
-                HudCommand.Number(280, 220, 25, 3, 0),
+                TestCommand.Number(8, 16, 14, 3, 0),
+                TestCommand.Number(760, 576, 14, 3, 1),
+                TestCommand.Number(264, 200, 6, 3, 0),
+                TestCommand.Number(280, 220, 25, 3, 0),
             ),
             commands,
         )
@@ -61,7 +90,7 @@ class HudTest {
         stats[3] = 0
         stats[7] = 9
 
-        val commands = collectHudCommands(
+        val commands = collectCommands(
             layout = """
                 xl 10 yt 10 string "hello world" // ignored tail
                 if 3 num 3 1 endif
@@ -72,14 +101,13 @@ class HudTest {
             stats = stats,
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
 
         Assert.assertEquals(
             listOf(
-                HudCommand.Text(10, 10, "hello world", alt = false),
-                HudCommand.Text(15, 30, "alt words", alt = true, centerWidth = 320),
-                HudCommand.Text(20, 40, "ctf-flag", alt = false),
+                TestCommand.Text(10, 10, "hello world", alt = false),
+                TestCommand.Text(15, 30, "alt words", alt = true, centerWidth = 320),
+                TestCommand.Text(20, 40, "ctf-flag", alt = false),
             ),
             commands,
         )
@@ -87,7 +115,7 @@ class HudTest {
 
     @Test
     fun parsesPicnClientAndCtfBranches() {
-        val commands = collectHudCommands(
+        val commands = collectCommands(
             layout = """
                 xv 0 yv 0 picn "i_help"
                 client 24 40 1 13 88 120
@@ -97,19 +125,18 @@ class HudTest {
             stats = ShortArray(64),
             screenWidth = 800,
             screenHeight = 600,
-            dataProvider = provider,
         )
 
         Assert.assertEquals(
             listOf(
-                HudCommand.Image(240, 180, null),
-                HudCommand.Text(296, 220, "PlayerOne", alt = true),
-                HudCommand.Text(296, 228, "Score: ", alt = false),
-                HudCommand.Text(352, 228, "13", alt = true),
-                HudCommand.Text(296, 236, "Ping:  88", alt = false),
-                HudCommand.Text(296, 244, "Time:  120", alt = false),
-                HudCommand.Image(264, 220, null),
-                HudCommand.Text(252, 198, "123 999 CurrentUser ", alt = true),
+                TestCommand.Image(240, 180, null),
+                TestCommand.Text(296, 220, "PlayerOne", alt = true),
+                TestCommand.Text(296, 228, "Score: ", alt = false),
+                TestCommand.Text(352, 228, "13", alt = true),
+                TestCommand.Text(296, 236, "Ping:  88", alt = false),
+                TestCommand.Text(296, 244, "Time:  120", alt = false),
+                TestCommand.Image(264, 220, null),
+                TestCommand.Text(252, 198, "123 999 CurrentUser ", alt = true),
             ),
             commands,
         )
@@ -120,53 +147,49 @@ class HudTest {
         val stats = ShortArray(64)
         stats[Defines.STAT_HEALTH] = 10
 
-        val frame4 = collectHudCommands(
+        val frame4 = collectCommands(
             layout = "xl 0 yt 0 hnum",
             serverFrame = 4,
             stats = stats,
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
-        val frame8 = collectHudCommands(
+        val frame8 = collectCommands(
             layout = "xl 0 yt 0 hnum",
             serverFrame = 8,
             stats = stats,
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
 
-        Assert.assertEquals(listOf(HudCommand.Number(0, 0, 10, 3, 1)), frame4)
-        Assert.assertEquals(listOf(HudCommand.Number(0, 0, 10, 3, 0)), frame8)
+        Assert.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 1)), frame4)
+        Assert.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 0)), frame8)
     }
 
     @Test
     fun statStringDependsOnCurrentStatValue() {
-        val commandsA = collectHudCommands(
+        val commandsA = collectCommands(
             layout = "xl 0 yt 0 stat_string 7",
             serverFrame = 1,
             stats = ShortArray(64).apply { this[7] = 5 },
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
-        val commandsB = collectHudCommands(
+        val commandsB = collectCommands(
             layout = "xl 0 yt 0 stat_string 7",
             serverFrame = 1,
             stats = ShortArray(64).apply { this[7] = 9 },
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
 
-        Assert.assertEquals(listOf(HudCommand.Text(0, 0, "picked-up-item", alt = false)), commandsA)
-        Assert.assertEquals(listOf(HudCommand.Text(0, 0, "ctf-flag", alt = false)), commandsB)
+        Assert.assertEquals(listOf(TestCommand.Text(0, 0, "picked-up-item", alt = false)), commandsA)
+        Assert.assertEquals(listOf(TestCommand.Text(0, 0, "ctf-flag", alt = false)), commandsB)
     }
 
     @Test
     fun skipsInvalidIndicesAndContinuesParsing() {
-        val commands = collectHudCommands(
+        val commands = collectCommands(
             layout = """
                 xl 1 yt 1 num 3 999
                 xl 2 yt 2 pic 888
@@ -180,11 +203,10 @@ class HudTest {
             stats = ShortArray(64),
             screenWidth = 640,
             screenHeight = 480,
-            dataProvider = provider,
         )
 
         Assert.assertEquals(
-            listOf(HudCommand.Text(4, 4, "ok", alt = false)),
+            listOf(TestCommand.Text(4, 4, "ok", alt = false)),
             commands,
         )
     }
@@ -205,17 +227,16 @@ class HudTest {
             this[Defines.STAT_ARMOR] = 50
         }
 
-        val singleCommands = collectHudCommands(
+        val singleCommands = collectCommands(
             layout = SINGLE_STATUSBAR_LAYOUT,
             serverFrame = 10,
             stats = singleStats,
             screenWidth = 800,
             screenHeight = 600,
-            dataProvider = provider,
         )
         Assert.assertTrue(singleCommands.isNotEmpty())
-        Assert.assertTrue(singleCommands.any { it is HudCommand.Number })
-        Assert.assertTrue(singleCommands.any { it is HudCommand.Image })
+        Assert.assertTrue(singleCommands.any { it is TestCommand.Number })
+        Assert.assertTrue(singleCommands.any { it is TestCommand.Image })
 
         val dmStats = ShortArray(64).apply {
             this[2] = 1
@@ -234,16 +255,15 @@ class HudTest {
             this[Defines.STAT_ARMOR] = 50
         }
 
-        val dmCommands = collectHudCommands(
+        val dmCommands = collectCommands(
             layout = DEATHMATCH_STATUSBAR_LAYOUT,
             serverFrame = 10,
             stats = dmStats,
             screenWidth = 800,
             screenHeight = 600,
-            dataProvider = provider,
         )
-        Assert.assertTrue(dmCommands.any { it is HudCommand.Text && it.text == "SPECTATOR MODE" && it.alt })
-        Assert.assertTrue(dmCommands.any { it is HudCommand.Text && it.text == "Chasing" && !it.alt })
+        Assert.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "SPECTATOR MODE" && it.alt })
+        Assert.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "Chasing" && !it.alt })
     }
 
     companion object {
