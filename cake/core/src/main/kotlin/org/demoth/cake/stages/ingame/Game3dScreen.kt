@@ -49,8 +49,6 @@ import org.demoth.cake.md2VatShader
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.toForwardUp
-import org.demoth.cake.ui.EngineUiStyle
-import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
 
@@ -91,8 +89,8 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
-    private var hud = Hud(spriteBatch, EngineUiStyle(Scene2DSkin.defaultSkin), hudLayoutDataProvider)
+
+    private var hud: Hud? = null // initialized when ServerDataMessage arrives
 
 
     // interpolation factor between two server frames, between 0 and 1
@@ -217,14 +215,14 @@ class Game3dScreen(
 
         // draw hud
         spriteBatch.use {
-            hud.update(delta, Gdx.graphics.width, Gdx.graphics.height)
+            hud?.update(delta, Gdx.graphics.width, Gdx.graphics.height)
 
-            hud.drawCrosshair(
+            hud?.drawCrosshair(
                 screenWidth = Gdx.graphics.width,
                 screenHeight = Gdx.graphics.height,
             )
 
-            hud.executeLayout(
+            hud?.executeLayout(
                 layout = gameConfig.getStatusBarLayout(),
                 serverFrame = entityManager.currentFrame.serverframe,
                 stats = entityManager.currentFrame.playerstate.stats,
@@ -235,7 +233,7 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // SRC.DrawLayout
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                hud.executeLayout(
+                hud?.executeLayout(
                     layout = gameConfig.layout,
                     serverFrame = entityManager.currentFrame.serverframe,
                     stats = entityManager.currentFrame.playerstate.stats,
@@ -246,7 +244,7 @@ class Game3dScreen(
             // draw additional layout, like help or score
             // CL_inv.DrawInventory
             if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 2) != 0) {
-                hud.drawInventory(
+                hud?.drawInventory(
                     playerstate = entityManager.currentFrame.playerstate,
                     screenWidth = Gdx.graphics.width,
                     screenHeight = Gdx.graphics.height,
@@ -257,7 +255,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
-        hud.dispose()
+        hud?.dispose()
         beamRenderer.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
@@ -504,7 +502,12 @@ class Game3dScreen(
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
-        reloadGameUiStyle()
+
+        // initialize HUD
+        // assumption: server data message arrives ONCE and only once during single game session.
+        // therefore we don't support hud reload/style switch -> don't dispose previous one
+        val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
+        hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -574,7 +577,7 @@ class Game3dScreen(
     override fun processPrintCenterMessage(msg: PrintCenterMessage) {
         // Legacy behavior echoes center-print text to the console too.
         Com.Printf("${msg.text}\n")
-        hud.showCenterPrint(msg.text)
+        hud?.showCenterPrint(msg.text)
     }
 
     override fun processLayoutMessage(msg: LayoutMessage) {
@@ -611,20 +614,6 @@ class Game3dScreen(
             return 1f
         }
         return (referenceDistance / (referenceDistance + rolloff * (distance - referenceDistance))).coerceIn(0f, 1f)
-    }
-
-    /**
-     * Rebuilds HUD style resources for the current game/mod and swaps HUD instance.
-     *
-     * Quirk:
-     * this is called on each `ServerDataMessage` (map/reconnect transitions), so old/new HUD
-     * handover must be safe for style-managed resources.
-     */
-    private fun reloadGameUiStyle() {
-        val oldHud = hud
-        val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
-        hud = Hud(spriteBatch, gameUiStyle, hudLayoutDataProvider)
-        oldHud.dispose()
     }
 
 }
