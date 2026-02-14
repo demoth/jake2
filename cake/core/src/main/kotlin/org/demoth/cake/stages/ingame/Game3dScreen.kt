@@ -66,6 +66,7 @@ class Game3dScreen(
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
+
     private val collisionModel = CM()
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
 
@@ -75,8 +76,7 @@ class Game3dScreen(
 
     private val gameConfig = GameConfiguration(assetManager)
 
-    private val entityManager = ClientEntityManager { gameConfig.playerIndex }
-    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
+    private val entityManager = ClientEntityManager()
     private val environment = Environment()
 
     // game state
@@ -93,6 +93,7 @@ class Game3dScreen(
     private val spriteBatch = SpriteBatch()
     private var gameUiStyle: GameUiStyle = EngineUiStyle(Scene2DSkin.defaultSkin)
     private var hud = Hud(spriteBatch, gameUiStyle)
+    private val hudLayoutDataProvider = GameConfigLayoutDataProvider(gameConfig)
 
 
     // interpolation factor between two server frames
@@ -163,7 +164,7 @@ class Game3dScreen(
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
         // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
         // before calculating render view (`CL_ents.CalcViewValues`).
-        prediction.predictMovement(entityManager.currentFrame, inputManager)
+        prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerIndex)
 
         updatePlayerCamera(lerpFrac)
 

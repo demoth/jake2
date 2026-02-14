@@ -112,7 +112,7 @@ class ClientPrediction(
         predictionError[2] = deltaZ * 0.125f
     }
 
-    fun predictMovement(currentFrame: ClientFrame, inputManager: InputManager) {
+    fun predictMovement(currentFrame: ClientFrame, inputManager: InputManager, playerIndex: Int) {
         if (!currentFrame.valid) {
             return
         }
@@ -135,7 +135,7 @@ class ClientPrediction(
         val pm = pmove_t().apply {
             trace = object : pmove_t.TraceAdapter() {
                 override fun trace(start: FloatArray, mins: FloatArray, maxs: FloatArray, end: FloatArray): trace_t {
-                    return pmTrace(start, mins, maxs, end)
+                    return pmTrace(start, mins, maxs, end, playerIndex)
                 }
             }
             pointcontents = pmove_t.PointContentsAdapter { point ->
@@ -197,16 +197,17 @@ class ClientPrediction(
     }
 
     // Cross-reference: `CL_pred.PMTrace`.
-    private fun pmTrace(start: FloatArray, mins: FloatArray, maxs: FloatArray, end: FloatArray): trace_t {
+    private fun pmTrace(start: FloatArray, mins: FloatArray, maxs: FloatArray, end: FloatArray, playerIndex: Int): trace_t {
         val result = collisionModel.BoxTrace(start, end, mins, maxs, 0, Defines.MASK_PLAYERSOLID)
         if (result.fraction < 1f) {
             result.ent = dummyTraceEntity
         }
-        clipMoveToEntities(start, mins, maxs, end, result)
+        clipMoveToEntities(playerIndex, start, mins, maxs, end, result)
         return result
     }
 
     private fun clipMoveToEntities(
+        playerIndex: Int,
         start: FloatArray,
         mins: FloatArray,
         maxs: FloatArray,
@@ -215,7 +216,7 @@ class ClientPrediction(
     ) {
         // Cross-reference: `CL_pred.ClipMoveToEntities`.
         entityManager.forEachCurrentEntityState { entity ->
-            if (entity.solid == 0 || entity.index == entityManager.playerIndex + 1) { // solid=0 means non-solid network entity
+            if (entity.solid == 0 || entity.index == playerIndex + 1) { // solid=0 means non-solid network entity
                 return@forEachCurrentEntityState
             }
 
