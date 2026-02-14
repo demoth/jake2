@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame.hud
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import jake2.qcommon.Com
 import jake2.qcommon.Globals
 import jake2.qcommon.Defines
 import jake2.qcommon.Defines.MAX_CLIENTS
@@ -12,7 +13,7 @@ import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 
 /**
- * Data source used by layout compilation to resolve assets/config values.
+ * Data source used by HUD layout parse/execute flow to resolve assets/config values.
  */
 internal interface LayoutDataProvider {
     fun getImage(imageIndex: Int): Texture?
@@ -29,6 +30,9 @@ internal data class LayoutClientInfo(
 
 /**
  * Default data provider backed by the active [GameConfiguration].
+ *
+ * Ownership:
+ * created and owned by `Game3dScreen` for the lifetime of a running game screen.
  */
 internal class GameConfigLayoutDataProvider(
     private val gameConfig: GameConfiguration,
@@ -74,6 +78,7 @@ class Hud(
     private var centerPrintText: String = ""
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
+    private val emittedWarnings = hashSetOf<String>()
 
     sealed interface LayoutCommand {
         data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
@@ -144,7 +149,7 @@ class Hud(
             if (parser.tokenEquals("pic")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                val imageIndex = stats[statIndex]
+                val imageIndex = readStatOrNull(stats, statIndex, "pic") ?: continue
                 drawImageIdTech2(x, y, dataProvider.getImage(imageIndex.toInt()), screenHeight)
                 continue
             }
@@ -158,7 +163,13 @@ class Hud(
 
                 parser.next()
                 val clientIndex = parser.tokenAsInt()
-                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                if (!isValidClientIndex(clientIndex)) {
+                    warnOnce("client-index-$clientIndex", "Hud: skipping client command, invalid client index $clientIndex")
+                    parser.next()
+                    parser.next()
+                    parser.next()
+                    continue
+                }
                 val clientInfo = dataProvider.getClientInfo(clientIndex)
 
                 parser.next()
@@ -188,7 +199,12 @@ class Hud(
 
                 parser.next()
                 val clientIndex = parser.tokenAsInt()
-                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                if (!isValidClientIndex(clientIndex)) {
+                    warnOnce("ctf-index-$clientIndex", "Hud: skipping ctf command, invalid client index $clientIndex")
+                    parser.next()
+                    parser.next()
+                    continue
+                }
                 val clientInfo = dataProvider.getClientInfo(clientIndex)
 
                 parser.next()
@@ -214,12 +230,13 @@ class Hud(
                 val width = parser.tokenAsInt()
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                drawNumberIdTech2(x, y, stats[statIndex], width, 0, screenHeight)
+                val value = readStatOrNull(stats, statIndex, "num") ?: continue
+                drawNumberIdTech2(x, y, value, width, 0, screenHeight)
                 continue
             }
 
             if (parser.tokenEquals("hnum")) {
-                val health = stats[Defines.STAT_HEALTH]
+                val health = readStatOrNull(stats, Defines.STAT_HEALTH, "hnum") ?: continue
                 val color = when {
                     health > 25 -> 0
                     health > 0 -> (serverFrame shr 2) and 1
@@ -230,7 +247,7 @@ class Hud(
             }
 
             if (parser.tokenEquals("anum")) {
-                val ammo = stats[Defines.STAT_AMMO]
+                val ammo = readStatOrNull(stats, Defines.STAT_AMMO, "anum") ?: continue
                 if (ammo < 0) {
                     continue
                 }
@@ -240,7 +257,7 @@ class Hud(
             }
 
             if (parser.tokenEquals("rnum")) {
-                val armor = stats[Defines.STAT_ARMOR]
+                val armor = readStatOrNull(stats, Defines.STAT_ARMOR, "rnum") ?: continue
                 if (armor < 1) {
                     continue
                 }
@@ -251,12 +268,17 @@ class Hud(
             if (parser.tokenEquals("stat_string")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                if (statIndex !in stats.indices) {
+                    warnOnce("stat-string-stat-$statIndex", "Hud: skipping stat_string, invalid stat index $statIndex")
+                    continue
                 }
                 val configIndex = stats[statIndex]
                 if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
+                    warnOnce(
+                        "stat-string-cfg-$configIndex",
+                        "Hud: skipping stat_string, invalid config string index $configIndex",
+                    )
+                    continue
                 }
                 val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
                 drawTextIdTech2(x, y, value, alt = false, centerWidth = null, screenHeight = screenHeight)
@@ -290,7 +312,7 @@ class Hud(
             if (parser.tokenEquals("if")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                val value = stats[statIndex]
+                val value = readStatOrNull(stats, statIndex, "if") ?: 0
                 if (value.toInt() == 0) {
                     parser.next()
                     while (parser.hasNext() && !parser.tokenEquals("endif")) {
@@ -460,6 +482,22 @@ class Hud(
         drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
     }
 
+    private fun readStatOrNull(stats: ShortArray, statIndex: Int, command: String): Short? {
+        if (statIndex in stats.indices) {
+            return stats[statIndex]
+        }
+        warnOnce("stat-$command-$statIndex", "Hud: skipping $command, invalid stat index $statIndex")
+        return null
+    }
+
+    private fun warnOnce(key: String, message: String) {
+        if (emittedWarnings.add(key)) {
+            Com.Warn("$message\n")
+        }
+    }
+
+    private fun isValidClientIndex(clientIndex: Int): Boolean = clientIndex in 0 until MAX_CLIENTS
+
     /**
      * Apply legacy high-bit toggle used by IdTech2 alternate HUD text (`DrawAltString` / `^ 0x80`).
      */
@@ -477,6 +515,10 @@ internal object LayoutParser {
     /**
      * Compile textual layout script (like svc_layout) into draw commands in IdTech2 coordinate space.
      *
+     * Purpose:
+     * test/parity helper used to compare command emission with the legacy client harness.
+     * Runtime HUD rendering uses [Hud.executePipeline] directly.
+     *
      * Legacy counterpart:
      * `client/SCR.ExecuteLayoutString`.
      */
@@ -488,6 +530,21 @@ internal object LayoutParser {
         screenHeight: Int,
         dataProvider: LayoutDataProvider,
     ): List<Hud.LayoutCommand> {
+        val emittedWarnings = hashSetOf<String>()
+        fun warnOnce(key: String, message: String) {
+            if (emittedWarnings.add(key)) {
+                Com.Warn("$message\n")
+            }
+        }
+        fun readStatOrNull(statIndex: Int, command: String): Short? {
+            if (statIndex in stats.indices) {
+                return stats[statIndex]
+            }
+            warnOnce("compile-stat-$command-$statIndex", "LayoutParser: skipping $command, invalid stat index $statIndex")
+            return null
+        }
+        fun isValidClientIndex(clientIndex: Int): Boolean = clientIndex in 0 until MAX_CLIENTS
+
         var x = 0
         var y = 0
         val commands = mutableListOf<Hud.LayoutCommand>()
@@ -530,7 +587,7 @@ internal object LayoutParser {
             if (parser.tokenEquals("pic")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                val imageIndex = stats[statIndex]
+                val imageIndex = readStatOrNull(statIndex, "pic") ?: continue
                 commands += Hud.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
                 continue
             }
@@ -544,7 +601,16 @@ internal object LayoutParser {
 
                 parser.next()
                 val clientIndex = parser.tokenAsInt()
-                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                if (!isValidClientIndex(clientIndex)) {
+                    warnOnce(
+                        "compile-client-index-$clientIndex",
+                        "LayoutParser: skipping client command, invalid client index $clientIndex",
+                    )
+                    parser.next()
+                    parser.next()
+                    parser.next()
+                    continue
+                }
                 val clientInfo = dataProvider.getClientInfo(clientIndex)
 
                 parser.next()
@@ -574,7 +640,15 @@ internal object LayoutParser {
 
                 parser.next()
                 val clientIndex = parser.tokenAsInt()
-                check(clientIndex in 0 until MAX_CLIENTS) { "client >= MAX_CLIENTS" }
+                if (!isValidClientIndex(clientIndex)) {
+                    warnOnce(
+                        "compile-ctf-index-$clientIndex",
+                        "LayoutParser: skipping ctf command, invalid client index $clientIndex",
+                    )
+                    parser.next()
+                    parser.next()
+                    continue
+                }
                 val clientInfo = dataProvider.getClientInfo(clientIndex)
 
                 parser.next()
@@ -600,12 +674,13 @@ internal object LayoutParser {
                 val width = parser.tokenAsInt()
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                commands += Hud.LayoutCommand.Number(x, y, stats[statIndex], width, 0)
+                val value = readStatOrNull(statIndex, "num") ?: continue
+                commands += Hud.LayoutCommand.Number(x, y, value, width, 0)
                 continue
             }
 
             if (parser.tokenEquals("hnum")) {
-                val health = stats[Defines.STAT_HEALTH]
+                val health = readStatOrNull(Defines.STAT_HEALTH, "hnum") ?: continue
                 val color = when {
                     health > 25 -> 0
                     health > 0 -> (serverFrame shr 2) and 1
@@ -616,7 +691,7 @@ internal object LayoutParser {
             }
 
             if (parser.tokenEquals("anum")) {
-                val ammo = stats[Defines.STAT_AMMO]
+                val ammo = readStatOrNull(Defines.STAT_AMMO, "anum") ?: continue
                 if (ammo < 0) {
                     continue
                 }
@@ -626,7 +701,7 @@ internal object LayoutParser {
             }
 
             if (parser.tokenEquals("rnum")) {
-                val armor = stats[Defines.STAT_ARMOR]
+                val armor = readStatOrNull(Defines.STAT_ARMOR, "rnum") ?: continue
                 if (armor < 1) {
                     continue
                 }
@@ -637,12 +712,20 @@ internal object LayoutParser {
             if (parser.tokenEquals("stat_string")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                if (statIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    throw IllegalStateException("stat_string: Invalid player stat index: $statIndex")
+                if (statIndex !in stats.indices) {
+                    warnOnce(
+                        "compile-stat-string-stat-$statIndex",
+                        "LayoutParser: skipping stat_string, invalid stat index $statIndex",
+                    )
+                    continue
                 }
                 val configIndex = stats[statIndex]
                 if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    throw IllegalStateException("stat_string: Invalid config string index: $configIndex")
+                    warnOnce(
+                        "compile-stat-string-cfg-$configIndex",
+                        "LayoutParser: skipping stat_string, invalid config string index $configIndex",
+                    )
+                    continue
                 }
                 val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
                 commands += Hud.LayoutCommand.Text(x, y, value, false)
@@ -676,7 +759,7 @@ internal object LayoutParser {
             if (parser.tokenEquals("if")) {
                 parser.next()
                 val statIndex = parser.tokenAsInt()
-                val value = stats[statIndex]
+                val value = readStatOrNull(statIndex, "if") ?: 0
                 if (value.toInt() == 0) {
                     parser.next()
                     while (parser.hasNext() && !parser.tokenEquals("endif")) {

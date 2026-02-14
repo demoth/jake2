@@ -7,7 +7,7 @@ import org.demoth.cake.stages.ingame.hud.Hud
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class LayoutExecutorRealLayoutSmokeTest {
+class HudRealLayoutSmokeTest {
     private val provider = object : LayoutDataProvider {
         override fun getImage(imageIndex: Int) = null
         override fun getConfigString(configIndex: Int): String = "cfg-$configIndex"

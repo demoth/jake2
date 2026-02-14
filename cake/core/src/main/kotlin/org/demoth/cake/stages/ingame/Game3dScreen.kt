@@ -499,6 +499,7 @@ class Game3dScreen(
     override fun processServerDataMessage(msg: ServerDataMessage) {
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
+        // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
         reloadGameUiStyle()

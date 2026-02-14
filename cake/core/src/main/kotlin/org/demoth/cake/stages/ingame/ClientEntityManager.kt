@@ -256,6 +256,7 @@ class ClientEntityManager : Disposable {
      * - Collects RF_BEAM entities into [visibleBeams] for dedicated beam rendering.
      * - Attempts to load and manage the player's weapon model, updating its animation frames
      *   as necessary.
+     * - Uses `gameConfig.playerIndex` as the local-player source of truth for self-model culling.
      *
      * Known issues and TODOs:
      * - Persistent storage for client entities is not implemented yet.

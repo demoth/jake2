@@ -44,6 +44,9 @@ class GameConfiguration(
     private val assetManager: AssetManager,
     size: Int = MAX_CONFIGSTRINGS
 ) {
+    companion object {
+        const val UNKNOWN_PLAYER_INDEX = -1
+    }
 
     init {
         Cmd.AddCommand("print_configs", true) {
@@ -69,7 +72,19 @@ class GameConfiguration(
      * For some reason, it is not managed by the config strings.
      */
     var layout: String = ""
-    var playerIndex: Int = 1
+
+    /**
+     * Current local player slot index from `ServerDataMessage.playerNumber` (0-based).
+     *
+     * Invariant:
+     * value is either [UNKNOWN_PLAYER_INDEX] (before serverdata/after unload) or in
+     * `0 until MAX_CLIENTS`.
+     *
+     */
+    var playerIndex: Int = UNKNOWN_PLAYER_INDEX
+        set(value) {
+            field = sanitizePlayerIndex(value)
+        }
 
     val inventory: IntArray = IntArray(MAX_ITEMS) { 0 }
 
@@ -322,9 +337,19 @@ class GameConfiguration(
         mapAsset = null
         weaponSounds.clear()
         playerModel = null
-        playerIndex = 1
+        playerIndex = UNKNOWN_PLAYER_INDEX
         failedAssets.clear()
         configStrings.forEach { config -> config?.resource = null }
+    }
+
+    private fun sanitizePlayerIndex(value: Int): Int {
+        if (value in 0 until MAX_CLIENTS) {
+            return value
+        }
+        if (value != UNKNOWN_PLAYER_INDEX) {
+            Com.Warn("Ignoring invalid playerIndex=$value, using UNKNOWN_PLAYER_INDEX")
+        }
+        return UNKNOWN_PLAYER_INDEX
     }
 
     private inline fun <reified T> acquireAsset(path: String): T {

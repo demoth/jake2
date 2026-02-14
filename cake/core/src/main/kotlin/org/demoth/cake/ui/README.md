@@ -9,9 +9,9 @@ Owned here:
 - Rendering HUD number fields from `num_*` / `anum_*` glyph pictures.
 
 Not owned here:
-- Layout script parsing/execution (`stages/Hud.kt`).
-- Server message timing/lifecycle (`stages/Game3dScreen.kt`).
-- Configstring resource ownership (`Config.kt`).
+- Layout script parsing/execution (`../stages/ingame/hud/Hud.kt`).
+- Server message timing/lifecycle (`../stages/ingame/Game3dScreen.kt`).
+- Configstring resource ownership (`../Config.kt`).
 
 ## Key Types
 - `GameUiStyle` - Runtime style contract used by layout rendering.
@@ -23,8 +23,9 @@ Not owned here:
 - `ConcharsFontLoader` - Converts IdTech2 conchars atlas into `BitmapFont` glyph data.
 
 Related components:
-- `../stages/Hud.kt` consumes `GameUiStyle`.
-- `../stages/Game3dScreen.kt` owns style lifecycle and swap timing.
+- `../stages/ingame/hud/Hud.kt` consumes `GameUiStyle`.
+- `../stages/ingame/hud/README.md` documents HUD parse/execute ownership.
+- `../stages/ingame/Game3dScreen.kt` owns style lifecycle and swap timing.
 - `../Config.kt` resolves named pictures and client icons used by layout commands.
 
 ## Data / Control Flow
@@ -45,7 +46,7 @@ Render frame
 ## Invariants
 - Style swap happens on `ServerDataMessage`, not during `Game3dScreen` init.
 - Every `IdTech2UiStyle` instance acquires its own AssetManager refcounts and releases them on dispose.
-- `Hud` compiles coordinates in IdTech2 top-left space and transforms only at draw time.
+- `Hud` parses/executes commands in IdTech2 top-left space and transforms only at draw time.
 - Conchars atlas is always interpreted as a `16 x 16` grid (cell size derived from texture dimensions).
 - Alternate text style uses legacy high-bit toggle (`char ^ 0x80`).
 
@@ -74,16 +75,16 @@ Newest first.
 - References: `37d55e1a`, regression window around `3c125792`.
 - Definition of Done: each style dispose unloads only refs it acquired.
 
-### Decision: Split layout compile (IdTech2 space) from render transform
-- Context: early implementation mixed parse logic and libGDX coordinate assumptions.
+### Decision: Keep runtime HUD rendering direct; retain compiler for parity tests
+- Context: compile list per frame increased runtime complexity.
 - Options considered:
-  - Draw directly while parsing.
-  - Compile to commands then render with explicit mapper.
-- Chosen option & rationale: compile-then-render improves parity testing and isolates origin conversion.
-- Consequences: more command types but easier parity validation.
+  - Compile then render in runtime.
+  - Parse and draw directly in runtime, keep compile helper for tests.
+- Chosen option & rationale: runtime uses direct parse/draw in `Hud.executePipeline`; `LayoutParser` remains for parity/unit testing.
+- Consequences: runtime path is simpler; parity tests still validate emitted command semantics.
 - Status: accepted.
-- References: `47d49927`, `4b0d1b5e`, `e4964942`.
-- Definition of Done: coordinate behavior is covered by mapper/unit parity tests.
+- References: thread discussion around HUD simplification.
+- Definition of Done: gameplay rendering uses `Hud.executePipeline`; tests can still assert `LayoutParser.compile`.
 
 ### Decision: Inventory panel follows legacy metrics; hotkey column intentionally blank
 - Context: original inventory placement/background diverged from legacy behavior.
@@ -125,7 +126,7 @@ Newest first.
 1. Add/implement a new `GameUiStyle` + `HudNumberFont` for your engine/game family.
 2. Add style selection logic in `GameUiStyleFactory.create` (prefer future registry when available).
 3. Ensure all style-loaded textures are reference-counted per instance and released in dispose.
-4. Keep layout command semantics in `LayoutExecutor` aligned with legacy counterpart before adding new branch logic.
+4. Keep layout command semantics in `Hud`/`LayoutParser` aligned with legacy counterpart before adding new branch logic.
 5. Add parity tests for new layout branches and coordinate mapper assumptions.
 
 ## Open Questions
