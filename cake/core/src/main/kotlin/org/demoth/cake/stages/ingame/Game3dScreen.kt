@@ -51,6 +51,7 @@ import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.md2VatShader
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
+import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.use
@@ -79,6 +80,7 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
 
     private val entityManager = ClientEntityManager()
+    private val effectsSystem = ClientEffectsSystem(assetManager, entityManager, gameConfig)
     private val environment = Environment()
 
     // game state
@@ -169,6 +171,7 @@ class Game3dScreen(
         prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerIndex)
 
         updatePlayerView(lerpFrac)
+        effectsSystem.update(delta, entityManager.currentFrame.serverframe)
 
         // render entities
         modelBatch.use(camera) { modelBatch ->
@@ -211,6 +214,7 @@ class Game3dScreen(
             entityManager.visibleBeams.forEach {
                 beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
             }
+            effectsSystem.render(modelBatch)
             entityManager.lerpAcc += delta
 
         }
@@ -259,6 +263,7 @@ class Game3dScreen(
     override fun dispose() {
         hud?.dispose()
         beamRenderer.dispose()
+        effectsSystem.dispose()
         spriteBatch.dispose()
         modelBatch.dispose()
         entityManager.dispose()
@@ -577,11 +582,11 @@ class Game3dScreen(
     }
 
     override fun processMuzzleFlash2Message(msg: MuzzleFlash2Message) {
-        // handled by ClientEffectsSystem (next step)
+        effectsSystem.processMuzzleFlash2Message(msg)
     }
 
     override fun processTempEntityMessage(msg: TEMessage) {
-        // handled by ClientEffectsSystem (next step)
+        effectsSystem.processTempEntityMessage(msg)
     }
 
     override fun processPrintMessage(msg: PrintMessage) {
