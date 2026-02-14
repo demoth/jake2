@@ -75,16 +75,16 @@ Newest first.
 - References: `37d55e1a`, regression window around `3c125792`.
 - Definition of Done: each style dispose unloads only refs it acquired.
 
-### Decision: Keep runtime HUD rendering direct; retain compiler for parity tests
+### Decision: Keep one HUD parser implementation for runtime and tests
 - Context: compile list per frame increased runtime complexity.
 - Options considered:
-  - Compile then render in runtime.
-  - Parse and draw directly in runtime, keep compile helper for tests.
-- Chosen option & rationale: runtime uses direct parse/draw in `Hud.executePipeline`; `LayoutParser` remains for parity/unit testing.
-- Consequences: runtime path is simpler; parity tests still validate emitted command semantics.
+  - Keep a separate compile implementation for tests.
+  - Share one parse routine between runtime draw and test command collection.
+- Chosen option & rationale: `Hud.executePipeline` and `collectHudCommands` now use the same parser (`executeLayoutScript`) to avoid drift.
+- Consequences: no duplicated parsing logic; tests still assert parsed command semantics.
 - Status: accepted.
 - References: thread discussion around HUD simplification.
-- Definition of Done: gameplay rendering uses `Hud.executePipeline`; tests can still assert `LayoutParser.compile`.
+- Definition of Done: there is one parser path; tests assert through `collectHudCommands`.
 
 ### Decision: Inventory panel follows legacy metrics; hotkey column intentionally blank
 - Context: original inventory placement/background diverged from legacy behavior.
@@ -126,8 +126,8 @@ Newest first.
 1. Add/implement a new `GameUiStyle` + `HudNumberFont` for your engine/game family.
 2. Add style selection logic in `GameUiStyleFactory.create` (prefer future registry when available).
 3. Ensure all style-loaded textures are reference-counted per instance and released in dispose.
-4. Keep layout command semantics in `Hud`/`LayoutParser` aligned with legacy counterpart before adding new branch logic.
-5. Add parity tests for new layout branches and coordinate mapper assumptions.
+4. Keep layout command semantics in `Hud.executeLayoutScript` aligned with legacy counterpart before adding new branch logic.
+5. Add/extend `HudTest` cases for new layout branches and coordinate mapper assumptions.
 
 ## Open Questions
 - Should style selection be moved from hardcoded game-name checks to a registry/config-driven model?

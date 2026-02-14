@@ -28,6 +28,292 @@ internal data class LayoutClientInfo(
     val icon: Texture?,
 )
 
+internal sealed interface HudCommand {
+    data class Image(val x: Int, val y: Int, val texture: Texture?) : HudCommand
+    data class Text(
+        val x: Int,
+        val y: Int,
+        val text: String,
+        val alt: Boolean,
+        val centerWidth: Int? = null,
+    ) : HudCommand
+    data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : HudCommand
+}
+
+/**
+ * Collect parsed HUD commands using the same runtime parser used by [Hud.executePipeline].
+ *
+ * This is test-oriented and intentionally separate from rendering.
+ */
+internal fun collectHudCommands(
+    layout: String?,
+    serverFrame: Int,
+    stats: ShortArray,
+    screenWidth: Int,
+    screenHeight: Int,
+    dataProvider: LayoutDataProvider,
+): List<HudCommand> {
+    if (layout.isNullOrEmpty()) return emptyList()
+
+    val emittedWarnings = hashSetOf<String>()
+    val commands = mutableListOf<HudCommand>()
+    executeLayoutScript(
+        layout = layout,
+        serverFrame = serverFrame,
+        stats = stats,
+        screenWidth = screenWidth,
+        screenHeight = screenHeight,
+        dataProvider = dataProvider,
+        warnOnce = { key, message ->
+            if (emittedWarnings.add(key)) {
+                Com.Warn("$message\n")
+            }
+        },
+        onImage = { x, y, texture -> commands += HudCommand.Image(x, y, texture) },
+        onText = { x, y, text, alt, centerWidth -> commands += HudCommand.Text(x, y, text, alt, centerWidth) },
+        onNumber = { x, y, value, width, color -> commands += HudCommand.Number(x, y, value, width, color) },
+    )
+    return commands
+}
+
+private fun executeLayoutScript(
+    layout: String,
+    serverFrame: Int,
+    stats: ShortArray,
+    screenWidth: Int,
+    screenHeight: Int,
+    dataProvider: LayoutDataProvider,
+    warnOnce: (key: String, message: String) -> Unit,
+    onImage: (x: Int, y: Int, texture: Texture?) -> Unit,
+    onText: (x: Int, y: Int, text: String, alt: Boolean, centerWidth: Int?) -> Unit,
+    onNumber: (x: Int, y: Int, value: Short, width: Int, color: Int) -> Unit,
+) {
+    fun readStatOrNull(statIndex: Int, command: String): Short? {
+        if (statIndex in stats.indices) {
+            return stats[statIndex]
+        }
+        warnOnce("stat-$command-$statIndex", "Hud: skipping $command, invalid stat index $statIndex")
+        return null
+    }
+
+    fun isValidClientIndex(clientIndex: Int): Boolean = clientIndex in 0 until MAX_CLIENTS
+
+    var x = 0
+    var y = 0
+    val parser = LayoutParserCompat(layout)
+
+    while (parser.hasNext()) {
+        parser.next()
+        if (parser.tokenEquals("xl")) {
+            parser.next()
+            x = parser.tokenAsInt()
+            continue
+        }
+        if (parser.tokenEquals("xr")) {
+            parser.next()
+            x = screenWidth + parser.tokenAsInt()
+            continue
+        }
+        if (parser.tokenEquals("xv")) {
+            parser.next()
+            x = screenWidth / 2 - 160 + parser.tokenAsInt()
+            continue
+        }
+
+        if (parser.tokenEquals("yt")) {
+            parser.next()
+            y = parser.tokenAsInt()
+            continue
+        }
+        if (parser.tokenEquals("yb")) {
+            parser.next()
+            y = screenHeight + parser.tokenAsInt()
+            continue
+        }
+        if (parser.tokenEquals("yv")) {
+            parser.next()
+            y = screenHeight / 2 - 120 + parser.tokenAsInt()
+            continue
+        }
+
+        if (parser.tokenEquals("pic")) {
+            parser.next()
+            val statIndex = parser.tokenAsInt()
+            val imageIndex = readStatOrNull(statIndex, "pic") ?: continue
+            onImage(x, y, dataProvider.getImage(imageIndex.toInt()))
+            continue
+        }
+
+        if (parser.tokenEquals("client")) {
+            parser.next()
+            x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+            parser.next()
+            y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+            parser.next()
+            val clientIndex = parser.tokenAsInt()
+            if (!isValidClientIndex(clientIndex)) {
+                warnOnce("client-index-$clientIndex", "Hud: skipping client command, invalid client index $clientIndex")
+                parser.next()
+                parser.next()
+                parser.next()
+                continue
+            }
+            val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+            parser.next()
+            val score = parser.tokenAsInt()
+
+            parser.next()
+            val ping = parser.tokenAsInt()
+
+            parser.next()
+            val time = parser.tokenAsInt()
+
+            onText(x + 32, y, clientInfo?.name ?: "", true, null)
+            onText(x + 32, y + 8, "Score: ", false, null)
+            onText(x + 32 + 7 * 8, y + 8, "$score", true, null)
+            onText(x + 32, y + 16, "Ping:  $ping", false, null)
+            onText(x + 32, y + 24, "Time:  $time", false, null)
+            onImage(x, y, clientInfo?.icon)
+            continue
+        }
+
+        if (parser.tokenEquals("ctf")) {
+            parser.next()
+            x = screenWidth / 2 - 160 + parser.tokenAsInt()
+
+            parser.next()
+            y = screenHeight / 2 - 120 + parser.tokenAsInt()
+
+            parser.next()
+            val clientIndex = parser.tokenAsInt()
+            if (!isValidClientIndex(clientIndex)) {
+                warnOnce("ctf-index-$clientIndex", "Hud: skipping ctf command, invalid client index $clientIndex")
+                parser.next()
+                parser.next()
+                continue
+            }
+            val clientInfo = dataProvider.getClientInfo(clientIndex)
+
+            parser.next()
+            val score = parser.tokenAsInt()
+
+            parser.next()
+            val ping = parser.tokenAsInt().coerceAtMost(999)
+
+            val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
+            val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
+            onText(x, y, block, isCurrentPlayer, null)
+            continue
+        }
+
+        if (parser.tokenEquals("picn")) {
+            parser.next()
+            onImage(x, y, dataProvider.getNamedPic(parser.token()))
+            continue
+        }
+
+        if (parser.tokenEquals("num")) {
+            parser.next()
+            val width = parser.tokenAsInt()
+            parser.next()
+            val statIndex = parser.tokenAsInt()
+            val value = readStatOrNull(statIndex, "num") ?: continue
+            onNumber(x, y, value, width, 0)
+            continue
+        }
+
+        if (parser.tokenEquals("hnum")) {
+            val health = readStatOrNull(Defines.STAT_HEALTH, "hnum") ?: continue
+            val color = when {
+                health > 25 -> 0
+                health > 0 -> (serverFrame shr 2) and 1
+                else -> 1
+            }
+            onNumber(x, y, health, 3, color)
+            continue
+        }
+
+        if (parser.tokenEquals("anum")) {
+            val ammo = readStatOrNull(Defines.STAT_AMMO, "anum") ?: continue
+            if (ammo < 0) {
+                continue
+            }
+            val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
+            onNumber(x, y, ammo, 3, color)
+            continue
+        }
+
+        if (parser.tokenEquals("rnum")) {
+            val armor = readStatOrNull(Defines.STAT_ARMOR, "rnum") ?: continue
+            if (armor < 1) {
+                continue
+            }
+            onNumber(x, y, armor, 3, 0)
+            continue
+        }
+
+        if (parser.tokenEquals("stat_string")) {
+            parser.next()
+            val statIndex = parser.tokenAsInt()
+            if (statIndex !in stats.indices) {
+                warnOnce("stat-string-stat-$statIndex", "Hud: skipping stat_string, invalid stat index $statIndex")
+                continue
+            }
+            val configIndex = stats[statIndex]
+            if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
+                warnOnce(
+                    "stat-string-cfg-$configIndex",
+                    "Hud: skipping stat_string, invalid config string index $configIndex",
+                )
+                continue
+            }
+            val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
+            onText(x, y, value, false, null)
+            continue
+        }
+
+        if (parser.tokenEquals("cstring")) {
+            parser.next()
+            onText(x, y, parser.token(), false, 320)
+            continue
+        }
+
+        if (parser.tokenEquals("string")) {
+            parser.next()
+            onText(x, y, parser.token(), false, null)
+            continue
+        }
+
+        if (parser.tokenEquals("cstring2")) {
+            parser.next()
+            onText(x, y, parser.token(), true, 320)
+            continue
+        }
+
+        if (parser.tokenEquals("string2")) {
+            parser.next()
+            onText(x, y, parser.token(), true, null)
+            continue
+        }
+
+        if (parser.tokenEquals("if")) {
+            parser.next()
+            val statIndex = parser.tokenAsInt()
+            val value = readStatOrNull(statIndex, "if") ?: 0
+            if (value.toInt() == 0) {
+                parser.next()
+                while (parser.hasNext() && !parser.tokenEquals("endif")) {
+                    parser.next()
+                }
+            }
+            continue
+        }
+    }
+}
+
 /**
  * Default data provider backed by the active [GameConfiguration].
  *
@@ -80,18 +366,6 @@ class Hud(
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val emittedWarnings = hashSetOf<String>()
 
-    sealed interface LayoutCommand {
-        data class Image(val x: Int, val y: Int, val texture: Texture?) : LayoutCommand
-        data class Text(
-            val x: Int,
-            val y: Int,
-            val text: String,
-            val alt: Boolean,
-            val centerWidth: Int? = null,
-        ) : LayoutCommand
-        data class Number(val x: Int, val y: Int, val value: Short, val width: Int, val color: Int) : LayoutCommand
-    }
-
     /**
      * Parse and execute one server-provided layout string for the current frame.
      *
@@ -107,221 +381,20 @@ class Hud(
         dataProvider: LayoutDataProvider,
     ) {
         if (layout.isNullOrEmpty()) return
-
-        var x = 0
-        var y = 0
-        val parser = LayoutParserCompat(layout)
-
-        while (parser.hasNext()) {
-            parser.next()
-            if (parser.tokenEquals("xl")) {
-                parser.next()
-                x = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xr")) {
-                parser.next()
-                x = screenWidth + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xv")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("yt")) {
-                parser.next()
-                y = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yb")) {
-                parser.next()
-                y = screenHeight + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yv")) {
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("pic")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val imageIndex = readStatOrNull(stats, statIndex, "pic") ?: continue
-                drawImageIdTech2(x, y, dataProvider.getImage(imageIndex.toInt()), screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("client")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-
-                parser.next()
-                val clientIndex = parser.tokenAsInt()
-                if (!isValidClientIndex(clientIndex)) {
-                    warnOnce("client-index-$clientIndex", "Hud: skipping client command, invalid client index $clientIndex")
-                    parser.next()
-                    parser.next()
-                    parser.next()
-                    continue
-                }
-                val clientInfo = dataProvider.getClientInfo(clientIndex)
-
-                parser.next()
-                val score = parser.tokenAsInt()
-
-                parser.next()
-                val ping = parser.tokenAsInt()
-
-                parser.next()
-                val time = parser.tokenAsInt()
-
-                drawTextIdTech2(x + 32, y, clientInfo?.name ?: "", alt = true, centerWidth = null, screenHeight = screenHeight)
-                drawTextIdTech2(x + 32, y + 8, "Score: ", alt = false, centerWidth = null, screenHeight = screenHeight)
-                drawTextIdTech2(x + 32 + 7 * 8, y + 8, "$score", alt = true, centerWidth = null, screenHeight = screenHeight)
-                drawTextIdTech2(x + 32, y + 16, "Ping:  $ping", alt = false, centerWidth = null, screenHeight = screenHeight)
-                drawTextIdTech2(x + 32, y + 24, "Time:  $time", alt = false, centerWidth = null, screenHeight = screenHeight)
-                drawImageIdTech2(x, y, clientInfo?.icon, screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("ctf")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-
-                parser.next()
-                val clientIndex = parser.tokenAsInt()
-                if (!isValidClientIndex(clientIndex)) {
-                    warnOnce("ctf-index-$clientIndex", "Hud: skipping ctf command, invalid client index $clientIndex")
-                    parser.next()
-                    parser.next()
-                    continue
-                }
-                val clientInfo = dataProvider.getClientInfo(clientIndex)
-
-                parser.next()
-                val score = parser.tokenAsInt()
-
-                parser.next()
-                val ping = parser.tokenAsInt().coerceAtMost(999)
-
-                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
-                val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
-                drawTextIdTech2(x, y, block, alt = isCurrentPlayer, centerWidth = null, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("picn")) {
-                parser.next()
-                drawImageIdTech2(x, y, dataProvider.getNamedPic(parser.token()), screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("num")) {
-                parser.next()
-                val width = parser.tokenAsInt()
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val value = readStatOrNull(stats, statIndex, "num") ?: continue
-                drawNumberIdTech2(x, y, value, width, 0, screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("hnum")) {
-                val health = readStatOrNull(stats, Defines.STAT_HEALTH, "hnum") ?: continue
-                val color = when {
-                    health > 25 -> 0
-                    health > 0 -> (serverFrame shr 2) and 1
-                    else -> 1
-                }
-                drawNumberIdTech2(x, y, health, 3, color, screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("anum")) {
-                val ammo = readStatOrNull(stats, Defines.STAT_AMMO, "anum") ?: continue
-                if (ammo < 0) {
-                    continue
-                }
-                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
-                drawNumberIdTech2(x, y, ammo, 3, color, screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("rnum")) {
-                val armor = readStatOrNull(stats, Defines.STAT_ARMOR, "rnum") ?: continue
-                if (armor < 1) {
-                    continue
-                }
-                drawNumberIdTech2(x, y, armor, 3, 0, screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("stat_string")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                if (statIndex !in stats.indices) {
-                    warnOnce("stat-string-stat-$statIndex", "Hud: skipping stat_string, invalid stat index $statIndex")
-                    continue
-                }
-                val configIndex = stats[statIndex]
-                if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    warnOnce(
-                        "stat-string-cfg-$configIndex",
-                        "Hud: skipping stat_string, invalid config string index $configIndex",
-                    )
-                    continue
-                }
-                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
-                drawTextIdTech2(x, y, value, alt = false, centerWidth = null, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring")) {
-                parser.next()
-                drawTextIdTech2(x, y, parser.token(), alt = false, centerWidth = 320, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("string")) {
-                parser.next()
-                drawTextIdTech2(x, y, parser.token(), alt = false, centerWidth = null, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring2")) {
-                parser.next()
-                drawTextIdTech2(x, y, parser.token(), alt = true, centerWidth = 320, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("string2")) {
-                parser.next()
-                drawTextIdTech2(x, y, parser.token(), alt = true, centerWidth = null, screenHeight = screenHeight)
-                continue
-            }
-
-            if (parser.tokenEquals("if")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val value = readStatOrNull(stats, statIndex, "if") ?: 0
-                if (value.toInt() == 0) {
-                    parser.next()
-                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
-                        parser.next()
-                    }
-                }
-                continue
-            }
-        }
+        executeLayoutScript(
+            layout = layout,
+            serverFrame = serverFrame,
+            stats = stats,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            dataProvider = dataProvider,
+            warnOnce = ::warnOnce,
+            onImage = { x, y, texture -> drawImageIdTech2(x, y, texture, screenHeight) },
+            onText = { x, y, text, alt, centerWidth ->
+                drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
+            },
+            onNumber = { x, y, value, width, color -> drawNumberIdTech2(x, y, value, width, color, screenHeight) },
+        )
     }
 
     private fun drawImageIdTech2(x: Int, y: Int, texture: Texture?, screenHeight: Int) {
@@ -482,21 +555,11 @@ class Hud(
         drawTextIdTech2(x, y, text, alt, centerWidth, screenHeight)
     }
 
-    private fun readStatOrNull(stats: ShortArray, statIndex: Int, command: String): Short? {
-        if (statIndex in stats.indices) {
-            return stats[statIndex]
-        }
-        warnOnce("stat-$command-$statIndex", "Hud: skipping $command, invalid stat index $statIndex")
-        return null
-    }
-
     private fun warnOnce(key: String, message: String) {
         if (emittedWarnings.add(key)) {
             Com.Warn("$message\n")
         }
     }
-
-    private fun isValidClientIndex(clientIndex: Int): Boolean = clientIndex in 0 until MAX_CLIENTS
 
     /**
      * Apply legacy high-bit toggle used by IdTech2 alternate HUD text (`DrawAltString` / `^ 0x80`).
@@ -508,268 +571,5 @@ class Hud(
             mapped[i] = ((text[i].code xor 0x80) and 0xFF).toChar()
         }
         return String(mapped)
-    }
-}
-
-internal object LayoutParser {
-    /**
-     * Compile textual layout script (like svc_layout) into draw commands in IdTech2 coordinate space.
-     *
-     * Purpose:
-     * test/parity helper used to compare command emission with the legacy client harness.
-     * Runtime HUD rendering uses [Hud.executePipeline] directly.
-     *
-     * Legacy counterpart:
-     * `client/SCR.ExecuteLayoutString`.
-     */
-    fun compile(
-        layout: String,
-        serverFrame: Int,
-        stats: ShortArray,
-        screenWidth: Int,
-        screenHeight: Int,
-        dataProvider: LayoutDataProvider,
-    ): List<Hud.LayoutCommand> {
-        val emittedWarnings = hashSetOf<String>()
-        fun warnOnce(key: String, message: String) {
-            if (emittedWarnings.add(key)) {
-                Com.Warn("$message\n")
-            }
-        }
-        fun readStatOrNull(statIndex: Int, command: String): Short? {
-            if (statIndex in stats.indices) {
-                return stats[statIndex]
-            }
-            warnOnce("compile-stat-$command-$statIndex", "LayoutParser: skipping $command, invalid stat index $statIndex")
-            return null
-        }
-        fun isValidClientIndex(clientIndex: Int): Boolean = clientIndex in 0 until MAX_CLIENTS
-
-        var x = 0
-        var y = 0
-        val commands = mutableListOf<Hud.LayoutCommand>()
-        val parser = LayoutParserCompat(layout)
-
-        while (parser.hasNext()) {
-            parser.next()
-            if (parser.tokenEquals("xl")) {
-                parser.next()
-                x = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xr")) {
-                parser.next()
-                x = screenWidth + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("xv")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("yt")) {
-                parser.next()
-                y = parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yb")) {
-                parser.next()
-                y = screenHeight + parser.tokenAsInt()
-                continue
-            }
-            if (parser.tokenEquals("yv")) {
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-                continue
-            }
-
-            if (parser.tokenEquals("pic")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val imageIndex = readStatOrNull(statIndex, "pic") ?: continue
-                commands += Hud.LayoutCommand.Image(x, y, dataProvider.getImage(imageIndex.toInt()))
-                continue
-            }
-
-            if (parser.tokenEquals("client")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-
-                parser.next()
-                val clientIndex = parser.tokenAsInt()
-                if (!isValidClientIndex(clientIndex)) {
-                    warnOnce(
-                        "compile-client-index-$clientIndex",
-                        "LayoutParser: skipping client command, invalid client index $clientIndex",
-                    )
-                    parser.next()
-                    parser.next()
-                    parser.next()
-                    continue
-                }
-                val clientInfo = dataProvider.getClientInfo(clientIndex)
-
-                parser.next()
-                val score = parser.tokenAsInt()
-
-                parser.next()
-                val ping = parser.tokenAsInt()
-
-                parser.next()
-                val time = parser.tokenAsInt()
-
-                commands += Hud.LayoutCommand.Text(x + 32, y, clientInfo?.name ?: "", alt = true)
-                commands += Hud.LayoutCommand.Text(x + 32, y + 8, "Score: ", alt = false)
-                commands += Hud.LayoutCommand.Text(x + 32 + 7 * 8, y + 8, "$score", alt = true)
-                commands += Hud.LayoutCommand.Text(x + 32, y + 16, "Ping:  $ping", alt = false)
-                commands += Hud.LayoutCommand.Text(x + 32, y + 24, "Time:  $time", alt = false)
-                commands += Hud.LayoutCommand.Image(x, y, clientInfo?.icon)
-                continue
-            }
-
-            if (parser.tokenEquals("ctf")) {
-                parser.next()
-                x = screenWidth / 2 - 160 + parser.tokenAsInt()
-
-                parser.next()
-                y = screenHeight / 2 - 120 + parser.tokenAsInt()
-
-                parser.next()
-                val clientIndex = parser.tokenAsInt()
-                if (!isValidClientIndex(clientIndex)) {
-                    warnOnce(
-                        "compile-ctf-index-$clientIndex",
-                        "LayoutParser: skipping ctf command, invalid client index $clientIndex",
-                    )
-                    parser.next()
-                    parser.next()
-                    continue
-                }
-                val clientInfo = dataProvider.getClientInfo(clientIndex)
-
-                parser.next()
-                val score = parser.tokenAsInt()
-
-                parser.next()
-                val ping = parser.tokenAsInt().coerceAtMost(999)
-
-                val block = String.format("%3d %3d %-12.12s", score, ping, clientInfo?.name ?: "")
-                val isCurrentPlayer = clientIndex == dataProvider.getCurrentPlayerIndex()
-                commands += Hud.LayoutCommand.Text(x, y, block, alt = isCurrentPlayer)
-                continue
-            }
-
-            if (parser.tokenEquals("picn")) {
-                parser.next()
-                commands += Hud.LayoutCommand.Image(x, y, dataProvider.getNamedPic(parser.token()))
-                continue
-            }
-
-            if (parser.tokenEquals("num")) {
-                parser.next()
-                val width = parser.tokenAsInt()
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val value = readStatOrNull(statIndex, "num") ?: continue
-                commands += Hud.LayoutCommand.Number(x, y, value, width, 0)
-                continue
-            }
-
-            if (parser.tokenEquals("hnum")) {
-                val health = readStatOrNull(Defines.STAT_HEALTH, "hnum") ?: continue
-                val color = when {
-                    health > 25 -> 0
-                    health > 0 -> (serverFrame shr 2) and 1
-                    else -> 1
-                }
-                commands += Hud.LayoutCommand.Number(x, y, health, 3, color)
-                continue
-            }
-
-            if (parser.tokenEquals("anum")) {
-                val ammo = readStatOrNull(Defines.STAT_AMMO, "anum") ?: continue
-                if (ammo < 0) {
-                    continue
-                }
-                val color = if (ammo > 5) 0 else ((serverFrame shr 2) and 1)
-                commands += Hud.LayoutCommand.Number(x, y, ammo, 3, color)
-                continue
-            }
-
-            if (parser.tokenEquals("rnum")) {
-                val armor = readStatOrNull(Defines.STAT_ARMOR, "rnum") ?: continue
-                if (armor < 1) {
-                    continue
-                }
-                commands += Hud.LayoutCommand.Number(x, y, armor, 3, 0)
-                continue
-            }
-
-            if (parser.tokenEquals("stat_string")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                if (statIndex !in stats.indices) {
-                    warnOnce(
-                        "compile-stat-string-stat-$statIndex",
-                        "LayoutParser: skipping stat_string, invalid stat index $statIndex",
-                    )
-                    continue
-                }
-                val configIndex = stats[statIndex]
-                if (configIndex !in 0 until MAX_CONFIGSTRINGS) {
-                    warnOnce(
-                        "compile-stat-string-cfg-$configIndex",
-                        "LayoutParser: skipping stat_string, invalid config string index $configIndex",
-                    )
-                    continue
-                }
-                val value = dataProvider.getConfigString(configIndex.toInt()) ?: ""
-                commands += Hud.LayoutCommand.Text(x, y, value, false)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring")) {
-                parser.next()
-                commands += Hud.LayoutCommand.Text(x, y, parser.token(), false, centerWidth = 320)
-                continue
-            }
-
-            if (parser.tokenEquals("string")) {
-                parser.next()
-                commands += Hud.LayoutCommand.Text(x, y, parser.token(), false)
-                continue
-            }
-
-            if (parser.tokenEquals("cstring2")) {
-                parser.next()
-                commands += Hud.LayoutCommand.Text(x, y, parser.token(), true, centerWidth = 320)
-                continue
-            }
-
-            if (parser.tokenEquals("string2")) {
-                parser.next()
-                commands += Hud.LayoutCommand.Text(x, y, parser.token(), true)
-                continue
-            }
-
-            if (parser.tokenEquals("if")) {
-                parser.next()
-                val statIndex = parser.tokenAsInt()
-                val value = readStatOrNull(statIndex, "if") ?: 0
-                if (value.toInt() == 0) {
-                    parser.next()
-                    while (parser.hasNext() && !parser.tokenEquals("endif")) {
-                        parser.next()
-                    }
-                }
-                continue
-            }
-        }
-
-        return commands
     }
 }

@@ -19,7 +19,7 @@ Not owned here:
 - `LayoutDataProvider` - Abstraction for layout-facing game data lookups.
 - `GameConfigLayoutDataProvider` - `GameConfiguration` adapter used by `Game3dScreen`.
 - `LayoutParserCompat` - Legacy-compatible tokenizer for IdTech2 layout scripts.
-- `LayoutParser` - Command compiler used for parity/tests (runtime draws directly).
+- `collectHudCommands` - Test helper that collects parsed commands via the runtime parser.
 - `LayoutCoordinateMapper` - Explicit coordinate origin conversion helpers.
 
 ## Data / Control Flow
@@ -42,13 +42,13 @@ Server messages
 ## Decision Log
 Newest first.
 
-### Decision: Parse and draw on the fly in runtime HUD
-- Context: compile-then-render pipeline made runtime path harder to reason about.
+### Decision: Keep one parser for runtime draw and tests
+- Context: separate compile logic for tests risked semantic drift from runtime.
 - Options considered:
-1. Keep compile list per frame then render.
-2. Parse layout and render directly.
-- Chosen option & rationale: parse + draw directly in `Hud.executePipeline` to reduce moving parts and keep state local.
-- Consequences: less intermediate allocation and simpler runtime flow; command compiler retained for tests/parity only.
+1. Keep a separate compiler for tests.
+2. Share one parse routine (`executeLayoutScript`) and expose test collection.
+- Chosen option & rationale: `Hud.executePipeline` and `collectHudCommands` share the same parser path.
+- Consequences: no duplicate parser implementation to keep in sync.
 - Status: accepted.
 
 ### Decision: Keep `playerIndex` in `GameConfiguration` as source of truth
@@ -75,13 +75,13 @@ Newest first.
 - Work with it: do not treat inventory hotkey text as authoritative.
 - Removal plan: integrate input bindings into inventory row formatting.
 
-- `LayoutParser` still exists alongside direct runtime rendering.
-- Why: parity/unit tests compare generated commands with legacy harness.
-- Work with it: use `Hud.executePipeline` in runtime code paths; use `LayoutParser` in tests.
-- Removal plan: remove compiler when parity tests are migrated to runtime-level assertions.
+- `collectHudCommands` exists for tests and returns abstract commands, while runtime draws immediately.
+- Why: tests need deterministic assertions without SpriteBatch/GL runtime.
+- Work with it: use `Hud.executePipeline` in runtime code paths; use `collectHudCommands` in unit tests.
+- Removal plan: keep unless tests move to renderer-level integration harness.
 
 ## How to Extend
 1. Add new IdTech2 command branch in `Hud.executePipeline`.
 2. Keep IdTech2 coordinate semantics and use `LayoutCoordinateMapper` only at draw call sites.
-3. Mirror branch behavior in `LayoutParser.compile` if parity tests rely on command generation.
-4. Add or update parity tests under `cake/core/src/test/kotlin/org/demoth/cake/stages`.
+3. Ensure the branch is implemented in the shared parser (`executeLayoutScript`) so runtime and tests stay aligned.
+4. Add or update `HudTest` coverage under `cake/core/src/test/kotlin/org/demoth/cake/stages`.
