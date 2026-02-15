@@ -59,6 +59,11 @@ class Md2Asset(
  * - variant key with skin prefix (`<skin>|<model>`) -> load only that skin (player model case).
  * - otherwise load embedded MD2 skin paths in index order.
  *
+ * Ownership:
+ * - [Md2Asset] owns [model] disposal.
+ * - fallback default skin (if created) is attached via `model.manageDisposable(...)`.
+ * - dependency skins are owned by AssetManager, not by [Md2Asset].
+ *
  * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
  */
 class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
@@ -69,6 +74,10 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      * [loadEmbeddedSkins] controls whether MD2 embedded skin paths should be used when
      * the variant key does not provide a skin prefix.
      * [useDefaultSkinIfMissing] creates a 1x1 white skin when no skin path is resolved.
+     *
+     * Typical usage:
+     * - Game client players: synthetic key `<skin>|<model>`, keep defaults.
+     * - Model viewer strict mode: disable embedded skins and enable default fallback.
      */
     data class Parameters(
         val loadEmbeddedSkins: Boolean = true,
@@ -139,6 +148,11 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
 
     /**
      * Computes texture dependency paths from MD2 skin metadata and parameters.
+     *
+     * Priority:
+     * 1) synthetic key skin prefix (`<skin>|<model>`)
+     * 2) embedded MD2 skins (if enabled)
+     * 3) no dependencies (caller may request default fallback in [load])
      */
     private fun resolveDependencySkinPaths(md2: Md2Model, fileName: String, parameter: Parameters?): List<String> {
         // player model variants encode skin path as "<skin>|<model>".
@@ -153,12 +167,11 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     }
 
     private fun extractSkinPrefixFromVariantKey(fileName: String): String? {
-        val pathPart = fileName.substringBefore('?')
-        val separatorIndex = pathPart.lastIndexOf('|')
+        val separatorIndex = fileName.lastIndexOf('|')
         if (separatorIndex <= 0) {
             return null
         }
-        return pathPart.substring(0, separatorIndex).takeIf { it.isNotBlank() }
+        return fileName.substring(0, separatorIndex).takeIf { it.isNotBlank() }
     }
 
     private fun createMd2Material(vat: Texture, skins: List<Texture>): Material {

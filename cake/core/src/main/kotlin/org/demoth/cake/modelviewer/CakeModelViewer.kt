@@ -103,6 +103,8 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = assetManager.getLoaded(file.absolutePath)
             }
             "md2" -> {
+                // Viewer mode: do not rely on embedded skin paths from the MD2 file.
+                // This keeps standalone previews usable even when skin assets are absent.
                 val md2 = assetManager.getLoaded<Md2Asset>(
                     file.absolutePath,
                     Md2Loader.Parameters(

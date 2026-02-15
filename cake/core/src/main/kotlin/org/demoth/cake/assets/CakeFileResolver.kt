@@ -40,11 +40,15 @@ class CakeFileResolver(
      *      4.3 basedir/basemod/pak\d+.pak files
      *
      *  supports case-insensitive lookup if the exact match is not found
+     *
+     * Synthetic key support:
+     * - player MD2 variants use `<skinPath>|<modelPath>` for AssetManager cache separation.
+     * - resolver ignores the prefix and resolves only `<modelPath>`.
      */
     override fun resolve(fileName: String): FileHandle? {
-        // Variant keys can include skin prefix metadata (e.g. "<skin>|<model>?..."),
+        // Variant keys can include skin prefix metadata (e.g. "<skin>|<model>"),
         // only the trailing model path should be resolved on disk.
-        val path = fileName.substringBefore('?').substringAfterLast('|')
+        val path = fileName.substringAfterLast('|')
         // first try to resolve the file matching the case
         val file = resolveInternal(path, caseInsensitive = false)
         if (file != null) return file

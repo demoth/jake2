@@ -282,6 +282,7 @@ class ClientEntityManager : Disposable {
      * - `visibleSprites` entities must have `spriteAsset != null` and `modelInstance == null`.
      * - `visibleEntities` entities must have `modelInstance != null`.
      * - Local player model remains culled from world entity bucket.
+     * - `modelindex == 255` resolves player model via `skinnum & 0xFF` client slot.
      *
      * Legacy counterpart:
      * - `client/CL_ents.AddPacketEntities`.

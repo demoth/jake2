@@ -49,6 +49,8 @@ class GameConfiguration(
         const val UNKNOWN_PLAYER_INDEX = -1
         private const val DEFAULT_PLAYER_MODEL = "male"
         private const val DEFAULT_PLAYER_SKIN = "grunt"
+        // Synthetic MD2 variant key format used for player skins: "<skinPath>|<modelPath>".
+        // The right side keeps the ".md2" suffix so standard Md2Asset loader selection still works.
         private const val PLAYER_VARIANT_SEPARATOR = "|"
     }
 
@@ -267,6 +269,11 @@ class GameConfiguration(
      * Legacy counterpart:
      * `client/CL_parse.LoadClientinfo` model+skin fallback and `client/CL_ents.AddPacketEntities`
      * custom-player path (`s1.modelindex == 255`, `s1.skinnum & 0xff`).
+     *
+     * Invariants:
+     * - `skinnum & 0xFF` is treated as the remote client index (as in old client).
+     * - Returned model, when non-null, always points to a skin-specific MD2 variant key.
+     * - If client-specific assets fail, fallback attempts `male/grunt`.
      */
     fun getPlayerModel(skinnum: Int, renderFx: Int): Model? {
         val clientIndex = skinnum and 0xFF
@@ -582,6 +589,13 @@ class GameConfiguration(
         loadPlayerModelAsset(info)
     }
 
+    /**
+     * Load a player model with a skin-specific synthetic asset key.
+     *
+     * Why synthetic key:
+     * AssetManager caches by path, while player MD2 skin is chosen by key.
+     * This method keeps cache entries unique per `(model, skin)` without changing renderer code.
+     */
     private fun loadPlayerModelAsset(info: ResolvedClientInfo): Model? {
         val modelPath = playerModelPath(info.model)
         val skinPath = playerSkinPath(info.model, info.skin)
