@@ -570,6 +570,7 @@ class Game3dScreen(
         val validMessage = entityManager.processPacketEntitiesMessage(msg)
         if (validMessage) {
             entityManager.computeVisibleEntities(gameConfig)
+            playEntityEventSounds()
             // Cross-reference: old `CL_ents.parsePacketEntities` calls `CL_pred.CheckPredictionError`
             // once a valid frame has been fully reconstructed.
             prediction.onServerFrameParsed(entityManager.currentFrame)
@@ -578,7 +579,7 @@ class Game3dScreen(
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val sound = gameConfig.getSound(msg.soundIndex)
+        val sound = gameConfig.getSound(msg.soundIndex, msg.entityIndex)
         if (sound != null) {
             // msg.volume should already be in [0,1]: byte / 255f
             val volume = (msg.volume * calculateSoundAttenuation(msg)).coerceIn(0f, 1f)
@@ -587,6 +588,25 @@ class Game3dScreen(
             }
         } else {
             Com.Warn("sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
+        }
+    }
+
+    private fun playEntityEventSounds() {
+        entityManager.forEachCurrentEntityState { state ->
+            when (state.event) {
+                Defines.EV_FALLSHORT -> {
+                    val sound = gameConfig.getNamedSound("player/land1.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(sound, state.index)
+                }
+                Defines.EV_FALL -> {
+                    val sound = gameConfig.getPlayerVariationSound(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(sound, state.index)
+                }
+                Defines.EV_FALLFAR -> {
+                    val sound = gameConfig.getPlayerVariationSound(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(sound, state.index)
+                }
+            }
         }
     }
 
@@ -650,6 +670,20 @@ class Game3dScreen(
             return 1f
         }
         return SpatialSoundAttenuation.calculate(soundOrigin, camera.position, msg.attenuation)
+    }
+
+    private fun playEntityEventSound(sound: com.badlogic.gdx.audio.Sound, entityIndex: Int) {
+        val attenuation = Defines.ATTN_NORM.toFloat()
+        val soundOrigin = entityManager.getEntitySoundOrigin(entityIndex)
+        val attenuationScale = if (soundOrigin == null) {
+            1f
+        } else {
+            SpatialSoundAttenuation.calculate(soundOrigin, camera.position, attenuation)
+        }
+        val volume = attenuationScale.coerceIn(0f, 1f)
+        if (volume > 0f) {
+            sound.play(volume)
+        }
     }
 
 }
