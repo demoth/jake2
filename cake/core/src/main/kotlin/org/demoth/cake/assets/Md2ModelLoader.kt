@@ -77,7 +77,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      *
      * Typical usage:
      * - Game client players: synthetic key `<skin>|<model>`, keep defaults.
-     * - Model viewer strict mode: disable embedded skins and enable default fallback.
+     * - Model viewer: keep embedded skins enabled and enable default fallback.
      */
     data class Parameters(
         val loadEmbeddedSkins: Boolean = true,

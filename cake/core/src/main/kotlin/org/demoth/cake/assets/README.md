@@ -58,12 +58,12 @@ Legacy counterparts:
 ### Decision: Keep model-viewer-specific fallback mode in `Md2Loader.Parameters`
 - **Context:** Viewer often opens standalone MD2 without valid skin dependencies.
 - **Options Considered:**
-  - Enforce embedded skins always
-  - Add viewer fallback to default skin
-- **Chosen Option & Rationale:** Keep flags (`loadEmbeddedSkins`, `useDefaultSkinIfMissing`) to allow viewer operation without skin autodetection.
+  - Keep embedded skin loading only
+  - Keep embedded skin loading + fallback to default skin when missing
+- **Chosen Option & Rationale:** Keep embedded skin loading enabled and enable fallback (`useDefaultSkinIfMissing`) for assets with no embedded skins (common for player models).
 - **Consequences:** Loader has one extra mode branch; gameplay path remains unaffected.
 - **Status:** accepted
-- **Definition of Done:** Model viewer can open an MD2 even if embedded skins are missing/unresolvable.
+- **Definition of Done:** Model viewer renders MD2 with embedded skins when present, and still renders MD2 with no embedded skins using default fallback texture.
 
 ### Decision: Mirror legacy player fallback/disguise behavior in `GameConfiguration`
 - **Context:** Cake previously used hardcoded `male/grunt`, breaking multiplayer correctness.
