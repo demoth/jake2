@@ -67,9 +67,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      * MD2 loading options.
      *
      * [externalSkinPath] overrides embedded MD2 skin names and loads exactly one skin.
+     * [loadEmbeddedSkins] controls whether MD2 embedded skin paths should be used when
+     * [externalSkinPath] is not provided.
+     * [useDefaultSkinIfMissing] creates a 1x1 white skin when no skin path is resolved.
      */
     data class Parameters(
         val externalSkinPath: String? = null,
+        val loadEmbeddedSkins: Boolean = true,
+        val useDefaultSkinIfMissing: Boolean = false,
     ) : AssetLoaderParameters<Md2Asset>()
 
     override fun getDependencies(
@@ -81,7 +86,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             return null
         }
         val md2 = readMd2Model(file.readBytes())
-        val skinPaths = resolveDependencySkinPaths(md2, parameter?.externalSkinPath)
+        val skinPaths = resolveDependencySkinPaths(md2, parameter)
         if (skinPaths.isEmpty()) {
             return null
         }
@@ -98,12 +103,19 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     ): Md2Asset {
         val md2 = readMd2Model(file.readBytes())
 
-        val skinPaths = resolveDependencySkinPaths(md2, parameter?.externalSkinPath)
-        check(skinPaths.isNotEmpty()) {
-            "No MD2 skins found and no external skin was provided for $fileName"
+        val skinPaths = resolveDependencySkinPaths(md2, parameter)
+        val defaultSkin = if (skinPaths.isEmpty() && parameter?.useDefaultSkinIfMissing == true) {
+            createDefaultSkinTexture()
+        } else {
+            null
         }
-        val skins = skinPaths.map { path ->
-            manager.get(path, Texture::class.java)
+        check(skinPaths.isNotEmpty() || defaultSkin != null) {
+            "No MD2 skins found and no external/default skin was provided for $fileName"
+        }
+        val skins = if (skinPaths.isNotEmpty()) {
+            skinPaths.map { path -> manager.get(path, Texture::class.java) }
+        } else {
+            listOf(defaultSkin!!)
         }
         val vertexData = buildVertexData(md2.glCommands, md2.frames)
         val mesh = Mesh(
@@ -118,8 +130,10 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
         val material = createMd2Material(createVat(vertexData), skins)
+        val model = createModel(mesh, material)
+        defaultSkin?.let { model.manageDisposable(it) }
         return Md2Asset(
-            model = createModel(mesh, material),
+            model = model,
             frames = md2.frames.size,
             skins = skins,
         )
@@ -128,11 +142,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     /**
      * Computes texture dependency paths from MD2 skin metadata and parameters.
      */
-    private fun resolveDependencySkinPaths(md2: Md2Model, externalSkinPath: String?): List<String> {
+    private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
         // player models provide skin path externally
-        val external = externalSkinPath?.takeIf { it.isNotBlank() }
+        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
         if (external != null) {
             return listOf(external)
+        }
+        if (parameter?.loadEmbeddedSkins == false) {
+            return emptyList()
         }
         return md2.skinNames
     }
@@ -162,6 +179,13 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
                 vertexData.vertexPositions.toFloatBuffer(),
             )
         )
+    }
+
+    private fun createDefaultSkinTexture(): Texture {
+        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply {
+            drawPixel(0, 0, 0xFFFFFFFF.toInt())
+        }
+        return Texture(CakeTextureData(pixmap))
     }
 }
 
@@ -223,6 +247,7 @@ private class CustomTextureData(
     override fun consumeCustomData(target: Int) {
         if (!isPrepared) throw GdxRuntimeException("Call prepare() first")
 
+        @Suppress("InconsistentCommentForJavaParameter")
         Gdx.gl.glTexImage2D(
             /* target = */ target,
             /* level = */ 0,

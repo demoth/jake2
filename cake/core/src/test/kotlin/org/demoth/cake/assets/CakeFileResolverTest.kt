@@ -60,12 +60,12 @@ class CakeFileResolverTest {
     }
 
     @Test
-    fun resolvesModelPathWithQuerySuffix() {
+    fun resolvesModelPathWithSkinPrefixVariantKey() {
         val basedir = temp.root.absolutePath
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
         val file = createFile("rogue/players/male/tris.md2")
 
-        val resolved = resolver.resolve("players/male/tris.md2?cakeSkin=706c61796572732f6d616c652f6772756e742e706378")
+        val resolved = resolver.resolve("players/male/grunt.pcx|players/male/tris.md2")
 
         assertNotNull(resolved)
         assertEquals(file.absolutePath, resolved!!.file().absolutePath)

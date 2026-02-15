@@ -103,7 +103,13 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = assetManager.getLoaded(file.absolutePath)
             }
             "md2" -> {
-                val md2 = assetManager.getLoaded<Md2Asset>(file.absolutePath)
+                val md2 = assetManager.getLoaded<Md2Asset>(
+                    file.absolutePath,
+                    Md2Loader.Parameters(
+                        loadEmbeddedSkins = false,
+                        useDefaultSkinIfMissing = true,
+                    ),
+                )
                 md2Instance = ModelInstance(md2.model).apply {
                     userData = Md2CustomData.empty()
                 }

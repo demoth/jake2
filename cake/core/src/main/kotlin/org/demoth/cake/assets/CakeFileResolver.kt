@@ -42,7 +42,9 @@ class CakeFileResolver(
      *  supports case-insensitive lookup if the exact match is not found
      */
     override fun resolve(fileName: String): FileHandle? {
-        val path = fileName.substringBefore('?')
+        // Variant keys can include skin prefix metadata (e.g. "<skin>|<model>?..."),
+        // only the trailing model path should be resolved on disk.
+        val path = fileName.substringBefore('?').substringAfterLast('|')
         // first try to resolve the file matching the case
         val file = resolveInternal(path, caseInsensitive = false)
         if (file != null) return file

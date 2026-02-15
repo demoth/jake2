@@ -49,7 +49,7 @@ class GameConfiguration(
         const val UNKNOWN_PLAYER_INDEX = -1
         private const val DEFAULT_PLAYER_MODEL = "male"
         private const val DEFAULT_PLAYER_SKIN = "grunt"
-        private const val PLAYER_VARIANT_QUERY_KEY = "cakeSkin"
+        private const val PLAYER_VARIANT_SEPARATOR = "|"
     }
 
     init {
@@ -611,19 +611,7 @@ class GameConfiguration(
     }
 
     private fun playerModelVariantAssetPath(modelPath: String, skinPath: String): String {
-        return "$modelPath?$PLAYER_VARIANT_QUERY_KEY=${encodeForAssetKey(skinPath)}"
-    }
-
-    private fun encodeForAssetKey(value: String): String {
-        val hexDigits = "0123456789abcdef"
-        val bytes = value.toByteArray(Charsets.UTF_8)
-        val out = StringBuilder(bytes.size * 2)
-        for (byte in bytes) {
-            val unsigned = byte.toInt() and 0xFF
-            out.append(hexDigits[unsigned ushr 4])
-            out.append(hexDigits[unsigned and 0x0F])
-        }
-        return out.toString()
+        return "$skinPath$PLAYER_VARIANT_SEPARATOR$modelPath"
     }
 
     private fun playerModelPath(model: String): String {
