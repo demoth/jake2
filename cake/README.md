@@ -1,29 +1,54 @@
-# Cake client
+# Cake Client
 
-Cake is a fresh implementation of the Jake2 client part on the modern libraries: libGDX with the LWJGL 3 backend.
+Cake is the new Jake2 client implementation built on libGDX with the LWJGL3 desktop backend.
 
 ## Modules
 
 ### `core`
 
-This is the main module for the client app. All logic for rendering, audio and input is here.
+Main game client logic: rendering, audio, input, HUD, networking integration, and gameplay screen flow.
 
 ### `lwjgl3`
 
-This is a platform (Desktop LWJGL version 3) wrapper and executable for the `core`. 
+Desktop platform launcher/wrapper for `core`.
 
-## Client overview
+## Running
 
-### [Cake.kt](core/src/main/java/org/demoth/cake/Cake.kt) 
+From repository root:
 
-The entrypoint for the application, it lives for the whole duration of the app. 
-It handles the initialization of the network connections, creation/disposal of the game screens and menus.
+- `./gradlew run` - runs the default desktop client launcher.
+- `./gradlew :cake:lwjgl3:run` - runs the LWJGL3 launcher directly.
 
-### [Game3dScreen.kt](core/src/main/java/org/demoth/cake/stages/Game3dScreen.kt)
+Main desktop entrypoint:
 
-The actual screen where the game action is happening.
-Lives for the duration of the current map/level.
-Responsible for 
- - rendering the level, entities, HUD, playing sounds, 
- - gathering session related input (like walking, action buttons)
- - handling the network messages with game/player updates
+- [`Lwjgl3GameLauncher.kt`](lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
+
+## Client Overview
+
+### [`Cake.kt`](core/src/main/kotlin/org/demoth/cake/Cake.kt)
+
+App-level client entrypoint and lifecycle owner:
+
+- initializes commands/cvars/network state,
+- initializes and owns shared asset/input systems,
+- switches between menu/console/game contexts,
+- creates and disposes game screens.
+
+### [`Game3dScreen.kt`](core/src/main/kotlin/org/demoth/cake/stages/ingame/Game3dScreen.kt)
+
+In-game screen (per-level lifecycle) responsible for:
+
+- world/entity/effects rendering,
+- HUD integration,
+- frame-level input consumption,
+- server message processing for active gameplay.
+
+## Module Docs
+
+Detailed docs for specific Cake subsystems:
+
+- [`assets`](core/src/main/kotlin/org/demoth/cake/assets/README.md)
+- [`input`](core/src/main/kotlin/org/demoth/cake/input/README.md)
+- [`ui`](core/src/main/kotlin/org/demoth/cake/ui/README.md)
+- [`stages/ingame/hud`](core/src/main/kotlin/org/demoth/cake/stages/ingame/hud/README.md)
+- [`stages/ingame/effects`](core/src/main/kotlin/org/demoth/cake/stages/ingame/effects/README.md)
