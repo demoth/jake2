@@ -56,7 +56,7 @@ class Md2Asset(
  * Loads MD2 geometry and prepares textures required by the model material.
  *
  * Dependency policy:
- * - external skin path provided -> load only that texture (player model case).
+ * - variant key with skin prefix (`<skin>|<model>`) -> load only that skin (player model case).
  * - otherwise load embedded MD2 skin paths in index order.
  *
  * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
@@ -66,13 +66,11 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     /**
      * MD2 loading options.
      *
-     * [externalSkinPath] overrides embedded MD2 skin names and loads exactly one skin.
      * [loadEmbeddedSkins] controls whether MD2 embedded skin paths should be used when
-     * [externalSkinPath] is not provided.
+     * the variant key does not provide a skin prefix.
      * [useDefaultSkinIfMissing] creates a 1x1 white skin when no skin path is resolved.
      */
     data class Parameters(
-        val externalSkinPath: String? = null,
         val loadEmbeddedSkins: Boolean = true,
         val useDefaultSkinIfMissing: Boolean = false,
     ) : AssetLoaderParameters<Md2Asset>()
@@ -86,7 +84,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             return null
         }
         val md2 = readMd2Model(file.readBytes())
-        val skinPaths = resolveDependencySkinPaths(md2, parameter)
+        val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
         if (skinPaths.isEmpty()) {
             return null
         }
@@ -103,14 +101,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     ): Md2Asset {
         val md2 = readMd2Model(file.readBytes())
 
-        val skinPaths = resolveDependencySkinPaths(md2, parameter)
+        val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
         val defaultSkin = if (skinPaths.isEmpty() && parameter?.useDefaultSkinIfMissing == true) {
             createDefaultSkinTexture()
         } else {
             null
         }
         check(skinPaths.isNotEmpty() || defaultSkin != null) {
-            "No MD2 skins found and no external/default skin was provided for $fileName"
+            "No MD2 skins found and no default skin was provided for $fileName"
         }
         val skins = if (skinPaths.isNotEmpty()) {
             skinPaths.map { path -> manager.get(path, Texture::class.java) }
@@ -142,16 +140,25 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     /**
      * Computes texture dependency paths from MD2 skin metadata and parameters.
      */
-    private fun resolveDependencySkinPaths(md2: Md2Model, parameter: Parameters?): List<String> {
-        // player models provide skin path externally
-        val external = parameter?.externalSkinPath?.takeIf { it.isNotBlank() }
-        if (external != null) {
-            return listOf(external)
+    private fun resolveDependencySkinPaths(md2: Md2Model, fileName: String, parameter: Parameters?): List<String> {
+        // player model variants encode skin path as "<skin>|<model>".
+        val skinPrefix = extractSkinPrefixFromVariantKey(fileName)
+        if (skinPrefix != null) {
+            return listOf(skinPrefix)
         }
         if (parameter?.loadEmbeddedSkins == false) {
             return emptyList()
         }
         return md2.skinNames
+    }
+
+    private fun extractSkinPrefixFromVariantKey(fileName: String): String? {
+        val pathPart = fileName.substringBefore('?')
+        val separatorIndex = pathPart.lastIndexOf('|')
+        if (separatorIndex <= 0) {
+            return null
+        }
+        return pathPart.substring(0, separatorIndex).takeIf { it.isNotBlank() }
     }
 
     private fun createMd2Material(vat: Texture, skins: List<Texture>): Material {

@@ -477,20 +477,6 @@ class GameConfiguration(
         }
     }
 
-    private inline fun <reified T> tryAcquireAsset(assetPath: String, parameter: AssetLoaderParameters<T>): T? {
-        if (failedAssets.containsKey(assetPath)) {
-            return null
-        }
-        return try {
-            acquireAsset(assetPath, parameter)
-        } catch (e: GdxRuntimeException) {
-            val error = rootCauseMessage(e)
-            failedAssets[assetPath] = error
-            Com.Warn("Failed to load asset $assetPath: $error")
-            null
-        }
-    }
-
     private data class ParsedClientInfo(
         val name: String,
         val model: String,
@@ -603,10 +589,7 @@ class GameConfiguration(
             return null
         }
         val modelAssetPath = playerModelVariantAssetPath(modelPath, skinPath)
-        val md2Asset = tryAcquireAsset(
-            modelAssetPath,
-            Md2Loader.Parameters(externalSkinPath = skinPath),
-        ) ?: return null
+        val md2Asset = tryAcquireAsset<Md2Asset>(modelAssetPath) ?: return null
         return md2Asset.model
     }
 
