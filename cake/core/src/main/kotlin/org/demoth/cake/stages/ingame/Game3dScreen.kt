@@ -17,6 +17,7 @@ import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
@@ -57,6 +58,7 @@ import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.use
+import jake2.qcommon.util.Lib
 import kotlin.math.abs
 
 /**
@@ -594,6 +596,11 @@ class Game3dScreen(
     private fun playEntityEventSounds() {
         entityManager.forEachCurrentEntityState { state ->
             when (state.event) {
+                Defines.EV_FOOTSTEP -> {
+                    val stepIndex = (Lib.rand().toInt() and 3) + 1
+                    val sound = gameConfig.getNamedSound("player/step$stepIndex.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(sound, state.index)
+                }
                 Defines.EV_FALLSHORT -> {
                     val sound = gameConfig.getNamedSound("player/land1.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
