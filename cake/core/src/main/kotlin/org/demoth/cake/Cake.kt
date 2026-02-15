@@ -119,6 +119,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
         setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
         setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
+        // Player model variants use synthetic cache keys with query suffixes; keep a default loader too.
+        setLoader(Md2Asset::class.java, Md2Loader(fileResolver))
         setLoader(Sp2Asset::class.java, "sp2", Sp2Loader(fileResolver))
         setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 

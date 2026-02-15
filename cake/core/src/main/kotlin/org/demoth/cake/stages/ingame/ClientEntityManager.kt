@@ -326,27 +326,25 @@ class ClientEntityManager : Disposable {
             }
 
             // assign a visible 3d model
-            if (entity.modelInstance == null) {
-                val modelIndex = newState.modelindex
-                if (modelIndex == 255) {
-                    // player
-                    val model = gameConfig.getPlayerModel()
-                    entity.name = "player"
-                    if (model != null) {
-                        entity.modelInstance = createModelInstance(model)
-                        entity.spriteAsset = null
-                    }
-                } else {
-                    val model = gameConfig.getModel(modelIndex)
-                    val sprite = gameConfig.getSpriteModel(modelIndex)
-                    entity.name = gameConfig.getModelName(modelIndex)
-                    if (model != null) {
-                        entity.modelInstance = createModelInstance(model)
-                        entity.spriteAsset = null
-                    } else if (sprite != null) {
-                        entity.modelInstance = null
-                        entity.spriteAsset = sprite
-                    }
+            val modelIndex = newState.modelindex
+            if (modelIndex == 255) {
+                // custom player model/skin: index comes from low byte of skinnum
+                val playerModel = gameConfig.getPlayerModel(newState.skinnum, newState.renderfx)
+                entity.name = "player"
+                if (playerModel != null && (entity.modelInstance == null || entity.modelInstance.model !== playerModel)) {
+                    entity.modelInstance = createModelInstance(playerModel)
+                    entity.spriteAsset = null
+                }
+            } else if (entity.modelInstance == null) {
+                val model = gameConfig.getModel(modelIndex)
+                val sprite = gameConfig.getSpriteModel(modelIndex)
+                entity.name = gameConfig.getModelName(modelIndex)
+                if (model != null) {
+                    entity.modelInstance = createModelInstance(model)
+                    entity.spriteAsset = null
+                } else if (sprite != null) {
+                    entity.modelInstance = null
+                    entity.spriteAsset = sprite
                 }
                 // todo: warning if the model was not found!
             }
@@ -357,7 +355,8 @@ class ClientEntityManager : Disposable {
                     (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                         userData.frame1 = entity.prev.frame
                         userData.frame2 = resolvedFrame
-                        userData.skinIndex = newState.skinnum
+                        // player models are loaded with an external skin texture, so slot is always 0
+                        userData.skinIndex = if (newState.modelindex == 255) 0 else newState.skinnum
                     }
                     visibleEntities += entity
                 } else if (entity.spriteAsset != null) {

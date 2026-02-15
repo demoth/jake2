@@ -60,6 +60,18 @@ class CakeFileResolverTest {
     }
 
     @Test
+    fun resolvesModelPathWithQuerySuffix() {
+        val basedir = temp.root.absolutePath
+        val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
+        val file = createFile("rogue/players/male/tris.md2")
+
+        val resolved = resolver.resolve("players/male/tris.md2?cakeSkin=706c61796572732f6d616c652f6772756e742e706378")
+
+        assertNotNull(resolved)
+        assertEquals(file.absolutePath, resolved!!.file().absolutePath)
+    }
+
+    @Test
     fun resolvesVirtualSkyAssetWithoutPhysicalFile() {
         val resolver = CakeFileResolver()
 

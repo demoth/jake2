@@ -42,16 +42,17 @@ class CakeFileResolver(
      *  supports case-insensitive lookup if the exact match is not found
      */
     override fun resolve(fileName: String): FileHandle? {
+        val path = fileName.substringBefore('?')
         // first try to resolve the file matching the case
-        val file = resolveInternal(fileName, caseInsensitive = false)
+        val file = resolveInternal(path, caseInsensitive = false)
         if (file != null) return file
         // fallback to case-insensitive lookup using libgdx FileHandle API
-        val caseInsensitive = resolveInternal(fileName, caseInsensitive = true)
+        val caseInsensitive = resolveInternal(path, caseInsensitive = true)
         if (caseInsensitive != null) {
-            Com.Warn("Resource $fileName was found with different case")
+            Com.Warn("Resource $path was found with different case")
             return caseInsensitive
         }
-        Com.Warn("Resource $fileName was not found")
+        Com.Warn("Resource $path was not found")
         return null
     }
 

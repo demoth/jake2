@@ -47,6 +47,9 @@ class GameConfiguration(
 ) {
     companion object {
         const val UNKNOWN_PLAYER_INDEX = -1
+        private const val DEFAULT_PLAYER_MODEL = "male"
+        private const val DEFAULT_PLAYER_SKIN = "grunt"
+        private const val PLAYER_VARIANT_QUERY_KEY = "cakeSkin"
     }
 
     init {
@@ -92,11 +95,9 @@ class GameConfiguration(
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val failedAssets: MutableMap<String, String> = mutableMapOf()
+    private val resolvedClientInfoCache: MutableMap<Int, ResolvedClientInfo?> = mutableMapOf()
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private var mapAsset: BspMapAsset? = null
-    private var playerModel: Model? = null
-    private val playerModelPath = "players/male/tris.md2"
-    private val playerSkinPath = "players/male/grunt.pcx"
 
     private val weaponSoundPaths = mapOf(
         MZ_BLASTER to "weapons/blastf1a.wav",
@@ -133,7 +134,13 @@ class GameConfiguration(
     fun applyConfigString(index: Int, value: String, loadResource: Boolean = false): Config {
         val config = Config(value)
         configStrings[index] = config
-        if (loadResource) {
+        if (index in CS_PLAYERSKINS until (CS_PLAYERSKINS + MAX_CLIENTS)) {
+            val clientIndex = index - CS_PLAYERSKINS
+            resolvedClientInfoCache.remove(clientIndex)
+            if (loadResource) {
+                preloadPlayerAsset(clientIndex)
+            }
+        } else if (loadResource) {
             loadConfigResource(index, config)
         }
         return config
@@ -254,8 +261,19 @@ class GameConfiguration(
         return weaponSounds[weaponType]
     }
 
-    fun getPlayerModel(): Model? {
-        return playerModel
+    /**
+     * Resolve and load player model+skin from `CS_PLAYERSKINS` using legacy `LoadClientinfo` fallback logic.
+     *
+     * Legacy counterpart:
+     * `client/CL_parse.LoadClientinfo` model+skin fallback and `client/CL_ents.AddPacketEntities`
+     * custom-player path (`s1.modelindex == 255`, `s1.skinnum & 0xff`).
+     */
+    fun getPlayerModel(skinnum: Int, renderFx: Int): Model? {
+        val clientIndex = skinnum and 0xFF
+        val defaultInfo = defaultClientInfo()
+        val baseInfo = resolveClientInfo(clientIndex) ?: defaultInfo
+        val effectiveInfo = applyDisguise(baseInfo, renderFx)
+        return loadPlayerModelAsset(effectiveInfo) ?: loadPlayerModelAsset(defaultInfo)
     }
 
     // endregion
@@ -272,11 +290,11 @@ class GameConfiguration(
 
 
     fun preloadPlayerAssets() {
-        val playerMd2Asset = acquireAsset(
-            playerModelPath,
-            Md2Loader.Parameters(playerSkinPath),
-        )
-        playerModel = playerMd2Asset.model
+        // Legacy prep phase preloads all clients (`CL_view.PrepRefresh -> CL_parse.ParseClientinfo`).
+        for (clientIndex in 0 until MAX_CLIENTS) {
+            preloadPlayerAsset(clientIndex)
+        }
+        preloadPlayerModel(defaultClientInfo())
     }
 
 
@@ -341,7 +359,7 @@ class GameConfiguration(
         unloadTrackedAssets()
         mapAsset = null
         weaponSounds.clear()
-        playerModel = null
+        resolvedClientInfoCache.clear()
         playerIndex = UNKNOWN_PLAYER_INDEX
         failedAssets.clear()
         configStrings.forEach { config -> config?.resource = null }
@@ -459,8 +477,27 @@ class GameConfiguration(
         }
     }
 
+    private inline fun <reified T> tryAcquireAsset(assetPath: String, parameter: AssetLoaderParameters<T>): T? {
+        if (failedAssets.containsKey(assetPath)) {
+            return null
+        }
+        return try {
+            acquireAsset(assetPath, parameter)
+        } catch (e: GdxRuntimeException) {
+            val error = rootCauseMessage(e)
+            failedAssets[assetPath] = error
+            Com.Warn("Failed to load asset $assetPath: $error")
+            null
+        }
+    }
+
     private data class ParsedClientInfo(
         val name: String,
+        val model: String,
+        val skin: String,
+    )
+
+    private data class ResolvedClientInfo(
         val model: String,
         val skin: String,
     )
@@ -478,13 +515,127 @@ class GameConfiguration(
         val name = splitByName.firstOrNull().orEmpty()
         val modelAndSkin = splitByName.getOrNull(1).orEmpty()
         if (modelAndSkin.isBlank()) {
-            return ParsedClientInfo(name = name, model = "male", skin = "grunt")
+            return ParsedClientInfo(name = name, model = DEFAULT_PLAYER_MODEL, skin = DEFAULT_PLAYER_SKIN)
         }
 
         val splitBySkin = modelAndSkin.split('/', limit = 2)
-        val model = splitBySkin.firstOrNull().orEmpty().ifBlank { "male" }
-        val skin = splitBySkin.getOrNull(1).orEmpty().ifBlank { "grunt" }
+        val model = splitBySkin.firstOrNull().orEmpty().ifBlank { DEFAULT_PLAYER_MODEL }
+        val skin = splitBySkin.getOrNull(1).orEmpty().ifBlank { DEFAULT_PLAYER_SKIN }
         return ParsedClientInfo(name = name, model = model, skin = skin)
+    }
+
+    private fun defaultClientInfo(): ResolvedClientInfo {
+        return ResolvedClientInfo(DEFAULT_PLAYER_MODEL, DEFAULT_PLAYER_SKIN)
+    }
+
+    private fun resolveClientInfo(clientIndex: Int): ResolvedClientInfo? {
+        if (clientIndex !in 0 until MAX_CLIENTS) {
+            return null
+        }
+        if (resolvedClientInfoCache.containsKey(clientIndex)) {
+            return resolvedClientInfoCache[clientIndex]
+        }
+        val parsed = parseClientInfo(clientIndex)
+        val resolved = parsed?.let { resolveClientInfo(it) }
+        resolvedClientInfoCache[clientIndex] = resolved
+        return resolved
+    }
+
+    /**
+     * Mirrors old-client model/skin fallback order from `CL_parse.LoadClientinfo`:
+     * 1) requested model
+     * 2) if model missing -> male
+     * 3) requested skin on selected model
+     * 4) if skin missing on non-male -> male + same skin
+     * 5) if still missing -> male/grunt
+     */
+    private fun resolveClientInfo(parsed: ParsedClientInfo): ResolvedClientInfo {
+        var model = parsed.model.ifBlank { DEFAULT_PLAYER_MODEL }
+        var skin = parsed.skin.ifBlank { DEFAULT_PLAYER_SKIN }
+
+        if (!assetExists(playerModelPath(model))) {
+            model = DEFAULT_PLAYER_MODEL
+        }
+
+        if (!assetExists(playerSkinPath(model, skin)) && !model.equals(DEFAULT_PLAYER_MODEL, ignoreCase = true)) {
+            model = DEFAULT_PLAYER_MODEL
+        }
+
+        if (!assetExists(playerSkinPath(model, skin))) {
+            skin = DEFAULT_PLAYER_SKIN
+        }
+
+        return ResolvedClientInfo(
+            model = model,
+            skin = skin
+        )
+    }
+
+    private fun applyDisguise(info: ResolvedClientInfo, renderFx: Int): ResolvedClientInfo {
+        if ((renderFx and RF_USE_DISGUISE) == 0) {
+            return info
+        }
+        val disguiseModel = when {
+            info.model.equals("male", ignoreCase = true) -> "male"
+            info.model.equals("female", ignoreCase = true) -> "female"
+            info.model.equals("cyborg", ignoreCase = true) -> "cyborg"
+            else -> return info
+        }
+        if (!assetExists(playerModelPath(disguiseModel)) || !assetExists(playerSkinPath(disguiseModel, "disguise"))) {
+            return info
+        }
+        return info.copy(model = disguiseModel, skin = "disguise")
+    }
+
+    private fun preloadPlayerAsset(clientIndex: Int) {
+        val info = resolveClientInfo(clientIndex) ?: return
+        preloadPlayerModel(info)
+    }
+
+    private fun preloadPlayerModel(info: ResolvedClientInfo) {
+        loadPlayerModelAsset(info)
+    }
+
+    private fun loadPlayerModelAsset(info: ResolvedClientInfo): Model? {
+        val modelPath = playerModelPath(info.model)
+        val skinPath = playerSkinPath(info.model, info.skin)
+        if (!assetExists(modelPath) || !assetExists(skinPath)) {
+            return null
+        }
+        val modelAssetPath = playerModelVariantAssetPath(modelPath, skinPath)
+        val md2Asset = tryAcquireAsset(
+            modelAssetPath,
+            Md2Loader.Parameters(externalSkinPath = skinPath),
+        ) ?: return null
+        return md2Asset.model
+    }
+
+    private fun playerModelVariantAssetPath(modelPath: String, skinPath: String): String {
+        return "$modelPath?$PLAYER_VARIANT_QUERY_KEY=${encodeForAssetKey(skinPath)}"
+    }
+
+    private fun encodeForAssetKey(value: String): String {
+        val hexDigits = "0123456789abcdef"
+        val bytes = value.toByteArray(Charsets.UTF_8)
+        val out = StringBuilder(bytes.size * 2)
+        for (byte in bytes) {
+            val unsigned = byte.toInt() and 0xFF
+            out.append(hexDigits[unsigned ushr 4])
+            out.append(hexDigits[unsigned and 0x0F])
+        }
+        return out.toString()
+    }
+
+    private fun playerModelPath(model: String): String {
+        return "players/$model/tris.md2"
+    }
+
+    private fun playerSkinPath(model: String, skin: String): String {
+        return "players/$model/$skin.pcx"
+    }
+
+    private fun assetExists(path: String): Boolean {
+        return assetManager.fileHandleResolver.resolve(path) != null
     }
 
     private fun rootCauseMessage(t: Throwable): String {
