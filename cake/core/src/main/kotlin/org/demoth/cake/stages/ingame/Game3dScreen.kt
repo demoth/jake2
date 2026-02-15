@@ -17,7 +17,6 @@ import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
-import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
@@ -572,6 +571,7 @@ class Game3dScreen(
         val validMessage = entityManager.processPacketEntitiesMessage(msg)
         if (validMessage) {
             entityManager.computeVisibleEntities(gameConfig)
+            // Old-client counterpart: `CL_fx.EntityEvent` runs after packet entities are reconstructed.
             playEntityEventSounds()
             // Cross-reference: old `CL_ents.parsePacketEntities` calls `CL_pred.CheckPredictionError`
             // once a valid frame has been fully reconstructed.
@@ -593,6 +593,17 @@ class Game3dScreen(
         }
     }
 
+    /**
+     * Play client-side entity event sounds derived from reconstructed packet entities.
+     *
+     * Supported events currently mirror the subset implemented in this module:
+     * - `EV_FOOTSTEP` -> random `player/step1..4.wav`
+     * - `EV_FALLSHORT` -> `player/land1.wav`
+     * - `EV_FALL` -> variation-specific `fall2.wav`
+     * - `EV_FALLFAR` -> variation-specific `fall1.wav`
+     *
+     * Non-goals (for now): item-respawn and teleport event sounds.
+     */
     private fun playEntityEventSounds() {
         entityManager.forEachCurrentEntityState { state ->
             when (state.event) {
@@ -606,11 +617,11 @@ class Game3dScreen(
                     playEntityEventSound(sound, state.index)
                 }
                 Defines.EV_FALL -> {
-                    val sound = gameConfig.getPlayerVariationSound(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
+                    val sound = gameConfig.getPlayerSoundPath(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
                 }
                 Defines.EV_FALLFAR -> {
-                    val sound = gameConfig.getPlayerVariationSound(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
+                    val sound = gameConfig.getPlayerSoundPath(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
                 }
             }
@@ -679,6 +690,9 @@ class Game3dScreen(
         return SpatialSoundAttenuation.calculate(soundOrigin, camera.position, msg.attenuation)
     }
 
+    /**
+     * Play an event sound using legacy-normal attenuation from the emitting entity origin.
+     */
     private fun playEntityEventSound(sound: com.badlogic.gdx.audio.Sound, entityIndex: Int) {
         val attenuation = Defines.ATTN_NORM.toFloat()
         val soundOrigin = entityManager.getEntitySoundOrigin(entityIndex)

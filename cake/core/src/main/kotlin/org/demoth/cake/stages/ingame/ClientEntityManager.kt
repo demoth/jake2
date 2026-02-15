@@ -98,6 +98,7 @@ class ClientEntityManager : Disposable {
     // Cross-reference: old client iterates dynamic collision entities from
     // `CL_pred.ClipMoveToEntities` and `CL_pred.PMpointcontents` over
     // `cl.frame.num_entities` + `cl_parse_entities`.
+    // Also used by `Game3dScreen` for client-side entity event sound dispatch.
     fun forEachCurrentEntityState(action: (entity_state_t) -> Unit) {
         val mask = Defines.MAX_PARSE_ENTITIES - 1
         for (i in 0 until currentFrame.num_entities) {

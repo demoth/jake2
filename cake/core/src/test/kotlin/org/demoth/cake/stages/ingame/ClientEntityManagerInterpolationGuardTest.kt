@@ -10,7 +10,7 @@ import org.demoth.cake.ClientEntity
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
-class ClientEntityManagerTest {
+class ClientEntityManagerInterpolationGuardTest {
 
     @Test
     fun teleportEventUsesNoLerpReappearedPath() {
