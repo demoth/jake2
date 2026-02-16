@@ -7,6 +7,7 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -32,6 +33,7 @@ import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
+import ktx.scene2d.defaultStyle
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.assets.BspLoader
@@ -123,7 +125,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 
     }
-
+    private var backgroundColor = Color.BLACK
     init {
         Cmd.Init()
         Cvar.Init()
@@ -141,13 +143,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         // load async resources (will be used later in the game)
 
-        // todo: make an pluggable system for queueing resource loading which will be required during the game
         assetManager.load("q2palette.bin", Any::class.java) // todo: use original baseq2/pics/colormap.pcx
         assetManager.load(md2VatShader, String::class.java)
         assetManager.load(md2FragmentShader, String::class.java)
         assetManager.finishLoading() // these assets are necessary anyway
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
+        backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         menuStage = MainMenuStage(viewport) // fixme: cvar
@@ -355,7 +357,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
         game3dScreen?.deltaTime = deltaSeconds
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f, true)
+        ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
 
         CheckForResend(deltaSeconds)
         CL_ReadPackets()
