@@ -3,18 +3,10 @@
     default: {
       file: share-tech-mono.fnt
     }
-    font: {
-      file: share-tech-mono.fnt
-    }
-    list: {
-      file: share-tech-mono-list.fnt
-    }
-    subtitle: {
-      file: share-tech-mono-subtitle.fnt
-    }
-    window: {
-      file: share-tech-mono-window.fnt
-    }
+    font: default
+    list: default
+    subtitle: default
+    window: default
   }
   com.badlogic.gdx.graphics.Color: {
     // MAIN CAKE PALETTE
