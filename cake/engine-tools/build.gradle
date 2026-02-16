@@ -1,0 +1,21 @@
+apply plugin: 'application'
+
+application {
+  mainClass = 'org.demoth.cake.enginetools.BitmapFontGeneratorTool'
+}
+
+dependencies {
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+  runtimeOnly("com.badlogicgames.gdx:gdx-platform:$gdxVersion") {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
+  runtimeOnly("com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion") {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
+}

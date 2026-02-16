@@ -12,6 +12,10 @@ Main game client logic: rendering, audio, input, HUD, networking integration, an
 
 Desktop platform launcher/wrapper for `core`.
 
+### `engine-tools`
+
+Standalone desktop tooling for engine asset generation workflows.
+
 ## Running
 
 From repository root:
@@ -22,6 +26,17 @@ From repository root:
 Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
+
+### Bitmap Font Tool
+
+Generate a libGDX bitmap font (`.fnt` + `.png`) from a TTF:
+
+- `./gradlew :cake:engine-tools:run --args="--ttf /absolute/path/MyFont.ttf --out /absolute/output/dir --name font --size 21"`
+
+Notes:
+
+- Uses libGDX default glyph set: `FreeTypeFontGenerator.DEFAULT_CHARS`.
+- Output is intended for manual copy into engine assets.
 
 ## Client Overview
 
