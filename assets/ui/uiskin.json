@@ -1,19 +1,19 @@
 {
 com.badlogic.gdx.graphics.g2d.BitmapFont: {
   default: {
-    file: font.fnt
+    file: share-tech-mono.fnt
   }
   font: {
-    file: font.fnt
+    file: share-tech-mono.fnt
   }
   list: {
-    file: font-list.fnt
+    file: share-tech-mono-list.fnt
   }
   subtitle: {
-    file: font-subtitle.fnt
+    file: share-tech-mono-subtitle.fnt
   }
   window: {
-    file: font-window.fnt
+    file: share-tech-mono-window.fnt
   }
 }
 com.badlogic.gdx.graphics.Color: {
