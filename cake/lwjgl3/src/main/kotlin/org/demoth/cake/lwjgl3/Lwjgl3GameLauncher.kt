@@ -2,6 +2,7 @@ package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
+import com.badlogic.gdx.graphics.glutils.HdpiMode
 import org.demoth.cake.Cake
 
 /** Launches the desktop (LWJGL3) application. */
@@ -35,6 +36,7 @@ object Lwjgl3GameLauncher {
             setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
             setResizable(false)
             setWindowedMode(1024, 768)
+            setHdpiMode(HdpiMode.Pixels)
 //            setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
             setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
         }
