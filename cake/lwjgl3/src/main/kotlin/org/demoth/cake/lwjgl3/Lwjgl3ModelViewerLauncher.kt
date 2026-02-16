@@ -18,7 +18,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Model Viewer 1.4")
+    setTitle("Cake Model Viewer 1.2.0")
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
     useVsync(true)
     //// Limits FPS to the refresh rate of the currently active monitor.
@@ -28,8 +28,8 @@ private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
     //// If you remove the above line and set Vsync to false, you can get unlimited FPS, which can be
     //// useful for testing performance, but can also be very stressful to some hardware.
     //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
-    setWindowedMode(1280, 720)
-    setWindowIcon("icons/logo.png", "icons/logo-32.png")
+    setWindowedMode(1024, 768)
+    setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
 //     setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
 
 }

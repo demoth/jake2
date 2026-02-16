@@ -33,7 +33,7 @@ configure(subprojects) {
 
 subprojects {
   group = 'org.demoth'
-  version = '1.0.0'
+  version = '1.2.0'
   ext.appName = 'cake'
   repositories {
     mavenCentral()

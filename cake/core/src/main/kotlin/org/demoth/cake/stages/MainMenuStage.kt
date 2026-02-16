@@ -34,7 +34,7 @@ class MainMenuStage(viewport: Viewport) : Stage(viewport) {
                     }
                 }
             }
-            label("version: 0.0.1")
+            label("version: 1.2.0")
         }
     }
 }
