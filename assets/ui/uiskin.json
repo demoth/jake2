@@ -70,30 +70,10 @@
       b: 0.1,
       a: 1
     },
-    over: {
-      r: 0.3,
-      g: 0.3,
-      b: 0.3,
-      a: 1
-    },
-    down: {
-      r: 0.3,
-      g: 0,
-      b: 0,
-      a: 1
-    },
-    checked: {
-      r: 0.3,
-      g: 0,
-      b: 0,
-      a: 1
-    },
-    checkedOver: {
-      r: 0.4,
-      g: 0,
-      b: 0,
-      a: 1
-    },
+    over: selection,
+    down: strong_cyan,
+    checked: strong_cyan,
+    checkedOver: selection,
     message : canary_yellow,
     disabled: {
       r: 0.4,
@@ -102,12 +82,7 @@
       a: 1
     },
     // = black
-    background: {
-      r: 0.1373,
-      g: 0.0667,
-      b: 0.1373,
-      a: 1
-    },
+    background: black,
     split: {
       r: 0.44313726
       g: 0.47843137
@@ -149,27 +124,27 @@
       color: highlight
     },
     buttonUp: {
-      name: rect,
-      color: up
+      name: chamfer-panel,
+      color: white
     },
     buttonOver: {
-      name: rect,
-      color: over
+      name: chamfer-panel,
+      color: highlight
     },
     buttonDown: {
-      name: rect,
+      name: chamfer-panel,
       color: down
     },
     buttonDisabled: {
-      name: rect,
-      color: disabled
+      name: chamfer-panel,
+      color: gray
     },
     buttonChecked: {
-      name: rect,
+      name: chamfer-panel,
       color: checked
     },
     buttonCheckedOver: {
-      name: rect,
+      name: chamfer-panel,
       color: checkedOver
     },
     checkBoxOn: {

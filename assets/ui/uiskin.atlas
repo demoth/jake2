@@ -386,3 +386,11 @@ window-resize
   orig: 13, 34
   offset: 0, 0
   index: -1
+chamfer-panel
+  rotate: false
+  xy: 95, 53
+  size: 31, 31
+  split: 15, 15, 15, 15
+  orig: 31, 31
+  offset: 0, 0
+  index: -1
