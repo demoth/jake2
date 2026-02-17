@@ -13,8 +13,31 @@ import jake2.qcommon.Defines.MAX_SOUNDS
 import jake2.qcommon.Defines.RF_USE_DISGUISE
 import org.demoth.cake.assets.Md2Asset
 
+/**
+ * Player-scoped runtime configuration derived from server configstrings.
+ *
+ * Purpose:
+ * encapsulate player slot state, inventory snapshot, and player variation resolution
+ * (name/icon/model/sound) for the active map configuration.
+ *
+ * Ownership/Lifecycle:
+ * owned by one [GameConfiguration]; created once per game configuration and reset by
+ * [clearTransientState] when that configuration unloads.
+ *
+ * Threading/Timing:
+ * called from the same runtime flow as [GameConfiguration] message parsing/render updates;
+ * no cross-thread synchronization is provided.
+ *
+ * Boundary note:
+ * this class intentionally depends on [GameConfiguration] for configstring reads and
+ * asset ownership helpers (`operator get`, `tryAcquireAsset`) so all assets remain tracked by
+ * a single owner during map transitions.
+ *
+ * Related components:
+ * `Game3dScreen`, `ClientEntityManager`, `Hud` (all consume this API via `gameConfig.playerConfiguration`).
+ */
 class PlayerConfiguration(
-    private val gameConfiguration: GameConfiguration, // fixme: not great, leaking
+    private val gameConfiguration: GameConfiguration,
     private val assetManager: AssetManager,
 ) {
     private val defaultPlayerModel = "male"
@@ -41,6 +64,12 @@ class PlayerConfiguration(
     private val currentPlayerInfos: MutableMap<Int, PlayerModelSkin?> = mutableMapOf()
     private val playerVariationSoundPathCache: MutableMap<String, String?> = mutableMapOf()
 
+    /**
+     * Apply `CS_PLAYERSKINS` update side effects for one client slot.
+     *
+     * Invariant:
+     * cached model/skin resolution for [clientIndex] must be invalidated before next lookup.
+     */
     fun onPlayerSkinConfigUpdated(clientIndex: Int, preloadAsset: Boolean) {
         currentPlayerInfos.remove(clientIndex)
         if (preloadAsset) {
@@ -48,12 +77,18 @@ class PlayerConfiguration(
         }
     }
 
+    /** Clear non-configstring runtime state when parent [GameConfiguration] unloads. */
     fun clearTransientState() {
         currentPlayerInfos.clear()
         playerVariationSoundPathCache.clear()
         playerIndex = GameConfiguration.UNKNOWN_PLAYER_INDEX
     }
 
+    /**
+     * Preload known player models and variation-specific `*` sounds for this map config.
+     *
+     * Must run after relevant configstrings are received and before gameplay frame rendering starts.
+     */
     fun preload() {
         preloadAssets()
         preloadVariationSounds()
@@ -93,12 +128,18 @@ class PlayerConfiguration(
         }
     }
 
-    /** Resolve a variation-specific player sound by player [entityIndex] and file [soundName]. */
+    /**
+     * Resolve a variation-specific player sound by player [entityIndex] and file [soundName].
+     *
+     * `entityIndex` follows server entity numbering (`1..MAX_CLIENTS` for players).
+     * Non-player indices fallback to default variation (`male/grunt`).
+     */
     fun getPlayerSound(entityIndex: Int, soundName: String): Sound? {
         val variation = resolvePlayerModelSkinForEntity(entityIndex) ?: defaultPlayerModelSkin()
         return loadPlayerSound(variation, soundName)
     }
 
+    /** Read client display name from `CS_PLAYERSKINS` payload. */
     fun getClientName(clientIndex: Int): String? {
         return parseClientInfo(clientIndex)?.name
     }

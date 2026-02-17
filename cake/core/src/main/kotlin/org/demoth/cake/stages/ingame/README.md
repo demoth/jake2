@@ -15,7 +15,8 @@ It does not own:
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
-- `GameConfiguration` (`org.demoth.cake`) - configstring-backed asset lookup, including player variation sounds.
+- `GameConfiguration` (`org.demoth.cake`) - configstring-backed asset ownership/lookup for map assets and generic sounds.
+- `PlayerConfiguration` (`org.demoth.cake`) - player slot/inventory state and variation-aware model/icon/sound resolution.
 
 Legacy counterparts:
 - `client/CL_ents`, `client/CL_fx`, `client/CL_parse`, `client/sound/lwjgl/LWJGLSoundImpl`.

@@ -15,23 +15,33 @@ import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.Sp2Asset
 
 /**
- * Store all configuration related to the current map.
- * Updated from server.
+ * Runtime storage for server-driven configstrings and their loaded client-side resources.
+ *
+ * Purpose:
+ * map and gameplay config ingestion, typed lookup APIs, and config-scoped asset ownership.
+ *
+ * Ownership/Lifecycle:
+ * created by `Game3dScreen`, fed by `ConfigStringMessage`, preloaded during `precache`,
+ * then disposed via `unloadAssets` when the screen is retired.
+ *
+ * Threading/Timing:
+ * accessed from the render/network processing thread in the active game screen.
+ * Methods assume serialized access and are not synchronized.
  *
  * Asset ownership model:
  * - This object owns gameplay/map assets acquired from configstrings and fixed gameplay lookups
  *   (map BSP, models, sounds, HUD images, sky model, player model, weapon sounds).
- * - Ownership is expressed via AssetManager reference counting: each GameConfiguration acquires each
- *   path once and unloads it once in [unloadAssets].
+ * - Ownership is expressed via `AssetManager` ref-counting: each `GameConfiguration`
+ *   acquires each path once and unloads it once in `unloadAssets`.
  * - This allows old/new configurations to overlap during map transition without dropping shared assets.
  *
- * Lifetime:
- * 1. receive configstrings via [applyConfigString]
- * 2. [loadMapAsset] and [loadAssets] during precache
- * 3. read via typed getters during gameplay
- * 4. [unloadAssets] when this configuration is retired
+ * Invariants:
+ * - `CS_PLAYERSKINS` updates must invalidate cached player variation data.
+ * - `*` sounds are variation-specific and are resolved by [GameConfiguration.playerConfiguration], not by generic sound precache.
  *
- * tothink: This could be moved to common and reused on the server side?
+ * Related components:
+ * - [PlayerConfiguration] for player-scoped state (`playerIndex`, `inventory`, model/skin/sound resolution).
+ * - Legacy counterparts: `client/CL_parse`, `client/CL_ents`, `client/sound/lwjgl/LWJGLSoundImpl`.
  */
 data class Config(
     val value: String,
@@ -74,8 +84,12 @@ class GameConfiguration(
 
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
-    val failedAssets: MutableMap<String, String> = mutableMapOf()
-    /** Player-scoped state and lookups with the same lifecycle as this game configuration. */
+    private val failedAssets: MutableMap<String, String> = mutableMapOf()
+    /**
+     * Player-scoped config/runtime state for this game configuration instance.
+     *
+     * This delegate has the same lifecycle as `GameConfiguration` and must not be shared between screens.
+     */
     val playerConfiguration = PlayerConfiguration(this, assetManager)
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private var mapAsset: BspMapAsset? = null
@@ -335,7 +349,7 @@ class GameConfiguration(
         configStrings.forEach { config -> config?.resource = null }
     }
 
-    inline fun <reified T> acquireAsset(path: String): T {
+    internal inline fun <reified T> acquireAsset(path: String): T {
         return acquireAsset(path, T::class.java) {
             assetManager.load(path, T::class.java)
         }
@@ -356,7 +370,7 @@ class GameConfiguration(
      * This gives deterministic "one config -> one ownership slot per path", so [unloadAssets] can
      * safely release all tracked paths once and let AssetManager refcounting decide the final lifetime.
      */
-    fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
+    internal fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
         val trackedType = trackedLoadedAssets[path]
         if (trackedType == null || !assetManager.isLoaded(path, assetClass)) {
             if (trackedType != null) {
@@ -417,7 +431,14 @@ class GameConfiguration(
         return config.resource != null
     }
 
-    inline fun <reified T> tryAcquireAsset(assetPath: String): T? {
+    /**
+     * Best-effort asset acquisition with one-shot failure memoization.
+     *
+     * Extension point:
+     * used by [PlayerConfiguration] for variation-dependent assets while preserving this configuration's
+     * ownership accounting and error reporting.
+     */
+    internal inline fun <reified T> tryAcquireAsset(assetPath: String): T? {
         if (failedAssets.containsKey(assetPath)) {
             return null
         }
