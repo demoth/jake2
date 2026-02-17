@@ -12,11 +12,35 @@ import jake2.qcommon.exec.Cmd
 import ktx.actors.setKeyboardFocus
 import ktx.scene2d.*
 
+/**
+ * Developer console overlay stage.
+ *
+ * Purpose:
+ * - Presents scrollable output and a one-line command input.
+ * - Executes entered commands via `Cbuf` and appends local feedback.
+ *
+ * Ownership/Lifecycle:
+ * - Created by [org.demoth.cake.Cake] during app startup, lives for the whole duration of the app (not just game session)
+ * - Drawn/acted only when console visibility is enabled by `Cake` input routing.
+ * - Disposed by `Cake.dispose()`.
+ *
+ * Invariants/Constraints:
+ * - [consoleOutput] and [consoleInput] are initialized in `init` before stage usage.
+ * - Command execution is Enter-key driven and occurs on the render thread.
+ * - Console chrome relies on skin drawable names from `assets/ui/uiskin.json`
+ *   (`console-panel`).
+ * - `Stack` child order is visual-order sensitive (last child is drawn on top).
+ * TODO: add last command navigation with up/down. command completion with TAB
+ */
 class ConsoleStage(viewport: Viewport) : Stage(viewport) {
 
+    /** Requests keyboard focus for the input field. */
     fun focus() = consoleInput.setKeyboardFocus(true)
 
+    /** Output text area used by command echo and `console_print`. */
     val consoleOutput: TextArea
+
+    /** Input field where commands are typed and submitted with Enter. */
     val consoleInput: TextField
 
     init {

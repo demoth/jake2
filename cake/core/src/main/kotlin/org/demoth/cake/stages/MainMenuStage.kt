@@ -10,7 +10,21 @@ import ktx.scene2d.table
 import ktx.scene2d.textButton
 
 /**
- * Prototype for other stages
+ * TEMPORARY Main menu stage for pre-game navigation commands.
+ *
+ * Purpose:
+ * - Exposes basic startup actions (`connect`, `quit`) and placeholders.
+ * - In future will allow selecting concrete game configurations to run (q1/q2 etc)
+ *
+ * Ownership/Lifecycle:
+ * - Created by [org.demoth.cake.Cake] once at startup.
+ * - Drawn/acted while menu visibility is enabled by `Cake` input routing.
+ * - Disposed by `Cake.dispose()`.
+ *
+ * Invariants/Constraints:
+ * - Menu buttons are laid out in a single table column with uniform width
+ *   (`uniformX().fillX()`).
+ * - Button actions enqueue console commands through `Cbuf`.
  */
 class MainMenuStage(viewport: Viewport) : Stage(viewport) {
     init {
