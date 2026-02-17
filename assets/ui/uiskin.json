@@ -91,9 +91,9 @@
     },
     highlight: raspberry_plum,
     semiTransparent: {
-      r: 0,
-      g: 0,
-      b: 0,
+      r: 0.2,
+      g: 0.2,
+      b: 0.2,
       a: 0.6
     },
     font: white
@@ -111,6 +111,10 @@
     }
   }
   TintedDrawable: {
+    console-panel: {
+      name: chamfer-panel,
+      color: gray
+    },
     split: {
       name: white
       color: split
@@ -297,11 +301,11 @@
     },
     textField: {
       name: rect,
-      color: up
+      color: semiTransparent
     },
     textFieldDown: {
       name: rect,
-      color: over
+      color: background
     },
     textFieldDisabled: {
       name: rect,

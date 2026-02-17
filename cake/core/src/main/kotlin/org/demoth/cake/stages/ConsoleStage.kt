@@ -26,29 +26,36 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                 setFillParent(true)
                 container {
                     it.growY()
-                    consoleOutput = textArea()
+                    stack {
+                        consoleOutput = textArea()
+                        add(consoleOutput)
+                        image("console-panel")
+                    }
                     fill()
                 }
                 row()
                 container {
-                    consoleInput = textField()
-                    consoleInput.addListener(object : InputListener() {
-                        override fun keyUp(event: InputEvent, keycode: Int): Boolean {
-                            if (keycode == Input.Keys.ENTER) {
-                                println("Executing console input: ${consoleInput.text}")
-                                consoleOutput.appendText("${consoleInput.text}\n")
-                                try {
-                                    Cbuf.AddText(consoleInput.text)
-                                    Cbuf.Execute()
-                                } catch (e: Exception) {
-                                    consoleOutput.appendText("" + e.message)
+                    stack {
+                        image("console-panel")
+                        consoleInput = textField()
+                        consoleInput.addListener(object : InputListener() {
+                            override fun keyUp(event: InputEvent, keycode: Int): Boolean {
+                                if (keycode == Input.Keys.ENTER) {
+                                    consoleOutput.appendText("${consoleInput.text}\n")
+                                    try {
+                                        Cbuf.AddText(consoleInput.text)
+                                        Cbuf.Execute()
+                                    } catch (e: Exception) {
+                                        consoleOutput.appendText("" + e.message)
+                                    }
+                                    consoleInput.text = ""
+                                    return true
                                 }
-                                consoleInput.text = ""
-                                return true
+                                return false
                             }
-                            return false
-                        }
-                    })
+                        })
+                        add(consoleInput)
+                    }
                     fill()
                 }
             }
