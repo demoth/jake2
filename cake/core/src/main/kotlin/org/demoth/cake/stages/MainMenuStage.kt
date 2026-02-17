@@ -16,23 +16,23 @@ class MainMenuStage(viewport: Viewport) : Stage(viewport) {
     init {
         actors {
             table {
-                defaults().pad(8f)
+                defaults().pad(16f).uniformX().fillX()
                 setFillParent(true)
-                textButton("Single player").pad(32f)
+                textButton("Single player")
                 row()
                 textButton("Multiplayer"){
                     onClick {
                         Cbuf.AddText("connect 127.0.0.1")
                     }
-                }.pad(32f)
+                }
                 row()
-                textButton("Settings").pad(32f)
+                textButton("Settings")
                 row()
                 textButton("Exit") {
                     onClick {
                         Cbuf.AddText("quit")
                     }
-                }.pad(32f)
+                }
             }
             label("version: 1.2.0")
         }
