@@ -165,6 +165,14 @@ radio
   orig: 22, 22
   offset: 0, 0
   index: -1
+box-rounded
+  rotate: false
+  xy: 366, 308
+  size: 22, 22
+  split: 10, 10, 10, 10
+  orig: 22, 22
+  offset: 0, 0
+  index: -1
 radio-over
   rotate: false
   xy: 390, 308
