@@ -11,6 +11,7 @@ import jake2.qcommon.Defines.PITCH
 import jake2.qcommon.Defines.ROLL
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.exec.Cmd
+import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
@@ -69,7 +70,7 @@ class InputManager(
     private var deltaX = 0f
     private var deltaY = 0f
     private var hasMouseReference = false
-    private val sensitivity = 25f
+    private val sensitivity = Cvar.getInstance().Get("sensitivity", "25", 0) // todo: make independent from screen size
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
@@ -274,8 +275,8 @@ class InputManager(
             deltaY = 0f
             mouseWasMoved = false
         } else {
-            deltaX = sensitivity * (screenX - previousX) / Gdx.graphics.width
-            deltaY = sensitivity * (screenY - previousY) / Gdx.graphics.height
+            deltaX = sensitivity.value * (screenX - previousX) / Gdx.graphics.width
+            deltaY = sensitivity.value * (screenY - previousY) / Gdx.graphics.height
             previousX = screenX.toFloat()
             previousY = screenY.toFloat()
             mouseWasMoved = true
