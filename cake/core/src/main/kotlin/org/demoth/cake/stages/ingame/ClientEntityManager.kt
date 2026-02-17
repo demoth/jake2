@@ -331,7 +331,7 @@ class ClientEntityManager : Disposable {
             val modelIndex = newState.modelindex
             if (modelIndex == 255) {
                 // custom player model/skin: index comes from low byte of skinnum
-                val playerModel = gameConfig.getPlayerModel(newState.skinnum, newState.renderfx)
+                val playerModel = gameConfig.playerConfiguration.getPlayerModel(newState.skinnum, newState.renderfx)
                 entity.name = "player"
                 if (playerModel != null && (entity.modelInstance == null || entity.modelInstance.model !== playerModel)) {
                     entity.modelInstance = createModelInstance(playerModel)
@@ -352,7 +352,7 @@ class ClientEntityManager : Disposable {
             }
 
             // render it if the model was successfully loaded
-            if (newState.index != gameConfig.playerIndex + 1 && drawEntities) { // do not render our own model
+            if (newState.index != gameConfig.playerConfiguration.playerIndex + 1 && drawEntities) { // do not render our own model
                 if (entity.modelInstance != null) {
                     (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                         userData.frame1 = entity.prev.frame

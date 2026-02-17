@@ -177,7 +177,7 @@ class Game3dScreen(
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
         // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
         // before calculating render view (`CL_ents.CalcViewValues`).
-        prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerIndex)
+        prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerConfiguration.playerIndex)
 
         updatePlayerView(lerpFrac)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
@@ -530,7 +530,7 @@ class Game3dScreen(
         gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
         // player slot used by prediction/entity visibility/HUD highlighting.
-        gameConfig.playerIndex = msg.playerNumber
+        gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
 
         // ServerDataMessage is the authoritative game/mod style switch point.
@@ -617,11 +617,11 @@ class Game3dScreen(
                     playEntityEventSound(sound, state.index)
                 }
                 Defines.EV_FALL -> {
-                    val sound = gameConfig.getPlayerSoundPath(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
+                    val sound = gameConfig.playerConfiguration.getPlayerSound(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
                 }
                 Defines.EV_FALLFAR -> {
-                    val sound = gameConfig.getPlayerSoundPath(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
+                    val sound = gameConfig.playerConfiguration.getPlayerSound(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
                 }
             }
@@ -667,7 +667,7 @@ class Game3dScreen(
 
     override fun processInventoryMessage(msg: InventoryMessage) {
         for (i in 0..<Defines.MAX_ITEMS) {
-            gameConfig.inventory[i] = msg.inventory[i]
+            gameConfig.playerConfiguration.inventory[i] = msg.inventory[i]
         }
     }
 

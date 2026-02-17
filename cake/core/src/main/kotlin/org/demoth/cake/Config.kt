@@ -1,7 +1,6 @@
 package org.demoth.cake
 
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
@@ -41,7 +40,7 @@ data class Config(
 
 // may not be great to have a big array of nulls, but configs are accessed by the index (maybe use map int->config?)
 class GameConfiguration(
-    private val assetManager: AssetManager,
+    val assetManager: AssetManager,
     size: Int = MAX_CONFIGSTRINGS
 ) {
     companion object {
@@ -73,27 +72,11 @@ class GameConfiguration(
      */
     var layout: String = ""
 
-    /**
-     * Current local player slot index from `ServerDataMessage.playerNumber` (0-based).
-     *
-     * Invariant:
-     * value is either [UNKNOWN_PLAYER_INDEX] (before serverdata/after unload) or in
-     * `0 until MAX_CLIENTS`.
-     *
-     */
-    var playerIndex: Int
-        get() = playerConfiguration.playerIndex
-        set(value) {
-            playerConfiguration.playerIndex = value
-        }
-
-    val inventory: IntArray
-        get() = playerConfiguration.inventory
-
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
-    private val failedAssets: MutableMap<String, String> = mutableMapOf()
-    private val playerConfiguration = PlayerConfiguration()
+    val failedAssets: MutableMap<String, String> = mutableMapOf()
+    /** Player-scoped state and lookups with the same lifecycle as this game configuration. */
+    val playerConfiguration = PlayerConfiguration(this, assetManager)
     private val weaponSounds: HashMap<Int, Sound> = hashMapOf()
     private var mapAsset: BspMapAsset? = null
 
@@ -203,15 +186,6 @@ class GameConfiguration(
     }
 
     /**
-     * Resolve a variation-specific player sound by player [entityIndex] and file [soundName].
-     *
-     * Typical callers are client-side entity event handlers (`EV_FALL`, `EV_FALLFAR`).
-     */
-    fun getPlayerSoundPath(entityIndex: Int, soundName: String): Sound? {
-        return playerConfiguration.getPlayerSound(entityIndex, soundName)
-    }
-
-    /**
      * Resolve and load a sound by loose path.
      *
      * Accepts either `sound/...` or bare paths like `player/land1.wav`.
@@ -279,43 +253,8 @@ class GameConfiguration(
         return null
     }
 
-    fun getClientName(clientIndex: Int): String? {
-        return playerConfiguration.getClientName(clientIndex)
-    }
-
-    /**
-     * Resolve scoreboard icon matching IdTech2 player skin fallback behavior.
-     *
-     * Legacy counterpart:
-     * `client/CL_parse.LoadClientinfo` icon fallback rules.
-     *
-     * Resolution is variation-based:
-     * 1) `<variation model>/<variation skin>_i`
-     * 2) `<default model>/<variation skin>_i` (if non-default model)
-     * 3) `<default model>/<default skin>_i`
-     */
-    fun getClientIcon(clientIndex: Int): Texture? {
-        return playerConfiguration.getClientIcon(clientIndex)
-    }
-
     fun getWeaponSound(weaponType: Int): Sound? {
         return weaponSounds[weaponType]
-    }
-
-    /**
-     * Resolve and load player model+skin from `CS_PLAYERSKINS` using legacy `LoadClientinfo` fallback logic.
-     *
-     * Legacy counterpart:
-     * `client/CL_parse.LoadClientinfo` model+skin fallback and `client/CL_ents.AddPacketEntities`
-     * custom-player path (`s1.modelindex == 255`, `s1.skinnum & 0xff`).
-     *
-     * Invariants:
-     * - `skinnum & 0xFF` is treated as the remote client index (as in old client).
-     * - Returned model, when non-null, always points to a skin-specific MD2 variant key.
-     * - If client-specific assets fail, fallback attempts `male/grunt`.
-     */
-    fun getPlayerModel(skinnum: Int, renderFx: Int): Model? {
-        return playerConfiguration.getPlayerModel(skinnum, renderFx)
     }
 
     // endregion
@@ -381,8 +320,7 @@ class GameConfiguration(
 
         configStrings[CS_SKY]?.let { loadConfigResource(CS_SKY, it) }
 
-        playerConfiguration.preloadAssets()
-        playerConfiguration.preloadVariationSounds()
+        playerConfiguration.preload()
         preloadWeaponSounds()
     }
 
@@ -397,15 +335,9 @@ class GameConfiguration(
         configStrings.forEach { config -> config?.resource = null }
     }
 
-    private inline fun <reified T> acquireAsset(path: String): T {
+    inline fun <reified T> acquireAsset(path: String): T {
         return acquireAsset(path, T::class.java) {
             assetManager.load(path, T::class.java)
-        }
-    }
-
-    private inline fun <reified T> acquireAsset(path: String, parameter: AssetLoaderParameters<T>): T {
-        return acquireAsset(path, T::class.java) {
-            assetManager.load(path, T::class.java, parameter)
         }
     }
 
@@ -424,7 +356,7 @@ class GameConfiguration(
      * This gives deterministic "one config -> one ownership slot per path", so [unloadAssets] can
      * safely release all tracked paths once and let AssetManager refcounting decide the final lifetime.
      */
-    private fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
+    fun <T> acquireAsset(path: String, assetClass: Class<T>, loadAsset: () -> Unit): T {
         val trackedType = trackedLoadedAssets[path]
         if (trackedType == null || !assetManager.isLoaded(path, assetClass)) {
             if (trackedType != null) {
@@ -439,7 +371,7 @@ class GameConfiguration(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun unloadTrackedAssets() {
+    internal fun unloadTrackedAssets() {
         trackedLoadedAssets.forEach { (path, assetClass) ->
             if (assetManager.isLoaded(path, assetClass as Class<Any>)) {
                 assetManager.unload(path)
@@ -485,7 +417,7 @@ class GameConfiguration(
         return config.resource != null
     }
 
-    private inline fun <reified T> tryAcquireAsset(assetPath: String): T? {
+    inline fun <reified T> tryAcquireAsset(assetPath: String): T? {
         if (failedAssets.containsKey(assetPath)) {
             return null
         }
@@ -499,321 +431,11 @@ class GameConfiguration(
         }
     }
 
-    /** Bundle of per-player model/skin identity used by rendering, icon, and sound resolution. */
-    private data class PlayerModelSkin(
-        val modelName: String,
-        val skinName: String,
-    ) {
-        fun modelPath(): String = "players/$modelName/tris.md2"
-        fun skinPath(): String = "players/$modelName/$skinName.pcx"
-        fun iconPath(): String = "players/$modelName/${skinName}_i.pcx"
-        fun playerFolderSoundPath(soundName: String): String = "players/$modelName/$soundName"
-        fun legacySoundPath(soundName: String): String = "sound/player/$modelName/$soundName"
-    }
-
-    private data class ParsedClientInfo(
-        val name: String,
-        val modelSkin: PlayerModelSkin,
-    )
-
-    private inner class PlayerConfiguration {
-        private val defaultPlayerModel = "male"
-        private val defaultPlayerSkin = "grunt"
-        // Synthetic MD2 variant key format used for player skins: "<skinPath>|<modelPath>".
-        // The right side keeps the ".md2" suffix so standard Md2Asset loader selection still works.
-        private val playerVariantSeparator = "|"
-
-        var playerIndex: Int = UNKNOWN_PLAYER_INDEX
-            set(value) {
-                field = sanitizePlayerIndex(value)
-            }
-
-        val inventory: IntArray = IntArray(MAX_ITEMS) { 0 }
-
-        private val currentPlayerInfos: MutableMap<Int, PlayerModelSkin?> = mutableMapOf()
-        private val playerVariationSoundPathCache: MutableMap<String, String?> = mutableMapOf()
-
-        fun onPlayerSkinConfigUpdated(clientIndex: Int, preloadAsset: Boolean) {
-            currentPlayerInfos.remove(clientIndex)
-            if (preloadAsset) {
-                preloadPlayerAsset(clientIndex)
-            }
-        }
-
-        fun clearTransientState() {
-            currentPlayerInfos.clear()
-            playerVariationSoundPathCache.clear()
-            playerIndex = UNKNOWN_PLAYER_INDEX
-        }
-
-        fun preloadAssets() {
-            // Legacy prep phase preloads all clients (`CL_view.PrepRefresh -> CL_parse.ParseClientinfo`).
-            for (clientIndex in 0 until MAX_CLIENTS) {
-                preloadPlayerAsset(clientIndex)
-            }
-            loadPlayerModelAsset(defaultPlayerModelSkin())
-        }
-
-        // Player-specific sounds, start with *
-        fun preloadVariationSounds() {
-            val modelSkinSpecificSoundNames = buildSet {
-                for (i in (CS_SOUNDS + 1)..<(CS_SOUNDS + MAX_SOUNDS)) {
-                    val soundPath = configStrings[i]?.value ?: continue
-                    if (soundPath.startsWith("*") && soundPath.length > 1) {
-                        add(soundPath.removePrefix("*"))
-                    }
-                }
-            }
-            if (modelSkinSpecificSoundNames.isEmpty()) {
-                return
-            }
-
-            val knownVariations = linkedSetOf(defaultPlayerModelSkin())
-            for (clientIndex in 0 until MAX_CLIENTS) {
-                getPlayerModelSkin(clientIndex)?.let { knownVariations += it }
-            }
-
-            for (variation in knownVariations) {
-                for (soundName in modelSkinSpecificSoundNames) {
-                    loadPlayerSound(variation, soundName)
-                }
-            }
-        }
-
-        fun getPlayerSound(entityIndex: Int, soundName: String): Sound? {
-            val variation = resolvePlayerModelSkinForEntity(entityIndex) ?: defaultPlayerModelSkin()
-            return loadPlayerSound(variation, soundName)
-        }
-
-        fun getClientName(clientIndex: Int): String? {
-            return parseClientInfo(clientIndex)?.name
-        }
-
-        /**
-         * Resolve scoreboard icon matching IdTech2 player skin fallback behavior.
-         *
-         * Legacy counterpart:
-         * `client/CL_parse.LoadClientinfo` icon fallback rules.
-         *
-         * Resolution is variation-based:
-         * 1) `<variation model>/<variation skin>_i`
-         * 2) `<default model>/<variation skin>_i` (if non-default model)
-         * 3) `<default model>/<default skin>_i`
-         */
-        fun getClientIcon(clientIndex: Int): Texture? {
-            val variation = getPlayerModelSkin(clientIndex) ?: defaultPlayerModelSkin()
-            val defaultVariation = defaultPlayerModelSkin()
-            val candidatePaths = buildList {
-                add(variation.iconPath())
-                if (!variation.modelName.equals(defaultVariation.modelName, ignoreCase = true)) {
-                    add(defaultVariation.copy(skinName = variation.skinName).iconPath())
-                }
-                add(defaultVariation.iconPath())
-            }
-
-            for (path in candidatePaths) {
-                if (assetManager.fileHandleResolver.resolve(path) != null) {
-                    return tryAcquireAsset<Texture>(path)
-                }
-            }
-            return null
-        }
-
-        /**
-         * Resolve and load player model+skin from `CS_PLAYERSKINS` using legacy `LoadClientinfo` fallback logic.
-         *
-         * Legacy counterpart:
-         * `client/CL_parse.LoadClientinfo` model+skin fallback and `client/CL_ents.AddPacketEntities`
-         * custom-player path (`s1.modelindex == 255`, `s1.skinnum & 0xff`).
-         *
-         * Invariants:
-         * - `skinnum & 0xFF` is treated as the remote client index (as in old client).
-         * - Returned model, when non-null, always points to a skin-specific MD2 variant key.
-         * - If client-specific assets fail, fallback attempts `male/grunt`.
-         */
-        fun getPlayerModel(skinnum: Int, renderFx: Int): Model? {
-            val clientIndex = skinnum and 0xFF
-            val defaultVariation = defaultPlayerModelSkin()
-            val baseVariation = getPlayerModelSkin(clientIndex) ?: defaultVariation
-            val effectiveVariation = applyDisguise(baseVariation, renderFx)
-            return loadPlayerModelAsset(effectiveVariation) ?: loadPlayerModelAsset(defaultVariation)
-        }
-
-        private fun parseClientInfo(clientIndex: Int): ParsedClientInfo? {
-            if (clientIndex !in 0 until MAX_CLIENTS) {
-                return null
-            }
-            val rawValue = configStrings.getOrNull(CS_PLAYERSKINS + clientIndex)?.value ?: return null
-            if (rawValue.isBlank()) {
-                return null
-            }
-
-            val splitByName = rawValue.split('\\', limit = 2)
-            val name = splitByName.firstOrNull().orEmpty()
-            val modelAndSkin = splitByName.getOrNull(1).orEmpty()
-            if (modelAndSkin.isBlank()) {
-                return ParsedClientInfo(name = name, modelSkin = defaultPlayerModelSkin())
-            }
-
-            val splitBySkin = modelAndSkin.split('/', limit = 2)
-            val model = splitBySkin.firstOrNull().orEmpty().ifBlank { defaultPlayerModel }
-            val skin = splitBySkin.getOrNull(1).orEmpty().ifBlank { defaultPlayerSkin }
-            return ParsedClientInfo(name = name, modelSkin = PlayerModelSkin(modelName = model, skinName = skin))
-        }
-
-        private fun defaultPlayerModelSkin(): PlayerModelSkin {
-            return PlayerModelSkin(defaultPlayerModel, defaultPlayerSkin)
-        }
-
-        private fun getPlayerModelSkin(clientIndex: Int): PlayerModelSkin? {
-            if (clientIndex !in 0 until MAX_CLIENTS) {
-                return null
-            }
-            if (currentPlayerInfos.containsKey(clientIndex)) {
-                return currentPlayerInfos[clientIndex]
-            }
-            val parsed = parseClientInfo(clientIndex)
-            val resolved = parsed?.let { getPlayerModelSkin(it.modelSkin) }
-            currentPlayerInfos[clientIndex] = resolved
-            return resolved
-        }
-
-        /**
-         * Mirrors old-client model/skin fallback order from `CL_parse.LoadClientinfo`:
-         * 1) requested model
-         * 2) if model missing -> male
-         * 3) requested skin on selected model
-         * 4) if skin missing on non-male -> male + same skin
-         * 5) if still missing -> male/grunt
-         */
-        private fun getPlayerModelSkin(parsed: PlayerModelSkin): PlayerModelSkin {
-            var model = parsed.modelName.ifBlank { defaultPlayerModel }
-            var skin = parsed.skinName.ifBlank { defaultPlayerSkin }
-            val defaultVariation = defaultPlayerModelSkin()
-
-            if (!assetExists(PlayerModelSkin(modelName = model, skinName = skin).modelPath())) {
-                model = defaultVariation.modelName
-            }
-
-            if (!assetExists(PlayerModelSkin(modelName = model, skinName = skin).skinPath()) &&
-                !model.equals(defaultVariation.modelName, ignoreCase = true)
-            ) {
-                model = defaultVariation.modelName
-            }
-
-            if (!assetExists(PlayerModelSkin(modelName = model, skinName = skin).skinPath())) {
-                skin = defaultVariation.skinName
-            }
-
-            return PlayerModelSkin(model, skin)
-        }
-
-        private fun applyDisguise(variation: PlayerModelSkin, renderFx: Int): PlayerModelSkin {
-            if ((renderFx and RF_USE_DISGUISE) == 0) {
-                return variation
-            }
-            val disguiseVariation = variation.copy(skinName = "disguise")
-            if (!assetExists(disguiseVariation.modelPath()) || !assetExists(disguiseVariation.skinPath())) {
-                return variation
-            }
-            return disguiseVariation
-        }
-
-        private fun preloadPlayerAsset(clientIndex: Int) {
-            val variation = getPlayerModelSkin(clientIndex) ?: return
-            loadPlayerModelAsset(variation)
-        }
-
-        private fun resolvePlayerModelSkinForEntity(entityIndex: Int): PlayerModelSkin? {
-            if (entityIndex !in 1..MAX_CLIENTS) {
-                return null
-            }
-            return getPlayerModelSkin(entityIndex - 1)
-        }
-
-        private fun loadPlayerSound(variation: PlayerModelSkin, soundName: String): Sound? {
-            val path = getPlayerSoundPath(variation, soundName) ?: return null
-            return tryAcquireAsset(path)
-        }
-
-        private fun getPlayerSoundPath(variation: PlayerModelSkin, soundName: String): String? {
-            val cacheKey = "${variation.modelName.lowercase()}|$soundName"
-            if (playerVariationSoundPathCache.containsKey(cacheKey)) {
-                return playerVariationSoundPathCache[cacheKey]
-            }
-
-            val resolved = playerVariationSoundCandidates(variation, soundName)
-                .firstOrNull { assetExists(it) }
-            playerVariationSoundPathCache[cacheKey] = resolved
-            return resolved
-        }
-
-        /**
-         * Candidate order for variation-specific sounds (`*...`), matching legacy behavior while staying
-         * variation-name agnostic (no hardcoded non-default model names).
-         *
-         * Order:
-         * 1) `players/<variation model>/<sound>`
-         * 2) `sound/player/<variation model>/<sound>`
-         * 3) default model equivalents (when variation model is non-default)
-         * 4) generic player fallback: `sound/player/<sound>` then `player/<sound>`
-         *
-         * Legacy counterpart:
-         * `client/sound/lwjgl/LWJGLSoundImpl.RegisterSexedSound` plus legacy temp-entity generic fall sounds.
-         */
-        private fun playerVariationSoundCandidates(variation: PlayerModelSkin, soundName: String): List<String> {
-            val defaultVariation = defaultPlayerModelSkin()
-            val candidates = linkedSetOf(
-                variation.playerFolderSoundPath(soundName),
-                variation.legacySoundPath(soundName),
-            )
-            if (!variation.modelName.equals(defaultVariation.modelName, ignoreCase = true)) {
-                candidates += defaultVariation.playerFolderSoundPath(soundName)
-                candidates += defaultVariation.legacySoundPath(soundName)
-            }
-            candidates += "sound/player/$soundName"
-            candidates += "player/$soundName"
-            return candidates.toList()
-        }
-
-        /**
-         * Load a player model with a skin-specific synthetic asset key.
-         *
-         * Why synthetic key:
-         * AssetManager caches by path, while player MD2 skin is chosen by key.
-         * This method keeps cache entries unique per `(model, skin)` without changing renderer code.
-         */
-        private fun loadPlayerModelAsset(variation: PlayerModelSkin): Model? {
-            val modelPath = variation.modelPath()
-            val skinPath = variation.skinPath()
-            if (!assetExists(modelPath) || !assetExists(skinPath)) {
-                return null
-            }
-            val modelAssetPath = playerModelVariantAssetPath(modelPath, skinPath)
-            val md2Asset = tryAcquireAsset<Md2Asset>(modelAssetPath) ?: return null
-            return md2Asset.model
-        }
-
-        private fun playerModelVariantAssetPath(modelPath: String, skinPath: String): String {
-            return "$skinPath$playerVariantSeparator$modelPath"
-        }
-
-        private fun sanitizePlayerIndex(value: Int): Int {
-            if (value in 0 until MAX_CLIENTS) {
-                return value
-            }
-            if (value != UNKNOWN_PLAYER_INDEX) {
-                Com.Warn("Ignoring invalid playerIndex=$value, using UNKNOWN_PLAYER_INDEX")
-            }
-            return UNKNOWN_PLAYER_INDEX
-        }
-    }
-
     private fun assetExists(path: String): Boolean {
         return assetManager.fileHandleResolver.resolve(path) != null
     }
 
-    private fun rootCauseMessage(t: Throwable): String {
+    fun rootCauseMessage(t: Throwable): String {
         var root: Throwable = t
         while (root.cause != null) {
             root = root.cause!!

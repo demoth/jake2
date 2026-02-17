@@ -311,11 +311,11 @@ internal class GameConfigLayoutDataProvider(
     override fun getConfigString(configIndex: Int): String? = gameConfig.getConfigValue(configIndex)
     override fun getNamedPic(picName: String): Texture? = gameConfig.getNamedPic(picName)
     override fun getClientInfo(clientIndex: Int): LayoutClientInfo? {
-        val name = gameConfig.getClientName(clientIndex) ?: return null
-        return LayoutClientInfo(name = name, icon = gameConfig.getClientIcon(clientIndex))
+        val name = gameConfig.playerConfiguration.getClientName(clientIndex) ?: return null
+        return LayoutClientInfo(name = name, icon = gameConfig.playerConfiguration.getClientIcon(clientIndex))
     }
 
-    override fun getCurrentPlayerIndex(): Int = gameConfig.playerIndex
+    override fun getCurrentPlayerIndex(): Int = gameConfig.playerConfiguration.playerIndex
 }
 
 /**
@@ -364,7 +364,7 @@ internal class Hud(
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
-    private val crosshairCvar = Cvar.getInstance().Get("crosshair", "0", Defines.CVAR_ARCHIVE)
+    private val crosshairCvar = Cvar.getInstance().Get("crosshair", "1", Defines.CVAR_ARCHIVE)
     private var crosshairPic: String? = null
     private var crosshairTexture: Texture? = null
 
@@ -455,7 +455,7 @@ internal class Hud(
             if (i == selected) {
                 selectedVisibleIndex = visibleItems.size
             }
-            if (gameConfig.inventory[i] != 0) {
+            if (gameConfig.playerConfiguration.inventory[i] != 0) {
                 visibleItems += i
             }
         }
@@ -481,7 +481,7 @@ internal class Hud(
         val last = minOf(visibleItems.size, top + INVENTORY_DISPLAY_ITEMS)
         for (visibleIndex in top until last) {
             val itemIndex = visibleItems[visibleIndex]
-            val amount = gameConfig.inventory[itemIndex]
+            val amount = gameConfig.playerConfiguration.inventory[itemIndex]
             val itemName = gameConfig.getItemName(itemIndex) ?: ""
             val line = String.format("%6s %3d %s", "", amount, itemName)
             if (itemIndex != selected) {
