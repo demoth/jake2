@@ -2,6 +2,8 @@ in vec2 v_diffuseUV;
 
 uniform int u_skinIndex;
 uniform int u_skinCount;
+// Per-instance opacity from material BlendingAttribute (set by Md2Shader).
+uniform float u_opacity;
 uniform sampler2D u_skinTexture0;
 uniform sampler2D u_skinTexture1;
 uniform sampler2D u_skinTexture2;
@@ -33,5 +35,7 @@ vec4 sampleSkin(int skinIndex, vec2 uv) {
 void main() {
     int maxIndex = max(u_skinCount - 1, 0);
     int skinIndex = clamp(u_skinIndex, 0, maxIndex);
-    gl_FragColor = sampleSkin(skinIndex, v_diffuseUV);
+    vec4 color = sampleSkin(skinIndex, v_diffuseUV);
+    color.a *= u_opacity;
+    gl_FragColor = color;
 }

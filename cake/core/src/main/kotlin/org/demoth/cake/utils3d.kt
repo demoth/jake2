@@ -1,9 +1,12 @@
 package org.demoth.cake
 
 import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import org.demoth.cake.assets.AnimationTextureAttribute
@@ -50,6 +53,43 @@ fun createModelInstance(model: Model): ModelInstance {
     return ModelInstance(model).apply {
         if (model.materials.any { it.has(AnimationTextureAttribute.Type) }) {
             userData = Md2CustomData.empty()
+        }
+    }
+}
+
+/**
+ * Applies per-instance opacity for model-backed entities/effects.
+ *
+ * Opaque path removes blending and enables depth writes.
+ * Translucent path enables standard alpha blending and disables depth writes.
+ *
+ * Legacy counterpart:
+ * `client/CL_ents.AddPacketEntities` + `client/ref_gl` translucent entity rendering.
+ */
+fun applyModelOpacity(instance: ModelInstance, opacity: Float, forceTranslucent: Boolean = false) {
+    val clampedOpacity = opacity.coerceIn(0f, 1f)
+    val translucent = forceTranslucent || clampedOpacity < 1f
+    instance.materials.forEach { material ->
+        val depth = material.get(DepthTestAttribute.Type) as? DepthTestAttribute
+        if (translucent) {
+            val blending = material.get(BlendingAttribute.Type) as? BlendingAttribute
+            if (blending == null) {
+                material.set(BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, clampedOpacity))
+            } else {
+                blending.sourceFunction = GL20.GL_SRC_ALPHA
+                blending.destFunction = GL20.GL_ONE_MINUS_SRC_ALPHA
+                blending.opacity = clampedOpacity
+            }
+            if (depth == null) {
+                material.set(DepthTestAttribute(GL20.GL_LEQUAL, 0f, 1f, false))
+            } else {
+                depth.depthMask = false
+            }
+        } else {
+            material.remove(BlendingAttribute.Type)
+            if (depth != null) {
+                depth.depthMask = true
+            }
         }
     }
 }

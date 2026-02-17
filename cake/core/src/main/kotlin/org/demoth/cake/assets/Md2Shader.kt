@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.Shader
 import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
@@ -152,6 +153,14 @@ class Md2Shader(
             shader.set(inputID, md2CustomData.interpolation)
         }
     }
+    // The custom MD2 fragment shader samples skin textures directly, so we explicitly pass opacity from
+    // BlendingAttribute instead of relying on DefaultShader's built-in diffuse path.
+    private val opacitySetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {
+            val blending = combinedAttributes.get(BlendingAttribute.Type) as? BlendingAttribute
+            shader.set(inputID, blending?.opacity ?: 1f)
+        }
+    }
 
     // animation related local (per renderable) uniforms
     protected val u_vertexAnimationTexture = Uniform("u_vertexAnimationTexture")
@@ -162,6 +171,8 @@ class Md2Shader(
     private val u_interpolation = Uniform("u_interpolation")
     private val u_skinIndex = Uniform("u_skinIndex")
     private val u_skinCount = Uniform("u_skinCount")
+    // Keep this aligned with `assets/shaders/md2.frag`.
+    private val u_md2Opacity = Uniform("u_opacity")
 
     // register the uniforms
     private val u_vertexAnimationTexturePos = register(u_vertexAnimationTexture, vertexAnimationTextureSetter)
@@ -173,6 +184,7 @@ class Md2Shader(
     private val u_interpolationPos = register(u_interpolation, interpolationSetter)
     private val u_skinIndexPos = register(u_skinIndex, skinIndexSetter)
     private val u_skinCountPos = register(u_skinCount, skinCountSetter)
+    private val u_md2OpacityPos = register(u_md2Opacity, opacitySetter)
     private val u_skinTexturePositions = IntArray(MAX_MD2_SKIN_TEXTURES) { slot ->
         register(Uniform("u_skinTexture$slot"), skinTextureSetter(slot))
     }

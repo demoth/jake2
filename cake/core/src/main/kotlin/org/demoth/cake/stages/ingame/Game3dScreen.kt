@@ -46,6 +46,7 @@ import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.audio.SpatialSoundAttenuation
+import org.demoth.cake.applyModelOpacity
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.lerpAngle
@@ -193,32 +194,18 @@ class Game3dScreen(
                     Gdx.gl.glDepthMask(true)
                 }
 
+            // Preserve legacy ordering: opaque model entities first, translucent model entities second.
+            // Legacy counterpart: `client/CL_ents.AddPacketEntities` + renderer alpha passes in
+            // `client/render/fast/Surf.R_DrawAlphaSurfaces`.
             entityManager.visibleEntities.forEach {
-
-                // apply client side effects
-                if (it.current.effects and Defines.EF_ROTATE != 0) {
-                    // rotate the model Instance, should to 180 degrees in 1 second
-                    it.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
-                } else {
-                    val pitch = lerpAngle(it.prev.angles[Defines.PITCH], it.current.angles[Defines.PITCH], lerpFrac)
-                    val yaw = lerpAngle(it.prev.angles[Defines.YAW], it.current.angles[Defines.YAW], lerpFrac)
-                    val roll = lerpAngle(it.prev.angles[Defines.ROLL], it.current.angles[Defines.ROLL], lerpFrac)
-
-                    applyIdTech2EntityRotation(it, pitch, yaw, roll)
-
+                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
+                    renderModelEntity(modelBatch, it)
                 }
-
-                // interpolate position
-                val x = it.prev.origin[0] + (it.current.origin[0] - it.prev.origin[0]) * lerpFrac
-                val y = it.prev.origin[1] + (it.current.origin[1] - it.prev.origin[1]) * lerpFrac
-                val z = it.prev.origin[2] + (it.current.origin[2] - it.prev.origin[2]) * lerpFrac
-
-                it.modelInstance.transform.setTranslation(x, y, z)
-
-                (it.modelInstance.userData as? Md2CustomData)?.let { userData ->
-                    userData.interpolation = lerpFrac
+            }
+            entityManager.visibleEntities.forEach {
+                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
+                    renderModelEntity(modelBatch, it)
                 }
-                modelBatch.render(it.modelInstance, environment)
             }
             entityManager.visibleBeams.forEach {
                 beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
@@ -279,6 +266,43 @@ class Game3dScreen(
                 )
             }
         }
+    }
+
+    /**
+     * Renders one model-backed entity with interpolation + alpha/material state.
+     *
+     * Legacy counterparts:
+     * `client/CL_ents.AddPacketEntities` (resolved renderfx/alpha) and
+     * `client/V.AddEntity` consumption by renderer.
+     */
+    private fun renderModelEntity(modelBatch: ModelBatch, entity: ClientEntity) {
+        // apply client side effects
+        if (entity.current.effects and Defines.EF_ROTATE != 0) {
+            // rotate the model Instance, should to 180 degrees in 1 second
+            entity.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
+        } else {
+            val pitch = lerpAngle(entity.prev.angles[Defines.PITCH], entity.current.angles[Defines.PITCH], lerpFrac)
+            val yaw = lerpAngle(entity.prev.angles[Defines.YAW], entity.current.angles[Defines.YAW], lerpFrac)
+            val roll = lerpAngle(entity.prev.angles[Defines.ROLL], entity.current.angles[Defines.ROLL], lerpFrac)
+
+            applyIdTech2EntityRotation(entity, pitch, yaw, roll)
+        }
+
+        // interpolate position
+        val x = entity.prev.origin[0] + (entity.current.origin[0] - entity.prev.origin[0]) * lerpFrac
+        val y = entity.prev.origin[1] + (entity.current.origin[1] - entity.prev.origin[1]) * lerpFrac
+        val z = entity.prev.origin[2] + (entity.current.origin[2] - entity.prev.origin[2]) * lerpFrac
+
+        entity.modelInstance.transform.setTranslation(x, y, z)
+
+        val translucent = (entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0
+        val opacity = if (translucent) entity.alpha else 1f
+        applyModelOpacity(entity.modelInstance, opacity, forceTranslucent = translucent)
+
+        (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+            userData.interpolation = lerpFrac
+        }
+        modelBatch.render(entity.modelInstance, environment)
     }
 
     override fun dispose() {

@@ -373,12 +373,17 @@ class ClientEffectsSystem(
     }
 
     private fun spawnSmokeAndFlash(origin: Vector3) {
+        // Legacy counterpart: `client/CL_tent.SmokeAndFlash`.
+        // Smoke uses translucent fade-out (old `ex_misc` path), flash remains short opaque/fullbright.
         spawnAnimatedModelEffect(
             modelPath = "models/objects/smoke/tris.md2",
             position = origin,
             firstFrame = 0,
             frameCount = 4,
             frameDurationMs = 100,
+            startAlpha = 1f,
+            endAlpha = 0f,
+            translucent = true,
         )
         spawnAnimatedModelEffect(
             modelPath = "models/objects/flash/tris.md2",
@@ -469,7 +474,11 @@ class ClientEffectsSystem(
         yawDeg: Float = 0f,
         rollDeg: Float = 0f,
         skinIndex: Int? = null,
+        startAlpha: Float = 1f,
+        endAlpha: Float = 1f,
+        translucent: Boolean = false,
     ) {
+        // Legacy counterpart: `client/CL_tent` explosion/muzzle model entities.
         val md2 = assetCatalog.getModel(modelPath) ?: return
         val instance = createModelInstance(md2.model)
         if (skinIndex != null) {
@@ -485,6 +494,9 @@ class ClientEffectsSystem(
             pitchDeg = pitchDeg,
             yawDeg = yawDeg,
             rollDeg = rollDeg,
+            startAlpha = startAlpha,
+            endAlpha = endAlpha,
+            translucent = translucent,
         )
     }
 

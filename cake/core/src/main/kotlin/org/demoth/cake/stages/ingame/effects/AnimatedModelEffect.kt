@@ -3,6 +3,7 @@ package org.demoth.cake.stages.ingame.effects
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector3
+import org.demoth.cake.applyModelOpacity
 import org.demoth.cake.assets.Md2CustomData
 import kotlin.math.floor
 
@@ -13,6 +14,10 @@ import kotlin.math.floor
  * - Frame interpolation writes to [Md2CustomData] when present.
  * - Rotation order intentionally mirrors in-game entity conventions: yaw(Z) -> pitch(Y) -> roll(X).
  * - Roll is sign-inverted to match existing idTech2 model orientation quirk in cake.
+ * - Optional alpha ramp ([startAlpha] -> [endAlpha]) supports legacy smoke/explosion fade behavior.
+ *
+ * Legacy counterpart:
+ * `client/CL_tent.AddExplosions` (`ex_misc`/`ex_poly` alpha handling).
  */
 class AnimatedModelEffect(
     private val modelInstance: ModelInstance,
@@ -24,6 +29,9 @@ class AnimatedModelEffect(
     private val pitchDeg: Float = 0f,
     private val yawDeg: Float = 0f,
     private val rollDeg: Float = 0f,
+    private val startAlpha: Float = 1f,
+    private val endAlpha: Float = 1f,
+    private val translucent: Boolean = false,
 ) : ClientTransientEffect {
     override fun update(nowMs: Int, deltaSeconds: Float): Boolean {
         val elapsedMs = nowMs - spawnTimeMs
@@ -40,6 +48,8 @@ class AnimatedModelEffect(
         val frameIndex = floor(frameFloat).toInt().coerceIn(0, frameCount - 1)
         val nextFrameIndex = (frameIndex + 1).coerceAtMost(frameCount - 1)
         val interpolation = (frameFloat - floor(frameFloat)).coerceIn(0f, 1f)
+        val lifeProgress = (elapsedMs.toFloat() / maxDurationMs.toFloat()).coerceIn(0f, 1f)
+        val alpha = startAlpha + (endAlpha - startAlpha) * lifeProgress
 
         (modelInstance.userData as? Md2CustomData)?.let { userData ->
             userData.frame1 = firstFrame + frameIndex
@@ -59,6 +69,7 @@ class AnimatedModelEffect(
             modelInstance.transform.rotate(Vector3.X, -rollDeg)
         }
         modelInstance.transform.setTranslation(position)
+        applyModelOpacity(modelInstance, alpha, forceTranslucent = translucent)
         return true
     }
 
