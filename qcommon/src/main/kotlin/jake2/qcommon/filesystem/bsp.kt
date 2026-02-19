@@ -20,6 +20,8 @@ class Bsp(buffer: ByteBuffer) {
     val faceEdges = readFaceEdges(buffer, header.lumps[12])
     val faces = readFaces(buffer, header.lumps[6])
     val textures = readTextures(buffer, header.lumps[5])
+    val leaves = readLeaves(buffer, header.lumps[8])
+    val leafFaces = readLeafFaces(buffer, header.lumps[9])
     val models = readModels(buffer, header.lumps[13])
     val entities = parseEntities(entityString)
 
@@ -114,6 +116,45 @@ class Bsp(buffer: ByteBuffer) {
             ))
         }
         return textures.toTypedArray()
+    }
+
+    private fun readLeaves(buffer: ByteBuffer, bspLump: BspLump): Array<BspLeaf> {
+        check(bspLump.length % 28 == 0) {
+            "Unexpected leaf lump size: ${bspLump.length}, should be divisible by 28"
+        }
+        buffer.position(bspLump.offset)
+        val leaves = mutableListOf<BspLeaf>()
+        repeat(bspLump.length / 28) {
+            val contents = buffer.getInt()
+            val cluster = buffer.getShort().toInt()
+            val area = buffer.getShort().toInt()
+            // mins[3] and maxs[3] are currently not needed by cake runtime representation
+            repeat(6) { buffer.getShort() }
+            leaves.add(
+                BspLeaf(
+                    contents = contents,
+                    cluster = cluster,
+                    area = area,
+                    firstLeafFace = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    numLeafFaces = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    firstLeafBrush = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                    numLeafBrushes = (buffer.getShort() and 0xFFFF.toShort()).toInt(),
+                )
+            )
+        }
+        return leaves.toTypedArray()
+    }
+
+    private fun readLeafFaces(buffer: ByteBuffer, bspLump: BspLump): Array<Int> {
+        check(bspLump.length % 2 == 0) {
+            "Unexpected leaf-face lump size: ${bspLump.length}, should be divisible by 2"
+        }
+        buffer.position(bspLump.offset)
+        val leafFaces = mutableListOf<Int>()
+        repeat(bspLump.length / 2) {
+            leafFaces.add((buffer.getShort() and 0xFFFF.toShort()).toInt())
+        }
+        return leafFaces.toTypedArray()
     }
 
     private fun readModels(buffer: ByteBuffer, bspLump: BspLump): Array<BspModel> {
@@ -234,4 +275,13 @@ data class BspModel(
     }
 }
 
+data class BspLeaf(
+    val contents: Int,
+    val cluster: Int, // signed short; -1 means invalid cluster
+    val area: Int, // signed short
+    val firstLeafFace: Int, // unsigned short
+    val numLeafFaces: Int, // unsigned short
+    val firstLeafBrush: Int, // unsigned short
+    val numLeafBrushes: Int, // unsigned short
+)
 

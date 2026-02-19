@@ -1,6 +1,7 @@
 package jake2.qcommon.filesystem
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -13,6 +14,18 @@ class BspTest {
         assertEquals(168, map.vertices.size)
         assertEquals(296, map.edges.size)
         assertEquals(590, map.faceEdges.size)
+        assertTrue(map.leaves.isNotEmpty())
+        assertTrue(map.leafFaces.isNotEmpty())
+
+        map.leaves.forEach { leaf ->
+            assertTrue(leaf.firstLeafFace >= 0)
+            assertTrue(leaf.numLeafFaces >= 0)
+            assertTrue(leaf.firstLeafFace + leaf.numLeafFaces <= map.leafFaces.size)
+        }
+        map.leafFaces.forEach { faceIndex ->
+            assertTrue(faceIndex in map.faces.indices)
+        }
+
         map.faces.forEach { f ->
             val edgeIndices = (0..<f.numEdges).map { edgeIndex ->
                 map.faceEdges[f.firstEdgeIndex + edgeIndex]
