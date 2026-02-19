@@ -133,17 +133,18 @@ private fun applySurfaceFlowing(nodePart: NodePart, textureFlags: Int, currentTi
         return
     }
     val diffuse = nodePart.material.get(TextureAttribute.Diffuse) as? TextureAttribute ?: return
-    val textureWidth = diffuse.textureDescription.texture.width.coerceAtLeast(1).toFloat()
-    diffuse.offsetU = computeFlowingOffsetU(currentTimeMs, textureWidth)
+    diffuse.offsetU = computeFlowingOffsetU(currentTimeMs)
 }
 
-private fun computeFlowingOffsetU(currentTimeMs: Int, textureWidth: Float): Float {
+internal fun computeFlowingOffsetU(currentTimeMs: Int): Float {
     val timeSeconds = currentTimeMs / 1000f
+    // Legacy fast renderer counterpart (`Surf.DrawGLFlowingPoly`):
+    // scroll = -64 * ( (refdef.time / 40.0) - floor(refdef.time / 40.0) )
     var scroll = -64f * ((timeSeconds / 40f) - floor(timeSeconds / 40f))
     if (scroll == 0f) {
         scroll = -64f
     }
-    return scroll / textureWidth
+    return scroll
 }
 
 private fun applySurfaceLightstyles(
