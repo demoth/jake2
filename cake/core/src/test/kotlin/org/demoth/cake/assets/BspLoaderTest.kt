@@ -1,6 +1,7 @@
 package org.demoth.cake.assets
 
 import jake2.qcommon.Defines
+import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.IDBSPHEADER
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,7 +27,26 @@ class BspLoaderTest {
         )
     }
 
-    private fun minimalBspWithTextures(textureNames: List<String>): ByteArray {
+    @Test
+    fun buildWorldRenderDataMapsLeavesToWorldSurfaces() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("floor", "skybox", "lava"),
+            leafFaceIndices = listOf(0, 1, 2)
+        )
+        val bsp = Bsp(ByteBuffer.wrap(bspData))
+
+        val surfaces = collectWorldSurfaceRecords(bsp)
+        val world = buildWorldRenderData(bsp, surfaces)
+
+        assertEquals(2, world.surfaces.size) // sky face is filtered out
+        assertEquals(1, world.leaves.size)
+        assertEquals(intArrayOf(0, 1).toList(), world.leaves.first().surfaceIndices.toList())
+    }
+
+    private fun minimalBspWithTextures(
+        textureNames: List<String>,
+        leafFaceIndices: List<Int> = emptyList(),
+    ): ByteArray {
         val faceCount = textureNames.size
         val facesData = ByteBuffer.allocate(faceCount * 20)
             .order(ByteOrder.LITTLE_ENDIAN)
@@ -60,6 +80,33 @@ class BspLoaderTest {
             }
             .array()
 
+        val leafFacesData = ByteBuffer.allocate(leafFaceIndices.size * 2)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                leafFaceIndices.forEach { faceIndex ->
+                    putShort(faceIndex.toShort())
+                }
+            }
+            .array()
+
+        val leavesData = if (leafFaceIndices.isEmpty()) {
+            ByteArray(0)
+        } else {
+            ByteBuffer.allocate(28)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .apply {
+                    putInt(0) // contents
+                    putShort(0) // cluster
+                    putShort(0) // area
+                    repeat(6) { putShort(0) } // mins/maxs
+                    putShort(0) // firstLeafFace
+                    putShort(leafFaceIndices.size.toShort()) // numLeafFaces
+                    putShort(0) // firstLeafBrush
+                    putShort(0) // numLeafBrushes
+                }
+                .array()
+        }
+
         val modelsData = ByteBuffer.allocate(48)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
@@ -83,6 +130,14 @@ class BspLoaderTest {
         lumpOffsets[6] = cursor
         lumpLengths[6] = facesData.size
         cursor += facesData.size
+        // LUMP_LEAFS
+        lumpOffsets[8] = cursor
+        lumpLengths[8] = leavesData.size
+        cursor += leavesData.size
+        // LUMP_LEAFFACES
+        lumpOffsets[9] = cursor
+        lumpLengths[9] = leafFacesData.size
+        cursor += leafFacesData.size
         // LUMP_MODELS
         lumpOffsets[13] = cursor
         lumpLengths[13] = modelsData.size
@@ -101,6 +156,10 @@ class BspLoaderTest {
         result.put(texturesData)
         result.position(lumpOffsets[6])
         result.put(facesData)
+        result.position(lumpOffsets[8])
+        result.put(leavesData)
+        result.position(lumpOffsets[9])
+        result.put(leafFacesData)
         result.position(lumpOffsets[13])
         result.put(modelsData)
         return result.array()
