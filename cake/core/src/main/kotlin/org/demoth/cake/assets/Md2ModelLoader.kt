@@ -19,7 +19,6 @@ import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
@@ -37,6 +36,7 @@ import kotlin.jvm.java
  * Loaded MD2 asset bundle.
  *
  * [model] is the renderable geometry using the VAT shader attributes.
+ * Geometry is pre-normalized to Cake winding expectations, so default backface culling works as-is.
  * [frames] is frame count metadata used by animation code.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
  *
@@ -66,6 +66,7 @@ class Md2Asset(
  * - dependency skins are owned by AssetManager, not by [Md2Asset].
  *
  * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
+ * MD2 gl command winding is normalized at decode time; the loader does not apply per-model cull overrides.
  */
 class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
 
@@ -125,6 +126,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         } else {
             listOf(defaultSkin!!)
         }
+        // Winding normalization is handled by buildVertexData() and is part of MD2 decode defaults.
         val vertexData = buildVertexData(md2.glCommands, md2.frames)
         val mesh = Mesh(
             true,
@@ -179,12 +181,9 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
 
-        // Keep MD2 culling consistent with legacy alias-model path (RF models were rendered with GL_FRONT cull).
-        // Reference: client/render/fast/Main.R_SetupGL + Mesh.R_DrawAliasModel.
         return Material(
             Md2SkinTexturesAttribute(skins.take(MAX_MD2_SKIN_TEXTURES)), // todo: warning if skins has more than MAX_MD2_SKIN_TEXTURES
-            AnimationTextureAttribute(vat),
-            IntAttribute.createCullFace(GL20.GL_FRONT)
+            AnimationTextureAttribute(vat)
         )
     }
 

@@ -75,6 +75,16 @@ Legacy counterparts:
 - **Status:** accepted
 - **Definition of Done:** In multiplayer, remote player names/icons/models match selected model+skin and update when `CS_PLAYERSKINS` changes.
 
+### Decision: Normalize MD2 triangle winding at decode time and keep conventional OpenGL backface culling
+- **Context:** Legacy alias-model path effectively relied on `GL_FRONT` culling. In Cake's shader pipeline this caused confusion and mixed behavior when culling policy was handled at runtime per material.
+- **Options Considered:**
+  - Keep legacy-style runtime culling override (`GL_FRONT`) for MD2 materials
+  - Normalize winding in MD2 decode and keep conventional OpenGL culling (`GL_BACK`, CCW front faces)
+- **Chosen Option & Rationale:** Normalize winding during `buildVertexData(...)` and remove per-model cull overrides. This keeps culling policy simple and predictable across model pipelines.
+- **Consequences:** `qcommon` MD2 decode output is now Cake-oriented rather than a raw mirror of legacy immediate-mode winding.
+- **Status:** accepted
+- **Definition of Done:** MD2 entities render with correct outward faces using default backface culling, with no MD2-specific `GL_FRONT` cull attribute in `Md2Loader`.
+
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.
   - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.

@@ -153,6 +153,12 @@ class Md2Model(buffer: ByteBuffer) {
     }
 }
 
+/**
+ * Builds runtime vertex data for MD2 models consumed by Cake.
+ *
+ * The unpacked triangles are normalized to Cake-compatible winding so materials can use conventional
+ * backface culling (`GL_BACK`) without per-model cull overrides.
+ */
 fun buildVertexData(
     glCmds: List<Md2GlCmd>,
     frames: List<Md2Frame>
@@ -225,16 +231,16 @@ data class Md2GlCmd(
 ) {
 
     /**
-     * Convert triangle strip/fan commands into independent triangles with OpenGL-equivalent winding.
+     * Convert triangle strip/fan commands into independent triangles with Cake-compatible winding.
      *
-     * This must preserve the exact per-triangle vertex order produced by the legacy immediate-mode path
-     * (glBegin(GL_TRIANGLE_STRIP/FAN) ... glVertex ...), otherwise face culling will reject the wrong side.
+     * The parser first reproduces OpenGL primitive assembly and then flips each produced triangle.
+     * This keeps decode-time output aligned with Cake's default backface-culling path.
      */
     fun unpack(): List<Md2VertexInfo> {
         if (vertices.size < 3) {
             return emptyList()
         }
-        return when (type) {
+        val unpacked = when (type) {
             Md2GlCmdType.TRIANGLE_STRIP -> buildList((vertices.size - 2) * 3) {
                 // OpenGL strip assembly:
                 // i=0: (v0,v1,v2), i=1: (v2,v1,v3), i=2: (v2,v3,v4), ...
@@ -261,6 +267,14 @@ data class Md2GlCmd(
                 }
             }
         }
+        // Flip every triangle from (a,b,c) -> (a,c,b).
+        return buildList(unpacked.size) {
+            for (i in unpacked.indices step 3) {
+                add(unpacked[i])
+                add(unpacked[i + 2])
+                add(unpacked[i + 1])
+            }
+        }
     }
 
     /**
@@ -271,7 +285,10 @@ data class Md2GlCmd(
      * using a single drawElements(GL_TRIANGLES, ...) call.
      *
      */
-    fun toVertexAttributes(framePositions: List<Md2Point>, returnTexCoords: Boolean = true): List<Float> {
+    fun toVertexAttributes(
+        framePositions: List<Md2Point>,
+        returnTexCoords: Boolean = true,
+    ): List<Float> {
         return unpack().flatMap { it.toFloats(framePositions, returnTexCoords) }
     }
 }
