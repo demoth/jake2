@@ -435,7 +435,7 @@ class ClientEntityManager : Disposable {
      */
     private fun resolveEntityAlpha(effects: Int, renderFx: Int): Float {
         var alpha = 1f
-        if (renderFx == Defines.RF_TRANSLUCENT) {
+        if ((renderFx and Defines.RF_TRANSLUCENT) != 0) {
             alpha = 0.70f
         }
         if ((effects and Defines.EF_BFG) != 0) {
