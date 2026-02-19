@@ -98,6 +98,7 @@ class Game3dScreen(
 
     private val beamRenderer = BeamRenderer(assetManager)
     private val sp2Renderer = Sp2Renderer()
+    private var worldVisibilityController: BspWorldVisibilityController? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -181,6 +182,7 @@ class Game3dScreen(
         prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerConfiguration.playerIndex)
 
         updatePlayerView(lerpFrac)
+        worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
 
         // render entities
@@ -306,6 +308,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        worldVisibilityController = null
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -355,6 +358,11 @@ class Game3dScreen(
         }
 
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
+        worldVisibilityController = BspWorldVisibilityController(
+            worldRenderData = bspMap.worldRenderData,
+            modelInstance = entityManager.levelEntity!!.modelInstance,
+            collisionModel = collisionModel,
+        )
 
         // after world + inline brush models, only non-inline model paths are expected.
         val startIndex = Defines.CS_MODELS + 1 + brushModels.size
