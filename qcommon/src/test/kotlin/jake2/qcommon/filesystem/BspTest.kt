@@ -14,6 +14,7 @@ class BspTest {
         assertEquals(168, map.vertices.size)
         assertEquals(296, map.edges.size)
         assertEquals(590, map.faceEdges.size)
+        assertTrue(map.lighting.isNotEmpty())
         assertTrue(map.leaves.isNotEmpty())
         assertTrue(map.leafFaces.isNotEmpty())
 

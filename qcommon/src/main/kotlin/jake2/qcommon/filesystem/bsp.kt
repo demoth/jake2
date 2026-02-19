@@ -15,6 +15,7 @@ class Bsp(buffer: ByteBuffer) {
     val header = BspHeader(buffer)
     val entityString = readEntities(buffer, header.lumps[0])
     // planes lump skipped
+    val lighting = readLighting(buffer, header.lumps[7])
     val vertices = readVertices(buffer, header.lumps[2])
     val edges = readEdges(buffer, header.lumps[11])
     val faceEdges = readFaceEdges(buffer, header.lumps[12])
@@ -94,6 +95,14 @@ class Bsp(buffer: ByteBuffer) {
 
         }
         return faces.toTypedArray()
+    }
+
+    private fun readLighting(buffer: ByteBuffer, bspLump: BspLump): ByteArray {
+        if (bspLump.length <= 0) {
+            return byteArrayOf()
+        }
+        buffer.position(bspLump.offset)
+        return ByteArray(bspLump.length).also { buffer.get(it) }
     }
 
     private fun readTextures(buffer: ByteBuffer, bspLump: BspLump): Array<BspTextureInfo> {
@@ -284,4 +293,3 @@ data class BspLeaf(
     val firstLeafBrush: Int, // unsigned short
     val numLeafBrushes: Int, // unsigned short
 )
-
