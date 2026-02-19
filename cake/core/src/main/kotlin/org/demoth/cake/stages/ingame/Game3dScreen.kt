@@ -101,6 +101,10 @@ class Game3dScreen(
     private var worldVisibilityController: BspWorldVisibilityController? = null
     private var worldTextureAnimationController: BspWorldTextureAnimationController? = null
     private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
+    private var worldSurfaceMaterialController: BspWorldSurfaceMaterialController? = null
+    private var inlineSurfaceMaterialController: BspInlineSurfaceMaterialController? = null
+    private val lightStyleValues = FloatArray(Defines.MAX_LIGHTSTYLES) { 1f }
+    private var lastLightStyleTick: Int = Int.MIN_VALUE
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -186,6 +190,8 @@ class Game3dScreen(
         updatePlayerView(lerpFrac)
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         worldTextureAnimationController?.update(Globals.curtime)
+        refreshLightStyles(Globals.curtime)
+        worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
 
         // render entities
@@ -302,13 +308,24 @@ class Game3dScreen(
 
         val translucent = (entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0
         val opacity = if (translucent) entity.alpha else 1f
-        applyModelOpacity(entity.modelInstance, opacity, forceTranslucent = translucent)
+        val isBrushModelEntity = entity.name == "level" || entity.name.startsWith("*")
+        // Preserve per-surface blend/light/flowing material state on brush models.
+        // Only apply entity-wide opacity overrides when explicitly translucent.
+        if (!isBrushModelEntity || translucent) {
+            applyModelOpacity(entity.modelInstance, opacity, forceTranslucent = translucent)
+        }
 
         parseInlineModelIndex(entity.name)?.let { inlineModelIndex ->
             inlineTextureAnimationController?.update(
                 modelInstance = entity.modelInstance,
                 inlineModelIndex = inlineModelIndex,
                 entityFrame = entity.resolvedFrame,
+            )
+            inlineSurfaceMaterialController?.update(
+                modelInstance = entity.modelInstance,
+                inlineModelIndex = inlineModelIndex,
+                currentTimeMs = Globals.curtime,
+                lightStyleResolver = ::lightStyleValue,
             )
         }
 
@@ -330,6 +347,8 @@ class Game3dScreen(
         worldVisibilityController = null
         worldTextureAnimationController = null
         inlineTextureAnimationController = null
+        worldSurfaceMaterialController = null
+        inlineSurfaceMaterialController = null
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -397,10 +416,17 @@ class Game3dScreen(
             modelInstance = entityManager.levelEntity!!.modelInstance,
             assetManager = assetManager,
         )
+        worldSurfaceMaterialController = BspWorldSurfaceMaterialController(
+            worldRenderData = bspMap.worldRenderData,
+            modelInstance = entityManager.levelEntity!!.modelInstance,
+        )
         inlineTextureAnimationController = BspInlineTextureAnimationController(
             inlineRenderData = bspMap.inlineRenderData,
             textureInfos = bspMap.worldRenderData.textureInfos,
             assetManager = assetManager,
+        )
+        inlineSurfaceMaterialController = BspInlineSurfaceMaterialController(
+            inlineRenderData = bspMap.inlineRenderData,
         )
 
         // after world + inline brush models, only non-inline model paths are expected.
@@ -410,6 +436,33 @@ class Game3dScreen(
         refreshSkyBox()
 
         precached = true
+    }
+
+    private fun refreshLightStyles(currentTimeMs: Int) {
+        val tick = currentTimeMs / 100
+        if (tick == lastLightStyleTick) {
+            return
+        }
+        repeat(Defines.MAX_LIGHTSTYLES) { styleIndex ->
+            val pattern = gameConfig.getConfigValue(Defines.CS_LIGHTS + styleIndex).orEmpty()
+            lightStyleValues[styleIndex] = evaluateLightStylePattern(pattern, tick)
+        }
+        lastLightStyleTick = tick
+    }
+
+    private fun lightStyleValue(styleIndex: Int): Float {
+        if (styleIndex !in lightStyleValues.indices) {
+            return 1f
+        }
+        return lightStyleValues[styleIndex]
+    }
+
+    private fun evaluateLightStylePattern(pattern: String, tick: Int): Float {
+        if (pattern.isEmpty()) {
+            return 1f
+        }
+        val char = pattern[Math.floorMod(tick, pattern.length)]
+        return ((char.code - 'a'.code).toFloat() / ('m'.code - 'a'.code)).coerceAtLeast(0f)
     }
 
     fun gatherInput(outgoingSequence: Int): MoveMessage {
