@@ -57,20 +57,11 @@ class BspWorldVisibilityController(
             return
         }
 
+        val visibleMask = computeVisibleSurfaceMask(worldRenderData, pvsBits, areaBits)
         visibleSurfaceScratch.fill(false)
-        val applyAreaBits = areaBits.any { it.toInt() != 0 }
-        worldRenderData.leaves.forEach { leaf ->
-            if (leaf.cluster < 0 || !isBitSet(pvsBits, leaf.cluster)) {
-                return@forEach
-            }
-            if (applyAreaBits && !isBitSet(areaBits, leaf.area)) {
-                return@forEach
-            }
-            leaf.surfaceIndices.forEach { surfaceIndex ->
-                if (surfaceIndex in visibleSurfaceScratch.indices) {
-                    visibleSurfaceScratch[surfaceIndex] = true
-                }
-            }
+        val count = minOf(visibleSurfaceScratch.size, visibleMask.size)
+        repeat(count) { index ->
+            visibleSurfaceScratch[index] = visibleMask[index]
         }
         applyVisibleMask()
     }
@@ -103,6 +94,30 @@ class BspWorldVisibilityController(
             collectNodeParts(child, outById)
         }
     }
+}
+
+internal fun computeVisibleSurfaceMask(
+    worldRenderData: BspWorldRenderData,
+    pvsBits: ByteArray,
+    areaBits: ByteArray,
+): BooleanArray {
+    val visibleSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
+    val applyAreaBits = areaBits.any { it.toInt() != 0 }
+
+    worldRenderData.leaves.forEach { leaf ->
+        if (leaf.cluster < 0 || !isBitSet(pvsBits, leaf.cluster)) {
+            return@forEach
+        }
+        if (applyAreaBits && !isBitSet(areaBits, leaf.area)) {
+            return@forEach
+        }
+        leaf.surfaceIndices.forEach { surfaceIndex ->
+            if (surfaceIndex in visibleSurfaceMask.indices) {
+                visibleSurfaceMask[surfaceIndex] = true
+            }
+        }
+    }
+    return visibleSurfaceMask
 }
 
 private fun isBitSet(bits: ByteArray, bitIndex: Int): Boolean {
