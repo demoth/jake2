@@ -85,6 +85,16 @@ Legacy counterparts:
 - **Status:** accepted
 - **Definition of Done:** MD2 entities render with correct outward faces using default backface culling, with no MD2-specific `GL_FRONT` cull attribute in `Md2Loader`.
 
+### Decision: Keep explicit world surface/leaf runtime records in `BspMapAsset`
+- **Context:** Grouping world BSP faces by texture into coarse model parts made PVS/areabits, lightmaps, and transparent/animated surface passes difficult to implement incrementally.
+- **Options Considered:**
+  - Keep texture-grouped world-only model and derive visibility later with ad-hoc scans
+  - Store stable per-surface records and leaf->surface mapping at load time
+- **Chosen Option & Rationale:** Store `BspWorldRenderData` (`surfaces`, `leaves`) inside `BspMapAsset`, and emit world model mesh parts per face. This preserves identity needed for upcoming visibility and lighting phases while keeping current rendering path functional.
+- **Consequences:** More world mesh parts/draw records, but much clearer runtime structure and lower coupling for next phases.
+- **Status:** accepted
+- **Definition of Done:** Runtime can enumerate world faces by stable indices and map visible leaves/clusters to exact surface sets without reconstructing topology from grouped texture batches.
+
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.
   - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.
