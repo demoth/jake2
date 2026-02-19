@@ -45,6 +45,11 @@ For world rendering specifically:
 - `BspWorldVisibilityController` toggles world `NodePart.enabled`.
 - `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
 
+For inline brush models specifically:
+- `BspLoader` emits stable inline part ids by texinfo (`inline_<modelIndex>_texinfo_<texInfoIndex>`).
+- `BspInlineTextureAnimationController` updates inline `NodePart` diffuse textures.
+- Inline animation frame source is entity-local (`ClientEntity.resolvedFrame`), not global time.
+
 ## Decision Log
 
 ### Decision: Encode player model variants as `<skinPath>|<modelPath>` asset keys
@@ -117,6 +122,16 @@ For world rendering specifically:
 - **Consequences:** World texture dependencies must include chain frames that are not directly referenced by faces.
 - **Status:** accepted
 - **Definition of Done:** World monitor/button-style animated textures advance over time using texinfo chain order and legacy cadence (`time * 2` equivalent).
+
+### Decision: Drive inline brush-model texture animation from entity frame
+- **Context:** Legacy brush-model path (`R_DrawBrushModel`) resolves animated texinfo frame using `currententity.frame`, while world path uses global renderer time.
+- **Options Considered:**
+  - Reuse world global-time animation logic for inline models
+  - Use entity-local frame index for inline models
+- **Chosen Option & Rationale:** Use entity-local frame (`ClientEntity.resolvedFrame`) for inline model texinfo animation to match legacy semantics and preserve per-entity frame control.
+- **Consequences:** Inline controller must run from entity render path and receive resolved per-entity frame values.
+- **Status:** accepted
+- **Definition of Done:** Animated textures on inline brush entities follow per-entity frame progression and no longer depend on global world animation time.
 
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.

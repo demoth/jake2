@@ -8,44 +8,46 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 
 ## Current Reality (Why features are blocked)
 
-- BSP world geometry is currently built as texture-grouped model parts in `cake/core/src/main/kotlin/org/demoth/cake/assets/BspLoader.kt`.
-- This is a good bootstrap path, but it drops per-surface/leaf runtime structure needed for:
-  - visibility/PVS traversal,
-  - lightmap handling,
-  - transparent-surface passes,
-  - animated texture chains and flowing/warp behavior.
+- World BSP model (`model 0`) now has stable per-surface mesh parts plus runtime records (`BspWorldRenderData`) with:
+  - face/texinfo identity,
+  - leaf -> surface mapping,
+  - texinfo metadata for animation chains.
+- World visibility is driven by PVS + server `areabits`.
+- Texinfo `nexttexinfo` animation now works for:
+  - world surfaces (legacy global-time cadence),
+  - inline brush models (`*1`, `*2`, ...) via entity frame parity.
+- Main remaining rendering gaps are now:
+  - `SURF_FLOWING` UV scrolling behavior,
+  - transparent BSP surfaces (`SURF_TRANS33`/`SURF_TRANS66`),
+  - static lightmaps/lightstyles,
+  - dynamic lights integration.
 
 ## Master Feature List
 
-- [ ] World surface representation refactor (prerequisite for most BSP features)
-- [ ] BSP visibility / PVS / areabits culling
+- [x] Translucent model rendering (smoke and other `RF_TRANSLUCENT` model cases)
+- [x] World surface representation refactor (prerequisite for most BSP features)
+- [x] BSP visibility / PVS / areabits culling
+- [ ] Animated BSP surfaces (remaining: `SURF_FLOWING`; texinfo chains are done)
+- [ ] Transparent BSP surfaces (water, glass windows)
 - [ ] Static BSP lightmaps
 - [ ] Dynamic lights (muzzle flashes, explosions, effect/entity lights)
-- [ ] Transparent BSP surfaces (water, glass windows)
-- [ ] Animated BSP surfaces (computer screens/buttons + flowing/warp)
-- [ ] Translucent model rendering (smoke and other RF_TRANSLUCENT model cases)
 
 ## Coupling Summary
 
-- Hard-blocked by current BSP split-by-texture path:
-  - BSP visibility / PVS
-  - Static lightmaps
-  - Transparent BSP surfaces
-  - Animated BSP surfaces
-- Partially blocked:
-  - Dynamic lights (full parity needs world/lightmap integration; approximate overlays can exist earlier)
-- Not blocked:
-  - Translucent model rendering for non-BSP models/effects
+- No major features remain blocked by the old split-by-texture world representation; that prerequisite is complete.
+- Shared dependency:
+  - Transparent BSP surfaces and `SURF_FLOWING` both rely on per-surface runtime/material control (now available).
+- Strong dependency:
+  - Full dynamic lights parity depends on static lightmap/lightstyle foundation.
+- Mostly isolated:
+  - `SURF_FLOWING` can be finished independently from lightmaps/dlights.
 
 ## Implementation Order (Recommended)
 
-1. [ ] Translucent model rendering (quick win, isolated)
-2. [ ] World surface representation refactor
-3. [ ] BSP visibility / PVS / areabits culling
-4. [ ] Animated BSP surfaces
-5. [ ] Transparent BSP surfaces
-6. [ ] Static BSP lightmaps (+ lightstyles)
-7. [ ] Dynamic lights (full world interaction)
+1. [ ] Finish Animated BSP surfaces (`SURF_FLOWING` UV scrolling)
+2. [ ] Transparent BSP surfaces
+3. [ ] Static BSP lightmaps (+ lightstyles)
+4. [ ] Dynamic lights (full world interaction)
 
 ## Phase Details
 
@@ -54,6 +56,8 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - Scope:
   - Ensure `RF_TRANSLUCENT` + entity alpha affect MD2/model-backed drawables, not only sprites/beams.
   - Fix smoke parity (`models/objects/smoke/tris.md2`) and similar transient model effects.
+- Status:
+  - [x] Completed.
 - Done when:
   - Smoke/flash-related translucent models render with expected alpha layering in-game.
 
@@ -63,6 +67,8 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - Keep BSP surface-level records at runtime (face, texinfo, flags, leaf/node ownership).
   - Preserve links needed later for PVS, texture animation, transparent passes, lightmaps.
   - Avoid rebuilding the world as coarse texture-only chunks.
+- Status:
+  - [x] Completed.
 - Done when:
   - Runtime can iterate world by logical surfaces/leaves, not only grouped texture parts.
 
@@ -72,6 +78,8 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - Use view origin -> leaf -> cluster to build visible set each frame.
   - Apply server-provided `areabits` gate.
   - Cull non-visible world surfaces/leaves.
+- Status:
+  - [x] Completed.
 - Done when:
   - Large same-texture areas no longer render globally; visibility changes with position/doors.
 
@@ -82,6 +90,7 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - Implement flowing texture behavior where applicable.
 - Progress:
   - [x] Texinfo `nexttexinfo` chain animation in world runtime (`R_TextureAnimation` parity path).
+  - [x] Texinfo `nexttexinfo` chain animation for inline brush models (`*1`, `*2`, ...) using entity frame parity.
   - [ ] `SURF_FLOWING` UV scrolling behavior.
 - Done when:
   - Animated monitor/button textures and flowing surfaces advance over time like legacy behavior.
