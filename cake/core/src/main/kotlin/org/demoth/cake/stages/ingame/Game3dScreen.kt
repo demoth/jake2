@@ -100,6 +100,7 @@ class Game3dScreen(
     private val sp2Renderer = Sp2Renderer()
     private var worldVisibilityController: BspWorldVisibilityController? = null
     private var worldTextureAnimationController: BspWorldTextureAnimationController? = null
+    private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -303,15 +304,32 @@ class Game3dScreen(
         val opacity = if (translucent) entity.alpha else 1f
         applyModelOpacity(entity.modelInstance, opacity, forceTranslucent = translucent)
 
+        parseInlineModelIndex(entity.name)?.let { inlineModelIndex ->
+            inlineTextureAnimationController?.update(
+                modelInstance = entity.modelInstance,
+                inlineModelIndex = inlineModelIndex,
+                entityFrame = entity.resolvedFrame,
+            )
+        }
+
         (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
         }
         modelBatch.render(entity.modelInstance, environment)
     }
 
+    private fun parseInlineModelIndex(entityName: String): Int? {
+        if (!entityName.startsWith("*")) {
+            return null
+        }
+        val modelIndex = entityName.drop(1).toIntOrNull() ?: return null
+        return modelIndex.takeIf { it > 0 }
+    }
+
     override fun dispose() {
         worldVisibilityController = null
         worldTextureAnimationController = null
+        inlineTextureAnimationController = null
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -377,6 +395,11 @@ class Game3dScreen(
         worldTextureAnimationController = BspWorldTextureAnimationController(
             worldRenderData = bspMap.worldRenderData,
             modelInstance = entityManager.levelEntity!!.modelInstance,
+            assetManager = assetManager,
+        )
+        inlineTextureAnimationController = BspInlineTextureAnimationController(
+            inlineRenderData = bspMap.inlineRenderData,
+            textureInfos = bspMap.worldRenderData.textureInfos,
             assetManager = assetManager,
         )
 
