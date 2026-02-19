@@ -25,12 +25,14 @@ import java.util.LinkedHashSet
  *
  * [models] are generated GPU resources owned by this asset instance.
  * [worldRenderData] stores per-surface and per-leaf world representation for runtime visibility/lighting passes.
+ * [inlineRenderData] stores stable per-part metadata for inline brush models (`*1`, `*2`, ...).
  * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
  */
 class BspMapAsset(
     val mapData: ByteArray,
     val models: List<Model>,
     val worldRenderData: BspWorldRenderData,
+    val inlineRenderData: List<BspInlineModelRenderData>,
 ) : Disposable {
     override fun dispose() {
         models.forEach { it.dispose() }
@@ -94,13 +96,32 @@ data class BspWorldTextureInfoRecord(
 )
 
 /**
+ * Runtime representation for one inline BSP model (model index > 0).
+ *
+ * Each part maps one texinfo bucket to one mesh part id in the generated libGDX model.
+ */
+data class BspInlineModelRenderData(
+    val modelIndex: Int,
+    val parts: List<BspInlineModelPartRecord>,
+)
+
+data class BspInlineModelPartRecord(
+    val modelIndex: Int,
+    val meshPartId: String,
+    val textureInfoIndex: Int,
+    val textureName: String,
+    val textureFlags: Int,
+    val textureAnimationNext: Int,
+)
+
+/**
  * Loads Quake2 BSP maps into renderable libGDX models.
  *
  * Loader flow:
  * 1. [getDependencies] parses BSP bytes and declares all referenced WAL textures.
- * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
- * 3. World model faces are emitted as per-surface mesh parts and captured in [BspWorldRenderData].
- * 4. Inline brush models keep grouped-by-texture batching for now.
+     * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
+     * 3. World model faces are emitted as per-surface mesh parts and captured in [BspWorldRenderData].
+     * 4. Inline brush models are emitted as stable texinfo-part buckets captured in [BspInlineModelRenderData].
  *
  * This keeps texture lifecycle in AssetManager while model lifecycle is handled by [BspMapAsset].
  */
@@ -128,10 +149,12 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         val mapData = file.readBytes()
         val bsp = Bsp(ByteBuffer.wrap(mapData))
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
+        val inlineRenderData = collectInlineModelRenderData(bsp)
         return BspMapAsset(
             mapData = mapData,
-            models = buildModels(bsp, manager, worldSurfaces),
-            worldRenderData = buildWorldRenderData(bsp, worldSurfaces)
+            models = buildModels(bsp, manager, worldSurfaces, inlineRenderData),
+            worldRenderData = buildWorldRenderData(bsp, worldSurfaces),
+            inlineRenderData = inlineRenderData,
         )
     }
 
@@ -159,21 +182,21 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     /**
      * Builds one [Model] per BSP model.
      * World model (index 0) is emitted as one mesh part per face to preserve stable surface identity.
-     * Inline models remain grouped by texture for now.
+     * Inline models use stable part ids keyed by texinfo index.
      *
      * Quake2 `model 0` (the whole world) => one libGDX [Model] where each world surface is a distinct mesh part.
-     * Quake2 `model N>0` (inline brush models like doors) => one libGDX [Model] grouped by texture.
+     * Quake2 `model N>0` (inline brush models like doors) => one libGDX [Model] with texinfo-part buckets.
      */
     private fun buildModels(
         bsp: Bsp,
         manager: AssetManager,
-        worldSurfaces: List<BspWorldSurfaceRecord>
+        worldSurfaces: List<BspWorldSurfaceRecord>,
+        inlineRenderData: List<BspInlineModelRenderData>,
     ): List<Model> {
+        val inlineRenderDataByModel = inlineRenderData.associateBy { it.modelIndex }
         return bsp.models.mapIndexed { modelIndex, model ->
             val modelBuilder = ModelBuilder()
             modelBuilder.begin()
-
-            val modelFaces = (0..<model.faceCount).map { bsp.faces[it + model.firstFace] }
             if (modelIndex == 0) {
                 val materialCache = HashMap<String, Material>()
                 worldSurfaces.forEach { surface ->
@@ -191,20 +214,24 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     addFaceAsTriangles(bsp, face, texture, meshBuilder)
                 }
             } else {
-                val facesByTexture = modelFaces.groupBy { bsp.textures[it.textureInfoIndex].name }
-                val filteredFacesByTexture = facesByTexture.filterKeys { shouldLoadWalTexture(it) }
-                for ((textureIndex, entry) in filteredFacesByTexture.entries.withIndex()) {
-                    val textureName = entry.key
-                    val faces = entry.value
-                    val texturePath = toWalPath(textureName)
+                val faceIndicesByTexInfo = (0..<model.faceCount)
+                    .map { offset -> model.firstFace + offset }
+                    .groupBy { faceIndex -> bsp.faces[faceIndex].textureInfoIndex }
+                val inlineParts = inlineRenderDataByModel[modelIndex]?.parts.orEmpty()
+                inlineParts.forEach { part ->
+                    val texturePath = toWalPath(part.textureName)
                     val texture = manager.get(texturePath, Texture::class.java)
                     val meshBuilder = modelBuilder.part(
-                        "part_$textureIndex",
+                        part.meshPartId,
                         GL_TRIANGLES,
                         VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
                         Material(TextureAttribute(TextureAttribute.Diffuse, texture))
                     )
-                    faces.forEach { addFaceAsTriangles(bsp, it, texture, meshBuilder) }
+                    faceIndicesByTexInfo[part.textureInfoIndex]
+                        .orEmpty()
+                        .forEach { faceIndex ->
+                            addFaceAsTriangles(bsp, bsp.faces[faceIndex], texture, meshBuilder)
+                        }
                 }
             }
             modelBuilder.end()
@@ -250,6 +277,43 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         }
         val size = vertexBuffer.size / 5 // 5 floats per vertex
         meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
+    }
+}
+
+/**
+ * Collects stable texinfo-part metadata for inline BSP models (`model index > 0`).
+ */
+internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderData> {
+    return bsp.models.mapIndexedNotNull { modelIndex, model ->
+        if (modelIndex == 0) {
+            return@mapIndexedNotNull null
+        }
+
+        val texInfoIndices = LinkedHashSet<Int>()
+        repeat(model.faceCount) { offset ->
+            val face = bsp.faces[model.firstFace + offset]
+            texInfoIndices += face.textureInfoIndex
+        }
+
+        val partRecords = texInfoIndices.mapNotNull { textureInfoIndex ->
+            val texInfo = bsp.textures.getOrNull(textureInfoIndex) ?: return@mapNotNull null
+            if (!shouldLoadWalTexture(texInfo.name)) {
+                return@mapNotNull null
+            }
+            BspInlineModelPartRecord(
+                modelIndex = modelIndex,
+                meshPartId = inlineMeshPartId(modelIndex, textureInfoIndex),
+                textureInfoIndex = textureInfoIndex,
+                textureName = texInfo.name,
+                textureFlags = texInfo.flags,
+                textureAnimationNext = texInfo.next,
+            )
+        }
+
+        BspInlineModelRenderData(
+            modelIndex = modelIndex,
+            parts = partRecords
+        )
     }
 }
 
@@ -372,6 +436,9 @@ private fun collectTextureAnimationChainIndices(
     }
     return indices.toIntArray()
 }
+
+private fun inlineMeshPartId(modelIndex: Int, textureInfoIndex: Int): String =
+    "inline_${modelIndex}_texinfo_$textureInfoIndex"
 
 /** Maps raw BSP texture name to conventional Quake2 WAL asset path. */
 private fun toWalPath(textureName: String): String = "textures/${textureName.trim()}.wal"

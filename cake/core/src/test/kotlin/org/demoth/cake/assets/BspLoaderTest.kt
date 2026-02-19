@@ -64,16 +64,43 @@ class BspLoaderTest {
         assertEquals(listOf("floor", "lava"), world.textureInfos.map { it.textureName })
     }
 
+    @Test
+    fun collectInlineModelRenderDataBuildsStableTexInfoParts() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("world", "door_a", "door_b"),
+            texInfoNextIndices = listOf(0, 2, 1),
+            faceTextureInfoIndices = listOf(0, 1, 2),
+            modelFaceRanges = listOf(
+                0 to 1, // world model (face 0)
+                1 to 2, // inline model 1 (faces 1 and 2)
+            )
+        )
+        val bsp = Bsp(ByteBuffer.wrap(bspData))
+
+        val inline = collectInlineModelRenderData(bsp)
+
+        assertEquals(1, inline.size)
+        assertEquals(1, inline.first().modelIndex)
+        assertEquals(listOf(1, 2), inline.first().parts.map { it.textureInfoIndex })
+        assertEquals(
+            listOf("inline_1_texinfo_1", "inline_1_texinfo_2"),
+            inline.first().parts.map { it.meshPartId }
+        )
+        assertEquals(listOf(2, 1), inline.first().parts.map { it.textureAnimationNext })
+    }
+
     private fun minimalBspWithTextures(
         textureNames: List<String>,
         texInfoNextIndices: List<Int> = List(textureNames.size) { 0 },
         faceTextureInfoIndices: List<Int> = textureNames.indices.toList(),
         leafFaceIndices: List<Int> = emptyList(),
+        modelFaceRanges: List<Pair<Int, Int>>? = null,
     ): ByteArray {
         check(texInfoNextIndices.size == textureNames.size) {
             "texInfoNextIndices must match textureNames size"
         }
         val faceCount = faceTextureInfoIndices.size
+        val resolvedModelFaceRanges = modelFaceRanges ?: listOf(0 to faceCount)
         val facesData = ByteBuffer.allocate(faceCount * 20)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
@@ -133,13 +160,15 @@ class BspLoaderTest {
                 .array()
         }
 
-        val modelsData = ByteBuffer.allocate(48)
+        val modelsData = ByteBuffer.allocate(48 * resolvedModelFaceRanges.size)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
-                repeat(9) { putFloat(0f) } // mins + maxs + origin
-                putInt(0) // headNode
-                putInt(0) // firstFace
-                putInt(faceCount) // faceCount
+                resolvedModelFaceRanges.forEach { (firstFace, modelFaceCount) ->
+                    repeat(9) { putFloat(0f) } // mins + maxs + origin
+                    putInt(0) // headNode
+                    putInt(firstFace) // firstFace
+                    putInt(modelFaceCount) // faceCount
+                }
             }
             .array()
 
