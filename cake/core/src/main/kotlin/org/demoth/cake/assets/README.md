@@ -44,10 +44,12 @@ For world rendering specifically:
 - `Game3dScreen.precache()` creates one `levelEntity.modelInstance` from world `Model` (model 0).
 - `BspWorldVisibilityController` toggles world `NodePart.enabled`.
 - `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
+- `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and lightstyle modulation.
 
 For inline brush models specifically:
 - `BspLoader` emits stable inline part ids by texinfo (`inline_<modelIndex>_texinfo_<texInfoIndex>`).
 - `BspInlineTextureAnimationController` updates inline `NodePart` diffuse textures.
+- `BspInlineSurfaceMaterialController` applies flowing/transparency/lightstyle material state per inline part.
 - Inline animation frame source is entity-local (`ClientEntity.resolvedFrame`), not global time.
 
 ## Decision Log
@@ -132,6 +134,26 @@ For inline brush models specifically:
 - **Consequences:** Inline controller must run from entity render path and receive resolved per-entity frame values.
 - **Status:** accepted
 - **Definition of Done:** Animated textures on inline brush entities follow per-entity frame progression and no longer depend on global world animation time.
+
+### Decision: Apply BSP `SURF_*` material flags at runtime on per-surface/per-part materials
+- **Context:** After switching BSP runtime to stable surface/part identities, world and inline materials need idTech2 flag semantics (`SURF_FLOWING`, `SURF_TRANS33`, `SURF_TRANS66`) without re-baking geometry.
+- **Options Considered:**
+  - Encode all effects into custom shaders immediately
+  - Apply effects in runtime material controller layer
+- **Chosen Option & Rationale:** Runtime material controllers. It keeps behavior changes incremental, easy to reason about, and consistent for world + inline surfaces.
+- **Consequences:** Brush entities must avoid unconditional material reset paths that would erase per-surface blend/depth/UV state.
+- **Status:** accepted
+- **Definition of Done:** Flowing and transparent BSP surfaces are driven by `SURF_*` flags in both world and inline brush-model paths.
+
+### Decision: Start static BSP lighting with averaged per-style lightmap contributions
+- **Context:** Full UV2 lightmap atlas sampling is heavier and couples with broader shader changes, while immediate parity gap is fullbright world rendering.
+- **Options Considered:**
+  - Full lightmap texture atlas + UV2 sampling now
+  - Surface-average baked light contribution with animated lightstyle modulation
+- **Chosen Option & Rationale:** Surface-average path first. It provides visible baked-light + lightstyle behavior with much lower risk, and creates a clean stepping stone toward full per-texel lightmap shaders.
+- **Consequences:** Lighting is currently approximate at surface/part granularity rather than per-texel precision.
+- **Status:** accepted
+- **Definition of Done:** BSP surfaces are no longer fullbright and react to `CS_LIGHTS` animated styles at runtime.
 
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.

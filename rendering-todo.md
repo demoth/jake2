@@ -27,27 +27,20 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - [x] Translucent model rendering (smoke and other `RF_TRANSLUCENT` model cases)
 - [x] World surface representation refactor (prerequisite for most BSP features)
 - [x] BSP visibility / PVS / areabits culling
-- [ ] Animated BSP surfaces (remaining: `SURF_FLOWING`; texinfo chains are done)
-- [ ] Transparent BSP surfaces (water, glass windows)
-- [ ] Static BSP lightmaps
+- [x] Animated BSP surfaces (`nexttexinfo` + `SURF_FLOWING`)
+- [x] Transparent BSP surfaces (`SURF_TRANS33` / `SURF_TRANS66`)
+- [x] Static BSP lightmaps + lightstyles (surface-average modulation path)
 - [ ] Dynamic lights (muzzle flashes, explosions, effect/entity lights)
 
 ## Coupling Summary
 
 - No major features remain blocked by the old split-by-texture world representation; that prerequisite is complete.
-- Shared dependency:
-  - Transparent BSP surfaces and `SURF_FLOWING` both rely on per-surface runtime/material control (now available).
-- Strong dependency:
-  - Full dynamic lights parity depends on static lightmap/lightstyle foundation.
-- Mostly isolated:
-  - `SURF_FLOWING` can be finished independently from lightmaps/dlights.
+- Remaining strong dependency:
+  - Full dynamic lights parity depends on the lightmap/lightstyle foundation.
 
 ## Implementation Order (Recommended)
 
-1. [ ] Finish Animated BSP surfaces (`SURF_FLOWING` UV scrolling)
-2. [ ] Transparent BSP surfaces
-3. [ ] Static BSP lightmaps (+ lightstyles)
-4. [ ] Dynamic lights (full world interaction)
+1. [ ] Dynamic lights (full world interaction)
 
 ## Phase Details
 
@@ -91,7 +84,7 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - Progress:
   - [x] Texinfo `nexttexinfo` chain animation in world runtime (`R_TextureAnimation` parity path).
   - [x] Texinfo `nexttexinfo` chain animation for inline brush models (`*1`, `*2`, ...) using entity frame parity.
-  - [ ] `SURF_FLOWING` UV scrolling behavior.
+  - [x] `SURF_FLOWING` UV scrolling behavior.
 - Done when:
   - Animated monitor/button textures and flowing surfaces advance over time like legacy behavior.
 
@@ -100,6 +93,8 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - Scope:
   - Add transparent world-surface pass ordering for `SURF_TRANS33`/`SURF_TRANS66`.
   - Include water/window rendering path with correct depth/blend handling.
+- Progress:
+  - [x] Surface flags `SURF_TRANS33` / `SURF_TRANS66` now configure per-surface blending + depth-mask behavior.
 - Done when:
   - Water and glass-like surfaces render with expected transparency and ordering.
 
@@ -108,6 +103,10 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - Scope:
   - Add lightmap data path (UV2/lightmap sampling or equivalent).
   - Respect BSP lightmap offsets/styles and animated lightstyles (`CS_LIGHTS`).
+- Progress:
+  - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part averaged style contributions.
+  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence) to surface material color modulation.
+  - [ ] Optional future upgrade: full per-texel lightmap sampling/shader path (`UV2` + lightmap texture atlas).
 - Done when:
   - World is no longer fullbright; map baked lighting and style changes are visible.
 
