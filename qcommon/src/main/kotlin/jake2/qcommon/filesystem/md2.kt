@@ -225,34 +225,42 @@ data class Md2GlCmd(
 ) {
 
     /**
-     * Convert triangle strip and triangle fan into a list of independent triangles
+     * Convert triangle strip/fan commands into independent triangles with OpenGL-equivalent winding.
+     *
+     * This must preserve the exact per-triangle vertex order produced by the legacy immediate-mode path
+     * (glBegin(GL_TRIANGLE_STRIP/FAN) ... glVertex ...), otherwise face culling will reject the wrong side.
      */
     fun unpack(): List<Md2VertexInfo> {
-        val result = when (type) {
-            Md2GlCmdType.TRIANGLE_STRIP -> {
-                // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
-                // when converting a triangle strip into a set of separate triangles,
-                // need to alternate the winding direction
-                var clockwise = true
-                vertices.windowed(3).flatMap { strip ->
-                    clockwise = !clockwise
-                    if (clockwise) {
-                        listOf(strip[0], strip[1], strip[2])
+        if (vertices.size < 3) {
+            return emptyList()
+        }
+        return when (type) {
+            Md2GlCmdType.TRIANGLE_STRIP -> buildList((vertices.size - 2) * 3) {
+                // OpenGL strip assembly:
+                // i=0: (v0,v1,v2), i=1: (v2,v1,v3), i=2: (v2,v3,v4), ...
+                for (i in 0 until vertices.size - 2) {
+                    if ((i and 1) == 0) {
+                        add(vertices[i])
+                        add(vertices[i + 1])
+                        add(vertices[i + 2])
                     } else {
-                        listOf(strip[2], strip[1], strip[0])
+                        add(vertices[i + 1])
+                        add(vertices[i])
+                        add(vertices[i + 2])
                     }
                 }
             }
-
-            Md2GlCmdType.TRIANGLE_FAN -> {
-                // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
-                vertices.drop(1).windowed(2).flatMap { strip ->
-                    listOf(strip[1], strip[0], vertices.first())
+            Md2GlCmdType.TRIANGLE_FAN -> buildList((vertices.size - 2) * 3) {
+                // OpenGL fan assembly:
+                // (v0,v1,v2), (v0,v2,v3), (v0,v3,v4), ...
+                val center = vertices.first()
+                for (i in 1 until vertices.lastIndex) {
+                    add(center)
+                    add(vertices[i])
+                    add(vertices[i + 1])
                 }
-
             }
         }
-        return result
     }
 
     /**
@@ -264,30 +272,7 @@ data class Md2GlCmd(
      *
      */
     fun toVertexAttributes(framePositions: List<Md2Point>, returnTexCoords: Boolean = true): List<Float> {
-        val result = when (type) {
-            Md2GlCmdType.TRIANGLE_STRIP -> {
-                // (0, 1, 2, 3, 4) -> (0, 1, 2), (1, 2, 3), (2, 3, 4)
-                // when converting a triangle strip into a set of separate triangles,
-                // need to alternate the winding direction
-                var clockwise = true
-                vertices.windowed(3).flatMap { strip ->
-                    clockwise = !clockwise
-                    if (clockwise) {
-                        strip[0].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[2].toFloats(framePositions, returnTexCoords)
-                    } else {
-                        strip[2].toFloats(framePositions, returnTexCoords) + strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords)
-                    }
-                }
-            }
-
-            Md2GlCmdType.TRIANGLE_FAN -> {
-                // (0, 1, 2, 3, 4) -> (0, 1, 2), (0, 2, 3), (0, 3, 4)
-                vertices.drop(1).windowed(2).flatMap { strip ->
-                    strip[1].toFloats(framePositions, returnTexCoords) + strip[0].toFloats(framePositions, returnTexCoords) + vertices.first().toFloats(framePositions, returnTexCoords)
-                }
-            }
-        }
-        return result
+        return unpack().flatMap { it.toFloats(framePositions, returnTexCoords) }
     }
 }
 

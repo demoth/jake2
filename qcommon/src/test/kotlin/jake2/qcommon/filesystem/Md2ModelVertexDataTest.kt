@@ -130,21 +130,21 @@ class Md2ModelVertexDataTest {
 
         // these values are taken from the example in the Javadoc (strip and fan unpacked)
         val expectedVertexAttributes = floatArrayOf(
-            4.0f, 1.0f, 1.0f,
-            5.0f, 1.0f, 0.5f,
             0.0f, 0.0f, 0.5f,
-
             5.0f, 1.0f, 0.5f,
             4.0f, 1.0f, 1.0f,
+
+            4.0f, 1.0f, 1.0f,
+            5.0f, 1.0f, 0.5f,
             1.0f, 0.0f, 1.0f,
 
-            3.0f, 1.0f, 0.5f,
+            1.0f, 0.0f, 0.0f,
             4.0f, 1.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-
-            2.0f, 0.0f, 0.5f,
             3.0f, 1.0f, 0.5f,
+
             1.0f, 0.0f, 0.0f,
+            3.0f, 1.0f, 0.5f,
+            2.0f, 0.0f, 0.5f,
         )
         assertArrayEquals(expectedVertexAttributes, actual.vertexAttributes, 0.0001f)
 

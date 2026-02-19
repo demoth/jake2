@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
@@ -178,10 +179,12 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
 
-        // create the material with all skins + animation VAT texture
+        // Keep MD2 culling consistent with legacy alias-model path (RF models were rendered with GL_FRONT cull).
+        // Reference: client/render/fast/Main.R_SetupGL + Mesh.R_DrawAliasModel.
         return Material(
             Md2SkinTexturesAttribute(skins.take(MAX_MD2_SKIN_TEXTURES)), // todo: warning if skins has more than MAX_MD2_SKIN_TEXTURES
-            AnimationTextureAttribute(vat)
+            AnimationTextureAttribute(vat),
+            IntAttribute.createCullFace(GL20.GL_FRONT)
         )
     }
 
