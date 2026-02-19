@@ -32,6 +32,19 @@ Legacy counterparts:
 - `Md2Loader` gives synthetic key skin prefix priority over embedded MD2 skins.
 - For player entities (`modelindex == 255`), runtime shader `skinIndex` is forced to `0` because only one skin texture is loaded for that variant.
 
+## Terminology Alignment (Quake2 vs libGDX)
+- Quake2 BSP **model 0** (worldspawn geometry) maps to one libGDX `Model` produced by `BspLoader`.
+- Quake2 **inline brush model** (`*1`, `*2`, ...) maps to additional libGDX `Model` objects in the same BSP asset.
+- Quake2 **render entity** maps to libGDX `ModelInstance`.
+- Quake2 world **surface/face** maps to one libGDX `NodePart` mesh part for model 0 (`meshPart.id = surface_<faceIndex>`).
+- Quake2 BSP **texinfo** maps to `BspWorldTextureInfoRecord`; texture animation follows `nexttexinfo` chain.
+- Quake2 **leaf/cluster/area** visibility metadata maps to `BspWorldLeafRecord` and drives per-surface `NodePart.enabled`.
+
+For world rendering specifically:
+- `Game3dScreen.precache()` creates one `levelEntity.modelInstance` from world `Model` (model 0).
+- `BspWorldVisibilityController` toggles world `NodePart.enabled`.
+- `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
+
 ## Decision Log
 
 ### Decision: Encode player model variants as `<skinPath>|<modelPath>` asset keys
@@ -94,6 +107,16 @@ Legacy counterparts:
 - **Consequences:** More world mesh parts/draw records, but much clearer runtime structure and lower coupling for next phases.
 - **Status:** accepted
 - **Definition of Done:** Runtime can enumerate world faces by stable indices and map visible leaves/clusters to exact surface sets without reconstructing topology from grouped texture batches.
+
+### Decision: Drive world texture animation from texinfo `nexttexinfo` chains at runtime
+- **Context:** Legacy world animation picks texture frame by walking texinfo chains (`R_TextureAnimation`) using a global 2 Hz frame counter, but Cake originally bound only the base face texture.
+- **Options Considered:**
+  - Bake one static texture per surface at load time
+  - Resolve texinfo chains at runtime and swap diffuse textures per surface
+- **Chosen Option & Rationale:** Runtime chain resolution + per-surface texture swap. This matches legacy timing behavior and keeps animated texture support independent from upcoming lightmap/transparency refactors.
+- **Consequences:** World texture dependencies must include chain frames that are not directly referenced by faces.
+- **Status:** accepted
+- **Definition of Done:** World monitor/button-style animated textures advance over time using texinfo chain order and legacy cadence (`time * 2` equivalent).
 
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.

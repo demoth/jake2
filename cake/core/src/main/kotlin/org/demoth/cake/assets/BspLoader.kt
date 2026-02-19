@@ -43,28 +43,54 @@ class BspMapAsset(
  * This representation is intentionally independent from current draw policy:
  * it keeps stable per-face records and leaf->surface mapping required by upcoming
  * PVS/areabits, transparency passes, animated texinfo chains, and lightmap work.
+ * [textureInfos] contains BSP texinfo metadata needed to resolve animation chains
+ * even when intermediate chain frames have no directly referenced world faces.
  */
 data class BspWorldRenderData(
     val surfaces: List<BspWorldSurfaceRecord>,
     val leaves: List<BspWorldLeafRecord>,
+    val textureInfos: List<BspWorldTextureInfoRecord>,
 )
 
 data class BspWorldSurfaceRecord(
+    /** Absolute face index in BSP face lump. */
     val faceIndex: Int,
+    /** Stable libGDX mesh-part id used to locate the runtime [com.badlogic.gdx.graphics.g3d.model.NodePart]. */
     val meshPartId: String,
+    /** BSP texinfo index referenced by this face. */
     val textureInfoIndex: Int,
+    /** Base WAL texture name (`textures/<name>.wal`). */
     val textureName: String,
+    /** Quake2 `SURF_*` flags from texinfo. */
     val textureFlags: Int,
+    /** BSP texinfo `nexttexinfo` index (`<=0` means no animated successor). */
     val textureAnimationNext: Int,
+    /** Raw lightstyle slots for this face. */
     val lightMapStyles: ByteArray,
+    /** BSP lightmap lump byte offset for this face. */
     val lightMapOffset: Int,
 )
 
 data class BspWorldLeafRecord(
+    /** Absolute BSP leaf index. */
     val leafIndex: Int,
+    /** PVS cluster id (`-1` means invalid cluster). */
     val cluster: Int,
+    /** Area id used by areabits portal gating. */
     val area: Int,
+    /** Indices into [BspWorldRenderData.surfaces] visible from this leaf. */
     val surfaceIndices: IntArray,
+)
+
+data class BspWorldTextureInfoRecord(
+    /** Absolute BSP texinfo index. */
+    val textureInfoIndex: Int,
+    /** WAL texture name for this texinfo. */
+    val textureName: String,
+    /** Quake2 `SURF_*` flags for this texinfo. */
+    val textureFlags: Int,
+    /** Animated successor texinfo index (`<=0` means chain end). */
+    val textureAnimationNext: Int,
 )
 
 /**
@@ -87,6 +113,12 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         val walParameters: WalLoader.Parameters = defaultWalParameters()
     ) : AssetLoaderParameters<BspMapAsset>()
 
+    /**
+     * Synchronously parses BSP bytes and builds render/runtime structures.
+     *
+     * Returned [BspMapAsset] owns only generated [Model] instances.
+     * Textures are external dependencies managed by [AssetManager].
+     */
     override fun load(
         manager: AssetManager,
         fileName: String,
@@ -103,6 +135,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         )
     }
 
+    /**
+     * Declares WAL texture dependencies required by BSP face texinfos and animation chains.
+     */
     override fun getDependencies(fileName: String, file: FileHandle?, parameter: Parameters?): Array<AssetDescriptor<*>>? {
         if (file == null) {
             return null
@@ -125,6 +160,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
      * Builds one [Model] per BSP model.
      * World model (index 0) is emitted as one mesh part per face to preserve stable surface identity.
      * Inline models remain grouped by texture for now.
+     *
+     * Quake2 `model 0` (the whole world) => one libGDX [Model] where each world surface is a distinct mesh part.
+     * Quake2 `model N>0` (inline brush models like doors) => one libGDX [Model] grouped by texture.
      */
     private fun buildModels(
         bsp: Bsp,
@@ -186,7 +224,8 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             bsp.faceEdges[face.firstEdgeIndex + edgeIndex]
         }
 
-        // list of vertex indices in clockwise order, forming a triangle fan
+        // Reconstruct the polygon boundary in winding order from signed surfedges,
+        // then emit a triangle fan (v0,v1,v2), (v0,v2,v3), ...
         val vertices = edgeIndices.map { edgeIndex ->
             if (edgeIndex > 0) {
                 bsp.edges[edgeIndex].v2
@@ -216,15 +255,27 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
 
 /**
  * Parses BSP bytes and returns unique WAL texture dependency paths.
+ *
+ * Includes texinfo animation-chain textures (`nexttexinfo`) so world animations can
+ * switch to frames not directly referenced by any face.
+ *
+ * Legacy counterpart:
+ * `client/render/fast/Model.Mod_LoadTexinfo` + `Surf.R_TextureAnimation`.
  */
 internal fun collectWalTexturePaths(bspData: ByteArray): List<String> {
     val bsp = Bsp(ByteBuffer.wrap(bspData))
     val texturePaths = LinkedHashSet<String>()
+    val texInfoIndices = LinkedHashSet<Int>()
 
     bsp.models.forEach { model ->
         repeat(model.faceCount) { offset ->
             val face = bsp.faces[model.firstFace + offset]
-            val textureName = bsp.textures[face.textureInfoIndex].name
+            texInfoIndices += face.textureInfoIndex
+        }
+    }
+    texInfoIndices.forEach { texInfoIndex ->
+        collectTextureAnimationChainIndices(bsp.textures, texInfoIndex).forEach { index ->
+            val textureName = bsp.textures[index].name
             if (shouldLoadWalTexture(textureName)) {
                 texturePaths.add(toWalPath(textureName))
             }
@@ -260,6 +311,10 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
 
 /**
  * Builds leaf->surface mapping for the world model using parsed BSP leaf-face indices.
+ *
+ * The output is the join point between:
+ * - collision/PVS data (leafs/clusters/areas), and
+ * - render data (surface mesh parts).
  */
 internal fun buildWorldRenderData(bsp: Bsp, surfaces: List<BspWorldSurfaceRecord>): BspWorldRenderData {
     val faceToSurface = surfaces.mapIndexed { index, surface -> surface.faceIndex to index }.toMap()
@@ -277,20 +332,58 @@ internal fun buildWorldRenderData(bsp: Bsp, surfaces: List<BspWorldSurfaceRecord
             surfaceIndices = indices.toIntArray()
         )
     }
+    val textureInfos = bsp.textures.mapIndexedNotNull { index, textureInfo ->
+        if (!shouldLoadWalTexture(textureInfo.name)) {
+            return@mapIndexedNotNull null
+        }
+        BspWorldTextureInfoRecord(
+            textureInfoIndex = index,
+            textureName = textureInfo.name,
+            textureFlags = textureInfo.flags,
+            textureAnimationNext = textureInfo.next,
+        )
+    }
     return BspWorldRenderData(
         surfaces = surfaces,
-        leaves = leaves
+        leaves = leaves,
+        textureInfos = textureInfos,
     )
 }
 
+private fun collectTextureAnimationChainIndices(
+    textureInfos: kotlin.Array<jake2.qcommon.filesystem.BspTextureInfo>,
+    startIndex: Int,
+): IntArray {
+    if (startIndex !in textureInfos.indices) {
+        return intArrayOf()
+    }
+
+    val indices = ArrayList<Int>()
+    val visited = HashSet<Int>()
+    var texInfoIndex = startIndex
+    // Follow `nexttexinfo` until chain end, invalid index, or cycle back.
+    while (texInfoIndex in textureInfos.indices && visited.add(texInfoIndex)) {
+        indices += texInfoIndex
+        val next = textureInfos[texInfoIndex].next
+        if (next <= 0 || next !in textureInfos.indices) {
+            break
+        }
+        texInfoIndex = next
+    }
+    return indices.toIntArray()
+}
+
+/** Maps raw BSP texture name to conventional Quake2 WAL asset path. */
 private fun toWalPath(textureName: String): String = "textures/${textureName.trim()}.wal"
 
+/** Filters out non-renderable or separately handled pseudo-textures. */
 private fun shouldLoadWalTexture(textureName: String): Boolean {
     val normalized = textureName.trim()
     // sky is loaded separately, see SkyLoader
     return normalized.isNotEmpty() && !normalized.contains("sky", ignoreCase = true)
 }
 
+/** Default texture sampling for brush surfaces: repeating UVs along both axes. */
 private fun defaultWalParameters() = WalLoader.Parameters(
     wrapU = Texture.TextureWrap.Repeat,
     wrapV = Texture.TextureWrap.Repeat,

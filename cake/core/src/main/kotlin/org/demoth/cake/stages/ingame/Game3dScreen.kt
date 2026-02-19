@@ -99,6 +99,7 @@ class Game3dScreen(
     private val beamRenderer = BeamRenderer(assetManager)
     private val sp2Renderer = Sp2Renderer()
     private var worldVisibilityController: BspWorldVisibilityController? = null
+    private var worldTextureAnimationController: BspWorldTextureAnimationController? = null
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -183,6 +184,7 @@ class Game3dScreen(
 
         updatePlayerView(lerpFrac)
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
+        worldTextureAnimationController?.update(Globals.curtime)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
 
         // render entities
@@ -309,6 +311,7 @@ class Game3dScreen(
 
     override fun dispose() {
         worldVisibilityController = null
+        worldTextureAnimationController = null
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -325,6 +328,13 @@ class Game3dScreen(
 
     /**
      * Load resources into the memory, that are referenced in the config strings or assumed always required (like weapon sounds)
+     *
+     * World model terminology (Quake2 -> libGDX):
+     * - Quake2 BSP `model 0` (static world) -> one libGDX [com.badlogic.gdx.graphics.g3d.Model].
+     * - Runtime world entity (`levelEntity`) -> [ModelInstance] of that model.
+     * - Quake2 world surfaces/faces -> libGDX mesh parts (`com.badlogic.gdx.graphics.g3d.model.NodePart.meshPart.id == surface_<faceIndex>`).
+     * - Visibility/animation controllers mutate `com.badlogic.gdx.graphics.g3d.model.NodePart.enabled` and diffuse texture on that world [ModelInstance].
+     *
      * todo: make resource loading asynchronous
      */
     fun precache() {
@@ -352,7 +362,8 @@ class Game3dScreen(
             configString.resource = model
         }
 
-        // the level will not come as a entity, it is expected to be all the time, so we can instantiate it right away
+        // The world model is not replicated as a normal packet entity.
+        // Keep one persistent ModelInstance that controllers mutate each frame.
         entityManager.levelEntity = ClientEntity("level").apply {
             modelInstance = ModelInstance(brushModels.first())
         }
@@ -362,6 +373,11 @@ class Game3dScreen(
             worldRenderData = bspMap.worldRenderData,
             modelInstance = entityManager.levelEntity!!.modelInstance,
             collisionModel = collisionModel,
+        )
+        worldTextureAnimationController = BspWorldTextureAnimationController(
+            worldRenderData = bspMap.worldRenderData,
+            modelInstance = entityManager.levelEntity!!.modelInstance,
+            assetManager = assetManager,
         )
 
         // after world + inline brush models, only non-inline model paths are expected.

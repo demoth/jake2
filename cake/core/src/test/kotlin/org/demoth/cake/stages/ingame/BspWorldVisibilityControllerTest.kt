@@ -3,6 +3,7 @@ package org.demoth.cake.stages.ingame
 import org.demoth.cake.assets.BspWorldLeafRecord
 import org.demoth.cake.assets.BspWorldRenderData
 import org.demoth.cake.assets.BspWorldSurfaceRecord
+import org.demoth.cake.assets.BspWorldTextureInfoRecord
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -23,7 +24,8 @@ class BspWorldVisibilityControllerTest {
                 BspWorldLeafRecord(leafIndex = 1, cluster = 3, area = 6, surfaceIndices = intArrayOf(2)),
                 // Not in PVS
                 BspWorldLeafRecord(leafIndex = 2, cluster = 7, area = 2, surfaceIndices = intArrayOf(2)),
-            )
+            ),
+            textureInfos = listOf(textureInfo(0, "test"))
         )
 
         val pvsBits = bitsWithSet(1, 3)
@@ -39,7 +41,8 @@ class BspWorldVisibilityControllerTest {
             surfaces = listOf(surface(20, "s0")),
             leaves = listOf(
                 BspWorldLeafRecord(leafIndex = 0, cluster = 4, area = 42, surfaceIndices = intArrayOf(0))
-            )
+            ),
+            textureInfos = listOf(textureInfo(0, "test"))
         )
 
         val mask = computeVisibleSurfaceMask(
@@ -72,5 +75,12 @@ class BspWorldVisibilityControllerTest {
         textureAnimationNext = -1,
         lightMapStyles = byteArrayOf(0, 0, 0, 0),
         lightMapOffset = 0
+    )
+
+    private fun textureInfo(index: Int, name: String) = BspWorldTextureInfoRecord(
+        textureInfoIndex = index,
+        textureName = name,
+        textureFlags = 0,
+        textureAnimationNext = -1
     )
 }

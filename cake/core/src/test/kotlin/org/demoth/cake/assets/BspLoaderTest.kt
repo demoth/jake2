@@ -28,6 +28,26 @@ class BspLoaderTest {
     }
 
     @Test
+    fun collectWalTexturePathsIncludesAnimationChainFrames() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("comp_a", "comp_b", "comp_c"),
+            texInfoNextIndices = listOf(1, 2, 0),
+            faceTextureInfoIndices = listOf(0)
+        )
+
+        val paths = collectWalTexturePaths(bspData)
+
+        assertEquals(
+            listOf(
+                "textures/comp_a.wal",
+                "textures/comp_b.wal",
+                "textures/comp_c.wal",
+            ),
+            paths
+        )
+    }
+
+    @Test
     fun buildWorldRenderDataMapsLeavesToWorldSurfaces() {
         val bspData = minimalBspWithTextures(
             textureNames = listOf("floor", "skybox", "lava"),
@@ -41,22 +61,28 @@ class BspLoaderTest {
         assertEquals(2, world.surfaces.size) // sky face is filtered out
         assertEquals(1, world.leaves.size)
         assertEquals(intArrayOf(0, 1).toList(), world.leaves.first().surfaceIndices.toList())
+        assertEquals(listOf("floor", "lava"), world.textureInfos.map { it.textureName })
     }
 
     private fun minimalBspWithTextures(
         textureNames: List<String>,
+        texInfoNextIndices: List<Int> = List(textureNames.size) { 0 },
+        faceTextureInfoIndices: List<Int> = textureNames.indices.toList(),
         leafFaceIndices: List<Int> = emptyList(),
     ): ByteArray {
-        val faceCount = textureNames.size
+        check(texInfoNextIndices.size == textureNames.size) {
+            "texInfoNextIndices must match textureNames size"
+        }
+        val faceCount = faceTextureInfoIndices.size
         val facesData = ByteBuffer.allocate(faceCount * 20)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
-                repeat(faceCount) { faceIndex ->
+                faceTextureInfoIndices.forEach { textureInfoIndex ->
                     putShort(0) // plane
                     putShort(0) // plane side
                     putInt(0) // first edge index
                     putShort(0) // num edges
-                    putShort(faceIndex.toShort()) // texture info index
+                    putShort(textureInfoIndex.toShort()) // texture info index
                     put(byteArrayOf(0, 0, 0, 0)) // light styles
                     putInt(0) // light map offset
                 }
@@ -66,7 +92,7 @@ class BspLoaderTest {
         val texturesData = ByteBuffer.allocate(textureNames.size * 76)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
-                textureNames.forEach { textureName ->
+                textureNames.forEachIndexed { textureIndex, textureName ->
                     repeat(8) { putFloat(0f) } // uAxis + uOffset + vAxis + vOffset
                     putInt(0) // flags
                     putInt(0) // value
@@ -75,7 +101,7 @@ class BspLoaderTest {
                     val copyLen = minOf(rawNameBytes.size, nameBytes.size)
                     System.arraycopy(rawNameBytes, 0, nameBytes, 0, copyLen)
                     put(nameBytes)
-                    putInt(0) // next
+                    putInt(texInfoNextIndices[textureIndex]) // next
                 }
             }
             .array()
