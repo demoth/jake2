@@ -17,8 +17,9 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - world surfaces (legacy global-time cadence),
   - inline brush models (`*1`, `*2`, ...) via entity frame parity.
 - Main remaining rendering gaps are now:
+  - inline brush-model (`*1`, `*2`, ...) per-face lightmaps (UV2 sampling),
   - dynamic lights integration,
-  - optional parity follow-up: inline brush-model lightmaps currently use aggregate modulation instead of per-texel UV2 sampling.
+  - optional parity follow-up: non-lightmapped transparent inline surfaces can still use per-part aggregate tinting for readability.
 
 ## Master Feature List
 
@@ -28,17 +29,20 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - [x] Animated BSP surfaces (`nexttexinfo` + `SURF_FLOWING`)
 - [x] Transparent BSP surfaces (`SURF_TRANS33` / `SURF_TRANS66`)
 - [x] Static BSP lightmaps + lightstyles
+- [ ] Inline BSP entity lightmaps (per-face UV2 + style slots)
 - [ ] Dynamic lights (muzzle flashes, explosions, effect/entity lights)
 
 ## Coupling Summary
 
 - No major features remain blocked by the old split-by-texture world representation; that prerequisite is complete.
 - Remaining strong dependency:
+  - Full brush-model lighting parity (doors/platforms/etc.) depends on inline per-face lightmap support.
   - Full dynamic lights parity depends on the lightmap/lightstyle foundation.
 
 ## Implementation Order (Recommended)
 
-1. [ ] Dynamic lights (full world interaction)
+1. [ ] Inline BSP entity lightmaps (parity-critical prerequisite for full brush lighting)
+2. [ ] Dynamic lights (full world interaction)
 
 ## Phase Details
 
@@ -105,11 +109,22 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part style metadata.
   - [x] World BSP surfaces now use UV2 + per-surface baked lightmap texture sampling in a dedicated brush-surface shader.
   - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence), including multi-style faces (up to 4 BSP lightstyle slots) via shader slot weighting.
-  - [ ] Optional parity follow-up: move inline brush models from aggregate modulation to per-face lightmap UV sampling.
 - Done when:
   - World is no longer fullbright; map baked lighting and style changes are visible.
 
-### 7) Dynamic lights
+### 7) Inline BSP entity lightmaps
+
+- Scope:
+  - Move inline brush models from per-part aggregate lightstyle modulation to per-face UV2 lightmap sampling.
+  - Keep legacy exclusions: `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` do not use lightmaps.
+  - Preserve up to 4 lightstyle slots per face and runtime `CS_LIGHTS` style weighting (same world shader model).
+- Why this is required:
+  - Legacy Quake2 renders inline non-transparent/non-warp faces via the same lightmapped surface path as world (`R_DrawBrushModel` -> `GL_RenderLightmappedPoly`).
+  - Yamagi GL3 does the same (`GL3_DrawBrushModel` -> `RenderLightmappedPoly`).
+- Done when:
+  - Doors/platforms/func_* brush entities show per-texel baked shadows (not flat per-part tint), and target_lightramp updates visibly affect eligible inline faces.
+
+### 8) Dynamic lights
 
 - Scope:
   - Reintroduce gameplay/effects dlights (muzzle, explosions, projectile/entity effects).
@@ -127,3 +142,5 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - `client/src/main/java/jake2/client/render/fast/Model.java`
   - `client/src/main/java/jake2/client/CL_fx.java`
   - `client/src/main/java/jake2/client/CL_tent.java`
+  - `../yquake2/src/client/refresh/gl3/gl3_surf.c`
+  - `../yquake2/src/client/refresh/gl3/gl3_lightmap.c`
