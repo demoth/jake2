@@ -210,13 +210,23 @@ class Game3dScreen(
             // Preserve legacy ordering: opaque model entities first, translucent model entities second.
             // Legacy counterpart: `client/CL_ents.AddPacketEntities` + renderer alpha passes in
             // `client/render/fast/Surf.R_DrawAlphaSurfaces`.
+            //
+            // Inline brush models with SURF_TRANS surfaces must also be treated as translucent-pass
+            // entities even if RF_TRANSLUCENT is not set on entity flags.
+            fun isTranslucentModelPassEntity(entity: ClientEntity): Boolean {
+                if ((entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
+                    return true
+                }
+                val inlineModelIndex = parseInlineModelIndex(entity.name) ?: return false
+                return inlineSurfaceMaterialController?.hasTranslucentParts(inlineModelIndex) == true
+            }
             entityManager.visibleEntities.forEach {
-                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
+                if (!isTranslucentModelPassEntity(it)) {
                     renderModelEntity(modelBatch, it)
                 }
             }
             entityManager.visibleEntities.forEach {
-                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
+                if (isTranslucentModelPassEntity(it)) {
                     renderModelEntity(modelBatch, it)
                 }
             }

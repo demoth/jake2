@@ -76,6 +76,11 @@ class BspWorldSurfaceMaterialController(
 class BspInlineSurfaceMaterialController(
     inlineRenderData: List<BspInlineModelRenderData>,
 ) {
+    private val translucentModelIndices = inlineRenderData
+        .filter { model -> model.parts.any { part -> isBspSurfaceTranslucent(part.textureFlags) } }
+        .map { it.modelIndex }
+        .toSet()
+
     private val bindingsByModelIndex = inlineRenderData.associate { model ->
         model.modelIndex to model.parts.map { part ->
             SurfaceMaterialBinding(
@@ -89,6 +94,15 @@ class BspInlineSurfaceMaterialController(
     }
 
     private val modelNodePartsCache = IdentityHashMap<ModelInstance, Map<String, NodePart>>()
+
+    /**
+     * Returns true when the inline model contains at least one translucent BSP surface
+     * (`SURF_TRANS33` or `SURF_TRANS66`).
+     *
+     * Used by render-pass classification: legacy brush path draws such surfaces in alpha pass
+     * regardless of entity `RF_TRANSLUCENT`.
+     */
+    fun hasTranslucentParts(inlineModelIndex: Int): Boolean = inlineModelIndex in translucentModelIndices
 
     /**
      * Updates material state for one inline brush model instance.
@@ -167,6 +181,9 @@ private fun applySurfaceTransparency(nodePart: NodePart, textureFlags: Int) {
         depth.depthMask = false
     }
 }
+
+internal fun isBspSurfaceTranslucent(textureFlags: Int): Boolean =
+    (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0
 
 private fun applySurfaceFlowing(nodePart: NodePart, textureFlags: Int, currentTimeMs: Int) {
     // Legacy counterpart: `client/render/fast/Surf.DrawGLFlowingPoly`.

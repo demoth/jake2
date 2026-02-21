@@ -1,6 +1,11 @@
 package org.demoth.cake.stages.ingame
 
+import jake2.qcommon.Defines
+import org.demoth.cake.assets.BspInlineModelPartRecord
+import org.demoth.cake.assets.BspInlineModelRenderData
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BspSurfaceMaterialControllerTest {
@@ -32,5 +37,51 @@ class BspSurfaceMaterialControllerTest {
         assertEquals(0.5f, weights[1], 0.0001f)
         assertEquals(1.5f, weights[2], 0.0001f)
         assertEquals(0f, weights[3], 0.0001f)
+    }
+
+    @Test
+    fun isBspSurfaceTranslucentMatchesSurfFlags() {
+        assertTrue(isBspSurfaceTranslucent(Defines.SURF_TRANS33))
+        assertTrue(isBspSurfaceTranslucent(Defines.SURF_TRANS66))
+        assertTrue(isBspSurfaceTranslucent(Defines.SURF_FLOWING or Defines.SURF_TRANS33))
+        assertFalse(isBspSurfaceTranslucent(Defines.SURF_FLOWING))
+    }
+
+    @Test
+    fun inlineControllerTracksModelIndicesWithTranslucentParts() {
+        val controller = BspInlineSurfaceMaterialController(
+            inlineRenderData = listOf(
+                BspInlineModelRenderData(
+                    modelIndex = 1,
+                    parts = listOf(
+                        BspInlineModelPartRecord(
+                            modelIndex = 1,
+                            meshPartId = "inline_1_part_0",
+                            textureInfoIndex = 10,
+                            textureName = "e1u1/wndow0_3",
+                            textureFlags = Defines.SURF_TRANS33,
+                            textureAnimationNext = 0,
+                        )
+                    )
+                ),
+                BspInlineModelRenderData(
+                    modelIndex = 2,
+                    parts = listOf(
+                        BspInlineModelPartRecord(
+                            modelIndex = 2,
+                            meshPartId = "inline_2_part_0",
+                            textureInfoIndex = 20,
+                            textureName = "e1u1/wall0",
+                            textureFlags = 0,
+                            textureAnimationNext = 0,
+                        )
+                    )
+                ),
+            )
+        )
+
+        assertTrue(controller.hasTranslucentParts(1))
+        assertFalse(controller.hasTranslucentParts(2))
+        assertFalse(controller.hasTranslucentParts(99))
     }
 }
