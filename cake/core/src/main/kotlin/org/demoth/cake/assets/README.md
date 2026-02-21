@@ -157,6 +157,16 @@ For inline brush models specifically:
 - **Status:** accepted
 - **Definition of Done:** World BSP surfaces sample baked lightmap texels in shader space (not per-surface averages) and remain compatible with flowing/transparency runtime material control.
 
+### Decision: Blend all BSP face lightstyle slots (up to 4) in world lightmap shader
+- **Context:** `target_lightramp` and similar gameplay updates can animate any style slot referenced by a face, not only slot 0.
+- **Options Considered:**
+  - Keep one sampled lightmap texture per face and scale by primary style only
+  - Load one lightmap texture per style slot and blend in shader using runtime style weights
+- **Chosen Option & Rationale:** Per-slot textures + shader blend. This preserves UV2 per-texel detail and restores animated lightstyle behavior for non-primary slots.
+- **Consequences:** More generated textures and texture-unit usage on world surfaces with multi-style lightmaps.
+- **Status:** accepted
+- **Definition of Done:** Triggered `CS_LIGHTS` updates (for example from `target_lightramp`) visibly affect world surfaces that reference non-primary style slots.
+
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.
   - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.
@@ -167,6 +177,43 @@ For inline brush models specifically:
   - **Why:** Player MD2 variants are loaded with exactly one skin texture.
   - **How to work with it:** Non-player MD2 can still use replicated `skinnum` for multi-skin models.
   - **Removal plan:** Revisit when player path switches to geometry-shared + per-instance material swapping.
+
+- **What:** Custom BSP lightmap texture attributes require explicit registration.
+  - **Why:** libGDX `TextureAttribute` validates type against static `Mask`; unregistered custom aliases throw `Invalid type specified`.
+  - **How to work with it:** Keep `BspLightmapTexture*Attribute.init()` calls before creating BSP materials in `BspLoader.load(...)`.
+  - **Removal plan:** None planned unless lightmap attributes are replaced with a non-`TextureAttribute` material path.
+
+- **What:** Material copies may store custom lightmap attribute ids as base `TextureAttribute`.
+  - **Why:** `ModelInstance` material copy path can lose concrete subtype while keeping attribute type id.
+  - **How to work with it:** In shader render path, query by custom type id but cast to base `TextureAttribute`.
+  - **Removal plan:** Revisit if upstream libGDX copy semantics change.
+
+- **What:** BSP lightmap shader forces `GL_NONE` culling for world faces.
+  - **Why:** BSP brush winding/cull expectations differ across assets; forcing backface culling dropped valid world geometry in tested maps.
+  - **Legacy counterpart:** `client/render/fast/Main.R_SetupGL` (`glCullFace(GL_FRONT)`), plus per-surface side tests in `Surf.R_RecursiveWorldNode` and `Surf.R_DrawInlineBModel`.
+  - **Difference:** Legacy relies on fixed winding + planeback tests; Cake currently disables culling for BSP shader path.
+  - **How to work with it:** Keep cull policy in `BspLightmapShader` unless world BSP winding is normalized end-to-end.
+  - **Removal plan:** Re-evaluate after a dedicated BSP winding normalization effort.
+
+- **What:** BSP face lightstyles are handled as 4 fixed slots.
+  - **Why:** BSP/Quake2 format is fixed-width (`MAXLIGHTMAPS = 4`) with `255` as terminator for unused slots.
+  - **Legacy counterpart:** `qcommon/Defines.MAXLIGHTMAPS` and loops in `client/render/fast/Light.R_BuildLightMap`.
+  - **Difference:** Same slot count contract; Cake stores per-slot textures for world shader and encodes weights as RGBA.
+
+- **What:** Transparency (`SURF_TRANS33/SURF_TRANS66`) is applied by material mutation.
+  - **Why:** Cake uses per-surface `NodePart` materials instead of immediate-mode alpha surface chain.
+  - **Legacy counterpart:** enqueue in `Surf.R_RecursiveWorldNode` / `Surf.R_DrawInlineBModel`, render in `Surf.R_DrawAlphaSurfaces`.
+  - **Difference:** Legacy had dedicated alpha pass; Cake sets `BlendingAttribute` and disables depth writes per material.
+
+- **What:** Flowing surfaces use time-based U offset.
+  - **Why:** Preserve classic scroll cadence.
+  - **Legacy counterpart:** `client/render/fast/Surf.DrawGLFlowingPoly`.
+  - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
+
+- **What:** Lightstyle application split between world and inline paths.
+  - **Why:** World now has per-texel UV2 lightmaps; inline brush models are still texinfo-part aggregates.
+  - **Legacy counterpart:** `client/render/fast/Light.R_BuildLightMap` + `Surf.GL_RenderLightmappedPoly`.
+  - **Difference:** World keeps static per-slot textures and updates weights; inline remains averaged-per-part until inline UV2/per-face split is implemented.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:

@@ -30,6 +30,7 @@ import kotlin.math.floor
  * [models] are generated GPU resources owned by this asset instance.
  * [worldRenderData] stores per-surface and per-leaf world representation for runtime visibility/lighting passes.
  * [inlineRenderData] stores stable per-part metadata for inline brush models (`*1`, `*2`, ...).
+ * [generatedTextures] are runtime-generated lightmap textures (one per face/style slot for world model surfaces).
  * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
  */
 class BspMapAsset(
@@ -155,9 +156,9 @@ private data class FaceStyleLightmapTexture(
  *
  * Loader flow:
  * 1. [getDependencies] parses BSP bytes and declares all referenced WAL textures.
-     * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
-     * 3. World model faces are emitted as per-surface mesh parts and captured in [BspWorldRenderData].
-     * 4. Inline brush models are emitted as stable texinfo-part buckets captured in [BspInlineModelRenderData].
+ * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
+ * 3. World model faces are emitted as per-surface mesh parts and captured in [BspWorldRenderData].
+ * 4. Inline brush models are emitted as stable texinfo-part buckets captured in [BspInlineModelRenderData].
  *
  * This keeps texture lifecycle in AssetManager while model lifecycle is handled by [BspMapAsset].
  */
@@ -182,6 +183,8 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         file: FileHandle,
         parameter: Parameters?
     ): BspMapAsset {
+        // Custom TextureAttribute aliases must be registered into TextureAttribute.Mask
+        // before constructing materials, otherwise libGDX throws "Invalid type specified".
         BspLightmapTextureAttribute.init()
         BspLightmapTexture1Attribute.init()
         BspLightmapTexture2Attribute.init()
@@ -252,6 +255,8 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                         TextureAttribute(TextureAttribute.Diffuse, texture),
                     )
                     lightmap?.styleTextures?.forEachIndexed { styleSlot, styleTexture ->
+                        // Slot order must stay stable across loader + shader + runtime style weights:
+                        // 0..3 -> lightMapStyles[0..3] / u_lightStyleWeights.rgba.
                         when (styleSlot) {
                             0 -> materialAttributes += BspLightmapTextureAttribute(styleTexture.texture)
                             1 -> materialAttributes += BspLightmapTexture1Attribute(styleTexture.texture)
@@ -557,6 +562,12 @@ private fun buildFaceLightmapData(
     bsp: Bsp,
     face: jake2.qcommon.filesystem.BspFace,
 ): FaceLightmapData? {
+    // Decodes up to 4 BSP lightstyle blocks for one face into separate GPU textures.
+    //
+    // Slot order is preserved (style slot 0..3) and must stay aligned with:
+    // - BspLightmapTexture*Attribute assignment in buildModels(...)
+    // - runtime RGBA style weights in BspSurfaceMaterialController
+    // - sampler usage in BspLightmapShader.
     if (face.lightMapOffset < 0 || bsp.lighting.isEmpty()) {
         return null
     }
@@ -708,6 +719,11 @@ private fun computeFaceLightmapGeometry(
     bsp: Bsp,
     face: jake2.qcommon.filesystem.BspFace,
 ): FaceLightmapGeometry? {
+    // Legacy counterpart:
+    // `client/render/fast/Surf.GL_CreateSurfaceLightmap` block extents from texture-space bounds.
+    //
+    // BSP lightmaps are stored on a 16x16 luxel grid; this computes face-local
+    // texture-space bounds and resulting (sMax, tMax) sample dimensions.
     if (face.numEdges < 3) {
         return null
     }
@@ -749,6 +765,9 @@ private fun computeFaceLightmapGeometry(
 }
 
 private fun extractLightStyles(face: jake2.qcommon.filesystem.BspFace): List<Int> {
+    // Legacy references:
+    // - `qcommon/Defines.MAXLIGHTMAPS` (=4)
+    // - `client/render/fast/Light.R_BuildLightMap` loops style slots until 255 terminator.
     return face.lightMapStyles
         .map { it.toInt() and 0xFF }
         .takeWhile { it != 255 }

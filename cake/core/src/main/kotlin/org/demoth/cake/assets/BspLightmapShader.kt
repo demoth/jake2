@@ -66,8 +66,22 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
 /**
  * Shader for BSP surfaces with baked static lightmaps.
  *
- * This is intentionally unlit (idTech2 style): output = diffuse * lightmap * material tint.
+ * This is intentionally unlit (idTech2 style): output = diffuse * sum(lightmapStyleSlot[i] * styleWeight[i]).
  * Runtime transparency still follows material blending/depth attributes.
+ *
+ * Invariants:
+ * - lightmap texture attributes 0..3 map to style slots 0..3.
+ * - style slot weights are read from `ColorAttribute.Diffuse` channels (r/g/b/a).
+ * - material copies may downcast custom lightmap attributes to base [TextureAttribute], so lookups cast to base type.
+ *
+ * Legacy references:
+ * - `client/render/fast/Light.R_BuildLightMap` (style-slot accumulation with `Defines.MAXLIGHTMAPS`).
+ * - `qcommon/Defines.MAXLIGHTMAPS` (=4).
+ *
+ * Ownership/lifecycle:
+ * - created and initialized in [org.demoth.cake.stages.ingame.Game3dScreen],
+ * - selected via [Md2ShaderProvider] for BSP world surfaces,
+ * - disposed by shader provider during screen teardown.
  */
 class BspLightmapShader : BaseShader() {
     private lateinit var shaderProgram: ShaderProgram
@@ -123,8 +137,10 @@ class BspLightmapShader : BaseShader() {
             context.setDepthMask(true)
         }
 
-        // Do not force BSP face culling here. Legacy brush winding/culling expectations differ across assets,
-        // and forced BACK culling can drop entire world geometry.
+        // Legacy fast renderer keeps culling enabled globally with GL_FRONT and also does per-surface
+        // planeback tests in world/inline brush passes (`Main.R_SetupGL`, `Surf.R_RecursiveWorldNode`,
+        // `Surf.R_DrawInlineBModel`). Cake path currently lacks equivalent winding guarantees, so BSP
+        // shader keeps culling disabled to avoid dropping valid world faces.
         context.setCullFace(GL20.GL_NONE)
 
         val diffuseTextureUnit = context.textureBinder.bind(diffuse.textureDescription)
