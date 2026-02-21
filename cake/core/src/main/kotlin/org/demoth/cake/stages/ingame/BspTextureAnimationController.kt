@@ -2,7 +2,6 @@ package org.demoth.cake.stages.ingame
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
@@ -92,7 +91,7 @@ class BspInlineTextureAnimationController(
 ) {
     private val modelBindingsByIndex: Map<Int, List<TextureAnimationPartBinding>>
     private val animationResources: TextureAnimationResources
-    private val modelNodePartsCache = IdentityHashMap<Model, Map<String, NodePart>>()
+    private val modelNodePartsCache = IdentityHashMap<ModelInstance, Map<String, NodePart>>()
 
     init {
         val textureInfosByIndex = textureInfos.associateBy { it.textureInfoIndex }
@@ -109,7 +108,7 @@ class BspInlineTextureAnimationController(
      */
     fun update(modelInstance: ModelInstance, inlineModelIndex: Int, entityFrame: Int) {
         val bindings = modelBindingsByIndex[inlineModelIndex] ?: return
-        val nodePartsById = modelNodePartsCache.getOrPut(modelInstance.model) {
+        val nodePartsById = modelNodePartsCache.getOrPut(modelInstance) {
             collectNodePartsById(modelInstance)
         }
 

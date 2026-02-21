@@ -2,7 +2,6 @@ package org.demoth.cake.stages.ingame
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -89,7 +88,7 @@ class BspInlineSurfaceMaterialController(
         }
     }
 
-    private val modelNodePartsCache = IdentityHashMap<Model, Map<String, NodePart>>()
+    private val modelNodePartsCache = IdentityHashMap<ModelInstance, Map<String, NodePart>>()
 
     /**
      * Updates material state for one inline brush model instance.
@@ -104,7 +103,7 @@ class BspInlineSurfaceMaterialController(
         lightStyleResolver: (Int) -> Float,
     ) {
         val bindings = bindingsByModelIndex[inlineModelIndex] ?: return
-        val nodePartsById = modelNodePartsCache.getOrPut(modelInstance.model) {
+        val nodePartsById = modelNodePartsCache.getOrPut(modelInstance) {
             collectNodePartsById(modelInstance)
         }
         applySurfaceMaterialState(
