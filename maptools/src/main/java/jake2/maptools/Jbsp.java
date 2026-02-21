@@ -8,15 +8,18 @@ public class Jbsp {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            logger.info("usage: [info] args");
+            logger.info("usage: [info|transparency] <args>");
             return;
         }
         switch (args[0]) {
             case "info":
                 JbspInfo.info(args);
                 break;
+            case "transparency":
+                JbspTransparencyInfo.transparency(args);
+                break;
             default:
-                logger.info("usage: [info] args");
+                logger.info("usage: [info|transparency] <args>");
         }
     }
 }
