@@ -252,7 +252,7 @@ public final class Com
 		{
 			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
-			throw new longjmpException();
+			throw new longjmpException("Error: (disconnect) " + msg);
 		}
 		else if (code == Defines.ERR_DROP)
 		{
@@ -260,7 +260,7 @@ public final class Com
 			Cmd.ExecuteFunction("sv_shutdown", "Server crashed: " + msg, "false");
 			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
-			throw new longjmpException();
+			throw new longjmpException("Error: (drop) " + msg);
 		}
 		else
 		{

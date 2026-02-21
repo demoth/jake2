@@ -28,6 +28,9 @@ package jake2.qcommon;
 /**
  * longjmpException is used to replace the setjmp/longjmp code.
  */
+@Deprecated
 public final class longjmpException extends IllegalStateException {
-
+    longjmpException(String msg) {
+        super(msg);
+    }
 }
