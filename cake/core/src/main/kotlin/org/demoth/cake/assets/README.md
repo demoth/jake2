@@ -9,6 +9,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `CakeFileResolver` - resolves logical asset names to actual files (classpath/internal/mod/baseq2), including synthetic player MD2 variant keys.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
+- `BspLightmapShader` / `BspLightmapTextureAttribute` - per-texel world lightmap sampling (`UV2`) for BSP brush surfaces.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
 ## Data / Control Flow
@@ -45,6 +46,7 @@ For world rendering specifically:
 - `BspWorldVisibilityController` toggles world `NodePart.enabled`.
 - `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
 - `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and lightstyle modulation.
+- `BspLightmapShader` multiplies world diffuse albedo by baked lightmap texels sampled from UV2.
 
 For inline brush models specifically:
 - `BspLoader` emits stable inline part ids by texinfo (`inline_<modelIndex>_texinfo_<texInfoIndex>`).
@@ -145,15 +147,15 @@ For inline brush models specifically:
 - **Status:** accepted
 - **Definition of Done:** Flowing and transparent BSP surfaces are driven by `SURF_*` flags in both world and inline brush-model paths.
 
-### Decision: Start static BSP lighting with averaged per-style lightmap contributions
-- **Context:** Full UV2 lightmap atlas sampling is heavier and couples with broader shader changes, while immediate parity gap is fullbright world rendering.
+### Decision: Use UV2 + per-surface lightmap textures for world BSP lighting
+- **Context:** Surface-average modulation removed fullbright rendering, but produced visibly coarse lighting on large faces.
 - **Options Considered:**
-  - Full lightmap texture atlas + UV2 sampling now
-  - Surface-average baked light contribution with animated lightstyle modulation
-- **Chosen Option & Rationale:** Surface-average path first. It provides visible baked-light + lightstyle behavior with much lower risk, and creates a clean stepping stone toward full per-texel lightmap shaders.
-- **Consequences:** Lighting is currently approximate at surface/part granularity rather than per-texel precision.
+  - Keep surface-average modulation only
+  - Add UV2 lightmap sampling for world surfaces with a dedicated brush-surface shader
+- **Chosen Option & Rationale:** UV2 + texture sampling for world surfaces. This restores per-texel baked shadow detail and matches legacy brush-lighting semantics more closely.
+- **Consequences:** World model now carries secondary UVs and generated lightmap textures; inline brush-model parts still use aggregate modulation until inline geometry is similarly split.
 - **Status:** accepted
-- **Definition of Done:** BSP surfaces are no longer fullbright and react to `CS_LIGHTS` animated styles at runtime.
+- **Definition of Done:** World BSP surfaces sample baked lightmap texels in shader space (not per-surface averages) and remain compatible with flowing/transparency runtime material control.
 
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.

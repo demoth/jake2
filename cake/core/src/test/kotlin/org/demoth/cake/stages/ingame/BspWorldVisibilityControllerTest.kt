@@ -74,6 +74,7 @@ class BspWorldVisibilityControllerTest {
         textureFlags = 0,
         textureAnimationNext = -1,
         lightMapStyles = byteArrayOf(0, 0, 0, 0),
+        primaryLightStyleIndex = null,
         lightMapOffset = 0
     )
 

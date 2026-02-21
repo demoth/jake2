@@ -89,28 +89,46 @@ class BspLoaderTest {
         assertEquals(listOf(2, 1), inline.first().parts.map { it.textureAnimationNext })
     }
 
+    @Test
+    fun collectWorldSurfaceRecordsExtractsPrimaryLightStyleIndex() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("floor"),
+            faceLightStyles = listOf(byteArrayOf(7, (-1).toByte(), (-1).toByte(), (-1).toByte())),
+        )
+        val bsp = Bsp(ByteBuffer.wrap(bspData))
+
+        val surfaces = collectWorldSurfaceRecords(bsp)
+
+        assertEquals(1, surfaces.size)
+        assertEquals(7, surfaces.first().primaryLightStyleIndex)
+    }
+
     private fun minimalBspWithTextures(
         textureNames: List<String>,
         texInfoNextIndices: List<Int> = List(textureNames.size) { 0 },
         faceTextureInfoIndices: List<Int> = textureNames.indices.toList(),
+        faceLightStyles: List<ByteArray> = List(faceTextureInfoIndices.size) { byteArrayOf(0, 0, 0, 0) },
         leafFaceIndices: List<Int> = emptyList(),
         modelFaceRanges: List<Pair<Int, Int>>? = null,
     ): ByteArray {
         check(texInfoNextIndices.size == textureNames.size) {
             "texInfoNextIndices must match textureNames size"
         }
+        check(faceLightStyles.size == faceTextureInfoIndices.size) {
+            "faceLightStyles must match faceTextureInfoIndices size"
+        }
         val faceCount = faceTextureInfoIndices.size
         val resolvedModelFaceRanges = modelFaceRanges ?: listOf(0 to faceCount)
         val facesData = ByteBuffer.allocate(faceCount * 20)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
-                faceTextureInfoIndices.forEach { textureInfoIndex ->
+                faceTextureInfoIndices.forEachIndexed { index, textureInfoIndex ->
                     putShort(0) // plane
                     putShort(0) // plane side
                     putInt(0) // first edge index
                     putShort(0) // num edges
                     putShort(textureInfoIndex.toShort()) // texture info index
-                    put(byteArrayOf(0, 0, 0, 0)) // light styles
+                    put(faceLightStyles[index].copyOf(4)) // light styles
                     putInt(0) // light map offset
                 }
             }

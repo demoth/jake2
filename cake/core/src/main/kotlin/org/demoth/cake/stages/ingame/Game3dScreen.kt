@@ -39,6 +39,7 @@ import org.demoth.cake.ClientEntity
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ServerMessageProcessor
 import org.demoth.cake.assets.BeamRenderer
+import org.demoth.cake.assets.BspLightmapShader
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Md2Shader
@@ -133,7 +134,8 @@ class Game3dScreen(
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
-        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader()))
+        val bspLightmapShader = BspLightmapShader().apply { init() }
+        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader(), bspLightmapShader))
     }
 
     // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources

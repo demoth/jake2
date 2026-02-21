@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.model.NodePart
 import jake2.qcommon.Defines
+import org.demoth.cake.assets.BspLightmapTextureAttribute
 import org.demoth.cake.assets.BspInlineModelRenderData
 import org.demoth.cake.assets.BspLightStyleContributionRecord
 import org.demoth.cake.assets.BspWorldRenderData
@@ -20,6 +21,7 @@ import kotlin.math.floor
 private data class SurfaceMaterialBinding(
     val meshPartId: String,
     val textureFlags: Int,
+    val primaryLightStyleIndex: Int?,
     val lightStyleContributions: List<BspLightStyleContributionRecord>,
 )
 
@@ -37,6 +39,7 @@ class BspWorldSurfaceMaterialController(
         SurfaceMaterialBinding(
             meshPartId = surface.meshPartId,
             textureFlags = surface.textureFlags,
+            primaryLightStyleIndex = surface.primaryLightStyleIndex,
             lightStyleContributions = surface.lightStyleContributions,
         )
     }
@@ -63,6 +66,7 @@ class BspInlineSurfaceMaterialController(
             SurfaceMaterialBinding(
                 meshPartId = part.meshPartId,
                 textureFlags = part.textureFlags,
+                primaryLightStyleIndex = null,
                 lightStyleContributions = part.lightStyleContributions,
             )
         }
@@ -99,7 +103,12 @@ private fun applySurfaceMaterialState(
         val nodePart = nodePartsById[binding.meshPartId] ?: return@forEach
         applySurfaceTransparency(nodePart, binding.textureFlags)
         applySurfaceFlowing(nodePart, binding.textureFlags, currentTimeMs)
-        applySurfaceLightstyles(nodePart, binding.lightStyleContributions, lightStyleResolver)
+        applySurfaceLightstyles(
+            nodePart = nodePart,
+            primaryLightStyleIndex = binding.primaryLightStyleIndex,
+            contributions = binding.lightStyleContributions,
+            lightStyleResolver = lightStyleResolver,
+        )
     }
 }
 
@@ -149,9 +158,23 @@ internal fun computeFlowingOffsetU(currentTimeMs: Int): Float {
 
 private fun applySurfaceLightstyles(
     nodePart: NodePart,
+    primaryLightStyleIndex: Int?,
     contributions: List<BspLightStyleContributionRecord>,
     lightStyleResolver: (Int) -> Float,
 ) {
+    if (nodePart.material.has(BspLightmapTextureAttribute.Type)) {
+        // World surfaces now sample baked lightmap texels in shader space.
+        // For style animation, keep a lightweight parity path by tinting with the primary style slot.
+        val styleScale = primaryLightStyleIndex?.let(lightStyleResolver) ?: 1f
+        val lightmapTint = nodePart.material.get(ColorAttribute.Diffuse) as? ColorAttribute
+        if (lightmapTint == null) {
+            nodePart.material.set(ColorAttribute(ColorAttribute.Diffuse, Color(styleScale, styleScale, styleScale, 1f)))
+        } else {
+            lightmapTint.color.set(styleScale, styleScale, styleScale, 1f)
+        }
+        return
+    }
+
     var red = 1f
     var green = 1f
     var blue = 1f

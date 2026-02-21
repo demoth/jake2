@@ -4,13 +4,11 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Attribute
 import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.Renderable
-import com.badlogic.gdx.graphics.g3d.Shader
 import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
-import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider
 
 /**
  * Small data structure to hold the custom data required for the shader.
@@ -187,18 +185,5 @@ class Md2Shader(
     private val u_md2OpacityPos = register(u_md2Opacity, opacitySetter)
     private val u_skinTexturePositions = IntArray(MAX_MD2_SKIN_TEXTURES) { slot ->
         register(Uniform("u_skinTexture$slot"), skinTextureSetter(slot))
-    }
-}
-
-/**
- * Shader provider for md2 animations, uses the user data to determine whether to use the [Md2Shader] or not.
- */
-class Md2ShaderProvider(private val shader: Shader): DefaultShaderProvider() {
-    override fun getShader(renderable: Renderable): Shader? {
-        return if (renderable.userData is Md2CustomData &&
-            renderable.material.has(AnimationTextureAttribute.Type)
-        ) {
-            shader
-        } else super.getShader(renderable)
     }
 }

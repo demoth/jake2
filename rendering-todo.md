@@ -17,10 +17,8 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - world surfaces (legacy global-time cadence),
   - inline brush models (`*1`, `*2`, ...) via entity frame parity.
 - Main remaining rendering gaps are now:
-  - `SURF_FLOWING` UV scrolling behavior,
-  - transparent BSP surfaces (`SURF_TRANS33`/`SURF_TRANS66`),
-  - static lightmaps/lightstyles,
-  - dynamic lights integration.
+  - dynamic lights integration,
+  - optional parity follow-up: inline brush-model lightmaps currently use aggregate modulation instead of per-texel UV2 sampling.
 
 ## Master Feature List
 
@@ -29,7 +27,7 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - [x] BSP visibility / PVS / areabits culling
 - [x] Animated BSP surfaces (`nexttexinfo` + `SURF_FLOWING`)
 - [x] Transparent BSP surfaces (`SURF_TRANS33` / `SURF_TRANS66`)
-- [x] Static BSP lightmaps + lightstyles (surface-average modulation path)
+- [x] Static BSP lightmaps + lightstyles
 - [ ] Dynamic lights (muzzle flashes, explosions, effect/entity lights)
 
 ## Coupling Summary
@@ -104,9 +102,10 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - Add lightmap data path (UV2/lightmap sampling or equivalent).
   - Respect BSP lightmap offsets/styles and animated lightstyles (`CS_LIGHTS`).
 - Progress:
-  - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part averaged style contributions.
-  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence) to surface material color modulation.
-  - [ ] Optional future upgrade: full per-texel lightmap sampling/shader path (`UV2` + lightmap texture atlas).
+  - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part style metadata.
+  - [x] World BSP surfaces now use UV2 + per-surface baked lightmap texture sampling in a dedicated brush-surface shader.
+  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence) to brush surface tint modulation.
+  - [ ] Optional parity follow-up: move inline brush models from aggregate modulation to per-face lightmap UV sampling.
 - Done when:
   - World is no longer fullbright; map baked lighting and style changes are visible.
 

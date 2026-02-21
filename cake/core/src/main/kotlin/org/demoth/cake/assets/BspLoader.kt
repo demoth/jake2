@@ -7,6 +7,7 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.assets.loaders.SynchronousAssetLoader
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20.GL_TRIANGLES
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttribute
 import com.badlogic.gdx.graphics.VertexAttributes
@@ -35,8 +36,10 @@ class BspMapAsset(
     val models: List<Model>,
     val worldRenderData: BspWorldRenderData,
     val inlineRenderData: List<BspInlineModelRenderData>,
+    val generatedTextures: List<Texture> = emptyList(),
 ) : Disposable {
     override fun dispose() {
+        generatedTextures.forEach { it.dispose() }
         models.forEach { it.dispose() }
     }
 }
@@ -71,6 +74,8 @@ data class BspWorldSurfaceRecord(
     val textureAnimationNext: Int,
     /** Raw lightstyle slots for this face. */
     val lightMapStyles: ByteArray,
+    /** First valid lightstyle index (`null` when the face has no baked styles). */
+    val primaryLightStyleIndex: Int?,
     /** BSP lightmap lump byte offset for this face. */
     val lightMapOffset: Int,
     /** Average per-style baked light contributions for this face (computed from BSP lightmap lump). */
@@ -127,6 +132,18 @@ data class BspLightStyleContributionRecord(
     val blue: Float,
 )
 
+private data class FaceLightmapGeometry(
+    val textureMinS: Float,
+    val textureMinT: Float,
+    val sMax: Int,
+    val tMax: Int,
+)
+
+private data class FaceLightmapData(
+    val texture: Texture,
+    val geometry: FaceLightmapGeometry,
+)
+
 /**
  * Loads Quake2 BSP maps into renderable libGDX models.
  *
@@ -159,15 +176,18 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         file: FileHandle,
         parameter: Parameters?
     ): BspMapAsset {
+        BspLightmapTextureAttribute.init()
         val mapData = file.readBytes()
         val bsp = Bsp(ByteBuffer.wrap(mapData))
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
         val inlineRenderData = collectInlineModelRenderData(bsp)
+        val generatedTextures = mutableListOf<Texture>()
         return BspMapAsset(
             mapData = mapData,
-            models = buildModels(bsp, manager, worldSurfaces, inlineRenderData),
+            models = buildModels(bsp, manager, worldSurfaces, inlineRenderData, generatedTextures),
             worldRenderData = buildWorldRenderData(bsp, worldSurfaces),
             inlineRenderData = inlineRenderData,
+            generatedTextures = generatedTextures,
         )
     }
 
@@ -205,6 +225,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         manager: AssetManager,
         worldSurfaces: List<BspWorldSurfaceRecord>,
         inlineRenderData: List<BspInlineModelRenderData>,
+        generatedTextures: MutableList<Texture>,
     ): List<Model> {
         val inlineRenderDataByModel = inlineRenderData.associateBy { it.modelIndex }
         return bsp.models.mapIndexed { modelIndex, model ->
@@ -213,15 +234,37 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             if (modelIndex == 0) {
                 worldSurfaces.forEach { surface ->
                     val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
-                    val material = Material(TextureAttribute(TextureAttribute.Diffuse, texture))
                     val face = bsp.faces[surface.faceIndex]
+                    val lightmap = buildFaceLightmapData(bsp, face)
+                    if (lightmap != null) {
+                        generatedTextures += lightmap.texture
+                    }
+                    val material = if (lightmap == null) {
+                        Material(TextureAttribute(TextureAttribute.Diffuse, texture))
+                    } else {
+                        Material(
+                            TextureAttribute(TextureAttribute.Diffuse, texture),
+                            BspLightmapTextureAttribute(lightmap.texture),
+                        )
+                    }
                     val meshBuilder = modelBuilder.part(
                         surface.meshPartId,
                         GL_TRIANGLES,
-                        VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
+                        VertexAttributes(
+                            VertexAttribute.Position(),
+                            VertexAttribute.TexCoords(0),
+                            VertexAttribute.TexCoords(1),
+                        ),
                         material
                     )
-                    addFaceAsTriangles(bsp, face, texture, meshBuilder)
+                    addFaceAsTriangles(
+                        bsp = bsp,
+                        face = face,
+                        texture = texture,
+                        meshBuilder = meshBuilder,
+                        includeLightmapUv = true,
+                        lightmapGeometry = lightmap?.geometry,
+                    )
                 }
             } else {
                 val faceIndicesByTexInfo = (0..<model.faceCount)
@@ -240,7 +283,14 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     faceIndicesByTexInfo[part.textureInfoIndex]
                         .orEmpty()
                         .forEach { faceIndex ->
-                            addFaceAsTriangles(bsp, bsp.faces[faceIndex], texture, meshBuilder)
+                            addFaceAsTriangles(
+                                bsp = bsp,
+                                face = bsp.faces[faceIndex],
+                                texture = texture,
+                                meshBuilder = meshBuilder,
+                                includeLightmapUv = false,
+                                lightmapGeometry = null,
+                            )
                         }
                 }
             }
@@ -252,7 +302,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         bsp: Bsp,
         face: jake2.qcommon.filesystem.BspFace,
         texture: Texture,
-        meshBuilder: com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder
+        meshBuilder: com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder,
+        includeLightmapUv: Boolean,
+        lightmapGeometry: FaceLightmapGeometry?,
     ) {
         // Reconstruct polygon boundary from signed surfedges, then emit a triangle fan.
         val vertices = extractFaceVertexIndices(bsp, face)
@@ -268,13 +320,25 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
             val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
             val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
-            listOf(
-                v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
-                v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
-                v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
-            )
+            val lm0 = calculateLightmapUv(v0, textureInfo, lightmapGeometry)
+            val lm1 = calculateLightmapUv(v1, textureInfo, lightmapGeometry)
+            val lm2 = calculateLightmapUv(v2, textureInfo, lightmapGeometry)
+            if (includeLightmapUv) {
+                listOf(
+                    v2.x, v2.y, v2.z, uv2.first(), uv2.last(), lm2.first, lm2.second,
+                    v1.x, v1.y, v1.z, uv1.first(), uv1.last(), lm1.first, lm1.second,
+                    v0.x, v0.y, v0.z, uv0.first(), uv0.last(), lm0.first, lm0.second,
+                )
+            } else {
+                listOf(
+                    v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
+                    v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
+                    v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
+                )
+            }
         }
-        val size = vertexBuffer.size / 5 // 5 floats per vertex
+        val floatsPerVertex = if (includeLightmapUv) 7 else 5
+        val size = vertexBuffer.size / floatsPerVertex
         meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
     }
 }
@@ -374,6 +438,7 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
             textureFlags = texInfo.flags,
             textureAnimationNext = texInfo.next,
             lightMapStyles = face.lightMapStyles.copyOf(),
+            primaryLightStyleIndex = extractLightStyles(face).firstOrNull(),
             lightMapOffset = face.lightMapOffset,
             lightStyleContributions = buildFaceLightStyleContributions(bsp, face),
         )
@@ -452,6 +517,75 @@ private data class WeightedLightStyleContribution(
     var texelWeight: Int,
 )
 
+private fun calculateLightmapUv(
+    vertex: jake2.qcommon.math.Vector3f,
+    textureInfo: jake2.qcommon.filesystem.BspTextureInfo,
+    lightmapGeometry: FaceLightmapGeometry?,
+): Pair<Float, Float> {
+    if (lightmapGeometry == null) {
+        return 0f to 0f
+    }
+    val s = vertex.x * textureInfo.uAxis.x +
+        vertex.y * textureInfo.uAxis.y +
+        vertex.z * textureInfo.uAxis.z + textureInfo.uOffset
+    val t = vertex.x * textureInfo.vAxis.x +
+        vertex.y * textureInfo.vAxis.y +
+        vertex.z * textureInfo.vAxis.z + textureInfo.vOffset
+
+    // Legacy counterpart:
+    // `client/render/fast/Surf.BuildPolygonFromSurface` lightmap coordinate path
+    // (`s -= texturemins; s += 8; s /= smax*16` and same for `t`).
+    val lmU = (s - lightmapGeometry.textureMinS + 8f) / (lightmapGeometry.sMax * 16f)
+    val lmV = (t - lightmapGeometry.textureMinT + 8f) / (lightmapGeometry.tMax * 16f)
+    return lmU to lmV
+}
+
+private fun buildFaceLightmapData(
+    bsp: Bsp,
+    face: jake2.qcommon.filesystem.BspFace,
+): FaceLightmapData? {
+    if (face.lightMapOffset < 0 || bsp.lighting.isEmpty()) {
+        return null
+    }
+    if (extractLightStyles(face).isEmpty()) {
+        return null
+    }
+    val geometry = computeFaceLightmapGeometry(bsp, face) ?: return null
+    val sampleCount = geometry.sMax * geometry.tMax
+    if (sampleCount <= 0) {
+        return null
+    }
+    val bytesPerStyle = sampleCount * 3
+    // Read the first lightstyle map as the baked base.
+    // Additional style slots are currently applied via runtime tint modulation.
+    val styleOffset = face.lightMapOffset
+    val endOffset = styleOffset + bytesPerStyle
+    if (styleOffset < 0 || endOffset > bsp.lighting.size) {
+        return null
+    }
+
+    val pixmap = Pixmap(geometry.sMax, geometry.tMax, Pixmap.Format.RGB888)
+    var cursor = styleOffset
+    for (y in 0 until geometry.tMax) {
+        for (x in 0 until geometry.sMax) {
+            val r = bsp.lighting[cursor++].toInt() and 0xFF
+            val g = bsp.lighting[cursor++].toInt() and 0xFF
+            val b = bsp.lighting[cursor++].toInt() and 0xFF
+            pixmap.drawPixel(x, y, (r shl 24) or (g shl 16) or (b shl 8) or 0xFF)
+        }
+    }
+
+    val texture = Texture(pixmap).apply {
+        setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+        setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+    }
+    pixmap.dispose()
+    return FaceLightmapData(
+        texture = texture,
+        geometry = geometry,
+    )
+}
+
 private fun aggregatePartLightStyleContributions(
     bsp: Bsp,
     faceIndices: List<Int>,
@@ -507,9 +641,7 @@ private fun buildFaceLightStyleContributions(
     if (sampleCount <= 0) {
         return emptyList()
     }
-    val styles = face.lightMapStyles
-        .map { it.toInt() and 0xFF }
-        .takeWhile { it != 255 }
+    val styles = extractLightStyles(face)
     if (styles.isEmpty()) {
         return emptyList()
     }
@@ -543,13 +675,24 @@ private fun computeFaceLightmapSampleCount(
     bsp: Bsp,
     face: jake2.qcommon.filesystem.BspFace,
 ): Int {
-    if (face.numEdges < 3) {
+    val geometry = computeFaceLightmapGeometry(bsp, face) ?: return 0
+    if (geometry.sMax <= 0 || geometry.tMax <= 0) {
         return 0
+    }
+    return geometry.sMax * geometry.tMax
+}
+
+private fun computeFaceLightmapGeometry(
+    bsp: Bsp,
+    face: jake2.qcommon.filesystem.BspFace,
+): FaceLightmapGeometry? {
+    if (face.numEdges < 3) {
+        return null
     }
     val textureInfo = bsp.textures[face.textureInfoIndex]
     val vertexIndices = extractFaceVertexIndices(bsp, face)
     if (vertexIndices.isEmpty()) {
-        return 0
+        return null
     }
     var minS = Float.POSITIVE_INFINITY
     var maxS = Float.NEGATIVE_INFINITY
@@ -573,9 +716,20 @@ private fun computeFaceLightmapSampleCount(
     val smax = (maxSBlock - minSBlock).toInt() + 1
     val tmax = (maxTBlock - minTBlock).toInt() + 1
     if (smax <= 0 || tmax <= 0) {
-        return 0
+        return null
     }
-    return smax * tmax
+    return FaceLightmapGeometry(
+        textureMinS = minSBlock * 16f,
+        textureMinT = minTBlock * 16f,
+        sMax = smax,
+        tMax = tmax,
+    )
+}
+
+private fun extractLightStyles(face: jake2.qcommon.filesystem.BspFace): List<Int> {
+    return face.lightMapStyles
+        .map { it.toInt() and 0xFF }
+        .takeWhile { it != 255 }
 }
 
 private fun extractFaceVertexIndices(
