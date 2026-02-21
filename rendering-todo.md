@@ -104,7 +104,7 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
 - Progress:
   - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part style metadata.
   - [x] World BSP surfaces now use UV2 + per-surface baked lightmap texture sampling in a dedicated brush-surface shader.
-  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence) to brush surface tint modulation.
+  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence), including multi-style faces (up to 4 BSP lightstyle slots) via shader slot weighting.
   - [ ] Optional parity follow-up: move inline brush models from aggregate modulation to per-face lightmap UV sampling.
 - Done when:
   - World is no longer fullbright; map baked lighting and style changes are visible.

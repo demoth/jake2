@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttribute
 import com.badlogic.gdx.graphics.VertexAttributes
+import com.badlogic.gdx.graphics.g3d.Attribute
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
@@ -140,8 +141,13 @@ private data class FaceLightmapGeometry(
 )
 
 private data class FaceLightmapData(
-    val texture: Texture,
+    val styleTextures: List<FaceStyleLightmapTexture>,
     val geometry: FaceLightmapGeometry,
+)
+
+private data class FaceStyleLightmapTexture(
+    val styleIndex: Int,
+    val texture: Texture,
 )
 
 /**
@@ -177,6 +183,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         parameter: Parameters?
     ): BspMapAsset {
         BspLightmapTextureAttribute.init()
+        BspLightmapTexture1Attribute.init()
+        BspLightmapTexture2Attribute.init()
+        BspLightmapTexture3Attribute.init()
         val mapData = file.readBytes()
         val bsp = Bsp(ByteBuffer.wrap(mapData))
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
@@ -237,16 +246,20 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     val face = bsp.faces[surface.faceIndex]
                     val lightmap = buildFaceLightmapData(bsp, face)
                     if (lightmap != null) {
-                        generatedTextures += lightmap.texture
+                        generatedTextures += lightmap.styleTextures.map { it.texture }
                     }
-                    val material = if (lightmap == null) {
-                        Material(TextureAttribute(TextureAttribute.Diffuse, texture))
-                    } else {
-                        Material(
-                            TextureAttribute(TextureAttribute.Diffuse, texture),
-                            BspLightmapTextureAttribute(lightmap.texture),
-                        )
+                    val materialAttributes = mutableListOf<Attribute>(
+                        TextureAttribute(TextureAttribute.Diffuse, texture),
+                    )
+                    lightmap?.styleTextures?.forEachIndexed { styleSlot, styleTexture ->
+                        when (styleSlot) {
+                            0 -> materialAttributes += BspLightmapTextureAttribute(styleTexture.texture)
+                            1 -> materialAttributes += BspLightmapTexture1Attribute(styleTexture.texture)
+                            2 -> materialAttributes += BspLightmapTexture2Attribute(styleTexture.texture)
+                            3 -> materialAttributes += BspLightmapTexture3Attribute(styleTexture.texture)
+                        }
                     }
+                    val material = Material(*materialAttributes.toTypedArray())
                     val meshBuilder = modelBuilder.part(
                         surface.meshPartId,
                         GL_TRIANGLES,
@@ -547,7 +560,8 @@ private fun buildFaceLightmapData(
     if (face.lightMapOffset < 0 || bsp.lighting.isEmpty()) {
         return null
     }
-    if (extractLightStyles(face).isEmpty()) {
+    val styles = extractLightStyles(face)
+    if (styles.isEmpty()) {
         return null
     }
     val geometry = computeFaceLightmapGeometry(bsp, face) ?: return null
@@ -556,32 +570,40 @@ private fun buildFaceLightmapData(
         return null
     }
     val bytesPerStyle = sampleCount * 3
-    // Read the first lightstyle map as the baked base.
-    // Additional style slots are currently applied via runtime tint modulation.
-    val styleOffset = face.lightMapOffset
-    val endOffset = styleOffset + bytesPerStyle
-    if (styleOffset < 0 || endOffset > bsp.lighting.size) {
+    val styleTextures = ArrayList<FaceStyleLightmapTexture>(styles.size)
+    styles.forEachIndexed { styleSlot, styleIndex ->
+        val styleOffset = face.lightMapOffset + styleSlot * bytesPerStyle
+        val endOffset = styleOffset + bytesPerStyle
+        if (styleOffset < 0 || endOffset > bsp.lighting.size) {
+            return@forEachIndexed
+        }
+        val pixmap = Pixmap(geometry.sMax, geometry.tMax, Pixmap.Format.RGB888)
+        var cursor = styleOffset
+        for (y in 0 until geometry.tMax) {
+            for (x in 0 until geometry.sMax) {
+                val r = bsp.lighting[cursor++].toInt() and 0xFF
+                val g = bsp.lighting[cursor++].toInt() and 0xFF
+                val b = bsp.lighting[cursor++].toInt() and 0xFF
+                pixmap.drawPixel(x, y, (r shl 24) or (g shl 16) or (b shl 8) or 0xFF)
+            }
+        }
+        val texture = Texture(pixmap).apply {
+            setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+            setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+        }
+        pixmap.dispose()
+        styleTextures.add(
+            FaceStyleLightmapTexture(
+                styleIndex = styleIndex,
+                texture = texture,
+            )
+        )
+    }
+    if (styleTextures.isEmpty()) {
         return null
     }
-
-    val pixmap = Pixmap(geometry.sMax, geometry.tMax, Pixmap.Format.RGB888)
-    var cursor = styleOffset
-    for (y in 0 until geometry.tMax) {
-        for (x in 0 until geometry.sMax) {
-            val r = bsp.lighting[cursor++].toInt() and 0xFF
-            val g = bsp.lighting[cursor++].toInt() and 0xFF
-            val b = bsp.lighting[cursor++].toInt() and 0xFF
-            pixmap.drawPixel(x, y, (r shl 24) or (g shl 16) or (b shl 8) or 0xFF)
-        }
-    }
-
-    val texture = Texture(pixmap).apply {
-        setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
-        setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
-    }
-    pixmap.dispose()
     return FaceLightmapData(
-        texture = texture,
+        styleTextures = styleTextures,
         geometry = geometry,
     )
 }

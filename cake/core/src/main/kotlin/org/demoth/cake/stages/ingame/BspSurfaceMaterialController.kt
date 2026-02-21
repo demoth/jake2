@@ -21,6 +21,7 @@ import kotlin.math.floor
 private data class SurfaceMaterialBinding(
     val meshPartId: String,
     val textureFlags: Int,
+    val lightMapStyles: ByteArray,
     val primaryLightStyleIndex: Int?,
     val lightStyleContributions: List<BspLightStyleContributionRecord>,
 )
@@ -39,6 +40,7 @@ class BspWorldSurfaceMaterialController(
         SurfaceMaterialBinding(
             meshPartId = surface.meshPartId,
             textureFlags = surface.textureFlags,
+            lightMapStyles = surface.lightMapStyles,
             primaryLightStyleIndex = surface.primaryLightStyleIndex,
             lightStyleContributions = surface.lightStyleContributions,
         )
@@ -66,6 +68,7 @@ class BspInlineSurfaceMaterialController(
             SurfaceMaterialBinding(
                 meshPartId = part.meshPartId,
                 textureFlags = part.textureFlags,
+                lightMapStyles = byteArrayOf(),
                 primaryLightStyleIndex = null,
                 lightStyleContributions = part.lightStyleContributions,
             )
@@ -105,6 +108,7 @@ private fun applySurfaceMaterialState(
         applySurfaceFlowing(nodePart, binding.textureFlags, currentTimeMs)
         applySurfaceLightstyles(
             nodePart = nodePart,
+            lightMapStyles = binding.lightMapStyles,
             primaryLightStyleIndex = binding.primaryLightStyleIndex,
             contributions = binding.lightStyleContributions,
             lightStyleResolver = lightStyleResolver,
@@ -158,19 +162,39 @@ internal fun computeFlowingOffsetU(currentTimeMs: Int): Float {
 
 private fun applySurfaceLightstyles(
     nodePart: NodePart,
+    lightMapStyles: ByteArray,
     primaryLightStyleIndex: Int?,
     contributions: List<BspLightStyleContributionRecord>,
     lightStyleResolver: (Int) -> Float,
 ) {
     if (nodePart.material.has(BspLightmapTextureAttribute.Type)) {
-        // World surfaces now sample baked lightmap texels in shader space.
-        // For style animation, keep a lightweight parity path by tinting with the primary style slot.
-        val styleScale = primaryLightStyleIndex?.let(lightStyleResolver) ?: 1f
+        // Encode style slot weights into Diffuse color channels for BspLightmapShader:
+        // r/g/b/a => slot 0/1/2/3.
+        val (w0, w1, w2, w3) = computeLightmapStyleWeights(
+            lightMapStyles = lightMapStyles,
+            primaryLightStyleIndex = primaryLightStyleIndex,
+            lightStyleResolver = lightStyleResolver,
+        )
         val lightmapTint = nodePart.material.get(ColorAttribute.Diffuse) as? ColorAttribute
         if (lightmapTint == null) {
-            nodePart.material.set(ColorAttribute(ColorAttribute.Diffuse, Color(styleScale, styleScale, styleScale, 1f)))
+            nodePart.material.set(
+                ColorAttribute(
+                    ColorAttribute.Diffuse,
+                    Color(
+                        w0,
+                        w1,
+                        w2,
+                        w3,
+                    )
+                )
+            )
         } else {
-            lightmapTint.color.set(styleScale, styleScale, styleScale, 1f)
+            lightmapTint.color.set(
+                w0,
+                w1,
+                w2,
+                w3,
+            )
         }
         return
     }
@@ -197,6 +221,22 @@ private fun applySurfaceLightstyles(
     } else {
         diffuseColor.color.set(red, green, blue, 1f)
     }
+}
+
+internal fun computeLightmapStyleWeights(
+    lightMapStyles: ByteArray,
+    primaryLightStyleIndex: Int?,
+    lightStyleResolver: (Int) -> Float,
+): FloatArray {
+    val styles = lightMapStyles
+        .map { it.toInt() and 0xFF }
+        .takeWhile { it != 255 }
+        .take(4)
+    val w0 = styles.getOrNull(0)?.let(lightStyleResolver) ?: primaryLightStyleIndex?.let(lightStyleResolver) ?: 1f
+    val w1 = styles.getOrNull(1)?.let(lightStyleResolver) ?: 0f
+    val w2 = styles.getOrNull(2)?.let(lightStyleResolver) ?: 0f
+    val w3 = styles.getOrNull(3)?.let(lightStyleResolver) ?: 0f
+    return floatArrayOf(w0, w1, w2, w3)
 }
 
 private fun collectNodePartsById(modelInstance: ModelInstance): Map<String, NodePart> {

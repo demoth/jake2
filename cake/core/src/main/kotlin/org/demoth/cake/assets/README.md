@@ -9,7 +9,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `CakeFileResolver` - resolves logical asset names to actual files (classpath/internal/mod/baseq2), including synthetic player MD2 variant keys.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
-- `BspLightmapShader` / `BspLightmapTextureAttribute` - per-texel world lightmap sampling (`UV2`) for BSP brush surfaces.
+- `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel world lightmap sampling (`UV2`) with up to 4 lightstyle slots per face.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
 ## Data / Control Flow
@@ -45,7 +45,7 @@ For world rendering specifically:
 - `Game3dScreen.precache()` creates one `levelEntity.modelInstance` from world `Model` (model 0).
 - `BspWorldVisibilityController` toggles world `NodePart.enabled`.
 - `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
-- `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and lightstyle modulation.
+- `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and per-slot lightstyle weights for world lightmaps.
 - `BspLightmapShader` multiplies world diffuse albedo by baked lightmap texels sampled from UV2.
 
 For inline brush models specifically:
@@ -153,7 +153,7 @@ For inline brush models specifically:
   - Keep surface-average modulation only
   - Add UV2 lightmap sampling for world surfaces with a dedicated brush-surface shader
 - **Chosen Option & Rationale:** UV2 + texture sampling for world surfaces. This restores per-texel baked shadow detail and matches legacy brush-lighting semantics more closely.
-- **Consequences:** World model now carries secondary UVs and generated lightmap textures; inline brush-model parts still use aggregate modulation until inline geometry is similarly split.
+- **Consequences:** World model now carries secondary UVs and generated lightmap textures. Faces with multiple BSP style slots keep one texture per slot (up to 4) and combine them in shader using runtime `CS_LIGHTS` weights. Inline brush-model parts still use aggregate modulation until inline geometry is similarly split.
 - **Status:** accepted
 - **Definition of Done:** World BSP surfaces sample baked lightmap texels in shader space (not per-surface averages) and remain compatible with flowing/transparency runtime material control.
 
