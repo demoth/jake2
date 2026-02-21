@@ -142,8 +142,8 @@ public class Defines {
 
 	public final static int SURF_SKY = 0x4; // don't draw, but add to skybox 
 	public final static int SURF_WARP = 0x8; // turbulent water warp 
-	public final static int SURF_TRANS33 = 0x10;
-	public final static int SURF_TRANS66 = 0x20;
+	public final static int SURF_TRANS33 = 0x10; // 33% transparent
+	public final static int SURF_TRANS66 = 0x20; // 66% transparent
 	public final static int SURF_FLOWING = 0x40; // scroll towards angle 
 	public final static int SURF_NODRAW = 0x80; // don't bother referencing the texture 
 

@@ -86,8 +86,8 @@ class BspInlineSurfaceMaterialController(
             SurfaceMaterialBinding(
                 meshPartId = part.meshPartId,
                 textureFlags = part.textureFlags,
-                lightMapStyles = byteArrayOf(),
-                primaryLightStyleIndex = null,
+                lightMapStyles = part.lightMapStyles,
+                primaryLightStyleIndex = part.primaryLightStyleIndex,
                 lightStyleContributions = part.lightStyleContributions,
             )
         }
@@ -107,8 +107,7 @@ class BspInlineSurfaceMaterialController(
     /**
      * Updates material state for one inline brush model instance.
      *
-     * The controller keeps stable per-model `meshPart.id -> NodePart` caches keyed by source [Model],
-     * so all instances of the same inline model share lookup work.
+     * The controller keeps `meshPart.id -> NodePart` caches keyed per [ModelInstance].
      */
     fun update(
         modelInstance: ModelInstance,
@@ -218,8 +217,8 @@ private fun applySurfaceLightstyles(
     // - `client/render/fast/Surf.GL_RenderLightmappedPoly` uploads/uses updated lightmaps.
     //
     // Behavior difference:
-    // - World surfaces: Cake keeps per-slot textures static and updates only style weights in shader.
-    // - Inline brush parts: Cake uses aggregate RGB contributions per part (not per-texel UV2 lightmaps yet).
+    // - World/inline lightmapped faces: Cake keeps per-slot textures static and updates only style weights in shader.
+    // - Non-lightmapped faces (SURF_TRANS*/SURF_WARP): Cake falls back to diffuse-color modulation path.
     if (nodePart.material.has(BspLightmapTextureAttribute.Type)) {
         // Encode style slot weights into Diffuse color channels for BspLightmapShader:
         // r/g/b/a => slot 0/1/2/3.

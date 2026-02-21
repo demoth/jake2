@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
+import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.Bsp
 import java.nio.ByteBuffer
 import java.util.LinkedHashSet
@@ -29,7 +30,7 @@ import kotlin.math.floor
  *
  * [models] are generated GPU resources owned by this asset instance.
  * [worldRenderData] stores per-surface and per-leaf world representation for runtime visibility/lighting passes.
- * [inlineRenderData] stores stable per-part metadata for inline brush models (`*1`, `*2`, ...).
+ * [inlineRenderData] stores stable per-face part metadata for inline brush models (`*1`, `*2`, ...).
  * [generatedTextures] are runtime-generated lightmap textures (one per face/style slot for world model surfaces).
  * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
  */
@@ -109,7 +110,7 @@ data class BspWorldTextureInfoRecord(
 /**
  * Runtime representation for one inline BSP model (model index > 0).
  *
- * Each part maps one texinfo bucket to one mesh part id in the generated libGDX model.
+ * Each part maps one BSP face to one mesh part id in the generated libGDX model.
  */
 data class BspInlineModelRenderData(
     val modelIndex: Int,
@@ -118,12 +119,16 @@ data class BspInlineModelRenderData(
 
 data class BspInlineModelPartRecord(
     val modelIndex: Int,
+    val faceIndex: Int,
     val meshPartId: String,
     val textureInfoIndex: Int,
     val textureName: String,
     val textureFlags: Int,
     val textureAnimationNext: Int,
-    /** Average per-style baked light contributions aggregated across faces in this inline part. */
+    val lightMapStyles: ByteArray = byteArrayOf(),
+    val primaryLightStyleIndex: Int? = null,
+    val lightMapOffset: Int = -1,
+    /** Average per-style baked light contributions for this inline face (fallback path for non-lightmapped faces). */
     val lightStyleContributions: List<BspLightStyleContributionRecord> = emptyList(),
 )
 
@@ -158,7 +163,7 @@ private data class FaceStyleLightmapTexture(
  * 1. [getDependencies] parses BSP bytes and declares all referenced WAL textures.
  * 2. [load] builds one libGDX [Model] per BSP model (world model + inline brush models).
  * 3. World model faces are emitted as per-surface mesh parts and captured in [BspWorldRenderData].
- * 4. Inline brush models are emitted as stable texinfo-part buckets captured in [BspInlineModelRenderData].
+ * 4. Inline brush models are emitted as stable per-face mesh parts captured in [BspInlineModelRenderData].
  *
  * This keeps texture lifecycle in AssetManager while model lifecycle is handled by [BspMapAsset].
  */
@@ -227,10 +232,10 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     /**
      * Builds one [Model] per BSP model.
      * World model (index 0) is emitted as one mesh part per face to preserve stable surface identity.
-     * Inline models use stable part ids keyed by texinfo index.
+     * Inline models use stable part ids keyed by BSP face index.
      *
      * Quake2 `model 0` (the whole world) => one libGDX [Model] where each world surface is a distinct mesh part.
-     * Quake2 `model N>0` (inline brush models like doors) => one libGDX [Model] with texinfo-part buckets.
+     * Quake2 `model N>0` (inline brush models like doors) => one libGDX [Model] with per-face mesh parts.
      */
     private fun buildModels(
         bsp: Bsp,
@@ -240,7 +245,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         generatedTextures: MutableList<Texture>,
     ): List<Model> {
         val inlineRenderDataByModel = inlineRenderData.associateBy { it.modelIndex }
-        return bsp.models.mapIndexed { modelIndex, model ->
+        return bsp.models.mapIndexed { modelIndex, _ ->
             val modelBuilder = ModelBuilder()
             modelBuilder.begin()
             if (modelIndex == 0) {
@@ -285,31 +290,48 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     )
                 }
             } else {
-                val faceIndicesByTexInfo = (0..<model.faceCount)
-                    .map { offset -> model.firstFace + offset }
-                    .groupBy { faceIndex -> bsp.faces[faceIndex].textureInfoIndex }
                 val inlineParts = inlineRenderDataByModel[modelIndex]?.parts.orEmpty()
                 inlineParts.forEach { part ->
                     val texturePath = toWalPath(part.textureName)
                     val texture = manager.get(texturePath, Texture::class.java)
+                    val face = bsp.faces[part.faceIndex]
+                    val lightmap = if (shouldUseBspFaceLightmap(part.textureFlags)) {
+                        buildFaceLightmapData(bsp, face)
+                    } else {
+                        null
+                    }
+                    if (lightmap != null) {
+                        generatedTextures += lightmap.styleTextures.map { it.texture }
+                    }
+                    val materialAttributes = mutableListOf<Attribute>(
+                        TextureAttribute(TextureAttribute.Diffuse, texture),
+                    )
+                    lightmap?.styleTextures?.forEachIndexed { styleSlot, styleTexture ->
+                        when (styleSlot) {
+                            0 -> materialAttributes += BspLightmapTextureAttribute(styleTexture.texture)
+                            1 -> materialAttributes += BspLightmapTexture1Attribute(styleTexture.texture)
+                            2 -> materialAttributes += BspLightmapTexture2Attribute(styleTexture.texture)
+                            3 -> materialAttributes += BspLightmapTexture3Attribute(styleTexture.texture)
+                        }
+                    }
                     val meshBuilder = modelBuilder.part(
                         part.meshPartId,
                         GL_TRIANGLES,
-                        VertexAttributes(VertexAttribute.Position(), VertexAttribute.TexCoords(0)),
-                        Material(TextureAttribute(TextureAttribute.Diffuse, texture))
+                        VertexAttributes(
+                            VertexAttribute.Position(),
+                            VertexAttribute.TexCoords(0),
+                            VertexAttribute.TexCoords(1),
+                        ),
+                        Material(*materialAttributes.toTypedArray())
                     )
-                    faceIndicesByTexInfo[part.textureInfoIndex]
-                        .orEmpty()
-                        .forEach { faceIndex ->
-                            addFaceAsTriangles(
-                                bsp = bsp,
-                                face = bsp.faces[faceIndex],
-                                texture = texture,
-                                meshBuilder = meshBuilder,
-                                includeLightmapUv = false,
-                                lightmapGeometry = null,
-                            )
-                        }
+                    addFaceAsTriangles(
+                        bsp = bsp,
+                        face = face,
+                        texture = texture,
+                        meshBuilder = meshBuilder,
+                        includeLightmapUv = true,
+                        lightmapGeometry = lightmap?.geometry,
+                    )
                 }
             }
             modelBuilder.end()
@@ -362,7 +384,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
 }
 
 /**
- * Collects stable texinfo-part metadata for inline BSP models (`model index > 0`).
+ * Collects stable per-face metadata for inline BSP models (`model index > 0`).
  */
 internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderData> {
     return bsp.models.mapIndexedNotNull { modelIndex, model ->
@@ -370,31 +392,26 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
             return@mapIndexedNotNull null
         }
 
-        val texInfoIndices = LinkedHashSet<Int>()
-        repeat(model.faceCount) { offset ->
-            val face = bsp.faces[model.firstFace + offset]
-            texInfoIndices += face.textureInfoIndex
-        }
-
-        val partRecords = texInfoIndices.mapNotNull { textureInfoIndex ->
+        val partRecords = (0..<model.faceCount).mapNotNull { offset ->
+            val faceIndex = model.firstFace + offset
+            val face = bsp.faces[faceIndex]
+            val textureInfoIndex = face.textureInfoIndex
             val texInfo = bsp.textures.getOrNull(textureInfoIndex) ?: return@mapNotNull null
             if (!shouldLoadWalTexture(texInfo.name)) {
                 return@mapNotNull null
             }
-            val faceIndices = (0..<model.faceCount)
-                .map { offset -> model.firstFace + offset }
-                .filter { faceIndex -> bsp.faces[faceIndex].textureInfoIndex == textureInfoIndex }
             BspInlineModelPartRecord(
                 modelIndex = modelIndex,
-                meshPartId = inlineMeshPartId(modelIndex, textureInfoIndex),
+                faceIndex = faceIndex,
+                meshPartId = inlineMeshPartId(modelIndex, faceIndex),
                 textureInfoIndex = textureInfoIndex,
                 textureName = texInfo.name,
                 textureFlags = texInfo.flags,
                 textureAnimationNext = texInfo.next,
-                lightStyleContributions = aggregatePartLightStyleContributions(
-                    bsp = bsp,
-                    faceIndices = faceIndices
-                ),
+                lightMapStyles = face.lightMapStyles.copyOf(),
+                primaryLightStyleIndex = extractLightStyles(face).firstOrNull(),
+                lightMapOffset = face.lightMapOffset,
+                lightStyleContributions = buildFaceLightStyleContributions(bsp, face),
             )
         }
 
@@ -527,14 +544,6 @@ private fun collectTextureAnimationChainIndices(
     return indices.toIntArray()
 }
 
-private data class WeightedLightStyleContribution(
-    val styleIndex: Int,
-    var redSum: Float,
-    var greenSum: Float,
-    var blueSum: Float,
-    var texelWeight: Int,
-)
-
 private fun calculateLightmapUv(
     vertex: jake2.qcommon.math.Vector3f,
     textureInfo: jake2.qcommon.filesystem.BspTextureInfo,
@@ -619,49 +628,8 @@ private fun buildFaceLightmapData(
     )
 }
 
-private fun aggregatePartLightStyleContributions(
-    bsp: Bsp,
-    faceIndices: List<Int>,
-): List<BspLightStyleContributionRecord> {
-    if (faceIndices.isEmpty()) {
-        return emptyList()
-    }
-    val byStyle = LinkedHashMap<Int, WeightedLightStyleContribution>()
-    faceIndices.forEach { faceIndex ->
-        val face = bsp.faces[faceIndex]
-        val faceContrib = buildFaceLightStyleContributions(bsp, face)
-        val sampleCount = computeFaceLightmapSampleCount(bsp, face)
-        if (sampleCount <= 0) {
-            return@forEach
-        }
-        faceContrib.forEach { contribution ->
-            val aggregate = byStyle.getOrPut(contribution.styleIndex) {
-                WeightedLightStyleContribution(
-                    styleIndex = contribution.styleIndex,
-                    redSum = 0f,
-                    greenSum = 0f,
-                    blueSum = 0f,
-                    texelWeight = 0,
-                )
-            }
-            aggregate.redSum += contribution.red * sampleCount
-            aggregate.greenSum += contribution.green * sampleCount
-            aggregate.blueSum += contribution.blue * sampleCount
-            aggregate.texelWeight += sampleCount
-        }
-    }
-    return byStyle.values.mapNotNull { aggregate ->
-        if (aggregate.texelWeight <= 0) {
-            return@mapNotNull null
-        }
-        BspLightStyleContributionRecord(
-            styleIndex = aggregate.styleIndex,
-            red = aggregate.redSum / aggregate.texelWeight,
-            green = aggregate.greenSum / aggregate.texelWeight,
-            blue = aggregate.blueSum / aggregate.texelWeight,
-        )
-    }
-}
+private fun shouldUseBspFaceLightmap(textureFlags: Int): Boolean =
+    (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66 or Defines.SURF_WARP)) == 0
 
 private fun buildFaceLightStyleContributions(
     bsp: Bsp,
@@ -790,8 +758,8 @@ private fun extractFaceVertexIndices(
     }
 }
 
-private fun inlineMeshPartId(modelIndex: Int, textureInfoIndex: Int): String =
-    "inline_${modelIndex}_texinfo_$textureInfoIndex"
+private fun inlineMeshPartId(modelIndex: Int, faceIndex: Int): String =
+    "inline_${modelIndex}_face_$faceIndex"
 
 /** Maps raw BSP texture name to conventional Quake2 WAL asset path. */
 private fun toWalPath(textureName: String): String = "textures/${textureName.trim()}.wal"

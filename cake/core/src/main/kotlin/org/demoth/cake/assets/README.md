@@ -9,7 +9,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `CakeFileResolver` - resolves logical asset names to actual files (classpath/internal/mod/baseq2), including synthetic player MD2 variant keys.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
-- `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel world lightmap sampling (`UV2`) with up to 4 lightstyle slots per face.
+- `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel BSP lightmap sampling (`UV2`) with up to 4 lightstyle slots per face.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
 ## Data / Control Flow
@@ -49,7 +49,7 @@ For world rendering specifically:
 - `BspLightmapShader` multiplies world diffuse albedo by baked lightmap texels sampled from UV2.
 
 For inline brush models specifically:
-- `BspLoader` emits stable inline part ids by texinfo (`inline_<modelIndex>_texinfo_<texInfoIndex>`).
+- `BspLoader` emits stable inline part ids by face (`inline_<modelIndex>_face_<faceIndex>`).
 - `BspInlineTextureAnimationController` updates inline `NodePart` diffuse textures.
 - `BspInlineSurfaceMaterialController` applies flowing/transparency/lightstyle material state per inline part.
 - Inline animation frame source is entity-local (`ClientEntity.resolvedFrame`), not global time.
@@ -153,7 +153,7 @@ For inline brush models specifically:
   - Keep surface-average modulation only
   - Add UV2 lightmap sampling for world surfaces with a dedicated brush-surface shader
 - **Chosen Option & Rationale:** UV2 + texture sampling for world surfaces. This restores per-texel baked shadow detail and matches legacy brush-lighting semantics more closely.
-- **Consequences:** World model now carries secondary UVs and generated lightmap textures. Faces with multiple BSP style slots keep one texture per slot (up to 4) and combine them in shader using runtime `CS_LIGHTS` weights. Inline brush-model parts still use aggregate modulation until inline geometry is similarly split.
+- **Consequences:** World model now carries secondary UVs and generated lightmap textures. Faces with multiple BSP style slots keep one texture per slot (up to 4) and combine them in shader using runtime `CS_LIGHTS` weights.
 - **Status:** accepted
 - **Definition of Done:** World BSP surfaces sample baked lightmap texels in shader space (not per-surface averages) and remain compatible with flowing/transparency runtime material control.
 
@@ -166,6 +166,16 @@ For inline brush models specifically:
 - **Consequences:** More generated textures and texture-unit usage on world surfaces with multi-style lightmaps.
 - **Status:** accepted
 - **Definition of Done:** Triggered `CS_LIGHTS` updates (for example from `target_lightramp`) visibly affect world surfaces that reference non-primary style slots.
+
+### Decision: Use per-face UV2 lightmaps for inline BSP entities
+- **Context:** Legacy brush rendering lights both world and inline brush faces through the same lightmapped path (`R_DrawBrushModel` -> `GL_RenderLightmappedPoly`), while Cake inline lighting was still per-part aggregate modulation.
+- **Options Considered:**
+  - Keep inline per-part aggregate modulation
+  - Split inline models into per-face mesh parts and apply UV2 lightmaps for eligible faces
+- **Chosen Option & Rationale:** Per-face inline parts + UV2 lightmaps for non-`SURF_TRANS*` and non-`SURF_WARP` faces. This restores parity for doors/platforms/func_* lighting and makes inline lightstyle updates (`CS_LIGHTS`) behave like world faces.
+- **Consequences:** More inline mesh parts/materials and generated lightmap textures; texture animation/material controllers continue to work by mesh part id.
+- **Status:** accepted
+- **Definition of Done:** Inline brush entities show per-texel baked lighting on eligible faces and react to `target_lightramp` updates through style-slot weighting.
 
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.
@@ -210,10 +220,10 @@ For inline brush models specifically:
   - **Legacy counterpart:** `client/render/fast/Surf.DrawGLFlowingPoly`.
   - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
 
-- **What:** Lightstyle application split between world and inline paths.
-  - **Why:** World now has per-texel UV2 lightmaps; inline brush models are still texinfo-part aggregates.
+- **What:** Lightstyle application keeps a fallback branch for non-lightmapped BSP faces.
+  - **Why:** Legacy excludes `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` from lightmap sampling.
   - **Legacy counterpart:** `client/render/fast/Light.R_BuildLightMap` + `Surf.GL_RenderLightmappedPoly`.
-  - **Difference:** World keeps static per-slot textures and updates weights; inline remains averaged-per-part until inline UV2/per-face split is implemented.
+  - **Difference:** World and inline eligible faces now use per-slot UV2 lightmaps; non-lightmapped faces use diffuse-only material path.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:

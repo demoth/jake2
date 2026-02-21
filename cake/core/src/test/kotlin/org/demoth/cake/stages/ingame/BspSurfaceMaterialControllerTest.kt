@@ -56,6 +56,7 @@ class BspSurfaceMaterialControllerTest {
                     parts = listOf(
                         BspInlineModelPartRecord(
                             modelIndex = 1,
+                            faceIndex = 100,
                             meshPartId = "inline_1_part_0",
                             textureInfoIndex = 10,
                             textureName = "e1u1/wndow0_3",
@@ -69,6 +70,7 @@ class BspSurfaceMaterialControllerTest {
                     parts = listOf(
                         BspInlineModelPartRecord(
                             modelIndex = 2,
+                            faceIndex = 200,
                             meshPartId = "inline_2_part_0",
                             textureInfoIndex = 20,
                             textureName = "e1u1/wall0",

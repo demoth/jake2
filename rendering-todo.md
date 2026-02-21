@@ -118,6 +118,10 @@ Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping
   - Move inline brush models from per-part aggregate lightstyle modulation to per-face UV2 lightmap sampling.
   - Keep legacy exclusions: `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` do not use lightmaps.
   - Preserve up to 4 lightstyle slots per face and runtime `CS_LIGHTS` style weighting (same world shader model).
+- Progress:
+  - [x] Inline BSP models are now emitted as per-face mesh parts with stable ids.
+  - [x] Eligible inline faces now carry UV2 + per-slot baked lightmap textures and shader style-slot weighting.
+  - [ ] Validate broad map coverage for inline entities (doors/platforms/func_*) in gameplay.
 - Why this is required:
   - Legacy Quake2 renders inline non-transparent/non-warp faces via the same lightmapped surface path as world (`R_DrawBrushModel` -> `GL_RenderLightmappedPoly`).
   - Yamagi GL3 does the same (`GL3_DrawBrushModel` -> `RenderLightmappedPoly`).

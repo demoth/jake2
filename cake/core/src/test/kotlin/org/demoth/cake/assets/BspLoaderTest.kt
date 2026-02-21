@@ -65,7 +65,7 @@ class BspLoaderTest {
     }
 
     @Test
-    fun collectInlineModelRenderDataBuildsStableTexInfoParts() {
+    fun collectInlineModelRenderDataBuildsStableFaceParts() {
         val bspData = minimalBspWithTextures(
             textureNames = listOf("world", "door_a", "door_b"),
             texInfoNextIndices = listOf(0, 2, 1),
@@ -83,7 +83,7 @@ class BspLoaderTest {
         assertEquals(1, inline.first().modelIndex)
         assertEquals(listOf(1, 2), inline.first().parts.map { it.textureInfoIndex })
         assertEquals(
-            listOf("inline_1_texinfo_1", "inline_1_texinfo_2"),
+            listOf("inline_1_face_1", "inline_1_face_2"),
             inline.first().parts.map { it.meshPartId }
         )
         assertEquals(listOf(2, 1), inline.first().parts.map { it.textureAnimationNext })
@@ -101,6 +101,30 @@ class BspLoaderTest {
 
         assertEquals(1, surfaces.size)
         assertEquals(7, surfaces.first().primaryLightStyleIndex)
+    }
+
+    @Test
+    fun collectInlineModelRenderDataExtractsFaceLightStyleMetadata() {
+        val bspData = minimalBspWithTextures(
+            textureNames = listOf("world", "door"),
+            faceTextureInfoIndices = listOf(0, 1),
+            faceLightStyles = listOf(
+                byteArrayOf(0, (-1).toByte(), (-1).toByte(), (-1).toByte()),
+                byteArrayOf(9, 11, (-1).toByte(), (-1).toByte()),
+            ),
+            modelFaceRanges = listOf(
+                0 to 1, // world
+                1 to 1, // inline model 1
+            ),
+        )
+        val bsp = Bsp(ByteBuffer.wrap(bspData))
+
+        val inline = collectInlineModelRenderData(bsp)
+
+        assertEquals(1, inline.size)
+        val part = inline.first().parts.single()
+        assertEquals(9, part.primaryLightStyleIndex)
+        assertEquals(listOf(9, 11), part.lightMapStyles.map { it.toInt() and 0xFF }.takeWhile { it != 255 })
     }
 
     private fun minimalBspWithTextures(
