@@ -1,16 +1,23 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
 import org.demoth.cake.assets.AnimationTextureAttribute
+import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.Md2Loader
+import org.demoth.cake.assets.Md2Shader
+import org.demoth.cake.assets.getLoaded
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -126,4 +133,35 @@ fun ModelBatch.use(camera: Camera, action: (ModelBatch) -> Unit) {
     begin(camera)
     action(this)
     end()
+}
+
+// bootstrap md2 shader with an embedded model
+fun initializeMd2Shader(assetManager: AssetManager): Md2Shader {
+    val bootstrapMd2Path = "jake2/qcommon/filesystem/models/blade/tris.md2"
+    val loadedForShaderInit = !assetManager.isLoaded(bootstrapMd2Path, Md2Asset::class.java)
+    val md2Asset = assetManager.getLoaded<Md2Asset>(
+        bootstrapMd2Path,
+        Md2Loader.Parameters(
+            loadEmbeddedSkins = false,
+            useDefaultSkinIfMissing = true,
+        )
+    )
+    try {
+        val md2Instance = createModelInstance(md2Asset.model)
+        val tempRenderable = Renderable()
+        val md2Shader = Md2Shader(
+            // required for shader initialization; renderable is not reused
+            md2Instance.getRenderable(tempRenderable),
+            DefaultShader.Config(
+                assetManager.get(md2VatShader),
+                assetManager.get(md2FragmentShader),
+            )
+        )
+        md2Shader.init()
+        return md2Shader
+    } finally {
+        if (loadedForShaderInit) {
+            assetManager.unload(bootstrapMd2Path)
+        }
+    }
 }

@@ -8,58 +8,27 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
-import com.badlogic.gdx.graphics.g3d.Renderable
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.network.messages.client.MoveMessage
-import jake2.qcommon.network.messages.server.ConfigStringMessage
-import jake2.qcommon.network.messages.server.FrameHeaderMessage
-import jake2.qcommon.network.messages.server.InventoryMessage
-import jake2.qcommon.network.messages.server.LayoutMessage
-import jake2.qcommon.network.messages.server.MuzzleFlash2Message
-import jake2.qcommon.network.messages.server.PacketEntitiesMessage
-import jake2.qcommon.network.messages.server.PlayerInfoMessage
-import jake2.qcommon.network.messages.server.PrintMessage
-import jake2.qcommon.network.messages.server.PrintCenterMessage
-import jake2.qcommon.network.messages.server.ServerDataMessage
-import jake2.qcommon.network.messages.server.SoundMessage
-import jake2.qcommon.network.messages.server.SpawnBaselineMessage
-import jake2.qcommon.network.messages.server.TEMessage
-import jake2.qcommon.network.messages.server.WeaponSoundMessage
+import jake2.qcommon.network.messages.server.*
+import jake2.qcommon.util.Lib
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import ktx.scene2d.Scene2DSkin
-import org.demoth.cake.ClientEntity
-import org.demoth.cake.GameConfiguration
-import org.demoth.cake.ServerMessageProcessor
-import org.demoth.cake.assets.BeamRenderer
-import org.demoth.cake.assets.BspLightmapShader
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Shader
-import org.demoth.cake.assets.Md2ShaderProvider
-import org.demoth.cake.assets.Sp2Renderer
-import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.*
+import org.demoth.cake.assets.*
 import org.demoth.cake.audio.SpatialSoundAttenuation
-import org.demoth.cake.applyModelOpacity
-import org.demoth.cake.createModelInstance
 import org.demoth.cake.input.InputManager
-import org.demoth.cake.lerpAngle
-import org.demoth.cake.md2FragmentShader
-import org.demoth.cake.md2VatShader
+import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
-import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
-import org.demoth.cake.toForwardUp
 import org.demoth.cake.ui.GameUiStyleFactory
-import org.demoth.cake.use
-import jake2.qcommon.util.Lib
 import kotlin.math.abs
 
 /**
@@ -135,26 +104,7 @@ class Game3dScreen(
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
         val bspLightmapShader = BspLightmapShader().apply { init() }
-        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader(), bspLightmapShader))
-    }
-
-    // fixme: make a free internal md2 model specifically for the shader initialization, don't use q2 resources
-    private fun initializeMd2Shader(): Md2Shader {
-        val md2Path = "models/monsters/berserk/tris.md2"
-        val md2Asset = assetManager.getLoaded<Md2Asset>(md2Path)
-        val md2Instance = createModelInstance(md2Asset.model)
-
-        val tempRenderable = Renderable()
-        val md2Shader = Md2Shader(
-            md2Instance.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
-            DefaultShader.Config(
-                assetManager.get(md2VatShader),
-                assetManager.get(md2FragmentShader),
-            )
-        )
-        md2Shader.init()
-        assetManager.unload(md2Path)
-        return md2Shader
+        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader(assetManager), bspLightmapShader))
     }
 
     // todo: a lot of hacks/quirks - explain & document
