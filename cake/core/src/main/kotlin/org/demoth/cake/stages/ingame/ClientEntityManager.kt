@@ -394,6 +394,8 @@ class ClientEntityManager : Disposable {
 
         // update the gun animation
         viewGun?.let { gun ->
+            gun.resolvedRenderFx = Defines.RF_MINLIGHT or Defines.RF_DEPTHHACK or Defines.RF_WEAPONMODEL
+            gun.alpha = 1f
             if (rDrawEntities?.value != 0f && clGun?.value != 0f) {
                 visibleEntities += gun
             }

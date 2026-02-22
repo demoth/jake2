@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
+import org.demoth.cake.stages.ingame.RenderTuningCvars
 
 /**
  * Small data structure to hold the custom data required for the shader.
@@ -18,13 +19,16 @@ data class Md2CustomData(
     var frame1: Int,
     var frame2: Int,
     var interpolation: Float, // in range (0,1)
-    var skinIndex: Int // entity_state_t.skinnum from the server
+    var skinIndex: Int, // entity_state_t.skinnum from the server
+    var lightRed: Float,
+    var lightGreen: Float,
+    var lightBlue: Float,
 ) {
     companion object {
         /**
          * Initial values before frame data arrives from the server.
          */
-        fun empty() = Md2CustomData(0, 0, 0f, 0)
+        fun empty() = Md2CustomData(0, 0, 0f, 0, 1f, 1f, 1f)
     }
 }
 
@@ -159,6 +163,22 @@ class Md2Shader(
             shader.set(inputID, blending?.opacity ?: 1f)
         }
     }
+    private val entityLightColorSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
+            val md2CustomData = renderable.userData as Md2CustomData
+            shader.set(inputID, md2CustomData.lightRed, md2CustomData.lightGreen, md2CustomData.lightBlue)
+        }
+    }
+    private val gammaExponentSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {
+            shader.set(inputID, RenderTuningCvars.gammaExponent())
+        }
+    }
+    private val intensitySetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {
+            shader.set(inputID, RenderTuningCvars.intensity())
+        }
+    }
 
     // animation related local (per renderable) uniforms
     protected val u_vertexAnimationTexture = Uniform("u_vertexAnimationTexture")
@@ -171,6 +191,9 @@ class Md2Shader(
     private val u_skinCount = Uniform("u_skinCount")
     // Keep this aligned with `assets/shaders/md2.frag`.
     private val u_md2Opacity = Uniform("u_opacity")
+    private val u_entityLightColor = Uniform("u_entityLightColor")
+    private val u_gammaExponent = Uniform("u_gammaExponent")
+    private val u_intensity = Uniform("u_intensity")
 
     // register the uniforms
     private val u_vertexAnimationTexturePos = register(u_vertexAnimationTexture, vertexAnimationTextureSetter)
@@ -183,6 +206,9 @@ class Md2Shader(
     private val u_skinIndexPos = register(u_skinIndex, skinIndexSetter)
     private val u_skinCountPos = register(u_skinCount, skinCountSetter)
     private val u_md2OpacityPos = register(u_md2Opacity, opacitySetter)
+    private val u_entityLightColorPos = register(u_entityLightColor, entityLightColorSetter)
+    private val u_gammaExponentPos = register(u_gammaExponent, gammaExponentSetter)
+    private val u_intensityPos = register(u_intensity, intensitySetter)
     private val u_skinTexturePositions = IntArray(MAX_MD2_SKIN_TEXTURES) { slot ->
         register(Uniform("u_skinTexture$slot"), skinTextureSetter(slot))
     }

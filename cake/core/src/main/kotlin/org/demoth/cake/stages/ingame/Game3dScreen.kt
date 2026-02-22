@@ -47,7 +47,6 @@ class Game3dScreen(
 
     private val modelBatch: ModelBatch
     private val bspLightmapShader: BspLightmapShader
-    private val md2Shader: Md2Shader
 
     private val collisionModel = CM()
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
@@ -80,6 +79,7 @@ class Game3dScreen(
     private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
     private var worldSurfaceMaterialController: BspWorldSurfaceMaterialController? = null
     private var inlineSurfaceMaterialController: BspInlineSurfaceMaterialController? = null
+    private var entityLightSampler: BspEntityLightSampler? = null
     private val lightStyleValues = FloatArray(Defines.MAX_LIGHTSTYLES) { 1f }
     private var lastLightStyleTick: Int = Int.MIN_VALUE
 
@@ -111,7 +111,7 @@ class Game3dScreen(
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
         bspLightmapShader = BspLightmapShader().apply { init() }
-        md2Shader = initializeMd2Shader(assetManager)
+        val md2Shader = initializeMd2Shader(assetManager)
         modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
     }
 
@@ -337,6 +337,7 @@ class Game3dScreen(
 
         (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
+            applyMd2EntityLighting(entity, x, y, z, userData)
         }
         modelBatch.render(entity.modelInstance, environment)
     }
@@ -349,12 +350,79 @@ class Game3dScreen(
         return modelIndex.takeIf { it > 0 }
     }
 
+    /**
+     * Computes per-entity MD2 lighting tint.
+     *
+     * Legacy counterpart:
+     * `client/render/fast/Mesh` alias model light path.
+     */
+    private fun applyMd2EntityLighting(
+        entity: ClientEntity,
+        x: Float,
+        y: Float,
+        z: Float,
+        userData: Md2CustomData,
+    ) {
+        val renderFx = entity.resolvedRenderFx
+        val shellFlags = Defines.RF_SHELL_HALF_DAM or Defines.RF_SHELL_DOUBLE or
+            Defines.RF_SHELL_RED or Defines.RF_SHELL_GREEN or Defines.RF_SHELL_BLUE
+
+        if ((renderFx and shellFlags) != 0) {
+            var red = 0f
+            var green = 0f
+            var blue = 0f
+            if ((renderFx and Defines.RF_SHELL_HALF_DAM) != 0) {
+                red = 0.56f
+                green = 0.59f
+                blue = 0.45f
+            }
+            if ((renderFx and Defines.RF_SHELL_DOUBLE) != 0) {
+                red = 0.9f
+                green = 0.7f
+                blue = 0f
+            }
+            if ((renderFx and Defines.RF_SHELL_RED) != 0) red = 1f
+            if ((renderFx and Defines.RF_SHELL_GREEN) != 0) green = 1f
+            if ((renderFx and Defines.RF_SHELL_BLUE) != 0) blue = 1f
+            userData.lightRed = red
+            userData.lightGreen = green
+            userData.lightBlue = blue
+            return
+        }
+
+        val sampled = if ((renderFx and Defines.RF_FULLBRIGHT) != 0) {
+            Vector3(1f, 1f, 1f)
+        } else {
+            entityLightSampler?.sample(Vector3(x, y, z), ::lightStyleValue, dynamicLightSystem)
+                ?: Vector3(1f, 1f, 1f)
+        }
+
+        if ((renderFx and Defines.RF_MINLIGHT) != 0 && maxOf(sampled.x, sampled.y, sampled.z) <= 0.1f) {
+            sampled.set(0.1f, 0.1f, 0.1f)
+        }
+
+        if ((renderFx and Defines.RF_GLOW) != 0) {
+            val scale = 0.1f * sin(entityManager.time / 1000f * 7f)
+            val minRed = sampled.x * 0.8f
+            val minGreen = sampled.y * 0.8f
+            val minBlue = sampled.z * 0.8f
+            sampled.x = maxOf(minRed, sampled.x + scale)
+            sampled.y = maxOf(minGreen, sampled.y + scale)
+            sampled.z = maxOf(minBlue, sampled.z + scale)
+        }
+
+        userData.lightRed = sampled.x
+        userData.lightGreen = sampled.y
+        userData.lightBlue = sampled.z
+    }
+
     override fun dispose() {
         worldVisibilityController = null
         worldTextureAnimationController = null
         inlineTextureAnimationController = null
         worldSurfaceMaterialController = null
         inlineSurfaceMaterialController = null
+        entityLightSampler = null
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -433,6 +501,10 @@ class Game3dScreen(
         )
         inlineSurfaceMaterialController = BspInlineSurfaceMaterialController(
             inlineRenderData = bspMap.inlineRenderData,
+        )
+        entityLightSampler = BspEntityLightSampler(
+            worldRenderData = bspMap.worldRenderData,
+            collisionModel = collisionModel,
         )
 
         // after world + inline brush models, only non-inline model paths are expected.
