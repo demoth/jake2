@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.entity_state_t
-import jake2.qcommon.exec.Cmd
+import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
@@ -37,10 +37,13 @@ class ClientEntityManager : Disposable {
     val currentFrame = ClientFrame() // latest frame information received from the server
 
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
-    var drawEntities: Boolean = true
-    var drawLevel: Boolean = true
-    var drawSkybox: Boolean = true
     var lerpAcc: Float = 0f // interpolation accumulator // (0, serverFrame)
+    val rDrawSky = Cvar.getInstance().Get("r_drawsky", "1", 0)
+    private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0)
+    private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0)
+    private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0)
+    private val rDrawWorld = Cvar.getInstance().Get("r_drawworld", "1", 0)
+    private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
@@ -56,19 +59,6 @@ class ClientEntityManager : Disposable {
     private val debugOriginEntity = ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
 
     var surpressCount = 0
-
-    init {
-        // force replace because the command lambdas capture this manager.
-        Cmd.AddCommand("toggle_skybox", true) {
-            drawSkybox = !drawSkybox
-        }
-        Cmd.AddCommand("toggle_level", true) {
-            drawLevel = !drawLevel
-        }
-        Cmd.AddCommand("toggle_entities", true) {
-            drawEntities = !drawEntities
-        }
-    }
 
     fun getEntitySoundOrigin(entityIndex: Int): Vector3? {
         if (entityIndex !in 0..<Defines.MAX_EDICTS) {
@@ -294,7 +284,7 @@ class ClientEntityManager : Disposable {
         visibleSprites.clear()
         visibleBeams.clear()
         visibleEntities += debugOriginEntity
-        if (levelEntity != null && drawLevel) {
+        if (levelEntity != null && rDrawWorld?.value != 0f) {
             visibleEntities += levelEntity!!
         }
 
@@ -320,7 +310,7 @@ class ClientEntityManager : Disposable {
             // network visibility behavior compatible with the original protocol.
             if ((newState.renderfx and Defines.RF_BEAM) != 0) {
                 entity.modelInstance = null
-                if (drawEntities) {
+                if (rDrawBeams?.value != 0f) {
                     visibleBeams += entity
                 }
                 continue
@@ -361,16 +351,18 @@ class ClientEntityManager : Disposable {
             }
 
             // render it if the model was successfully loaded
-            if (newState.index != gameConfig.playerConfiguration.playerIndex + 1 && drawEntities) { // do not render our own model
+            if (newState.index != gameConfig.playerConfiguration.playerIndex + 1) { // do not render our own model
                 if (entity.modelInstance != null) {
-                    (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
-                        userData.frame1 = entity.prev.frame
-                        userData.frame2 = resolvedFrame
-                        // player models are loaded with an external skin texture, so slot is always 0
-                        userData.skinIndex = if (newState.modelindex == 255) 0 else newState.skinnum
+                    if (rDrawEntities?.value != 0f) {
+                        (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                            userData.frame1 = entity.prev.frame
+                            userData.frame2 = resolvedFrame
+                            // player models are loaded with an external skin texture, so slot is always 0
+                            userData.skinIndex = if (newState.modelindex == 255) 0 else newState.skinnum
+                        }
+                        visibleEntities += entity
                     }
-                    visibleEntities += entity
-                } else if (entity.spriteAsset != null) {
+                } else if (entity.spriteAsset != null && rDrawSprites?.value != 0f) {
                     visibleSprites += entity
                 }
             }
@@ -398,7 +390,9 @@ class ClientEntityManager : Disposable {
 
         // update the gun animation
         viewGun?.let { gun ->
-            visibleEntities += gun
+            if (rDrawEntities?.value != 0f && clGun?.value != 0f) {
+                visibleEntities += gun
+            }
             (gun.modelInstance.userData as? Md2CustomData)?.let { userData ->
                 userData.frame1 = when {
                     gunModelChanged -> currentFrame.playerstate.gunframe
@@ -575,9 +569,6 @@ class ClientEntityManager : Disposable {
     }
 
     override fun dispose() {
-        Cmd.RemoveCommand("toggle_skybox")
-        Cmd.RemoveCommand("toggle_level")
-        Cmd.RemoveCommand("toggle_entities")
         debugOriginEntity.modelInstance.model.dispose()
     }
 }

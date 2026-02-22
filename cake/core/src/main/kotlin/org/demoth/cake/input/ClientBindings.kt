@@ -210,10 +210,7 @@ class ClientBindings(
 
     /**
      * Installs Cake runtime defaults.
-     *
-     * Notes:
-     * - Debug toggles (`toggle_skybox`/`toggle_level`/`toggle_entities`) are intentionally unbound.
-     * - Inventory defaults include `inven`, `invuse`, `invnext`, `invprev`.
+     * todo: reuse autoexec.cfg?
      */
     private fun installDefaultBindings() {
         setBindingByName("w", "+forward")

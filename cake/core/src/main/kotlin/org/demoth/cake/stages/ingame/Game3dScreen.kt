@@ -148,7 +148,7 @@ class Game3dScreen(
 
         // render entities
         modelBatch.use(camera) { modelBatch ->
-            if (entityManager.drawSkybox)
+            if (entityManager.rDrawSky?.value != 0f)
                 entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
                     Gdx.gl.glDepthMask(false)
                     // TODO: rotate skybox: skyBox.transform.setToRotation(...)
