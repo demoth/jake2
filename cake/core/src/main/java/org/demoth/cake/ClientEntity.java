@@ -49,6 +49,8 @@ public class ClientEntity {
 	public int resolvedFrame;
 	public int resolvedRenderFx;
 	public float alpha = 1.0f;
+	// Depth-hack path (view weapon): drawn over other geometry, preserving self-occlusion.
+	public boolean depthHack = false;
 
 	public String name;
 

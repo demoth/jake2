@@ -3,12 +3,14 @@ package org.demoth.cake.stages.ingame
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.CM
@@ -147,6 +149,7 @@ class Game3dScreen(
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
 
         // render entities
+        val lateDepthHackEntities = mutableListOf<ClientEntity>()
         modelBatch.use(camera) { modelBatch ->
             if (entityManager.rDrawSky?.value != 0f)
                 entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
@@ -157,27 +160,22 @@ class Game3dScreen(
                     Gdx.gl.glDepthMask(true)
                 }
 
-            // Preserve legacy ordering: opaque model entities first, translucent model entities second.
-            // Legacy counterpart: `client/CL_ents.AddPacketEntities` + renderer alpha passes in
-            // `client/render/fast/Surf.R_DrawAlphaSurfaces`.
-            //
-            // Inline brush models with SURF_TRANS surfaces must also be treated as translucent-pass
-            // entities even if RF_TRANSLUCENT is not set on entity flags.
-            fun isTranslucentModelPassEntity(entity: ClientEntity): Boolean {
-                if ((entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
-                    return true
-                }
-                val inlineModelIndex = parseInlineModelIndex(entity.name) ?: return false
-                return inlineSurfaceMaterialController?.hasTranslucentParts(inlineModelIndex) == true
-            }
             entityManager.visibleEntities.forEach {
                 if (!isTranslucentModelPassEntity(it)) {
-                    renderModelEntity(modelBatch, it)
+                    if (it.depthHack) {
+                        lateDepthHackEntities += it
+                    } else {
+                        renderModelEntity(modelBatch, it)
+                    }
                 }
             }
             entityManager.visibleEntities.forEach {
                 if (isTranslucentModelPassEntity(it)) {
-                    renderModelEntity(modelBatch, it)
+                    if (it.depthHack) {
+                        lateDepthHackEntities += it
+                    } else {
+                        renderModelEntity(modelBatch, it)
+                    }
                 }
             }
             entityManager.visibleBeams.forEach {
@@ -198,6 +196,11 @@ class Game3dScreen(
             effectsSystem.render(modelBatch)
             entityManager.lerpAcc += delta
 
+        }
+        if (lateDepthHackEntities.isNotEmpty()) {
+            modelBatch.use(camera) { modelBatch ->
+                lateDepthHackEntities.forEach { renderModelEntity(modelBatch, it) }
+            }
         }
 
         // draw hud
@@ -241,6 +244,20 @@ class Game3dScreen(
         }
     }
 
+    // Preserve legacy ordering: opaque model entities first, translucent model entities second.
+    // Legacy counterpart: `client/CL_ents.AddPacketEntities` + renderer alpha passes in
+    // `client/render/fast/Surf.R_DrawAlphaSurfaces`.
+    //
+    // Inline brush models with SURF_TRANS surfaces must also be treated as translucent-pass
+    // entities even if RF_TRANSLUCENT is not set on entity flags.
+    fun isTranslucentModelPassEntity(entity: ClientEntity): Boolean {
+        if ((entity.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
+            return true
+        }
+        val inlineModelIndex = parseInlineModelIndex(entity.name) ?: return false
+        return inlineSurfaceMaterialController?.hasTranslucentParts(inlineModelIndex) == true
+    }
+
     /**
      * Renders one model-backed entity with interpolation + alpha/material state.
      *
@@ -275,6 +292,24 @@ class Game3dScreen(
         // Only apply entity-wide opacity overrides when explicitly translucent.
         if (!isBrushModelEntity || translucent) {
             applyModelOpacity(entity.modelInstance, opacity, forceTranslucent = translucent)
+        }
+        if (entity.depthHack) {
+            entity.modelInstance.materials.forEach { material ->
+                val depth = material.get(DepthTestAttribute.Type) as? DepthTestAttribute
+                if (depth == null) {
+                    // Quake-style weapon depth hack: keep depth test/write for self-occlusion,
+                    // but compress depth range so view-model stays in front of world geometry.
+                    // Legacy counterparts:
+                    // - `client/CL_ents.AddViewWeapon` sets `RF_DEPTHHACK`.
+                    // - `client/render/fast/Mesh` applies `glDepthRange(gldepthmin, gldepthmin + 0.3 * ...)`.
+                    material.set(DepthTestAttribute(GL20.GL_LEQUAL, 0f, 0.3f, !translucent))
+                } else {
+                    depth.depthFunc = GL20.GL_LEQUAL
+                    depth.depthRangeNear = 0f
+                    depth.depthRangeFar = 0.3f
+                    depth.depthMask = !translucent
+                }
+            }
         }
 
         parseInlineModelIndex(entity.name)?.let { inlineModelIndex ->

@@ -56,7 +56,10 @@ class ClientEntityManager : Disposable {
 
     var levelEntity: ClientEntity? = null
     var skyEntity: ClientEntity? = null
-    private val debugOriginEntity = ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
+    private val debugOriginEntity = ClientEntity("origin").apply {
+        modelInstance = createOriginArrows(16f)
+        depthHack = true
+    }
 
     var surpressCount = 0
 
@@ -382,6 +385,7 @@ class ClientEntityManager : Disposable {
                 if (currentGun == null || currentGun.modelInstance.model !== gunModel) {
                     viewGun = ClientEntity(gameConfig.getModelName(gunIndex) ?: "gun_$gunIndex").apply {
                         modelInstance = createModelInstance(gunModel)
+                        depthHack = true
                     }
                     gunModelChanged = true
                 }
