@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.GdxRuntimeException
+import org.demoth.cake.stages.ingame.RenderTuningCvars
 
 /**
  * Lightmap texture for BSP brush surfaces.
@@ -68,6 +69,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  *
  * This is intentionally unlit (idTech2 style): output = diffuse * sum(lightmapStyleSlot[i] * styleWeight[i]).
  * Runtime transparency still follows material blending/depth attributes.
+ * Final color is post-adjusted by shared render controls (`vid_gamma`, `gl3_intensity`, `gl3_overbrightbits`).
  *
  * Invariants:
  * - lightmap texture attributes 0..3 map to style slots 0..3.
@@ -96,6 +98,9 @@ class BspLightmapShader : BaseShader() {
     private val uDiffuseUvTransform = register(Uniform("u_diffuseUVTransform"))
     private val uLightStyleWeights = register(Uniform("u_lightStyleWeights"))
     private val uOpacity = register(Uniform("u_opacity"))
+    private val uGammaExponent = register(Uniform("u_gammaExponent"))
+    private val uIntensity = register(Uniform("u_intensity"))
+    private val uOverbrightBits = register(Uniform("u_overbrightbits"))
 
     override fun init() {
         shaderProgram = ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER)
@@ -164,6 +169,9 @@ class BspLightmapShader : BaseShader() {
         val w3 = styleWeights?.a ?: 0f
         set(uLightStyleWeights, w0, w1, w2, w3)
         set(uOpacity, blending?.opacity ?: 1f)
+        set(uGammaExponent, RenderTuningCvars.gammaExponent())
+        set(uIntensity, RenderTuningCvars.intensity())
+        set(uOverbrightBits, RenderTuningCvars.overbrightBits())
         set(uWorldTrans, renderable.worldTransform)
 
         renderable.meshPart.render(shaderProgram)
@@ -217,6 +225,9 @@ uniform sampler2D u_lightmapTexture2;
 uniform sampler2D u_lightmapTexture3;
 uniform vec4 u_lightStyleWeights;
 uniform float u_opacity;
+uniform float u_gammaExponent;
+uniform float u_intensity;
+uniform float u_overbrightbits;
 
 varying vec2 v_diffuseUv;
 varying vec2 v_lightmapUv;
@@ -227,13 +238,16 @@ void main() {
     vec3 light1 = texture2D(u_lightmapTexture1, v_lightmapUv).rgb * u_lightStyleWeights.y;
     vec3 light2 = texture2D(u_lightmapTexture2, v_lightmapUv).rgb * u_lightStyleWeights.z;
     vec3 light3 = texture2D(u_lightmapTexture3, v_lightmapUv).rgb * u_lightStyleWeights.w;
-    vec3 light = light0 + light1 + light2 + light3;
+    vec3 light = (light0 + light1 + light2 + light3) * u_overbrightbits;
     // Safety guard: if sampled lightmap is effectively black (invalid upload/UV path),
     // fall back to unlit albedo to avoid fully disappearing world geometry.
     if (max(light.r, max(light.g, light.b)) < 0.001) {
         light = vec3(1.0);
     }
-    gl_FragColor = vec4(albedo.rgb * light, albedo.a * u_opacity);
+    vec3 lit = albedo.rgb * light;
+    lit *= u_intensity;
+    lit = pow(max(lit, vec3(0.0)), vec3(u_gammaExponent));
+    gl_FragColor = vec4(lit, albedo.a * u_opacity);
 }
 """
     }
