@@ -25,8 +25,8 @@ internal data class MuzzleFlash2DynamicLight(
  * mapping isolated avoids switch bloat in [ClientEffectsSystem] and makes extension safer.
  *
  * Constraint:
- * entries here are behavior profiles only (sounds + smoke/flash toggle); dynamic light color/radius
- * is intentionally out of scope until dynamic lights are implemented.
+ * entries here intentionally cover only `MuzzleFlash2`-driven behavior. Continuous per-entity
+ * effect lights (`EF_*`) are handled in `Game3dScreen.collectEntityEffectDynamicLights()`.
  *
  * //fixme: terrible hard coupling of client and game logic.
  */

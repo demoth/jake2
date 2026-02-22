@@ -33,7 +33,7 @@ import org.demoth.cake.stages.ingame.DynamicLightSystem
  * - `TEMessage` hierarchy handling.
  * - `MuzzleFlash2Message` handling.
  * - Effect-local asset ownership via [EffectAssetCatalog].
- * - Transient MD2 and `.sp2` effect instances.
+ * - Transient MD2/`.sp2` effect instances, particle bursts, and effect-driven dynamic lights.
  *
  * Non-goals:
  * - Replicated entity state reconstruction (owned by `ClientEntityManager`).

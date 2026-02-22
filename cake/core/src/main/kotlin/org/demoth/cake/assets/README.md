@@ -177,6 +177,26 @@ For inline brush models specifically:
 - **Status:** accepted
 - **Definition of Done:** Inline brush entities show per-texel baked lighting on eligible faces and react to `target_lightramp` updates through style-slot weighting.
 
+### Decision: Apply Yamagi-style brightness controls in Cake brush/MD2 shaders
+- **Context:** World and inline lightmaps looked darker than Yamagi defaults because Cake path had no gamma/intensity/overbright controls.
+- **Options Considered:**
+  - Keep fixed shader response and tune textures offline
+  - Add runtime controls aligned with Yamagi (`vid_gamma`, `gl3_intensity`, `gl3_overbrightbits`)
+- **Chosen Option & Rationale:** Add runtime controls and feed both `BspLightmapShader` and `Md2Shader` from shared cvars. This keeps parity tuning data-driven and comparable to Yamagi.
+- **Consequences:** Shader output now depends on cvar state; screenshot/visual diffs require recording active cvar values.
+- **Status:** accepted
+- **Definition of Done:** Changing `vid_gamma` / `gl3_intensity` / `gl3_overbrightbits` immediately affects brush + MD2 brightness without reloading assets.
+
+### Decision: Keep dynamic-light application on brush surfaces in shader (up to 8 strongest lights)
+- **Context:** Legacy/Yamagi dynamic lights affect lightmapped world/inline surfaces each frame.
+- **Options Considered:**
+  - CPU-side per-surface modulation only
+  - Shader-side per-fragment additive dynamic lights
+- **Chosen Option & Rationale:** Shader-side additive lights in `BspLightmapShader` with a capped upload budget for predictable cost.
+- **Consequences:** Very dense dynamic-light scenes are approximated by strongest lights only.
+- **Status:** accepted
+- **Definition of Done:** Muzzle/explosion/`EF_*` dynamic lights visibly affect world and inline lightmapped faces in gameplay.
+
 ## Quirks & Workarounds
 - **What:** Synthetic variant key uses `|` separator.
   - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.
@@ -199,9 +219,9 @@ For inline brush models specifically:
   - **Removal plan:** Revisit if upstream libGDX copy semantics change.
 
 - **What:** BSP lightmap shader forces `GL_NONE` culling for world faces.
-  - **Why:** BSP brush winding/cull expectations differ across assets; forcing backface culling dropped valid world geometry in tested maps.
-  - **Legacy counterpart:** `client/render/fast/Main.R_SetupGL` (`glCullFace(GL_FRONT)`), plus per-surface side tests in `Surf.R_RecursiveWorldNode` and `Surf.R_DrawInlineBModel`.
-  - **Difference:** Legacy relies on fixed winding + planeback tests; Cake currently disables culling for BSP shader path.
+- **Why:** BSP brush winding/cull expectations differ across assets; forcing backface culling dropped valid world geometry in tested maps.
+- **Legacy counterpart:** `client/render/fast/Main.R_SetupGL` (`glCullFace(GL_FRONT)`), plus per-surface side tests in `Surf.R_RecursiveWorldNode` and `Surf.R_DrawInlineBModel`.
+- **Difference:** Legacy relies on fixed winding + planeback tests; Cake currently disables culling for BSP shader path.
   - **How to work with it:** Keep cull policy in `BspLightmapShader` unless world BSP winding is normalized end-to-end.
   - **Removal plan:** Re-evaluate after a dedicated BSP winding normalization effort.
 
@@ -221,9 +241,16 @@ For inline brush models specifically:
   - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
 
 - **What:** Lightstyle application keeps a fallback branch for non-lightmapped BSP faces.
-  - **Why:** Legacy excludes `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` from lightmap sampling.
-  - **Legacy counterpart:** `client/render/fast/Light.R_BuildLightMap` + `Surf.GL_RenderLightmappedPoly`.
-  - **Difference:** World and inline eligible faces now use per-slot UV2 lightmaps; non-lightmapped faces use diffuse-only material path.
+- **Why:** Legacy excludes `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` from lightmap sampling.
+- **Legacy counterpart:** `client/render/fast/Light.R_BuildLightMap` + `Surf.GL_RenderLightmappedPoly`.
+- **Difference:** World and inline eligible faces now use per-slot UV2 lightmaps; non-lightmapped faces use diffuse-only material path.
+
+- **What:** MD2 per-entity lighting is sampled from leaf-averaged baked style data, then adjusted by dynamic lights.
+  - **Why:** Cake currently lacks the full alias normal-dot lighting path from legacy immediate mode / Yamagi GL3.
+  - **Legacy counterpart:** `client/render/fast/Mesh.R_DrawAliasModel`, `../yquake2/src/client/refresh/gl3/gl3_mesh.c` (`GL3_LightPoint` + alias shading).
+  - **Difference:** Current Cake MD2 lighting is point/tint based (no per-vertex normal-dot directional modulation yet).
+  - **How to work with it:** Use it for gameplay readability parity; avoid pixel-perfect visual comparisons against Yamagi alias shading.
+  - **Removal plan:** Replace with full alias-light direction/normal pipeline when VAT path carries normal data.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:

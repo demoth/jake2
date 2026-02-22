@@ -72,6 +72,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * This is intentionally unlit (idTech2 style): output = diffuse * sum(lightmapStyleSlot[i] * styleWeight[i]).
  * Runtime transparency still follows material blending/depth attributes.
  * Final color is post-adjusted by shared render controls (`vid_gamma`, `gl3_intensity`, `gl3_overbrightbits`).
+ * Dynamic lights are applied additively per-fragment (up to 8 strongest per frame).
  *
  * Invariants:
  * - lightmap texture attributes 0..3 map to style slots 0..3.
@@ -81,6 +82,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * Legacy references:
  * - `client/render/fast/Light.R_BuildLightMap` (style-slot accumulation with `Defines.MAXLIGHTMAPS`).
  * - `qcommon/Defines.MAXLIGHTMAPS` (=4).
+ * - `../yquake2/src/client/refresh/gl3/gl3_surf.c` dynamic-lighted lightmap path.
  *
  * Ownership/lifecycle:
  * - created and initialized in [org.demoth.cake.stages.ingame.Game3dScreen],

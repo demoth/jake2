@@ -1,150 +1,118 @@
 # Rendering TODO (Cake)
 
-This document tracks the rendering roadmap for Cake and the dependency order for implementation.
+This document tracks rendering parity work against legacy Jake2 and Yamagi GL3.
 
 ## Goal
 
-Bring Cake world/entity rendering closer to Quake2 behavior parity while keeping changes incremental and testable.
+Reach practical Quake2 gameplay parity for world/entity/effects lighting and transparency while keeping the code incremental and testable.
 
-## Current Reality (Why features are blocked)
+## Runtime Controls
 
-- World BSP model (`model 0`) now has stable per-surface mesh parts plus runtime records (`BspWorldRenderData`) with:
-  - face/texinfo identity,
-  - leaf -> surface mapping,
-  - texinfo metadata for animation chains.
-- World visibility is driven by PVS + server `areabits`.
-- Texinfo `nexttexinfo` animation now works for:
-  - world surfaces (legacy global-time cadence),
-  - inline brush models (`*1`, `*2`, ...) via entity frame parity.
-- Main remaining rendering gaps are now:
-  - inline brush-model (`*1`, `*2`, ...) per-face lightmaps (UV2 sampling),
-  - dynamic lights integration,
-  - optional parity follow-up: non-lightmapped transparent inline surfaces can still use per-part aggregate tinting for readability.
+- `vid_gamma` (default `1.2`)  
+  Legacy/Yamagi reference: `vid_gamma`, consumed as `1.0 / vid_gamma` in GL3 shader path.
+- `gl3_intensity` (default `1.5`)  
+  Legacy/Yamagi reference: `gl3_intensity`.
+- `gl3_overbrightbits` (default `1.3`)  
+  Legacy/Yamagi reference: `gl3_overbrightbits` (0 => effective multiplier `1`).
+- `r_dlights` (default `1`)  
+  Enables/disables dynamic light contribution.
+- `r_particles` (default `1`)  
+  Enables/disables transient particle rendering.
 
 ## Master Feature List
 
-- [x] Translucent model rendering (smoke and other `RF_TRANSLUCENT` model cases)
-- [x] World surface representation refactor (prerequisite for most BSP features)
-- [x] BSP visibility / PVS / areabits culling
-- [x] Animated BSP surfaces (`nexttexinfo` + `SURF_FLOWING`)
-- [x] Transparent BSP surfaces (`SURF_TRANS33` / `SURF_TRANS66`)
-- [x] Static BSP lightmaps + lightstyles
-- [ ] Inline BSP entity lightmaps (per-face UV2 + style slots)
-- [ ] Dynamic lights (muzzle flashes, explosions, effect/entity lights)
+- [x] Translucent model rendering (`RF_TRANSLUCENT`, smoke fade).
+- [x] World surface representation refactor (stable per-face records).
+- [x] BSP visibility (`PVS` + `areabits`).
+- [x] Animated BSP surfaces (`nexttexinfo`, `SURF_FLOWING`).
+- [x] Transparent BSP surfaces (`SURF_TRANS33`, `SURF_TRANS66`).
+- [x] Static BSP lightmaps + animated lightstyles (`CS_LIGHTS`, up to 4 style slots).
+- [x] Inline BSP entity lightmaps (per-face UV2 + style slots, legacy exclusions preserved).
+- [x] Dynamic lights (muzzle, temp effects, `EF_*` replicated emitters).
+- [x] MD2 lighting (no longer fullbright by default).
+- [x] Particles (transient runtime for TE/effect bursts).
 
-## Coupling Summary
+## Implementation Notes (Legacy + Yamagi Cross-Check)
 
-- No major features remain blocked by the old split-by-texture world representation; that prerequisite is complete.
-- Remaining strong dependency:
-  - Full brush-model lighting parity (doors/platforms/etc.) depends on inline per-face lightmap support.
-  - Full dynamic lights parity depends on the lightmap/lightstyle foundation.
+### Inline BSP entity lightmaps
 
-## Implementation Order (Recommended)
+- Legacy path:
+  - Jake2: `R_DrawBrushModel -> GL_RenderLightmappedPoly`
+  - Yamagi GL3: `GL3_DrawBrushModel -> RenderLightmappedPoly`
+- Cake implementation:
+  - Inline models emitted as per-face mesh parts.
+  - Eligible faces (`!SURF_TRANS33`, `!SURF_TRANS66`, `!SURF_WARP`) carry UV2 + per-style lightmap textures.
+  - Runtime style weights driven by `CS_LIGHTS` in same slot model as world.
+- Behavior difference:
+  - Non-lightmapped inline faces still use diffuse modulation fallback (expected; matches legacy exclusions).
 
-1. [ ] Inline BSP entity lightmaps (parity-critical prerequisite for full brush lighting)
-2. [ ] Dynamic lights (full world interaction)
+### Dynamic lights
 
-## Phase Details
+- Legacy path:
+  - Jake2/Yamagi: `CL_AllocDlight`, `CL_RunDLights`, `CL_AddDLights`
+  - Effect producers in `CL_fx`, `CL_tent`, and entity `EF_*` light branches in `CL_ents`.
+  - Yamagi GL3 applies dlights in brush shader path (`gl3_surf.c`, `gl3_shaders.c`).
+- Cake implementation:
+  - `DynamicLightSystem` with keyed transient lights + one-frame effect lights.
+  - 32 ms visibility extension replicated (high-FPS flash preservation).
+  - Sources:
+    - `MuzzleFlash2Profiles` (+ style-specific overrides),
+    - temp entities in `ClientEffectsSystem`,
+    - replicated `EF_*` lights in `Game3dScreen`.
+  - BSP shader consumes up to 8 strongest lights per frame.
 
-### 1) Translucent model rendering
+### MD2 lighting
 
-- Scope:
-  - Ensure `RF_TRANSLUCENT` + entity alpha affect MD2/model-backed drawables, not only sprites/beams.
-  - Fix smoke parity (`models/objects/smoke/tris.md2`) and similar transient model effects.
-- Status:
-  - [x] Completed.
-- Done when:
-  - Smoke/flash-related translucent models render with expected alpha layering in-game.
+- Legacy path:
+  - Jake2 `Mesh.R_DrawAliasModel` and Yamagi `GL3_DrawAliasModel`:
+    - point light sample (`R_LightPoint` / `GL3_LightPoint`),
+    - `RF_FULLBRIGHT`, `RF_MINLIGHT`, `RF_GLOW`, shell-color overrides.
+- Cake implementation:
+  - `BspEntityLightSampler` approximates leaf-local baked-lightstyle contribution from BSP data.
+  - Adds dynamic-light contribution from `DynamicLightSystem`.
+  - Applies `RF_FULLBRIGHT`, `RF_MINLIGHT`, `RF_GLOW`, and shell-color overrides before shader.
+  - MD2 shader now multiplies by per-entity light tint and shared gamma/intensity controls.
+- Behavior difference:
+  - Alias directional normal-dot shading is still simplified versus full legacy/Yamagi alias pipeline.
 
-### 2) World surface representation refactor (core prerequisite)
+### Particles
 
-- Scope:
-  - Keep BSP surface-level records at runtime (face, texinfo, flags, leaf/node ownership).
-  - Preserve links needed later for PVS, texture animation, transparent passes, lightmaps.
-  - Avoid rebuilding the world as coarse texture-only chunks.
-- Status:
-  - [x] Completed.
-- Done when:
-  - Runtime can iterate world by logical surfaces/leaves, not only grouped texture parts.
+- Legacy path:
+  - Jake2: `CL_fx` / `CL_newfx` particle spawners + renderer particle submission.
+  - Yamagi: dedicated particle renderer path (`cl_particles.c` + refresh backend).
+- Cake implementation:
+  - `EffectParticleSystem` adds transient world-space particles (TE impacts/splashes/explosions).
+  - Integrated in `ClientEffectsSystem.update/render`.
+  - Controlled by `r_particles`.
+- Behavior difference:
+  - Initial renderer uses lightweight translucent particle primitives, not legacy palette/indexed particle sprites.
 
-### 3) BSP visibility / PVS / areabits
+### Brightness controls (world + MD2)
 
-- Scope:
-  - Use view origin -> leaf -> cluster to build visible set each frame.
-  - Apply server-provided `areabits` gate.
-  - Cull non-visible world surfaces/leaves.
-- Status:
-  - [x] Completed.
-- Done when:
-  - Large same-texture areas no longer render globally; visibility changes with position/doors.
+- Legacy/Yamagi references:
+  - `vid_gamma`, `gl3_intensity`, `gl3_overbrightbits` update shader-side uniforms.
+- Cake implementation:
+  - BSP and MD2 shaders now apply shared controls.
+  - `gl3_overbrightbits <= 0` behaves as multiplier `1`.
 
-### 4) Animated BSP surfaces
+## Legacy References Used
 
-- Scope:
-  - Implement texinfo `nexttexinfo` chain animation (screen/button style textures).
-  - Implement flowing texture behavior where applicable.
-- Progress:
-  - [x] Texinfo `nexttexinfo` chain animation in world runtime (`R_TextureAnimation` parity path).
-  - [x] Texinfo `nexttexinfo` chain animation for inline brush models (`*1`, `*2`, ...) using entity frame parity.
-  - [x] `SURF_FLOWING` UV scrolling behavior.
-- Done when:
-  - Animated monitor/button textures and flowing surfaces advance over time like legacy behavior.
-
-### 5) Transparent BSP surfaces
-
-- Scope:
-  - Add transparent world-surface pass ordering for `SURF_TRANS33`/`SURF_TRANS66`.
-  - Include water/window rendering path with correct depth/blend handling.
-- Progress:
-  - [x] Surface flags `SURF_TRANS33` / `SURF_TRANS66` now configure per-surface blending + depth-mask behavior.
-- Done when:
-  - Water and glass-like surfaces render with expected transparency and ordering.
-
-### 6) Static BSP lightmaps (+ lightstyles)
-
-- Scope:
-  - Add lightmap data path (UV2/lightmap sampling or equivalent).
-  - Respect BSP lightmap offsets/styles and animated lightstyles (`CS_LIGHTS`).
-- Progress:
-  - [x] BSP lighting lump is parsed and mapped to per-surface/per-inline-part style metadata.
-  - [x] World BSP surfaces now use UV2 + per-surface baked lightmap texture sampling in a dedicated brush-surface shader.
-  - [x] Runtime applies `CS_LIGHTS` animated style values (100 ms cadence), including multi-style faces (up to 4 BSP lightstyle slots) via shader slot weighting.
-- Done when:
-  - World is no longer fullbright; map baked lighting and style changes are visible.
-
-### 7) Inline BSP entity lightmaps
-
-- Scope:
-  - Move inline brush models from per-part aggregate lightstyle modulation to per-face UV2 lightmap sampling.
-  - Keep legacy exclusions: `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` do not use lightmaps.
-  - Preserve up to 4 lightstyle slots per face and runtime `CS_LIGHTS` style weighting (same world shader model).
-- Progress:
-  - [x] Inline BSP models are now emitted as per-face mesh parts with stable ids.
-  - [x] Eligible inline faces now carry UV2 + per-slot baked lightmap textures and shader style-slot weighting.
-  - [ ] Validate broad map coverage for inline entities (doors/platforms/func_*) in gameplay.
-- Why this is required:
-  - Legacy Quake2 renders inline non-transparent/non-warp faces via the same lightmapped surface path as world (`R_DrawBrushModel` -> `GL_RenderLightmappedPoly`).
-  - Yamagi GL3 does the same (`GL3_DrawBrushModel` -> `RenderLightmappedPoly`).
-- Done when:
-  - Doors/platforms/func_* brush entities show per-texel baked shadows (not flat per-part tint), and target_lightramp updates visibly affect eligible inline faces.
-
-### 8) Dynamic lights
-
-- Scope:
-  - Reintroduce gameplay/effects dlights (muzzle, explosions, projectile/entity effects).
-  - Integrate with world/model rendering path after lightmap foundation exists.
-- Done when:
-  - Dynamic light events visibly affect scene lighting in expected locations/colors/intensities.
-
-## Notes for Execution
-
-- Keep each phase shippable with feature flags/cvars where useful.
-- Prefer parity-first behavior and then optimize.
-- When unsure about behavior details, cross-reference old client code paths:
-  - `client/src/main/java/jake2/client/render/fast/Surf.java`
-  - `client/src/main/java/jake2/client/render/fast/Light.java`
-  - `client/src/main/java/jake2/client/render/fast/Model.java`
+- Jake2 legacy client:
+  - `client/src/main/java/jake2/client/CL_ents.java`
   - `client/src/main/java/jake2/client/CL_fx.java`
   - `client/src/main/java/jake2/client/CL_tent.java`
+  - `client/src/main/java/jake2/client/render/fast/Light.java`
+  - `client/src/main/java/jake2/client/render/fast/Mesh.java`
+- Yamagi:
+  - `../yquake2/src/client/cl_lights.c`
+  - `../yquake2/src/client/cl_effects.c`
   - `../yquake2/src/client/refresh/gl3/gl3_surf.c`
-  - `../yquake2/src/client/refresh/gl3/gl3_lightmap.c`
+  - `../yquake2/src/client/refresh/gl3/gl3_mesh.c`
+  - `../yquake2/src/client/refresh/gl3/gl3_shaders.c`
+  - `../yquake2/src/client/refresh/gl3/gl3_main.c`
+
+## Remaining Follow-ups (Non-Blocking)
+
+- Particle renderer quality/performance parity (palette-accurate visuals, batching).
+- MD2 directional/normal-based lighting parity beyond current point-light tint model.
+- Optional: revisit BSP `GL_NONE` culling once full winding + plane-side parity is guaranteed.

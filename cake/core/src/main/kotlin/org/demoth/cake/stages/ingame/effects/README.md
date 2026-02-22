@@ -1,19 +1,19 @@
 # Client Effects Runtime
 
 ## Overview
-This package owns transient client-side effects produced by server effect messages.
+This package owns transient client-side visual/audio effects produced by server effect messages.
 
 Owned here:
-- `MuzzleFlash2Message` behavior (sound + muzzle smoke/flash models).
-- `TEMessage` subclass behavior currently decoded by `qcommon`.
+- `MuzzleFlash2Message` behavior (sound + local model/smoke + dynamic light).
+- `TEMessage` subclass behavior decoded by `qcommon`.
 - Effect-local asset precache/unload for models, sprites, and sounds not guaranteed by configstrings.
 - Runtime lifetime/update/render of temporary visual effects.
+- Temp-effect dynamic light spawning and transient particle bursts.
 
 Not owned here:
-- Replicated entity state reconstruction and interpolation (`ClientEntityManager`).
-- Generic world/entity rendering (`Game3dScreen`).
-- Replicated `.sp2` world/projectile entity rendering (handled in ingame render path, not this package).
-- Dynamic lights and particle systems (not implemented in cake yet).
+- Replicated entity state reconstruction/interpolation (`ClientEntityManager`).
+- Core world/entity drawing (`Game3dScreen`).
+- Continuous replicated entity `EF_*` lights (owned by `Game3dScreen.collectEntityEffectDynamicLights`).
 
 ## Key Types
 - `ClientEffectsSystem` - entry point for TE/muzzle effect dispatch.
@@ -21,21 +21,23 @@ Not owned here:
 - `AnimatedModelEffect` - timed MD2 model effect.
 - `AnimatedSpriteEffect` - timed `.sp2` billboard effect.
 - `LineBeamEffect` - timed procedural beam placeholder.
+- `EffectParticleSystem` - transient particle runtime for impact/explosion bursts.
 - `EffectAssetCatalog` - effect-owned preloaded models/sprites/sounds.
-- `MuzzleFlash2Profiles` - grouped behavior mapping for `MZ2_*`.
+- `MuzzleFlash2Profiles` - grouped behavior mapping for `MZ2_*`, including per-profile dynamic light defaults.
 
 ## Data / Control Flow
 ```text
 Cake.parseServerMessage
   -> Game3dScreen.processMuzzleFlash2Message / processTempEntityMessage
-  -> ClientEffectsSystem.processMuzzleFlash2Message / processTempEntityMessage
-  -> spawn ClientTransientEffect(s) + play positional sounds
+  -> ClientEffectsSystem handlers
+  -> spawn ClientTransientEffect(s) + particles + transient dlights + positional sounds
   -> Game3dScreen.render loop: effectsSystem.update -> effectsSystem.render
 ```
 
 Legacy counterparts:
 - `client/CL_fx.ParseMuzzleFlash2`
 - `client/CL_tent.ParseTEnt`
+- `../yquake2/src/client/cl_effects.c`
 
 ## Invariants
 - `ClientEntityManager` remains source-of-truth for replicated entity pose; effects only read it.
@@ -43,13 +45,35 @@ Legacy counterparts:
 - `precache()` must be called before gameplay effect dispatch.
 - Effect assets loaded by this package are unloaded by this package only.
 - Positional attenuation for both server `SoundMessage` and effects uses `SpatialSoundAttenuation`.
-- Behavior coverage is limited to TE subclasses currently parsed in `ServerMessage.parseFromBuffer`.
+- Particle and dynamic-light output obeys runtime toggles (`r_particles`, `r_dlights`).
 
 ## Decision Log
 Newest first.
 
+### Decision: Add local transient particle runtime for TE impact/explosion feedback
+- Context: many legacy TE branches depended on particles, but Cake had no particle output.
+- Options considered:
+1. Keep model/sprite-only placeholders.
+2. Add a lightweight particle bridge now.
+- Chosen Option & Rationale: Option 2. Introduce `EffectParticleSystem` for immediate gameplay readability.
+- Consequences: visuals are approximate versus full legacy palette particle renderer.
+- Status: accepted.
+- References: `client/CL_tent.java`, `client/CL_fx.java`, `../yquake2/src/client/cl_effects.c`.
+- Definition of Done: gunshot/spark/splash/explosion TE paths emit visible transient particles when `r_particles=1`.
+
+### Decision: Spawn transient dynamic lights from effect message handlers
+- Context: muzzle/explosion effects should light nearby geometry/models in real time.
+- Options considered:
+1. Handle dynamic lights only from replicated `EF_*` entity flags.
+2. Also spawn dynamic lights directly from TE/muzzle handlers.
+- Chosen Option & Rationale: Option 2 to match legacy timing and event ownership.
+- Consequences: dynamic-light source logic is split between this package (message-driven) and `Game3dScreen` (`EF_*` continuous).
+- Status: accepted.
+- References: `client/CL_fx.java`, `client/CL_tent.java`, `../yquake2/src/client/cl_lights.c`.
+- Definition of Done: muzzle flashes and TE explosions produce visible transient lights with expected color/radius families.
+
 ### Decision: Use `.sp2` sprite effect for `TE_BFG_EXPLOSION`
-- Context: Legacy temp-entity BFG explosion uses `sprites/s_bfg2.sp2`, while cake used MD2 placeholder.
+- Context: legacy temp-entity BFG explosion uses `sprites/s_bfg2.sp2`, while Cake used MD2 placeholder.
 - Options considered:
 1. Keep MD2 placeholder.
 2. Add dedicated `.sp2` effect path.
@@ -70,58 +94,24 @@ Newest first.
 - References: commits `b24eaeeb`, `7eded747`.
 - Definition of Done: no effect instance is stored in `ClientEntityManager` and effect handlers delegate to `ClientEffectsSystem`.
 
-### Decision: Handle TE behavior in `ClientEffectsSystem` using effect primitives
-- Context: TE messages include multiple visual families (explosions, impact flashes, trails, beams).
-- Options considered:
-1. Ad-hoc logic in `Game3dScreen`.
-2. Centralized TE dispatch in effects subsystem with reusable primitives.
-- Chosen Option & Rationale: Option 2 keeps message behavior cohesive and rendering concerns localized.
-- Consequences: some TE visuals remain approximations until particles/dlights parity work.
-- Status: accepted.
-- References: commit `1dbf9201`.
-- Definition of Done: parsed TE subclasses (`Point*`, `Trail`, `Splash`, `Beam*`) route through dedicated handlers.
-
-### Decision: Add procedural beam primitive for rail/BFG trail visuals
-- Context: rail and BFG laser trail visuals were missing; no sprite/particle runtime path existed.
-- Options considered:
-1. Wait for full sprite/particle pipeline.
-2. Add short-lived procedural line-beam effect now.
-- Chosen Option & Rationale: Option 2 restored gameplay readability quickly.
-- Consequences: visuals are intentionally approximate and may be replaced later.
-- Status: accepted.
-- References: commits `aa9db99b`, `172f6cf0`.
-- Definition of Done: rail trail renders blue beam + rail sound; BFG laser TE renders green beam.
-
-### Decision: Share one attenuation rule across server sounds and effects
-- Context: duplicated attenuation logic diverges easily.
-- Options considered:
-1. Keep local attenuation implementations.
-2. Extract shared utility.
-- Chosen Option & Rationale: Option 2 using `SpatialSoundAttenuation`.
-- Consequences: attenuation changes affect both paths consistently.
-- Status: accepted.
-- References: commit `c92d0250`.
-- Definition of Done: both `Game3dScreen` and `ClientEffectsSystem` call `SpatialSoundAttenuation.calculate`.
-
 ## Quirks & Workarounds
-- Transparency is globally incomplete in current cake rendering.
-- Why: world/water/translucent parity is not finished yet.
-- How to work with it: expect smoke/explosion/sprite blending differences from legacy in edge cases.
-- Removal plan: align global translucent pipeline before fine-tuning each effect family.
+- `TE_BFG_LASER` and rail trail still use `LineBeamEffect` placeholders.
+- Why: canonical beam/particle parity path is still incomplete.
+- How to work with it: treat these visuals as readability-first approximations.
+- Removal plan: replace with dedicated beam/particle implementation once parity path lands.
 
-- `TE_BFG_LASER` and rail trail still use `LineBeamEffect` placeholder instead of canonical particle/sprite legacy visuals.
-- Why: canonical particle effect runtime is still incomplete.
-- How to work with it: treat current visuals as compatibility placeholders.
-- Removal plan: replace with dedicated renderer once particle parity lands.
+- Particle visuals are currently untextured translucent primitives.
+- Why: bridge implementation avoids palette/atlas dependencies and high integration cost.
+- How to work with it: tune burst count/speed/alpha rather than expecting legacy pixel-shape parity.
+- Removal plan: move to a batched particle renderer with palette-accurate style families.
 
 ## How to Extend
 1. Add asset paths in `EffectAssetCatalog` for new effect-owned resources.
-2. Add or update behavior mapping in `MuzzleFlash2Profiles` for `MZ2_*` additions.
-3. Add/update TE subtype branch in `ClientEffectsSystem`.
-4. Prefer new `ClientTransientEffect` implementations over monolithic branches.
+2. Add/update behavior mapping in `MuzzleFlash2Profiles` for `MZ2_*` additions.
+3. Add/update TE subtype branches in `ClientEffectsSystem`.
+4. Prefer extending `EffectParticleSystem` for particle-heavy effects instead of spawning many model effects.
 5. Keep replicated state ownership in `ClientEntityManager`; effects should read but not mutate it.
 
 ## Open Questions
-- Should TE beams eventually reuse `BeamRenderer` instead of per-effect generated models?
-- Should `MuzzleFlash2Profiles` include explicit light-color/radius data before dynamic lights are implemented?
-- Should translucent effect ordering be moved to explicit sortable queues when more sprite effects are added?
+- Should rail/BFG beam placeholders move to a dedicated beam renderer shared with replicated `RF_BEAM` entities?
+- Should `EffectParticleSystem` switch to a batched mesh/shader path before adding high-count legacy particle families?
