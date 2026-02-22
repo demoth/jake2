@@ -19,7 +19,6 @@ import org.demoth.cake.ClientFrame
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.createModelInstance
-import org.demoth.cake.modelviewer.createGrid
 import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
 
@@ -54,6 +53,7 @@ class ClientEntityManager : Disposable {
 
     var levelEntity: ClientEntity? = null
     var skyEntity: ClientEntity? = null
+    private val debugOriginEntity = ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
 
     var surpressCount = 0
 
@@ -293,8 +293,7 @@ class ClientEntityManager : Disposable {
         visibleEntities.clear()
         visibleSprites.clear()
         visibleBeams.clear()
-        visibleEntities += ClientEntity("grid").apply { modelInstance = createGrid(16f, 8) }
-        visibleEntities += ClientEntity("origin").apply { modelInstance = createOriginArrows(16f) }
+        visibleEntities += debugOriginEntity
         if (levelEntity != null && drawLevel) {
             visibleEntities += levelEntity!!
         }
@@ -337,16 +336,26 @@ class ClientEntityManager : Disposable {
                     entity.modelInstance = createModelInstance(playerModel)
                     entity.spriteAsset = null
                 }
-            } else if (entity.modelInstance == null) {
+            } else {
                 val model = gameConfig.getModel(modelIndex)
                 val sprite = gameConfig.getSpriteModel(modelIndex)
                 entity.name = gameConfig.getModelName(modelIndex)
-                if (model != null) {
-                    entity.modelInstance = createModelInstance(model)
-                    entity.spriteAsset = null
-                } else if (sprite != null) {
-                    entity.modelInstance = null
-                    entity.spriteAsset = sprite
+                when {
+                    model != null -> {
+                        if (entity.modelInstance == null || entity.modelInstance.model !== model) {
+                            entity.modelInstance = createModelInstance(model)
+                        }
+                        entity.spriteAsset = null
+                    }
+                    sprite != null -> {
+                        entity.modelInstance = null
+                        entity.spriteAsset = sprite
+                    }
+                    else -> {
+                        // prevent stale model reuse when a config/model lookup fails
+                        entity.modelInstance = null
+                        entity.spriteAsset = null
+                    }
                 }
                 // todo: warning if the model was not found!
             }
@@ -569,5 +578,6 @@ class ClientEntityManager : Disposable {
         Cmd.RemoveCommand("toggle_skybox")
         Cmd.RemoveCommand("toggle_level")
         Cmd.RemoveCommand("toggle_entities")
+        debugOriginEntity.modelInstance.model.dispose()
     }
 }
