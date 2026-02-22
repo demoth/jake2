@@ -252,6 +252,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                 worldSurfaces.forEach { surface ->
                     val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
                     val face = bsp.faces[surface.faceIndex]
+                    val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
                     val lightmap = buildFaceLightmapData(bsp, face)
                     if (lightmap != null) {
                         generatedTextures += lightmap.styleTextures.map { it.texture }
@@ -283,6 +284,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     addFaceAsTriangles(
                         bsp = bsp,
                         face = face,
+                        vertexIndices = vertexIndices,
                         texture = texture,
                         meshBuilder = meshBuilder,
                         includeLightmapUv = true,
@@ -295,6 +297,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     val texturePath = toWalPath(part.textureName)
                     val texture = manager.get(texturePath, Texture::class.java)
                     val face = bsp.faces[part.faceIndex]
+                    val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
                     val lightmap = if (shouldUseBspFaceLightmap(part.textureFlags)) {
                         buildFaceLightmapData(bsp, face)
                     } else {
@@ -327,6 +330,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     addFaceAsTriangles(
                         bsp = bsp,
                         face = face,
+                        vertexIndices = vertexIndices,
                         texture = texture,
                         meshBuilder = meshBuilder,
                         includeLightmapUv = true,
@@ -338,28 +342,28 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         }
     }
 
-    private fun addFaceAsTriangles(
-        bsp: Bsp,
-        face: jake2.qcommon.filesystem.BspFace,
-        texture: Texture,
-        meshBuilder: com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder,
-        includeLightmapUv: Boolean,
-        lightmapGeometry: FaceLightmapGeometry?,
-    ) {
-        // Reconstruct polygon boundary from signed surfedges, then emit a triangle fan.
-        val vertices = extractFaceVertexIndices(bsp, face)
-        if (vertices.size < 3) {
-            return
-        }
-        val textureInfo = bsp.textures[face.textureInfoIndex]
+private fun addFaceAsTriangles(
+    bsp: Bsp,
+    face: jake2.qcommon.filesystem.BspFace,
+    vertexIndices: List<Int>,
+    texture: Texture,
+    meshBuilder: com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder,
+    includeLightmapUv: Boolean,
+    lightmapGeometry: FaceLightmapGeometry?,
+) {
+    // Reconstruct polygon boundary from signed surfedges, then emit a triangle fan.
+    if (vertexIndices.size < 3) {
+        return
+    }
+    val textureInfo = bsp.textures[face.textureInfoIndex]
 
-        val vertexBuffer = vertices.drop(1).windowed(2).flatMap { (i1, i2) ->
-            val v0 = bsp.vertices[vertices.first()]
-            val v1 = bsp.vertices[i1]
-            val v2 = bsp.vertices[i2]
-            val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
-            val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
-            val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
+    val vertexBuffer = vertexIndices.drop(1).windowed(2).flatMap { (i1, i2) ->
+        val v0 = bsp.vertices[vertexIndices.first()]
+        val v1 = bsp.vertices[i1]
+        val v2 = bsp.vertices[i2]
+        val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
+        val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
+        val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
             val lm0 = calculateLightmapUv(v0, textureInfo, lightmapGeometry)
             val lm1 = calculateLightmapUv(v1, textureInfo, lightmapGeometry)
             val lm2 = calculateLightmapUv(v2, textureInfo, lightmapGeometry)
@@ -395,6 +399,7 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
         val partRecords = (0..<model.faceCount).mapNotNull { offset ->
             val faceIndex = model.firstFace + offset
             val face = bsp.faces[faceIndex]
+            extractFaceVertexIndices(bsp, face) ?: return@mapNotNull null // ensure face has enough edges
             val textureInfoIndex = face.textureInfoIndex
             val texInfo = bsp.textures.getOrNull(textureInfoIndex) ?: return@mapNotNull null
             if (!shouldLoadWalTexture(texInfo.name)) {
@@ -461,6 +466,7 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
     return (0..<worldModel.faceCount).mapNotNull { localOffset ->
         val faceIndex = worldModel.firstFace + localOffset
         val face = bsp.faces[faceIndex]
+        extractFaceVertexIndices(bsp, face) ?: return@mapNotNull null // ensure face has enough edges
         val texInfo = bsp.textures[face.textureInfoIndex]
         if (!shouldLoadWalTexture(texInfo.name)) {
             return@mapNotNull null
@@ -692,14 +698,8 @@ private fun computeFaceLightmapGeometry(
     //
     // BSP lightmaps are stored on a 16x16 luxel grid; this computes face-local
     // texture-space bounds and resulting (sMax, tMax) sample dimensions.
-    if (face.numEdges < 3) {
-        return null
-    }
     val textureInfo = bsp.textures[face.textureInfoIndex]
-    val vertexIndices = extractFaceVertexIndices(bsp, face)
-    if (vertexIndices.isEmpty()) {
-        return null
-    }
+    val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return null
     var minS = Float.POSITIVE_INFINITY
     var maxS = Float.NEGATIVE_INFINITY
     var minT = Float.POSITIVE_INFINITY
@@ -741,12 +741,24 @@ private fun extractLightStyles(face: jake2.qcommon.filesystem.BspFace): List<Int
         .takeWhile { it != 255 }
 }
 
+/**
+ * Extracts ordered polygon vertex indices for one BSP face from signed surfedges.
+ *
+ * Returns `null` when `face.numEdges < 3` (non-triangulatable face).
+ *
+ * Why this can happen:
+ * - malformed BSP face records in custom/modded maps,
+ * - degenerate compile output where a face collapses below triangle cardinality.
+ *
+ * Note:
+ * this function currently preserves raw edge order and does not de-duplicate repeated vertex ids.
+ */
 private fun extractFaceVertexIndices(
     bsp: Bsp,
     face: jake2.qcommon.filesystem.BspFace,
-): List<Int> {
+): List<Int>? {
     if (face.numEdges < 3) {
-        return emptyList()
+        return null
     }
     return (0..<face.numEdges).map { edgeIndex ->
         val faceEdge = bsp.faceEdges[face.firstEdgeIndex + edgeIndex]
