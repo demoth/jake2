@@ -62,6 +62,7 @@ class ClientEffectsSystem(
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
+    private val particleSystem = EffectParticleSystem()
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -128,6 +129,7 @@ class ClientEffectsSystem(
     @Suppress("UNUSED_PARAMETER")
     fun update(deltaSeconds: Float, _serverFrame: Int) {
         val now = Globals.curtime
+        particleSystem.update(deltaSeconds, now)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()
@@ -145,6 +147,7 @@ class ClientEffectsSystem(
      * are expected to appear on top.
      */
     fun render(modelBatch: ModelBatch) {
+        particleSystem.render(modelBatch)
         activeEffects.forEach { effect ->
             effect.render(modelBatch)
         }
@@ -153,6 +156,7 @@ class ClientEffectsSystem(
     override fun dispose() {
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()
+        particleSystem.dispose()
         spriteRenderer.dispose()
         assetCatalog.dispose()
     }
@@ -162,6 +166,12 @@ class ClientEffectsSystem(
         when (msg.style) {
             Defines.TE_GUNSHOT,
             Defines.TE_BULLET_SPARKS -> {
+                emitImpactParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = if (msg.style == Defines.TE_GUNSHOT) 40 else 8,
+                    color = Color(0.95f, 0.9f, 0.65f, 1f),
+                )
                 spawnSmokeAndFlash(position)
                 playRandomSound(RICHOCHET_SOUNDS, position)
             }
@@ -171,10 +181,22 @@ class ClientEffectsSystem(
             Defines.TE_HEATBEAM_SPARKS,
             Defines.TE_HEATBEAM_STEAM,
             Defines.TE_ELECTRIC_SPARKS -> {
+                emitImpactParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = 40,
+                    color = Color(0.85f, 0.9f, 1f, 1f),
+                )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_SHOTGUN -> {
+                emitImpactParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = 20,
+                    color = Color(0.92f, 0.9f, 0.75f, 1f),
+                )
                 spawnSmokeAndFlash(position)
             }
 
@@ -233,6 +255,17 @@ class ClientEffectsSystem(
         val position = toVector3(msg.position) ?: return
         when (msg.style) {
             Defines.TE_SPLASH -> {
+                val splashColor = if (msg.param == Defines.SPLASH_SPARKS) {
+                    Color(1f, 0.85f, 0.4f, 1f)
+                } else {
+                    Color(0.45f, 0.6f, 1f, 1f)
+                }
+                emitImpactParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = msg.count.coerceIn(4, 64),
+                    color = splashColor,
+                )
                 if (msg.param == Defines.SPLASH_SPARKS) {
                     playRandomSound(SPARK_SOUNDS, position, Defines.ATTN_STATIC.toFloat())
                 }
@@ -257,6 +290,7 @@ class ClientEffectsSystem(
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
+                emitExplosionParticles(position, count = 128, color = Color(1f, 0.55f, 0.25f, 1f))
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -272,6 +306,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
+                emitExplosionParticles(position, count = 96, color = Color(1f, 0.45f, 0.35f, 1f))
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -287,6 +322,11 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
+                emitExplosionParticles(
+                    position,
+                    count = if (msg.style == Defines.TE_EXPLOSION1_BIG) 196 else 112,
+                    color = Color(1f, 0.52f, 0.22f, 1f),
+                )
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
@@ -327,6 +367,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
+                emitExplosionParticles(position, count = 96, color = Color(1f, 0.52f, 0.22f, 1f))
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -338,6 +379,12 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_CHAINFIST_SMOKE -> {
+                emitImpactParticles(
+                    origin = position,
+                    direction = floatArrayOf(0f, 0f, 1f),
+                    count = 28,
+                    color = Color(0.65f, 0.65f, 0.65f, 1f),
+                )
                 spawnAnimatedModelEffect(
                     modelPath = "models/objects/smoke/tris.md2",
                     position = position,
@@ -590,6 +637,53 @@ class ClientEffectsSystem(
             lifetimeMs = lifetimeMs,
             decayPerSecond = decayPerSecond,
             currentTimeMs = Globals.curtime,
+        )
+    }
+
+    private fun emitImpactParticles(
+        origin: Vector3,
+        direction: FloatArray?,
+        count: Int,
+        color: Color,
+    ) {
+        particleSystem.emitBurst(
+            origin = origin,
+            direction = direction,
+            count = count,
+            color = color,
+            speedMin = 35f,
+            speedMax = 170f,
+            spread = 0.85f,
+            gravity = -320f,
+            startAlpha = 0.95f,
+            endAlpha = 0f,
+            sizeMin = 0.4f,
+            sizeMax = 1.3f,
+            lifetimeMinMs = 160,
+            lifetimeMaxMs = 520,
+        )
+    }
+
+    private fun emitExplosionParticles(
+        origin: Vector3,
+        count: Int,
+        color: Color,
+    ) {
+        particleSystem.emitBurst(
+            origin = origin,
+            direction = floatArrayOf(0f, 0f, 1f),
+            count = count,
+            color = color,
+            speedMin = 60f,
+            speedMax = 320f,
+            spread = 1.2f,
+            gravity = -210f,
+            startAlpha = 1f,
+            endAlpha = 0f,
+            sizeMin = 0.6f,
+            sizeMax = 2f,
+            lifetimeMinMs = 240,
+            lifetimeMaxMs = 900,
         )
     }
 
