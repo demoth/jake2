@@ -94,6 +94,16 @@ class ClientEffectsSystem(
         if (profile.spawnSmokeAndFlash) {
             spawnSmokeAndFlash(muzzleOrigin)
         }
+        val muzzleLight = profile.dynamicLight
+        spawnDynamicLight(
+            origin = muzzleOrigin,
+            radius = muzzleLight.radius + Globals.rnd.nextInt(32),
+            red = muzzleLight.red,
+            green = muzzleLight.green,
+            blue = muzzleLight.blue,
+            key = msg.entityIndex,
+            lifetimeMs = muzzleLight.lifetimeMs,
+        )
 
         playRandomSound(profile.soundPaths, muzzleOrigin, profile.attenuation)
     }
@@ -170,16 +180,19 @@ class ClientEffectsSystem(
 
             Defines.TE_BLASTER -> {
                 spawnBlasterImpact(position, msg.direction, skinIndex = 0)
+                spawnDynamicLight(position, 150f, 1f, 1f, 0f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_BLASTER2 -> {
                 spawnBlasterImpact(position, msg.direction, skinIndex = 1)
+                spawnDynamicLight(position, 150f, 0f, 1f, 0f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_FLECHETTE -> {
                 spawnBlasterImpact(position, msg.direction, skinIndex = 2)
+                spawnDynamicLight(position, 150f, 0.19f, 0.41f, 0.75f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
         }
@@ -233,6 +246,7 @@ class ClientEffectsSystem(
                     frameCount = 2,
                     frameDurationMs = 80,
                 )
+                spawnDynamicLight(position, (100 + Globals.rnd.nextInt(75)).toFloat(), 1f, 1f, 0.3f)
             }
         }
     }
@@ -243,6 +257,7 @@ class ClientEffectsSystem(
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
+                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -257,6 +272,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
+                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -271,6 +287,7 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
+                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
                         "models/objects/r_explode2/tris.md2"
@@ -289,6 +306,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BFG_EXPLOSION -> {
+                spawnDynamicLight(position, 350f, 0f, 1f, 0f)
                 spawnAnimatedSpriteEffect(
                     spritePath = "sprites/s_bfg2.sp2",
                     position = position,
@@ -309,6 +327,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
+                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -329,6 +348,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_TRACKER_EXPLOSION -> {
+                spawnDynamicLight(position, 150f, -1f, -1f, -1f, lifetimeMs = 100)
                 playEffectSound("sound/weapons/disrupthit.wav", position)
             }
         }
@@ -548,6 +568,29 @@ class ClientEffectsSystem(
         if (gain > 0f) {
             sound.play(gain)
         }
+    }
+
+    private fun spawnDynamicLight(
+        origin: Vector3,
+        radius: Float,
+        red: Float,
+        green: Float,
+        blue: Float,
+        key: Int = 0,
+        lifetimeMs: Int = 0,
+        decayPerSecond: Float = 0f,
+    ) {
+        dynamicLightSystem?.spawnTransientLight(
+            key = key,
+            origin = origin,
+            radius = radius,
+            red = red,
+            green = green,
+            blue = blue,
+            lifetimeMs = lifetimeMs,
+            decayPerSecond = decayPerSecond,
+            currentTimeMs = Globals.curtime,
+        )
     }
 
     private fun toVector3(value: FloatArray?): Vector3? {

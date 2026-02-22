@@ -6,6 +6,15 @@ internal data class MuzzleFlash2Profile(
     val soundPaths: List<String> = emptyList(),
     val attenuation: Float = Defines.ATTN_NORM.toFloat(),
     val spawnSmokeAndFlash: Boolean = false,
+    val dynamicLight: MuzzleFlash2DynamicLight = MuzzleFlash2DynamicLight(),
+)
+
+internal data class MuzzleFlash2DynamicLight(
+    val radius: Float = 200f,
+    val red: Float = 1f,
+    val green: Float = 1f,
+    val blue: Float = 0f,
+    val lifetimeMs: Int = 0,
 )
 
 /**
@@ -144,11 +153,15 @@ internal object MuzzleFlash2Profiles {
         )
         registerValues(
             intArrayOf(Defines.MZ2_CHICK_ROCKET_1, Defines.MZ2_TURRET_ROCKET),
-            MuzzleFlash2Profile().withSound("sound/chick/chkatck2.wav")
+            MuzzleFlash2Profile()
+                .withSound("sound/chick/chkatck2.wav")
+                .withLight(red = 1f, green = 0.5f, blue = 0.2f)
         )
         registerRange(
             Defines.MZ2_TANK_ROCKET_1..Defines.MZ2_TANK_ROCKET_3,
-            MuzzleFlash2Profile().withSound("sound/tank/tnkatck1.wav")
+            MuzzleFlash2Profile()
+                .withSound("sound/tank/tnkatck1.wav")
+                .withLight(red = 1f, green = 0.5f, blue = 0.2f)
         )
         registerValues(
             intArrayOf(
@@ -163,11 +176,15 @@ internal object MuzzleFlash2Profiles {
                 Defines.MZ2_CARRIER_ROCKET_2,
                 Defines.MZ2_CARRIER_ROCKET_3,
                 Defines.MZ2_CARRIER_ROCKET_4
-            ), MuzzleFlash2Profile().withSound("sound/tank/rocket.wav")
+            ), MuzzleFlash2Profile()
+                .withSound("sound/tank/rocket.wav")
+                .withLight(red = 1f, green = 0.5f, blue = 0.2f)
         )
         registerRange(
             Defines.MZ2_GUNNER_GRENADE_1..Defines.MZ2_GUNNER_GRENADE_4,
-            MuzzleFlash2Profile().withSound("sound/gunner/gunatck3.wav")
+            MuzzleFlash2Profile()
+                .withSound("sound/gunner/gunatck3.wav")
+                .withLight(red = 1f, green = 0.5f, blue = 0f)
         )
 
         registerRange(
@@ -193,7 +210,9 @@ internal object MuzzleFlash2Profiles {
 
         registerValues(
             intArrayOf(Defines.MZ2_WIDOW_DISRUPTOR),
-            MuzzleFlash2Profile().withSound("sound/weapons/disint2.wav")
+            MuzzleFlash2Profile()
+                .withSound("sound/weapons/disint2.wav")
+                .withLight(red = -1f, green = -1f, blue = -1f, lifetimeMs = 100)
         )
     }
 
@@ -228,5 +247,23 @@ internal object MuzzleFlash2Profiles {
 
     private fun MuzzleFlash2Profile.withSounds(vararg paths: String): MuzzleFlash2Profile {
         return copy(soundPaths = paths.toList())
+    }
+
+    private fun MuzzleFlash2Profile.withLight(
+        radius: Float = dynamicLight.radius,
+        red: Float = dynamicLight.red,
+        green: Float = dynamicLight.green,
+        blue: Float = dynamicLight.blue,
+        lifetimeMs: Int = dynamicLight.lifetimeMs,
+    ): MuzzleFlash2Profile {
+        return copy(
+            dynamicLight = MuzzleFlash2DynamicLight(
+                radius = radius,
+                red = red,
+                green = green,
+                blue = blue,
+                lifetimeMs = lifetimeMs,
+            )
+        )
     }
 }

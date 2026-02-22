@@ -96,6 +96,7 @@ class DynamicLightSystem(
         blue: Float,
         lifetimeMs: Int = 0,
         decayPerSecond: Float = 0f,
+        currentTimeMs: Int = nowMs,
     ) {
         if (!RenderTuningCvars.dynamicLightsEnabled()) {
             return
@@ -104,6 +105,7 @@ class DynamicLightSystem(
             return
         }
 
+        nowMs = currentTimeMs
         val light = allocateTrackedLight(key)
         light.key = key
         light.origin.set(origin)
@@ -112,7 +114,7 @@ class DynamicLightSystem(
         light.green = green
         light.blue = blue
         light.decayPerSecond = decayPerSecond.coerceAtLeast(0f)
-        light.dieTimeMs = nowMs + lifetimeMs
+        light.dieTimeMs = currentTimeMs + lifetimeMs
         light.active = true
     }
 
@@ -137,7 +139,7 @@ class DynamicLightSystem(
      */
     fun sampleAt(point: Vector3): Vector3 {
         if (!RenderTuningCvars.dynamicLightsEnabled() || frameLights.isEmpty()) {
-            return Vector3.Zero
+            return Vector3()
         }
         var red = 0f
         var green = 0f
