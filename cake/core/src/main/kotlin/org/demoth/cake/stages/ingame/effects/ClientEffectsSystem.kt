@@ -24,6 +24,7 @@ import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
+import org.demoth.cake.stages.ingame.DynamicLightSystem
 
 /**
  * Runtime owner for non-replicated client-side effects produced by server effect messages.
@@ -57,6 +58,7 @@ class ClientEffectsSystem(
     private val entityManager: ClientEntityManager,
     private val listenerPositionProvider: () -> Vector3,
     private val cameraProvider: () -> Camera,
+    private val dynamicLightSystem: DynamicLightSystem? = null,
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()

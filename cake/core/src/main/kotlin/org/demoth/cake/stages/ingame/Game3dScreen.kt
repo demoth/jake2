@@ -32,6 +32,7 @@ import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
+import kotlin.math.sin
 
 /**
  * Represents the 3d screen where the game is actually happening.
@@ -45,9 +46,12 @@ class Game3dScreen(
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
+    private val bspLightmapShader: BspLightmapShader
+    private val md2Shader: Md2Shader
 
     private val collisionModel = CM()
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
+    private val dynamicLightSystem = DynamicLightSystem()
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -61,6 +65,7 @@ class Game3dScreen(
         entityManager = entityManager,
         listenerPositionProvider = { camera.position },
         cameraProvider = { camera },
+        dynamicLightSystem = dynamicLightSystem,
     )
     private val environment = Environment()
 
@@ -105,8 +110,9 @@ class Game3dScreen(
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
-        val bspLightmapShader = BspLightmapShader().apply { init() }
-        modelBatch = ModelBatch(Md2ShaderProvider(initializeMd2Shader(assetManager), bspLightmapShader))
+        bspLightmapShader = BspLightmapShader().apply { init() }
+        md2Shader = initializeMd2Shader(assetManager)
+        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
     }
 
     // todo: a lot of hacks/quirks - explain & document
@@ -147,6 +153,9 @@ class Game3dScreen(
         refreshLightStyles(Globals.curtime)
         worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
+        dynamicLightSystem.beginFrame(Globals.curtime, delta)
+        collectEntityEffectDynamicLights()
+        bspLightmapShader.setDynamicLights(dynamicLightSystem.visibleLightsForShader())
 
         // render entities
         val lateDepthHackEntities = mutableListOf<ClientEntity>()
@@ -812,6 +821,79 @@ class Game3dScreen(
     }
 
     /**
+     * Adds per-frame dynamic lights driven by replicated entity effect flags (`EF_*`).
+     *
+     * Legacy counterpart:
+     * `client/CL_ents.AddPacketEntities` (`V.AddLight` branches).
+     */
+    private fun collectEntityEffectDynamicLights() {
+        entityManager.forEachCurrentEntityState { state ->
+            val origin = entityManager.getEntitySoundOrigin(state.index) ?: return@forEachCurrentEntityState
+            val effects = state.effects
+            when {
+                (effects and Defines.EF_ROCKET) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 200f, 1f, 1f, 0f)
+                }
+                (effects and Defines.EF_BLASTER) != 0 -> {
+                    if ((effects and Defines.EF_TRACKER) != 0) {
+                        dynamicLightSystem.addFrameLight(origin, 200f, 0f, 1f, 0f)
+                    } else {
+                        dynamicLightSystem.addFrameLight(origin, 200f, 1f, 1f, 0f)
+                    }
+                }
+                (effects and Defines.EF_HYPERBLASTER) != 0 -> {
+                    if ((effects and Defines.EF_TRACKER) != 0) {
+                        dynamicLightSystem.addFrameLight(origin, 200f, 0f, 1f, 0f)
+                    } else {
+                        dynamicLightSystem.addFrameLight(origin, 200f, 1f, 1f, 0f)
+                    }
+                }
+                (effects and Defines.EF_BFG) != 0 -> {
+                    val radius = if ((effects and Defines.EF_ANIM_ALLFAST) != 0) {
+                        200f
+                    } else {
+                        BFG_LIGHT_RAMP[state.frame % BFG_LIGHT_RAMP.size].toFloat()
+                    }
+                    dynamicLightSystem.addFrameLight(origin, radius, 0f, 1f, 0f)
+                }
+                (effects and Defines.EF_TRAP) != 0 -> {
+                    val radius = 100f + Globals.rnd.nextInt(100)
+                    dynamicLightSystem.addFrameLight(origin, radius, 1f, 0.8f, 0.1f)
+                }
+                (effects and Defines.EF_FLAG1) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 225f, 1f, 0.1f, 0.1f)
+                }
+                (effects and Defines.EF_FLAG2) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 225f, 0.1f, 0.1f, 1f)
+                }
+                (effects and Defines.EF_TAGTRAIL) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 225f, 1f, 1f, 0f)
+                }
+                (effects and Defines.EF_TRACKERTRAIL) != 0 -> {
+                    if ((effects and Defines.EF_TRACKER) != 0) {
+                        val radius = 50f + 500f * (sin(Globals.curtime / 500f) + 1f)
+                        dynamicLightSystem.addFrameLight(origin, radius, -1f, -1f, -1f)
+                    } else {
+                        dynamicLightSystem.addFrameLight(origin, 155f, -1f, -1f, -1f)
+                    }
+                }
+                (effects and Defines.EF_TRACKER) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 200f, -1f, -1f, -1f)
+                }
+                (effects and Defines.EF_IONRIPPER) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 100f, 1f, 0.5f, 0.5f)
+                }
+                (effects and Defines.EF_BLUEHYPERBLASTER) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 200f, 0f, 0f, 1f)
+                }
+                (effects and Defines.EF_PLASMA) != 0 -> {
+                    dynamicLightSystem.addFrameLight(origin, 130f, 1f, 0.5f, 0.5f)
+                }
+            }
+        }
+    }
+
+    /**
      * Play an event sound using legacy-normal attenuation from the emitting entity origin.
      */
     private fun playEntityEventSound(sound: com.badlogic.gdx.audio.Sound, entityIndex: Int) {
@@ -828,4 +910,7 @@ class Game3dScreen(
         }
     }
 
+    companion object {
+        private val BFG_LIGHT_RAMP = intArrayOf(300, 400, 600, 300, 150, 75)
+    }
 }

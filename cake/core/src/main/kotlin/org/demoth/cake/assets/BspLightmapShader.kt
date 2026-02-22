@@ -12,7 +12,9 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.GdxRuntimeException
+import org.demoth.cake.stages.ingame.DynamicLightSystem
 import org.demoth.cake.stages.ingame.RenderTuningCvars
+import org.demoth.cake.stages.ingame.SceneDynamicLight
 
 /**
  * Lightmap texture for BSP brush surfaces.
@@ -87,6 +89,12 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  */
 class BspLightmapShader : BaseShader() {
     private lateinit var shaderProgram: ShaderProgram
+    private val dynamicLightPosRadius = FloatArray(DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS * 4)
+    private val dynamicLightColors = FloatArray(DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS * 4)
+    private var dynamicLightCount: Int = 0
+    private var dynamicLightCountLocation: Int = -1
+    private var dynamicLightPosRadiusLocation: Int = -1
+    private var dynamicLightColorsLocation: Int = -1
 
     private val uProjViewTrans = register(Uniform("u_projViewTrans"))
     private val uWorldTrans = register(Uniform("u_worldTrans"))
@@ -107,6 +115,9 @@ class BspLightmapShader : BaseShader() {
         if (!shaderProgram.isCompiled) {
             throw GdxRuntimeException("Failed to compile BSP lightmap shader: ${shaderProgram.log}")
         }
+        dynamicLightCountLocation = shaderProgram.fetchUniformLocation("u_dynamicLightCount", false)
+        dynamicLightPosRadiusLocation = shaderProgram.fetchUniformLocation("u_dynamicLightPosRadius", false)
+        dynamicLightColorsLocation = shaderProgram.fetchUniformLocation("u_dynamicLightColor", false)
         super.init(shaderProgram, null)
     }
 
@@ -173,6 +184,21 @@ class BspLightmapShader : BaseShader() {
         set(uIntensity, RenderTuningCvars.intensity())
         set(uOverbrightBits, RenderTuningCvars.overbrightBits())
         set(uWorldTrans, renderable.worldTransform)
+        shaderProgram.setUniformi(dynamicLightCountLocation, dynamicLightCount)
+        if (dynamicLightCount > 0) {
+            shaderProgram.setUniform4fv(
+                dynamicLightPosRadiusLocation,
+                dynamicLightPosRadius,
+                0,
+                dynamicLightCount * 4
+            )
+            shaderProgram.setUniform4fv(
+                dynamicLightColorsLocation,
+                dynamicLightColors,
+                0,
+                dynamicLightCount * 4
+            )
+        }
 
         renderable.meshPart.render(shaderProgram)
     }
@@ -193,6 +219,30 @@ class BspLightmapShader : BaseShader() {
         super.dispose()
     }
 
+    /**
+     * Updates the dynamic-light uniform payload used for subsequent draw calls.
+     *
+     * Call once per frame before model rendering.
+     */
+    fun setDynamicLights(lights: List<SceneDynamicLight>) {
+        dynamicLightCount = minOf(lights.size, DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS)
+        if (dynamicLightCount == 0) {
+            return
+        }
+        repeat(dynamicLightCount) { index ->
+            val light = lights[index]
+            val base = index * 4
+            dynamicLightPosRadius[base] = light.origin.x
+            dynamicLightPosRadius[base + 1] = light.origin.y
+            dynamicLightPosRadius[base + 2] = light.origin.z
+            dynamicLightPosRadius[base + 3] = light.radius
+            dynamicLightColors[base] = light.red
+            dynamicLightColors[base + 1] = light.green
+            dynamicLightColors[base + 2] = light.blue
+            dynamicLightColors[base + 3] = 1f
+        }
+    }
+
     companion object {
         private const val VERTEX_SHADER = """
 attribute vec3 a_position;
@@ -205,11 +255,14 @@ uniform vec4 u_diffuseUVTransform;
 
 varying vec2 v_diffuseUv;
 varying vec2 v_lightmapUv;
+varying vec3 v_worldPos;
 
 void main() {
+    vec4 worldPos = u_worldTrans * vec4(a_position, 1.0);
     v_diffuseUv = a_texCoord0 * u_diffuseUVTransform.zw + u_diffuseUVTransform.xy;
     v_lightmapUv = a_texCoord1;
-    gl_Position = u_projViewTrans * u_worldTrans * vec4(a_position, 1.0);
+    v_worldPos = worldPos.xyz;
+    gl_Position = u_projViewTrans * worldPos;
 }
 """
 
@@ -228,9 +281,31 @@ uniform float u_opacity;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
+uniform int u_dynamicLightCount;
+uniform vec4 u_dynamicLightPosRadius[8];
+uniform vec4 u_dynamicLightColor[8];
 
 varying vec2 v_diffuseUv;
 varying vec2 v_lightmapUv;
+varying vec3 v_worldPos;
+
+vec3 accumulateDynamicLights(vec3 worldPos) {
+    vec3 sum = vec3(0.0);
+    for (int i = 0; i < 8; ++i) {
+        if (i >= u_dynamicLightCount) {
+            break;
+        }
+        vec3 lightPos = u_dynamicLightPosRadius[i].xyz;
+        float radius = max(u_dynamicLightPosRadius[i].w, 0.001);
+        float distanceToLight = distance(lightPos, worldPos);
+        if (distanceToLight >= radius) {
+            continue;
+        }
+        float attenuation = 1.0 - (distanceToLight / radius);
+        sum += u_dynamicLightColor[i].rgb * attenuation;
+    }
+    return sum;
+}
 
 void main() {
     vec4 albedo = texture2D(u_diffuseTexture, v_diffuseUv);
@@ -239,6 +314,7 @@ void main() {
     vec3 light2 = texture2D(u_lightmapTexture2, v_lightmapUv).rgb * u_lightStyleWeights.z;
     vec3 light3 = texture2D(u_lightmapTexture3, v_lightmapUv).rgb * u_lightStyleWeights.w;
     vec3 light = (light0 + light1 + light2 + light3) * u_overbrightbits;
+    light += accumulateDynamicLights(v_worldPos);
     // Safety guard: if sampled lightmap is effectively black (invalid upload/UV path),
     // fall back to unlit albedo to avoid fully disappearing world geometry.
     if (max(light.r, max(light.g, light.b)) < 0.001) {
