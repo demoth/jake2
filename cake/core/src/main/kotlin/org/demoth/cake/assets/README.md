@@ -119,6 +119,17 @@ For inline brush models specifically:
 - **Status:** accepted
 - **Definition of Done:** MD2 vertex data includes `vertexNormals`; runtime binds normal VAT; fragment shading visibly reacts to entity yaw and normal orientation.
 
+### Decision: Add optional legacy MD2 shadedots mode (`r_md2_legacy_shadedots`)
+- **Context:** Continuous Lambert shading improves smoothness, but some maps/scenes are compared against legacy alias look that uses quantized shadedot response.
+- **Options Considered:**
+  - Keep continuous mode only
+  - Always force quantized legacy shadedots mode
+  - Add runtime toggle for legacy shadedots mode
+- **Chosen Option & Rationale:** Runtime toggle. Default remains smooth VAT interpolation, while parity/debug sessions can enable quantized legacy-style response.
+- **Consequences:** MD2 shader has one extra uniform branch and render output depends on runtime cvar.
+- **Status:** accepted
+- **Definition of Done:** With `r_md2_legacy_shadedots 1`, MD2 shading uses 16 yaw buckets and `dot(currentFrameNormal, shadeVector) + 1` response.
+
 ### Decision: Keep explicit world surface/leaf runtime records in `BspMapAsset`
 - **Context:** Grouping world BSP faces by texture into coarse model parts made PVS/areabits, lightmaps, and transparent/animated surface passes difficult to implement incrementally.
 - **Options Considered:**
@@ -263,9 +274,9 @@ For inline brush models specifically:
 - **What:** MD2 per-entity lighting is sampled from leaf-averaged baked style data, then adjusted by dynamic lights.
   - **Why:** Keep MD2 lighting coupled to world lightstyles/dlights while preserving VAT-friendly alias shading.
   - **Legacy counterpart:** `client/render/fast/Mesh.R_DrawAliasModel`, `../yquake2/src/client/refresh/gl3/gl3_mesh.c` (`GL3_LightPoint` + alias shading).
-  - **Difference:** Cake now applies continuous normal-dot shading from interpolated normal VAT; legacy alias path uses quantized `shadedots` tables and a different directional quantization.
-  - **How to work with it:** Expect close gameplay readability, but not bit-identical alias shading against Yamagi/Jake2 screenshots.
-  - **Removal plan:** Only needed if strict pixel parity with legacy `shadedots` quantization is required.
+  - **Difference:** Default Cake mode uses continuous normal-dot shading from interpolated normal VAT. Optional `r_md2_legacy_shadedots 1` switches to quantized shadedot response (`SHADEDOT_QUANT = 16`) and current-frame normal usage.
+  - **How to work with it:** Use default mode for smoother animation; enable legacy mode when validating against classic alias-shading look.
+  - **Removal plan:** Remove toggle only if one mode is chosen as permanent visual target.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:
