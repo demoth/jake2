@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem
 
+import jake2.qcommon.Globals
 import jake2.qcommon.math.Vector3f
 import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
@@ -158,6 +159,10 @@ class Md2Model(buffer: ByteBuffer) {
  *
  * The unpacked triangles are normalized to Cake-compatible winding so materials can use conventional
  * backface culling (`GL_BACK`) without per-model cull overrides.
+ *
+ * Legacy counterpart:
+ * MD2 stores packed normal indices (`lightnormalindex`) and legacy renderers resolve them
+ * through `anorms.h` / `Globals.bytedirs` before alias shading.
  */
 fun buildVertexData(
     glCmds: List<Md2GlCmd>,
@@ -176,14 +181,21 @@ fun buildVertexData(
         }
     }
 
-    // flatten vertex positions in all frames
+    // flatten vertex positions and resolved normals in all frames.
+    //
+    // Legacy counterpart:
+    // `lightnormalindex -> r_avertexnormals[]` (anorms table) in alias render path.
     val vertexPositions = mutableListOf<Float>()
+    val vertexNormals = mutableListOf<Float>()
     frames.forEach { frame ->
         frame.points.forEach { point ->
             vertexPositions.add(point.position.x)
             vertexPositions.add(point.position.y)
             vertexPositions.add(point.position.z)
-            // normal is unused so far
+            val normal = Globals.bytedirs.getOrNull(point.normalIndex) ?: Globals.bytedirs[0]
+            vertexNormals.add(normal[0])
+            vertexNormals.add(normal[1])
+            vertexNormals.add(normal[2])
         }
     }
 
@@ -191,6 +203,7 @@ fun buildVertexData(
         indices = attributes.indices.map { it.toShort() }.toShortArray(),
         vertexAttributes = attributes.toFloatArray(),
         vertexPositions = vertexPositions.toFloatArray(),
+        vertexNormals = vertexNormals.toFloatArray(),
         frames = frames.size,
         vertices = frames.first().points.size, // assuming all frames have the same number of vertices
     )
@@ -206,6 +219,8 @@ data class Md2VertexData(
     // vertex positions in a 2d array, should correspond to the indices, used to create VAT (Vertex Animation Texture)
     // size is numVertices(width) * numFrames(height) * 3(rgb)
     val vertexPositions: FloatArray,
+    // same layout as [vertexPositions], but containing resolved per-frame normal vectors.
+    val vertexNormals: FloatArray,
     val frames: Int,
     val vertices: Int,
 )

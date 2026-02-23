@@ -1,6 +1,8 @@
 package jake2.qcommon.filesystem
 
+import jake2.qcommon.Globals
 import jake2.qcommon.math.Vector3f
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -25,6 +27,39 @@ class Md2ModelTest {
         val frame = model.frames.first()
         assertEquals("stand0", frame.name)
         assertEquals(model.verticesCount, frame.points.size)
+    }
+
+    @Test
+    fun testBladeModelNormalsAreResolvedFromLegacyNormalTable() {
+        val fileName = "models/blade/tris.md2"
+        val bytes = this::class.java.getResourceAsStream(fileName)?.readAllBytes()
+            ?: throw AssertionError("Could not load $fileName")
+        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+        val model = Md2Model(buffer)
+
+        val vertexData = buildVertexData(model.glCommands, model.frames)
+        assertEquals(model.frames.size * model.verticesCount * 3, vertexData.vertexNormals.size)
+
+        // Legacy counterpart:
+        // `lightnormalindex -> bytedirs[]` lookup from `client/anorms.h`.
+        // Validate two stable samples from blade MD2 decode.
+        val firstSampleIndex = 0
+        val firstNormalIndex = model.frames[0].points[0].normalIndex
+        assertArrayEquals(
+            Globals.bytedirs[firstNormalIndex],
+            vertexData.vertexNormals.sliceArray(firstSampleIndex until firstSampleIndex + 3),
+            0.0001f,
+        )
+
+        val frame = 150
+        val vertex = 7
+        val secondNormalIndex = model.frames[frame].points[vertex].normalIndex
+        val secondSampleIndex = (frame * model.verticesCount + vertex) * 3
+        assertArrayEquals(
+            Globals.bytedirs[secondNormalIndex],
+            vertexData.vertexNormals.sliceArray(secondSampleIndex until secondSampleIndex + 3),
+            0.0001f,
+        )
     }
 
     @Test

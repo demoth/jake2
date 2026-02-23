@@ -150,5 +150,6 @@ class Md2ModelVertexDataTest {
 
         // todo: add proper test for texture coordinates
         assertEquals(testFrames.size * testFrames.first().points.size * 3, actual.vertexPositions.size)
+        assertEquals(testFrames.size * testFrames.first().points.size * 3, actual.vertexNormals.size)
     }
 }
