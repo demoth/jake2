@@ -9,6 +9,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `CakeFileResolver` - resolves logical asset names to actual files (classpath/internal/mod/baseq2), including synthetic player MD2 variant keys.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
+- `AnimationTextureAttribute` / `AnimationNormalTextureAttribute` - position/normal VAT bindings for MD2 shader path.
 - `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel BSP lightmap sampling (`UV2`) with up to 4 lightstyle slots per face.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
@@ -106,6 +107,17 @@ For inline brush models specifically:
 - **Consequences:** `qcommon` MD2 decode output is now Cake-oriented rather than a raw mirror of legacy immediate-mode winding.
 - **Status:** accepted
 - **Definition of Done:** MD2 entities render with correct outward faces using default backface culling, with no MD2-specific `GL_FRONT` cull attribute in `Md2Loader`.
+
+### Decision: Carry MD2 per-frame normals through a dedicated normal VAT
+- **Context:** MD2 lighting tint alone could not reproduce alias directional response and left models visually flatter than legacy/Yamagi.
+- **Options Considered:**
+  - Keep tint-only MD2 lighting
+  - Decode normals and compute directional term on CPU per vertex every frame
+  - Decode normals once and upload a second VAT texture consumed in shader
+- **Chosen Option & Rationale:** Resolve `lightnormalindex` via `Globals.bytedirs` at decode time and upload a normal VAT (`AnimationNormalTextureAttribute`). Shader interpolates per-frame normals and applies directional dot with yaw-derived shade vector. This keeps runtime work on GPU and matches Cake's VAT pipeline.
+- **Consequences:** MD2 materials now bind two VAT textures (position + normal) and incur one extra texture fetch path in shader.
+- **Status:** accepted
+- **Definition of Done:** MD2 vertex data includes `vertexNormals`; runtime binds normal VAT; fragment shading visibly reacts to entity yaw and normal orientation.
 
 ### Decision: Keep explicit world surface/leaf runtime records in `BspMapAsset`
 - **Context:** Grouping world BSP faces by texture into coarse model parts made PVS/areabits, lightmaps, and transparent/animated surface passes difficult to implement incrementally.
@@ -232,25 +244,28 @@ For inline brush models specifically:
 
 - **What:** Transparency (`SURF_TRANS33/SURF_TRANS66`) is applied by material mutation.
   - **Why:** Cake uses per-surface `NodePart` materials instead of immediate-mode alpha surface chain.
+  - **Cake counterpart:** `BspSurfaceMaterialController.applySurfaceTransparency`.
   - **Legacy counterpart:** enqueue in `Surf.R_RecursiveWorldNode` / `Surf.R_DrawInlineBModel`, render in `Surf.R_DrawAlphaSurfaces`.
   - **Difference:** Legacy had dedicated alpha pass; Cake sets `BlendingAttribute` and disables depth writes per material.
 
 - **What:** Flowing surfaces use time-based U offset.
   - **Why:** Preserve classic scroll cadence.
+  - **Cake counterpart:** `BspSurfaceMaterialController.applySurfaceFlowing`.
   - **Legacy counterpart:** `client/render/fast/Surf.DrawGLFlowingPoly`.
   - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
 
 - **What:** Lightstyle application keeps a fallback branch for non-lightmapped BSP faces.
 - **Why:** Legacy excludes `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` from lightmap sampling.
+- **Cake counterpart:** `BspSurfaceMaterialController.applySurfaceLightstyles`.
 - **Legacy counterpart:** `client/render/fast/Light.R_BuildLightMap` + `Surf.GL_RenderLightmappedPoly`.
 - **Difference:** World and inline eligible faces now use per-slot UV2 lightmaps; non-lightmapped faces use diffuse-only material path.
 
 - **What:** MD2 per-entity lighting is sampled from leaf-averaged baked style data, then adjusted by dynamic lights.
-  - **Why:** Cake currently lacks the full alias normal-dot lighting path from legacy immediate mode / Yamagi GL3.
+  - **Why:** Keep MD2 lighting coupled to world lightstyles/dlights while preserving VAT-friendly alias shading.
   - **Legacy counterpart:** `client/render/fast/Mesh.R_DrawAliasModel`, `../yquake2/src/client/refresh/gl3/gl3_mesh.c` (`GL3_LightPoint` + alias shading).
-  - **Difference:** Current Cake MD2 lighting is point/tint based (no per-vertex normal-dot directional modulation yet).
-  - **How to work with it:** Use it for gameplay readability parity; avoid pixel-perfect visual comparisons against Yamagi alias shading.
-  - **Removal plan:** Replace with full alias-light direction/normal pipeline when VAT path carries normal data.
+  - **Difference:** Cake now applies continuous normal-dot shading from interpolated normal VAT; legacy alias path uses quantized `shadedots` tables and a different directional quantization.
+  - **How to work with it:** Expect close gameplay readability, but not bit-identical alias shading against Yamagi/Jake2 screenshots.
+  - **Removal plan:** Only needed if strict pixel parity with legacy `shadedots` quantization is required.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:

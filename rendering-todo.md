@@ -71,9 +71,11 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - `BspEntityLightSampler` approximates leaf-local baked-lightstyle contribution from BSP data.
   - Adds dynamic-light contribution from `DynamicLightSystem`.
   - Applies `RF_FULLBRIGHT`, `RF_MINLIGHT`, `RF_GLOW`, and shell-color overrides before shader.
-  - MD2 shader now multiplies by per-entity light tint and shared gamma/intensity controls.
+  - MD2 decode resolves `lightnormalindex` via `Globals.bytedirs` and stores per-frame normals in a normal VAT.
+  - MD2 shader interpolates VAT normals and applies directional term from yaw-derived shade vector.
+  - MD2 shader also multiplies by per-entity light tint and shared gamma/intensity controls.
 - Behavior difference:
-  - Alias directional normal-dot shading is still simplified versus full legacy/Yamagi alias pipeline.
+  - Cake uses continuous Lambert dot on interpolated normals, while legacy/Yamagi alias path uses quantized `shadedots`-style directional tables.
 
 ### Particles
 
@@ -114,5 +116,5 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 ## Remaining Follow-ups (Non-Blocking)
 
 - Particle renderer quality/performance parity (palette-accurate visuals, batching).
-- MD2 directional/normal-based lighting parity beyond current point-light tint model.
+- Optional: strict MD2 alias-shading parity with legacy quantized `shadedots` response.
 - Optional: revisit BSP `GL_NONE` culling once full winding + plane-side parity is guaranteed.
