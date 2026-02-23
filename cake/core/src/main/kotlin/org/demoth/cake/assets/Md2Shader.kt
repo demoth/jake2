@@ -107,7 +107,8 @@ class AnimationNormalTextureAttribute(val texture: Texture): TextureAttribute(Ty
  *
  * Difference:
  * legacy aliases use quantized `anormtab` lookup (`shadedots`). Cake uses continuous dot product
- * with interpolated per-frame normals from normal VAT.
+ * with interpolated per-frame normals from normal VAT by default.
+ * Optional strict parity mode (`r_md2_legacy_shadedots`) switches to quantized shadedot response.
  */
 class Md2Shader(
     renderable: Renderable,
@@ -224,6 +225,11 @@ class Md2Shader(
             shader.set(inputID, RenderTuningCvars.intensity())
         }
     }
+    private val legacyShadedotsSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {
+            shader.set(inputID, if (RenderTuningCvars.legacyMd2ShadedotsEnabled()) 1f else 0f)
+        }
+    }
 
     // animation related local (per renderable) uniforms
     protected val u_vertexAnimationTexture = Uniform("u_vertexAnimationTexture")
@@ -243,6 +249,7 @@ class Md2Shader(
     private val u_shadeVector = Uniform("u_shadeVector")
     private val u_gammaExponent = Uniform("u_gammaExponent")
     private val u_intensity = Uniform("u_intensity")
+    private val u_useLegacyShadedots = Uniform("u_useLegacyShadedots")
 
     // register the uniforms
     private val u_vertexAnimationTexturePos = register(u_vertexAnimationTexture, vertexAnimationTextureSetter)
@@ -262,6 +269,7 @@ class Md2Shader(
     private val u_shadeVectorPos = register(u_shadeVector, shadeVectorSetter)
     private val u_gammaExponentPos = register(u_gammaExponent, gammaExponentSetter)
     private val u_intensityPos = register(u_intensity, intensitySetter)
+    private val u_useLegacyShadedotsPos = register(u_useLegacyShadedots, legacyShadedotsSetter)
     private val u_skinTexturePositions = IntArray(MAX_MD2_SKIN_TEXTURES) { slot ->
         register(Uniform("u_skinTexture$slot"), skinTextureSetter(slot))
     }

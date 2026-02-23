@@ -1,5 +1,6 @@
 in vec2 v_diffuseUV;
 in vec3 v_worldNormal;
+in vec3 v_worldNormalFrame2;
 
 uniform int u_skinIndex;
 uniform int u_skinCount;
@@ -7,6 +8,7 @@ uniform int u_skinCount;
 uniform float u_opacity;
 uniform vec3 u_entityLightColor;
 uniform vec3 u_shadeVector;
+uniform float u_useLegacyShadedots;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform sampler2D u_skinTexture0;
@@ -42,9 +44,11 @@ void main() {
     int skinIndex = clamp(u_skinIndex, 0, maxIndex);
     vec4 color = sampleSkin(skinIndex, v_diffuseUV);
     // Legacy alias counterpart:
-    // old path applies quantized shadedot lookup from precomputed table.
-    // Cake uses continuous lambert dot with interpolated normal VAT.
-    float directional = max(dot(normalize(v_worldNormal), normalize(u_shadeVector)), 0.0);
+    // - quantized yaw shadevector bucket (`SHADEDOT_QUANT = 16`),
+    // - current-frame normal index and `shadedots` table (`dot + 1` response).
+    float modernDirectional = max(dot(normalize(v_worldNormal), normalize(u_shadeVector)), 0.0);
+    float legacyDirectional = dot(normalize(v_worldNormalFrame2), normalize(u_shadeVector)) + 1.0;
+    float directional = mix(modernDirectional, legacyDirectional, clamp(u_useLegacyShadedots, 0.0, 1.0));
     color.rgb *= u_entityLightColor * directional;
     color.rgb *= u_intensity;
     color.rgb = pow(max(color.rgb, vec3(0.0)), vec3(u_gammaExponent));

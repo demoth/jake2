@@ -32,7 +32,6 @@ import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.sin
 
 /**
@@ -424,17 +423,13 @@ class Game3dScreen(
     }
 
     private fun setMd2ShadeVector(userData: Md2CustomData, yawDegrees: Float) {
-        // Legacy counterpart:
-        // `Mesh.R_DrawAliasModel` / `gl3_mesh.c` computes shadevector from entity yaw.
-        val angleRad = Math.toRadians(yawDegrees.toDouble()).toFloat()
-        val shadeX = cos(-angleRad)
-        val shadeY = sin(-angleRad)
-        val shadeZ = 1f
-        val length = kotlin.math.sqrt(shadeX * shadeX + shadeY * shadeY + shadeZ * shadeZ)
-            .coerceAtLeast(0.0001f)
-        userData.shadeVectorX = shadeX / length
-        userData.shadeVectorY = shadeY / length
-        userData.shadeVectorZ = shadeZ / length
+        val shadeVector = computeMd2ShadeVector(
+            yawDegrees = yawDegrees,
+            legacyQuantized = RenderTuningCvars.legacyMd2ShadedotsEnabled(),
+        )
+        userData.shadeVectorX = shadeVector.x
+        userData.shadeVectorY = shadeVector.y
+        userData.shadeVectorZ = shadeVector.z
     }
 
     override fun dispose() {

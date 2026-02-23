@@ -16,6 +16,7 @@ uniform float u_interpolation; // Interpolation factor between two animation fra
 
 out vec2 v_diffuseUV;
 out vec3 v_worldNormal;
+out vec3 v_worldNormalFrame2;
 
 void main() {
     vec2 texelSize = vec2(1.0 / u_textureWidth, 1.0 / u_textureHeight);
@@ -40,4 +41,6 @@ void main() {
     gl_Position = u_projViewTrans * u_worldTrans * vec4(finalPosition, 1.0);
     v_diffuseUV = a_texCoord1;
     v_worldNormal = normalize(mat3(u_worldTrans) * finalNormal);
+    // Legacy alias counterpart uses current frame normal index (no normal interpolation).
+    v_worldNormalFrame2 = normalize(mat3(u_worldTrans) * animatedNormal2);
 }
