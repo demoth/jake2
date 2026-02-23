@@ -1,10 +1,12 @@
 in vec2 v_diffuseUV;
+in vec3 v_worldNormal;
 
 uniform int u_skinIndex;
 uniform int u_skinCount;
 // Per-instance opacity from material BlendingAttribute (set by Md2Shader).
 uniform float u_opacity;
 uniform vec3 u_entityLightColor;
+uniform vec3 u_shadeVector;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform sampler2D u_skinTexture0;
@@ -39,7 +41,11 @@ void main() {
     int maxIndex = max(u_skinCount - 1, 0);
     int skinIndex = clamp(u_skinIndex, 0, maxIndex);
     vec4 color = sampleSkin(skinIndex, v_diffuseUV);
-    color.rgb *= u_entityLightColor;
+    // Legacy alias counterpart:
+    // old path applies quantized shadedot lookup from precomputed table.
+    // Cake uses continuous lambert dot with interpolated normal VAT.
+    float directional = max(dot(normalize(v_worldNormal), normalize(u_shadeVector)), 0.0);
+    color.rgb *= u_entityLightColor * directional;
     color.rgb *= u_intensity;
     color.rgb = pow(max(color.rgb, vec3(0.0)), vec3(u_gammaExponent));
     color.a *= u_opacity;

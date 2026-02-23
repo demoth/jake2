@@ -63,10 +63,15 @@ class Md2Asset(
  * Ownership:
  * - [Md2Asset] owns [model] disposal.
  * - fallback default skin (if created) is attached via `model.manageDisposable(...)`.
+ * - generated position/normal VAT textures are attached via `model.manageDisposable(...)`.
  * - dependency skins are owned by AssetManager, not by [Md2Asset].
  *
  * Geometry is turned into a mesh with VAT index attributes and a GPU VAT texture.
  * MD2 gl command winding is normalized at decode time; the loader does not apply per-model cull overrides.
+ *
+ * Legacy counterpart:
+ * `lightnormalindex` from MD2 frames is resolved via `anorms` table; Cake stores those vectors
+ * in a separate normal VAT texture and interpolates in shader.
  */
 class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
 
@@ -134,13 +139,17 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             vertexData.indices.size,
             VertexAttributes(
                 VertexAttribute(Generic, 1, "a_vat_index"),
-                TexCoords(1) // in future, normals can also be added here
+                TexCoords(1)
             )
         )
         mesh.setVertices(vertexData.vertexAttributes)
         mesh.setIndices(vertexData.indices)
-        val material = createMd2Material(createVat(vertexData), skins)
+        val positionVat = createPositionVat(vertexData)
+        val normalVat = createNormalVat(vertexData)
+        val material = createMd2Material(positionVat, normalVat, skins)
         val model = createModel(mesh, material)
+        model.manageDisposable(positionVat)
+        model.manageDisposable(normalVat)
         defaultSkin?.let { model.manageDisposable(it) }
         return Md2Asset(
             model = model,
@@ -177,20 +186,22 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         return fileName.substring(0, separatorIndex).takeIf { it.isNotBlank() }
     }
 
-    private fun createMd2Material(vat: Texture, skins: List<Texture>): Material {
+    private fun createMd2Material(positionVat: Texture, normalVat: Texture, skins: List<Texture>): Material {
         // required for registering the custom VAT texture attribute
         AnimationTextureAttribute.init()
+        AnimationNormalTextureAttribute.init()
 
         return Material(
             Md2SkinTexturesAttribute(skins.take(MAX_MD2_SKIN_TEXTURES)), // todo: warning if skins has more than MAX_MD2_SKIN_TEXTURES
-            AnimationTextureAttribute(vat)
+            AnimationTextureAttribute(positionVat),
+            AnimationNormalTextureAttribute(normalVat),
         )
     }
 
     /**
      * Builds the vertex-animation texture containing frame vertex positions.
      */
-    private fun createVat(vertexData: Md2VertexData): Texture {
+    private fun createPositionVat(vertexData: Md2VertexData): Texture {
         return Texture(
             CustomTextureData(
                 vertexData.vertices,
@@ -199,6 +210,22 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
                 GL30.GL_RGB,
                 GL20.GL_FLOAT,
                 vertexData.vertexPositions.toFloatBuffer(),
+            )
+        )
+    }
+
+    /**
+     * Builds the vertex-animation texture containing frame normal vectors.
+     */
+    private fun createNormalVat(vertexData: Md2VertexData): Texture {
+        return Texture(
+            CustomTextureData(
+                vertexData.vertices,
+                vertexData.frames,
+                GL30.GL_RGB16F,
+                GL30.GL_RGB,
+                GL20.GL_FLOAT,
+                vertexData.vertexNormals.toFloatBuffer(),
             )
         )
     }

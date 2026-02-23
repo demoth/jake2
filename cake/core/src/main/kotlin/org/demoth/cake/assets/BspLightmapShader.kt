@@ -343,7 +343,8 @@ class Md2ShaderProvider(
             return bspLightmapShader
         }
         return if (renderable.userData is Md2CustomData &&
-            renderable.material.has(AnimationTextureAttribute.Type)
+            renderable.material.has(AnimationTextureAttribute.Type) &&
+            renderable.material.has(AnimationNormalTextureAttribute.Type)
         ) {
             md2Shader
         } else {

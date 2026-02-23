@@ -32,6 +32,7 @@ import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyleFactory
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.sin
 
 /**
@@ -275,16 +276,19 @@ class Game3dScreen(
      * `client/V.AddEntity` consumption by renderer.
      */
     private fun renderModelEntity(modelBatch: ModelBatch, entity: ClientEntity) {
+        var entityYaw: Float
         // apply client side effects
         if (entity.current.effects and Defines.EF_ROTATE != 0) {
             // rotate the model Instance, should to 180 degrees in 1 second
             entity.modelInstance.transform.rotate(Vector3.Z, deltaTime * 180f)
+            entityYaw = entity.current.angles[Defines.YAW]
         } else {
             val pitch = lerpAngle(entity.prev.angles[Defines.PITCH], entity.current.angles[Defines.PITCH], lerpFrac)
             val yaw = lerpAngle(entity.prev.angles[Defines.YAW], entity.current.angles[Defines.YAW], lerpFrac)
             val roll = lerpAngle(entity.prev.angles[Defines.ROLL], entity.current.angles[Defines.ROLL], lerpFrac)
 
             applyIdTech2EntityRotation(entity, pitch, yaw, roll)
+            entityYaw = yaw
         }
 
         // interpolate position
@@ -337,7 +341,7 @@ class Game3dScreen(
 
         (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
             userData.interpolation = lerpFrac
-            applyMd2EntityLighting(entity, x, y, z, userData)
+            applyMd2EntityLighting(entity, x, y, z, entityYaw, userData)
         }
         modelBatch.render(entity.modelInstance, environment)
     }
@@ -361,6 +365,7 @@ class Game3dScreen(
         x: Float,
         y: Float,
         z: Float,
+        yawDegrees: Float,
         userData: Md2CustomData,
     ) {
         val renderFx = entity.resolvedRenderFx
@@ -387,6 +392,7 @@ class Game3dScreen(
             userData.lightRed = red
             userData.lightGreen = green
             userData.lightBlue = blue
+            setMd2ShadeVector(userData, yawDegrees)
             return
         }
 
@@ -414,6 +420,21 @@ class Game3dScreen(
         userData.lightRed = sampled.x
         userData.lightGreen = sampled.y
         userData.lightBlue = sampled.z
+        setMd2ShadeVector(userData, yawDegrees)
+    }
+
+    private fun setMd2ShadeVector(userData: Md2CustomData, yawDegrees: Float) {
+        // Legacy counterpart:
+        // `Mesh.R_DrawAliasModel` / `gl3_mesh.c` computes shadevector from entity yaw.
+        val angleRad = Math.toRadians(yawDegrees.toDouble()).toFloat()
+        val shadeX = cos(-angleRad)
+        val shadeY = sin(-angleRad)
+        val shadeZ = 1f
+        val length = kotlin.math.sqrt(shadeX * shadeX + shadeY * shadeY + shadeZ * shadeZ)
+            .coerceAtLeast(0.0001f)
+        userData.shadeVectorX = shadeX / length
+        userData.shadeVectorY = shadeY / length
+        userData.shadeVectorZ = shadeZ / length
     }
 
     override fun dispose() {
