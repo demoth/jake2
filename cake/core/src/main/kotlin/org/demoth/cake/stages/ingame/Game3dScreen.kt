@@ -423,10 +423,7 @@ class Game3dScreen(
     }
 
     private fun setMd2ShadeVector(userData: Md2CustomData, yawDegrees: Float) {
-        val shadeVector = computeMd2ShadeVector(
-            yawDegrees = yawDegrees,
-            legacyQuantized = RenderTuningCvars.legacyMd2ShadedotsEnabled(),
-        )
+        val shadeVector = computeMd2ShadeVector(yawDegrees = yawDegrees)
         userData.shadeVectorX = shadeVector.x
         userData.shadeVectorY = shadeVector.y
         userData.shadeVectorZ = shadeVector.z

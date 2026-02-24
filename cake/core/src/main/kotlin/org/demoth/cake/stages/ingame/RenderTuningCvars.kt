@@ -10,7 +10,6 @@ import jake2.qcommon.exec.Cvar
  * - `vid_gamma`
  * - `gl3_intensity`
  * - `gl3_overbrightbits`
- * - alias `shadedots` yaw quantization in `Mesh.R_DrawAliasModel` / `gl3_mesh.c`
  *
  * These cvars are intentionally centralized so BSP/MD2/particle paths use the same
  * brightness controls and behavior toggles.
@@ -23,7 +22,6 @@ object RenderTuningCvars {
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
     private val rParticles = cvars.Get("r_particles", "1", Defines.CVAR_ARCHIVE)
-    private val rMd2LegacyShadedots = cvars.Get("r_md2_legacy_shadedots", "0", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
@@ -45,11 +43,4 @@ object RenderTuningCvars {
     fun dynamicLightsEnabled(): Boolean = rDlights.value != 0f
 
     fun particlesEnabled(): Boolean = rParticles.value != 0f
-
-    /**
-     * Enables strict MD2 alias shading mode:
-     * - shade vector yaw quantization to 16 buckets,
-     * - legacy shadedot response (`dot(normal, shadeVector) + 1`).
-     */
-    fun legacyMd2ShadedotsEnabled(): Boolean = rMd2LegacyShadedots.value != 0f
 }

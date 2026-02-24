@@ -1,5 +1,4 @@
 in vec2 v_diffuseUV;
-in vec3 v_worldNormal;
 in vec3 v_worldNormalFrame2;
 
 uniform int u_skinIndex;
@@ -8,7 +7,6 @@ uniform int u_skinCount;
 uniform float u_opacity;
 uniform vec3 u_entityLightColor;
 uniform vec3 u_shadeVector;
-uniform float u_useLegacyShadedots;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform sampler2D u_skinTexture0;
@@ -46,9 +44,7 @@ void main() {
     // Legacy alias counterpart:
     // - quantized yaw shadevector bucket (`SHADEDOT_QUANT = 16`),
     // - current-frame normal index and `shadedots` table (`dot + 1` response).
-    float modernDirectional = max(dot(normalize(v_worldNormal), normalize(u_shadeVector)), 0.0);
-    float legacyDirectional = dot(normalize(v_worldNormalFrame2), normalize(u_shadeVector)) + 1.0;
-    float directional = mix(modernDirectional, legacyDirectional, clamp(u_useLegacyShadedots, 0.0, 1.0));
+    float directional = dot(normalize(v_worldNormalFrame2), normalize(u_shadeVector)) + 1.0;
     color.rgb *= u_entityLightColor * directional;
     color.rgb *= u_intensity;
     color.rgb = pow(max(color.rgb, vec3(0.0)), vec3(u_gammaExponent));

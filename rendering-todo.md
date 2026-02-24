@@ -18,8 +18,6 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Enables/disables dynamic light contribution.
 - `r_particles` (default `1`)  
   Enables/disables transient particle rendering.
-- `r_md2_legacy_shadedots` (default `0`)  
-  Enables strict alias-style MD2 shadedot response (`SHADEDOT_QUANT = 16` yaw buckets).
 
 ## Master Feature List
 
@@ -32,7 +30,6 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Inline BSP entity lightmaps (per-face UV2 + style slots, legacy exclusions preserved).
 - [x] Dynamic lights (muzzle, temp effects, `EF_*` replicated emitters).
 - [x] MD2 lighting (no longer fullbright by default).
-- [x] Optional strict MD2 alias-shading parity mode (`r_md2_legacy_shadedots`).
 - [x] Particles (transient runtime for TE/effect bursts).
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
@@ -75,12 +72,10 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Adds dynamic-light contribution from `DynamicLightSystem`.
   - Applies `RF_FULLBRIGHT`, `RF_MINLIGHT`, `RF_GLOW`, and shell-color overrides before shader.
   - MD2 decode resolves `lightnormalindex` via `Globals.bytedirs` and stores per-frame normals in a normal VAT.
-  - MD2 shader interpolates VAT normals and applies directional term from yaw-derived shade vector.
-  - Optional legacy mode quantizes yaw to 16 buckets and uses `dot(currentFrameNormal, shadeVector) + 1`.
+  - MD2 shader follows legacy-style shadedots response: quantized yaw buckets and `dot(currentFrameNormal, shadeVector) + 1`.
   - MD2 shader also multiplies by per-entity light tint and shared gamma/intensity controls.
 - Behavior difference:
-  - Default Cake mode uses continuous Lambert dot on interpolated normals.
-  - Legacy toggle mode matches quantized shadedot behavior more closely, but still differs from legacy immediate/fixed-function submission details.
+  - Cake keeps modern VAT/shader plumbing, but lighting response now targets legacy alias behavior.
 
 ### Particles
 

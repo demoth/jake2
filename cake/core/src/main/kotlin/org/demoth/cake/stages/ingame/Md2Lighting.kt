@@ -19,16 +19,11 @@ internal data class Md2ShadeVector(
  * - `client/render/fast/Mesh.R_DrawAliasModel`
  * - `../yquake2/src/client/refresh/gl3/gl3_mesh.c`
  *
- * Legacy quantized mode mirrors `shadedots` yaw bucketing:
+ * Mirrors legacy `shadedots` yaw bucketing:
  * `((int)(yaw * (16 / 360.0))) & 15`.
  */
-internal fun computeMd2ShadeVector(yawDegrees: Float, legacyQuantized: Boolean): Md2ShadeVector {
-    val shadeYaw = if (legacyQuantized) {
-        quantizeLegacyShadedotYawDegrees(yawDegrees)
-    } else {
-        yawDegrees
-    }
-
+internal fun computeMd2ShadeVector(yawDegrees: Float): Md2ShadeVector {
+    val shadeYaw = quantizeLegacyShadedotYawDegrees(yawDegrees)
     val angleRad = Math.toRadians(shadeYaw.toDouble()).toFloat()
     val shadeX = cos(-angleRad)
     val shadeY = sin(-angleRad)
@@ -48,4 +43,3 @@ internal fun quantizeLegacyShadedotYawDegrees(yawDegrees: Float): Float {
     val bucket = ((yawDegrees * (SHADEDOT_QUANT / 360f)).toInt()) and (SHADEDOT_QUANT - 1)
     return bucket * (360f / SHADEDOT_QUANT)
 }
-

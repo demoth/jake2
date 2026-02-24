@@ -114,21 +114,10 @@ For inline brush models specifically:
   - Keep tint-only MD2 lighting
   - Decode normals and compute directional term on CPU per vertex every frame
   - Decode normals once and upload a second VAT texture consumed in shader
-- **Chosen Option & Rationale:** Resolve `lightnormalindex` via `Globals.bytedirs` at decode time and upload a normal VAT (`AnimationNormalTextureAttribute`). Shader interpolates per-frame normals and applies directional dot with yaw-derived shade vector. This keeps runtime work on GPU and matches Cake's VAT pipeline.
+- **Chosen Option & Rationale:** Resolve `lightnormalindex` via `Globals.bytedirs` at decode time and upload a normal VAT (`AnimationNormalTextureAttribute`). Shader applies legacy-style shadedots response using current-frame normals and yaw-derived shade vector. This keeps runtime work on GPU while preserving vanilla alias look.
 - **Consequences:** MD2 materials now bind two VAT textures (position + normal) and incur one extra texture fetch path in shader.
 - **Status:** accepted
 - **Definition of Done:** MD2 vertex data includes `vertexNormals`; runtime binds normal VAT; fragment shading visibly reacts to entity yaw and normal orientation.
-
-### Decision: Add optional legacy MD2 shadedots mode (`r_md2_legacy_shadedots`)
-- **Context:** Continuous Lambert shading improves smoothness, but some maps/scenes are compared against legacy alias look that uses quantized shadedot response.
-- **Options Considered:**
-  - Keep continuous mode only
-  - Always force quantized legacy shadedots mode
-  - Add runtime toggle for legacy shadedots mode
-- **Chosen Option & Rationale:** Runtime toggle. Default remains smooth VAT interpolation, while parity/debug sessions can enable quantized legacy-style response.
-- **Consequences:** MD2 shader has one extra uniform branch and render output depends on runtime cvar.
-- **Status:** accepted
-- **Definition of Done:** With `r_md2_legacy_shadedots 1`, MD2 shading uses 16 yaw buckets and `dot(currentFrameNormal, shadeVector) + 1` response.
 
 ### Decision: Keep explicit world surface/leaf runtime records in `BspMapAsset`
 - **Context:** Grouping world BSP faces by texture into coarse model parts made PVS/areabits, lightmaps, and transparent/animated surface passes difficult to implement incrementally.
@@ -274,9 +263,9 @@ For inline brush models specifically:
 - **What:** MD2 per-entity lighting is sampled from leaf-averaged baked style data, then adjusted by dynamic lights.
   - **Why:** Keep MD2 lighting coupled to world lightstyles/dlights while preserving VAT-friendly alias shading.
   - **Legacy counterpart:** `client/render/fast/Mesh.R_DrawAliasModel`, `../yquake2/src/client/refresh/gl3/gl3_mesh.c` (`GL3_LightPoint` + alias shading).
-  - **Difference:** Default Cake mode uses continuous normal-dot shading from interpolated normal VAT. Optional `r_md2_legacy_shadedots 1` switches to quantized shadedot response (`SHADEDOT_QUANT = 16`) and current-frame normal usage.
-  - **How to work with it:** Use default mode for smoother animation; enable legacy mode when validating against classic alias-shading look.
-  - **Removal plan:** Remove toggle only if one mode is chosen as permanent visual target.
+  - **Difference:** Cake keeps VAT-based model animation and shader pipeline, but MD2 lighting response is constrained to legacy-style quantized shadedots (no smooth Lambert fallback).
+  - **How to work with it:** Treat this path as parity-first baseline; compare against vanilla/Yamagi behavior before introducing stylistic lighting changes.
+  - **Removal plan:** Revisit only after parity sign-off.
 
 ## How to Extend
 1. If adding another synthetic key format, update both:

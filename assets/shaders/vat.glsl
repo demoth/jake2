@@ -15,7 +15,6 @@ uniform int u_frame2; // Index of the second frame in the animation texture
 uniform float u_interpolation; // Interpolation factor between two animation frames (0.0 to 1.0)
 
 out vec2 v_diffuseUV;
-out vec3 v_worldNormal;
 out vec3 v_worldNormalFrame2;
 
 void main() {
@@ -30,17 +29,14 @@ void main() {
     // The texture stores vec3 positions in RGB channels (assuming float texture)
     vec3 animatedPosition1 = texture(u_vertexAnimationTexture, vertexTextureCoord1).rgb;
     vec3 animatedPosition2 = texture(u_vertexAnimationTexture, vertexTextureCoord2).rgb;
-    vec3 animatedNormal1 = texture(u_vertexNormalTexture, normalTextureCoord1).rgb;
     vec3 animatedNormal2 = texture(u_vertexNormalTexture, normalTextureCoord2).rgb;
 
     // Interpolate between the two animated positions
     vec3 finalPosition = mix(animatedPosition1, animatedPosition2, u_interpolation);
-    vec3 finalNormal = normalize(mix(animatedNormal1, animatedNormal2, u_interpolation));
 
     // Apply the final interpolated position
     gl_Position = u_projViewTrans * u_worldTrans * vec4(finalPosition, 1.0);
     v_diffuseUV = a_texCoord1;
-    v_worldNormal = normalize(mat3(u_worldTrans) * finalNormal);
     // Legacy alias counterpart uses current frame normal index (no normal interpolation).
     v_worldNormalFrame2 = normalize(mat3(u_worldTrans) * animatedNormal2);
 }
