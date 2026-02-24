@@ -96,6 +96,9 @@ class Game3dScreen(
 
     // interpolation factor between two server frames, between 0 and 1
     private var lerpFrac: Float = 0f
+    private var skyRotationDegreesPerSecond: Float = 0f
+    private var skyRotationAngleDegrees: Float = 0f
+    private val skyRotationAxis = Vector3()
 
     init {
         // create camera
@@ -135,6 +138,40 @@ class Game3dScreen(
 
     private fun refreshSkyBox() {
         entityManager.setSkyModel(gameConfig.getSkyModel())
+        refreshSkyRotation()
+    }
+
+    private fun refreshSkyRotation() {
+        skyRotationDegreesPerSecond = gameConfig.getConfigValue(Defines.CS_SKYROTATE)?.toFloatOrNull() ?: 0f
+        skyRotationAxis.set(parseSkyAxis(gameConfig.getConfigValue(Defines.CS_SKYAXIS)))
+    }
+
+    private fun parseSkyAxis(axisValue: String?): Vector3 {
+        if (axisValue.isNullOrBlank()) {
+            return Vector3.Zero
+        }
+
+        val tokens = axisValue.trim().split(Regex("\\s+"))
+        val x = tokens.getOrNull(0)?.toFloatOrNull() ?: 0f
+        val y = tokens.getOrNull(1)?.toFloatOrNull() ?: 0f
+        val z = tokens.getOrNull(2)?.toFloatOrNull() ?: 0f
+        return Vector3(x, y, z)
+    }
+
+    private fun applySkyTransform(skyModelInstance: ModelInstance) {
+        skyModelInstance.transform.idt()
+        if (skyRotationDegreesPerSecond != 0f && !skyRotationAxis.isZero) {
+            skyModelInstance.transform.rotate(skyRotationAxis, skyRotationAngleDegrees)
+        }
+        skyModelInstance.transform.setTranslation(camera.position)
+    }
+
+    private fun advanceSkyRotation(deltaSeconds: Float) {
+        if (skyRotationDegreesPerSecond == 0f || skyRotationAxis.isZero) {
+            return
+        }
+        skyRotationAngleDegrees += deltaSeconds * skyRotationDegreesPerSecond
+        skyRotationAngleDegrees %= 360f
     }
 
     override fun render(delta: Float) {
@@ -152,6 +189,7 @@ class Game3dScreen(
         worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
         worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
+        advanceSkyRotation(delta)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
         dynamicLightSystem.beginFrame(Globals.curtime, delta)
         collectEntityEffectDynamicLights()
@@ -163,8 +201,7 @@ class Game3dScreen(
             if (entityManager.rDrawSky?.value != 0f)
                 entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
                     Gdx.gl.glDepthMask(false)
-                    // TODO: rotate skybox: skyBox.transform.setToRotation(...)
-                    skyModelInstance.transform.setTranslation(camera.position) // follow the camera
+                    applySkyTransform(skyModelInstance)
                     modelBatch.render(skyModelInstance)
                     Gdx.gl.glDepthMask(true)
                 }
@@ -758,8 +795,9 @@ class Game3dScreen(
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
         gameConfig.applyConfigString(msg.index, msg.config, loadResource = precached)
 
-        if (msg.index == Defines.CS_SKY) {
-            refreshSkyBox()
+        when (msg.index) {
+            Defines.CS_SKY -> refreshSkyBox()
+            Defines.CS_SKYROTATE, Defines.CS_SKYAXIS -> refreshSkyRotation()
         }
     }
 
