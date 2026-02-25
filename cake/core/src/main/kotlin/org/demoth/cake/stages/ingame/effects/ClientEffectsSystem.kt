@@ -164,16 +164,45 @@ class ClientEffectsSystem(
     private fun handlePointDirectionMessage(msg: PointDirectionTEMessage) {
         val position = toVector3(msg.position) ?: return
         when (msg.style) {
+            Defines.TE_BLOOD,
+            Defines.TE_MOREBLOOD,
+            Defines.TE_GREENBLOOD -> {
+                emitImpactParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = when (msg.style) {
+                        Defines.TE_MOREBLOOD -> 250
+                        Defines.TE_GREENBLOOD -> 30
+                        else -> 60
+                    },
+                    color = when (msg.style) {
+                        Defines.TE_GREENBLOOD -> Color(0.55f, 0.95f, 0.45f, 1f)
+                        else -> Color(0.84f, 0.12f, 0.12f, 1f)
+                    },
+                )
+            }
+
             Defines.TE_GUNSHOT,
+            Defines.TE_SPARKS,
             Defines.TE_BULLET_SPARKS -> {
                 emitImpactParticles(
                     origin = position,
                     direction = msg.direction,
-                    count = if (msg.style == Defines.TE_GUNSHOT) 40 else 8,
-                    color = Color(0.95f, 0.9f, 0.65f, 1f),
+                    count = when (msg.style) {
+                        Defines.TE_GUNSHOT -> 40
+                        Defines.TE_SPARKS -> 6
+                        else -> 8
+                    },
+                    color = if (msg.style == Defines.TE_GUNSHOT) {
+                        Color(0.95f, 0.9f, 0.65f, 1f)
+                    } else {
+                        Color(1f, 0.88f, 0.45f, 1f)
+                    },
                 )
-                spawnSmokeAndFlash(position)
-                playRandomSound(RICHOCHET_SOUNDS, position)
+                if (msg.style != Defines.TE_SPARKS) {
+                    spawnSmokeAndFlash(position)
+                    playRandomSound(RICHOCHET_SOUNDS, position)
+                }
             }
 
             Defines.TE_SCREEN_SPARKS,
