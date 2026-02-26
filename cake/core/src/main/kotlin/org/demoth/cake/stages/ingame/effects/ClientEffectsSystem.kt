@@ -469,6 +469,10 @@ class ClientEffectsSystem(
                 )
             }
 
+            Defines.TE_BFG_BIGEXPLOSION -> {
+                emitBfgBigExplosionParticles(position)
+            }
+
             Defines.TE_BOSSTPORT -> {
                 playEffectSound(
                     soundPath = "sound/misc/bigtele.wav",
@@ -508,6 +512,15 @@ class ClientEffectsSystem(
             Defines.TE_TRACKER_EXPLOSION -> {
                 spawnDynamicLight(position, 150f, -1f, -1f, -1f, lifetimeMs = 100)
                 playEffectSound("sound/weapons/disrupthit.wav", position)
+            }
+
+            Defines.TE_TELEPORT_EFFECT,
+            Defines.TE_DBALL_GOAL -> {
+                emitTeleportEffectParticles(position)
+            }
+
+            Defines.TE_WIDOWSPLASH -> {
+                emitWidowSplashParticles(position)
             }
         }
     }
@@ -841,6 +854,62 @@ class ClientEffectsSystem(
         )
     }
 
+    private fun emitBfgBigExplosionParticles(origin: Vector3) {
+        emitPaletteOmniBurst(
+            origin = origin,
+            count = 256,
+            colorIndexProvider = { 0xD0 + Globals.rnd.nextInt(8) },
+            fallbackColor = Color(0.22f, 1f, 0.35f, 1f),
+            speedMin = 20f,
+            speedMax = 220f,
+            spread = 0.15f,
+            gravity = -320f,
+            sizeMin = 0.38f,
+            sizeMax = 1.2f,
+            lifetimeMinMs = 580,
+            lifetimeMaxMs = 980,
+            originJitter = 16f,
+        )
+    }
+
+    private fun emitTeleportEffectParticles(origin: Vector3) {
+        emitPaletteOmniBurst(
+            origin = origin,
+            count = 384,
+            colorIndexProvider = { 7 + Globals.rnd.nextInt(8) },
+            fallbackColor = Color(0.68f, 0.55f, 1f, 1f),
+            speedMin = 50f,
+            speedMax = 113f,
+            spread = 0.55f,
+            gravity = -320f,
+            sizeMin = 0.34f,
+            sizeMax = 1.15f,
+            lifetimeMinMs = 300,
+            lifetimeMaxMs = 460,
+            originJitter = 18f,
+        )
+    }
+
+    private fun emitWidowSplashParticles(origin: Vector3) {
+        val colorTable = intArrayOf(2 * 8, 13 * 8, 21 * 8, 18 * 8)
+        emitPaletteOmniBurst(
+            origin = origin,
+            count = 256,
+            colorIndexProvider = { colorTable[Globals.rnd.nextInt(colorTable.size)] },
+            fallbackColor = Color(0.4f, 0.85f, 0.75f, 1f),
+            speedMin = 28f,
+            speedMax = 52f,
+            spread = 0.25f,
+            gravity = 0f,
+            sizeMin = 0.38f,
+            sizeMax = 1.15f,
+            lifetimeMinMs = 580,
+            lifetimeMaxMs = 980,
+            originJitter = 0f,
+            radialSpawnOffset = 45f,
+        )
+    }
+
     private fun resolvePaletteColor(index: Int, fallback: Color): Color {
         val palette = q2Palette ?: return Color(fallback)
         if (palette.isEmpty()) {
@@ -854,6 +923,67 @@ class ClientEffectsSystem(
             ((rgba8888 ushr 8) and 0xFF) / 255f,
             1f,
         )
+    }
+
+    private fun emitPaletteOmniBurst(
+        origin: Vector3,
+        count: Int,
+        colorIndexProvider: () -> Int,
+        fallbackColor: Color,
+        speedMin: Float,
+        speedMax: Float,
+        spread: Float,
+        gravity: Float,
+        sizeMin: Float,
+        sizeMax: Float,
+        lifetimeMinMs: Int,
+        lifetimeMaxMs: Int,
+        originJitter: Float,
+        radialSpawnOffset: Float = 0f,
+    ) {
+        val safeCount = count.coerceIn(0, 512)
+        repeat(safeCount) {
+            val direction = randomUnitDirection()
+            val spawnOrigin = Vector3(origin)
+            if (originJitter > 0f) {
+                spawnOrigin.add(
+                    Globals.rnd.nextFloat() * originJitter * 2f - originJitter,
+                    Globals.rnd.nextFloat() * originJitter * 2f - originJitter,
+                    Globals.rnd.nextFloat() * originJitter * 2f - originJitter,
+                )
+            }
+            if (radialSpawnOffset > 0f) {
+                spawnOrigin.mulAdd(direction, radialSpawnOffset)
+            }
+            particleSystem.emitBurst(
+                origin = spawnOrigin,
+                direction = floatArrayOf(direction.x, direction.y, direction.z),
+                count = 1,
+                color = resolvePaletteColor(colorIndexProvider(), fallback = fallbackColor),
+                speedMin = speedMin,
+                speedMax = speedMax,
+                spread = spread,
+                gravity = gravity,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = sizeMin,
+                sizeMax = sizeMax,
+                lifetimeMinMs = lifetimeMinMs,
+                lifetimeMaxMs = lifetimeMaxMs,
+            )
+        }
+    }
+
+    private fun randomUnitDirection(): Vector3 {
+        var x: Float
+        var y: Float
+        var z: Float
+        do {
+            x = Globals.rnd.nextFloat() * 2f - 1f
+            y = Globals.rnd.nextFloat() * 2f - 1f
+            z = Globals.rnd.nextFloat() * 2f - 1f
+        } while (x * x + y * y + z * z < 0.0001f)
+        return Vector3(x, y, z).nor()
     }
 
     private fun emitSegmentTrailParticles(
