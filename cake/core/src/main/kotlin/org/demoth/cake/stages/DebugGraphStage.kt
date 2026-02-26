@@ -14,6 +14,7 @@ import kotlin.math.max
 
 enum class MetricId {
     DRAW_CALLS,
+    TRIANGLES,
 }
 
 data class MetricDefinition(
@@ -30,9 +31,9 @@ data class MetricDefinition(
  */
 class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     companion object {
-        private const val GRAPH_BASE_Y = 8f
-        private const val GRAPH_PADDING_TOP = 8f
-        private const val GRAPH_MAX_HEIGHT = 140f
+        private const val SEGMENT_TOP_PADDING = 16f
+        private const val SEGMENT_BOTTOM_PADDING = 16f
+        private const val SEGMENT_LABEL_PADDING = 2f
         private const val LABEL_LEFT_MARGIN = 4f
         private const val LABEL_LINE_GAP = 2f
         private const val MAX_LINE_ALPHA = 0.35f
@@ -42,7 +43,14 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             id = MetricId.DRAW_CALLS,
             name = "draw calls",
             color = Color(0.2f, 1f, 0.2f, 0.7f),
-            collectValue = { profiler -> profiler.drawCalls }))
+            collectValue = { profiler -> profiler.drawCalls }),
+            MetricDefinition(
+                id = MetricId.TRIANGLES,
+                name = "triangles",
+                color = Color(0.2f, 0.7f, 1f, 0.7f),
+                collectValue = { profiler -> (profiler.vertexCount.latest / 3f).toInt().coerceAtLeast(0) }
+            )
+        )
     }
 
     private data class MetricSeries(
@@ -98,17 +106,14 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
         viewport.apply()
 
-        val graphBaseY = GRAPH_BASE_Y
-        val graphPaddingTop = GRAPH_PADDING_TOP
-        val graphHeight = (viewport.worldHeight - graphBaseY - graphPaddingTop).coerceAtMost(GRAPH_MAX_HEIGHT).coerceAtLeast(1f)
         val graphWidth = viewport.worldWidth.coerceAtLeast(1f)
-        val globalMaxValue = activeSeries.values.maxOf { currentMaxValue(it) }.coerceAtLeast(1)
-        val globalMax = globalMaxValue.toFloat()
+        val metricCount = metricDefinitions.size.coerceAtLeast(1)
+        val segmentHeight = (viewport.worldHeight / metricCount).coerceAtLeast(1f)
 
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
-        metricDefinitions.forEach { definition ->
+        metricDefinitions.forEachIndexed { metricIndex, definition ->
             val metricId = definition.id
             val series = metricSeries.getValue(metricId)
             val label = metricLabels.getValue(metricId)
@@ -116,23 +121,30 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             if (series.size == 0) {
                 label.isVisible = false
                 nameLabel.isVisible = false
-                return@forEach
+                return@forEachIndexed
             }
 
+            val segmentTop = viewport.worldHeight - metricIndex * segmentHeight
+            val segmentBottom = segmentTop - segmentHeight
+            val graphBaseY = segmentBottom + SEGMENT_BOTTOM_PADDING
+            val graphTopY = segmentTop - SEGMENT_TOP_PADDING
+            val graphHeight = (graphTopY - graphBaseY).coerceAtLeast(1f)
+
+            val metricMax = currentMaxValue(series)
+            val metricScaleMax = metricMax.toFloat().coerceAtLeast(1f)
             val metricColor = definition.color
             shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, metricColor.a)
             if (series.size > 1) {
                 for (x in 1 until series.size) {
                     val previousValue = historyValueAt(series, x - 1).toFloat()
                     val currentValue = historyValueAt(series, x).toFloat()
-                    val y1 = graphBaseY + (previousValue / globalMax) * graphHeight
-                    val y2 = graphBaseY + (currentValue / globalMax) * graphHeight
+                    val y1 = graphBaseY + (previousValue / metricScaleMax) * graphHeight
+                    val y2 = graphBaseY + (currentValue / metricScaleMax) * graphHeight
                     shapeRenderer.line((x - 1).toFloat(), y1, x.toFloat(), y2)
                 }
             }
 
-            val metricMax = currentMaxValue(series)
-            val metricMaxY = graphBaseY + (metricMax / globalMax) * graphHeight
+            val metricMaxY = graphBaseY + (metricMax / metricScaleMax) * graphHeight
             shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, MAX_LINE_ALPHA)
             shapeRenderer.line(0f, metricMaxY, graphWidth - 1f, metricMaxY)
 
@@ -141,7 +153,11 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             label.pack()
             label.setPosition(
                 LABEL_LEFT_MARGIN,
-                (metricMaxY - label.height - LABEL_LINE_GAP).coerceIn(graphBaseY, viewport.worldHeight - label.height)
+                (metricMaxY - label.height - LABEL_LINE_GAP)
+                    .coerceIn(
+                        segmentBottom + SEGMENT_LABEL_PADDING,
+                        segmentTop - label.height - SEGMENT_LABEL_PADDING
+                    )
             )
             label.isVisible = true
 
@@ -150,7 +166,11 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             nameLabel.pack()
             nameLabel.setPosition(
                 LABEL_LEFT_MARGIN,
-                (metricMaxY + LABEL_LINE_GAP).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
+                (metricMaxY + LABEL_LINE_GAP)
+                    .coerceIn(
+                        segmentBottom + SEGMENT_LABEL_PADDING,
+                        segmentTop - nameLabel.height - SEGMENT_LABEL_PADDING
+                    )
             )
             nameLabel.isVisible = true
         }
