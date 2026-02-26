@@ -608,14 +608,24 @@ class ClientEffectsSystem(
         firstFrame: Int,
         frameCount: Int,
     ) {
-        spawnAnimatedModelEffect(
-            modelPath = modelPath,
-            position = position,
+        val md2 = assetCatalog.getModel(modelPath) ?: return
+        val instance = createModelInstance(md2.model)
+        (instance.userData as? Md2CustomData)?.let { userData ->
+            userData.lightRed = 1f
+            userData.lightGreen = 1f
+            userData.lightBlue = 1f
+            userData.shadeVectorX = 0f
+            userData.shadeVectorY = 0f
+            userData.shadeVectorZ = 0f
+        }
+        activeEffects += ExplosionPolyEffect(
+            modelInstance = instance,
+            spawnTimeMs = Globals.curtime,
+            frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
-            frameDurationMs = 100,
+            position = Vector3(position),
             yawDeg = Globals.rnd.nextInt(360).toFloat(),
-            fullBright = true,
         )
     }
 
