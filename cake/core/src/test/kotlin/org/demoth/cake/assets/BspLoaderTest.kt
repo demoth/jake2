@@ -143,14 +143,64 @@ class BspLoaderTest {
         }
         val faceCount = faceTextureInfoIndices.size
         val resolvedModelFaceRanges = modelFaceRanges ?: listOf(0 to faceCount)
+        // Build one valid triangle polygon per face.
+        // Metadata collectors now skip non-triangulatable faces.
+        val verticesData = ByteBuffer.allocate(faceCount * 3 * 12)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                repeat(faceCount) { faceIndex ->
+                    val x = faceIndex * 4f
+                    putFloat(x)
+                    putFloat(0f)
+                    putFloat(0f)
+                    putFloat(x + 1f)
+                    putFloat(0f)
+                    putFloat(0f)
+                    putFloat(x)
+                    putFloat(1f)
+                    putFloat(0f)
+                }
+            }
+            .array()
+
+        val edgesData = ByteBuffer.allocate((1 + faceCount * 3) * 4)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                // Keep edge 0 as a sentinel to avoid signed-surfedge ambiguity around zero.
+                putShort(0)
+                putShort(0)
+                repeat(faceCount) { faceIndex ->
+                    val vertexBase = faceIndex * 3
+                    putShort(vertexBase.toShort())
+                    putShort((vertexBase + 1).toShort())
+                    putShort((vertexBase + 1).toShort())
+                    putShort((vertexBase + 2).toShort())
+                    putShort((vertexBase + 2).toShort())
+                    putShort(vertexBase.toShort())
+                }
+            }
+            .array()
+
+        val faceEdgesData = ByteBuffer.allocate(faceCount * 3 * 4)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .apply {
+                repeat(faceCount) { faceIndex ->
+                    val edgeBase = 1 + faceIndex * 3
+                    putInt(edgeBase)
+                    putInt(edgeBase + 1)
+                    putInt(edgeBase + 2)
+                }
+            }
+            .array()
+
         val facesData = ByteBuffer.allocate(faceCount * 20)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
                 faceTextureInfoIndices.forEachIndexed { index, textureInfoIndex ->
                     putShort(0) // plane
                     putShort(0) // plane side
-                    putInt(0) // first edge index
-                    putShort(0) // num edges
+                    putInt(index * 3) // first edge index
+                    putShort(3) // num edges
                     putShort(textureInfoIndex.toShort()) // texture info index
                     put(faceLightStyles[index].copyOf(4)) // light styles
                     putInt(0) // light map offset
@@ -219,25 +269,37 @@ class BspLoaderTest {
         val lumpLengths = IntArray(Defines.HEADER_LUMPS) { 0 }
 
         var cursor = headerSize
+        // LUMP_VERTEXES
+        lumpOffsets[Defines.LUMP_VERTEXES] = cursor
+        lumpLengths[Defines.LUMP_VERTEXES] = verticesData.size
+        cursor += verticesData.size
         // LUMP_TEXINFO
-        lumpOffsets[5] = cursor
-        lumpLengths[5] = texturesData.size
+        lumpOffsets[Defines.LUMP_TEXINFO] = cursor
+        lumpLengths[Defines.LUMP_TEXINFO] = texturesData.size
         cursor += texturesData.size
         // LUMP_FACES
-        lumpOffsets[6] = cursor
-        lumpLengths[6] = facesData.size
+        lumpOffsets[Defines.LUMP_FACES] = cursor
+        lumpLengths[Defines.LUMP_FACES] = facesData.size
         cursor += facesData.size
         // LUMP_LEAFS
-        lumpOffsets[8] = cursor
-        lumpLengths[8] = leavesData.size
+        lumpOffsets[Defines.LUMP_LEAFS] = cursor
+        lumpLengths[Defines.LUMP_LEAFS] = leavesData.size
         cursor += leavesData.size
         // LUMP_LEAFFACES
-        lumpOffsets[9] = cursor
-        lumpLengths[9] = leafFacesData.size
+        lumpOffsets[Defines.LUMP_LEAFFACES] = cursor
+        lumpLengths[Defines.LUMP_LEAFFACES] = leafFacesData.size
         cursor += leafFacesData.size
+        // LUMP_EDGES
+        lumpOffsets[Defines.LUMP_EDGES] = cursor
+        lumpLengths[Defines.LUMP_EDGES] = edgesData.size
+        cursor += edgesData.size
+        // LUMP_SURFEDGES
+        lumpOffsets[Defines.LUMP_SURFEDGES] = cursor
+        lumpLengths[Defines.LUMP_SURFEDGES] = faceEdgesData.size
+        cursor += faceEdgesData.size
         // LUMP_MODELS
-        lumpOffsets[13] = cursor
-        lumpLengths[13] = modelsData.size
+        lumpOffsets[Defines.LUMP_MODELS] = cursor
+        lumpLengths[Defines.LUMP_MODELS] = modelsData.size
         cursor += modelsData.size
 
         val result = ByteBuffer.allocate(cursor).order(ByteOrder.LITTLE_ENDIAN)
@@ -249,15 +311,21 @@ class BspLoaderTest {
             result.putInt(lumpLengths[i])
         }
 
-        result.position(lumpOffsets[5])
+        result.position(lumpOffsets[Defines.LUMP_VERTEXES])
+        result.put(verticesData)
+        result.position(lumpOffsets[Defines.LUMP_TEXINFO])
         result.put(texturesData)
-        result.position(lumpOffsets[6])
+        result.position(lumpOffsets[Defines.LUMP_FACES])
         result.put(facesData)
-        result.position(lumpOffsets[8])
+        result.position(lumpOffsets[Defines.LUMP_LEAFS])
         result.put(leavesData)
-        result.position(lumpOffsets[9])
+        result.position(lumpOffsets[Defines.LUMP_LEAFFACES])
         result.put(leafFacesData)
-        result.position(lumpOffsets[13])
+        result.position(lumpOffsets[Defines.LUMP_EDGES])
+        result.put(edgesData)
+        result.position(lumpOffsets[Defines.LUMP_SURFEDGES])
+        result.put(faceEdgesData)
+        result.position(lumpOffsets[Defines.LUMP_MODELS])
         result.put(modelsData)
         return result.array()
     }
