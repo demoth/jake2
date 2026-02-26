@@ -16,6 +16,10 @@
 - Shared assets and game data live in `assets/`, `resources/`, and module resources (for example
   `game/src/main/resources`).
 
+## Reference implementations
+
+Other implementations are located in ../quake. You can refer to them for comparison.
+
 ## Build, Test, and Development Commands
 - `./gradlew build` builds all enabled modules and runs tests.
 - `./gradlew test` runs the unit test suites only.

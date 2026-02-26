@@ -373,12 +373,19 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_WELDING_SPARKS -> {
-                spawnAnimatedModelEffect(
+                emitLegacyPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = msg.count,
+                    paletteIndex = msg.param,
+                    gravity = -320f,
+                )
+                spawnLegacyExplosionEffect(
+                    type = ExplosionType.FLASH,
                     modelPath = "models/objects/flash/tris.md2",
                     position = position,
                     firstFrame = 0,
                     frameCount = 2,
-                    frameDurationMs = 80,
                 )
                 spawnDynamicLight(position, (100 + Globals.rnd.nextInt(75)).toFloat(), 1f, 1f, 0.3f)
             }
@@ -458,14 +465,13 @@ class ClientEffectsSystem(
 
             Defines.TE_BFG_EXPLOSION -> {
                 spawnDynamicLight(position, 350f, 0f, 1f, 0f)
-                spawnAnimatedSpriteEffect(
+                spawnExplosionSpriteEffect(
+                    type = ExplosionType.POLY,
                     spritePath = "sprites/s_bfg2.sp2",
                     position = position,
                     firstFrame = 1,
                     frameCount = 4,
-                    frameDurationMs = 100,
-                    renderFx = Defines.RF_TRANSLUCENT,
-                    alpha = 0.30f,
+                    startsTranslucent = true,
                 )
             }
 
@@ -550,7 +556,7 @@ class ClientEffectsSystem(
     }
 
     private fun computeMuzzleOrigin(entityIndex: Int, flashType: Int): Vector3? {
-        val origin = entityManager.getEntitySoundOrigin(entityIndex) ?: return null
+        val origin = entityManager.getEntityOrigin(entityIndex) ?: return null
         val angles = entityManager.getEntityAngles(entityIndex) ?: return null
         val flashOffset = M_Flash.monster_flash_offset[flashType]
 
@@ -567,38 +573,37 @@ class ClientEffectsSystem(
 
     private fun spawnSmokeAndFlash(origin: Vector3) {
         // Legacy counterpart: `client/CL_tent.SmokeAndFlash`.
-        // Smoke uses translucent fade-out (old `ex_misc` path), flash remains short opaque/fullbright.
-        spawnAnimatedModelEffect(
+        spawnLegacyExplosionEffect(
+            type = ExplosionType.MISC,
             modelPath = "models/objects/smoke/tris.md2",
             position = origin,
             firstFrame = 0,
             frameCount = 4,
-            frameDurationMs = 100,
-            startAlpha = 1f,
-            endAlpha = 0f,
-            translucent = true,
+            startsTranslucent = true,
         )
-        spawnAnimatedModelEffect(
+        spawnLegacyExplosionEffect(
+            type = ExplosionType.FLASH,
             modelPath = "models/objects/flash/tris.md2",
             position = origin,
             firstFrame = 0,
             frameCount = 2,
-            frameDurationMs = 80,
+            fullBright = true,
         )
     }
 
     private fun spawnBlasterImpact(position: Vector3, direction: FloatArray?, skinIndex: Int) {
         val (pitch, yaw) = computeDirectionAngles(direction) ?: return
-        spawnAnimatedModelEffect(
+        spawnLegacyExplosionEffect(
+            type = ExplosionType.MISC,
             modelPath = "models/objects/explode/tris.md2",
             position = position,
             firstFrame = 0,
             frameCount = 4,
-            frameDurationMs = 100,
             pitchDeg = pitch,
             yawDeg = yaw,
-            rollDeg = 0f,
             skinIndex = skinIndex,
+            startsTranslucent = true,
+            fullBright = true,
         )
     }
 
@@ -608,24 +613,82 @@ class ClientEffectsSystem(
         firstFrame: Int,
         frameCount: Int,
     ) {
+        spawnLegacyExplosionEffect(
+            type = ExplosionType.POLY,
+            modelPath = modelPath,
+            position = position,
+            firstFrame = firstFrame,
+            frameCount = frameCount,
+            yawDeg = Globals.rnd.nextInt(360).toFloat(),
+            fullBright = true,
+        )
+    }
+
+    private fun spawnLegacyExplosionEffect(
+        type: ExplosionType,
+        modelPath: String,
+        position: Vector3,
+        firstFrame: Int,
+        frameCount: Int,
+        pitchDeg: Float = 0f,
+        yawDeg: Float = 0f,
+        rollDeg: Float = 0f,
+        skinIndex: Int? = null,
+        startsTranslucent: Boolean = false,
+        fullBright: Boolean = false,
+    ) {
         val md2 = assetCatalog.getModel(modelPath) ?: return
         val instance = createModelInstance(md2.model)
         (instance.userData as? Md2CustomData)?.let { userData ->
-            userData.lightRed = 1f
-            userData.lightGreen = 1f
-            userData.lightBlue = 1f
-            userData.shadeVectorX = 0f
-            userData.shadeVectorY = 0f
-            userData.shadeVectorZ = 0f
+            if (skinIndex != null) {
+                userData.skinIndex = skinIndex
+            }
+            if (fullBright) {
+                userData.lightRed = 1f
+                userData.lightGreen = 1f
+                userData.lightBlue = 1f
+                userData.shadeVectorX = 0f
+                userData.shadeVectorY = 0f
+                userData.shadeVectorZ = 0f
+            }
         }
-        activeEffects += ExplosionPolyEffect(
+        activeEffects += ExplosionMd2Effect(
             modelInstance = instance,
+            type = type,
             spawnTimeMs = Globals.curtime,
             frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
             position = Vector3(position),
-            yawDeg = Globals.rnd.nextInt(360).toFloat(),
+            pitchDeg = pitchDeg,
+            yawDeg = yawDeg,
+            rollDeg = rollDeg,
+            baseSkinIndex = skinIndex,
+            fullBright = fullBright,
+            startsTranslucent = startsTranslucent,
+        )
+    }
+
+    private fun spawnExplosionSpriteEffect(
+        type: ExplosionType,
+        spritePath: String,
+        position: Vector3,
+        firstFrame: Int,
+        frameCount: Int,
+        startsTranslucent: Boolean = false,
+    ) {
+        val sprite = assetCatalog.getSprite(spritePath) ?: return
+        activeEffects += ExplosionSpriteEffect(
+            spriteRenderer = spriteRenderer,
+            cameraProvider = cameraProvider,
+            sprite = sprite,
+            type = type,
+            spawnTimeMs = Globals.curtime,
+            frameDurationMs = 100,
+            firstFrame = firstFrame,
+            frameCount = frameCount,
+            position = Vector3(position),
+            startsTranslucent = startsTranslucent,
         )
     }
 
@@ -681,7 +744,6 @@ class ClientEffectsSystem(
         startAlpha: Float = 1f,
         endAlpha: Float = 1f,
         translucent: Boolean = false,
-        fullBright: Boolean = false,
     ) {
         // Legacy counterpart: `client/CL_tent` explosion/muzzle model entities.
         val md2 = assetCatalog.getModel(modelPath) ?: return
@@ -689,20 +751,6 @@ class ClientEffectsSystem(
         (instance.userData as? Md2CustomData)?.let { userData ->
             if (skinIndex != null) {
                 userData.skinIndex = skinIndex
-            }
-            if (fullBright) {
-                // Legacy parity:
-                // - Jake2 `CL_tent`: explosion temp models are spawned with `RF_FULLBRIGHT`.
-                // - Yamagi `cl_tempentities.c`: explosion temp entities use `RF_FULLBRIGHT`.
-                //
-                // Effects are rendered outside packet-entity lighting path in Cake, so we explicitly
-                // pin light color and disable directional alias shading for these transient models.
-                userData.lightRed = 1f
-                userData.lightGreen = 1f
-                userData.lightBlue = 1f
-                userData.shadeVectorX = 0f
-                userData.shadeVectorY = 0f
-                userData.shadeVectorZ = 0f
             }
         }
         activeEffects += AnimatedModelEffect(

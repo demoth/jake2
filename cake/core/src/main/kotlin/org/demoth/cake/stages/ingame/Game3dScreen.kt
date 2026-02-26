@@ -933,7 +933,7 @@ class Game3dScreen(
 
         val soundOrigin = when {
             msg.origin != null -> Vector3(msg.origin[0], msg.origin[1], msg.origin[2])
-            msg.entityIndex > 0 -> entityManager.getEntitySoundOrigin(msg.entityIndex)
+            msg.entityIndex > 0 -> entityManager.getEntityOrigin(msg.entityIndex)
             else -> null
         }
 
@@ -951,7 +951,7 @@ class Game3dScreen(
      */
     private fun collectEntityEffectDynamicLights() {
         entityManager.forEachCurrentEntityState { state ->
-            val origin = entityManager.getEntitySoundOrigin(state.index) ?: return@forEachCurrentEntityState
+            val origin = entityManager.getEntityOrigin(state.index) ?: return@forEachCurrentEntityState
             val effects = state.effects
             when {
                 (effects and Defines.EF_ROCKET) != 0 -> {
@@ -1021,7 +1021,7 @@ class Game3dScreen(
      */
     private fun playEntityEventSound(sound: com.badlogic.gdx.audio.Sound, entityIndex: Int) {
         val attenuation = Defines.ATTN_NORM.toFloat()
-        val soundOrigin = entityManager.getEntitySoundOrigin(entityIndex)
+        val soundOrigin = entityManager.getEntityOrigin(entityIndex)
         val attenuationScale = if (soundOrigin == null) {
             1f
         } else {

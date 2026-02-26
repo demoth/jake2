@@ -3,7 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="org.demoth.cake.lwjgl3.Lwjgl3GameLauncher" />
     <module name="jake2.cake.lwjgl3.main" />
     <shortenClasspath name="NONE" />
-    <option name="VM_PARAMETERS" value="-XstartOnFirstThread -Dbasedir=$USER_HOME$/Downloads/q2" />
+    <option name="VM_PARAMETERS" value="-XstartOnFirstThread -Dbasedir=$USER_HOME$/Desktop/cake/q2" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

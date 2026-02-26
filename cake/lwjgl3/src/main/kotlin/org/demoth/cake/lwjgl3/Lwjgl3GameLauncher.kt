@@ -35,9 +35,9 @@ object Lwjgl3GameLauncher {
             useVsync(true)
             setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
             setResizable(false)
-            setWindowedMode(1024, 768)
+//            setWindowedMode(1024, 768)
             setHdpiMode(HdpiMode.Pixels)
-//            setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
+            setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
             setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
         }
     }

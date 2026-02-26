@@ -63,7 +63,7 @@ class ClientEntityManager : Disposable {
 
     var surpressCount = 0
 
-    fun getEntitySoundOrigin(entityIndex: Int): Vector3? {
+    fun getEntityOrigin(entityIndex: Int): Vector3? {
         if (entityIndex !in 0..<Defines.MAX_EDICTS) {
             return null // todo: warn
         }

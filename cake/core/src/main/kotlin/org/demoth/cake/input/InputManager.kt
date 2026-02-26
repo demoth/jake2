@@ -70,7 +70,7 @@ class InputManager(
     private var deltaX = 0f
     private var deltaY = 0f
     private var hasMouseReference = false
-    private val sensitivity = Cvar.getInstance().Get("sensitivity", "25", 0) // todo: make independent from screen size
+    private val sensitivity = Cvar.getInstance().Get("sensitivity", "80", 0) // todo: make independent from screen size
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
