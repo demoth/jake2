@@ -19,6 +19,7 @@ import jake2.qcommon.network.messages.server.SplashTEMessage
 import jake2.qcommon.network.messages.server.TEMessage
 import jake2.qcommon.network.messages.server.TrailTEMessage
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.ClientEntity
 import org.demoth.cake.audio.SpatialSoundAttenuation
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
@@ -169,6 +170,51 @@ class ClientEffectsSystem(
         particleSystem.dispose()
         spriteRenderer.dispose()
         assetCatalog.dispose()
+    }
+
+    /**
+     * Emits replicated projectile trails driven by entity `EF_*` flags.
+     *
+     * Counterpart: `client/CL_ents.AddPacketEntities` trail branches.
+     */
+    fun emitReplicatedEntityTrail(entity: ClientEntity, effects: Int, endX: Float, endY: Float, endZ: Float) {
+        val startX = entity.lerp_origin[0]
+        val startY = entity.lerp_origin[1]
+        val startZ = entity.lerp_origin[2]
+
+        when {
+            (effects and Defines.EF_ROCKET) != 0 -> {
+                emitRocketTrail(startX, startY, startZ, endX, endY, endZ, entity)
+            }
+            (effects and Defines.EF_BLASTER) != 0 -> {
+                if ((effects and Defines.EF_TRACKER) != 0) {
+                    emitBlasterTrail(
+                        startX = startX,
+                        startY = startY,
+                        startZ = startZ,
+                        endX = endX,
+                        endY = endY,
+                        endZ = endZ,
+                        paletteIndex = BLASTER2_TRAIL_COLOR_INDEX,
+                        fallback = BLASTER2_TRAIL_COLOR_FALLBACK,
+                    )
+                } else {
+                    emitBlasterTrail(
+                        startX = startX,
+                        startY = startY,
+                        startZ = startZ,
+                        endX = endX,
+                        endY = endY,
+                        endZ = endZ,
+                        paletteIndex = BLASTER_TRAIL_COLOR_INDEX,
+                        fallback = BLASTER_TRAIL_COLOR_FALLBACK,
+                    )
+                }
+            }
+            (effects and Defines.EF_GRENADE) != 0 -> {
+                emitDiminishingTrail(startX, startY, startZ, endX, endY, endZ, entity, effects)
+            }
+        }
     }
 
     private fun handlePointDirectionMessage(msg: PointDirectionTEMessage) {
@@ -882,6 +928,197 @@ class ClientEffectsSystem(
         )
     }
 
+    private fun emitBlasterTrail(
+        startX: Float,
+        startY: Float,
+        startZ: Float,
+        endX: Float,
+        endY: Float,
+        endZ: Float,
+        paletteIndex: Int,
+        fallback: Color,
+    ) {
+        val delta = Vector3(endX - startX, endY - startY, endZ - startZ)
+        val length = delta.len()
+        if (length <= 0.001f) {
+            return
+        }
+        val step = BLASTER_TRAIL_STEP
+        val direction = delta.scl(1f / length)
+        var travelled = 0f
+        var samples = 0
+        while (travelled <= length && samples < ENTITY_TRAIL_MAX_SAMPLES) {
+            val color = resolvePaletteColor(paletteIndex, fallback = fallback)
+            particleSystem.emitBurst(
+                origin = Vector3(
+                    startX + direction.x * travelled + randomRange(-BLASTER_TRAIL_ORIGIN_JITTER, BLASTER_TRAIL_ORIGIN_JITTER),
+                    startY + direction.y * travelled + randomRange(-BLASTER_TRAIL_ORIGIN_JITTER, BLASTER_TRAIL_ORIGIN_JITTER),
+                    startZ + direction.z * travelled + randomRange(-BLASTER_TRAIL_ORIGIN_JITTER, BLASTER_TRAIL_ORIGIN_JITTER),
+                ),
+                direction = floatArrayOf(0f, 0f, 1f),
+                count = 1,
+                color = color,
+                speedMin = BLASTER_TRAIL_SPEED_MIN,
+                speedMax = BLASTER_TRAIL_SPEED_MAX,
+                spread = BLASTER_TRAIL_SPREAD,
+                gravity = BLASTER_TRAIL_GRAVITY,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = BLASTER_TRAIL_SIZE_MIN,
+                sizeMax = BLASTER_TRAIL_SIZE_MAX,
+                lifetimeMinMs = BLASTER_TRAIL_LIFETIME_MIN_MS,
+                lifetimeMaxMs = BLASTER_TRAIL_LIFETIME_MAX_MS,
+            )
+            travelled += step
+            samples++
+        }
+    }
+
+    private fun emitDiminishingTrail(
+        startX: Float,
+        startY: Float,
+        startZ: Float,
+        endX: Float,
+        endY: Float,
+        endZ: Float,
+        entity: ClientEntity,
+        flags: Int,
+    ) {
+        val delta = Vector3(endX - startX, endY - startY, endZ - startZ)
+        val length = delta.len()
+        if (length <= 0.001f) {
+            return
+        }
+        val (originScale, velocityScale) = when {
+            entity.trailcount > 900 -> DIMINISH_TRAIL_HEAVY_ORIGIN_SCALE to DIMINISH_TRAIL_HEAVY_VELOCITY_SCALE
+            entity.trailcount > 800 -> DIMINISH_TRAIL_MEDIUM_ORIGIN_SCALE to DIMINISH_TRAIL_MEDIUM_VELOCITY_SCALE
+            else -> DIMINISH_TRAIL_LIGHT_ORIGIN_SCALE to DIMINISH_TRAIL_LIGHT_VELOCITY_SCALE
+        }
+
+        val direction = delta.scl(1f / length)
+        var travelled = 0f
+        var samples = 0
+        while (travelled <= length && samples < ENTITY_TRAIL_MAX_SAMPLES) {
+            if (Globals.rnd.nextInt(1024) < entity.trailcount) {
+                val (paletteIndex, fallbackColor, gravity, lifetimeMinMs, lifetimeMaxMs) = when {
+                    (flags and Defines.EF_GIB) != 0 -> {
+                        val colorIndex = GIB_TRAIL_COLOR_BASE + Globals.rnd.nextInt(8)
+                        ParticleTrailSpec(
+                            colorIndex = colorIndex,
+                            fallbackColor = GIB_TRAIL_COLOR_FALLBACK,
+                            gravity = GIB_TRAIL_GRAVITY,
+                            lifetimeMinMs = GIB_TRAIL_LIFETIME_MIN_MS,
+                            lifetimeMaxMs = GIB_TRAIL_LIFETIME_MAX_MS,
+                        )
+                    }
+                    (flags and Defines.EF_GREENGIB) != 0 -> {
+                        val colorIndex = GREEN_GIB_TRAIL_COLOR_BASE + Globals.rnd.nextInt(8)
+                        ParticleTrailSpec(
+                            colorIndex = colorIndex,
+                            fallbackColor = GREEN_GIB_TRAIL_COLOR_FALLBACK,
+                            gravity = GIB_TRAIL_GRAVITY,
+                            lifetimeMinMs = GIB_TRAIL_LIFETIME_MIN_MS,
+                            lifetimeMaxMs = GIB_TRAIL_LIFETIME_MAX_MS,
+                        )
+                    }
+                    else -> {
+                        val colorIndex = SMOKE_TRAIL_COLOR_BASE + Globals.rnd.nextInt(8)
+                        ParticleTrailSpec(
+                            colorIndex = colorIndex,
+                            fallbackColor = SMOKE_TRAIL_COLOR_FALLBACK,
+                            gravity = SMOKE_TRAIL_GRAVITY,
+                            lifetimeMinMs = SMOKE_TRAIL_LIFETIME_MIN_MS,
+                            lifetimeMaxMs = SMOKE_TRAIL_LIFETIME_MAX_MS,
+                        )
+                    }
+                }
+                val randomDirection = randomUnitDirection()
+                particleSystem.emitBurst(
+                    origin = Vector3(
+                        startX + direction.x * travelled + randomRange(-originScale, originScale),
+                        startY + direction.y * travelled + randomRange(-originScale, originScale),
+                        startZ + direction.z * travelled + randomRange(-originScale, originScale),
+                    ),
+                    direction = floatArrayOf(randomDirection.x, randomDirection.y, randomDirection.z),
+                    count = 1,
+                    color = resolvePaletteColor(paletteIndex, fallback = fallbackColor),
+                    speedMin = 0f,
+                    speedMax = velocityScale,
+                    spread = 0f,
+                    gravity = gravity,
+                    startAlpha = 1f,
+                    endAlpha = 0f,
+                    sizeMin = DIMINISH_TRAIL_SIZE_MIN,
+                    sizeMax = DIMINISH_TRAIL_SIZE_MAX,
+                    lifetimeMinMs = lifetimeMinMs,
+                    lifetimeMaxMs = lifetimeMaxMs,
+                )
+            }
+
+            entity.trailcount = (entity.trailcount - DIMINISH_TRAIL_COUNT_DECAY_PER_SAMPLE).coerceAtLeast(DIMINISH_TRAIL_COUNT_MIN)
+            travelled += DIMINISH_TRAIL_STEP
+            samples++
+        }
+    }
+
+    private fun emitRocketTrail(
+        startX: Float,
+        startY: Float,
+        startZ: Float,
+        endX: Float,
+        endY: Float,
+        endZ: Float,
+        entity: ClientEntity,
+    ) {
+        emitDiminishingTrail(
+            startX = startX,
+            startY = startY,
+            startZ = startZ,
+            endX = endX,
+            endY = endY,
+            endZ = endZ,
+            entity = entity,
+            flags = Defines.EF_ROCKET,
+        )
+
+        val delta = Vector3(endX - startX, endY - startY, endZ - startZ)
+        val length = delta.len()
+        if (length <= 0.001f) {
+            return
+        }
+        val direction = delta.scl(1f / length)
+        var travelled = 0f
+        var samples = 0
+        while (travelled <= length && samples < ENTITY_TRAIL_MAX_SAMPLES) {
+            if (Globals.rnd.nextInt(ROCKET_FIRE_SPAWN_CHANCE_DIVISOR) == 0) {
+                val colorIndex = ROCKET_FIRE_COLOR_BASE + Globals.rnd.nextInt(ROCKET_FIRE_COLOR_VARIANTS)
+                val randomDirection = randomUnitDirection()
+                particleSystem.emitBurst(
+                    origin = Vector3(
+                        startX + direction.x * travelled + randomRange(-ROCKET_FIRE_ORIGIN_JITTER, ROCKET_FIRE_ORIGIN_JITTER),
+                        startY + direction.y * travelled + randomRange(-ROCKET_FIRE_ORIGIN_JITTER, ROCKET_FIRE_ORIGIN_JITTER),
+                        startZ + direction.z * travelled + randomRange(-ROCKET_FIRE_ORIGIN_JITTER, ROCKET_FIRE_ORIGIN_JITTER),
+                    ),
+                    direction = floatArrayOf(randomDirection.x, randomDirection.y, randomDirection.z),
+                    count = 1,
+                    color = resolvePaletteColor(colorIndex, fallback = ROCKET_FIRE_COLOR_FALLBACK),
+                    speedMin = ROCKET_FIRE_SPEED_MIN,
+                    speedMax = ROCKET_FIRE_SPEED_MAX,
+                    spread = 0f,
+                    gravity = ROCKET_FIRE_GRAVITY,
+                    startAlpha = 1f,
+                    endAlpha = 0f,
+                    sizeMin = ROCKET_FIRE_SIZE_MIN,
+                    sizeMax = ROCKET_FIRE_SIZE_MAX,
+                    lifetimeMinMs = ROCKET_FIRE_LIFETIME_MIN_MS,
+                    lifetimeMaxMs = ROCKET_FIRE_LIFETIME_MAX_MS,
+                )
+            }
+            travelled += ROCKET_FIRE_STEP
+            samples++
+        }
+    }
+
     private fun emitLegacyPaletteParticles(
         origin: Vector3,
         direction: FloatArray?,
@@ -1238,6 +1475,71 @@ private const val RAIL_TRAIL_CORE_SIZE_MAX = 0.34f
 private const val RAIL_TRAIL_CORE_LIFETIME_MIN_MS = 600
 private const val RAIL_TRAIL_CORE_LIFETIME_MAX_MS = 820
 private const val RAIL_TRAIL_CORE_WHITE_BASE = 0.94f
+
+private data class ParticleTrailSpec(
+    val colorIndex: Int,
+    val fallbackColor: Color,
+    val gravity: Float,
+    val lifetimeMinMs: Int,
+    val lifetimeMaxMs: Int,
+)
+
+// Replicated entity trail constants (`EF_ROCKET`, `EF_BLASTER`, `EF_GRENADE`).
+private const val ENTITY_TRAIL_MAX_SAMPLES = 4096
+
+private const val BLASTER_TRAIL_STEP = 5f
+private const val BLASTER_TRAIL_ORIGIN_JITTER = 1f
+private const val BLASTER_TRAIL_SPEED_MIN = 0f
+private const val BLASTER_TRAIL_SPEED_MAX = 5f
+private const val BLASTER_TRAIL_SPREAD = 1f
+private const val BLASTER_TRAIL_GRAVITY = 0f
+private const val BLASTER_TRAIL_SIZE_MIN = 0.18f
+private const val BLASTER_TRAIL_SIZE_MAX = 0.42f
+private const val BLASTER_TRAIL_LIFETIME_MIN_MS = 300
+private const val BLASTER_TRAIL_LIFETIME_MAX_MS = 500
+private const val BLASTER_TRAIL_COLOR_INDEX = 0xE0
+private const val BLASTER2_TRAIL_COLOR_INDEX = 0xD0
+private val BLASTER_TRAIL_COLOR_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
+private val BLASTER2_TRAIL_COLOR_FALLBACK = Color(0.3f, 0.95f, 0.3f, 1f)
+
+private const val DIMINISH_TRAIL_STEP = 0.5f
+private const val DIMINISH_TRAIL_HEAVY_ORIGIN_SCALE = 4f
+private const val DIMINISH_TRAIL_MEDIUM_ORIGIN_SCALE = 2f
+private const val DIMINISH_TRAIL_LIGHT_ORIGIN_SCALE = 1f
+private const val DIMINISH_TRAIL_HEAVY_VELOCITY_SCALE = 15f
+private const val DIMINISH_TRAIL_MEDIUM_VELOCITY_SCALE = 10f
+private const val DIMINISH_TRAIL_LIGHT_VELOCITY_SCALE = 5f
+private const val DIMINISH_TRAIL_COUNT_DECAY_PER_SAMPLE = 5
+private const val DIMINISH_TRAIL_COUNT_MIN = 100
+private const val DIMINISH_TRAIL_SIZE_MIN = 0.18f
+private const val DIMINISH_TRAIL_SIZE_MAX = 0.48f
+
+private const val GIB_TRAIL_COLOR_BASE = 0xE8
+private const val GREEN_GIB_TRAIL_COLOR_BASE = 0xDB
+private const val SMOKE_TRAIL_COLOR_BASE = 4
+private const val GIB_TRAIL_GRAVITY = -40f
+private const val SMOKE_TRAIL_GRAVITY = 20f
+private const val GIB_TRAIL_LIFETIME_MIN_MS = 1000
+private const val GIB_TRAIL_LIFETIME_MAX_MS = 1400
+private const val SMOKE_TRAIL_LIFETIME_MIN_MS = 1000
+private const val SMOKE_TRAIL_LIFETIME_MAX_MS = 1200
+private val GIB_TRAIL_COLOR_FALLBACK = Color(0.86f, 0.18f, 0.16f, 1f)
+private val GREEN_GIB_TRAIL_COLOR_FALLBACK = Color(0.45f, 0.88f, 0.33f, 1f)
+private val SMOKE_TRAIL_COLOR_FALLBACK = Color(0.58f, 0.58f, 0.58f, 1f)
+
+private const val ROCKET_FIRE_STEP = 1f
+private const val ROCKET_FIRE_SPAWN_CHANCE_DIVISOR = 8
+private const val ROCKET_FIRE_COLOR_BASE = 0xDC
+private const val ROCKET_FIRE_COLOR_VARIANTS = 4
+private const val ROCKET_FIRE_ORIGIN_JITTER = 5f
+private const val ROCKET_FIRE_SPEED_MIN = 0f
+private const val ROCKET_FIRE_SPEED_MAX = 20f
+private const val ROCKET_FIRE_GRAVITY = -40f
+private const val ROCKET_FIRE_SIZE_MIN = 0.2f
+private const val ROCKET_FIRE_SIZE_MAX = 0.55f
+private const val ROCKET_FIRE_LIFETIME_MIN_MS = 1000
+private const val ROCKET_FIRE_LIFETIME_MAX_MS = 1200
+private val ROCKET_FIRE_COLOR_FALLBACK = Color(1f, 0.52f, 0.18f, 1f)
 private const val RAIL_TRAIL_CORE_WHITE_VARIATION = 0.06f
 
 private val SPARK_SOUNDS = listOf(

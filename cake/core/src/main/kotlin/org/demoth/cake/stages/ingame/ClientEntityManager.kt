@@ -100,6 +100,16 @@ class ClientEntityManager : Disposable {
         }
     }
 
+    // Iterates current-frame replicated states with their owning client entity state.
+    fun forEachCurrentEntity(action: (ClientEntity, entity_state_t) -> Unit) {
+        val mask = Defines.MAX_PARSE_ENTITIES - 1
+        for (i in 0 until currentFrame.num_entities) {
+            val idx = (currentFrame.parse_entities + i) and mask
+            val state = cl_parse_entities[idx]
+            action(clientEntities[state.index], state)
+        }
+    }
+
     /**
      * CL_ParsePacketEntities
      * todo: fix nullability issues, remove !! unsafe dereferences, check duplicate fragments

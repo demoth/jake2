@@ -191,6 +191,7 @@ class Game3dScreen(
         worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
         advanceSkyRotation(delta)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
+        collectEntityEffectTrails()
         dynamicLightSystem.beginFrame(Globals.curtime, delta)
         collectEntityEffectDynamicLights()
         bspLightmapShader.setDynamicLights(dynamicLightSystem.visibleLightsForShader())
@@ -1013,6 +1014,35 @@ class Game3dScreen(
                     dynamicLightSystem.addFrameLight(origin, 130f, 1f, 0.5f, 0.5f)
                 }
             }
+        }
+    }
+
+    /**
+     * Emits replicated projectile trails and advances per-entity trail origins.
+     *
+     * Counterpart: `client/CL_ents.AddPacketEntities` trail branches + end-of-loop lerp-origin copy.
+     */
+    private fun collectEntityEffectTrails() {
+        entityManager.forEachCurrentEntity { entity, state ->
+            if (state.modelindex == 0) {
+                return@forEachCurrentEntity
+            }
+
+            val endX = entity.prev.origin[0] + (entity.current.origin[0] - entity.prev.origin[0]) * lerpFrac
+            val endY = entity.prev.origin[1] + (entity.current.origin[1] - entity.prev.origin[1]) * lerpFrac
+            val endZ = entity.prev.origin[2] + (entity.current.origin[2] - entity.prev.origin[2]) * lerpFrac
+
+            effectsSystem.emitReplicatedEntityTrail(
+                entity = entity,
+                effects = state.effects,
+                endX = endX,
+                endY = endY,
+                endZ = endZ,
+            )
+
+            entity.lerp_origin[0] = endX
+            entity.lerp_origin[1] = endY
+            entity.lerp_origin[2] = endZ
         }
     }
 

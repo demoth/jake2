@@ -37,7 +37,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Missing `TrailTEMessage` branches: `TE_BUBBLETRAIL`, `TE_BLUEHYPERBLASTER`, `TE_DEBUGTRAIL`.
 - [x] Missing `PointTEMessage` branches: `TE_BFG_BIGEXPLOSION`, `TE_TELEPORT_EFFECT`, `TE_DBALL_GOAL`, `TE_WIDOWSPLASH`.
 - [x] Railgun trail has a "beam" like temporary implementation
-- [ ] Missing particle effects for blaster/rocket/grenade trail
+- [x] Missing particle effects for blaster/rocket/grenade trail
 - [ ] Particle pipeline parity: use palette colors
 - [ ] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
 - [ ] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
