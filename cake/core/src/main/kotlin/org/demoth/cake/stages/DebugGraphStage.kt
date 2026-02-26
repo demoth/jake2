@@ -18,6 +18,7 @@ enum class MetricId {
     DRAW_CALLS,
     TEXTURE_BINDINGS,
     VERTEX_COUNT,
+    SHADER_SWITCHES,
 }
 
 data class MetricDefinition(
@@ -65,7 +66,13 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 name = "r_debug_vertexcount",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
                 collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) },
-            )
+            ),
+            MetricDefinition(
+                id = MetricId.SHADER_SWITCHES,
+                name = "r_debug_shaderswitches",
+                color = Color(0.9f, 0.35f, 1f, 0.7f),
+                collectValue = { profiler -> profiler.shaderSwitches },
+            ),
         )
     }
 
