@@ -137,7 +137,7 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
             nameLabel.setColor(metricColor)
             nameLabel.pack()
             nameLabel.setPosition(
-                (graphWidth - nameLabel.width - 4f).coerceAtLeast(0f),
+                4f,
                 (metricMaxY + 2f).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
             )
             nameLabel.isVisible = true
