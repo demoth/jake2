@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.Viewport
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import ktx.scene2d.Scene2DSkin
 import java.util.EnumMap
@@ -86,6 +87,10 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             addActor(nameLabel)
         }
         resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
+
+        Cmd.AddCommand("r_debug_hideall") {
+            metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "0") }
+        }
     }
 
     fun collectMetrics(profiler: GLProfiler) {
