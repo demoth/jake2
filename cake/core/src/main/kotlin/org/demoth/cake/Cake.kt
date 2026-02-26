@@ -8,6 +8,8 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -54,6 +56,8 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private enum class ClientNetworkState {
     DISCONNECTED,
@@ -70,6 +74,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
+        private val SCREENSHOT_TIMESTAMP_FORMATTER: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
     }
 
     private lateinit var menuStage: MainMenuStage
@@ -281,6 +287,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Println(Cbuf.contents())
         }
 
+        Cmd.AddCommand("screenshot") {
+            takeScreenshot()
+        }
+
         /*
          * Adds the current command line as a clc_stringcmd to the client message.
          * things like godmode, noclip, etc, are commands directed to the server, so
@@ -432,7 +442,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     /**
-     * Global input handling: Console and Menu
+     * Global input handling: Control Console and Menu
+     * Hardwired controls.
      */
     override fun keyUp(keycode: Int): Boolean {
         when (keycode) {
@@ -442,6 +453,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 if (consoleVisible) {
                     consoleStage.focus()
                 }
+            }
+            Input.Keys.F12 -> {
+                takeScreenshot()
             }
             Input.Keys.ESCAPE -> {
                 if (consoleVisible)
@@ -752,6 +766,35 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: cleanup after hot development phase
         Cvar.getInstance().Get("rcon_password", "asdf", 0)
         Cvar.getInstance().Get("rcon_address", "127.0.0.1", 0)
+    }
+
+    private fun takeScreenshot() {
+        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
+        val flippedPixmap = Pixmap(pixmap.width, pixmap.height, pixmap.format)
+        try {
+            for (y in 0 until pixmap.height) {
+                flippedPixmap.drawPixmap(
+                    pixmap,
+                    0,
+                    y,
+                    0,
+                    pixmap.height - y - 1,
+                    pixmap.width,
+                    1
+                )
+            }
+            val screenshotDirectory = Gdx.files.local("screenshots")
+            screenshotDirectory.mkdirs()
+            val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
+            val screenshotFile = screenshotDirectory.child(filename)
+            PixmapIO.writePNG(screenshotFile, flippedPixmap)
+            Com.Println("Screenshot saved: ${screenshotFile.file().absolutePath}")
+        } catch (e: Exception) {
+            Com.Warn("Failed to save screenshot: ${e.message}\n")
+        } finally {
+            flippedPixmap.dispose()
+            pixmap.dispose()
+        }
     }
 
 }
