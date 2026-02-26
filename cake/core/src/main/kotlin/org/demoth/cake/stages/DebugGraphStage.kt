@@ -16,6 +16,7 @@ import kotlin.math.max
 enum class MetricId {
     CALLS,
     DRAW_CALLS,
+    TEXTURE_BINDINGS,
     VERTEX_COUNT,
 }
 
@@ -27,7 +28,7 @@ data class MetricDefinition(
 )
 
 /**
- * Draws scrolling per-frame metric lines (draw calls for now).
+ * Draws scrolling per-frame metric lines.
  *
  * The graph keeps at most one sample per screen pixel in width and advances by one pixel each frame.
  */
@@ -52,6 +53,12 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 name = "r_debug_drawcalls",
                 color = Color(0.2f, 1f, 0.2f, 0.7f),
                 collectValue = { profiler -> profiler.drawCalls },
+            ),
+            MetricDefinition(
+                id = MetricId.TEXTURE_BINDINGS,
+                name = "r_debug_texturebindings",
+                color = Color(1f, 0.45f, 0.2f, 0.7f),
+                collectValue = { profiler -> profiler.textureBindings },
             ),
             MetricDefinition(
                 id = MetricId.VERTEX_COUNT,
