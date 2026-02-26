@@ -40,15 +40,16 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
         val metricDefinitions: List<MetricDefinition> = listOf(
             MetricDefinition(
-            id = MetricId.DRAW_CALLS,
-                name = "draw calls",
+                id = MetricId.DRAW_CALLS,
+                name = "r_debug_drawcalls",
                 color = Color(0.2f, 1f, 0.2f, 0.7f),
-                collectValue = { profiler -> profiler.drawCalls }),
+                collectValue = { profiler -> profiler.drawCalls },
+            ),
             MetricDefinition(
                 id = MetricId.VERTEX_COUNT,
-                name = "vertex count",
+                name = "r_debug_vertexcount",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
-                collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) }
+                collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) },
             )
         )
     }
@@ -60,7 +61,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     )
 
     private val shapeRenderer = ShapeRenderer()
-    private val cvarDebugGraph = Cvar.getInstance().Get("debug_r_graph", "1", 0)
+    private val metricEnabledCvars = EnumMap<MetricId, jake2.qcommon.exec.cvar_t>(MetricId::class.java)
     private val metricSeries = EnumMap<MetricId, MetricSeries>(MetricId::class.java)
     private val metricLabels = EnumMap<MetricId, Label>(MetricId::class.java)
     private val metricNameLabels = EnumMap<MetricId, Label>(MetricId::class.java)
@@ -68,6 +69,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     init {
         metricDefinitions.forEach { definition ->
             val metricId = definition.id
+            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "0", 0)
             metricSeries[metricId] = MetricSeries()
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
@@ -88,7 +90,11 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
     fun collectMetrics(profiler: GLProfiler) {
         metricDefinitions.forEach { definition ->
-            pushMetric(definition.id, definition.collectValue(profiler))
+            if (isMetricEnabled(definition.id)) {
+                pushMetric(definition.id, definition.collectValue(profiler))
+            } else {
+                clearMetricHistory(definition.id)
+            }
         }
     }
 
@@ -98,12 +104,20 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     }
 
     override fun draw() {
-        if (cvarDebugGraph.value == 0f) {
+        if (metricDefinitions.none { isMetricEnabled(it.id) }) {
             hideAllMetricLabels()
             return
         }
 
-        val activeSeries = metricSeries.filterValues { it.size > 0 }
+        val enabledMetricDefinitions = metricDefinitions.filter { isMetricEnabled(it.id) }
+        if (enabledMetricDefinitions.isEmpty()) {
+            hideAllMetricLabels()
+            return
+        }
+
+        val activeSeries = enabledMetricDefinitions.mapNotNull { definition ->
+            metricSeries[definition.id]?.takeIf { it.size > 0 }
+        }
         if (activeSeries.isEmpty()) {
             hideAllMetricLabels()
             return
@@ -112,13 +126,20 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         viewport.apply()
 
         val graphWidth = viewport.worldWidth.coerceAtLeast(1f)
-        val metricCount = metricDefinitions.size.coerceAtLeast(1)
+        val metricCount = enabledMetricDefinitions.size.coerceAtLeast(1)
         val segmentHeight = (viewport.worldHeight / metricCount).coerceAtLeast(1f)
 
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
-        metricDefinitions.forEachIndexed { metricIndex, definition ->
+        metricDefinitions
+            .filterNot { isMetricEnabled(it.id) }
+            .forEach { definition ->
+                metricLabels.getValue(definition.id).isVisible = false
+                metricNameLabels.getValue(definition.id).isVisible = false
+            }
+
+        enabledMetricDefinitions.forEachIndexed { metricIndex, definition ->
             val metricId = definition.id
             val series = metricSeries.getValue(metricId)
             val label = metricLabels.getValue(metricId)
@@ -231,6 +252,15 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             series.size = 0
         }
     }
+
+    private fun clearMetricHistory(metricId: MetricId) {
+        val series = metricSeries.getValue(metricId)
+        series.writeIndex = 0
+        series.size = 0
+    }
+
+    private fun isMetricEnabled(metricId: MetricId): Boolean =
+        metricEnabledCvars.getValue(metricId).value != 0f
 
     private fun hideAllMetricLabels() {
         metricLabels.values.forEach { it.isVisible = false }
