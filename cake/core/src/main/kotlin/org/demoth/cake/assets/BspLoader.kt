@@ -253,7 +253,11 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
                     val face = bsp.faces[surface.faceIndex]
                     val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
-                    val lightmap = buildFaceLightmapData(bsp, face)
+                    val lightmap = if (shouldUseBspFaceLightmap(surface.textureFlags)) {
+                        buildFaceLightmapData(bsp, face)
+                    } else {
+                        null
+                    }
                     if (lightmap != null) {
                         generatedTextures += lightmap.styleTextures.map { it.texture }
                     }
@@ -405,6 +409,7 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
             if (!shouldLoadWalTexture(texInfo.name)) {
                 return@mapNotNull null
             }
+            val isLightmappedFace = shouldUseBspFaceLightmap(texInfo.flags)
             BspInlineModelPartRecord(
                 modelIndex = modelIndex,
                 faceIndex = faceIndex,
@@ -416,7 +421,7 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
                 lightMapStyles = face.lightMapStyles.copyOf(),
                 primaryLightStyleIndex = extractLightStyles(face).firstOrNull(),
                 lightMapOffset = face.lightMapOffset,
-                lightStyleContributions = buildFaceLightStyleContributions(bsp, face),
+                lightStyleContributions = if (isLightmappedFace) buildFaceLightStyleContributions(bsp, face) else emptyList(),
             )
         }
 
@@ -471,6 +476,7 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
         if (!shouldLoadWalTexture(texInfo.name)) {
             return@mapNotNull null
         }
+        val isLightmappedFace = shouldUseBspFaceLightmap(texInfo.flags)
         BspWorldSurfaceRecord(
             faceIndex = faceIndex,
             meshPartId = "surface_$faceIndex",
@@ -481,7 +487,7 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
             lightMapStyles = face.lightMapStyles.copyOf(),
             primaryLightStyleIndex = extractLightStyles(face).firstOrNull(),
             lightMapOffset = face.lightMapOffset,
-            lightStyleContributions = buildFaceLightStyleContributions(bsp, face),
+            lightStyleContributions = if (isLightmappedFace) buildFaceLightStyleContributions(bsp, face) else emptyList(),
         )
     }
 }

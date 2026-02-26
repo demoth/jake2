@@ -38,12 +38,12 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Missing `PointTEMessage` branches: `TE_BFG_BIGEXPLOSION`, `TE_TELEPORT_EFFECT`, `TE_DBALL_GOAL`, `TE_WIDOWSPLASH`.
 - [x] Railgun trail has a "beam" like temporary implementation
 - [x] Missing particle effects for blaster/rocket/grenade trail
+- [x] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
 - [ ] Particle pipeline parity: use palette colors
 - [ ] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
 - [ ] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [ ] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
-- [ ] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
