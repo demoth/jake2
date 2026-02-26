@@ -28,7 +28,7 @@ data class MetricDefinition(
  *
  * The graph keeps at most one sample per screen pixel in width and advances by one pixel each frame.
  */
-class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
+class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     companion object {
         val metricDefinitions: List<MetricDefinition> = listOf(
             MetricDefinition(

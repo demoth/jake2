@@ -51,7 +51,7 @@ import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ConsoleStage
-import org.demoth.cake.stages.DrawCallsDebugStage
+import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
@@ -74,7 +74,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private lateinit var menuStage: MainMenuStage
     private lateinit var consoleStage: ConsoleStage
-    private lateinit var drawCallsDebugStage: DrawCallsDebugStage
+    private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
     private lateinit var viewport: StretchViewport
 
@@ -160,7 +160,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
-        drawCallsDebugStage = DrawCallsDebugStage(viewport)
+        debugGraphStage = DebugGraphStage(viewport)
         glProfiler = GLProfiler(Gdx.graphics).apply {
             enable()
             reset()
@@ -395,9 +395,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleStage.draw()
         }
 
-        drawCallsDebugStage.collectMetrics(glProfiler)
-        drawCallsDebugStage.act(deltaSeconds)
-        drawCallsDebugStage.draw()
+        debugGraphStage.collectMetrics(glProfiler)
+        debugGraphStage.act(deltaSeconds)
+        debugGraphStage.draw()
         glProfiler.reset()
     }
 
@@ -457,7 +457,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun dispose() {
         menuStage.dispose()
         consoleStage.dispose()
-        drawCallsDebugStage.dispose()
+        debugGraphStage.dispose()
         glProfiler.disable()
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
