@@ -56,10 +56,10 @@ class ClientEntityManager : Disposable {
 
     var levelEntity: ClientEntity? = null
     var skyEntity: ClientEntity? = null
-    private val debugOriginEntity = ClientEntity("origin").apply {
-        modelInstance = createOriginArrows(16f)
-        depthHack = true
-    }
+
+    // debug related
+    private val rDebug = Cvar.getInstance().Get("r_debug", "0", 0)
+    private var debugWorldOrigin: ClientEntity? = null
 
     var surpressCount = 0
 
@@ -296,7 +296,15 @@ class ClientEntityManager : Disposable {
         visibleEntities.clear()
         visibleSprites.clear()
         visibleBeams.clear()
-        visibleEntities += debugOriginEntity
+        if (rDebug.value != 0f) {
+            if (debugWorldOrigin == null) {
+                debugWorldOrigin = ClientEntity("origin").apply {
+                    modelInstance = createOriginArrows(16f)
+                    depthHack = true
+                }
+            }
+            visibleEntities += debugWorldOrigin!!
+        }
         if (levelEntity != null && rDrawWorld?.value != 0f) {
             visibleEntities += levelEntity!!
         }
@@ -506,7 +514,7 @@ class ClientEntityManager : Disposable {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
                 Com.Printf("Delta frame too old.\n")
             } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
-                Com.Printf("Delta parse_entities too old.123123123\n")
+                Com.Printf("Delta parse_entities too old.\n")
             } else {
                 currentFrame.valid = true  // valid delta parse
             }
@@ -585,6 +593,7 @@ class ClientEntityManager : Disposable {
     }
 
     override fun dispose() {
-        debugOriginEntity.modelInstance.model.dispose()
+        if (debugWorldOrigin != null)
+            debugWorldOrigin!!.modelInstance.model.dispose()
     }
 }
