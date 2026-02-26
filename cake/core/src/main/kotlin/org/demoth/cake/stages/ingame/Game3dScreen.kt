@@ -226,7 +226,7 @@ class Game3dScreen(
                 }
             }
             entityManager.visibleBeams.forEach {
-                beamRenderer.render(modelBatch, it, entityManager.currentFrame.serverframe)
+                beamRenderer.render(modelBatch, it)
             }
             // Preserve legacy draw ordering: opaque first, translucent second.
             // Do not merge into a naive single pass; mixed ordering breaks alpha/depth results.

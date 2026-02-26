@@ -17,6 +17,7 @@ import com.badlogic.gdx.math.Quaternion
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Defines
+import jake2.qcommon.Globals
 import org.demoth.cake.ClientEntity
 import kotlin.collections.plusAssign
 
@@ -48,7 +49,7 @@ class BeamRenderer(
      * - diameter = `frame`
      * - color bytes = packed in `skinnum` (legacy beam color hack)
      */
-    fun render(modelBatch: ModelBatch, entity: ClientEntity, serverFrame: Int) {
+    fun render(modelBatch: ModelBatch, entity: ClientEntity) {
         val state = entity.current
         beamStart.set(state.origin[0], state.origin[1], state.origin[2])
         beamEnd.set(state.old_origin[0], state.old_origin[1], state.old_origin[2])
@@ -66,8 +67,8 @@ class BeamRenderer(
         beamMidpoint.set(beamStart).add(beamEnd).scl(0.5f)
         beamScale.set(radius, length, radius)
 
-        // Preserve legacy "random beam color component" behavior deterministically per entity/frame.
-        val colorShift = ((state.index + serverFrame) and 3) * 8
+        // select one of 4 packed beam color bytes at random each draw.
+        val colorShift = Globals.rnd.nextInt(4) * 8
         val paletteIndex = (state.skinnum ushr colorShift) and 0xFF
         val translucent = (state.renderfx and Defines.RF_TRANSLUCENT) != 0
         val beamRenderable = getOrCreateBeamRenderable(paletteIndex, translucent)
@@ -93,10 +94,15 @@ class BeamRenderer(
         val key = paletteIndex or (if (translucent) 1 shl 8 else 0)
         return beamRenderables.getOrPut(key) {
             val rgba8888 = q2Palette[paletteIndex]
+            // Match legacy d_8to24table RGB extraction layout used by beam renderers.
+            val legacyD8To24 =
+                ((rgba8888 ushr 24) and 0xFF) or
+                    (((rgba8888 ushr 16) and 0xFF) shl 8) or
+                    (((rgba8888 ushr 8) and 0xFF) shl 16)
             val color = Color(
-                ((rgba8888 ushr 24) and 0xFF) / 255f,
-                ((rgba8888 ushr 16) and 0xFF) / 255f,
-                ((rgba8888 ushr 8) and 0xFF) / 255f,
+                (legacyD8To24 and 0xFF) / 255f,
+                ((legacyD8To24 ushr 8) and 0xFF) / 255f,
+                ((legacyD8To24 ushr 16) and 0xFF) / 255f,
                 1f
             )
             val alpha = if (translucent) 0.3f else 1f
