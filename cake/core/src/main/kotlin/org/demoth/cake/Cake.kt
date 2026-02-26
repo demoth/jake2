@@ -10,6 +10,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
+import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.StretchViewport
@@ -50,6 +51,7 @@ import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ConsoleStage
+import org.demoth.cake.stages.DrawCallsDebugStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 
@@ -72,6 +74,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private lateinit var menuStage: MainMenuStage
     private lateinit var consoleStage: ConsoleStage
+    private lateinit var drawCallsDebugStage: DrawCallsDebugStage
+    private lateinit var glProfiler: GLProfiler
     private lateinit var viewport: StretchViewport
 
     // whenever these are changed, input handlers should be updated
@@ -156,6 +160,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
+        drawCallsDebugStage = DrawCallsDebugStage(viewport)
+        glProfiler = GLProfiler(Gdx.graphics).apply {
+            enable()
+            reset()
+        }
 
         updateInputHandlers(false, true)
 
@@ -385,6 +394,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleStage.act()
             consoleStage.draw()
         }
+
+        val drawCalls = glProfiler.drawCalls
+        drawCallsDebugStage.pushDrawCalls(drawCalls)
+        drawCallsDebugStage.act(deltaSeconds)
+        drawCallsDebugStage.draw()
+        glProfiler.reset()
     }
 
     /**
@@ -443,6 +458,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun dispose() {
         menuStage.dispose()
         consoleStage.dispose()
+        drawCallsDebugStage.dispose()
+        glProfiler.disable()
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
     }
