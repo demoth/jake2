@@ -36,7 +36,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Missing `SplashTEMessage` branches: `TE_LASER_SPARKS`, `TE_TUNNEL_SPARKS`.
 - [x] Missing `TrailTEMessage` branches: `TE_BUBBLETRAIL`, `TE_BLUEHYPERBLASTER`, `TE_DEBUGTRAIL`.
 - [x] Missing `PointTEMessage` branches: `TE_BFG_BIGEXPLOSION`, `TE_TELEPORT_EFFECT`, `TE_DBALL_GOAL`, `TE_WIDOWSPLASH`.
-- [ ] Railgun trail has a "beam" like temporary implementation
+- [x] Railgun trail has a "beam" like temporary implementation
 - [ ] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
 - [ ] Missing particle effects for blaster/rocket/grenade trail
 - [ ] entity Shells are not implemented

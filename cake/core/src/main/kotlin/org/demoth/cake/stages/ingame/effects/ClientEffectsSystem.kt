@@ -25,6 +25,9 @@ import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
 import org.demoth.cake.stages.ingame.DynamicLightSystem
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Runtime owner for non-replicated client-side effects produced by server effect messages.
@@ -316,15 +319,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_RAILTRAIL -> {
-                activeEffects += LineBeamEffect(
-                    start = start,
-                    end = end,
-                    color = Color(0.08f, 0.18f, 1f, 1f),
-                    spawnTimeMs = Globals.curtime,
-                    durationMs = 140,
-                    radius = 0.9f,
-                    alpha = 0.85f,
-                )
+                emitRailTrailParticles(start, end)
                 playEffectSound("sound/weapons/railgf1a.wav", end)
             }
 
@@ -930,6 +925,77 @@ class ClientEffectsSystem(
         )
     }
 
+    private fun emitRailTrailParticles(start: Vector3, end: Vector3) {
+        val delta = Vector3(end).sub(start)
+        val length = delta.len()
+        if (length <= 0.001f) {
+            return
+        }
+
+        val forward = delta.scl(1f / length)
+        val (right, up) = buildNormalBasis(forward)
+
+        val spiralColorFallback = Color(0.3f, 0.55f, 1f, 1f)
+        val move = Vector3(start)
+        val spiralSamples = length.toInt().coerceIn(1, 4096)
+        for (sample in 0 until spiralSamples) {
+            val phase = sample * 0.1f
+            val radial = Vector3(right).scl(cos(phase)).mulAdd(up, sin(phase))
+            val spawnOrigin = Vector3(move).mulAdd(radial, 3f)
+            particleSystem.emitBurst(
+                origin = spawnOrigin,
+                direction = floatArrayOf(radial.x, radial.y, radial.z),
+                count = 1,
+                color = resolvePaletteColor(0x74 + Globals.rnd.nextInt(8), fallback = spiralColorFallback),
+                speedMin = 6f,
+                speedMax = 6f,
+                spread = 0f,
+                gravity = 0f,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = 0.22f,
+                sizeMax = 0.42f,
+                lifetimeMinMs = 900,
+                lifetimeMaxMs = 1200,
+            )
+            move.mulAdd(forward, 1f)
+        }
+
+        val coreColorFallback = Color(0.95f, 0.95f, 1f, 1f)
+        val dec = 0.75f
+        val step = Vector3(forward).scl(dec)
+        val coreMove = Vector3(start)
+        var remaining = length
+        var coreSamples = 0
+        while (remaining > 0f && coreSamples < 4096) {
+            remaining -= dec
+            val spawnOrigin = Vector3(coreMove).add(
+                randomRange(-3f, 3f),
+                randomRange(-3f, 3f),
+                randomRange(-3f, 3f),
+            )
+            val randomDir = randomUnitDirection()
+            particleSystem.emitBurst(
+                origin = spawnOrigin,
+                direction = floatArrayOf(randomDir.x, randomDir.y, randomDir.z),
+                count = 1,
+                color = resolvePaletteColor(Globals.rnd.nextInt(16), fallback = coreColorFallback),
+                speedMin = 0f,
+                speedMax = 3f,
+                spread = 0f,
+                gravity = 0f,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = 0.18f,
+                sizeMax = 0.34f,
+                lifetimeMinMs = 600,
+                lifetimeMaxMs = 820,
+            )
+            coreMove.add(step)
+            coreSamples++
+        }
+    }
+
     private fun emitTeleportEffectParticles(origin: Vector3) {
         emitPaletteOmniBurst(
             origin = origin,
@@ -1042,6 +1108,24 @@ class ClientEffectsSystem(
             z = Globals.rnd.nextFloat() * 2f - 1f
         } while (x * x + y * y + z * z < 0.0001f)
         return Vector3(x, y, z).nor()
+    }
+
+    private fun buildNormalBasis(forward: Vector3): Pair<Vector3, Vector3> {
+        val anchor = if (abs(forward.z) < 0.999f) {
+            Vector3.Z
+        } else {
+            Vector3.X
+        }
+        val right = Vector3(forward).crs(anchor).nor()
+        val up = Vector3(right).crs(forward).nor()
+        return right to up
+    }
+
+    private fun randomRange(min: Float, max: Float): Float {
+        if (min >= max) {
+            return min
+        }
+        return min + Globals.rnd.nextFloat() * (max - min)
     }
 
     private fun emitSegmentTrailParticles(
