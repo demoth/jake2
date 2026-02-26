@@ -685,6 +685,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
         if (game3dScreen == null) {
             game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
+            debugGraphStage.resetMetrics()
         }
         // todo: stop sounds, effects, etc..
     }

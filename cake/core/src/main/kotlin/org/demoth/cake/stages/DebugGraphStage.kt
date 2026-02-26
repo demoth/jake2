@@ -92,6 +92,11 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         }
     }
 
+    fun resetMetrics() {
+        resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
+        hideAllMetricLabels()
+    }
+
     override fun draw() {
         if (cvarDebugGraph.value == 0f) {
             hideAllMetricLabels()
