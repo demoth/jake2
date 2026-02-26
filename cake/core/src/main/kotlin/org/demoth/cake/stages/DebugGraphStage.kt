@@ -30,6 +30,13 @@ data class MetricDefinition(
  */
 class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     companion object {
+        private const val GRAPH_BASE_Y = 8f
+        private const val GRAPH_PADDING_TOP = 8f
+        private const val GRAPH_MAX_HEIGHT = 140f
+        private const val LABEL_LEFT_MARGIN = 4f
+        private const val LABEL_LINE_GAP = 2f
+        private const val MAX_LINE_ALPHA = 0.35f
+
         val metricDefinitions: List<MetricDefinition> = listOf(
             MetricDefinition(
             id = MetricId.DRAW_CALLS,
@@ -91,9 +98,9 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
         viewport.apply()
 
-        val graphBaseY = 8f
-        val graphPaddingTop = 8f
-        val graphHeight = (viewport.worldHeight - graphBaseY - graphPaddingTop).coerceAtMost(140f).coerceAtLeast(1f)
+        val graphBaseY = GRAPH_BASE_Y
+        val graphPaddingTop = GRAPH_PADDING_TOP
+        val graphHeight = (viewport.worldHeight - graphBaseY - graphPaddingTop).coerceAtMost(GRAPH_MAX_HEIGHT).coerceAtLeast(1f)
         val graphWidth = viewport.worldWidth.coerceAtLeast(1f)
         val globalMaxValue = activeSeries.values.maxOf { currentMaxValue(it) }.coerceAtLeast(1)
         val globalMax = globalMaxValue.toFloat()
@@ -126,14 +133,15 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
             val metricMax = currentMaxValue(series)
             val metricMaxY = graphBaseY + (metricMax / globalMax) * graphHeight
-            shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, 0.35f)
+            shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, MAX_LINE_ALPHA)
             shapeRenderer.line(0f, metricMaxY, graphWidth - 1f, metricMaxY)
 
             label.setText(metricMax.toString())
             label.setColor(metricColor)
             label.pack()
             label.setPosition(
-                4f, (metricMaxY - label.height - 2f).coerceIn(graphBaseY, viewport.worldHeight - label.height)
+                LABEL_LEFT_MARGIN,
+                (metricMaxY - label.height - LABEL_LINE_GAP).coerceIn(graphBaseY, viewport.worldHeight - label.height)
             )
             label.isVisible = true
 
@@ -141,7 +149,8 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             nameLabel.setColor(metricColor)
             nameLabel.pack()
             nameLabel.setPosition(
-                4f, (metricMaxY + 2f).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
+                LABEL_LEFT_MARGIN,
+                (metricMaxY + LABEL_LINE_GAP).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
             )
             nameLabel.isVisible = true
         }
