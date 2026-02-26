@@ -168,6 +168,8 @@ fun buildVertexData(
     glCmds: List<Md2GlCmd>,
     frames: List<Md2Frame>
 ): Md2VertexData {
+    check(frames.isNotEmpty()) { "MD2 must contain at least one frame" }
+
     // First, we need to reindex the vertices.
     // In md2 format the vertices are indexed without the texture coordinates (which are part of gl commands).
     // GL commands are shared between frames, therefore the uv don't change between frames.
@@ -179,6 +181,11 @@ fun buildVertexData(
         glCmd.unpack().flatMap { vertex ->
             listOf(vertex.index.toFloat(), vertex.s, vertex.t)
         }
+    }
+    check(attributes.size % 3 == 0) { "MD2 vertex attributes should contain triples: (vatIndex, u, v)" }
+    val indexedVertexCount = attributes.size / 3
+    check(indexedVertexCount <= 0xFFFF) {
+        "MD2 indexed vertex count exceeds unsigned short index range: $indexedVertexCount"
     }
 
     // flatten vertex positions and resolved normals in all frames.
@@ -200,7 +207,7 @@ fun buildVertexData(
     }
 
     return Md2VertexData(
-        indices = attributes.indices.map { it.toShort() }.toShortArray(),
+        indices = ShortArray(indexedVertexCount) { it.toShort() },
         vertexAttributes = attributes.toFloatArray(),
         vertexPositions = vertexPositions.toFloatArray(),
         vertexNormals = vertexNormals.toFloatArray(),

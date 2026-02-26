@@ -147,6 +147,8 @@ class Md2ModelVertexDataTest {
             3.0f, 1.0f, 0.5f,
         )
         assertArrayEquals(expectedVertexAttributes, actual.vertexAttributes, 0.0001f)
+        val expectedIndices = ShortArray(expectedVertexAttributes.size / 3) { it.toShort() }
+        assertArrayEquals(expectedIndices, actual.indices)
 
         // todo: add proper test for texture coordinates
         assertEquals(testFrames.size * testFrames.first().points.size * 3, actual.vertexPositions.size)

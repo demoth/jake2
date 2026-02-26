@@ -133,9 +133,13 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         }
         // Winding normalization is handled by buildVertexData() and is part of MD2 decode defaults.
         val vertexData = buildVertexData(md2.glCommands, md2.frames)
+        check(vertexData.vertexAttributes.size % 3 == 0) {
+            "MD2 vertex attributes should contain triples: (vatIndex, u, v)"
+        }
+        val meshVertexCount = vertexData.vertexAttributes.size / 3
         val mesh = Mesh(
             true,
-            vertexData.vertexAttributes.size,
+            meshVertexCount,
             vertexData.indices.size,
             VertexAttributes(
                 VertexAttribute(Generic, 1, "a_vat_index"),
