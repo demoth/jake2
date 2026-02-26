@@ -31,6 +31,17 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Dynamic lights (muzzle, temp effects, `EF_*` replicated emitters).
 - [x] MD2 lighting (no longer fullbright by default).
 - [x] Particles (transient runtime for TE/effect bursts).
+- [x] Blood/spark hit temp-entities (`TE_BLOOD`, `TE_MOREBLOOD`, `TE_GREENBLOOD`, `TE_SPARKS`).
+- [ ] Some md2 models have unnesessary shading (explosion models should be fullbright)
+- [ ] Missing `SplashTEMessage` branches: `TE_LASER_SPARKS`, `TE_TUNNEL_SPARKS`.
+- [ ] Missing `TrailTEMessage` branches: `TE_BUBBLETRAIL`, `TE_BLUEHYPERBLASTER`, `TE_DEBUGTRAIL`.
+- [ ] Missing `PointTEMessage` branches: `TE_BFG_BIGEXPLOSION`, `TE_TELEPORT_EFFECT`, `TE_DBALL_GOAL`, `TE_WIDOWSPLASH`.
+- [ ] Railgun trail has a "beam" like temporary implementation
+- [ ] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
+- [ ] Missing particle effects for blaster/rocket/grenade trail
+- [ ] entity Shells are not implemented
+- [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
+- [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 
@@ -96,6 +107,32 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - Cake implementation:
   - BSP and MD2 shaders now apply shared controls.
   - `gl3_overbrightbits <= 0` behaves as multiplier `1`.
+
+### Draw-call estimation (current Cake path)
+
+- Assumption:
+  - In libGDX `ModelBatch`, one submitted renderable (effectively one enabled `NodePart`) is one draw call.
+  - Current BSP path is intentionally per-face/per-part, so batching opportunities are minimal by design.
+
+- BSP rendering pipeline (`world + inline brush entities`):
+  - Estimate formula:  
+    `dc_bsp ~= visible_world_surfaces + sum(visible_inline_faces_per_instance) + sky_calls`
+  - `visible_world_surfaces` is directly driven by PVS/areabits via `NodePart.enabled`.
+  - Inline brush models are emitted per-face; each visible face of each visible inline instance adds one call.
+  - `sky_calls` is typically `0..1` (sky model rendered separately when present).
+  - Practical range:
+    - small indoor view: ~`150..600`
+    - open/complex view: ~`800..2500+`
+
+- MD2 rendering pipeline:
+  - Estimate formula:  
+    `dc_md2 ~= visible_md2_instances + md2_effect_instances`
+  - Current `Md2Loader` emits one mesh part for MD2, so each visible MD2 entity is typically one draw call.
+  - Translucent sorting does not duplicate calls; it only changes which pass renders the same instance.
+  - Shell/minlight/glow/fullbright are shader/material state changes, not extra MD2 geometry passes.
+  - Practical range:
+    - normal combat scene: ~`5..40`
+    - very busy scene (many monsters/gibs/effects): ~`50..120+`
 
 ## Legacy References Used
 
