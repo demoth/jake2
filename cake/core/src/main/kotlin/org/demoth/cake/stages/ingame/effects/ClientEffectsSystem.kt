@@ -54,7 +54,7 @@ import org.demoth.cake.stages.ingame.DynamicLightSystem
  * - `client/CL_tent.ParseTEnt`
  */
 class ClientEffectsSystem(
-    assetManager: AssetManager,
+    private val assetManager: AssetManager,
     private val entityManager: ClientEntityManager,
     private val listenerPositionProvider: () -> Vector3,
     private val cameraProvider: () -> Camera,
@@ -63,6 +63,13 @@ class ClientEffectsSystem(
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
     private val particleSystem = EffectParticleSystem()
+    private val q2Palette: IntArray? by lazy {
+        if (assetManager.isLoaded("q2palette.bin", Any::class.java)) {
+            assetManager.get("q2palette.bin", Any::class.java) as? IntArray
+        } else {
+            null
+        }
+    }
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -300,6 +307,16 @@ class ClientEffectsSystem(
                 }
             }
 
+            Defines.TE_LASER_SPARKS -> {
+                emitLegacyPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = msg.count,
+                    paletteIndex = msg.param,
+                    gravity = -320f,
+                )
+            }
+
             Defines.TE_WELDING_SPARKS -> {
                 spawnAnimatedModelEffect(
                     modelPath = "models/objects/flash/tris.md2",
@@ -309,6 +326,16 @@ class ClientEffectsSystem(
                     frameDurationMs = 80,
                 )
                 spawnDynamicLight(position, (100 + Globals.rnd.nextInt(75)).toFloat(), 1f, 1f, 0.3f)
+            }
+
+            Defines.TE_TUNNEL_SPARKS -> {
+                emitLegacyPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = msg.count,
+                    paletteIndex = msg.param,
+                    gravity = 320f,
+                )
             }
         }
     }
@@ -731,6 +758,46 @@ class ClientEffectsSystem(
             sizeMax = 2f,
             lifetimeMinMs = 240,
             lifetimeMaxMs = 900,
+        )
+    }
+
+    private fun emitLegacyPaletteParticles(
+        origin: Vector3,
+        direction: FloatArray?,
+        count: Int,
+        paletteIndex: Int,
+        gravity: Float,
+    ) {
+        particleSystem.emitBurst(
+            origin = origin,
+            direction = direction,
+            count = count.coerceIn(1, 128),
+            color = resolvePaletteColor(paletteIndex, fallback = Color(1f, 0.85f, 0.4f, 1f)),
+            speedMin = 8f,
+            speedMax = 48f,
+            spread = 0.55f,
+            gravity = gravity,
+            startAlpha = 1f,
+            endAlpha = 0f,
+            sizeMin = 0.3f,
+            sizeMax = 1f,
+            lifetimeMinMs = 180,
+            lifetimeMaxMs = 560,
+        )
+    }
+
+    private fun resolvePaletteColor(index: Int, fallback: Color): Color {
+        val palette = q2Palette ?: return Color(fallback)
+        if (palette.isEmpty()) {
+            return Color(fallback)
+        }
+        val paletteIndex = (index and 0xFF).coerceIn(0, palette.lastIndex)
+        val rgba8888 = palette[paletteIndex]
+        return Color(
+            ((rgba8888 ushr 24) and 0xFF) / 255f,
+            ((rgba8888 ushr 16) and 0xFF) / 255f,
+            ((rgba8888 ushr 8) and 0xFF) / 255f,
+            1f,
         )
     }
 
