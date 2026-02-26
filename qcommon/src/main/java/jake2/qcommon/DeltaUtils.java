@@ -154,9 +154,9 @@ public class DeltaUtils {
             deltaFlags |= U_ANGLE3;
 
         if (to.skinnum != from.skinnum) {
-            if (to.skinnum < 256)
+            if (Integer.compareUnsigned(to.skinnum, 256) < 0)
                 deltaFlags |= U_SKIN8;
-            else if (to.skinnum < 0x10000)
+            else if (Integer.compareUnsigned(to.skinnum, 0x10000) < 0)
                 deltaFlags |= U_SKIN16;
             else
                 deltaFlags |= U_SKIN8 | U_SKIN16;
