@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -15,12 +16,28 @@ enum class MetricId {
     DRAW_CALLS,
 }
 
+data class MetricDefinition(
+    val id: MetricId,
+    val name: String,
+    val color: Color,
+    val collectValue: (GLProfiler) -> Int,
+)
+
 /**
  * Draws scrolling per-frame metric lines (draw calls for now).
  *
  * The graph keeps at most one sample per screen pixel in width and advances by one pixel each frame.
  */
 class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
+    companion object {
+        val metricDefinitions: List<MetricDefinition> = listOf(
+            MetricDefinition(
+            id = MetricId.DRAW_CALLS,
+            name = "draw calls",
+            color = Color(0.2f, 1f, 0.2f, 0.7f),
+            collectValue = { profiler -> profiler.drawCalls }))
+    }
+
     private data class MetricSeries(
         var history: IntArray = IntArray(0),
         var writeIndex: Int = 0,
@@ -28,31 +45,25 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
     )
 
     private val shapeRenderer = ShapeRenderer()
-    private val cvarDebugGraph = Cvar.getInstance().Get("debug_r_graph", "0", 0)
-    private val metricColors = EnumMap<MetricId, Color>(MetricId::class.java).apply {
-        put(MetricId.DRAW_CALLS, Color(0.2f, 1f, 0.2f, 0.7f))
-    }
-    private val metricDisplayNames = EnumMap<MetricId, String>(MetricId::class.java).apply {
-        put(MetricId.DRAW_CALLS, "draw calls")
-    }
+    private val cvarDebugGraph = Cvar.getInstance().Get("debug_r_graph", "1", 0)
     private val metricSeries = EnumMap<MetricId, MetricSeries>(MetricId::class.java)
     private val metricLabels = EnumMap<MetricId, Label>(MetricId::class.java)
     private val metricNameLabels = EnumMap<MetricId, Label>(MetricId::class.java)
 
     init {
-        MetricId.entries.forEach { metricId ->
+        metricDefinitions.forEach { definition ->
+            val metricId = definition.id
             metricSeries[metricId] = MetricSeries()
-            val metricColor = metricColors.getValue(metricId)
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
-                color = Color(metricColor)
+                color = Color(definition.color)
             }
             metricLabels[metricId] = label
             addActor(label)
 
-            val nameLabel = Label(metricDisplayNames.getValue(metricId), Scene2DSkin.defaultSkin).apply {
+            val nameLabel = Label(definition.name, Scene2DSkin.defaultSkin).apply {
                 isVisible = false
-                color = Color(metricColor)
+                color = Color(definition.color)
             }
             metricNameLabels[metricId] = nameLabel
             addActor(nameLabel)
@@ -60,17 +71,10 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
         resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
     }
 
-    fun pushMetric(metricId: MetricId, value: Int) {
-        val width = Gdx.graphics.width.coerceAtLeast(1)
-        ensureMetricHistoryWidth(width)
-        val series = metricSeries.getValue(metricId)
-        series.history[series.writeIndex] = value.coerceAtLeast(0)
-        series.writeIndex = (series.writeIndex + 1) % series.history.size
-        series.size = minOf(series.size + 1, series.history.size)
-    }
-
-    fun pushDrawCalls(drawCalls: Int) {
-        pushMetric(MetricId.DRAW_CALLS, drawCalls)
+    fun collectMetrics(profiler: GLProfiler) {
+        metricDefinitions.forEach { definition ->
+            pushMetric(definition.id, definition.collectValue(profiler))
+        }
     }
 
     override fun draw() {
@@ -97,7 +101,8 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
-        MetricId.entries.forEach { metricId ->
+        metricDefinitions.forEach { definition ->
+            val metricId = definition.id
             val series = metricSeries.getValue(metricId)
             val label = metricLabels.getValue(metricId)
             val nameLabel = metricNameLabels.getValue(metricId)
@@ -107,7 +112,7 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
                 return@forEach
             }
 
-            val metricColor = metricColors.getValue(metricId)
+            val metricColor = definition.color
             shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, metricColor.a)
             if (series.size > 1) {
                 for (x in 1 until series.size) {
@@ -128,17 +133,15 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
             label.setColor(metricColor)
             label.pack()
             label.setPosition(
-                4f,
-                (metricMaxY - label.height - 2f).coerceIn(graphBaseY, viewport.worldHeight - label.height)
+                4f, (metricMaxY - label.height - 2f).coerceIn(graphBaseY, viewport.worldHeight - label.height)
             )
             label.isVisible = true
 
-            nameLabel.setText(metricDisplayNames.getValue(metricId))
+            nameLabel.setText(definition.name)
             nameLabel.setColor(metricColor)
             nameLabel.pack()
             nameLabel.setPosition(
-                4f,
-                (metricMaxY + 2f).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
+                4f, (metricMaxY + 2f).coerceIn(graphBaseY, viewport.worldHeight - nameLabel.height)
             )
             nameLabel.isVisible = true
         }
@@ -150,6 +153,15 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
     override fun dispose() {
         shapeRenderer.dispose()
         super.dispose()
+    }
+
+    private fun pushMetric(metricId: MetricId, value: Int) {
+        val width = Gdx.graphics.width.coerceAtLeast(1)
+        ensureMetricHistoryWidth(width)
+        val series = metricSeries.getValue(metricId)
+        series.history[series.writeIndex] = value.coerceAtLeast(0)
+        series.writeIndex = (series.writeIndex + 1) % series.history.size
+        series.size = minOf(series.size + 1, series.history.size)
     }
 
     private fun historyValueAt(series: MetricSeries, indexFromOldest: Int): Int {
@@ -167,14 +179,17 @@ class DrawCallsDebugStage(viewport: Viewport) : Stage(viewport) {
     }
 
     private fun ensureMetricHistoryWidth(width: Int) {
-        val anyMismatched = metricSeries.values.any { it.history.size != width }
+        val anyMismatched = metricDefinitions.any { definition ->
+            metricSeries.getValue(definition.id).history.size != width
+        }
         if (anyMismatched) {
             resizeMetricHistory(width)
         }
     }
 
     private fun resizeMetricHistory(width: Int) {
-        metricSeries.values.forEach { series ->
+        metricDefinitions.forEach { definition ->
+            val series = metricSeries.getValue(definition.id)
             series.history = IntArray(width)
             series.writeIndex = 0
             series.size = 0

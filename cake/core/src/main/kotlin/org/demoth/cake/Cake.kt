@@ -395,8 +395,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleStage.draw()
         }
 
-        val drawCalls = glProfiler.drawCalls
-        drawCallsDebugStage.pushDrawCalls(drawCalls)
+        drawCallsDebugStage.collectMetrics(glProfiler)
         drawCallsDebugStage.act(deltaSeconds)
         drawCallsDebugStage.draw()
         glProfiler.reset()
