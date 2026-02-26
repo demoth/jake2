@@ -11,11 +11,13 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute
+import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Globals
 import org.demoth.cake.stages.ingame.RenderTuningCvars
+import java.util.ArrayDeque
 import kotlin.math.max
 
 /**
@@ -23,14 +25,12 @@ import kotlin.math.max
  *
  * Implementation notes:
  * - renders particles as tiny translucent cubes (no texture atlas dependency),
- * - keeps one shared mesh/material and updates transform/color per particle draw,
+ * - keeps one shared mesh and pooled per-particle render state (material + instance transform),
  * - intended as a parity bridge until a dedicated high-throughput particle renderer lands.
  */
 class EffectParticleSystem : Disposable {
     private val model: Model
-    private val instance: ModelInstance
-    private val diffuse: ColorAttribute
-    private val blending: BlendingAttribute
+    private val freeRenderables = ArrayDeque<ParticleRenderable>()
     private val activeParticles = ArrayList<Particle>(512)
 
     init {
@@ -47,9 +47,6 @@ class EffectParticleSystem : Disposable {
             material,
             (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal).toLong(),
         )
-        instance = ModelInstance(model)
-        diffuse = instance.materials.first().get(ColorAttribute.Diffuse) as ColorAttribute
-        blending = instance.materials.first().get(BlendingAttribute.Type) as BlendingAttribute
     }
 
     fun emitBurst(
@@ -75,16 +72,18 @@ class EffectParticleSystem : Disposable {
             val particleDirection = randomDirection(direction, spread)
             val speed = randomFloat(speedMin, speedMax)
             val lifeMs = randomInt(lifetimeMinMs, lifetimeMaxMs)
+            val renderable = obtainRenderable()
+            renderable.diffuse.color.set(color.r, color.g, color.b, 1f)
             activeParticles += Particle(
                 position = Vector3(origin),
                 velocity = particleDirection.scl(speed),
-                color = Color(color),
                 spawnTimeMs = Globals.curtime,
                 lifetimeMs = max(1, lifeMs),
                 startAlpha = startAlpha,
                 endAlpha = endAlpha,
                 size = randomFloat(sizeMin, sizeMax).coerceAtLeast(0.1f),
                 gravity = gravity,
+                renderable = renderable,
             )
         }
     }
@@ -98,6 +97,7 @@ class EffectParticleSystem : Disposable {
             val particle = iterator.next()
             val elapsedMs = nowMs - particle.spawnTimeMs
             if (elapsedMs >= particle.lifetimeMs) {
+                recycleRenderable(particle.renderable)
                 iterator.remove()
                 continue
             }
@@ -117,19 +117,59 @@ class EffectParticleSystem : Disposable {
             if (alpha <= 0f) {
                 return@forEach
             }
-            diffuse.color.set(particle.color.r, particle.color.g, particle.color.b, 1f)
-            blending.opacity = alpha
-            instance.transform.idt()
-            instance.transform.setToTranslation(particle.position)
-            instance.transform.scale(particle.size, particle.size, particle.size)
-            modelBatch.render(instance)
+            val renderable = particle.renderable
+            renderable.blending.opacity = alpha
+            renderable.instance.transform.idt()
+            renderable.instance.transform.setToTranslation(particle.position)
+            renderable.instance.transform.scale(particle.size, particle.size, particle.size)
+            modelBatch.render(renderable.instance)
         }
     }
 
     override fun dispose() {
         activeParticles.clear()
+        freeRenderables.clear()
         model.dispose()
     }
+
+    private fun obtainRenderable(): ParticleRenderable {
+        return if (freeRenderables.isEmpty()) {
+            createRenderable()
+        } else {
+            freeRenderables.removeFirst()
+        }
+    }
+
+    private fun recycleRenderable(renderable: ParticleRenderable) {
+        freeRenderables.addLast(renderable)
+    }
+
+    private fun createRenderable(): ParticleRenderable {
+        val instance = ModelInstance(model)
+        val material = Material(
+            ColorAttribute.createDiffuse(Color.WHITE),
+            BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, 1f),
+            DepthTestAttribute(GL20.GL_LEQUAL, 0f, 1f, false),
+            IntAttribute.createCullFace(GL20.GL_NONE),
+        )
+        instance.materials.clear()
+        instance.materials.add(material)
+        instance.nodes.forEach { node -> applyMaterialRecursive(node, material) }
+        val diffuse = material.get(ColorAttribute.Diffuse) as ColorAttribute
+        val blending = material.get(BlendingAttribute.Type) as BlendingAttribute
+        return ParticleRenderable(instance, diffuse, blending)
+    }
+
+    private fun applyMaterialRecursive(node: Node, material: Material) {
+        node.parts.forEach { it.material = material }
+        node.children.forEach { child -> applyMaterialRecursive(child, material) }
+    }
+
+    private data class ParticleRenderable(
+        val instance: ModelInstance,
+        val diffuse: ColorAttribute,
+        val blending: BlendingAttribute,
+    )
 
     private fun randomDirection(direction: FloatArray?, spread: Float): Vector3 {
         val base = if (direction != null && direction.size >= 3) {
@@ -163,12 +203,12 @@ class EffectParticleSystem : Disposable {
     private data class Particle(
         val position: Vector3,
         val velocity: Vector3,
-        val color: Color,
         val spawnTimeMs: Int,
         val lifetimeMs: Int,
         val startAlpha: Float,
         val endAlpha: Float,
         val size: Float,
         val gravity: Float,
+        val renderable: ParticleRenderable,
     )
 }
