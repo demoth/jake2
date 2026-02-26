@@ -260,6 +260,61 @@ class ClientEffectsSystem(
         val start = toVector3(msg.position) ?: return
         val end = toVector3(msg.destination) ?: return
         when (msg.style) {
+            Defines.TE_BUBBLETRAIL -> {
+                emitSegmentTrailParticles(
+                    start = start,
+                    end = end,
+                    spacing = 32f,
+                    maxSteps = 128,
+                    direction = floatArrayOf(0f, 0f, 1f),
+                    countPerStep = 1,
+                    colorProvider = {
+                        val colorIndex = 4 + (Globals.rnd.nextInt(8))
+                        resolvePaletteColor(colorIndex, fallback = Color(0.55f, 0.7f, 1f, 1f))
+                    },
+                    speedMin = 0f,
+                    speedMax = 8f,
+                    spread = 0.35f,
+                    gravity = 45f,
+                    sizeMin = 0.28f,
+                    sizeMax = 0.75f,
+                    lifetimeMinMs = 700,
+                    lifetimeMaxMs = 1400,
+                )
+            }
+
+            Defines.TE_BLUEHYPERBLASTER -> {
+                emitImpactParticles(
+                    origin = start,
+                    direction = msg.destination,
+                    count = 40,
+                    color = Color(0.25f, 0.55f, 1f, 1f),
+                )
+            }
+
+            Defines.TE_DEBUGTRAIL -> {
+                emitSegmentTrailParticles(
+                    start = start,
+                    end = end,
+                    spacing = 3f,
+                    maxSteps = 256,
+                    direction = floatArrayOf(0f, 0f, 0f),
+                    countPerStep = 1,
+                    colorProvider = {
+                        val colorIndex = 0x74 + Globals.rnd.nextInt(8)
+                        resolvePaletteColor(colorIndex, fallback = Color(0.15f, 0.95f, 0.45f, 1f))
+                    },
+                    speedMin = 0f,
+                    speedMax = 2f,
+                    spread = 0.2f,
+                    gravity = 0f,
+                    sizeMin = 0.22f,
+                    sizeMax = 0.55f,
+                    lifetimeMinMs = 3500,
+                    lifetimeMaxMs = 5200,
+                )
+            }
+
             Defines.TE_RAILTRAIL -> {
                 activeEffects += LineBeamEffect(
                     start = start,
@@ -799,6 +854,56 @@ class ClientEffectsSystem(
             ((rgba8888 ushr 8) and 0xFF) / 255f,
             1f,
         )
+    }
+
+    private fun emitSegmentTrailParticles(
+        start: Vector3,
+        end: Vector3,
+        spacing: Float,
+        maxSteps: Int,
+        direction: FloatArray,
+        countPerStep: Int,
+        colorProvider: () -> Color,
+        speedMin: Float,
+        speedMax: Float,
+        spread: Float,
+        gravity: Float,
+        sizeMin: Float,
+        sizeMax: Float,
+        lifetimeMinMs: Int,
+        lifetimeMaxMs: Int,
+    ) {
+        val delta = Vector3(end).sub(start)
+        val length = delta.len()
+        if (length <= 0.001f) {
+            return
+        }
+
+        val step = spacing.coerceAtLeast(0.1f)
+        val directionNorm = delta.scl(1f / length)
+        var travelled = 0f
+        var steps = 0
+        while (travelled <= length && steps < maxSteps) {
+            val samplePoint = Vector3(start).mulAdd(directionNorm, travelled)
+            particleSystem.emitBurst(
+                origin = samplePoint,
+                direction = direction,
+                count = countPerStep,
+                color = colorProvider(),
+                speedMin = speedMin,
+                speedMax = speedMax,
+                spread = spread,
+                gravity = gravity,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = sizeMin,
+                sizeMax = sizeMax,
+                lifetimeMinMs = lifetimeMinMs,
+                lifetimeMaxMs = lifetimeMaxMs,
+            )
+            travelled += step
+            steps++
+        }
     }
 
     private fun toVector3(value: FloatArray?): Vector3? {
