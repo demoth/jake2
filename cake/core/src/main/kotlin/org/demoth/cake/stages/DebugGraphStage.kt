@@ -14,6 +14,7 @@ import java.util.EnumMap
 import kotlin.math.max
 
 enum class MetricId {
+    CALLS,
     DRAW_CALLS,
     VERTEX_COUNT,
 }
@@ -40,6 +41,12 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         private const val MAX_LINE_ALPHA = 0.35f
 
         val metricDefinitions: List<MetricDefinition> = listOf(
+            MetricDefinition(
+                id = MetricId.CALLS,
+                name = "r_debug_calls",
+                color = Color(1f, 0.85f, 0.2f, 0.7f),
+                collectValue = { profiler -> profiler.calls },
+            ),
             MetricDefinition(
                 id = MetricId.DRAW_CALLS,
                 name = "r_debug_drawcalls",
