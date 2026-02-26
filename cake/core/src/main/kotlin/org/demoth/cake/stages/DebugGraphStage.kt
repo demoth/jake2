@@ -14,7 +14,7 @@ import kotlin.math.max
 
 enum class MetricId {
     DRAW_CALLS,
-    TRIANGLES,
+    VERTEX_COUNT,
 }
 
 data class MetricDefinition(
@@ -31,29 +31,29 @@ data class MetricDefinition(
  */
 class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     companion object {
-        private const val SEGMENT_TOP_PADDING = 16f
-        private const val SEGMENT_BOTTOM_PADDING = 16f
+        private const val SEGMENT_TOP_PADDING = 8f
+        private const val SEGMENT_BOTTOM_PADDING = 8f
         private const val SEGMENT_LABEL_PADDING = 2f
         private const val LABEL_LEFT_MARGIN = 4f
-        private const val LABEL_LINE_GAP = 2f
+        private const val LABEL_LINE_GAP = 6f
         private const val MAX_LINE_ALPHA = 0.35f
 
         val metricDefinitions: List<MetricDefinition> = listOf(
             MetricDefinition(
             id = MetricId.DRAW_CALLS,
-            name = "draw calls",
-            color = Color(0.2f, 1f, 0.2f, 0.7f),
-            collectValue = { profiler -> profiler.drawCalls }),
+                name = "draw calls",
+                color = Color(0.2f, 1f, 0.2f, 0.7f),
+                collectValue = { profiler -> profiler.drawCalls }),
             MetricDefinition(
-                id = MetricId.TRIANGLES,
-                name = "triangles",
+                id = MetricId.VERTEX_COUNT,
+                name = "vertex count",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
-                collectValue = { profiler -> (profiler.vertexCount.latest / 3f).toInt().coerceAtLeast(0) }
+                collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) }
             )
         )
     }
 
-    private data class MetricSeries(
+    private class MetricSeries(
         var history: IntArray = IntArray(0),
         var writeIndex: Int = 0,
         var size: Int = 0,
@@ -126,13 +126,21 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
             val segmentTop = viewport.worldHeight - metricIndex * segmentHeight
             val segmentBottom = segmentTop - segmentHeight
-            val graphBaseY = segmentBottom + SEGMENT_BOTTOM_PADDING
-            val graphTopY = segmentTop - SEGMENT_TOP_PADDING
-            val graphHeight = (graphTopY - graphBaseY).coerceAtLeast(1f)
-
             val metricMax = currentMaxValue(series)
             val metricScaleMax = metricMax.toFloat().coerceAtLeast(1f)
             val metricColor = definition.color
+
+            label.setText(metricMax.toString())
+            label.setColor(metricColor)
+            label.pack()
+
+            nameLabel.setText(definition.name)
+            nameLabel.setColor(metricColor)
+            nameLabel.pack()
+
+            val graphBaseY = segmentBottom + SEGMENT_BOTTOM_PADDING + label.height + LABEL_LINE_GAP
+            val graphTopY = segmentTop - SEGMENT_TOP_PADDING - nameLabel.height - LABEL_LINE_GAP
+            val graphHeight = (graphTopY - graphBaseY).coerceAtLeast(1f)
             shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, metricColor.a)
             if (series.size > 1) {
                 for (x in 1 until series.size) {
@@ -148,9 +156,6 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             shapeRenderer.color.set(metricColor.r, metricColor.g, metricColor.b, MAX_LINE_ALPHA)
             shapeRenderer.line(0f, metricMaxY, graphWidth - 1f, metricMaxY)
 
-            label.setText(metricMax.toString())
-            label.setColor(metricColor)
-            label.pack()
             label.setPosition(
                 LABEL_LEFT_MARGIN,
                 (metricMaxY - label.height - LABEL_LINE_GAP)
@@ -161,9 +166,6 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             )
             label.isVisible = true
 
-            nameLabel.setText(definition.name)
-            nameLabel.setColor(metricColor)
-            nameLabel.pack()
             nameLabel.setPosition(
                 LABEL_LEFT_MARGIN,
                 (metricMaxY + LABEL_LINE_GAP)
