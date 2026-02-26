@@ -520,6 +520,7 @@ class ClientEffectsSystem(
             frameCount = frameCount,
             frameDurationMs = 100,
             yawDeg = Globals.rnd.nextInt(360).toFloat(),
+            fullBright = true,
         )
     }
 
@@ -575,12 +576,29 @@ class ClientEffectsSystem(
         startAlpha: Float = 1f,
         endAlpha: Float = 1f,
         translucent: Boolean = false,
+        fullBright: Boolean = false,
     ) {
         // Legacy counterpart: `client/CL_tent` explosion/muzzle model entities.
         val md2 = assetCatalog.getModel(modelPath) ?: return
         val instance = createModelInstance(md2.model)
-        if (skinIndex != null) {
-            (instance.userData as? Md2CustomData)?.skinIndex = skinIndex
+        (instance.userData as? Md2CustomData)?.let { userData ->
+            if (skinIndex != null) {
+                userData.skinIndex = skinIndex
+            }
+            if (fullBright) {
+                // Legacy parity:
+                // - Jake2 `CL_tent`: explosion temp models are spawned with `RF_FULLBRIGHT`.
+                // - Yamagi `cl_tempentities.c`: explosion temp entities use `RF_FULLBRIGHT`.
+                //
+                // Effects are rendered outside packet-entity lighting path in Cake, so we explicitly
+                // pin light color and disable directional alias shading for these transient models.
+                userData.lightRed = 1f
+                userData.lightGreen = 1f
+                userData.lightBlue = 1f
+                userData.shadeVectorX = 0f
+                userData.shadeVectorY = 0f
+                userData.shadeVectorZ = 0f
+            }
         }
         activeEffects += AnimatedModelEffect(
             modelInstance = instance,

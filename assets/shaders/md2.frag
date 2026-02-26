@@ -44,7 +44,11 @@ void main() {
     // Legacy alias counterpart:
     // - quantized yaw shadevector bucket (`SHADEDOT_QUANT = 16`),
     // - current-frame normal index and `shadedots` table (`dot + 1` response).
-    float directional = dot(normalize(v_worldNormalFrame2), normalize(u_shadeVector)) + 1.0;
+    float shadeVectorLength = length(u_shadeVector);
+    float directional = 1.0;
+    if (shadeVectorLength > 0.0001) {
+        directional = dot(normalize(v_worldNormalFrame2), u_shadeVector / shadeVectorLength) + 1.0;
+    }
     color.rgb *= u_entityLightColor * directional;
     color.rgb *= u_intensity;
     color.rgb = pow(max(color.rgb, vec3(0.0)), vec3(u_gammaExponent));

@@ -32,7 +32,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] MD2 lighting (no longer fullbright by default).
 - [x] Particles (transient runtime for TE/effect bursts).
 - [x] Blood/spark hit temp-entities (`TE_BLOOD`, `TE_MOREBLOOD`, `TE_GREENBLOOD`, `TE_SPARKS`).
-- [ ] Some md2 models have unnesessary shading (explosion models should be fullbright)
+- [x] Some md2 models have unnesessary shading (explosion models should be fullbright)
 - [ ] Missing `SplashTEMessage` branches: `TE_LASER_SPARKS`, `TE_TUNNEL_SPARKS`.
 - [ ] Missing `TrailTEMessage` branches: `TE_BUBBLETRAIL`, `TE_BLUEHYPERBLASTER`, `TE_DEBUGTRAIL`.
 - [ ] Missing `PointTEMessage` branches: `TE_BFG_BIGEXPLOSION`, `TE_TELEPORT_EFFECT`, `TE_DBALL_GOAL`, `TE_WIDOWSPLASH`.
