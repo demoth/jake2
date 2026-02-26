@@ -935,61 +935,66 @@ class ClientEffectsSystem(
         val forward = delta.scl(1f / length)
         val (right, up) = buildNormalBasis(forward)
 
-        val spiralColorFallback = Color(0.3f, 0.55f, 1f, 1f)
         val move = Vector3(start)
-        val spiralSamples = length.toInt().coerceIn(1, 4096)
+        val spiralSamples = length.toInt().coerceIn(1, RAIL_TRAIL_MAX_SAMPLES)
         for (sample in 0 until spiralSamples) {
-            val phase = sample * 0.1f
+            val phase = sample * RAIL_TRAIL_SPIRAL_PHASE_STEP
             val radial = Vector3(right).scl(cos(phase)).mulAdd(up, sin(phase))
-            val spawnOrigin = Vector3(move).mulAdd(radial, 3f)
+            val spawnOrigin = Vector3(move).mulAdd(radial, RAIL_TRAIL_SPIRAL_RADIUS)
+            val spiralColor = Color(
+                (RAIL_TRAIL_SPIRAL_COLOR.r + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
+                (RAIL_TRAIL_SPIRAL_COLOR.g + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
+                (RAIL_TRAIL_SPIRAL_COLOR.b + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
+                1f,
+            )
             particleSystem.emitBurst(
                 origin = spawnOrigin,
                 direction = floatArrayOf(radial.x, radial.y, radial.z),
                 count = 1,
-                color = resolvePaletteColor(0x74 + Globals.rnd.nextInt(8), fallback = spiralColorFallback),
-                speedMin = 6f,
-                speedMax = 6f,
+                color = spiralColor,
+                speedMin = RAIL_TRAIL_SPIRAL_SPEED,
+                speedMax = RAIL_TRAIL_SPIRAL_SPEED,
                 spread = 0f,
                 gravity = 0f,
                 startAlpha = 1f,
                 endAlpha = 0f,
-                sizeMin = 0.22f,
-                sizeMax = 0.42f,
-                lifetimeMinMs = 900,
-                lifetimeMaxMs = 1200,
+                sizeMin = RAIL_TRAIL_SPIRAL_SIZE_MIN,
+                sizeMax = RAIL_TRAIL_SPIRAL_SIZE_MAX,
+                lifetimeMinMs = RAIL_TRAIL_SPIRAL_LIFETIME_MIN_MS,
+                lifetimeMaxMs = RAIL_TRAIL_SPIRAL_LIFETIME_MAX_MS,
             )
-            move.mulAdd(forward, 1f)
+            move.mulAdd(forward, RAIL_TRAIL_SPIRAL_STEP)
         }
 
-        val coreColorFallback = Color(0.95f, 0.95f, 1f, 1f)
-        val dec = 0.75f
+        val dec = RAIL_TRAIL_CORE_STEP
         val step = Vector3(forward).scl(dec)
         val coreMove = Vector3(start)
         var remaining = length
         var coreSamples = 0
-        while (remaining > 0f && coreSamples < 4096) {
+        while (remaining > 0f && coreSamples < RAIL_TRAIL_MAX_SAMPLES) {
             remaining -= dec
             val spawnOrigin = Vector3(coreMove).add(
-                randomRange(-3f, 3f),
-                randomRange(-3f, 3f),
-                randomRange(-3f, 3f),
+                randomRange(-RAIL_TRAIL_CORE_JITTER, RAIL_TRAIL_CORE_JITTER),
+                randomRange(-RAIL_TRAIL_CORE_JITTER, RAIL_TRAIL_CORE_JITTER),
+                randomRange(-RAIL_TRAIL_CORE_JITTER, RAIL_TRAIL_CORE_JITTER),
             )
+            val white = (RAIL_TRAIL_CORE_WHITE_BASE + randomRange(-RAIL_TRAIL_CORE_WHITE_VARIATION, RAIL_TRAIL_CORE_WHITE_VARIATION)).coerceIn(0f, 1f)
             val randomDir = randomUnitDirection()
             particleSystem.emitBurst(
                 origin = spawnOrigin,
                 direction = floatArrayOf(randomDir.x, randomDir.y, randomDir.z),
                 count = 1,
-                color = resolvePaletteColor(Globals.rnd.nextInt(16), fallback = coreColorFallback),
+                color = Color(white, white, white, 1f),
                 speedMin = 0f,
-                speedMax = 3f,
+                speedMax = RAIL_TRAIL_CORE_SPEED_MAX,
                 spread = 0f,
                 gravity = 0f,
                 startAlpha = 1f,
                 endAlpha = 0f,
-                sizeMin = 0.18f,
-                sizeMax = 0.34f,
-                lifetimeMinMs = 600,
-                lifetimeMaxMs = 820,
+                sizeMin = RAIL_TRAIL_CORE_SIZE_MIN,
+                sizeMax = RAIL_TRAIL_CORE_SIZE_MAX,
+                lifetimeMinMs = RAIL_TRAIL_CORE_LIFETIME_MIN_MS,
+                lifetimeMaxMs = RAIL_TRAIL_CORE_LIFETIME_MAX_MS,
             )
             coreMove.add(step)
             coreSamples++
@@ -1211,6 +1216,29 @@ private val RICHOCHET_SOUNDS = listOf(
     "sound/world/ric2.wav",
     "sound/world/ric3.wav",
 )
+
+// Visual target: Quake2 rail trail (blue spiral with bright white center).
+private const val RAIL_TRAIL_MAX_SAMPLES = 4096
+private const val RAIL_TRAIL_SPIRAL_PHASE_STEP = 0.1f
+private const val RAIL_TRAIL_SPIRAL_RADIUS = 3f
+private const val RAIL_TRAIL_SPIRAL_STEP = 1f
+private const val RAIL_TRAIL_SPIRAL_SPEED = 6f
+private const val RAIL_TRAIL_SPIRAL_SIZE_MIN = 0.22f
+private const val RAIL_TRAIL_SPIRAL_SIZE_MAX = 0.42f
+private const val RAIL_TRAIL_SPIRAL_LIFETIME_MIN_MS = 900
+private const val RAIL_TRAIL_SPIRAL_LIFETIME_MAX_MS = 1200
+private const val RAIL_TRAIL_SPIRAL_COLOR_VARIATION = 0.05f
+private val RAIL_TRAIL_SPIRAL_COLOR = Color(0.22f, 0.52f, 1f, 1f)
+
+private const val RAIL_TRAIL_CORE_STEP = 0.75f
+private const val RAIL_TRAIL_CORE_JITTER = 3f
+private const val RAIL_TRAIL_CORE_SPEED_MAX = 3f
+private const val RAIL_TRAIL_CORE_SIZE_MIN = 0.18f
+private const val RAIL_TRAIL_CORE_SIZE_MAX = 0.34f
+private const val RAIL_TRAIL_CORE_LIFETIME_MIN_MS = 600
+private const val RAIL_TRAIL_CORE_LIFETIME_MAX_MS = 820
+private const val RAIL_TRAIL_CORE_WHITE_BASE = 0.94f
+private const val RAIL_TRAIL_CORE_WHITE_VARIATION = 0.06f
 
 private val SPARK_SOUNDS = listOf(
     "sound/world/spark5.wav",
