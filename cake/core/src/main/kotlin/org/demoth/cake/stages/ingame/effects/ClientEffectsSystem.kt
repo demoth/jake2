@@ -20,7 +20,8 @@ import jake2.qcommon.network.messages.server.TEMessage
 import jake2.qcommon.network.messages.server.TrailTEMessage
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
-import org.demoth.cake.audio.SpatialSoundAttenuation
+import org.demoth.cake.audio.CakeAudioSystem
+import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.createModelInstance
@@ -50,7 +51,7 @@ import kotlin.math.sin
  * - Call [dispose] when screen is disposed.
  *
  * Constructor contract:
- * - [listenerPositionProvider] is used for positional sound attenuation.
+ * - [audioSystem] owns gameplay/effect sound dispatch.
  * - [cameraProvider] is required for billboard sprite effects (`.sp2`).
  *
  * Legacy counterparts:
@@ -60,7 +61,7 @@ import kotlin.math.sin
 class ClientEffectsSystem(
     private val assetManager: AssetManager,
     private val entityManager: ClientEntityManager,
-    private val listenerPositionProvider: () -> Vector3,
+    private val audioSystem: CakeAudioSystem,
     private val cameraProvider: () -> Camera,
     private val dynamicLightSystem: DynamicLightSystem? = null,
 ) : Disposable {
@@ -862,11 +863,14 @@ class ClientEffectsSystem(
         attenuation: Float = Defines.ATTN_NORM.toFloat(),
     ) {
         val sound = assetCatalog.getSound(soundPath) ?: return
-        val listener = listenerPositionProvider()
-        val gain = (volume * SpatialSoundAttenuation.calculate(origin, listener, attenuation)).coerceIn(0f, 1f)
-        if (gain > 0f) {
-            sound.play(gain)
-        }
+        audioSystem.play(
+            SoundPlaybackRequest(
+                sound = sound,
+                baseVolume = volume,
+                attenuation = attenuation,
+                origin = origin,
+            )
+        )
     }
 
     private fun spawnDynamicLight(

@@ -3,6 +3,7 @@ package org.demoth.cake.stages.ingame
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -25,7 +26,9 @@ import ktx.graphics.use
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.*
 import org.demoth.cake.assets.*
-import org.demoth.cake.audio.SpatialSoundAttenuation
+import org.demoth.cake.audio.CakeAudioSystem
+import org.demoth.cake.audio.FireAndForgetCakeAudioSystem
+import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
@@ -51,6 +54,7 @@ class Game3dScreen(
     private val collisionModel = CM()
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
     private val dynamicLightSystem = DynamicLightSystem()
+    private val audioSystem: CakeAudioSystem = FireAndForgetCakeAudioSystem { Globals.curtime }
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -62,7 +66,7 @@ class Game3dScreen(
     private val effectsSystem = ClientEffectsSystem(
         assetManager = assetManager,
         entityManager = entityManager,
-        listenerPositionProvider = { camera.position },
+        audioSystem = audioSystem,
         cameraProvider = { camera },
         dynamicLightSystem = dynamicLightSystem,
     )
@@ -185,6 +189,7 @@ class Game3dScreen(
         prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerConfiguration.playerIndex)
 
         updatePlayerView(lerpFrac)
+        audioSystem.beginFrame(camera.position)
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
@@ -292,6 +297,7 @@ class Game3dScreen(
                 )
             }
         }
+        audioSystem.endFrame()
     }
 
     // Preserve legacy ordering: opaque model entities first, translucent model entities second.
@@ -477,6 +483,7 @@ class Game3dScreen(
         worldSurfaceMaterialController = null
         inlineSurfaceMaterialController = null
         entityLightSampler = null
+        audioSystem.dispose()
         hud?.dispose()
         beamRenderer.dispose()
         sp2Renderer.dispose()
@@ -608,6 +615,10 @@ class Game3dScreen(
      */
     fun clearInputState() {
         inputManager.clearInputState()
+    }
+
+    fun stopAudio() {
+        audioSystem.stopAll()
     }
 
     fun updatePredictionNetworkState(incomingAcknowledged: Int, outgoingSequence: Int, currentTimeMs: Int) {
@@ -840,11 +851,18 @@ class Game3dScreen(
     override fun processSoundMessage(msg: SoundMessage) {
         val sound = gameConfig.getSound(msg.soundIndex, msg.entityIndex)
         if (sound != null) {
-            // msg.volume should already be in [0,1]: byte / 255f
-            val volume = (msg.volume * calculateSoundAttenuation(msg)).coerceIn(0f, 1f)
-            if (volume > 0f) {
-                sound.play(volume)
-            }
+            val origin = resolveSoundOrigin(msg)
+            audioSystem.play(
+                SoundPlaybackRequest(
+                    sound = sound,
+                    baseVolume = msg.volume,
+                    attenuation = msg.attenuation,
+                    origin = origin,
+                    entityIndex = msg.entityIndex,
+                    channel = msg.sendchan,
+                    timeOffsetSeconds = msg.timeOffset,
+                )
+            )
         } else {
             Com.Warn("sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
         }
@@ -892,7 +910,13 @@ class Game3dScreen(
         val silenced = (msg.type and 0x80) != 0
         val sound = gameConfig.getWeaponSound(weaponType)
         if (sound != null) {
-            sound.play(if (silenced) 0.2f else 1f)
+            audioSystem.play(
+                SoundPlaybackRequest(
+                    sound = sound,
+                    baseVolume = if (silenced) 0.2f else 1f,
+                    channel = Defines.CHAN_WEAPON,
+                )
+            )
         } else {
             Com.Warn("weapon sound $weaponType not found")
         }
@@ -930,21 +954,12 @@ class Game3dScreen(
 
     // endregion
 
-    private fun calculateSoundAttenuation(msg: SoundMessage): Float {
-        if (msg.attenuation <= 0f) {
-            return 1f
-        }
-
-        val soundOrigin = when {
+    private fun resolveSoundOrigin(msg: SoundMessage): Vector3? {
+        return when {
             msg.origin != null -> Vector3(msg.origin[0], msg.origin[1], msg.origin[2])
             msg.entityIndex > 0 -> entityManager.getEntityOrigin(msg.entityIndex)
             else -> null
         }
-
-        if (soundOrigin == null) {
-            return 1f
-        }
-        return SpatialSoundAttenuation.calculate(soundOrigin, camera.position, msg.attenuation)
     }
 
     /**
@@ -1052,18 +1067,15 @@ class Game3dScreen(
     /**
      * Play an event sound using legacy-normal attenuation from the emitting entity origin.
      */
-    private fun playEntityEventSound(sound: com.badlogic.gdx.audio.Sound, entityIndex: Int) {
-        val attenuation = Defines.ATTN_NORM.toFloat()
-        val soundOrigin = entityManager.getEntityOrigin(entityIndex)
-        val attenuationScale = if (soundOrigin == null) {
-            1f
-        } else {
-            SpatialSoundAttenuation.calculate(soundOrigin, camera.position, attenuation)
-        }
-        val volume = attenuationScale.coerceIn(0f, 1f)
-        if (volume > 0f) {
-            sound.play(volume)
-        }
+    private fun playEntityEventSound(sound: Sound, entityIndex: Int) {
+        audioSystem.play(
+            SoundPlaybackRequest(
+                sound = sound,
+                attenuation = Defines.ATTN_NORM.toFloat(),
+                origin = entityManager.getEntityOrigin(entityIndex),
+                entityIndex = entityIndex,
+            )
+        )
     }
 
     companion object {

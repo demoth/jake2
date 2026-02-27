@@ -11,6 +11,54 @@ Track gaps between the current Cake audio pipeline and reference Quake II implem
 
 This document focuses on concrete behavior mismatches and implementation tasks.
 
+## Incremental subsystem draft for Cake
+
+Goal:
+
+- Add missing sound behavior in small steps without rewriting every existing call site each time.
+
+Step 1 (implemented):
+
+- Introduce centralized audio facade in Cake:
+  - `cake/core/src/main/kotlin/org/demoth/cake/audio/CakeAudioSystem.kt`
+  - `cake/core/src/main/kotlin/org/demoth/cake/audio/FireAndForgetCakeAudioSystem.kt`
+- Introduce unified playback request model with future-facing fields:
+  - `entityIndex`
+  - `channel`
+  - `timeOffsetSeconds`
+  - `origin`, `attenuation`, `baseVolume`
+- Route existing sound producers through the facade:
+  - `Game3dScreen.processSoundMessage`
+  - `Game3dScreen.processWeaponSoundMessage`
+  - `Game3dScreen.playEntityEventSound`
+  - `ClientEffectsSystem.playEffectSound`
+- Add lifecycle hooks and transition cleanup wiring:
+  - per-frame `beginFrame/endFrame`
+  - `stopAudio()` call path in `Cake.resetClientStateForServerData`, `disconnect`, and map transition staging
+
+Step 1 notes:
+
+- Default behavior remains fire-and-forget.
+- `timeOffset` is now accepted by request model and queued in the backend.
+- Basic `(entity, channel)` override keying is now centralized and isolated from gameplay call sites.
+- No full per-voice respatialization yet.
+
+Step 2 (next):
+
+- Replace static-origin one-shot handling with active channel/source objects.
+- Recompute origin from entity each frame for channel-bound sounds.
+- Prepare loop sound API (`entity_state.sound`) on top of the same facade.
+
+Step 3:
+
+- Implement strict channel override semantics matching legacy (`CHAN_AUTO` vs explicit `CHAN_*`).
+- Add looped entity sound collection/update/stop each frame.
+
+Step 4:
+
+- Add music stream manager behind same subsystem boundary.
+- Add environmental filters (occlusion/underwater) as optional layer.
+
 ## High Priority
 
 ### 1) Packet channel/time-offset semantics are not implemented in Cake

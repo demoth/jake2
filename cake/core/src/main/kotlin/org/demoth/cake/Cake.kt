@@ -337,6 +337,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun disconnect() {
         Com.Printf("Disconnecting from server...\n")
         // todo: clear the game state and release resources
+        game3dScreen?.stopAudio()
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
 
@@ -693,6 +694,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * for reconnect-based map changes (e.g. `rcon map`).
      */
     private fun resetClientStateForServerData() {
+        game3dScreen?.stopAudio()
         // If serverdata arrives while a screen is still active, stage transition first.
         if (game3dScreen != null) {
             beginMapTransitionRetainingConfigAssets()
@@ -701,7 +703,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
             debugGraphStage.resetMetrics()
         }
-        // todo: stop sounds, effects, etc..
     }
 
     /**
@@ -710,6 +711,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun beginMapTransitionRetainingConfigAssets() {
         // if a prior transition was still deferred, retire it first
         releaseDeferredConfigUnload()
+        game3dScreen?.stopAudio()
         deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
     }
 
