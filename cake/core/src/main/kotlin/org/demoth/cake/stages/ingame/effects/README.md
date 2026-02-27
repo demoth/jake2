@@ -31,7 +31,7 @@ Cake.parseServerMessage
   -> Game3dScreen.processMuzzleFlash2Message / processTempEntityMessage
   -> ClientEffectsSystem handlers
   -> spawn ClientTransientEffect(s) + particles + transient dlights + positional sounds
-  -> Game3dScreen.render loop: effectsSystem.update -> effectsSystem.render
+  -> Game3dScreen.render loop: effectsSystem.update -> effectsSystem.renderParticles -> effectsSystem.render
 ```
 
 Legacy counterparts:
@@ -49,6 +49,46 @@ Legacy counterparts:
 
 ## Decision Log
 Newest first.
+
+### Decision: Use a dedicated particle renderer pass and skip temporary batching fixes
+- Context: per-particle `ModelBatch` submissions caused extreme draw-call growth in high-count effects (rail, explosions).
+- Options considered:
+1. Temporary stopgaps (`one material per effect instance`, ad-hoc cap-first strategy).
+2. Move directly to a dedicated dynamic-VBO particle renderer.
+- Chosen Option & Rationale: Option 2. It directly solves draw-call scaling and keeps architecture aligned with future sprite particles.
+- Consequences:
+  - particle rendering is split from model/sprite effects (`renderParticles` vs `render`),
+  - simulation and rendering responsibilities are separated (`EffectParticleSystem` vs `ParticleRenderer`),
+  - no dependency on per-particle `ModelInstance`/`Material` state.
+- Status: accepted.
+- References: commits `c1c3c3bc`, `24bcc6a1`, `bc3d1ec6`.
+- Definition of Done: particle draw submissions scale with bucket count, not with live particle count.
+
+### Decision: Tune particle visuals for vanilla-like sharpness and distance behavior
+- Context: initial dedicated renderer produced oversized and overly smoothed particles with weak distance attenuation.
+- Options considered:
+1. Keep soft edge fade and constant point size.
+2. Use distance-attenuated point sizing with sharp circular cutout.
+- Chosen Option & Rationale: Option 2 for closer Quake/Yamagi visual behavior and gameplay readability.
+- Consequences:
+  - point shader uses camera-distance size attenuation,
+  - extra edge smoothing was removed; only circular cutout remains,
+  - alpha sorting retained for translucent buckets.
+- Status: accepted.
+- References: commit `34285409`, `../yquake2/src/client/refresh/gl3/gl3_main.c`, `../yquake2/src/client/refresh/gl3/gl3_shaders.c`.
+- Definition of Done: particles become smaller with distance and no longer look over-smoothed.
+
+### Decision: Keep external particle format support out of current scope
+- Context: future sprite-particle support is desired, but immediate priority is parity/performance of runtime rendering.
+- Options considered:
+1. Implement external editor/import format now.
+2. Keep runtime format internal for now; defer external support.
+- Chosen Option & Rationale: Option 2 to avoid expanding scope before core runtime/parity goals stabilize.
+- Consequences:
+  - renderer/runtime interfaces remain format-agnostic,
+  - sprite backend stays ready for atlas integration without committing to external tooling yet.
+- Status: accepted.
+- Definition of Done: subsystem remains extensible, but no external particle format is required for current development.
 
 ### Decision: Add local transient particle runtime for TE impact/explosion feedback
 - Context: many legacy TE branches depended on particles, but Cake had no particle output.
@@ -100,11 +140,12 @@ Newest first.
 - How to work with it: treat these visuals as readability-first approximations.
 - Removal plan: replace with dedicated beam/particle implementation once parity path lands.
 
-- Particle pass currently uses a dedicated shader/VBO path with point-sprite and billboard backends.
+- Particle pass uses a dedicated shader/VBO path with point-sprite and billboard backends.
+- Point sprites currently drive gameplay effects; billboard backend is maintained for sprite-particle extension.
 - Alpha buckets are depth-sorted per frame; additive buckets are submitted unsorted.
 - Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
-- How to work with it: tune burst count/speed/alpha and point-size scaling for readability/parity.
-- Removal plan: wire billboard backend to atlas/frame sampling and effect authoring data.
+- How to work with it: tune burst count/speed/alpha and world-space size ranges in emitters.
+- Removal plan: wire billboard backend to atlas/frame sampling once sprite-particle content is introduced.
 
 ## How to Extend
 1. Add asset paths in `EffectAssetCatalog` for new effect-owned resources.
@@ -114,5 +155,4 @@ Newest first.
 5. Keep replicated state ownership in `ClientEntityManager`; effects should read but not mutate it.
 
 ## Open Questions
-- Should rail/BFG beam placeholders move to a dedicated beam renderer shared with replicated `RF_BEAM` entities?
-- Should sprite-billboard particle mode (atlas frames + per-particle rotation) become the default for non-spark effects?
+- Which effect families should migrate to billboard sprite mode first once atlas sampling is introduced?

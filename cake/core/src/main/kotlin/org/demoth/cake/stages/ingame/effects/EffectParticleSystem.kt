@@ -9,12 +9,21 @@ import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
 
 /**
- * Lightweight world-space particle runtime used by temp effects.
+ * Lightweight world-space particle simulation/runtime used by temp effects.
  *
- * Implementation notes:
- * - data-oriented simulation storage (no per-particle object allocations),
- * - render backend is decoupled and handled by [ParticleRenderer],
- * - supports multiple render/blend modes for future sprite extension.
+ * Decision summary:
+ * - This system owns simulation only; it no longer renders through `ModelBatch`.
+ * - Rendering is delegated to [ParticleRenderer] in a dedicated pass to keep draw calls bounded.
+ * - Data is stored in SoA arrays for low allocation pressure and stable update cost.
+ *
+ * Practical goals:
+ * - preserve legacy effect readability and per-effect color correctness,
+ * - keep the pipeline ready for sprite billboards without changing emitter call sites,
+ * - favor visual parity and performance over temporary intermediate fixes.
+ *
+ * Notes:
+ * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
+ * - this class intentionally does not enforce a hard particle cap; budgeting belongs to higher-level policy.
  */
 class EffectParticleSystem : Disposable {
     private var activeCount = 0
@@ -38,6 +47,17 @@ class EffectParticleSystem : Disposable {
     private var blendMode = ByteArray(capacity)
     private val renderer = ParticleRenderer()
 
+    /**
+     * Emits a burst of particles with shared spawn parameters.
+     *
+     * Spawn behavior is intentionally simple and stateless:
+     * - each particle samples random direction/speed/lifetime/size in caller-provided ranges,
+     * - color/render mode/blend mode are copied per particle and consumed by [render].
+     *
+     * The method is hot-path safe:
+     * - no per-particle object allocations,
+     * - dynamic growth only when capacity is exhausted.
+     */
     fun emitBurst(
         origin: Vector3,
         direction: FloatArray?,
@@ -86,6 +106,13 @@ class EffectParticleSystem : Disposable {
         }
     }
 
+    /**
+     * Advances simulation for all live particles.
+     *
+     * Integration model:
+     * - Euler integration with per-particle Z-gravity,
+     * - dead particles are removed in O(1) by swap-with-last compaction.
+     */
     fun update(deltaSeconds: Float, nowMs: Int) {
         if (activeCount == 0) {
             return
@@ -105,6 +132,14 @@ class EffectParticleSystem : Disposable {
         }
     }
 
+    /**
+     * Submits all visible particles to the dedicated particle renderer.
+     *
+     * Rendering policy:
+     * - alpha is evaluated from current normalized lifetime and caller-provided alpha ramp,
+     * - fully transparent particles are skipped,
+     * - render/blend mode routing is delegated to [ParticleRenderer].
+     */
     fun render(camera: Camera) {
         if (!RenderTuningCvars.particlesEnabled()) {
             return
@@ -231,6 +266,12 @@ class EffectParticleSystem : Disposable {
     }
 }
 
+/**
+ * Particle primitive family.
+ *
+ * `POINT_SPRITE` is the active production path.
+ * `BILLBOARD_SPRITE` is kept as a first-class mode to support sprite-backed particles without emitter API churn.
+ */
 enum class ParticleRenderMode(val id: Byte) {
     POINT_SPRITE(0),
     BILLBOARD_SPRITE(1);
@@ -242,6 +283,12 @@ enum class ParticleRenderMode(val id: Byte) {
     }
 }
 
+/**
+ * Blending behavior for particle submission buckets.
+ *
+ * `ALPHA` is sorted back-to-front in renderer buckets.
+ * `ADDITIVE` is intentionally unsorted for lower overhead and stable glow accumulation.
+ */
 enum class ParticleBlendMode(val id: Byte) {
     ALPHA(0),
     ADDITIVE(1);

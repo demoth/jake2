@@ -174,4 +174,5 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 ## Remaining Follow-ups (Non-Blocking)
 
 - Particle renderer quality/performance parity (palette-accurate visuals, batching).
+- External particle editor/import format support is intentionally deferred until runtime parity/stability goals are complete.
 - Optional: revisit BSP `GL_NONE` culling once full winding + plane-side parity is guaranteed.

@@ -17,9 +17,21 @@ import kotlin.math.max
 import kotlin.math.tan
 
 /**
- * Dedicated particle renderer that streams dynamic point vertices into a GPU buffer.
+ * Dedicated particle renderer for transient world particles.
  *
- * This renderer intentionally bypasses ModelBatch to keep particle draw submissions bounded.
+ * Architecture decisions:
+ * - bypasses `ModelBatch`; particles are rendered in their own pass with dynamic CPU->GPU streaming,
+ * - uses submission buckets (`alpha/additive` x `point/billboard`) to bound draw-call count,
+ * - keeps point and billboard pipelines available behind one runtime interface.
+ *
+ * Parity/perf guardrails from this thread:
+ * - particle size is camera-distance attenuated (perspective-aware),
+ * - edges are sharp circular cutouts (no extra per-edge smoothing),
+ * - alpha buckets are depth-sorted; additive buckets stay unsorted.
+ *
+ * Current scope:
+ * - point-sprite path is primary and tuned for Quake-style transient effects,
+ * - billboard path is backend-ready and intentionally data-compatible for future sprite atlas usage.
  */
 class ParticleRenderer : Disposable {
     private var alphaPointVertices = FloatArray(INITIAL_MAX_PARTICLES * POINT_FLOATS_PER_VERTEX)
@@ -52,6 +64,11 @@ class ParticleRenderer : Disposable {
     private val tempUp = Vector3()
     private val tempForward = Vector3()
 
+    /**
+     * Starts a frame-local submission window.
+     *
+     * Captures camera state and resets all bucket counters.
+     */
     fun begin(camera: Camera) {
         cameraCombined = camera.combined
         alphaPointCount = 0
@@ -74,6 +91,11 @@ class ParticleRenderer : Disposable {
         tempUp.set(tempRight).crs(tempForward).nor()
     }
 
+    /**
+     * Queues one particle into the corresponding renderer bucket.
+     *
+     * No draw calls happen here; GPU upload/draw is deferred to [flush].
+     */
     fun submit(
         mode: ParticleRenderMode,
         blend: ParticleBlendMode,
@@ -141,6 +163,15 @@ class ParticleRenderer : Disposable {
         }
     }
 
+    /**
+     * Uploads active buckets and issues draw calls.
+     *
+     * Draw order policy:
+     * 1) alpha point sprites (sorted),
+     * 2) additive point sprites,
+     * 3) alpha billboards (sorted),
+     * 4) additive billboards.
+     */
     fun flush() {
         val total = alphaPointCount + additivePointCount + alphaBillboardCount + additiveBillboardCount
         if (total == 0) {

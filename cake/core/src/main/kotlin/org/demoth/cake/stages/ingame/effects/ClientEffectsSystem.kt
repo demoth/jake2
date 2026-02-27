@@ -46,7 +46,7 @@ import kotlin.math.sin
  * Lifecycle:
  * - Construct once per `Game3dScreen`.
  * - Call [precache] after config/map precache.
- * - Call [update]/[render] every frame on render thread.
+ * - Call [update]/[renderParticles]/[render] every frame on render thread.
  * - Call [dispose] when screen is disposed.
  *
  * Constructor contract:
@@ -152,10 +152,11 @@ class ClientEffectsSystem(
     }
 
     /**
-     * Renders all active transient effects.
+     * Renders model/sprite transient effects via `ModelBatch`.
      *
-     * Ordering invariant: caller should invoke this after world entity rendering when overlays/trails
-     * are expected to appear on top.
+     * Important:
+     * - particle rendering is intentionally excluded from this pass;
+     *   use [renderParticles] for the dedicated particle renderer path.
      */
     fun render(modelBatch: ModelBatch) {
         activeEffects.forEach { effect ->
@@ -166,7 +167,9 @@ class ClientEffectsSystem(
     /**
      * Renders the transient particle pass using the dedicated particle renderer.
      *
-     * This pass is separate from ModelBatch to keep particle draw-call count bounded.
+     * This pass is separate from `ModelBatch` by design:
+     * - avoids one-renderable-per-particle submission overhead,
+     * - keeps particle draw-call count bounded by renderer buckets.
      */
     fun renderParticles(camera: Camera) {
         particleSystem.render(camera)
