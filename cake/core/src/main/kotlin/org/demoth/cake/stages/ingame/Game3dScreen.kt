@@ -27,6 +27,7 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
+import org.demoth.cake.audio.EntityLoopSoundRequest
 import org.demoth.cake.audio.FireAndForgetCakeAudioSystem
 import org.demoth.cake.audio.ListenerState
 import org.demoth.cake.audio.SoundPlaybackRequest
@@ -101,6 +102,7 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
+    private val loopSoundRequests = mutableListOf<EntityLoopSoundRequest>()
 
     // Initialized on ServerDataMessage, then reused for this screen lifetime.
     private var hud: Hud? = null
@@ -204,6 +206,7 @@ class Game3dScreen(
                 up = camera.up,
             )
         )
+        syncEntityLoopSounds()
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
@@ -971,6 +974,23 @@ class Game3dScreen(
     private fun resolveExplicitSoundOrigin(msg: SoundMessage): Vector3? {
         val rawOrigin = msg.origin ?: return null
         return Vector3(rawOrigin[0], rawOrigin[1], rawOrigin[2])
+    }
+
+    private fun syncEntityLoopSounds() {
+        loopSoundRequests.clear()
+        entityManager.forEachCurrentEntityState { state ->
+            val soundIndex = state.sound
+            if (soundIndex <= 0) {
+                return@forEachCurrentEntityState
+            }
+            val sound = gameConfig.getSound(soundIndex, state.index) ?: return@forEachCurrentEntityState
+            loopSoundRequests += EntityLoopSoundRequest(
+                entityIndex = state.index,
+                sound = sound,
+                attenuation = Defines.ATTN_STATIC.toFloat(),
+            )
+        }
+        audioSystem.syncEntityLoopingSounds(loopSoundRequests)
     }
 
     /**

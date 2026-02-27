@@ -12,10 +12,25 @@ import kotlin.math.ceil
  * - centralized sound dispatch,
  * - optional delayed start (`timeOffsetSeconds`),
  * - basic channel override keys (`entityIndex`, `channel`).
+ *
+ * Non-spatial exceptions mirror legacy expectations:
+ * - `attenuation <= 0` (`ATTN_NONE`)
+ * - sounds bound to the local player entity
+ *
+ * This backend intentionally does not implement hard channel-count voice stealing parity yet.
  */
 class FireAndForgetCakeAudioSystem(
+    /**
+     * Returns current client time in milliseconds. Used for delayed-start scheduling.
+     */
     private val currentTimeMsProvider: () -> Int,
+    /**
+     * Resolves current world origin for a server entity index (`1..MAX_EDICTS`).
+     */
     private val entityOriginProvider: (Int) -> Vector3? = { null },
+    /**
+     * Returns the local player entity index (`playernum + 1`) when known.
+     */
     private val localPlayerEntityIndexProvider: () -> Int? = { null },
 ) : CakeAudioSystem {
 
@@ -35,6 +50,12 @@ class FireAndForgetCakeAudioSystem(
         val pan: Float,
     )
 
+    private data class ActiveLoopPlayback(
+        val sound: Sound,
+        val soundId: Long,
+        val request: EntityLoopSoundRequest,
+    )
+
     private val listenerPosition = Vector3()
     private val listenerForward = Vector3(0f, 1f, 0f)
     private val listenerUp = Vector3(0f, 0f, 1f)
@@ -42,8 +63,13 @@ class FireAndForgetCakeAudioSystem(
     private val tempDirection = Vector3()
     private val pending = mutableListOf<PendingPlayback>()
     private val keyedChannels = mutableMapOf<AudioChannelKey, ActivePlayback>()
+    // Active loops keyed by entity index because protocol loop field has no independent channel id.
+    private val activeEntityLoops = mutableMapOf<Int, ActiveLoopPlayback>()
     private val knownSounds = mutableSetOf<Sound>()
 
+    /**
+     * Updates listener orientation/position and respatializes currently active channels/loops.
+     */
     override fun beginFrame(listener: ListenerState) {
         listenerPosition.set(listener.position)
         listenerForward.set(listener.forward)
@@ -56,6 +82,7 @@ class FireAndForgetCakeAudioSystem(
         }
         flushDueSounds()
         respatializeActiveChannels()
+        respatializeActiveLoops()
     }
 
     override fun play(request: SoundPlaybackRequest) {
@@ -66,6 +93,35 @@ class FireAndForgetCakeAudioSystem(
             return
         }
         playNow(request)
+    }
+
+    override fun syncEntityLoopingSounds(requests: Collection<EntityLoopSoundRequest>) {
+        val seenEntities = mutableSetOf<Int>()
+        requests.forEach { request ->
+            if (request.entityIndex <= 0) {
+                return@forEach
+            }
+            seenEntities += request.entityIndex
+            val existing = activeEntityLoops[request.entityIndex]
+            if (existing != null && existing.sound === request.sound) {
+                val spatial = calculateLoopSpatial(request)
+                existing.sound.setPan(existing.soundId, spatial.pan, spatial.volume)
+            } else {
+                existing?.sound?.stop(existing.soundId)
+                startLoop(request)?.let { started ->
+                    activeEntityLoops[request.entityIndex] = started
+                } ?: activeEntityLoops.remove(request.entityIndex)
+            }
+        }
+
+        val iterator = activeEntityLoops.entries.iterator()
+        while (iterator.hasNext()) {
+            val (entityIndex, playback) = iterator.next()
+            if (entityIndex !in seenEntities) {
+                playback.sound.stop(playback.soundId)
+                iterator.remove()
+            }
+        }
     }
 
     override fun endFrame() {
@@ -79,6 +135,7 @@ class FireAndForgetCakeAudioSystem(
         }
         knownSounds.clear()
         keyedChannels.clear()
+        activeEntityLoops.clear()
     }
 
     override fun dispose() {
@@ -135,6 +192,13 @@ class FireAndForgetCakeAudioSystem(
         }
     }
 
+    private fun respatializeActiveLoops() {
+        activeEntityLoops.values.forEach { loop ->
+            val spatial = calculateLoopSpatial(loop.request)
+            loop.sound.setPan(loop.soundId, spatial.pan, spatial.volume)
+        }
+    }
+
     private fun resolveOrigin(request: SoundPlaybackRequest): Vector3? {
         request.origin?.let { return it }
         if (request.entityIndex > 0) {
@@ -148,7 +212,7 @@ class FireAndForgetCakeAudioSystem(
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
-        if (isNonSpatial(request)) {
+        if (isNonSpatial(request.attenuation, request.entityIndex)) {
             return SpatialParams(volume = baseVolume, pan = 0f)
         }
         if (origin == null) {
@@ -164,12 +228,46 @@ class FireAndForgetCakeAudioSystem(
         return SpatialParams(volume = volume, pan = pan)
     }
 
-    private fun isNonSpatial(request: SoundPlaybackRequest): Boolean {
-        if (request.attenuation <= 0f) {
+    private fun calculateLoopSpatial(request: EntityLoopSoundRequest): SpatialParams {
+        val baseVolume = request.baseVolume.coerceIn(0f, 1f)
+        if (baseVolume <= 0f) {
+            return SpatialParams(volume = 0f, pan = 0f)
+        }
+        if (isNonSpatial(request.attenuation, request.entityIndex)) {
+            return SpatialParams(volume = baseVolume, pan = 0f)
+        }
+        val origin = entityOriginProvider(request.entityIndex)
+            ?: return SpatialParams(volume = baseVolume, pan = 0f)
+
+        val spatialScale = SpatialSoundAttenuation.calculate(origin, listenerPosition, request.attenuation)
+        val volume = (baseVolume * spatialScale).coerceIn(0f, 1f)
+        val pan = calculatePan(origin)
+        return SpatialParams(volume = volume, pan = pan)
+    }
+
+    private fun isNonSpatial(attenuation: Float, entityIndex: Int): Boolean {
+        if (attenuation <= 0f) {
             return true
         }
         val localPlayerEntityIndex = localPlayerEntityIndexProvider() ?: return false
-        return request.entityIndex > 0 && request.entityIndex == localPlayerEntityIndex
+        return entityIndex > 0 && entityIndex == localPlayerEntityIndex
+    }
+
+    private fun startLoop(request: EntityLoopSoundRequest): ActiveLoopPlayback? {
+        val spatial = calculateLoopSpatial(request)
+        if (spatial.volume <= 0f) {
+            return null
+        }
+        val soundId = request.sound.loop(spatial.volume, 1f, spatial.pan)
+        if (soundId < 0L) {
+            return null
+        }
+        knownSounds += request.sound
+        return ActiveLoopPlayback(
+            sound = request.sound,
+            soundId = soundId,
+            request = request,
+        )
     }
 
     private fun calculatePan(origin: Vector3): Float {
@@ -185,6 +283,7 @@ class FireAndForgetCakeAudioSystem(
         if (request.entityIndex <= 0) {
             return null
         }
+        // Only explicit channels override; CHAN_AUTO behaves like allocate-and-play.
         val channel = request.channel and 7
         if (channel == Defines.CHAN_AUTO) {
             return null

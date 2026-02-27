@@ -49,10 +49,18 @@ Step 2 (implemented):
 - Recompute source origin from current entity position when playback request is entity-bound and has no explicit origin.
 - Pass listener orientation (`position/forward/up`) into the audio facade to support pan updates.
 
-Step 3 (next):
+Step 3 (implemented baseline):
 
-- Implement strict channel override semantics matching legacy (`CHAN_AUTO` vs explicit `CHAN_*`).
-- Add looped entity sound collection/update/stop each frame.
+- Explicit channels (`CHAN_* != CHAN_AUTO`) continue to use `(entity, channel)` override behavior in backend.
+- Added entity loop-sound sync API and backend loop channel lifecycle:
+  - start/update looped sounds from replicated `entity_state.sound`
+  - keep loop alive only while entity reports loop sound this frame
+  - stop loop immediately when entity no longer reports loop sound
+- Loop sounds use static-style attenuation (`ATTN_STATIC`) and per-frame respatialization.
+
+Step 3 follow-up:
+
+- Verify edge parity details against reference mixers (e.g. channel pressure/voice stealing behavior with very high concurrent sound counts).
 
 Step 4:
 
