@@ -5,6 +5,12 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Defines
 
+data class ListenerState(
+    val position: Vector3,
+    val forward: Vector3,
+    val up: Vector3,
+)
+
 data class AudioChannelKey(
     val entityIndex: Int,
     val channel: Int,
@@ -27,7 +33,7 @@ data class SoundPlaybackRequest(
 )
 
 interface CakeAudioSystem : Disposable {
-    fun beginFrame(listenerPosition: Vector3)
+    fun beginFrame(listener: ListenerState)
     fun play(request: SoundPlaybackRequest)
     fun endFrame()
     fun stopAll()

@@ -43,13 +43,13 @@ Step 1 notes:
 - Basic `(entity, channel)` override keying is now centralized and isolated from gameplay call sites.
 - No full per-voice respatialization yet.
 
-Step 2 (next):
+Step 2 (implemented):
 
-- Replace static-origin one-shot handling with active channel/source objects.
-- Recompute origin from entity each frame for channel-bound sounds.
-- Prepare loop sound API (`entity_state.sound`) on top of the same facade.
+- Keep active channel-bound playbacks in the backend and respatialize them every frame.
+- Recompute source origin from current entity position when playback request is entity-bound and has no explicit origin.
+- Pass listener orientation (`position/forward/up`) into the audio facade to support pan updates.
 
-Step 3:
+Step 3 (next):
 
 - Implement strict channel override semantics matching legacy (`CHAN_AUTO` vs explicit `CHAN_*`).
 - Add looped entity sound collection/update/stop each frame.

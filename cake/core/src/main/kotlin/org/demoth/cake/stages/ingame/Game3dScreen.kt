@@ -28,6 +28,7 @@ import org.demoth.cake.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.FireAndForgetCakeAudioSystem
+import org.demoth.cake.audio.ListenerState
 import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
@@ -54,7 +55,10 @@ class Game3dScreen(
     private val collisionModel = CM()
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
     private val dynamicLightSystem = DynamicLightSystem()
-    private val audioSystem: CakeAudioSystem = FireAndForgetCakeAudioSystem { Globals.curtime }
+    private val audioSystem: CakeAudioSystem = FireAndForgetCakeAudioSystem(
+        currentTimeMsProvider = { Globals.curtime },
+        entityOriginProvider = { entityIndex -> entityManager.getEntityOrigin(entityIndex) },
+    )
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
 
@@ -189,7 +193,13 @@ class Game3dScreen(
         prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerConfiguration.playerIndex)
 
         updatePlayerView(lerpFrac)
-        audioSystem.beginFrame(camera.position)
+        audioSystem.beginFrame(
+            ListenerState(
+                position = camera.position,
+                forward = camera.direction,
+                up = camera.up,
+            )
+        )
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
@@ -851,7 +861,7 @@ class Game3dScreen(
     override fun processSoundMessage(msg: SoundMessage) {
         val sound = gameConfig.getSound(msg.soundIndex, msg.entityIndex)
         if (sound != null) {
-            val origin = resolveSoundOrigin(msg)
+            val origin = resolveExplicitSoundOrigin(msg)
             audioSystem.play(
                 SoundPlaybackRequest(
                     sound = sound,
@@ -954,12 +964,9 @@ class Game3dScreen(
 
     // endregion
 
-    private fun resolveSoundOrigin(msg: SoundMessage): Vector3? {
-        return when {
-            msg.origin != null -> Vector3(msg.origin[0], msg.origin[1], msg.origin[2])
-            msg.entityIndex > 0 -> entityManager.getEntityOrigin(msg.entityIndex)
-            else -> null
-        }
+    private fun resolveExplicitSoundOrigin(msg: SoundMessage): Vector3? {
+        val rawOrigin = msg.origin ?: return null
+        return Vector3(rawOrigin[0], rawOrigin[1], rawOrigin[2])
     }
 
     /**
