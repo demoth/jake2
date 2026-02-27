@@ -240,9 +240,12 @@ class Game3dScreen(
                     sp2Renderer.render(modelBatch, it, camera, lerpFrac)
                 }
             }
-            effectsSystem.render(modelBatch)
             entityManager.lerpAcc += delta
 
+        }
+        effectsSystem.renderParticles(camera)
+        modelBatch.use(camera) { modelBatch ->
+            effectsSystem.render(modelBatch)
         }
         if (lateDepthHackEntities.isNotEmpty()) {
             modelBatch.use(camera) { modelBatch ->

@@ -41,8 +41,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
 - [ ] Particle pipeline parity: use palette colors
 - [ ] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
-- [ ] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
-- [ ] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
+- [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
+- [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
@@ -100,10 +100,10 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Yamagi: dedicated particle renderer path (`cl_particles.c` + refresh backend).
 - Cake implementation:
   - `EffectParticleSystem` adds transient world-space particles (TE impacts/splashes/explosions).
-  - Integrated in `ClientEffectsSystem.update/render`.
+  - Integrated in `ClientEffectsSystem.update/renderParticles`.
   - Controlled by `r_particles`.
 - Behavior difference:
-  - Initial renderer uses lightweight translucent particle primitives, not legacy palette/indexed particle sprites.
+  - Current renderer uses batched point sprites with custom shader fade; billboard atlas sprites are not implemented yet.
 
 ### Particle Pipeline Review Findings (Yamagi vs Cake)
 
@@ -112,13 +112,12 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Cake currently has no global hard cap; high-count effects can exceed legacy budgets.
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
-  - Cake currently submits particles one-by-one through `ModelBatch` (effectively one render submission per particle).
+  - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
 - Materials/state:
-  - Cake previously had shared material state bleed; now fixed with isolated pooled render state per live particle.
-  - Correctness is improved, but memory/state still scales with peak live particle count.
+  - Cake no longer needs per-particle materials/instances; particle render state is encoded in streamed vertex data.
 - Primitive/render style:
   - Yamagi uses point sprites with circular edge fade (and optional square mode).
-  - Cake currently uses tiny translucent cubes (visual/perf bridge implementation).
+  - Cake now uses point sprites with circular edge fade.
 
 ### Brightness controls (world + MD2)
 

@@ -100,10 +100,10 @@ Newest first.
 - How to work with it: treat these visuals as readability-first approximations.
 - Removal plan: replace with dedicated beam/particle implementation once parity path lands.
 
-- Particle visuals are currently untextured translucent primitives.
-- Why: bridge implementation avoids palette/atlas dependencies and high integration cost.
-- How to work with it: tune burst count/speed/alpha rather than expecting legacy pixel-shape parity.
-- Removal plan: move to a batched particle renderer with palette-accurate style families.
+- Particle pass currently uses batched point sprites with a dedicated shader/VBO path.
+- Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
+- How to work with it: tune burst count/speed/alpha and point-size scaling for readability/parity.
+- Removal plan: extend render modes to include camera-facing sprite billboards and atlas-driven particles.
 
 ## How to Extend
 1. Add asset paths in `EffectAssetCatalog` for new effect-owned resources.
@@ -114,4 +114,4 @@ Newest first.
 
 ## Open Questions
 - Should rail/BFG beam placeholders move to a dedicated beam renderer shared with replicated `RF_BEAM` entities?
-- Should `EffectParticleSystem` switch to a batched mesh/shader path before adding high-count legacy particle families?
+- Should sprite-billboard particle mode (atlas frames + per-particle rotation) become the default for non-spark effects?

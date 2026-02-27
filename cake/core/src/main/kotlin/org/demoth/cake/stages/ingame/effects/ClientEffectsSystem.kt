@@ -158,10 +158,18 @@ class ClientEffectsSystem(
      * are expected to appear on top.
      */
     fun render(modelBatch: ModelBatch) {
-        particleSystem.render(modelBatch)
         activeEffects.forEach { effect ->
             effect.render(modelBatch)
         }
+    }
+
+    /**
+     * Renders the transient particle pass using the dedicated particle renderer.
+     *
+     * This pass is separate from ModelBatch to keep particle draw-call count bounded.
+     */
+    fun renderParticles(camera: Camera) {
+        particleSystem.render(camera)
     }
 
     override fun dispose() {
