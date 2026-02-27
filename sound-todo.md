@@ -58,8 +58,10 @@ TODO:
 
 Status:
 
-- Implemented: footsteps + fall variants.
-- Pending: respawn/teleport entity events.
+- Implemented:
+  - footsteps + fall variants
+  - item respawn (`EV_ITEM_RESPAWN`) sound + particles
+  - player teleport (`EV_PLAYER_TELEPORT`) sound + particles
 
 References:
 
@@ -68,9 +70,7 @@ References:
 
 TODO:
 
-- Add `EV_ITEM_RESPAWN` sound + particle dispatch.
-- Add `EV_PLAYER_TELEPORT` sound + particle dispatch.
-- Validate mappings against `qcommon/Defines` event constants.
+- Validate `EV_OTHER_TELEPORT` handling expectations and decide if it should map to an explicit entity-event path.
 
 ### 4) Cross-cutting quality tasks
 

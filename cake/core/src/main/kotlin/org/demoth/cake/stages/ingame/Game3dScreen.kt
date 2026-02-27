@@ -889,16 +889,26 @@ class Game3dScreen(
      * Play client-side entity event sounds derived from reconstructed packet entities.
      *
      * Supported events currently mirror the subset implemented in this module:
+     * - `EV_ITEM_RESPAWN` -> `items/respawn1.wav` + item respawn particles
      * - `EV_FOOTSTEP` -> random `player/step1..4.wav`
      * - `EV_FALLSHORT` -> `player/land1.wav`
      * - `EV_FALL` -> variation-specific `fall2.wav`
      * - `EV_FALLFAR` -> variation-specific `fall1.wav`
-     *
-     * Non-goals (for now): item-respawn and teleport event sounds.
+     * - `EV_PLAYER_TELEPORT` -> `misc/tele1.wav` + teleport particles
      */
     private fun playEntityEventSounds() {
         entityManager.forEachCurrentEntityState { state ->
             when (state.event) {
+                Defines.EV_ITEM_RESPAWN -> {
+                    val sound = gameConfig.getNamedSound("items/respawn1.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(
+                        sound = sound,
+                        entityIndex = state.index,
+                        attenuation = Defines.ATTN_IDLE.toFloat(),
+                        channel = Defines.CHAN_WEAPON,
+                    )
+                    effectsSystem.emitItemRespawnEvent(state.index)
+                }
                 Defines.EV_FOOTSTEP -> {
                     val stepIndex = (Lib.rand().toInt() and 3) + 1
                     val sound = gameConfig.getNamedSound("player/step$stepIndex.wav") ?: return@forEachCurrentEntityState
@@ -915,6 +925,16 @@ class Game3dScreen(
                 Defines.EV_FALLFAR -> {
                     val sound = gameConfig.playerConfiguration.getPlayerSound(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)
+                }
+                Defines.EV_PLAYER_TELEPORT -> {
+                    val sound = gameConfig.getNamedSound("misc/tele1.wav") ?: return@forEachCurrentEntityState
+                    playEntityEventSound(
+                        sound = sound,
+                        entityIndex = state.index,
+                        attenuation = Defines.ATTN_IDLE.toFloat(),
+                        channel = Defines.CHAN_WEAPON,
+                    )
+                    effectsSystem.emitPlayerTeleportEvent(state.index)
                 }
             }
         }
@@ -1098,13 +1118,19 @@ class Game3dScreen(
     /**
      * Play an event sound using legacy-normal attenuation from the emitting entity origin.
      */
-    private fun playEntityEventSound(sound: Sound, entityIndex: Int) {
+    private fun playEntityEventSound(
+        sound: Sound,
+        entityIndex: Int,
+        attenuation: Float = Defines.ATTN_NORM.toFloat(),
+        channel: Int = Defines.CHAN_AUTO,
+    ) {
         audioSystem.play(
             SoundPlaybackRequest(
                 sound = sound,
-                attenuation = Defines.ATTN_NORM.toFloat(),
+                attenuation = attenuation,
                 origin = entityManager.getEntityOrigin(entityIndex),
                 entityIndex = entityIndex,
+                channel = channel,
             )
         )
     }

@@ -138,6 +138,28 @@ class ClientEffectsSystem(
         }
     }
 
+    /**
+     * Emits visual particles for `EV_ITEM_RESPAWN`.
+     *
+     * Sound playback for this event is owned by `Game3dScreen` to keep packet/entity-event channel
+     * semantics centralized in one place.
+     */
+    fun emitItemRespawnEvent(entityIndex: Int) {
+        val origin = entityManager.getEntityOrigin(entityIndex) ?: return
+        emitItemRespawnParticles(origin)
+    }
+
+    /**
+     * Emits visual particles for `EV_PLAYER_TELEPORT`.
+     *
+     * Sound playback for this event is owned by `Game3dScreen` to keep packet/entity-event channel
+     * semantics centralized in one place.
+     */
+    fun emitPlayerTeleportEvent(entityIndex: Int) {
+        val origin = entityManager.getEntityOrigin(entityIndex) ?: return
+        emitTeleportEffectParticles(origin)
+    }
+
     @Suppress("UNUSED_PARAMETER")
     fun update(deltaSeconds: Float, _serverFrame: Int) {
         val now = Globals.curtime
@@ -1268,6 +1290,24 @@ class ClientEffectsSystem(
             lifetimeMinMs = 300,
             lifetimeMaxMs = 460,
             originJitter = 18f,
+        )
+    }
+
+    private fun emitItemRespawnParticles(origin: Vector3) {
+        emitPaletteOmniBurst(
+            origin = origin,
+            count = 64,
+            colorIndexProvider = { 0xD4 + Globals.rnd.nextInt(4) },
+            fallbackColor = Color(0.45f, 0.95f, 0.45f, 1f),
+            speedMin = 0f,
+            speedMax = 14f,
+            spread = 1f,
+            gravity = -64f,
+            sizeMin = 0.28f,
+            sizeMax = 0.82f,
+            lifetimeMinMs = 900,
+            lifetimeMaxMs = 1300,
+            originJitter = 8f,
         )
     }
 
