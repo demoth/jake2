@@ -941,21 +941,113 @@ class Game3dScreen(
     }
 
     override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
+        if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
+            Com.Warn("Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
+            return
+        }
         // weapon type is stored in last 7 bits of the msg.type
         val weaponType = msg.type and 0x7F
         // the silenced flag is stored in the first bit
-        val silenced = (msg.type and 0x80) != 0
-        val sound = gameConfig.getWeaponSound(weaponType)
-        if (sound != null) {
-            audioSystem.play(
-                SoundPlaybackRequest(
-                    sound = sound,
-                    baseVolume = if (silenced) 0.2f else 1f,
-                    channel = Defines.CHAN_WEAPON,
+        val silenced = (msg.type and Defines.MZ_SILENCED) != 0
+        val volume = if (silenced) 0.2f else 1f
+
+        when (weaponType) {
+            Defines.MZ_BLASTER -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
+            Defines.MZ_BLUEHYPERBLASTER, Defines.MZ_HYPERBLASTER -> {
+                playWeaponSound(msg.entityIndex, "weapons/hyprbf1a.wav", volume)
+            }
+            Defines.MZ_MACHINEGUN -> {
+                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
+            }
+            Defines.MZ_SHOTGUN -> {
+                playWeaponSound(msg.entityIndex, "weapons/shotgf1b.wav", volume)
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = "weapons/shotgr1b.wav",
+                    volume = volume,
+                    channel = Defines.CHAN_AUTO,
+                    timeOffsetSeconds = 0.1f,
                 )
-            )
-        } else {
-            Com.Warn("weapon sound $weaponType not found")
+            }
+            Defines.MZ_SSHOTGUN -> playWeaponSound(msg.entityIndex, "weapons/sshotf1b.wav", volume)
+            Defines.MZ_CHAINGUN1 -> {
+                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
+            }
+            Defines.MZ_CHAINGUN2 -> {
+                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = randomMachineGunSound(),
+                    volume = volume,
+                    timeOffsetSeconds = 0.05f,
+                )
+            }
+            Defines.MZ_CHAINGUN3 -> {
+                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = randomMachineGunSound(),
+                    volume = volume,
+                    timeOffsetSeconds = 0.033f,
+                )
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = randomMachineGunSound(),
+                    volume = volume,
+                    timeOffsetSeconds = 0.066f,
+                )
+            }
+            Defines.MZ_RAILGUN -> playWeaponSound(msg.entityIndex, "weapons/railgf1a.wav", volume)
+            Defines.MZ_ROCKET -> {
+                playWeaponSound(msg.entityIndex, "weapons/rocklf1a.wav", volume)
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = "weapons/rocklr1b.wav",
+                    volume = volume,
+                    channel = Defines.CHAN_AUTO,
+                    timeOffsetSeconds = 0.1f,
+                )
+            }
+            Defines.MZ_GRENADE -> {
+                playWeaponSound(msg.entityIndex, "weapons/grenlf1a.wav", volume)
+                playWeaponSound(
+                    entityIndex = msg.entityIndex,
+                    soundPath = "weapons/grenlr1b.wav",
+                    volume = volume,
+                    channel = Defines.CHAN_AUTO,
+                    timeOffsetSeconds = 0.1f,
+                )
+            }
+            Defines.MZ_BFG -> playWeaponSound(msg.entityIndex, "weapons/bfg__f1y.wav", volume)
+            Defines.MZ_LOGIN, Defines.MZ_LOGOUT, Defines.MZ_RESPAWN -> {
+                playWeaponSound(msg.entityIndex, "weapons/grenlf1a.wav", 1f)
+            }
+            Defines.MZ_PHALANX -> playWeaponSound(msg.entityIndex, "weapons/plasshot.wav", volume)
+            Defines.MZ_IONRIPPER -> playWeaponSound(msg.entityIndex, "weapons/rippfire.wav", volume)
+            Defines.MZ_ETF_RIFLE -> playWeaponSound(msg.entityIndex, "weapons/nail1.wav", volume)
+            Defines.MZ_SHOTGUN2 -> playWeaponSound(msg.entityIndex, "weapons/shotg2.wav", volume)
+            Defines.MZ_BLASTER2 -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
+            Defines.MZ_TRACKER -> playWeaponSound(msg.entityIndex, "weapons/disint2.wav", volume)
+            Defines.MZ_HEATBEAM, Defines.MZ_NUKE1, Defines.MZ_NUKE2, Defines.MZ_NUKE4, Defines.MZ_NUKE8, Defines.MZ_UNUSED -> {
+                // Legacy path has no additional one-shot sound for these muzzleflash types.
+            }
+            else -> {
+                // Keep backward-compatible fallback for unknown mod-specific muzzleflash values.
+                val fallback = gameConfig.getWeaponSound(weaponType)
+                if (fallback == null) {
+                    Com.Warn("weapon sound $weaponType not found")
+                } else {
+                    audioSystem.play(
+                        SoundPlaybackRequest(
+                            sound = fallback,
+                            baseVolume = volume,
+                            entityIndex = msg.entityIndex,
+                            channel = Defines.CHAN_WEAPON,
+                            attenuation = Defines.ATTN_NORM.toFloat(),
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -1133,6 +1225,35 @@ class Game3dScreen(
                 channel = channel,
             )
         )
+    }
+
+    private fun playWeaponSound(
+        entityIndex: Int,
+        soundPath: String,
+        volume: Float,
+        channel: Int = Defines.CHAN_WEAPON,
+        timeOffsetSeconds: Float = 0f,
+    ) {
+        val sound = gameConfig.getNamedSound(soundPath)
+        if (sound == null) {
+            Com.Warn("weapon sound path $soundPath not found")
+            return
+        }
+        audioSystem.play(
+            SoundPlaybackRequest(
+                sound = sound,
+                baseVolume = volume,
+                entityIndex = entityIndex,
+                channel = channel,
+                attenuation = Defines.ATTN_NORM.toFloat(),
+                timeOffsetSeconds = timeOffsetSeconds,
+            )
+        )
+    }
+
+    private fun randomMachineGunSound(): String {
+        val soundIndex = Globals.rnd.nextInt(5) + 1
+        return "weapons/machgf${soundIndex}b.wav"
     }
 
     companion object {
