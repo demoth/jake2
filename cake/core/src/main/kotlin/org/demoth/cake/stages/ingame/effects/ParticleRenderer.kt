@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Mesh
+import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.VertexAttribute
 import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -13,6 +14,7 @@ import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
+import kotlin.math.tan
 
 /**
  * Dedicated particle renderer that streams dynamic point vertices into a GPU buffer.
@@ -28,7 +30,7 @@ class ParticleRenderer : Disposable {
     private var additivePointCount = 0
     private var alphaBillboardCount = 0
     private var additiveBillboardCount = 0
-    private var pointSizeScale = BASE_POINT_SIZE
+    private var pointProjectionScale = BASE_POINT_PROJECTION_SCALE
     private var cameraCombined: Matrix4 = Matrix4()
     private var cameraX = 0f
     private var cameraY = 0f
@@ -56,7 +58,14 @@ class ParticleRenderer : Disposable {
         additivePointCount = 0
         alphaBillboardCount = 0
         additiveBillboardCount = 0
-        pointSizeScale = BASE_POINT_SIZE * (Gdx.graphics.height.toFloat() / 480f).coerceAtLeast(0.1f)
+        pointProjectionScale = when (camera) {
+            is PerspectiveCamera -> {
+                val fovRadians = Math.toRadians(camera.fieldOfView.toDouble()).toFloat()
+                Gdx.graphics.height.toFloat() / (2f * tan(fovRadians * 0.5f)).coerceAtLeast(0.001f)
+            }
+
+            else -> BASE_POINT_PROJECTION_SCALE
+        }
         cameraX = camera.position.x
         cameraY = camera.position.y
         cameraZ = camera.position.z
@@ -214,7 +223,7 @@ class ParticleRenderer : Disposable {
         vertices[base + 4] = green
         vertices[base + 5] = blue
         vertices[base + 6] = alphaValue
-        vertices[base + 7] = max(1f, size * pointSizeScale)
+        vertices[base + 7] = max(0.01f, size)
         if (alpha) {
             alphaPointCount = nextCount
         } else {
@@ -301,10 +310,11 @@ class ParticleRenderer : Disposable {
     private fun drawPoints(vertices: FloatArray, particleCount: Int) {
         pointShader.bind()
         pointShader.setUniformMatrix("u_projViewTrans", cameraCombined)
+        pointShader.setUniformf("u_cameraPos", cameraX, cameraY, cameraZ)
+        pointShader.setUniformf("u_pointProjectionScale", pointProjectionScale)
         pointShader.setUniformf("u_gammaExponent", RenderTuningCvars.gammaExponent())
         pointShader.setUniformf("u_intensity", RenderTuningCvars.intensity())
         pointShader.setUniformf("u_overbrightbits", RenderTuningCvars.overbrightBits())
-        pointShader.setUniformf("u_particleFadeFactor", PARTICLE_FADE_FACTOR)
         val floatCount = particleCount * POINT_FLOATS_PER_VERTEX
         pointMesh.setVertices(vertices, 0, floatCount)
         pointMesh.render(pointShader, GL20.GL_POINTS, 0, particleCount)
@@ -316,7 +326,6 @@ class ParticleRenderer : Disposable {
         billboardShader.setUniformf("u_gammaExponent", RenderTuningCvars.gammaExponent())
         billboardShader.setUniformf("u_intensity", RenderTuningCvars.intensity())
         billboardShader.setUniformf("u_overbrightbits", RenderTuningCvars.overbrightBits())
-        billboardShader.setUniformf("u_particleFadeFactor", PARTICLE_FADE_FACTOR)
         writeBillboardVertices(particles, particleCount)
         val vertexCount = particleCount * BILLBOARD_VERTICES_PER_PARTICLE
         billboardMesh.setVertices(
@@ -473,8 +482,7 @@ class ParticleRenderer : Disposable {
         private const val PARTICLE_FLOATS = 8
         private const val BILLBOARD_VERTICES_PER_PARTICLE = 6
         private const val INITIAL_MAX_PARTICLES = 2048
-        private const val BASE_POINT_SIZE = 40f
-        private const val PARTICLE_FADE_FACTOR = 1.2f
+        private const val BASE_POINT_PROJECTION_SCALE = 540f
         private const val PARTICLE_SIZE_ATTRIBUTE = "a_size"
         private const val GL_PROGRAM_POINT_SIZE = 0x8642
 
@@ -484,13 +492,16 @@ attribute vec4 a_color;
 attribute float a_size;
 
 uniform mat4 u_projViewTrans;
+uniform vec3 u_cameraPos;
+uniform float u_pointProjectionScale;
 
 varying vec4 v_color;
 
 void main() {
     v_color = a_color;
     gl_Position = u_projViewTrans * vec4(a_position, 1.0);
-    gl_PointSize = a_size;
+    float pointDist = max(length(a_position - u_cameraPos), 1.0);
+    gl_PointSize = max(1.0, (a_size * u_pointProjectionScale) / pointDist);
 }
 """
 
@@ -500,7 +511,6 @@ varying vec4 v_color;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
-uniform float u_particleFadeFactor;
 
 void main() {
     vec2 uv = gl_PointCoord * 2.0 - 1.0;
@@ -511,8 +521,7 @@ void main() {
 
     vec3 linear = v_color.rgb * u_intensity * u_overbrightbits;
     vec3 corrected = pow(max(linear, vec3(0.0)), vec3(u_gammaExponent));
-    float edgeFade = min(1.0, u_particleFadeFactor * (1.0 - distSquared));
-    gl_FragColor = vec4(corrected, v_color.a * edgeFade);
+    gl_FragColor = vec4(corrected, v_color.a);
 }
 """
 
@@ -540,7 +549,6 @@ varying vec2 v_uv;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
-uniform float u_particleFadeFactor;
 
 void main() {
     vec2 uv = v_uv * 2.0 - 1.0;
@@ -551,8 +559,7 @@ void main() {
 
     vec3 linear = v_color.rgb * u_intensity * u_overbrightbits;
     vec3 corrected = pow(max(linear, vec3(0.0)), vec3(u_gammaExponent));
-    float edgeFade = min(1.0, u_particleFadeFactor * (1.0 - distSquared));
-    gl_FragColor = vec4(corrected, v_color.a * edgeFade);
+    gl_FragColor = vec4(corrected, v_color.a);
 }
 """
     }

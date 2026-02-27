@@ -119,7 +119,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Cake no longer needs per-particle materials/instances; particle render state is encoded in streamed vertex data.
 - Primitive/render style:
   - Yamagi uses point sprites with circular edge fade (and optional square mode).
-  - Cake now uses point sprites with circular edge fade.
+  - Cake now uses point sprites with camera-distance size attenuation and sharper (non-smoothed) circular cutout.
 
 ### Brightness controls (world + MD2)
 
