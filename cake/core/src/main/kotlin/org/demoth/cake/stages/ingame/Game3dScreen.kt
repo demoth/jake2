@@ -58,6 +58,10 @@ class Game3dScreen(
     private val audioSystem: CakeAudioSystem = FireAndForgetCakeAudioSystem(
         currentTimeMsProvider = { Globals.curtime },
         entityOriginProvider = { entityIndex -> entityManager.getEntityOrigin(entityIndex) },
+        localPlayerEntityIndexProvider = {
+            val playerIndex = gameConfig.playerConfiguration.playerIndex
+            if (playerIndex >= 0) playerIndex + 1 else null
+        },
     )
 
     private val camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())

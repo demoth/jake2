@@ -16,6 +16,7 @@ import kotlin.math.ceil
 class FireAndForgetCakeAudioSystem(
     private val currentTimeMsProvider: () -> Int,
     private val entityOriginProvider: (Int) -> Vector3? = { null },
+    private val localPlayerEntityIndexProvider: () -> Int? = { null },
 ) : CakeAudioSystem {
 
     private data class PendingPlayback(
@@ -147,6 +148,9 @@ class FireAndForgetCakeAudioSystem(
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
+        if (isNonSpatial(request)) {
+            return SpatialParams(volume = baseVolume, pan = 0f)
+        }
         if (origin == null) {
             return SpatialParams(volume = baseVolume, pan = 0f)
         }
@@ -158,6 +162,14 @@ class FireAndForgetCakeAudioSystem(
         val volume = (baseVolume * spatialScale).coerceIn(0f, 1f)
         val pan = calculatePan(origin)
         return SpatialParams(volume = volume, pan = pan)
+    }
+
+    private fun isNonSpatial(request: SoundPlaybackRequest): Boolean {
+        if (request.attenuation <= 0f) {
+            return true
+        }
+        val localPlayerEntityIndex = localPlayerEntityIndexProvider() ?: return false
+        return request.entityIndex > 0 && request.entityIndex == localPlayerEntityIndex
     }
 
     private fun calculatePan(origin: Vector3): Float {
