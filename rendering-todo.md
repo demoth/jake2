@@ -103,7 +103,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Integrated in `ClientEffectsSystem.update/renderParticles`.
   - Controlled by `r_particles`.
 - Behavior difference:
-  - Current renderer uses batched point sprites with custom shader fade; billboard atlas sprites are not implemented yet.
+  - Current renderer uses a dedicated batched pass with two modes: point sprites (active) and camera-facing billboards (backend ready, texture-atlas integration pending).
 
 ### Particle Pipeline Review Findings (Yamagi vs Cake)
 

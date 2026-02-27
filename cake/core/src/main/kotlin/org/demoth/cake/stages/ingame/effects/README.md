@@ -100,10 +100,10 @@ Newest first.
 - How to work with it: treat these visuals as readability-first approximations.
 - Removal plan: replace with dedicated beam/particle implementation once parity path lands.
 
-- Particle pass currently uses batched point sprites with a dedicated shader/VBO path.
+- Particle pass currently uses a dedicated shader/VBO path with point-sprite and billboard backends.
 - Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
 - How to work with it: tune burst count/speed/alpha and point-size scaling for readability/parity.
-- Removal plan: extend render modes to include camera-facing sprite billboards and atlas-driven particles.
+- Removal plan: wire billboard backend to atlas/frame sampling and effect authoring data.
 
 ## How to Extend
 1. Add asset paths in `EffectAssetCatalog` for new effect-owned resources.
