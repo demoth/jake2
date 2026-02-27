@@ -112,6 +112,9 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         Cmd.AddCommand("r_debug_hideall") {
             metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "0") }
         }
+        Cmd.AddCommand("r_debug_showall") {
+            metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "1") }
+        }
     }
 
     fun collectMetrics(profiler: GLProfiler) {
