@@ -93,6 +93,33 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - Behavior difference:
   - Cake keeps modern VAT/shader plumbing, but lighting response now targets legacy alias behavior.
 
+### Verified MD2 parity differences (yamagi vs Cake)
+
+- Geometry submission:
+  - yamagi streams MD2 draw commands (`glcmds`) at render time (triangle strips/fans).
+  - Cake pre-decodes MD2 into static triangle lists (with decode-time winding swap).
+- Interpolation stage:
+  - yamagi lerps positions/normals on CPU each draw.
+  - Cake lerps via VAT in the vertex shader.
+- Directional alias shading:
+  - yamagi uses quantized yaw + `lightnormalindex` lookup through `anormtab`.
+  - Cake uses decoded per-frame normals (`bytedirs`) with quantized shade vector in shader.
+  - Cake also clamps directional term to `0.70..1.99` to match yamagi alias range.
+- Entity light sample:
+  - yamagi `GL3_LightPoint` samples BSP lightmap recursively and adds dlights using `(intensity - distance) / 256`.
+  - Cake samples leaf-local baked data and applies an approximate dynamic attenuation model.
+- Dark-scene fallback:
+  - yamagi can reach black entity lighting.
+  - Cake currently enforces a small floor (`0.1`) in the BSP entity light sampler.
+- Translucent alias alpha:
+  - yamagi scales translucent alias alpha by `0.666`.
+  - Cake generic MD2 path uses entity alpha directly (`0.666` is only applied for explosion effect path).
+- Brightness pipeline:
+  - yamagi alias shading applies `gl3_overbrightbits` in addition to gamma/intensity.
+  - Cake MD2 shader currently applies gamma/intensity only.
+- Current parity summary:
+  - visuals are already close; the remaining noticeable gap is primarily missing MD2 `overbrightbits` handling.
+
 ### Particles
 
 - Legacy path:

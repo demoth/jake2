@@ -1,5 +1,5 @@
 in vec2 v_diffuseUV;
-in vec3 v_worldNormalFrame2;
+in vec3 v_modelNormalFrame2;
 
 uniform int u_skinIndex;
 uniform int u_skinCount;
@@ -47,7 +47,10 @@ void main() {
     float shadeVectorLength = length(u_shadeVector);
     float directional = 1.0;
     if (shadeVectorLength > 0.0001) {
-        directional = dot(normalize(v_worldNormalFrame2), u_shadeVector / shadeVectorLength) + 1.0;
+        directional = dot(normalize(v_modelNormalFrame2), u_shadeVector / shadeVectorLength) + 1.0;
+        // Yamagi/id alias shading (anormtab) stays within [0.70, 1.99].
+        // Clamping here avoids over-dark side faces from raw dot-product extremes.
+        directional = clamp(directional, 0.70, 1.99);
     }
     color.rgb *= u_entityLightColor * directional;
     color.rgb *= u_intensity;

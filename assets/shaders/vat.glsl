@@ -15,7 +15,7 @@ uniform int u_frame2; // Index of the second frame in the animation texture
 uniform float u_interpolation; // Interpolation factor between two animation frames (0.0 to 1.0)
 
 out vec2 v_diffuseUV;
-out vec3 v_worldNormalFrame2;
+out vec3 v_modelNormalFrame2;
 
 void main() {
     vec2 texelSize = vec2(1.0 / u_textureWidth, 1.0 / u_textureHeight);
@@ -37,6 +37,7 @@ void main() {
     // Apply the final interpolated position
     gl_Position = u_projViewTrans * u_worldTrans * vec4(finalPosition, 1.0);
     v_diffuseUV = a_texCoord1;
-    // Legacy alias counterpart uses current frame normal index (no normal interpolation).
-    v_worldNormalFrame2 = normalize(mat3(u_worldTrans) * animatedNormal2);
+    // Legacy alias shading evaluates model-space normals and applies yaw bucket selection separately.
+    // Keep this unrotated so yaw is not double-applied against the CPU-computed shade vector.
+    v_modelNormalFrame2 = normalize(animatedNormal2);
 }
