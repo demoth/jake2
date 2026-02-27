@@ -101,6 +101,7 @@ Newest first.
 - Removal plan: replace with dedicated beam/particle implementation once parity path lands.
 
 - Particle pass currently uses a dedicated shader/VBO path with point-sprite and billboard backends.
+- Alpha buckets are depth-sorted per frame; additive buckets are submitted unsorted.
 - Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
 - How to work with it: tune burst count/speed/alpha and point-size scaling for readability/parity.
 - Removal plan: wire billboard backend to atlas/frame sampling and effect authoring data.

@@ -30,6 +30,9 @@ class ParticleRenderer : Disposable {
     private var additiveBillboardCount = 0
     private var pointSizeScale = BASE_POINT_SIZE
     private var cameraCombined: Matrix4 = Matrix4()
+    private var cameraX = 0f
+    private var cameraY = 0f
+    private var cameraZ = 0f
     private var pointMesh = createPointMesh(INITIAL_MAX_PARTICLES)
     private var billboardMesh = createBillboardMesh(INITIAL_MAX_PARTICLES * BILLBOARD_VERTICES_PER_PARTICLE)
     private var billboardVertices = FloatArray(INITIAL_MAX_PARTICLES * BILLBOARD_VERTICES_PER_PARTICLE * BILLBOARD_FLOATS_PER_VERTEX)
@@ -54,6 +57,9 @@ class ParticleRenderer : Disposable {
         alphaBillboardCount = 0
         additiveBillboardCount = 0
         pointSizeScale = BASE_POINT_SIZE * (Gdx.graphics.height.toFloat() / 480f).coerceAtLeast(0.1f)
+        cameraX = camera.position.x
+        cameraY = camera.position.y
+        cameraZ = camera.position.z
         tempForward.set(camera.direction).nor()
         tempRight.set(tempForward).crs(camera.up).nor()
         tempUp.set(tempRight).crs(tempForward).nor()
@@ -142,6 +148,7 @@ class ParticleRenderer : Disposable {
         gl.glEnable(GL_PROGRAM_POINT_SIZE)
 
         if (alphaPointCount > 0) {
+            sortByDepthDescending(alphaPointVertices, alphaPointCount, POINT_FLOATS_PER_VERTEX)
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             drawPoints(alphaPointVertices, alphaPointCount)
         }
@@ -150,6 +157,7 @@ class ParticleRenderer : Disposable {
             drawPoints(additivePointVertices, additivePointCount)
         }
         if (alphaBillboardCount > 0) {
+            sortByDepthDescending(alphaBillboardParticles, alphaBillboardCount, PARTICLE_FLOATS)
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             drawBillboards(alphaBillboardParticles, alphaBillboardCount)
         }
@@ -405,6 +413,58 @@ class ParticleRenderer : Disposable {
             VertexAttribute(VertexAttributes.Usage.ColorUnpacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
             VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"),
         )
+    }
+
+    private fun sortByDepthDescending(data: FloatArray, count: Int, stride: Int) {
+        if (count < 2) {
+            return
+        }
+        quickSortByDepth(data, 0, count - 1, stride)
+    }
+
+    private fun quickSortByDepth(data: FloatArray, low: Int, high: Int, stride: Int) {
+        var i = low
+        var j = high
+        val pivot = depthOf(data, (low + high) ushr 1, stride)
+        while (i <= j) {
+            while (depthOf(data, i, stride) > pivot) {
+                i++
+            }
+            while (depthOf(data, j, stride) < pivot) {
+                j--
+            }
+            if (i <= j) {
+                if (i != j) {
+                    swapRecords(data, i, j, stride)
+                }
+                i++
+                j--
+            }
+        }
+        if (low < j) {
+            quickSortByDepth(data, low, j, stride)
+        }
+        if (i < high) {
+            quickSortByDepth(data, i, high, stride)
+        }
+    }
+
+    private fun depthOf(data: FloatArray, index: Int, stride: Int): Float {
+        val base = index * stride
+        val dx = data[base] - cameraX
+        val dy = data[base + 1] - cameraY
+        val dz = data[base + 2] - cameraZ
+        return dx * dx + dy * dy + dz * dz
+    }
+
+    private fun swapRecords(data: FloatArray, a: Int, b: Int, stride: Int) {
+        val baseA = a * stride
+        val baseB = b * stride
+        repeat(stride) { offset ->
+            val tmp = data[baseA + offset]
+            data[baseA + offset] = data[baseB + offset]
+            data[baseB + offset] = tmp
+        }
     }
 
     companion object {
