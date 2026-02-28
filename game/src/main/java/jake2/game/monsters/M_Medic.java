@@ -544,11 +544,11 @@ public class M_Medic {
                 continue;
             if ((ent.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0)
                 continue;
-            if (ent.getOwner() == null)
+            if (ent.getOwner() != null)
                 continue;
             if (ent.health > 0)
                 continue;
-            if (ent.think.nextTime == 0)
+            if (ent.think.nextTime != 0)
                 continue;
             if (!GameUtil.visible(self, ent, gameExports))
                 continue;
