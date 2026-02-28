@@ -272,7 +272,7 @@ class ClientEffectsSystem(
                     Defines.TE_GREENBLOOD -> GREEN_BLOOD_PARTICLE_BASE_COLOR to GREEN_BLOOD_PARTICLE_FALLBACK
                     else -> BLOOD_PARTICLE_BASE_COLOR to BLOOD_PARTICLE_FALLBACK
                 }
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = when (msg.style) {
@@ -292,7 +292,7 @@ class ClientEffectsSystem(
                     Defines.TE_GUNSHOT -> Triple(40, GUNSHOT_PARTICLE_BASE_COLOR, GUNSHOT_PARTICLE_FALLBACK)
                     else -> Triple(6, SPARK_PARTICLE_BASE_COLOR, SPARK_PARTICLE_FALLBACK)
                 }
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = count,
@@ -312,7 +312,7 @@ class ClientEffectsSystem(
                 } else {
                     SHIELD_SPARK_PARTICLE_BASE_COLOR to SHIELD_SPARK_PARTICLE_FALLBACK
                 }
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 40,
@@ -323,7 +323,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_HEATBEAM_SPARKS -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 50,
@@ -334,7 +334,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_HEATBEAM_STEAM -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 20,
@@ -345,7 +345,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_ELECTRIC_SPARKS -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 40,
@@ -356,7 +356,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_SHOTGUN -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 20,
@@ -414,7 +414,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BLUEHYPERBLASTER -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = start,
                     direction = msg.destination,
                     count = 40,
@@ -470,7 +470,7 @@ class ClientEffectsSystem(
         when (msg.style) {
             Defines.TE_SPLASH -> {
                 val splashPaletteBase = LEGACY_SPLASH_COLORS.getOrNull(msg.param) ?: LEGACY_SPLASH_DEFAULT_COLOR
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = msg.count.coerceIn(4, 64),
@@ -616,7 +616,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_CHAINFIST_SMOKE -> {
-                emitLegacyImpactPaletteParticles(
+                emitPaletteImpactParticles(
                     origin = position,
                     direction = floatArrayOf(0f, 0f, 1f),
                     count = 20,
@@ -984,7 +984,7 @@ class ClientEffectsSystem(
         )
     }
 
-    private fun emitLegacyImpactPaletteParticles(
+    private fun emitPaletteImpactParticles(
         origin: Vector3,
         direction: FloatArray?,
         count: Int,
@@ -1318,17 +1318,12 @@ class ClientEffectsSystem(
             val phase = sample * RAIL_TRAIL_SPIRAL_PHASE_STEP
             val radial = Vector3(right).scl(cos(phase)).mulAdd(up, sin(phase))
             val spawnOrigin = Vector3(move).mulAdd(radial, RAIL_TRAIL_SPIRAL_RADIUS)
-            val spiralColor = Color(
-                (RAIL_TRAIL_SPIRAL_COLOR.r + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
-                (RAIL_TRAIL_SPIRAL_COLOR.g + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
-                (RAIL_TRAIL_SPIRAL_COLOR.b + randomRange(-RAIL_TRAIL_SPIRAL_COLOR_VARIATION, RAIL_TRAIL_SPIRAL_COLOR_VARIATION)).coerceIn(0f, 1f),
-                1f,
-            )
+            val spiralColorIndex = RAIL_TRAIL_SPIRAL_COLOR_BASE + Globals.rnd.nextInt(RAIL_TRAIL_SPIRAL_COLOR_VARIANTS)
             particleSystem.emitBurst(
                 origin = spawnOrigin,
                 direction = floatArrayOf(radial.x, radial.y, radial.z),
                 count = 1,
-                color = spiralColor,
+                color = resolvePaletteColor(spiralColorIndex, fallback = RAIL_TRAIL_SPIRAL_COLOR_FALLBACK),
                 speedMin = RAIL_TRAIL_SPIRAL_SPEED,
                 speedMax = RAIL_TRAIL_SPIRAL_SPEED,
                 spread = 0f,
@@ -1355,13 +1350,13 @@ class ClientEffectsSystem(
                 randomRange(-RAIL_TRAIL_CORE_JITTER, RAIL_TRAIL_CORE_JITTER),
                 randomRange(-RAIL_TRAIL_CORE_JITTER, RAIL_TRAIL_CORE_JITTER),
             )
-            val white = (RAIL_TRAIL_CORE_WHITE_BASE + randomRange(-RAIL_TRAIL_CORE_WHITE_VARIATION, RAIL_TRAIL_CORE_WHITE_VARIATION)).coerceIn(0f, 1f)
+            val coreColorIndex = RAIL_TRAIL_CORE_COLOR_BASE + Globals.rnd.nextInt(RAIL_TRAIL_CORE_COLOR_VARIANTS)
             val randomDir = randomUnitDirection()
             particleSystem.emitBurst(
                 origin = spawnOrigin,
                 direction = floatArrayOf(randomDir.x, randomDir.y, randomDir.z),
                 count = 1,
-                color = Color(white, white, white, 1f),
+                color = resolvePaletteColor(coreColorIndex, fallback = RAIL_TRAIL_CORE_COLOR_FALLBACK),
                 speedMin = 0f,
                 speedMax = RAIL_TRAIL_CORE_SPEED_MAX,
                 spread = 0f,
@@ -1671,8 +1666,9 @@ private const val RAIL_TRAIL_SPIRAL_SIZE_MIN = 0.22f
 private const val RAIL_TRAIL_SPIRAL_SIZE_MAX = 0.42f
 private const val RAIL_TRAIL_SPIRAL_LIFETIME_MIN_MS = 900
 private const val RAIL_TRAIL_SPIRAL_LIFETIME_MAX_MS = 1200
-private const val RAIL_TRAIL_SPIRAL_COLOR_VARIATION = 0.05f
-private val RAIL_TRAIL_SPIRAL_COLOR = Color(0.22f, 0.52f, 1f, 1f)
+private const val RAIL_TRAIL_SPIRAL_COLOR_BASE = 0x74
+private const val RAIL_TRAIL_SPIRAL_COLOR_VARIANTS = 8
+private val RAIL_TRAIL_SPIRAL_COLOR_FALLBACK = Color(0.22f, 0.52f, 1f, 1f)
 
 private const val RAIL_TRAIL_CORE_STEP = 0.75f
 private const val RAIL_TRAIL_CORE_JITTER = 3f
@@ -1681,7 +1677,9 @@ private const val RAIL_TRAIL_CORE_SIZE_MIN = 0.18f
 private const val RAIL_TRAIL_CORE_SIZE_MAX = 0.34f
 private const val RAIL_TRAIL_CORE_LIFETIME_MIN_MS = 600
 private const val RAIL_TRAIL_CORE_LIFETIME_MAX_MS = 820
-private const val RAIL_TRAIL_CORE_WHITE_BASE = 0.94f
+private const val RAIL_TRAIL_CORE_COLOR_BASE = 0x00
+private const val RAIL_TRAIL_CORE_COLOR_VARIANTS = 16
+private val RAIL_TRAIL_CORE_COLOR_FALLBACK = Color(0.94f, 0.94f, 0.94f, 1f)
 
 private const val BLOOD_PARTICLE_BASE_COLOR = 0xE8
 private const val GREEN_BLOOD_PARTICLE_BASE_COLOR = 0xDF
@@ -1797,7 +1795,6 @@ private const val RESPAWN_EVENT_COLOR_BASE = 0xE0
 private val LOGIN_EVENT_COLOR_FALLBACK = Color(0.35f, 0.92f, 0.45f, 1f)
 private val LOGOUT_EVENT_COLOR_FALLBACK = Color(0.95f, 0.25f, 0.2f, 1f)
 private val RESPAWN_EVENT_COLOR_FALLBACK = Color(1f, 0.9f, 0.3f, 1f)
-private const val RAIL_TRAIL_CORE_WHITE_VARIATION = 0.06f
 
 private val SPARK_SOUNDS = listOf(
     "sound/world/spark5.wav",

@@ -39,7 +39,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Railgun trail has a "beam" like temporary implementation
 - [x] Missing particle effects for blaster/rocket/grenade trail
 - [x] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
-- [ ] Particle pipeline parity: use palette colors
+- [x] Particle pipeline parity: use palette colors
 - [x] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
 - [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
@@ -189,7 +189,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Cake now maps explosion-family temp-entity particles to legacy explosion palette range (`0xE0..0xE7`).
   - Cake now maps `TE_SPLASH` via the legacy splash table (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
   - Cake now maps `TE_BLUEHYPERBLASTER` to the legacy blaster palette range (`0xE0..0xE7`).
-  - Remaining parity work is in rail trail particle color selection (still RGB-derived, not palette-index driven).
+  - Cake now maps `TE_RAILTRAIL` using legacy palette indices (`0x74..0x7B` spiral and `0x00..0x0F` core).
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
@@ -253,6 +253,6 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 
 ## Remaining Follow-ups (Non-Blocking)
 
-- Particle renderer quality/performance parity (palette-accurate visuals, batching).
+- Particle renderer quality/performance parity follow-ups (further draw/sorting tuning).
 - External particle editor/import format support is intentionally deferred until runtime parity/stability goals are complete.
 - Optional: revisit BSP `GL_NONE` culling once full winding + plane-side parity is guaranteed.

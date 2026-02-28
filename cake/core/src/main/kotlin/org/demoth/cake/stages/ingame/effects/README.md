@@ -54,6 +54,7 @@ Legacy counterparts:
 - Explosion-family particle branches (`TE_EXPLOSION*`, rocket/grenade/plasma/plain explosion temp entities) use legacy explosion palette range (`0xE0..0xE7`).
 - `TE_BLUEHYPERBLASTER` uses the legacy blaster palette range (`0xE0..0xE7`) like `CL_BlasterParticles`.
 - `TE_SPLASH` uses the legacy splash palette table mapping (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
+- `TE_RAILTRAIL` uses legacy palette ranges for both particle groups (`0x74..0x7B` spiral and `0x00..0x0F` core).
 
 ## Decision Log
 Newest first.
