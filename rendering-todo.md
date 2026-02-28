@@ -186,6 +186,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Cake uses `r_particles` as runtime budget cap in `EffectParticleSystem.emitBurst`; overflow spawn requests are dropped, and the budget is clamped to `MAX_PARTICLES=4096`.
 - Palette mapping status:
   - Cake now maps point-impact particle families to legacy palette ranges (blood/gunshot/sparks/screen-shield/shotgun/electric/heatbeam/chainfist smoke).
+  - Impact palette path no longer carries per-effect fallback color branches (aligned with legacy index-driven behavior).
   - Cake now maps explosion-family temp-entity particles to legacy explosion palette range (`0xE0..0xE7`).
   - Cake now maps `TE_SPLASH` via the legacy splash table (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
   - Cake now maps `TE_BLUEHYPERBLASTER` to the legacy blaster palette range (`0xE0..0xE7`).

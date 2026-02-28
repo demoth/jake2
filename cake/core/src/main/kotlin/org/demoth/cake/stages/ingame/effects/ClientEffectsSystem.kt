@@ -268,9 +268,9 @@ class ClientEffectsSystem(
             Defines.TE_BLOOD,
             Defines.TE_MOREBLOOD,
             Defines.TE_GREENBLOOD -> {
-                val (paletteBase, fallback) = when (msg.style) {
-                    Defines.TE_GREENBLOOD -> GREEN_BLOOD_PARTICLE_BASE_COLOR to GREEN_BLOOD_PARTICLE_FALLBACK
-                    else -> BLOOD_PARTICLE_BASE_COLOR to BLOOD_PARTICLE_FALLBACK
+                val paletteBase = when (msg.style) {
+                    Defines.TE_GREENBLOOD -> GREEN_BLOOD_PARTICLE_BASE_COLOR
+                    else -> BLOOD_PARTICLE_BASE_COLOR
                 }
                 emitPaletteImpactParticles(
                     origin = position,
@@ -281,23 +281,21 @@ class ClientEffectsSystem(
                         else -> 60
                     },
                     paletteBase = paletteBase,
-                    fallback = fallback,
                 )
             }
 
             Defines.TE_GUNSHOT,
             Defines.TE_SPARKS,
             Defines.TE_BULLET_SPARKS -> {
-                val (count, paletteBase, fallback) = when (msg.style) {
-                    Defines.TE_GUNSHOT -> Triple(40, GUNSHOT_PARTICLE_BASE_COLOR, GUNSHOT_PARTICLE_FALLBACK)
-                    else -> Triple(6, SPARK_PARTICLE_BASE_COLOR, SPARK_PARTICLE_FALLBACK)
+                val (count, paletteBase) = when (msg.style) {
+                    Defines.TE_GUNSHOT -> 40 to GUNSHOT_PARTICLE_BASE_COLOR
+                    else -> 6 to SPARK_PARTICLE_BASE_COLOR
                 }
                 emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = count,
                     paletteBase = paletteBase,
-                    fallback = fallback,
                 )
                 if (msg.style != Defines.TE_SPARKS) {
                     spawnSmokeAndFlash(position)
@@ -307,17 +305,16 @@ class ClientEffectsSystem(
 
             Defines.TE_SCREEN_SPARKS,
             Defines.TE_SHIELD_SPARKS -> {
-                val (paletteBase, fallback) = if (msg.style == Defines.TE_SCREEN_SPARKS) {
-                    SCREEN_SPARK_PARTICLE_BASE_COLOR to SCREEN_SPARK_PARTICLE_FALLBACK
+                val paletteBase = if (msg.style == Defines.TE_SCREEN_SPARKS) {
+                    SCREEN_SPARK_PARTICLE_BASE_COLOR
                 } else {
-                    SHIELD_SPARK_PARTICLE_BASE_COLOR to SHIELD_SPARK_PARTICLE_FALLBACK
+                    SHIELD_SPARK_PARTICLE_BASE_COLOR
                 }
                 emitPaletteImpactParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 40,
                     paletteBase = paletteBase,
-                    fallback = fallback,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -328,7 +325,6 @@ class ClientEffectsSystem(
                     direction = msg.direction,
                     count = 50,
                     paletteBase = HEATBEAM_SPARK_PARTICLE_BASE_COLOR,
-                    fallback = HEATBEAM_SPARK_PARTICLE_FALLBACK,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -339,7 +335,6 @@ class ClientEffectsSystem(
                     direction = msg.direction,
                     count = 20,
                     paletteBase = HEATBEAM_STEAM_PARTICLE_BASE_COLOR,
-                    fallback = HEATBEAM_STEAM_PARTICLE_FALLBACK,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -350,7 +345,6 @@ class ClientEffectsSystem(
                     direction = msg.direction,
                     count = 40,
                     paletteBase = ELECTRIC_SPARK_PARTICLE_BASE_COLOR,
-                    fallback = ELECTRIC_SPARK_PARTICLE_FALLBACK,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -361,7 +355,6 @@ class ClientEffectsSystem(
                     direction = msg.direction,
                     count = 20,
                     paletteBase = SHOTGUN_PARTICLE_BASE_COLOR,
-                    fallback = SHOTGUN_PARTICLE_FALLBACK,
                 )
                 spawnSmokeAndFlash(position)
             }
@@ -419,7 +412,6 @@ class ClientEffectsSystem(
                     direction = msg.destination,
                     count = 40,
                     paletteBase = BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR,
-                    fallback = BLUE_HYPERBLASTER_PARTICLE_FALLBACK,
                 )
             }
 
@@ -475,7 +467,6 @@ class ClientEffectsSystem(
                     direction = msg.direction,
                     count = msg.count.coerceIn(4, 64),
                     paletteBase = splashPaletteBase,
-                    fallback = resolveLegacySplashFallback(splashPaletteBase),
                 )
                 if (msg.param == Defines.SPLASH_SPARKS) {
                     playRandomSound(SPARK_SOUNDS, position, Defines.ATTN_STATIC.toFloat())
@@ -621,7 +612,6 @@ class ClientEffectsSystem(
                     direction = floatArrayOf(0f, 0f, 1f),
                     count = 20,
                     paletteBase = CHAINFIST_SMOKE_PARTICLE_BASE_COLOR,
-                    fallback = CHAINFIST_SMOKE_PARTICLE_FALLBACK,
                 )
                 spawnAnimatedModelEffect(
                     modelPath = "models/objects/smoke/tris.md2",
@@ -989,7 +979,6 @@ class ClientEffectsSystem(
         direction: FloatArray?,
         count: Int,
         paletteBase: Int,
-        fallback: Color,
         paletteVariants: Int = 8,
     ) {
         val safeCount = count.coerceIn(1, 512)
@@ -1004,7 +993,7 @@ class ClientEffectsSystem(
                 origin = origin,
                 direction = direction,
                 count = 1,
-                color = resolvePaletteColor(paletteIndex, fallback = fallback),
+                color = resolvePaletteColor(paletteIndex, fallback = IMPACT_PARTICLE_COLOR_FALLBACK),
                 speedMin = 35f,
                 speedMax = 170f,
                 spread = 0.85f,
@@ -1611,17 +1600,6 @@ class ClientEffectsSystem(
         }
     }
 
-    private fun resolveLegacySplashFallback(paletteBase: Int): Color {
-        return when (paletteBase and 0xFF) {
-            0xE0 -> Color(1f, 0.85f, 0.4f, 1f)
-            0xB0 -> Color(0.55f, 0.72f, 1f, 1f)
-            0x50 -> Color(0.75f, 0.62f, 0.42f, 1f)
-            0xD0 -> Color(0.52f, 0.95f, 0.52f, 1f)
-            0xE8 -> Color(0.88f, 0.24f, 0.2f, 1f)
-            else -> Color(0.72f, 0.72f, 0.72f, 1f)
-        }
-    }
-
     private fun toVector3(value: FloatArray?): Vector3? {
         if (value == null || value.size < 3) {
             return null
@@ -1694,17 +1672,7 @@ private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
 private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00
 private const val EXPLOSION_PARTICLE_BASE_COLOR = 0xE0
 
-private val BLOOD_PARTICLE_FALLBACK = Color(0.84f, 0.12f, 0.12f, 1f)
-private val GREEN_BLOOD_PARTICLE_FALLBACK = Color(0.55f, 0.95f, 0.45f, 1f)
-private val GUNSHOT_PARTICLE_FALLBACK = Color(0.95f, 0.9f, 0.65f, 1f)
-private val SPARK_PARTICLE_FALLBACK = Color(1f, 0.88f, 0.45f, 1f)
-private val SCREEN_SPARK_PARTICLE_FALLBACK = Color(0.75f, 0.95f, 0.55f, 1f)
-private val SHIELD_SPARK_PARTICLE_FALLBACK = Color(0.65f, 0.85f, 1f, 1f)
-private val SHOTGUN_PARTICLE_FALLBACK = Color(0.92f, 0.9f, 0.75f, 1f)
-private val HEATBEAM_SPARK_PARTICLE_FALLBACK = Color(0.62f, 0.78f, 1f, 1f)
-private val HEATBEAM_STEAM_PARTICLE_FALLBACK = Color(1f, 0.84f, 0.42f, 1f)
-private val ELECTRIC_SPARK_PARTICLE_FALLBACK = Color(0.46f, 0.88f, 1f, 1f)
-private val CHAINFIST_SMOKE_PARTICLE_FALLBACK = Color(0.65f, 0.65f, 0.65f, 1f)
+private val IMPACT_PARTICLE_COLOR_FALLBACK = Color(0.95f, 0.9f, 0.65f, 1f)
 private const val EXPLOSION_PARTICLE_VARIANTS = 8
 private val EXPLOSION_PARTICLE_FALLBACK = Color(1f, 0.52f, 0.22f, 1f)
 
@@ -1734,7 +1702,6 @@ private const val BLASTER2_TRAIL_COLOR_INDEX = 0xD0
 private const val BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR = 0xE0
 private val BLASTER_TRAIL_COLOR_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
 private val BLASTER2_TRAIL_COLOR_FALLBACK = Color(0.3f, 0.95f, 0.3f, 1f)
-private val BLUE_HYPERBLASTER_PARTICLE_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
 
 private val LEGACY_SPLASH_COLORS = intArrayOf(0x00, 0xE0, 0xB0, 0x50, 0xD0, 0xE0, 0xE8)
 private const val LEGACY_SPLASH_DEFAULT_COLOR = 0x00
