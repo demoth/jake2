@@ -43,7 +43,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
 - [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
-- [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
+- [x] Particle pipeline parity: align particle brightness controls with reference path (gamma-only; no particle intensity/overbright)
 - [x] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
 - [x] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
 - [x] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
@@ -203,6 +203,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - Primitive/render style:
   - Yamagi uses point sprites with circular edge fade (and optional square mode).
   - Cake now uses point sprites with camera-distance size attenuation and sharper (non-smoothed) circular cutout.
+- Brightness controls:
+  - Yamagi/Q2PRO particle shading applies gamma correction and does not apply particle intensity/overbright scaling.
+  - Cake particle shaders now match this behavior (gamma-only correction).
 
 ### Brightness controls (world + MD2)
 

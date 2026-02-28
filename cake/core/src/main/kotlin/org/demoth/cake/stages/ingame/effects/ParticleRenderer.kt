@@ -342,8 +342,6 @@ class ParticleRenderer : Disposable {
         pointShader.setUniformf("u_cameraPos", cameraX, cameraY, cameraZ)
         pointShader.setUniformf("u_pointProjectionScale", pointProjectionScale)
         pointShader.setUniformf("u_gammaExponent", RenderTuningCvars.gammaExponent())
-        pointShader.setUniformf("u_intensity", RenderTuningCvars.intensity())
-        pointShader.setUniformf("u_overbrightbits", RenderTuningCvars.overbrightBits())
         val floatCount = particleCount * POINT_FLOATS_PER_VERTEX
         pointMesh.setVertices(vertices, 0, floatCount)
         pointMesh.render(pointShader, GL20.GL_POINTS, 0, particleCount)
@@ -353,8 +351,6 @@ class ParticleRenderer : Disposable {
         billboardShader.bind()
         billboardShader.setUniformMatrix("u_projViewTrans", cameraCombined)
         billboardShader.setUniformf("u_gammaExponent", RenderTuningCvars.gammaExponent())
-        billboardShader.setUniformf("u_intensity", RenderTuningCvars.intensity())
-        billboardShader.setUniformf("u_overbrightbits", RenderTuningCvars.overbrightBits())
         writeBillboardVertices(particles, particleCount)
         val vertexCount = particleCount * BILLBOARD_VERTICES_PER_PARTICLE
         billboardMesh.setVertices(
@@ -486,8 +482,6 @@ void main() {
 varying vec4 v_color;
 
 uniform float u_gammaExponent;
-uniform float u_intensity;
-uniform float u_overbrightbits;
 
 void main() {
     vec2 uv = gl_PointCoord * 2.0 - 1.0;
@@ -496,8 +490,7 @@ void main() {
         discard;
     }
 
-    vec3 linear = v_color.rgb * u_intensity * u_overbrightbits;
-    vec3 corrected = pow(max(linear, vec3(0.0)), vec3(u_gammaExponent));
+    vec3 corrected = pow(max(v_color.rgb, vec3(0.0)), vec3(u_gammaExponent));
     gl_FragColor = vec4(corrected, v_color.a);
 }
 """
@@ -524,8 +517,6 @@ varying vec4 v_color;
 varying vec2 v_uv;
 
 uniform float u_gammaExponent;
-uniform float u_intensity;
-uniform float u_overbrightbits;
 
 void main() {
     vec2 uv = v_uv * 2.0 - 1.0;
@@ -534,8 +525,7 @@ void main() {
         discard;
     }
 
-    vec3 linear = v_color.rgb * u_intensity * u_overbrightbits;
-    vec3 corrected = pow(max(linear, vec3(0.0)), vec3(u_gammaExponent));
+    vec3 corrected = pow(max(v_color.rgb, vec3(0.0)), vec3(u_gammaExponent));
     gl_FragColor = vec4(corrected, v_color.a);
 }
 """
