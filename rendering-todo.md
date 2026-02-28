@@ -44,6 +44,10 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
+- [ ] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
+- [ ] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
+- [ ] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
+- [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
@@ -76,6 +80,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
     - temp entities in `ClientEffectsSystem`,
     - replicated `EF_*` lights in `Game3dScreen`.
   - BSP shader consumes up to 8 strongest lights per frame.
+- Known gap:
+  - `Game3dScreen.processWeaponSoundMessage` currently plays `MZ_*` sounds but does not spawn keyed muzzle dlights (legacy `CL_ParseMuzzleFlash` does).
+  - `Game3dScreen.collectEntityEffectDynamicLights` currently samples `entity.current.origin` (via `getEntityOrigin`) instead of interpolated render origin (`prev/current + lerpfrac`), causing server-tick stepping on moving lights.
 
 ### MD2 lighting
 
@@ -92,6 +99,42 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - MD2 shader also multiplies by per-entity light tint and shared gamma/intensity controls.
 - Behavior difference:
   - Cake keeps modern VAT/shader plumbing, but lighting response now targets legacy alias behavior.
+- Known gap:
+  - `RF_GLOW` pulse currently uses `entityManager.time`, which is effectively server-stepped in Cake. Legacy/Yamagi use continuously advancing `cl.time` / `r_newrefdef.time`, so glow pulsing is smooth between server snapshots.
+
+### Minor Visual Gap Investigation (2026-02-28)
+
+- `MZ_*` muzzleflash dlights (shotgun/machinegun missing):
+  - Reference:
+    - Jake2 `CL_fx.ParseMuzzleFlash`, Yamagi `cl_effects.c` (`MZ_MACHINEGUN`, `MZ_SHOTGUN`, `MZ_CHAINGUN*`) allocate/update keyed dlight and set color/radius.
+  - Cake:
+    - `Game3dScreen.processWeaponSoundMessage` handles audio only.
+  - Difficulty: `S`
+  - Coupling: `Low` (mostly `Game3dScreen` + `DynamicLightSystem`; optional helper profile map).
+
+- `RF_GLOW` smooth pulse:
+  - Reference:
+    - Jake2 `Mesh.java`, Yamagi `gl3_mesh.c`: `scale = 0.1 * sin(r_newrefdef.time * 7)`.
+  - Cake:
+    - `Game3dScreen.applyMd2EntityLighting` uses `sin(entityManager.time / 1000f * 7f)`; `entityManager.time` is server-frame clamped, not per-render continuous.
+  - Difficulty: `S`
+  - Coupling: `Low` (time source wiring + one lighting function).
+
+- Moving dynamic light interpolation (`EF_*`):
+  - Reference:
+    - Jake2/Yamagi `CL_AddPacketEntities` compute interpolated `ent.origin` first, then call `V.AddLight(ent.origin, ...)`.
+  - Cake:
+    - `collectEntityEffectDynamicLights` uses `getEntityOrigin(state.index)` (current snapshot origin), so lights appear to update at server cadence.
+  - Difficulty: `S-M`
+  - Coupling: `Medium` (needs shared/central interpolated origin access to keep parity across trail/light paths).
+
+- Lightstyle smoothing (non-legacy option):
+  - Reference:
+    - Jake2 `CL_fx.RunLightStyles`, Yamagi `CL_RunLightStyles` are ticked at `cl.time / 100` with no sub-tick interpolation.
+  - Cake:
+    - `refreshLightStyles` is already legacy-equivalent (`currentTimeMs / 100` + discrete pattern sample).
+  - Difficulty: `M`
+  - Coupling: `Medium-High` (touches world surface modulation + inline surfaces + entity light sampler expectations; should likely be a toggle because it intentionally diverges from legacy behavior).
 
 ### Verified MD2 parity differences (yamagi vs Cake)
 
