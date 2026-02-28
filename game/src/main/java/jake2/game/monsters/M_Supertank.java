@@ -583,6 +583,74 @@ public class M_Supertank {
         }
     };
 
+    // should be initialized before supertank_frames_death1
+    /** Common Boss explode animation. */
+    public static EntThinkAdapter BossExplode = new EntThinkAdapter() {
+        public String getID(){ return "BossExplode"; }
+        public boolean think(GameEntity self, GameExportsImpl gameExports) {
+            float[] org = { 0, 0, 0 };
+
+            int n;
+
+            self.think.action = BossExplode;
+            Math3D.VectorCopy(self.s.origin, org);
+            org[2] += 24 + (Lib.rand() & 15);
+            switch (self.count++) {
+                case 0:
+                    org[0] -= 24;
+                    org[1] -= 24;
+                    break;
+                case 1:
+                    org[0] += 24;
+                    org[1] += 24;
+                    break;
+                case 2:
+                    org[0] += 24;
+                    org[1] -= 24;
+                    break;
+                case 3:
+                    org[0] -= 24;
+                    org[1] += 24;
+                    break;
+                case 4:
+                    org[0] -= 48;
+                    org[1] -= 48;
+                    break;
+                case 5:
+                    org[0] += 48;
+                    org[1] += 48;
+                    break;
+                case 6:
+                    org[0] -= 48;
+                    org[1] += 48;
+                    break;
+                case 7:
+                    org[0] += 48;
+                    org[1] -= 48;
+                    break;
+                case 8:
+                    self.s.sound = 0;
+                    for (n = 0; n < 4; n++)
+                        GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
+                                GameDefines.GIB_ORGANIC, gameExports);
+                    for (n = 0; n < 8; n++)
+                        GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
+                                500, GameDefines.GIB_METALLIC, gameExports);
+                    GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
+                            GameDefines.GIB_ORGANIC, gameExports);
+                    GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
+                            GameDefines.GIB_METALLIC, gameExports);
+                    self.deadflag = GameDefines.DEAD_DEAD;
+                    return true;
+            }
+
+            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, org), MulticastTypes.MULTICAST_PVS);
+
+            self.think.nextTime = gameExports.level.time + 0.1f;
+            return true;
+        }
+    };
+
     //
     // stand
     //
@@ -1203,73 +1271,4 @@ public class M_Supertank {
             return true;
         }
     };
-
-    /** Common Boss explode animation. */
-    
-    public static EntThinkAdapter BossExplode = new EntThinkAdapter() {
-    	public String getID(){ return "BossExplode"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            float[] org = { 0, 0, 0 };
-    
-            int n;
-    
-            self.think.action = BossExplode;
-            Math3D.VectorCopy(self.s.origin, org);
-            org[2] += 24 + (Lib.rand() & 15);
-            switch (self.count++) {
-            case 0:
-                org[0] -= 24;
-                org[1] -= 24;
-                break;
-            case 1:
-                org[0] += 24;
-                org[1] += 24;
-                break;
-            case 2:
-                org[0] += 24;
-                org[1] -= 24;
-                break;
-            case 3:
-                org[0] -= 24;
-                org[1] += 24;
-                break;
-            case 4:
-                org[0] -= 48;
-                org[1] -= 48;
-                break;
-            case 5:
-                org[0] += 48;
-                org[1] += 48;
-                break;
-            case 6:
-                org[0] -= 48;
-                org[1] += 48;
-                break;
-            case 7:
-                org[0] += 48;
-                org[1] -= 48;
-                break;
-            case 8:
-                self.s.sound = 0;
-                for (n = 0; n < 4; n++)
-                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
-                            GameDefines.GIB_ORGANIC, gameExports);
-                for (n = 0; n < 8; n++)
-                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
-                            500, GameDefines.GIB_METALLIC, gameExports);
-                GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
-                        GameDefines.GIB_ORGANIC, gameExports);
-                GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
-                        GameDefines.GIB_METALLIC, gameExports);
-                self.deadflag = GameDefines.DEAD_DEAD;
-                return true;
-            }
-    
-            gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_EXPLOSION1, org), MulticastTypes.MULTICAST_PVS);
-    
-            self.think.nextTime = gameExports.level.time + 0.1f;
-            return true;
-        }
-    };
-
 }
