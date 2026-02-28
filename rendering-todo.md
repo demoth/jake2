@@ -46,7 +46,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
 - [x] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
 - [x] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
-- [ ] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
+- [x] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
@@ -127,7 +127,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Reference:
     - Jake2/Yamagi `CL_AddPacketEntities` compute interpolated `ent.origin` first, then call `V.AddLight(ent.origin, ...)`.
   - Cake:
-    - `collectEntityEffectDynamicLights` uses `getEntityOrigin(state.index)` (current snapshot origin), so lights appear to update at server cadence.
+    - implemented in `Game3dScreen.collectEntityEffectDynamicLights` via `interpolatedEntityRenderOrigin(...)` (same `RF_FRAMELERP`/`RF_BEAM` and lerp rules as packet-entity rendering).
+  - Status:
+    - closed on 2026-02-28
   - Difficulty: `S-M`
   - Coupling: `Medium` (needs shared/central interpolated origin access to keep parity across trail/light paths).
 

@@ -1137,8 +1137,8 @@ class Game3dScreen(
      * `client/CL_ents.AddPacketEntities` (`V.AddLight` branches).
      */
     private fun collectEntityEffectDynamicLights() {
-        entityManager.forEachCurrentEntityState { state ->
-            val origin = entityManager.getEntityOrigin(state.index) ?: return@forEachCurrentEntityState
+        entityManager.forEachCurrentEntity { entity, state ->
+            val origin = interpolatedEntityRenderOrigin(entity, state.renderfx)
             val effects = state.effects
             when {
                 (effects and Defines.EF_ROCKET) != 0 -> {
@@ -1214,9 +1214,10 @@ class Game3dScreen(
                 return@forEachCurrentEntity
             }
 
-            val endX = entity.prev.origin[0] + (entity.current.origin[0] - entity.prev.origin[0]) * lerpFrac
-            val endY = entity.prev.origin[1] + (entity.current.origin[1] - entity.prev.origin[1]) * lerpFrac
-            val endZ = entity.prev.origin[2] + (entity.current.origin[2] - entity.prev.origin[2]) * lerpFrac
+            val endOrigin = interpolatedEntityRenderOrigin(entity, state.renderfx)
+            val endX = endOrigin.x
+            val endY = endOrigin.y
+            val endZ = endOrigin.z
 
             effectsSystem.emitReplicatedEntityTrail(
                 entity = entity,
@@ -1230,6 +1231,29 @@ class Game3dScreen(
             entity.lerp_origin[1] = endY
             entity.lerp_origin[2] = endZ
         }
+    }
+
+    /**
+     * Computes render-time entity origin using the same interpolation rules as packet-entity rendering.
+     *
+     * Legacy counterpart in `CL_AddPacketEntities`:
+     * - `RF_FRAMELERP` / `RF_BEAM` use discrete `current.origin`,
+     * - other entities use `prev.origin + lerpfrac * (current - prev)`.
+     */
+    private fun interpolatedEntityRenderOrigin(entity: ClientEntity, renderFx: Int): Vector3 {
+        if ((renderFx and (Defines.RF_FRAMELERP or Defines.RF_BEAM)) != 0) {
+            return Vector3(
+                entity.current.origin[0],
+                entity.current.origin[1],
+                entity.current.origin[2],
+            )
+        }
+        val frac = lerpFrac.coerceIn(0f, 1f)
+        return Vector3(
+            entity.prev.origin[0] + (entity.current.origin[0] - entity.prev.origin[0]) * frac,
+            entity.prev.origin[1] + (entity.current.origin[1] - entity.prev.origin[1]) * frac,
+            entity.prev.origin[2] + (entity.current.origin[2] - entity.prev.origin[2]) * frac,
+        )
     }
 
     /**
