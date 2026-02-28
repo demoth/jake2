@@ -312,9 +312,9 @@ public class GameUtil {
         } else if (gameExports.level.sound_entity_framenum >= (gameExports.level.framenum - 1)) {
             client = gameExports.level.sound_entity;
             heardit = true;
-        } else if (null != (self.enemy)
+        } else if (null == (self.enemy)
                 && (gameExports.level.sound2_entity_framenum >= (gameExports.level.framenum - 1))
-                && 0 != (self.spawnflags & 1)) {
+                && 0 == (self.spawnflags & 1)) {
             client = gameExports.level.sound2_entity;
             heardit = true;
         } else {

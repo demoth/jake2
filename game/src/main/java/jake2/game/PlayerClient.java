@@ -1230,7 +1230,7 @@ public class PlayerClient {
 
         // save light level the player is standing on for
         // monster sighting AI
-        ent.light_level = ucmd.lightlevel;
+        ent.light_level = ucmd.lightlevel & 0xFF;
 
         // fire weapon from final position if needed
         if ((client.latched_buttons & Defines.BUTTON_ATTACK) != 0) {

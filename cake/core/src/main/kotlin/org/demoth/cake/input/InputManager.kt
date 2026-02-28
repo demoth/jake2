@@ -71,6 +71,7 @@ class InputManager(
     private var deltaY = 0f
     private var hasMouseReference = false
     private val sensitivity = Cvar.getInstance().Get("sensitivity", "80", 0) // todo: make independent from screen size
+    private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0) // todo: verify a proper server side fix
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
@@ -131,6 +132,7 @@ class InputManager(
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
+        cmd.lightlevel = lightLevel.value.coerceIn(0f, 255f).toInt().toByte()
 
         cmd.msec = computeCommandMsec(nowNanos).toByte()
         commandSequence[cmdIndex] = outgoingSequence

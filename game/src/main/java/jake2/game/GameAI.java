@@ -122,7 +122,8 @@ public class GameAI {
             if ((self.monsterinfo.aiflags & GameDefines.AI_COMBAT_POINT) != 0)
                 return false;
 
-            if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0
+                    && !GameUtil.visible(self, self.goalentity, gameExports)) {
                 if ((gameExports.level.time - self.enemy.teleport_time) > 5.0) {
                     if (self.goalentity == self.enemy)
                         if (self.movetarget != null)
