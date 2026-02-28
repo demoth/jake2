@@ -45,7 +45,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
 - [x] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
-- [ ] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
+- [x] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
 - [ ] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [ ] entity Shells are not implemented
@@ -98,9 +98,6 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - MD2 shader also multiplies by per-entity light tint and shared gamma/intensity controls.
 - Behavior difference:
   - Cake keeps modern VAT/shader plumbing, but lighting response now targets legacy alias behavior.
-- Known gap:
-  - `RF_GLOW` pulse currently uses `entityManager.time`, which is effectively server-stepped in Cake. Legacy/Yamagi use continuously advancing `cl.time` / `r_newrefdef.time`, so glow pulsing is smooth between server snapshots.
-
 ### Minor Visual Gap Investigation (2026-02-28)
 
 - `MZ_*` muzzleflash dlights (shotgun/machinegun missing):
@@ -117,7 +114,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Reference:
     - Jake2 `Mesh.java`, Yamagi `gl3_mesh.c`: `scale = 0.1 * sin(r_newrefdef.time * 7)`.
   - Cake:
-    - `Game3dScreen.applyMd2EntityLighting` uses `sin(entityManager.time / 1000f * 7f)`; `entityManager.time` is server-frame clamped, not per-render continuous.
+    - implemented via `interpolatedClientTimeSeconds()` in `Game3dScreen.applyMd2EntityLighting`, matching legacy continuous render-time pulse.
+  - Status:
+    - closed on 2026-02-28
   - Difficulty: `S`
   - Coupling: `Low` (time source wiring + one lighting function).
 

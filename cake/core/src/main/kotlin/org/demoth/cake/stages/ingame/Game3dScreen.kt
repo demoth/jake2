@@ -472,7 +472,7 @@ class Game3dScreen(
         }
 
         if ((renderFx and Defines.RF_GLOW) != 0) {
-            val scale = 0.1f * sin(entityManager.time / 1000f * 7f)
+            val scale = 0.1f * sin(interpolatedClientTimeSeconds() * 7f)
             val minRed = sampled.x * 0.8f
             val minGreen = sampled.y * 0.8f
             val minBlue = sampled.z * 0.8f
@@ -485,6 +485,18 @@ class Game3dScreen(
         userData.lightGreen = sampled.y
         userData.lightBlue = sampled.z
         setMd2ShadeVector(userData, yawDegrees)
+    }
+
+    /**
+     * Legacy-equivalent continuous client render time in seconds.
+     *
+     * Legacy glow pulse (`RF_GLOW`) uses `sin(r_newrefdef.time * 7)` where time advances every render
+     * frame (not just on server snapshots).
+     */
+    private fun interpolatedClientTimeSeconds(): Float {
+        val serverTimeMs = entityManager.currentFrame.servertime.toFloat()
+        val clientTimeMs = serverTimeMs - (1f - lerpFrac.coerceIn(0f, 1f)) * 100f
+        return clientTimeMs * 0.001f
     }
 
     private fun setMd2ShadeVector(userData: Md2CustomData, yawDegrees: Float) {
