@@ -30,6 +30,7 @@ import org.demoth.cake.stages.ingame.DynamicLightSystem
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * Runtime owner for non-replicated client-side effects produced by server effect messages.
@@ -158,6 +159,16 @@ class ClientEffectsSystem(
     fun emitPlayerTeleportEvent(entityIndex: Int) {
         val origin = entityManager.getEntityOrigin(entityIndex) ?: return
         emitTeleportEffectParticles(origin)
+    }
+
+    /**
+     * Emits special muzzleflash particle burst for `MZ_LOGIN`, `MZ_LOGOUT`, `MZ_RESPAWN`.
+     *
+     * Legacy counterpart: `client/CL_fx.LogoutEffect`.
+     */
+    fun emitLoginLogoutRespawnEvent(entityIndex: Int, weaponType: Int) {
+        val origin = entityManager.getEntityOrigin(entityIndex) ?: return
+        emitLoginLogoutRespawnParticles(origin, weaponType)
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -1331,6 +1342,44 @@ class ClientEffectsSystem(
         )
     }
 
+    private fun emitLoginLogoutRespawnParticles(origin: Vector3, weaponType: Int) {
+        val (baseColor, fallbackColor) = when (weaponType) {
+            Defines.MZ_LOGIN -> LOGIN_EVENT_COLOR_BASE to LOGIN_EVENT_COLOR_FALLBACK
+            Defines.MZ_LOGOUT -> LOGOUT_EVENT_COLOR_BASE to LOGOUT_EVENT_COLOR_FALLBACK
+            else -> RESPAWN_EVENT_COLOR_BASE to RESPAWN_EVENT_COLOR_FALLBACK
+        }
+
+        repeat(LOGIN_LOGOUT_RESPAWN_PARTICLE_COUNT) {
+            val velocityX = randomRange(-LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE, LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE)
+            val velocityY = randomRange(-LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE, LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE)
+            val velocityZ = randomRange(-LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE, LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE)
+            val speed = sqrt(velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ).coerceAtLeast(0.001f)
+
+            val spawnOrigin = Vector3(
+                origin.x + randomRange(-LOGIN_LOGOUT_RESPAWN_XY_JITTER, LOGIN_LOGOUT_RESPAWN_XY_JITTER),
+                origin.y + randomRange(-LOGIN_LOGOUT_RESPAWN_XY_JITTER, LOGIN_LOGOUT_RESPAWN_XY_JITTER),
+                origin.z + randomRange(LOGIN_LOGOUT_RESPAWN_Z_JITTER_MIN, LOGIN_LOGOUT_RESPAWN_Z_JITTER_MAX),
+            )
+
+            particleSystem.emitBurst(
+                origin = spawnOrigin,
+                direction = floatArrayOf(velocityX, velocityY, velocityZ),
+                count = 1,
+                color = resolvePaletteColor(baseColor + Globals.rnd.nextInt(8), fallback = fallbackColor),
+                speedMin = speed,
+                speedMax = speed,
+                spread = 0f,
+                gravity = LOGIN_LOGOUT_RESPAWN_GRAVITY,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = LOGIN_LOGOUT_RESPAWN_SIZE_MIN,
+                sizeMax = LOGIN_LOGOUT_RESPAWN_SIZE_MAX,
+                lifetimeMinMs = LOGIN_LOGOUT_RESPAWN_LIFETIME_MIN_MS,
+                lifetimeMaxMs = LOGIN_LOGOUT_RESPAWN_LIFETIME_MAX_MS,
+            )
+        }
+    }
+
     private fun resolvePaletteColor(index: Int, fallback: Color): Color {
         val palette = q2Palette ?: return Color(fallback)
         if (palette.isEmpty()) {
@@ -1595,6 +1644,24 @@ private const val ROCKET_FIRE_SIZE_MAX = 0.55f
 private const val ROCKET_FIRE_LIFETIME_MIN_MS = 1000
 private const val ROCKET_FIRE_LIFETIME_MAX_MS = 1200
 private val ROCKET_FIRE_COLOR_FALLBACK = Color(1f, 0.52f, 0.18f, 1f)
+
+private const val LOGIN_LOGOUT_RESPAWN_PARTICLE_COUNT = 500
+private const val LOGIN_LOGOUT_RESPAWN_XY_JITTER = 16f
+private const val LOGIN_LOGOUT_RESPAWN_Z_JITTER_MIN = -24f
+private const val LOGIN_LOGOUT_RESPAWN_Z_JITTER_MAX = 32f
+private const val LOGIN_LOGOUT_RESPAWN_VELOCITY_RANGE = 20f
+private const val LOGIN_LOGOUT_RESPAWN_GRAVITY = -40f
+private const val LOGIN_LOGOUT_RESPAWN_SIZE_MIN = 0.22f
+private const val LOGIN_LOGOUT_RESPAWN_SIZE_MAX = 0.58f
+private const val LOGIN_LOGOUT_RESPAWN_LIFETIME_MIN_MS = 1000
+private const val LOGIN_LOGOUT_RESPAWN_LIFETIME_MAX_MS = 1300
+
+private const val LOGIN_EVENT_COLOR_BASE = 0xD0
+private const val LOGOUT_EVENT_COLOR_BASE = 0x40
+private const val RESPAWN_EVENT_COLOR_BASE = 0xE0
+private val LOGIN_EVENT_COLOR_FALLBACK = Color(0.35f, 0.92f, 0.45f, 1f)
+private val LOGOUT_EVENT_COLOR_FALLBACK = Color(0.95f, 0.25f, 0.2f, 1f)
+private val RESPAWN_EVENT_COLOR_FALLBACK = Color(1f, 0.9f, 0.3f, 1f)
 private const val RAIL_TRAIL_CORE_WHITE_VARIATION = 0.06f
 
 private val SPARK_SOUNDS = listOf(

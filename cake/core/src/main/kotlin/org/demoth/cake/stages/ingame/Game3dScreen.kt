@@ -954,7 +954,7 @@ class Game3dScreen(
     }
 
     /**
-     * Handles `MZ_*` weapon events (sound + one-shot muzzle dynamic light).
+     * Handles `MZ_*` weapon events (sound + one-shot muzzle dynamic light + special login/logout burst).
      *
      * Legacy counterpart: `client/CL_fx.ParseMuzzleFlash`.
      */
@@ -970,6 +970,11 @@ class Game3dScreen(
         val volume = if (silenced) 0.2f else 1f
 
         spawnWeaponMuzzleFlashLight(msg.entityIndex, weaponType, silenced)
+
+        // login/out effects
+        if (weaponType == Defines.MZ_LOGIN || weaponType == Defines.MZ_LOGOUT || weaponType == Defines.MZ_RESPAWN) {
+            effectsSystem.emitLoginLogoutRespawnEvent(msg.entityIndex, weaponType)
+        }
 
         when (weaponType) {
             Defines.MZ_BLASTER -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
@@ -1302,9 +1307,9 @@ class Game3dScreen(
             Defines.MZ_ROCKET -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.2f)
             Defines.MZ_GRENADE -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0f)
             Defines.MZ_BFG -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f)
-            Defines.MZ_LOGIN -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f, lifetimeMs = 1000)
-            Defines.MZ_LOGOUT -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = 1000)
-            Defines.MZ_RESPAWN -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 1000)
+            Defines.MZ_LOGIN -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
+            Defines.MZ_LOGOUT -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
+            Defines.MZ_RESPAWN -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
             Defines.MZ_PHALANX,
             Defines.MZ_IONRIPPER -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.5f)
 
@@ -1364,5 +1369,6 @@ class Game3dScreen(
         private const val WEAPON_MUZZLE_DEFAULT_RADIUS_BASE = 200f
         private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
         private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
+        private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
     }
 }

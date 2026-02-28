@@ -5,6 +5,7 @@ This package owns transient client-side visual/audio effects produced by server 
 
 Owned here:
 - `MuzzleFlash2Message` behavior (sound + local model/smoke + dynamic light).
+- `WeaponSoundMessage` special burst helper for `MZ_LOGIN`/`MZ_LOGOUT`/`MZ_RESPAWN` particle effect parity.
 - `TEMessage` subclass behavior decoded by `qcommon`.
 - Effect-local asset precache/unload for models, sprites, and sounds not guaranteed by configstrings.
 - Runtime lifetime/update/render of temporary visual effects.
@@ -37,6 +38,7 @@ Cake.parseServerMessage
 
 Legacy counterparts:
 - `client/CL_fx.ParseMuzzleFlash2`
+- `client/CL_fx.LogoutEffect`
 - `client/CL_tent.ParseTEnt`
 - `../yquake2/src/client/cl_effects.c`
 

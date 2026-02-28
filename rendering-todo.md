@@ -103,8 +103,11 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - `MZ_*` muzzleflash dlights (shotgun/machinegun missing):
   - Reference:
     - Jake2 `CL_fx.ParseMuzzleFlash`, Yamagi `cl_effects.c` (`MZ_MACHINEGUN`, `MZ_SHOTGUN`, `MZ_CHAINGUN*`) allocate/update keyed dlight and set color/radius.
+    - Jake2/Yamagi `CL_LogoutEffect` (`MZ_LOGIN`, `MZ_LOGOUT`, `MZ_RESPAWN`) particle burst.
   - Cake:
     - implemented in `Game3dScreen.processWeaponSoundMessage` via `spawnWeaponMuzzleFlashLight` with legacy color/radius/lifetime mapping.
+    - login/logout/respawn burst implemented via `ClientEffectsSystem.emitLoginLogoutRespawnEvent`.
+    - login/logout/respawn muzzle dlight lifetime aligned to short flash parity (`1ms` + `32ms` minimum visibility extension in `DynamicLightSystem`), not `1000ms`.
   - Status:
     - closed on 2026-02-28
   - Difficulty: `S`
