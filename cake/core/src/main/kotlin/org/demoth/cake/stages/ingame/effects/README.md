@@ -52,6 +52,8 @@ Legacy counterparts:
 - Particle runtime obeys `r_particles` live-budget cvar (`0` disables; budget clamped to `MAX_PARTICLES=4096`) and drops overflow emits.
 - Point-impact TE particle families (`TE_BLOOD`, `TE_GUNSHOT`, spark/screen/shield/shotgun/electric/heatbeam variants) use legacy palette index ranges.
 - Explosion-family particle branches (`TE_EXPLOSION*`, rocket/grenade/plasma/plain explosion temp entities) use legacy explosion palette range (`0xE0..0xE7`).
+- `TE_BLUEHYPERBLASTER` uses the legacy blaster palette range (`0xE0..0xE7`) like `CL_BlasterParticles`.
+- `TE_SPLASH` uses the legacy splash palette table mapping (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
 
 ## Decision Log
 Newest first.

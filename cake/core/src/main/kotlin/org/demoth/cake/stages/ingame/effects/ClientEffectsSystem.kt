@@ -414,11 +414,12 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BLUEHYPERBLASTER -> {
-                emitImpactParticles(
+                emitLegacyImpactPaletteParticles(
                     origin = start,
                     direction = msg.destination,
                     count = 40,
-                    color = Color(0.25f, 0.55f, 1f, 1f),
+                    paletteBase = BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR,
+                    fallback = BLUE_HYPERBLASTER_PARTICLE_FALLBACK,
                 )
             }
 
@@ -468,16 +469,13 @@ class ClientEffectsSystem(
         val position = toVector3(msg.position) ?: return
         when (msg.style) {
             Defines.TE_SPLASH -> {
-                val splashColor = if (msg.param == Defines.SPLASH_SPARKS) {
-                    Color(1f, 0.85f, 0.4f, 1f)
-                } else {
-                    Color(0.45f, 0.6f, 1f, 1f)
-                }
-                emitImpactParticles(
+                val splashPaletteBase = LEGACY_SPLASH_COLORS.getOrNull(msg.param) ?: LEGACY_SPLASH_DEFAULT_COLOR
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = msg.direction,
                     count = msg.count.coerceIn(4, 64),
-                    color = splashColor,
+                    paletteBase = splashPaletteBase,
+                    fallback = resolveLegacySplashFallback(splashPaletteBase),
                 )
                 if (msg.param == Defines.SPLASH_SPARKS) {
                     playRandomSound(SPARK_SOUNDS, position, Defines.ATTN_STATIC.toFloat())
@@ -1618,6 +1616,17 @@ class ClientEffectsSystem(
         }
     }
 
+    private fun resolveLegacySplashFallback(paletteBase: Int): Color {
+        return when (paletteBase and 0xFF) {
+            0xE0 -> Color(1f, 0.85f, 0.4f, 1f)
+            0xB0 -> Color(0.55f, 0.72f, 1f, 1f)
+            0x50 -> Color(0.75f, 0.62f, 0.42f, 1f)
+            0xD0 -> Color(0.52f, 0.95f, 0.52f, 1f)
+            0xE8 -> Color(0.88f, 0.24f, 0.2f, 1f)
+            else -> Color(0.72f, 0.72f, 0.72f, 1f)
+        }
+    }
+
     private fun toVector3(value: FloatArray?): Vector3? {
         if (value == null || value.size < 3) {
             return null
@@ -1724,8 +1733,13 @@ private const val BLASTER_TRAIL_LIFETIME_MIN_MS = 300
 private const val BLASTER_TRAIL_LIFETIME_MAX_MS = 500
 private const val BLASTER_TRAIL_COLOR_INDEX = 0xE0
 private const val BLASTER2_TRAIL_COLOR_INDEX = 0xD0
+private const val BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR = 0xE0
 private val BLASTER_TRAIL_COLOR_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
 private val BLASTER2_TRAIL_COLOR_FALLBACK = Color(0.3f, 0.95f, 0.3f, 1f)
+private val BLUE_HYPERBLASTER_PARTICLE_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
+
+private val LEGACY_SPLASH_COLORS = intArrayOf(0x00, 0xE0, 0xB0, 0x50, 0xD0, 0xE0, 0xE8)
+private const val LEGACY_SPLASH_DEFAULT_COLOR = 0x00
 
 private const val DIMINISH_TRAIL_STEP = 0.5f
 private const val DIMINISH_TRAIL_HEAVY_ORIGIN_SCALE = 4f

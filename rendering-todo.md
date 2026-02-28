@@ -187,7 +187,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - Palette mapping status:
   - Cake now maps point-impact particle families to legacy palette ranges (blood/gunshot/sparks/screen-shield/shotgun/electric/heatbeam/chainfist smoke).
   - Cake now maps explosion-family temp-entity particles to legacy explosion palette range (`0xE0..0xE7`).
-  - Remaining parity work is in splash and a few trail branches still using direct RGB colors.
+  - Cake now maps `TE_SPLASH` via the legacy splash table (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
+  - Cake now maps `TE_BLUEHYPERBLASTER` to the legacy blaster palette range (`0xE0..0xE7`).
+  - Remaining parity work is in rail trail particle color selection (still RGB-derived, not palette-index driven).
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
