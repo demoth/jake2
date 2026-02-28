@@ -155,7 +155,7 @@ public class Monster {
             self.monsterinfo.checkattack = GameUtil.M_CheckAttack;
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
-        if (self.st.item != null && self.st.item.length() > 0) {
+        if (self.st != null && self.st.item != null && self.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(self.st.item, gameExports);
             if (self.item == null)
                 gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
