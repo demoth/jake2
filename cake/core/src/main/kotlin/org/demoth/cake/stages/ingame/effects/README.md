@@ -13,6 +13,7 @@ Owned here:
 Not owned here:
 - Replicated entity state reconstruction/interpolation (`ClientEntityManager`).
 - Core world/entity drawing (`Game3dScreen`).
+- Player weapon muzzleflash (`WeaponSoundMessage` / `MZ_*`) dynamic lights (owned by `Game3dScreen`).
 - Continuous replicated entity `EF_*` lights (owned by `Game3dScreen.collectEntityEffectDynamicLights`).
 
 ## Key Types
@@ -28,7 +29,7 @@ Not owned here:
 ## Data / Control Flow
 ```text
 Cake.parseServerMessage
-  -> Game3dScreen.processMuzzleFlash2Message / processTempEntityMessage
+  -> Game3dScreen.processWeaponSoundMessage / processMuzzleFlash2Message / processTempEntityMessage
   -> ClientEffectsSystem handlers
   -> spawn ClientTransientEffect(s) + particles + transient dlights + positional sounds
   -> Game3dScreen.render loop: effectsSystem.update -> effectsSystem.renderParticles -> effectsSystem.render

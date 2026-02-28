@@ -44,7 +44,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
-- [ ] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
+- [x] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
 - [ ] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
 - [ ] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
@@ -81,7 +81,6 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
     - replicated `EF_*` lights in `Game3dScreen`.
   - BSP shader consumes up to 8 strongest lights per frame.
 - Known gap:
-  - `Game3dScreen.processWeaponSoundMessage` currently plays `MZ_*` sounds but does not spawn keyed muzzle dlights (legacy `CL_ParseMuzzleFlash` does).
   - `Game3dScreen.collectEntityEffectDynamicLights` currently samples `entity.current.origin` (via `getEntityOrigin`) instead of interpolated render origin (`prev/current + lerpfrac`), causing server-tick stepping on moving lights.
 
 ### MD2 lighting
@@ -108,7 +107,9 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Reference:
     - Jake2 `CL_fx.ParseMuzzleFlash`, Yamagi `cl_effects.c` (`MZ_MACHINEGUN`, `MZ_SHOTGUN`, `MZ_CHAINGUN*`) allocate/update keyed dlight and set color/radius.
   - Cake:
-    - `Game3dScreen.processWeaponSoundMessage` handles audio only.
+    - implemented in `Game3dScreen.processWeaponSoundMessage` via `spawnWeaponMuzzleFlashLight` with legacy color/radius/lifetime mapping.
+  - Status:
+    - closed on 2026-02-28
   - Difficulty: `S`
   - Coupling: `Low` (mostly `Game3dScreen` + `DynamicLightSystem`; optional helper profile map).
 

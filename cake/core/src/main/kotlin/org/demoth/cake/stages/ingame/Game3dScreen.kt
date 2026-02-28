@@ -21,6 +21,7 @@ import jake2.qcommon.Globals
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.util.Lib
+import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import ktx.scene2d.Scene2DSkin
@@ -940,6 +941,11 @@ class Game3dScreen(
         }
     }
 
+    /**
+     * Handles `MZ_*` weapon events (sound + one-shot muzzle dynamic light).
+     *
+     * Legacy counterpart: `client/CL_fx.ParseMuzzleFlash`.
+     */
     override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
         if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
             Com.Warn("Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
@@ -950,6 +956,8 @@ class Game3dScreen(
         // the silenced flag is stored in the first bit
         val silenced = (msg.type and Defines.MZ_SILENCED) != 0
         val volume = if (silenced) 0.2f else 1f
+
+        spawnWeaponMuzzleFlashLight(msg.entityIndex, weaponType, silenced)
 
         when (weaponType) {
             Defines.MZ_BLASTER -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
@@ -1227,6 +1235,79 @@ class Game3dScreen(
         )
     }
 
+    /**
+     * Emits one-shot weapon muzzle dynamic lights for `MZ_*` events.
+     *
+     * Legacy counterpart: `client/CL_fx.ParseMuzzleFlash` (`CL_AllocDlight` + weapon-specific color/radius).
+     */
+    private fun spawnWeaponMuzzleFlashLight(entityIndex: Int, weaponType: Int, silenced: Boolean) {
+        val origin = entityManager.getEntityOrigin(entityIndex) ?: return
+        val angles = entityManager.getEntityAngles(entityIndex) ?: return
+
+        val forward = FloatArray(3)
+        val right = FloatArray(3)
+        Math3D.AngleVectors(angles, forward, right, null)
+
+        // Match classic muzzle offset from entity origin.
+        origin.mulAdd(Vector3(forward[0], forward[1], forward[2]), WEAPON_MUZZLE_FORWARD_OFFSET)
+        origin.mulAdd(Vector3(right[0], right[1], right[2]), WEAPON_MUZZLE_RIGHT_OFFSET)
+
+        val profile = resolveWeaponMuzzleLightProfile(weaponType) ?: return
+        val radiusBase = profile.radiusBase ?: if (silenced) {
+            WEAPON_MUZZLE_SILENCED_RADIUS_BASE
+        } else {
+            WEAPON_MUZZLE_DEFAULT_RADIUS_BASE
+        }
+        val radius = radiusBase + Globals.rnd.nextInt(WEAPON_MUZZLE_RADIUS_JITTER + 1)
+
+        dynamicLightSystem.spawnTransientLight(
+            key = entityIndex,
+            origin = origin,
+            radius = radius,
+            red = profile.red,
+            green = profile.green,
+            blue = profile.blue,
+            lifetimeMs = profile.lifetimeMs,
+            currentTimeMs = Globals.curtime,
+        )
+    }
+
+    private fun resolveWeaponMuzzleLightProfile(weaponType: Int): WeaponMuzzleLightProfile? {
+        return when (weaponType) {
+            Defines.MZ_BLASTER,
+            Defines.MZ_HYPERBLASTER,
+            Defines.MZ_MACHINEGUN,
+            Defines.MZ_SHOTGUN,
+            Defines.MZ_SSHOTGUN,
+            Defines.MZ_SHOTGUN2 -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f)
+            Defines.MZ_HEATBEAM -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
+
+            Defines.MZ_BLUEHYPERBLASTER -> WeaponMuzzleLightProfile(red = 0f, green = 0f, blue = 1f)
+            Defines.MZ_CHAINGUN1 -> WeaponMuzzleLightProfile(radiusBase = 200f, red = 1f, green = 0.25f, blue = 0f)
+            Defines.MZ_CHAINGUN2 -> WeaponMuzzleLightProfile(radiusBase = 225f, red = 1f, green = 0.5f, blue = 0f, lifetimeMs = 100)
+            Defines.MZ_CHAINGUN3 -> WeaponMuzzleLightProfile(radiusBase = 250f, red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
+            Defines.MZ_RAILGUN -> WeaponMuzzleLightProfile(red = 0.5f, green = 0.5f, blue = 1f)
+            Defines.MZ_ROCKET -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.2f)
+            Defines.MZ_GRENADE -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0f)
+            Defines.MZ_BFG -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f)
+            Defines.MZ_LOGIN -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f, lifetimeMs = 1000)
+            Defines.MZ_LOGOUT -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = 1000)
+            Defines.MZ_RESPAWN -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 1000)
+            Defines.MZ_PHALANX,
+            Defines.MZ_IONRIPPER -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.5f)
+
+            Defines.MZ_ETF_RIFLE -> WeaponMuzzleLightProfile(red = 0.9f, green = 0.7f, blue = 0f)
+            Defines.MZ_BLASTER2 -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f)
+            Defines.MZ_TRACKER -> WeaponMuzzleLightProfile(red = -1f, green = -1f, blue = -1f)
+            Defines.MZ_NUKE1 -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = 100)
+            Defines.MZ_NUKE2 -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
+            Defines.MZ_NUKE4 -> WeaponMuzzleLightProfile(red = 0f, green = 0f, blue = 1f, lifetimeMs = 100)
+            Defines.MZ_NUKE8 -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 1f, lifetimeMs = 100)
+            Defines.MZ_UNUSED -> null
+            else -> null
+        }
+    }
+
     private fun playWeaponSound(
         entityIndex: Int,
         soundPath: String,
@@ -1256,7 +1337,20 @@ class Game3dScreen(
         return "weapons/machgf${soundIndex}b.wav"
     }
 
+    private data class WeaponMuzzleLightProfile(
+        val red: Float,
+        val green: Float,
+        val blue: Float,
+        val radiusBase: Float? = null,
+        val lifetimeMs: Int = 0,
+    )
+
     companion object {
         private val BFG_LIGHT_RAMP = intArrayOf(300, 400, 600, 300, 150, 75)
+        private const val WEAPON_MUZZLE_FORWARD_OFFSET = 18f
+        private const val WEAPON_MUZZLE_RIGHT_OFFSET = 16f
+        private const val WEAPON_MUZZLE_DEFAULT_RADIUS_BASE = 200f
+        private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
+        private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
     }
 }
