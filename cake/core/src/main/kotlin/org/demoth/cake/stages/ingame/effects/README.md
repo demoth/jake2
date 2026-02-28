@@ -50,6 +50,7 @@ Legacy counterparts:
 - Positional attenuation for both server `SoundMessage` and effects uses `SpatialSoundAttenuation`.
 - Dynamic-light output obeys runtime toggle (`r_dlights`).
 - Particle runtime obeys `r_particles` live-budget cvar (`0` disables; budget clamped to `MAX_PARTICLES=4096`) and drops overflow emits.
+- Point-impact TE particle families (`TE_BLOOD`, `TE_GUNSHOT`, spark/screen/shield/shotgun/electric/heatbeam variants) use legacy palette index ranges.
 
 ## Decision Log
 Newest first.

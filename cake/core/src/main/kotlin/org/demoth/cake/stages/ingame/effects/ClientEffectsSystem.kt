@@ -268,7 +268,11 @@ class ClientEffectsSystem(
             Defines.TE_BLOOD,
             Defines.TE_MOREBLOOD,
             Defines.TE_GREENBLOOD -> {
-                emitImpactParticles(
+                val (paletteBase, fallback) = when (msg.style) {
+                    Defines.TE_GREENBLOOD -> GREEN_BLOOD_PARTICLE_BASE_COLOR to GREEN_BLOOD_PARTICLE_FALLBACK
+                    else -> BLOOD_PARTICLE_BASE_COLOR to BLOOD_PARTICLE_FALLBACK
+                }
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = msg.direction,
                     count = when (msg.style) {
@@ -276,29 +280,24 @@ class ClientEffectsSystem(
                         Defines.TE_GREENBLOOD -> 30
                         else -> 60
                     },
-                    color = when (msg.style) {
-                        Defines.TE_GREENBLOOD -> Color(0.55f, 0.95f, 0.45f, 1f)
-                        else -> Color(0.84f, 0.12f, 0.12f, 1f)
-                    },
+                    paletteBase = paletteBase,
+                    fallback = fallback,
                 )
             }
 
             Defines.TE_GUNSHOT,
             Defines.TE_SPARKS,
             Defines.TE_BULLET_SPARKS -> {
-                emitImpactParticles(
+                val (count, paletteBase, fallback) = when (msg.style) {
+                    Defines.TE_GUNSHOT -> Triple(40, GUNSHOT_PARTICLE_BASE_COLOR, GUNSHOT_PARTICLE_FALLBACK)
+                    else -> Triple(6, SPARK_PARTICLE_BASE_COLOR, SPARK_PARTICLE_FALLBACK)
+                }
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = msg.direction,
-                    count = when (msg.style) {
-                        Defines.TE_GUNSHOT -> 40
-                        Defines.TE_SPARKS -> 6
-                        else -> 8
-                    },
-                    color = if (msg.style == Defines.TE_GUNSHOT) {
-                        Color(0.95f, 0.9f, 0.65f, 1f)
-                    } else {
-                        Color(1f, 0.88f, 0.45f, 1f)
-                    },
+                    count = count,
+                    paletteBase = paletteBase,
+                    fallback = fallback,
                 )
                 if (msg.style != Defines.TE_SPARKS) {
                     spawnSmokeAndFlash(position)
@@ -307,25 +306,62 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_SCREEN_SPARKS,
-            Defines.TE_SHIELD_SPARKS,
-            Defines.TE_HEATBEAM_SPARKS,
-            Defines.TE_HEATBEAM_STEAM,
-            Defines.TE_ELECTRIC_SPARKS -> {
-                emitImpactParticles(
+            Defines.TE_SHIELD_SPARKS -> {
+                val (paletteBase, fallback) = if (msg.style == Defines.TE_SCREEN_SPARKS) {
+                    SCREEN_SPARK_PARTICLE_BASE_COLOR to SCREEN_SPARK_PARTICLE_FALLBACK
+                } else {
+                    SHIELD_SPARK_PARTICLE_BASE_COLOR to SHIELD_SPARK_PARTICLE_FALLBACK
+                }
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 40,
-                    color = Color(0.85f, 0.9f, 1f, 1f),
+                    paletteBase = paletteBase,
+                    fallback = fallback,
+                )
+                playEffectSound("sound/weapons/lashit.wav", position)
+            }
+
+            Defines.TE_HEATBEAM_SPARKS -> {
+                emitLegacyImpactPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = 50,
+                    paletteBase = HEATBEAM_SPARK_PARTICLE_BASE_COLOR,
+                    fallback = HEATBEAM_SPARK_PARTICLE_FALLBACK,
+                )
+                playEffectSound("sound/weapons/lashit.wav", position)
+            }
+
+            Defines.TE_HEATBEAM_STEAM -> {
+                emitLegacyImpactPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = 20,
+                    paletteBase = HEATBEAM_STEAM_PARTICLE_BASE_COLOR,
+                    fallback = HEATBEAM_STEAM_PARTICLE_FALLBACK,
+                )
+                playEffectSound("sound/weapons/lashit.wav", position)
+            }
+
+            Defines.TE_ELECTRIC_SPARKS -> {
+                emitLegacyImpactPaletteParticles(
+                    origin = position,
+                    direction = msg.direction,
+                    count = 40,
+                    paletteBase = ELECTRIC_SPARK_PARTICLE_BASE_COLOR,
+                    fallback = ELECTRIC_SPARK_PARTICLE_FALLBACK,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_SHOTGUN -> {
-                emitImpactParticles(
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = msg.direction,
                     count = 20,
-                    color = Color(0.92f, 0.9f, 0.75f, 1f),
+                    paletteBase = SHOTGUN_PARTICLE_BASE_COLOR,
+                    fallback = SHOTGUN_PARTICLE_FALLBACK,
                 )
                 spawnSmokeAndFlash(position)
             }
@@ -586,11 +622,12 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_CHAINFIST_SMOKE -> {
-                emitImpactParticles(
+                emitLegacyImpactPaletteParticles(
                     origin = position,
                     direction = floatArrayOf(0f, 0f, 1f),
-                    count = 28,
-                    color = Color(0.65f, 0.65f, 0.65f, 1f),
+                    count = 20,
+                    paletteBase = CHAINFIST_SMOKE_PARTICLE_BASE_COLOR,
+                    fallback = CHAINFIST_SMOKE_PARTICLE_FALLBACK,
                 )
                 spawnAnimatedModelEffect(
                     modelPath = "models/objects/smoke/tris.md2",
@@ -951,6 +988,41 @@ class ClientEffectsSystem(
             lifetimeMinMs = 160,
             lifetimeMaxMs = 520,
         )
+    }
+
+    private fun emitLegacyImpactPaletteParticles(
+        origin: Vector3,
+        direction: FloatArray?,
+        count: Int,
+        paletteBase: Int,
+        fallback: Color,
+        paletteVariants: Int = 8,
+    ) {
+        val safeCount = count.coerceIn(1, 512)
+        val variantCount = paletteVariants.coerceAtLeast(1)
+        repeat(safeCount) {
+            val paletteIndex = paletteBase + if (variantCount > 1) {
+                Globals.rnd.nextInt(variantCount)
+            } else {
+                0
+            }
+            particleSystem.emitBurst(
+                origin = origin,
+                direction = direction,
+                count = 1,
+                color = resolvePaletteColor(paletteIndex, fallback = fallback),
+                speedMin = 35f,
+                speedMax = 170f,
+                spread = 0.85f,
+                gravity = -320f,
+                startAlpha = 0.95f,
+                endAlpha = 0f,
+                sizeMin = 0.4f,
+                sizeMax = 1.3f,
+                lifetimeMinMs = 160,
+                lifetimeMaxMs = 520,
+            )
+        }
     }
 
     private fun emitExplosionParticles(
@@ -1579,6 +1651,30 @@ private const val RAIL_TRAIL_CORE_SIZE_MAX = 0.34f
 private const val RAIL_TRAIL_CORE_LIFETIME_MIN_MS = 600
 private const val RAIL_TRAIL_CORE_LIFETIME_MAX_MS = 820
 private const val RAIL_TRAIL_CORE_WHITE_BASE = 0.94f
+
+private const val BLOOD_PARTICLE_BASE_COLOR = 0xE8
+private const val GREEN_BLOOD_PARTICLE_BASE_COLOR = 0xDF
+private const val GUNSHOT_PARTICLE_BASE_COLOR = 0x00
+private const val SPARK_PARTICLE_BASE_COLOR = 0xE0
+private const val SCREEN_SPARK_PARTICLE_BASE_COLOR = 0xD0
+private const val SHIELD_SPARK_PARTICLE_BASE_COLOR = 0xB0
+private const val SHOTGUN_PARTICLE_BASE_COLOR = 0x00
+private const val HEATBEAM_SPARK_PARTICLE_BASE_COLOR = 0x08
+private const val HEATBEAM_STEAM_PARTICLE_BASE_COLOR = 0xE0
+private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
+private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00
+
+private val BLOOD_PARTICLE_FALLBACK = Color(0.84f, 0.12f, 0.12f, 1f)
+private val GREEN_BLOOD_PARTICLE_FALLBACK = Color(0.55f, 0.95f, 0.45f, 1f)
+private val GUNSHOT_PARTICLE_FALLBACK = Color(0.95f, 0.9f, 0.65f, 1f)
+private val SPARK_PARTICLE_FALLBACK = Color(1f, 0.88f, 0.45f, 1f)
+private val SCREEN_SPARK_PARTICLE_FALLBACK = Color(0.75f, 0.95f, 0.55f, 1f)
+private val SHIELD_SPARK_PARTICLE_FALLBACK = Color(0.65f, 0.85f, 1f, 1f)
+private val SHOTGUN_PARTICLE_FALLBACK = Color(0.92f, 0.9f, 0.75f, 1f)
+private val HEATBEAM_SPARK_PARTICLE_FALLBACK = Color(0.62f, 0.78f, 1f, 1f)
+private val HEATBEAM_STEAM_PARTICLE_FALLBACK = Color(1f, 0.84f, 0.42f, 1f)
+private val ELECTRIC_SPARK_PARTICLE_FALLBACK = Color(0.46f, 0.88f, 1f, 1f)
+private val CHAINFIST_SMOKE_PARTICLE_FALLBACK = Color(0.65f, 0.65f, 0.65f, 1f)
 
 private data class ParticleTrailSpec(
     val colorIndex: Int,
