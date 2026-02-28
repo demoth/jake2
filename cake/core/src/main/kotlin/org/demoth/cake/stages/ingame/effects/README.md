@@ -83,7 +83,7 @@ Newest first.
 - Consequences:
   - point shader uses camera-distance size attenuation,
   - extra edge smoothing was removed; only circular cutout remains,
-  - alpha sorting retained for translucent buckets.
+  - particle buckets are submitted unsorted (legacy-style path).
 - Status: accepted.
 - References: commit `34285409`, `../yquake2/src/client/refresh/gl3/gl3_main.c`, `../yquake2/src/client/refresh/gl3/gl3_shaders.c`.
 - Definition of Done: particles become smaller with distance and no longer look over-smoothed.
@@ -152,7 +152,7 @@ Newest first.
 
 - Particle pass uses a dedicated shader/VBO path with point-sprite and billboard backends.
 - Point sprites currently drive gameplay effects; billboard backend is maintained for sprite-particle extension.
-- Alpha buckets are depth-sorted per frame; additive buckets are submitted unsorted.
+- Particle buckets are submitted unsorted.
 - Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
 - How to work with it: tune burst count/speed/alpha and world-space size ranges in emitters.
 - Removal plan: wire billboard backend to atlas/frame sampling once sprite-particle content is introduced.

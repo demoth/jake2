@@ -195,7 +195,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
 - Transparency ordering:
-  - Cake sorts alpha particle buckets back-to-front before draw; additive buckets remain unsorted.
+  - Cake submits particle buckets unsorted (matching legacy-style particle submission behavior).
 - Materials/state:
   - Cake no longer needs per-particle materials/instances; particle render state is encoded in streamed vertex data.
 - Primitive/render style:

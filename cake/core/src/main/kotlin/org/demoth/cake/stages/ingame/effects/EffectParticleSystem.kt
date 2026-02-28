@@ -299,8 +299,7 @@ enum class ParticleRenderMode(val id: Byte) {
 /**
  * Blending behavior for particle submission buckets.
  *
- * `ALPHA` is sorted back-to-front in renderer buckets.
- * `ADDITIVE` is intentionally unsorted for lower overhead and stable glow accumulation.
+ * Buckets are submitted unsorted for simpler legacy-style behavior.
  */
 enum class ParticleBlendMode(val id: Byte) {
     ALPHA(0),
