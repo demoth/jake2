@@ -530,7 +530,7 @@ class ClientEffectsSystem(
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
-                emitExplosionParticles(position, count = 128, color = Color(1f, 0.55f, 0.25f, 1f))
+                emitLegacyExplosionPaletteParticles(position, count = 128)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -546,7 +546,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
-                emitExplosionParticles(position, count = 96, color = Color(1f, 0.45f, 0.35f, 1f))
+                emitLegacyExplosionPaletteParticles(position, count = 96)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -562,11 +562,7 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
-                emitExplosionParticles(
-                    position,
-                    count = if (msg.style == Defines.TE_EXPLOSION1_BIG) 196 else 112,
-                    color = Color(1f, 0.52f, 0.22f, 1f),
-                )
+                emitLegacyExplosionPaletteParticles(position, count = if (msg.style == Defines.TE_EXPLOSION1_BIG) 196 else 112)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
@@ -610,7 +606,7 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
-                emitExplosionParticles(position, count = 96, color = Color(1f, 0.52f, 0.22f, 1f))
+                emitLegacyExplosionPaletteParticles(position, count = 96)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -1046,6 +1042,32 @@ class ClientEffectsSystem(
             lifetimeMinMs = 240,
             lifetimeMaxMs = 900,
         )
+    }
+
+    private fun emitLegacyExplosionPaletteParticles(
+        origin: Vector3,
+        count: Int,
+    ) {
+        val safeCount = count.coerceIn(1, 512)
+        repeat(safeCount) {
+            val colorIndex = EXPLOSION_PARTICLE_BASE_COLOR + Globals.rnd.nextInt(EXPLOSION_PARTICLE_VARIANTS)
+            particleSystem.emitBurst(
+                origin = origin,
+                direction = floatArrayOf(0f, 0f, 1f),
+                count = 1,
+                color = resolvePaletteColor(colorIndex, fallback = EXPLOSION_PARTICLE_FALLBACK),
+                speedMin = 60f,
+                speedMax = 320f,
+                spread = 1.2f,
+                gravity = -210f,
+                startAlpha = 1f,
+                endAlpha = 0f,
+                sizeMin = 0.6f,
+                sizeMax = 2f,
+                lifetimeMinMs = 240,
+                lifetimeMaxMs = 900,
+            )
+        }
     }
 
     private fun emitBlasterTrail(
@@ -1663,6 +1685,7 @@ private const val HEATBEAM_SPARK_PARTICLE_BASE_COLOR = 0x08
 private const val HEATBEAM_STEAM_PARTICLE_BASE_COLOR = 0xE0
 private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
 private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00
+private const val EXPLOSION_PARTICLE_BASE_COLOR = 0xE0
 
 private val BLOOD_PARTICLE_FALLBACK = Color(0.84f, 0.12f, 0.12f, 1f)
 private val GREEN_BLOOD_PARTICLE_FALLBACK = Color(0.55f, 0.95f, 0.45f, 1f)
@@ -1675,6 +1698,8 @@ private val HEATBEAM_SPARK_PARTICLE_FALLBACK = Color(0.62f, 0.78f, 1f, 1f)
 private val HEATBEAM_STEAM_PARTICLE_FALLBACK = Color(1f, 0.84f, 0.42f, 1f)
 private val ELECTRIC_SPARK_PARTICLE_FALLBACK = Color(0.46f, 0.88f, 1f, 1f)
 private val CHAINFIST_SMOKE_PARTICLE_FALLBACK = Color(0.65f, 0.65f, 0.65f, 1f)
+private const val EXPLOSION_PARTICLE_VARIANTS = 8
+private val EXPLOSION_PARTICLE_FALLBACK = Color(1f, 0.52f, 0.22f, 1f)
 
 private data class ParticleTrailSpec(
     val colorIndex: Int,

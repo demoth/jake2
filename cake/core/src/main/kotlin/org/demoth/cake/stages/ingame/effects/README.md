@@ -51,6 +51,7 @@ Legacy counterparts:
 - Dynamic-light output obeys runtime toggle (`r_dlights`).
 - Particle runtime obeys `r_particles` live-budget cvar (`0` disables; budget clamped to `MAX_PARTICLES=4096`) and drops overflow emits.
 - Point-impact TE particle families (`TE_BLOOD`, `TE_GUNSHOT`, spark/screen/shield/shotgun/electric/heatbeam variants) use legacy palette index ranges.
+- Explosion-family particle branches (`TE_EXPLOSION*`, rocket/grenade/plasma/plain explosion temp entities) use legacy explosion palette range (`0xE0..0xE7`).
 
 ## Decision Log
 Newest first.

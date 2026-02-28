@@ -186,7 +186,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   - Cake uses `r_particles` as runtime budget cap in `EffectParticleSystem.emitBurst`; overflow spawn requests are dropped, and the budget is clamped to `MAX_PARTICLES=4096`.
 - Palette mapping status:
   - Cake now maps point-impact particle families to legacy palette ranges (blood/gunshot/sparks/screen-shield/shotgun/electric/heatbeam/chainfist smoke).
-  - Remaining parity work is in explosion/splash and a few trail branches still using direct RGB colors.
+  - Cake now maps explosion-family temp-entity particles to legacy explosion palette range (`0xE0..0xE7`).
+  - Remaining parity work is in splash and a few trail branches still using direct RGB colors.
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
