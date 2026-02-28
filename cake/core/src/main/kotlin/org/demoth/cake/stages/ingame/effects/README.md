@@ -49,6 +49,7 @@ Legacy counterparts:
 - Effect assets loaded by this package are unloaded by this package only.
 - Positional attenuation for both server `SoundMessage` and effects uses `SpatialSoundAttenuation`.
 - Particle and dynamic-light output obeys runtime toggles (`r_particles`, `r_dlights`).
+- Particle runtime enforces legacy-style global budget cap (`MAX_PARTICLES=4096`) and drops overflow emits.
 
 ## Decision Log
 Newest first.

@@ -4,9 +4,11 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
+import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Lightweight world-space particle simulation/runtime used by temp effects.
@@ -23,7 +25,7 @@ import kotlin.math.max
  *
  * Notes:
  * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
- * - this class intentionally does not enforce a hard particle cap; budgeting belongs to higher-level policy.
+ * - live particles are capped at [PARTICLE_BUDGET] (legacy `MAX_PARTICLES` parity), overflow spawns are dropped.
  */
 class EffectParticleSystem : Disposable {
     private var activeCount = 0
@@ -79,8 +81,20 @@ class EffectParticleSystem : Disposable {
         if (!RenderTuningCvars.particlesEnabled()) {
             return
         }
-        repeat(max(0, count)) {
-            ensureCapacity(activeCount + 1)
+        val requestedCount = max(0, count)
+        if (requestedCount == 0) {
+            return
+        }
+
+        val remainingBudget = PARTICLE_BUDGET - activeCount
+        if (remainingBudget <= 0) {
+            return
+        }
+
+        val spawnCount = min(requestedCount, remainingBudget)
+        ensureCapacity(activeCount + spawnCount)
+
+        repeat(spawnCount) {
             val particleIndex = activeCount++
             val directionVector = randomDirection(direction, spread)
             val speed = randomFloat(speedMin, speedMax)
@@ -262,6 +276,7 @@ class EffectParticleSystem : Disposable {
 
     companion object {
         private const val INITIAL_CAPACITY = 1024
+        private const val PARTICLE_BUDGET = Defines.MAX_PARTICLES
         private val tempDirection = Vector3()
     }
 }

@@ -40,7 +40,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Missing particle effects for blaster/rocket/grenade trail
 - [x] Fluid surfaces (like water) have incorrect lightmap influence (in quake2 water does not have lightmaps)
 - [ ] Particle pipeline parity: use palette colors
-- [ ] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
+- [x] Particle pipeline parity: enforce global particle budget cap (`MAX_PARTICLES` parity target: 4096)
 - [x] Particle pipeline parity: batch particle rendering (avoid one draw submission per particle)
 - [x] Particle pipeline parity: switch particle primitive from cubes to camera-facing billboards/points
 - [ ] Particle pipeline parity: align particle brightness controls with gamma/intensity pipeline
@@ -182,7 +182,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 
 - Limits:
   - Yamagi enforces `MAX_PARTICLES=4096` at scene submission (`V_AddParticle` drops excess).
-  - Cake currently has no global hard cap; high-count effects can exceed legacy budgets.
+  - Yamagi/Q2PRO expose `cl_particles` as on/off toggle, not as a budget-size cvar.
+  - Cake enforces the same global cap (`Defines.MAX_PARTICLES=4096`) in `EffectParticleSystem.emitBurst` and drops overflow spawn requests.
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
