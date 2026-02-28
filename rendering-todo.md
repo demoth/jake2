@@ -18,6 +18,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Enables/disables dynamic light contribution.
 - `r_particles` (default `4096`)  
   Global particle budget (`0` disables particles; positive values cap live particles, clamped to `MAX_PARTICLES` parity target).
+- `r_bsp_batch_world` (default `0`)  
+  Guards the in-progress Q2PRO-style world BSP batching path during parity migration.
 
 ## Master Feature List
 
@@ -51,6 +53,23 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
+
+### BSP Draw-Call Optimization Migration (Q2PRO-style)
+
+Current migration target follows Q2PRO brush-world batching ideas:
+
+- `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`, `GL_MarkLeaves`)
+- `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_DrawFace`, `GL_Flush3D`)
+- `q2pro/src/refresh/surf.c` (`LM_BeginBuilding`, `LM_BuildSurface`, `GL_UploadLightmaps`)
+
+Planned phases:
+
+- [x] Step 1: runtime guardrail + profiling baseline workflow (`r_bsp_batch_world`).
+- [ ] Step 2: lightmap atlas pages (replace per-face lightmap textures).
+- [ ] Step 3: precomputed batched world geometry/ranges/chunking metadata.
+- [ ] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
+- [ ] Step 5: move world animation/lightstyle/flowing to draw-command state.
+- [ ] Step 6: translucent world pass parity on batched path.
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 

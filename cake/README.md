@@ -27,6 +27,25 @@ Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
+## BSP Batching Migration
+
+The world BSP renderer migration is guarded by a runtime toggle:
+
+- `r_bsp_batch_world` (default `0`) - enables the in-progress Q2PRO-style world BSP batching path.
+
+Q2PRO references for the target path:
+
+- `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`)
+- `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`)
+
+Baseline profiling before enabling the new path:
+
+1. Enable debug graphs:
+   - `set r_debug_drawcalls 1`
+   - `set r_debug_texturebindings 1`
+2. Capture baseline on representative maps/views with `r_bsp_batch_world 0`.
+3. Re-run the same views with `r_bsp_batch_world 1` once the path is implemented.
+
 ### Bitmap Font Tool
 
 Generate a libGDX bitmap font (`.fnt` + `.png`) from a TTF:

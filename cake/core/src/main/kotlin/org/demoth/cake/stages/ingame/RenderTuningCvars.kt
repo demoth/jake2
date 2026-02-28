@@ -22,6 +22,7 @@ object RenderTuningCvars {
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
+    private val rBspBatchWorld = cvars.Get("r_bsp_batch_world", "0", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
@@ -55,4 +56,15 @@ object RenderTuningCvars {
     }
 
     fun particlesEnabled(): Boolean = particleBudget() > 0
+
+    /**
+     * Enables the in-progress Q2PRO-style world BSP batching path.
+     *
+     * Default is disabled while parity work is ongoing.
+     *
+     * Q2PRO references:
+     * - `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`)
+     * - `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`)
+     */
+    fun bspBatchWorldEnabled(): Boolean = rBspBatchWorld.value != 0f
 }
