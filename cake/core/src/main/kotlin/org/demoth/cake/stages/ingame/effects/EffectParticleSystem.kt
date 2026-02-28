@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
-import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
@@ -25,7 +24,7 @@ import kotlin.math.min
  *
  * Notes:
  * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
- * - live particles are capped at [PARTICLE_BUDGET] (legacy `MAX_PARTICLES` parity), overflow spawns are dropped.
+ * - live particles are capped by `r_particles` budget (clamped to legacy `MAX_PARTICLES` parity), overflow spawns are dropped.
  */
 class EffectParticleSystem : Disposable {
     private var activeCount = 0
@@ -86,7 +85,7 @@ class EffectParticleSystem : Disposable {
             return
         }
 
-        val remainingBudget = PARTICLE_BUDGET - activeCount
+        val remainingBudget = RenderTuningCvars.particleBudget() - activeCount
         if (remainingBudget <= 0) {
             return
         }
@@ -276,7 +275,6 @@ class EffectParticleSystem : Disposable {
 
     companion object {
         private const val INITIAL_CAPACITY = 1024
-        private const val PARTICLE_BUDGET = Defines.MAX_PARTICLES
         private val tempDirection = Vector3()
     }
 }

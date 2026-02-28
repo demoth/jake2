@@ -21,7 +21,7 @@ object RenderTuningCvars {
     private val gl3Intensity = cvars.Get("gl3_intensity", "1.5", Defines.CVAR_ARCHIVE)
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
-    private val rParticles = cvars.Get("r_particles", "1", Defines.CVAR_ARCHIVE)
+    private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
@@ -42,5 +42,17 @@ object RenderTuningCvars {
 
     fun dynamicLightsEnabled(): Boolean = rDlights.value != 0f
 
-    fun particlesEnabled(): Boolean = rParticles.value != 0f
+    /**
+     * Global particle budget (`r_particles`).
+     *
+     * Legacy clients expose an on/off particle cvar; Cake uses the same key as a budget cap:
+     * - `0` disables particles,
+     * - positive values cap live particle count,
+     * - values above `MAX_PARTICLES` are clamped to `MAX_PARTICLES`.
+     */
+    fun particleBudget(): Int {
+        return rParticles.value.toInt()
+    }
+
+    fun particlesEnabled(): Boolean = particleBudget() > 0
 }

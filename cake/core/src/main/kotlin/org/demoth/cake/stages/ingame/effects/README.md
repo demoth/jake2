@@ -48,8 +48,8 @@ Legacy counterparts:
 - `precache()` must be called before gameplay effect dispatch.
 - Effect assets loaded by this package are unloaded by this package only.
 - Positional attenuation for both server `SoundMessage` and effects uses `SpatialSoundAttenuation`.
-- Particle and dynamic-light output obeys runtime toggles (`r_particles`, `r_dlights`).
-- Particle runtime enforces legacy-style global budget cap (`MAX_PARTICLES=4096`) and drops overflow emits.
+- Dynamic-light output obeys runtime toggle (`r_dlights`).
+- Particle runtime obeys `r_particles` live-budget cvar (`0` disables; budget clamped to `MAX_PARTICLES=4096`) and drops overflow emits.
 
 ## Decision Log
 Newest first.
@@ -103,7 +103,7 @@ Newest first.
 - Consequences: visuals are approximate versus full legacy palette particle renderer.
 - Status: accepted.
 - References: `client/CL_tent.java`, `client/CL_fx.java`, `../yquake2/src/client/cl_effects.c`.
-- Definition of Done: gunshot/spark/splash/explosion TE paths emit visible transient particles when `r_particles=1`.
+- Definition of Done: gunshot/spark/splash/explosion TE paths emit visible transient particles when `r_particles>0`.
 
 ### Decision: Spawn transient dynamic lights from effect message handlers
 - Context: muzzle/explosion effects should light nearby geometry/models in real time.

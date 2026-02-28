@@ -16,8 +16,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Legacy/Yamagi reference: `gl3_overbrightbits` (0 => effective multiplier `1`).
 - `r_dlights` (default `1`)  
   Enables/disables dynamic light contribution.
-- `r_particles` (default `1`)  
-  Enables/disables transient particle rendering.
+- `r_particles` (default `4096`)  
+  Global particle budget (`0` disables particles; positive values cap live particles, clamped to `MAX_PARTICLES` parity target).
 
 ## Master Feature List
 
@@ -183,7 +183,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - Limits:
   - Yamagi enforces `MAX_PARTICLES=4096` at scene submission (`V_AddParticle` drops excess).
   - Yamagi/Q2PRO expose `cl_particles` as on/off toggle, not as a budget-size cvar.
-  - Cake enforces the same global cap (`Defines.MAX_PARTICLES=4096`) in `EffectParticleSystem.emitBurst` and drops overflow spawn requests.
+  - Cake uses `r_particles` as runtime budget cap in `EffectParticleSystem.emitBurst`; overflow spawn requests are dropped, and the budget is clamped to `MAX_PARTICLES=4096`.
 - Rendering cost:
   - Yamagi GL3 streams all particles into one dynamic VBO and issues one `glDrawArrays(GL_POINTS, ...)`.
   - Cake now streams particles through a dedicated dynamic VBO renderer (outside `ModelBatch`) and issues bounded draw submissions by particle blend bucket.
