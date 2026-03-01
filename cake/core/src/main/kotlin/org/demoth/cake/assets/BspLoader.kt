@@ -462,6 +462,10 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     textureInfoIndex = surface.textureInfoIndex,
                     textureFlags = surface.textureFlags,
                     lightmapPageIndex = lightmapPlacement?.pageIndex ?: -1,
+                    surfacePass = classifyWorldSurfacePass(
+                        textureFlags = surface.textureFlags,
+                        hasLightmap = lightmapPlacement != null,
+                    ),
                 ),
             )
         }
@@ -575,7 +579,7 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
             extractFaceVertexIndices(bsp, face) ?: return@mapNotNull null // ensure face has enough edges
             val textureInfoIndex = face.textureInfoIndex
             val texInfo = bsp.textures.getOrNull(textureInfoIndex) ?: return@mapNotNull null
-            if (!shouldLoadWalTexture(texInfo.name)) {
+            if (!shouldLoadWalTexture(texInfo.name, texInfo.flags)) {
                 return@mapNotNull null
             }
             val isLightmappedFace = shouldUseBspFaceLightmap(texInfo.flags)
@@ -623,9 +627,9 @@ internal fun collectWalTexturePaths(bspData: ByteArray): List<String> {
     }
     texInfoIndices.forEach { texInfoIndex ->
         collectTextureAnimationChainIndices(bsp.textures, texInfoIndex).forEach { index ->
-            val textureName = bsp.textures[index].name
-            if (shouldLoadWalTexture(textureName)) {
-                texturePaths.add(toWalPath(textureName))
+            val textureInfo = bsp.textures[index]
+            if (shouldLoadWalTexture(textureInfo.name, textureInfo.flags)) {
+                texturePaths.add(toWalPath(textureInfo.name))
             }
         }
     }
@@ -642,7 +646,7 @@ internal fun collectWorldSurfaceRecords(bsp: Bsp): List<BspWorldSurfaceRecord> {
         val face = bsp.faces[faceIndex]
         extractFaceVertexIndices(bsp, face) ?: return@mapNotNull null // ensure face has enough edges
         val texInfo = bsp.textures[face.textureInfoIndex]
-        if (!shouldLoadWalTexture(texInfo.name)) {
+        if (!shouldLoadWalTexture(texInfo.name, texInfo.flags)) {
             return@mapNotNull null
         }
         val isLightmappedFace = shouldUseBspFaceLightmap(texInfo.flags)
@@ -685,7 +689,7 @@ internal fun buildWorldRenderData(bsp: Bsp, surfaces: List<BspWorldSurfaceRecord
         )
     }
     val textureInfos = bsp.textures.mapIndexedNotNull { index, textureInfo ->
-        if (!shouldLoadWalTexture(textureInfo.name)) {
+        if (!shouldLoadWalTexture(textureInfo.name, textureInfo.flags)) {
             return@mapIndexedNotNull null
         }
         BspWorldTextureInfoRecord(
@@ -1086,11 +1090,24 @@ private fun inlineMeshPartId(modelIndex: Int, faceIndex: Int): String =
 /** Maps raw BSP texture name to conventional Quake2 WAL asset path. */
 private fun toWalPath(textureName: String): String = "textures/${textureName.trim()}.wal"
 
-/** Filters out non-renderable or separately handled pseudo-textures. */
-private fun shouldLoadWalTexture(textureName: String): Boolean {
+/** Filters out non-renderable or separately handled pseudo-textures using BSP surface flags. */
+private fun shouldLoadWalTexture(textureName: String, textureFlags: Int): Boolean {
     val normalized = textureName.trim()
-    // sky is loaded separately, see SkyLoader
-    return normalized.isNotEmpty() && !normalized.contains("sky", ignoreCase = true)
+    if (normalized.isEmpty()) {
+        return false
+    }
+    // Sky is rendered by dedicated skybox path.
+    return (textureFlags and Defines.SURF_SKY) == 0
+}
+
+private fun classifyWorldSurfacePass(textureFlags: Int, hasLightmap: Boolean): BspWorldSurfacePass {
+    return when {
+        (textureFlags and Defines.SURF_SKY) != 0 -> BspWorldSurfacePass.SKY
+        (textureFlags and Defines.SURF_WARP) != 0 -> BspWorldSurfacePass.WARP
+        (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0 -> BspWorldSurfacePass.TRANSLUCENT
+        hasLightmap -> BspWorldSurfacePass.OPAQUE_LIGHTMAPPED
+        else -> BspWorldSurfacePass.OPAQUE_UNLIT
+    }
 }
 
 /** Default texture sampling for brush surfaces: repeating UVs along both axes. */

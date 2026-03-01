@@ -13,6 +13,17 @@ data class BspWorldBatchData(
 )
 
 /**
+ * Explicit world-surface pass classification derived from BSP `SURF_*` flags.
+ */
+enum class BspWorldSurfacePass {
+    OPAQUE_LIGHTMAPPED,
+    OPAQUE_UNLIT,
+    TRANSLUCENT,
+    WARP,
+    SKY,
+}
+
+/**
  * One chunk of world geometry constrained to <= 65535 vertices for 16-bit index buffers.
  */
 data class BspWorldBatchChunk(
@@ -45,4 +56,6 @@ data class BspWorldBatchKey(
     val textureFlags: Int,
     /** Packed lightmap atlas page index; `-1` for non-lightmapped surfaces. */
     val lightmapPageIndex: Int,
+    /** Explicit pass classification used by the world renderer. */
+    val surfacePass: BspWorldSurfacePass,
 )
