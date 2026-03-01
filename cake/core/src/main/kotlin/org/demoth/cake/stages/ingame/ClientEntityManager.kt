@@ -305,7 +305,7 @@ class ClientEntityManager : Disposable {
             }
             visibleEntities += debugWorldOrigin!!
         }
-        if (levelEntity != null && rDrawWorld?.value != 0f) {
+        if (levelEntity != null && rDrawWorld?.value != 0f && !RenderTuningCvars.bspBatchWorldEnabled()) {
             visibleEntities += levelEntity!!
         }
 

@@ -252,6 +252,9 @@ class Game3dScreen(
                 }
 
             entityManager.visibleEntities.forEach {
+                if (RenderTuningCvars.bspBatchWorldEnabled() && it.name == "level") {
+                    return@forEach
+                }
                 if (!isTranslucentModelPassEntity(it)) {
                     if (it.depthHack) {
                         lateDepthHackEntities += it
@@ -265,6 +268,9 @@ class Game3dScreen(
                 }
             }
             entityManager.visibleEntities.forEach {
+                if (RenderTuningCvars.bspBatchWorldEnabled() && it.name == "level") {
+                    return@forEach
+                }
                 if (isTranslucentModelPassEntity(it)) {
                     if (it.depthHack) {
                         lateDepthHackEntities += it
