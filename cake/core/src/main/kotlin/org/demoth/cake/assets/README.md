@@ -34,7 +34,7 @@ Legacy counterparts:
 - `CakeFileResolver` ignores the `<skinPath>|` prefix for file lookup.
 - `Md2Loader` gives synthetic key skin prefix priority over embedded MD2 skins.
 - For player entities (`modelindex == 255`), runtime shader `skinIndex` is forced to `0` because only one skin texture is loaded for that variant.
-- Runtime shader sources are loaded from `assets/shaders` (`vat.glsl`, `md2.frag`, `bsp_lightmap.vert/.frag`, `bsp_world_batch.vert/.frag`).
+- Runtime shader sources are loaded from `assets/shaders` (`md2.vert`, `md2.frag`, `bsp_lightmap.vert/.frag`, `bsp_world_batch.vert/.frag`).
 
 ## Terminology Alignment (Quake2 vs libGDX)
 - Quake2 BSP **model 0** (worldspawn geometry) maps to precomputed batch chunks in `BspWorldBatchData`.

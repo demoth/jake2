@@ -31,7 +31,7 @@ import org.demoth.cake.assets.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
-import org.demoth.cake.md2VatShader
+import org.demoth.cake.md2VertexShader
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -119,7 +119,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 val md2Shader = Md2Shader(
                     md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
                     DefaultShader.Config(
-                        assetManager.getLoaded(md2VatShader),
+                        assetManager.getLoaded(md2VertexShader),
                         assetManager.getLoaded(md2FragmentShader),
                     )
                 )

@@ -153,7 +153,7 @@ fun initializeMd2Shader(assetManager: AssetManager): Md2Shader {
             // required for shader initialization; renderable is not reused
             md2Instance.getRenderable(tempRenderable),
             DefaultShader.Config(
-                assetManager.get(md2VatShader),
+                assetManager.get(md2VertexShader),
                 assetManager.get(md2FragmentShader),
             )
         )

@@ -155,7 +155,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // load async resources (will be used later in the game)
 
         assetManager.load("q2palette.bin", Any::class.java) // todo: use original baseq2/pics/colormap.pcx
-        assetManager.load(md2VatShader, String::class.java)
+        assetManager.load(md2VertexShader, String::class.java)
         assetManager.load(md2FragmentShader, String::class.java)
         assetManager.finishLoading() // these assets are necessary anyway
 
