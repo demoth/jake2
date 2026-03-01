@@ -158,69 +158,73 @@ class BspWorldBatchRenderer(
         }
 
         configureOpaquePipeline()
-        shaderProgram.bind()
-        shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
-        shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
-        shaderProgram.setUniformf(uIntensity, RenderTuningCvars.intensity())
-        shaderProgram.setUniformf(uOverbrightBits, RenderTuningCvars.overbrightBits())
-        uploadDynamicLights(dynamicLights)
+        try {
+            shaderProgram.bind()
+            shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
+            shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
+            shaderProgram.setUniformf(uIntensity, RenderTuningCvars.intensity())
+            shaderProgram.setUniformf(uOverbrightBits, RenderTuningCvars.overbrightBits())
+            uploadDynamicLights(dynamicLights)
 
-        drawGroups.forEach { (key, chunkGroups) ->
-            val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
-            val atlasPage = lightmapAtlasPages.getOrNull(key.lightmapPageIndex) ?: return@forEach
-            if (atlasPage.textures.size < BATCH_LIGHT_STYLE_SLOTS) {
-                return@forEach
-            }
-
-            diffuseTexture.bind(0)
-            atlasPage.textures[0].bind(1)
-            atlasPage.textures[1].bind(2)
-            atlasPage.textures[2].bind(3)
-            atlasPage.textures[3].bind(4)
-            shaderProgram.setUniformi(uDiffuseTexture, 0)
-            shaderProgram.setUniformi(uLightmapTexture0, 1)
-            shaderProgram.setUniformi(uLightmapTexture1, 2)
-            shaderProgram.setUniformi(uLightmapTexture2, 3)
-            shaderProgram.setUniformi(uLightmapTexture3, 4)
-
-            val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
-                computeFlowingOffsetU(currentTimeMs)
-            } else {
-                0f
-            }
-            shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
-
-            val referenceSurface = chunkGroups.values.firstOrNull()?.firstOrNull()?.let { groupedSurface ->
-                worldRenderData.surfaces[groupedSurface.worldSurfaceIndex]
-            }
-            val styleWeights = if (referenceSurface != null) {
-                computeLightmapStyleWeights(
-                    lightMapStyles = referenceSurface.lightMapStyles,
-                    primaryLightStyleIndex = referenceSurface.primaryLightStyleIndex,
-                    lightStyleResolver = lightStyleResolver,
-                )
-            } else {
-                floatArrayOf(1f, 0f, 0f, 0f)
-            }
-            shaderProgram.setUniformf(uLightStyleWeights, styleWeights[0], styleWeights[1], styleWeights[2], styleWeights[3])
-            shaderProgram.setUniformf(uOpacity, 1f)
-
-            for ((chunkIndex, surfaces) in chunkGroups) {
-                val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
-                val mesh = chunkMeshes.getOrNull(chunkIndex) ?: continue
-                val indexCount = surfaces.sumOf { it.indexCount }
-                if (indexCount <= 0) {
-                    continue
+            drawGroups.forEach { (key, chunkGroups) ->
+                val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
+                val atlasPage = lightmapAtlasPages.getOrNull(key.lightmapPageIndex) ?: return@forEach
+                if (atlasPage.textures.size < BATCH_LIGHT_STYLE_SLOTS) {
+                    return@forEach
                 }
-                val indices = ShortArray(indexCount)
-                var cursor = 0
-                surfaces.forEach { groupedSurface ->
-                    System.arraycopy(chunk.indices, groupedSurface.indexOffset, indices, cursor, groupedSurface.indexCount)
-                    cursor += groupedSurface.indexCount
+
+                diffuseTexture.bind(0)
+                atlasPage.textures[0].bind(1)
+                atlasPage.textures[1].bind(2)
+                atlasPage.textures[2].bind(3)
+                atlasPage.textures[3].bind(4)
+                shaderProgram.setUniformi(uDiffuseTexture, 0)
+                shaderProgram.setUniformi(uLightmapTexture0, 1)
+                shaderProgram.setUniformi(uLightmapTexture1, 2)
+                shaderProgram.setUniformi(uLightmapTexture2, 3)
+                shaderProgram.setUniformi(uLightmapTexture3, 4)
+
+                val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
+                    computeFlowingOffsetU(currentTimeMs)
+                } else {
+                    0f
                 }
-                mesh.setIndices(indices, 0, indices.size)
-                mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
+
+                val referenceSurface = chunkGroups.values.firstOrNull()?.firstOrNull()?.let { groupedSurface ->
+                    worldRenderData.surfaces[groupedSurface.worldSurfaceIndex]
+                }
+                val styleWeights = if (referenceSurface != null) {
+                    computeLightmapStyleWeights(
+                        lightMapStyles = referenceSurface.lightMapStyles,
+                        primaryLightStyleIndex = referenceSurface.primaryLightStyleIndex,
+                        lightStyleResolver = lightStyleResolver,
+                    )
+                } else {
+                    floatArrayOf(1f, 0f, 0f, 0f)
+                }
+                shaderProgram.setUniformf(uLightStyleWeights, styleWeights[0], styleWeights[1], styleWeights[2], styleWeights[3])
+                shaderProgram.setUniformf(uOpacity, 1f)
+
+                for ((chunkIndex, surfaces) in chunkGroups) {
+                    val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
+                    val mesh = chunkMeshes.getOrNull(chunkIndex) ?: continue
+                    val indexCount = surfaces.sumOf { it.indexCount }
+                    if (indexCount <= 0) {
+                        continue
+                    }
+                    val indices = ShortArray(indexCount)
+                    var cursor = 0
+                    surfaces.forEach { groupedSurface ->
+                        System.arraycopy(chunk.indices, groupedSurface.indexOffset, indices, cursor, groupedSurface.indexCount)
+                        cursor += groupedSurface.indexCount
+                    }
+                    mesh.setIndices(indices, 0, indices.size)
+                    mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                }
             }
+        } finally {
+            restoreDefaultPipelineState()
         }
     }
 
@@ -260,56 +264,61 @@ class BspWorldBatchRenderer(
         }
 
         configureTranslucentPipeline()
-        shaderProgram.bind()
-        shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
-        shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
-        shaderProgram.setUniformf(uIntensity, RenderTuningCvars.intensity())
-        shaderProgram.setUniformf(uOverbrightBits, 1f)
-        shaderProgram.setUniformi(uDynamicLightCount, 0)
-        shaderProgram.setUniformf(uLightStyleWeights, 1f, 0f, 0f, 0f)
+        try {
+            shaderProgram.bind()
+            shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
+            shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
+            shaderProgram.setUniformf(uIntensity, RenderTuningCvars.intensity())
+            shaderProgram.setUniformf(uOverbrightBits, 1f)
+            shaderProgram.setUniformi(uDynamicLightCount, 0)
+            shaderProgram.setUniformf(uLightStyleWeights, 1f, 0f, 0f, 0f)
 
-        drawGroups.forEach { (key, chunkGroups) ->
-            val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
-            diffuseTexture.bind(0)
-            whiteTexture.bind(1)
-            whiteTexture.bind(2)
-            whiteTexture.bind(3)
-            whiteTexture.bind(4)
-            shaderProgram.setUniformi(uDiffuseTexture, 0)
-            shaderProgram.setUniformi(uLightmapTexture0, 1)
-            shaderProgram.setUniformi(uLightmapTexture1, 2)
-            shaderProgram.setUniformi(uLightmapTexture2, 3)
-            shaderProgram.setUniformi(uLightmapTexture3, 4)
-
-            val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
-                computeFlowingOffsetU(currentTimeMs)
-            } else {
-                0f
-            }
-            shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
-            val opacity = when {
-                (key.textureFlags and Defines.SURF_TRANS33) != 0 -> 0.33f
-                (key.textureFlags and Defines.SURF_TRANS66) != 0 -> 0.66f
-                else -> 1f
-            }
-            shaderProgram.setUniformf(uOpacity, opacity)
-
-            for ((chunkIndex, surfaces) in chunkGroups) {
-                val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
-                val mesh = chunkMeshes.getOrNull(chunkIndex) ?: continue
-                val indexCount = surfaces.sumOf { it.indexCount }
-                if (indexCount <= 0) {
-                    continue
+            drawGroups.forEach { (key, chunkGroups) ->
+                val trans33 = (key.textureFlags and Defines.SURF_TRANS33) != 0
+                val trans66 = (key.textureFlags and Defines.SURF_TRANS66) != 0
+                if (!trans33 && !trans66) {
+                    return@forEach
                 }
-                val indices = ShortArray(indexCount)
-                var cursor = 0
-                surfaces.forEach { groupedSurface ->
-                    System.arraycopy(chunk.indices, groupedSurface.indexOffset, indices, cursor, groupedSurface.indexCount)
-                    cursor += groupedSurface.indexCount
+
+                val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
+                diffuseTexture.bind(0)
+                whiteTexture.bind(1)
+                whiteTexture.bind(2)
+                whiteTexture.bind(3)
+                whiteTexture.bind(4)
+                shaderProgram.setUniformi(uDiffuseTexture, 0)
+                shaderProgram.setUniformi(uLightmapTexture0, 1)
+                shaderProgram.setUniformi(uLightmapTexture1, 2)
+                shaderProgram.setUniformi(uLightmapTexture2, 3)
+                shaderProgram.setUniformi(uLightmapTexture3, 4)
+
+                val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
+                    computeFlowingOffsetU(currentTimeMs)
+                } else {
+                    0f
                 }
-                mesh.setIndices(indices, 0, indices.size)
-                mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
+                shaderProgram.setUniformf(uOpacity, if (trans33) 0.33f else 0.66f)
+
+                for ((chunkIndex, surfaces) in chunkGroups) {
+                    val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
+                    val mesh = chunkMeshes.getOrNull(chunkIndex) ?: continue
+                    val indexCount = surfaces.sumOf { it.indexCount }
+                    if (indexCount <= 0) {
+                        continue
+                    }
+                    val indices = ShortArray(indexCount)
+                    var cursor = 0
+                    surfaces.forEach { groupedSurface ->
+                        System.arraycopy(chunk.indices, groupedSurface.indexOffset, indices, cursor, groupedSurface.indexCount)
+                        cursor += groupedSurface.indexCount
+                    }
+                    mesh.setIndices(indices, 0, indices.size)
+                    mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                }
             }
+        } finally {
+            restoreDefaultPipelineState()
         }
     }
 
@@ -354,6 +363,17 @@ class BspWorldBatchRenderer(
         gl.glEnable(GL20.GL_BLEND)
         gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         gl.glDisable(GL20.GL_CULL_FACE)
+    }
+
+    /**
+     * Resets state mutated by custom world-batch passes so subsequent render paths
+     * (ModelBatch, particle/sprite systems) start from predictable defaults.
+     */
+    private fun restoreDefaultPipelineState() {
+        val gl = Gdx.gl
+        gl.glDepthMask(true)
+        gl.glDisable(GL20.GL_BLEND)
+        gl.glActiveTexture(GL20.GL_TEXTURE0)
     }
 
     private fun uploadDynamicLights(lights: List<SceneDynamicLight>) {

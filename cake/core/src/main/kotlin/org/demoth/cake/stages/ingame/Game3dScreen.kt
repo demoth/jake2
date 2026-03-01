@@ -194,6 +194,10 @@ class Game3dScreen(
         if (!precached)
             return
 
+        // Keep depth/color buffers deterministic per frame.
+        // This avoids stale depth values leaking between passes when custom world batching is enabled.
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+
         val serverFrameTime = 1f/10f // 10Hz server updates
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
         // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
