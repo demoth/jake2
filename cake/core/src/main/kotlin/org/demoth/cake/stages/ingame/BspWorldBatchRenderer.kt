@@ -62,7 +62,6 @@ class BspWorldBatchRenderer(
     private val texturesByTexInfoIndex = HashMap<Int, Texture>()
 
     private val chunkMeshes: List<Mesh>
-    private val ownedSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val handledOpaqueSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val handledTranslucentSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val whiteTexture: Texture
@@ -132,9 +131,6 @@ class BspWorldBatchRenderer(
         uDynamicLightPosRadius = shaderProgram.fetchUniformLocation("u_dynamicLightPosRadius", false)
         uDynamicLightColor = shaderProgram.fetchUniformLocation("u_dynamicLightColor", false)
     }
-
-    fun suppressedSurfacesMask(): BooleanArray =
-        ownedSurfaceMask.copyOf()
 
     fun render(
         camera: Camera,
@@ -400,23 +396,19 @@ class BspWorldBatchRenderer(
     private fun markHandledSurfaces() {
         worldBatchData.surfaces.forEach { surface ->
             val worldSurfaceIndex = surface.worldSurfaceIndex
-            if (worldSurfaceIndex !in ownedSurfaceMask.indices) {
+            if (worldSurfaceIndex !in handledOpaqueSurfaceMask.indices) {
                 return@forEach
             }
             when (surface.batchKey.surfacePass) {
                 BspWorldSurfacePass.OPAQUE_LIGHTMAPPED,
                 BspWorldSurfacePass.OPAQUE_UNLIT,
                 BspWorldSurfacePass.WARP -> {
-                    ownedSurfaceMask[worldSurfaceIndex] = true
                     handledOpaqueSurfaceMask[worldSurfaceIndex] = true
                 }
                 BspWorldSurfacePass.TRANSLUCENT -> {
-                    ownedSurfaceMask[worldSurfaceIndex] = true
                     handledTranslucentSurfaceMask[worldSurfaceIndex] = true
                 }
-                BspWorldSurfacePass.SKY -> {
-                    ownedSurfaceMask[worldSurfaceIndex] = true
-                }
+                BspWorldSurfacePass.SKY -> Unit
             }
         }
     }
