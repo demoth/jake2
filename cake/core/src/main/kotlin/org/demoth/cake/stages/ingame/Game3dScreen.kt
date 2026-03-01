@@ -196,6 +196,8 @@ class Game3dScreen(
         // Keep depth/color buffers deterministic per frame.
         // This avoids stale depth values leaking between passes when custom world batching is enabled.
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+        // Reset depth range defensively before any pass submission.
+        Gdx.gl.glDepthRangef(0f, 1f)
 
         val serverFrameTime = 1f/10f // 10Hz server updates
         lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)

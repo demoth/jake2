@@ -424,6 +424,8 @@ class BspWorldBatchRenderer(
     private fun configureOpaquePipeline() {
         val gl = Gdx.gl
         gl.glEnable(GL20.GL_DEPTH_TEST)
+        gl.glDepthFunc(GL20.GL_LEQUAL)
+        gl.glDepthRangef(0f, 1f)
         gl.glDepthMask(true)
         gl.glDisable(GL20.GL_BLEND)
         gl.glDisable(GL20.GL_CULL_FACE)
@@ -432,6 +434,8 @@ class BspWorldBatchRenderer(
     private fun configureTranslucentPipeline() {
         val gl = Gdx.gl
         gl.glEnable(GL20.GL_DEPTH_TEST)
+        gl.glDepthFunc(GL20.GL_LEQUAL)
+        gl.glDepthRangef(0f, 1f)
         gl.glDepthMask(false)
         gl.glEnable(GL20.GL_BLEND)
         gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
@@ -444,6 +448,8 @@ class BspWorldBatchRenderer(
      */
     private fun restoreDefaultPipelineState() {
         val gl = Gdx.gl
+        gl.glDepthFunc(GL20.GL_LEQUAL)
+        gl.glDepthRangef(0f, 1f)
         gl.glDepthMask(true)
         gl.glDisable(GL20.GL_BLEND)
         gl.glActiveTexture(GL20.GL_TEXTURE0)
