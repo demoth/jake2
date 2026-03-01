@@ -89,6 +89,7 @@ class Game3dScreen(
     private val beamRenderer = BeamRenderer(assetManager)
     private val sp2Renderer = Sp2Renderer()
     private var worldVisibilityController: BspWorldVisibilityController? = null
+    private var worldVisibilityMaskTracker: BspWorldVisibilityMaskTracker? = null
     private var worldTextureAnimationController: BspWorldTextureAnimationController? = null
     private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
     private var worldSurfaceMaterialController: BspWorldSurfaceMaterialController? = null
@@ -215,6 +216,7 @@ class Game3dScreen(
         )
         syncEntityLoopSounds()
         worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
+        worldVisibilityMaskTracker?.update(camera.position, entityManager.currentFrame.areabits)
         worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
         worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
@@ -225,9 +227,10 @@ class Game3dScreen(
         collectEntityEffectDynamicLights()
         val shaderDynamicLights = dynamicLightSystem.visibleLightsForShader()
         bspLightmapShader.setDynamicLights(shaderDynamicLights)
+        val visibleWorldSurfaceMask = worldVisibilityMask()
         worldBatchRenderer?.render(
             camera = camera,
-            visibleSurfaceMask = worldVisibilityController?.visibleSurfaceMaskSnapshot() ?: BooleanArray(0),
+            visibleSurfaceMask = visibleWorldSurfaceMask,
             currentTimeMs = Globals.curtime,
             lightStyleResolver = ::lightStyleValue,
             dynamicLights = shaderDynamicLights,
@@ -306,7 +309,7 @@ class Game3dScreen(
         }
         worldBatchRenderer?.renderTranslucent(
             camera = camera,
-            visibleSurfaceMask = worldVisibilityController?.visibleSurfaceMaskSnapshot() ?: BooleanArray(0),
+            visibleSurfaceMask = visibleWorldSurfaceMask,
             currentTimeMs = Globals.curtime,
         )
         effectsSystem.renderParticles(camera)
@@ -414,6 +417,12 @@ class Game3dScreen(
                 "particles(live=${effectsSystem.debugLiveParticleCount()},sub=${particleStats.submittedParticles},dc=${particleStats.drawCalls}) " +
                 "effects(active=${effectsSystem.debugActiveEffectCount()})\n"
         )
+    }
+
+    private fun worldVisibilityMask(): BooleanArray {
+        worldVisibilityMaskTracker?.let { return it.visibleSurfaceMaskSnapshot() }
+        worldVisibilityController?.let { return it.visibleSurfaceMaskSnapshot() }
+        return BooleanArray(0)
     }
 
     // Preserve legacy ordering: opaque model entities first, translucent model entities second.
@@ -608,6 +617,7 @@ class Game3dScreen(
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
         worldVisibilityController = null
+        worldVisibilityMaskTracker = null
         worldTextureAnimationController = null
         inlineTextureAnimationController = null
         worldSurfaceMaterialController = null
@@ -673,29 +683,37 @@ class Game3dScreen(
         }
 
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
-        worldVisibilityController = BspWorldVisibilityController(
-            worldRenderData = bspMap.worldRenderData,
-            modelInstance = entityManager.levelEntity!!.modelInstance,
-            collisionModel = collisionModel,
-        )
-        worldTextureAnimationController = BspWorldTextureAnimationController(
-            worldRenderData = bspMap.worldRenderData,
-            modelInstance = entityManager.levelEntity!!.modelInstance,
-            assetManager = assetManager,
-        )
-        worldSurfaceMaterialController = BspWorldSurfaceMaterialController(
-            worldRenderData = bspMap.worldRenderData,
-            modelInstance = entityManager.levelEntity!!.modelInstance,
-        )
-        worldBatchRenderer = if (RenderTuningCvars.bspBatchWorldEnabled()) {
-            BspWorldBatchRenderer(
+        if (RenderTuningCvars.bspBatchWorldEnabled()) {
+            worldVisibilityController = null
+            worldTextureAnimationController = null
+            worldSurfaceMaterialController = null
+            worldVisibilityMaskTracker = BspWorldVisibilityMaskTracker(
+                worldRenderData = bspMap.worldRenderData,
+                collisionModel = collisionModel,
+            )
+            worldBatchRenderer = BspWorldBatchRenderer(
                 worldRenderData = bspMap.worldRenderData,
                 worldBatchData = bspMap.worldBatchData,
                 lightmapAtlasPages = bspMap.lightmapAtlasPages,
                 assetManager = assetManager,
             )
         } else {
-            null
+            worldVisibilityMaskTracker = null
+            worldVisibilityController = BspWorldVisibilityController(
+                worldRenderData = bspMap.worldRenderData,
+                modelInstance = entityManager.levelEntity!!.modelInstance,
+                collisionModel = collisionModel,
+            )
+            worldTextureAnimationController = BspWorldTextureAnimationController(
+                worldRenderData = bspMap.worldRenderData,
+                modelInstance = entityManager.levelEntity!!.modelInstance,
+                assetManager = assetManager,
+            )
+            worldSurfaceMaterialController = BspWorldSurfaceMaterialController(
+                worldRenderData = bspMap.worldRenderData,
+                modelInstance = entityManager.levelEntity!!.modelInstance,
+            )
+            worldBatchRenderer = null
         }
         worldBatchRenderer?.let { batchRenderer ->
             val suppressedMask = batchRenderer.suppressedSurfacesMask()
