@@ -44,7 +44,7 @@ Baseline profiling before enabling the new path:
    - `set r_debug_drawcalls 1`
    - `set r_debug_texturebindings 1`
 2. Capture baseline on representative maps/views with `r_bsp_batch_world 0`.
-3. Re-run the same views with `r_bsp_batch_world 1` once the path is implemented.
+3. Re-run the same views with `r_bsp_batch_world 1` to exercise the dedicated opaque world batch renderer path.
 
 ### Bitmap Font Tool
 

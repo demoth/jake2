@@ -15,6 +15,7 @@ It does not own:
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
+- `BspWorldBatchRenderer` - dedicated opaque world BSP renderer used by the optional Q2PRO-style batching path (`r_bsp_batch_world`).
 - `GameConfiguration` (`org.demoth.cake`) - configstring-backed asset ownership/lookup for map assets and generic sounds.
 - `PlayerConfiguration` (`org.demoth.cake`) - player slot/inventory state and variation-aware model/icon/sound resolution.
 

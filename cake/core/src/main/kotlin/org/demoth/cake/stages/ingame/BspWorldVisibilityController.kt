@@ -24,6 +24,7 @@ class BspWorldVisibilityController(
     private val collisionModel: CM,
 ) {
     private val surfaceNodeParts: Array<NodePart?> = Array(worldRenderData.surfaces.size) { null }
+    private val suppressedSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val visibleSurfaceScratch = BooleanArray(worldRenderData.surfaces.size)
     private val pointScratch = FloatArray(3)
 
@@ -66,13 +67,35 @@ class BspWorldVisibilityController(
         applyVisibleMask()
     }
 
+    /**
+     * Marks world surfaces that should stay disabled in the legacy NodePart path.
+     *
+     * Used by the in-progress batched world renderer to prevent double-draw.
+     */
+    fun setSuppressedSurfaces(mask: BooleanArray) {
+        suppressedSurfaceMask.fill(false)
+        val count = minOf(suppressedSurfaceMask.size, mask.size)
+        repeat(count) { index ->
+            suppressedSurfaceMask[index] = mask[index]
+        }
+        applyVisibleMask()
+    }
+
+    /**
+     * Returns the current raw PVS/areabits visibility mask (without suppression filtering).
+     */
+    fun visibleSurfaceMaskSnapshot(): BooleanArray = visibleSurfaceScratch.copyOf()
+
     private fun setAllVisible() {
-        surfaceNodeParts.forEach { part -> part?.enabled = true }
+        visibleSurfaceScratch.fill(true)
+        surfaceNodeParts.forEachIndexed { index, part ->
+            part?.enabled = !suppressedSurfaceMask[index]
+        }
     }
 
     private fun applyVisibleMask() {
         visibleSurfaceScratch.forEachIndexed { index, visible ->
-            surfaceNodeParts[index]?.enabled = visible
+            surfaceNodeParts[index]?.enabled = visible && !suppressedSurfaceMask[index]
         }
     }
 

@@ -43,6 +43,7 @@ class BspMapAsset(
     val worldBatchData: BspWorldBatchData,
     val inlineRenderData: List<BspInlineModelRenderData>,
     val lightmapAtlas: BspLightmapAtlasMetadata? = null,
+    val lightmapAtlasPages: List<BspLightmapAtlasPageTextures> = emptyList(),
     val generatedTextures: List<Texture> = emptyList(),
 ) : Disposable {
     override fun dispose() {
@@ -60,6 +61,10 @@ class BspMapAsset(
 data class BspLightmapAtlasMetadata(
     val pageSize: Int,
     val facePlacements: Map<Int, BspLightmapAtlasFacePlacement>,
+)
+
+data class BspLightmapAtlasPageTextures(
+    val textures: List<Texture>,
 )
 
 data class BspLightmapAtlasFacePlacement(
@@ -266,6 +271,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             worldBatchData = worldBatchData,
             inlineRenderData = inlineRenderData,
             lightmapAtlas = lightmapAtlas.toMetadata(),
+            lightmapAtlasPages = lightmapAtlas.pageTextures.map { textures ->
+                BspLightmapAtlasPageTextures(textures = textures)
+            },
             generatedTextures = generatedTextures,
         )
     }

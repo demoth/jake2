@@ -93,6 +93,7 @@ class Game3dScreen(
     private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
     private var worldSurfaceMaterialController: BspWorldSurfaceMaterialController? = null
     private var inlineSurfaceMaterialController: BspInlineSurfaceMaterialController? = null
+    private var worldBatchRenderer: BspWorldBatchRenderer? = null
     private var entityLightSampler: BspEntityLightSampler? = null
     private val lightStyleValues = FloatArray(Defines.MAX_LIGHTSTYLES) { 1f }
     private var lastLightStyleTick: Int = Int.MIN_VALUE
@@ -217,7 +218,15 @@ class Game3dScreen(
         collectEntityEffectTrails()
         dynamicLightSystem.beginFrame(Globals.curtime, delta)
         collectEntityEffectDynamicLights()
-        bspLightmapShader.setDynamicLights(dynamicLightSystem.visibleLightsForShader())
+        val shaderDynamicLights = dynamicLightSystem.visibleLightsForShader()
+        bspLightmapShader.setDynamicLights(shaderDynamicLights)
+        worldBatchRenderer?.render(
+            camera = camera,
+            visibleSurfaceMask = worldVisibilityController?.visibleSurfaceMaskSnapshot() ?: BooleanArray(0),
+            currentTimeMs = Globals.curtime,
+            lightStyleResolver = ::lightStyleValue,
+            dynamicLights = shaderDynamicLights,
+        )
 
         // render entities
         val lateDepthHackEntities = mutableListOf<ClientEntity>()
@@ -507,6 +516,8 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        worldBatchRenderer?.dispose()
+        worldBatchRenderer = null
         worldVisibilityController = null
         worldTextureAnimationController = null
         inlineTextureAnimationController = null
@@ -545,6 +556,8 @@ class Game3dScreen(
             return
         }
         prediction.reset()
+        worldBatchRenderer?.dispose()
+        worldBatchRenderer = null
 
         // load resources referenced in the config strings
 
@@ -585,6 +598,19 @@ class Game3dScreen(
             worldRenderData = bspMap.worldRenderData,
             modelInstance = entityManager.levelEntity!!.modelInstance,
         )
+        worldBatchRenderer = if (RenderTuningCvars.bspBatchWorldEnabled()) {
+            BspWorldBatchRenderer(
+                worldRenderData = bspMap.worldRenderData,
+                worldBatchData = bspMap.worldBatchData,
+                lightmapAtlasPages = bspMap.lightmapAtlasPages,
+                assetManager = assetManager,
+            )
+        } else {
+            null
+        }
+        worldBatchRenderer?.let { batchRenderer ->
+            worldVisibilityController?.setSuppressedSurfaces(batchRenderer.handledSurfacesMask())
+        }
         inlineTextureAnimationController = BspInlineTextureAnimationController(
             inlineRenderData = bspMap.inlineRenderData,
             textureInfos = bspMap.worldRenderData.textureInfos,
