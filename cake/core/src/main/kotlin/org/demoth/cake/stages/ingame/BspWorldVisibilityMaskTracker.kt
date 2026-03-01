@@ -7,8 +7,8 @@ import org.demoth.cake.assets.BspWorldRenderData
 /**
  * Batch-mode world visibility tracker that computes only a surface visibility mask.
  *
- * Unlike [BspWorldVisibilityController], this tracker does not mutate world `NodePart.enabled`
- * state and is safe to use once world rendering no longer goes through legacy per-face model parts.
+ * This tracker does not mutate world `NodePart.enabled` state and is safe for
+ * the batch-only world renderer path.
  */
 class BspWorldVisibilityMaskTracker(
     private val worldRenderData: BspWorldRenderData,
