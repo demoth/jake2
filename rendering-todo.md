@@ -65,7 +65,7 @@ Current migration target follows Q2PRO brush-world batching ideas:
 Planned phases:
 
 - [x] Step 1: runtime guardrail + profiling baseline workflow (`r_bsp_batch_world`).
-- [ ] Step 2: lightmap atlas pages (replace per-face lightmap textures).
+- [x] Step 2: lightmap atlas pages (replace per-face lightmap textures).
 - [ ] Step 3: precomputed batched world geometry/ranges/chunking metadata.
 - [ ] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
 - [ ] Step 5: move world animation/lightstyle/flowing to draw-command state.
@@ -80,7 +80,7 @@ Planned phases:
   - Yamagi GL3: `GL3_DrawBrushModel -> RenderLightmappedPoly`
 - Cake implementation:
   - Inline models emitted as per-face mesh parts.
-  - Eligible faces (`!SURF_TRANS33`, `!SURF_TRANS66`, `!SURF_WARP`) carry UV2 + per-style lightmap textures.
+  - Eligible faces (`!SURF_TRANS33`, `!SURF_TRANS66`, `!SURF_WARP`) carry UV2 + per-style lightmap atlas slots (`0..3`) packed into shared pages.
   - Runtime style weights driven by `CS_LIGHTS` in same slot model as world.
 - Behavior difference:
   - Non-lightmapped inline faces still use diffuse modulation fallback (expected; matches legacy exclusions).

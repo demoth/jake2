@@ -31,7 +31,8 @@ import kotlin.math.floor
  * [models] are generated GPU resources owned by this asset instance.
  * [worldRenderData] stores per-surface and per-leaf world representation for runtime visibility/lighting passes.
  * [inlineRenderData] stores stable per-face part metadata for inline brush models (`*1`, `*2`, ...).
- * [generatedTextures] are runtime-generated lightmap textures (one per face/style slot for world model surfaces).
+ * [lightmapAtlas] describes packed BSP lightmap pages generated at load time.
+ * [generatedTextures] are runtime-generated lightmap atlas page textures (4 style-slot textures per page).
  * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
  */
 class BspMapAsset(
@@ -39,6 +40,7 @@ class BspMapAsset(
     val models: List<Model>,
     val worldRenderData: BspWorldRenderData,
     val inlineRenderData: List<BspInlineModelRenderData>,
+    val lightmapAtlas: BspLightmapAtlasMetadata? = null,
     val generatedTextures: List<Texture> = emptyList(),
 ) : Disposable {
     override fun dispose() {
@@ -46,6 +48,26 @@ class BspMapAsset(
         models.forEach { it.dispose() }
     }
 }
+
+/**
+ * Packed BSP lightmap atlas metadata produced during load.
+ *
+ * The packing strategy follows the same conceptual model as Q2PRO's block allocator
+ * (`q2pro/src/refresh/surf.c`: `LM_AllocBlock`), but keeps per-style slot textures.
+ */
+data class BspLightmapAtlasMetadata(
+    val pageSize: Int,
+    val facePlacements: Map<Int, BspLightmapAtlasFacePlacement>,
+)
+
+data class BspLightmapAtlasFacePlacement(
+    val faceIndex: Int,
+    val pageIndex: Int,
+    val x: Int,
+    val y: Int,
+    val width: Int,
+    val height: Int,
+)
 
 /**
  * Runtime world representation for the BSP world model (model 0).
@@ -146,15 +168,37 @@ private data class FaceLightmapGeometry(
     val tMax: Int,
 )
 
-private data class FaceLightmapData(
-    val styleTextures: List<FaceStyleLightmapTexture>,
+private data class BspLightmapAtlasPlacement(
+    val pageIndex: Int,
+    val x: Int,
+    val y: Int,
+    val width: Int,
+    val height: Int,
+    val pageSize: Int,
     val geometry: FaceLightmapGeometry,
 )
 
-private data class FaceStyleLightmapTexture(
-    val styleIndex: Int,
-    val texture: Texture,
-)
+private data class BspLightmapAtlasBuildResult(
+    val pageSize: Int,
+    val pageTextures: List<List<Texture>>,
+    val facePlacements: Map<Int, BspLightmapAtlasPlacement>,
+) {
+    fun allTextures(): List<Texture> = pageTextures.flatten()
+
+    fun toMetadata(): BspLightmapAtlasMetadata = BspLightmapAtlasMetadata(
+        pageSize = pageSize,
+        facePlacements = facePlacements.mapValues { (faceIndex, placement) ->
+            BspLightmapAtlasFacePlacement(
+                faceIndex = faceIndex,
+                pageIndex = placement.pageIndex,
+                x = placement.x,
+                y = placement.y,
+                width = placement.width,
+                height = placement.height,
+            )
+        }
+    )
+}
 
 /**
  * Loads Quake2 BSP maps into renderable libGDX models.
@@ -198,12 +242,21 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         val bsp = Bsp(ByteBuffer.wrap(mapData))
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
         val inlineRenderData = collectInlineModelRenderData(bsp)
+        val lightmapAtlas = buildLightmapAtlas(bsp)
         val generatedTextures = mutableListOf<Texture>()
+        generatedTextures += lightmapAtlas.allTextures()
         return BspMapAsset(
             mapData = mapData,
-            models = buildModels(bsp, manager, worldSurfaces, inlineRenderData, generatedTextures),
+            models = buildModels(
+                bsp = bsp,
+                manager = manager,
+                worldSurfaces = worldSurfaces,
+                inlineRenderData = inlineRenderData,
+                lightmapAtlas = lightmapAtlas,
+            ),
             worldRenderData = buildWorldRenderData(bsp, worldSurfaces),
             inlineRenderData = inlineRenderData,
+            lightmapAtlas = lightmapAtlas.toMetadata(),
             generatedTextures = generatedTextures,
         )
     }
@@ -242,7 +295,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         manager: AssetManager,
         worldSurfaces: List<BspWorldSurfaceRecord>,
         inlineRenderData: List<BspInlineModelRenderData>,
-        generatedTextures: MutableList<Texture>,
+        lightmapAtlas: BspLightmapAtlasBuildResult,
     ): List<Model> {
         val inlineRenderDataByModel = inlineRenderData.associateBy { it.modelIndex }
         return bsp.models.mapIndexed { modelIndex, _ ->
@@ -253,26 +306,18 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
                     val face = bsp.faces[surface.faceIndex]
                     val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
-                    val lightmap = if (shouldUseBspFaceLightmap(surface.textureFlags)) {
-                        buildFaceLightmapData(bsp, face)
-                    } else {
-                        null
-                    }
-                    if (lightmap != null) {
-                        generatedTextures += lightmap.styleTextures.map { it.texture }
-                    }
+                    val lightmapPlacement = lightmapAtlas.facePlacements[surface.faceIndex]
                     val materialAttributes = mutableListOf<Attribute>(
                         TextureAttribute(TextureAttribute.Diffuse, texture),
                     )
-                    lightmap?.styleTextures?.forEachIndexed { styleSlot, styleTexture ->
+                    lightmapPlacement?.let { placement ->
+                        val pageTextures = lightmapAtlas.pageTextures[placement.pageIndex]
                         // Slot order must stay stable across loader + shader + runtime style weights:
                         // 0..3 -> lightMapStyles[0..3] / u_lightStyleWeights.rgba.
-                        when (styleSlot) {
-                            0 -> materialAttributes += BspLightmapTextureAttribute(styleTexture.texture)
-                            1 -> materialAttributes += BspLightmapTexture1Attribute(styleTexture.texture)
-                            2 -> materialAttributes += BspLightmapTexture2Attribute(styleTexture.texture)
-                            3 -> materialAttributes += BspLightmapTexture3Attribute(styleTexture.texture)
-                        }
+                        materialAttributes += BspLightmapTextureAttribute(pageTextures[0])
+                        materialAttributes += BspLightmapTexture1Attribute(pageTextures[1])
+                        materialAttributes += BspLightmapTexture2Attribute(pageTextures[2])
+                        materialAttributes += BspLightmapTexture3Attribute(pageTextures[3])
                     }
                     val material = Material(*materialAttributes.toTypedArray())
                     val meshBuilder = modelBuilder.part(
@@ -292,7 +337,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                         texture = texture,
                         meshBuilder = meshBuilder,
                         includeLightmapUv = true,
-                        lightmapGeometry = lightmap?.geometry,
+                        lightmapPlacement = lightmapPlacement,
                     )
                 }
             } else {
@@ -302,24 +347,16 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                     val texture = manager.get(texturePath, Texture::class.java)
                     val face = bsp.faces[part.faceIndex]
                     val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
-                    val lightmap = if (shouldUseBspFaceLightmap(part.textureFlags)) {
-                        buildFaceLightmapData(bsp, face)
-                    } else {
-                        null
-                    }
-                    if (lightmap != null) {
-                        generatedTextures += lightmap.styleTextures.map { it.texture }
-                    }
+                    val lightmapPlacement = lightmapAtlas.facePlacements[part.faceIndex]
                     val materialAttributes = mutableListOf<Attribute>(
                         TextureAttribute(TextureAttribute.Diffuse, texture),
                     )
-                    lightmap?.styleTextures?.forEachIndexed { styleSlot, styleTexture ->
-                        when (styleSlot) {
-                            0 -> materialAttributes += BspLightmapTextureAttribute(styleTexture.texture)
-                            1 -> materialAttributes += BspLightmapTexture1Attribute(styleTexture.texture)
-                            2 -> materialAttributes += BspLightmapTexture2Attribute(styleTexture.texture)
-                            3 -> materialAttributes += BspLightmapTexture3Attribute(styleTexture.texture)
-                        }
+                    lightmapPlacement?.let { placement ->
+                        val pageTextures = lightmapAtlas.pageTextures[placement.pageIndex]
+                        materialAttributes += BspLightmapTextureAttribute(pageTextures[0])
+                        materialAttributes += BspLightmapTexture1Attribute(pageTextures[1])
+                        materialAttributes += BspLightmapTexture2Attribute(pageTextures[2])
+                        materialAttributes += BspLightmapTexture3Attribute(pageTextures[3])
                     }
                     val meshBuilder = modelBuilder.part(
                         part.meshPartId,
@@ -338,7 +375,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                         texture = texture,
                         meshBuilder = meshBuilder,
                         includeLightmapUv = true,
-                        lightmapGeometry = lightmap?.geometry,
+                        lightmapPlacement = lightmapPlacement,
                     )
                 }
             }
@@ -353,7 +390,7 @@ private fun addFaceAsTriangles(
     texture: Texture,
     meshBuilder: com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder,
     includeLightmapUv: Boolean,
-    lightmapGeometry: FaceLightmapGeometry?,
+    lightmapPlacement: BspLightmapAtlasPlacement?,
 ) {
     // Reconstruct polygon boundary from signed surfedges, then emit a triangle fan.
     if (vertexIndices.size < 3) {
@@ -368,9 +405,9 @@ private fun addFaceAsTriangles(
         val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
         val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
         val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
-            val lm0 = calculateLightmapUv(v0, textureInfo, lightmapGeometry)
-            val lm1 = calculateLightmapUv(v1, textureInfo, lightmapGeometry)
-            val lm2 = calculateLightmapUv(v2, textureInfo, lightmapGeometry)
+            val lm0 = calculateLightmapUv(v0, textureInfo, lightmapPlacement)
+            val lm1 = calculateLightmapUv(v1, textureInfo, lightmapPlacement)
+            val lm2 = calculateLightmapUv(v2, textureInfo, lightmapPlacement)
             if (includeLightmapUv) {
                 listOf(
                     v2.x, v2.y, v2.z, uv2.first(), uv2.last(), lm2.first, lm2.second,
@@ -559,11 +596,12 @@ private fun collectTextureAnimationChainIndices(
 private fun calculateLightmapUv(
     vertex: jake2.qcommon.math.Vector3f,
     textureInfo: jake2.qcommon.filesystem.BspTextureInfo,
-    lightmapGeometry: FaceLightmapGeometry?,
+    lightmapPlacement: BspLightmapAtlasPlacement?,
 ): Pair<Float, Float> {
-    if (lightmapGeometry == null) {
+    if (lightmapPlacement == null) {
         return 0f to 0f
     }
+    val lightmapGeometry = lightmapPlacement.geometry
     val s = vertex.x * textureInfo.uAxis.x +
         vertex.y * textureInfo.uAxis.y +
         vertex.z * textureInfo.uAxis.z + textureInfo.uOffset
@@ -574,70 +612,177 @@ private fun calculateLightmapUv(
     // Legacy counterpart:
     // `client/render/fast/Surf.BuildPolygonFromSurface` lightmap coordinate path
     // (`s -= texturemins; s += 8; s /= smax*16` and same for `t`).
-    val lmU = (s - lightmapGeometry.textureMinS + 8f) / (lightmapGeometry.sMax * 16f)
-    val lmV = (t - lightmapGeometry.textureMinT + 8f) / (lightmapGeometry.tMax * 16f)
-    return lmU to lmV
+    val localU = (s - lightmapGeometry.textureMinS + 8f) / (lightmapGeometry.sMax * 16f)
+    val localV = (t - lightmapGeometry.textureMinT + 8f) / (lightmapGeometry.tMax * 16f)
+
+    // Q2PRO reference:
+    // `q2pro/src/refresh/surf.c`: lightmap block packing (`LM_AllocBlock`) and normalized
+    // lightmap coordinates over shared atlas pages.
+    val atlasU = (lightmapPlacement.x + localU * lightmapPlacement.width) / lightmapPlacement.pageSize.toFloat()
+    val atlasV = (lightmapPlacement.y + localV * lightmapPlacement.height) / lightmapPlacement.pageSize.toFloat()
+    return atlasU to atlasV
 }
 
-private fun buildFaceLightmapData(
-    bsp: Bsp,
-    face: jake2.qcommon.filesystem.BspFace,
-): FaceLightmapData? {
-    // Decodes up to 4 BSP lightstyle blocks for one face into separate GPU textures.
-    //
-    // Slot order is preserved (style slot 0..3) and must stay aligned with:
-    // - BspLightmapTexture*Attribute assignment in buildModels(...)
-    // - runtime RGBA style weights in BspSurfaceMaterialController
-    // - sampler usage in BspLightmapShader.
-    if (face.lightMapOffset < 0 || bsp.lighting.isEmpty()) {
-        return null
-    }
-    val styles = extractLightStyles(face)
-    if (styles.isEmpty()) {
-        return null
-    }
-    val geometry = computeFaceLightmapGeometry(bsp, face) ?: return null
-    val sampleCount = geometry.sMax * geometry.tMax
-    if (sampleCount <= 0) {
-        return null
-    }
-    val bytesPerStyle = sampleCount * 3
-    val styleTextures = ArrayList<FaceStyleLightmapTexture>(styles.size)
-    styles.forEachIndexed { styleSlot, styleIndex ->
-        val styleOffset = face.lightMapOffset + styleSlot * bytesPerStyle
-        val endOffset = styleOffset + bytesPerStyle
-        if (styleOffset < 0 || endOffset > bsp.lighting.size) {
-            return@forEachIndexed
+private const val LIGHTMAP_ATLAS_STYLE_SLOTS = 4
+private const val LIGHTMAP_ATLAS_PAGE_SIZE = 512
+
+private class BspLightmapAtlasPageBuilder(private val pageSize: Int) {
+    // Q2PRO reference:
+    // `q2pro/src/refresh/surf.c` allocator state used by `LM_AllocBlock`.
+    private val allocated = IntArray(pageSize)
+    val stylePixmaps: kotlin.Array<Pixmap> = kotlin.Array(LIGHTMAP_ATLAS_STYLE_SLOTS) {
+        Pixmap(pageSize, pageSize, Pixmap.Format.RGB888).apply {
+            setColor(0f, 0f, 0f, 1f)
+            fill()
         }
-        val pixmap = Pixmap(geometry.sMax, geometry.tMax, Pixmap.Format.RGB888)
-        var cursor = styleOffset
-        for (y in 0 until geometry.tMax) {
-            for (x in 0 until geometry.sMax) {
-                val r = bsp.lighting[cursor++].toInt() and 0xFF
-                val g = bsp.lighting[cursor++].toInt() and 0xFF
-                val b = bsp.lighting[cursor++].toInt() and 0xFF
-                pixmap.drawPixel(x, y, (r shl 24) or (g shl 16) or (b shl 8) or 0xFF)
+    }
+
+    fun allocate(width: Int, height: Int): Pair<Int, Int>? {
+        if (width <= 0 || height <= 0 || width > pageSize || height > pageSize) {
+            return null
+        }
+        var best = pageSize
+        var bestX = -1
+        var bestY = -1
+
+        // Q2PRO reference:
+        // `LM_AllocBlock` scans x-columns and tracks skyline height in `allocated[]`.
+        for (x in 0..(pageSize - width)) {
+            var best2 = 0
+            var j = 0
+            while (j < width) {
+                val column = allocated[x + j]
+                if (column >= best) {
+                    break
+                }
+                if (column > best2) {
+                    best2 = column
+                }
+                j++
+            }
+            if (j == width) {
+                bestX = x
+                bestY = best2
+                best = best2
             }
         }
-        val texture = Texture(pixmap).apply {
-            setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
-            setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+
+        if (bestX < 0 || bestY + height > pageSize) {
+            return null
         }
-        pixmap.dispose()
-        styleTextures.add(
-            FaceStyleLightmapTexture(
-                styleIndex = styleIndex,
-                texture = texture,
-            )
+        repeat(width) { offset ->
+            allocated[bestX + offset] = bestY + height
+        }
+        return bestX to bestY
+    }
+}
+
+private fun buildLightmapAtlas(
+    bsp: Bsp,
+    pageSize: Int = LIGHTMAP_ATLAS_PAGE_SIZE,
+): BspLightmapAtlasBuildResult {
+    if (bsp.lighting.isEmpty()) {
+        return BspLightmapAtlasBuildResult(
+            pageSize = pageSize,
+            pageTextures = emptyList(),
+            facePlacements = emptyMap(),
         )
     }
-    if (styleTextures.isEmpty()) {
-        return null
+
+    val pages = mutableListOf<BspLightmapAtlasPageBuilder>()
+    val facePlacements = HashMap<Int, BspLightmapAtlasPlacement>()
+
+    bsp.faces.forEachIndexed { faceIndex, face ->
+        val textureInfo = bsp.textures.getOrNull(face.textureInfoIndex) ?: return@forEachIndexed
+        if (!shouldUseBspFaceLightmap(textureInfo.flags)) {
+            return@forEachIndexed
+        }
+        if (face.lightMapOffset < 0) {
+            return@forEachIndexed
+        }
+
+        val styles = extractLightStyles(face).take(LIGHTMAP_ATLAS_STYLE_SLOTS)
+        if (styles.isEmpty()) {
+            return@forEachIndexed
+        }
+        val geometry = computeFaceLightmapGeometry(bsp, face) ?: return@forEachIndexed
+        val sampleCount = geometry.sMax * geometry.tMax
+        if (sampleCount <= 0) {
+            return@forEachIndexed
+        }
+
+        val (pageIndex, pageX, pageY) = allocateAtlasPlacement(
+            pages = pages,
+            pageSize = pageSize,
+            width = geometry.sMax,
+            height = geometry.tMax,
+        ) ?: return@forEachIndexed
+
+        val bytesPerStyle = sampleCount * 3
+        val page = pages[pageIndex]
+        repeat(styles.size) { styleSlot ->
+            val styleOffset = face.lightMapOffset + styleSlot * bytesPerStyle
+            val endOffset = styleOffset + bytesPerStyle
+            if (styleOffset < 0 || endOffset > bsp.lighting.size) {
+                return@repeat
+            }
+            val pixmap = page.stylePixmaps[styleSlot]
+            var cursor = styleOffset
+            for (y in 0 until geometry.tMax) {
+                for (x in 0 until geometry.sMax) {
+                    val r = bsp.lighting[cursor++].toInt() and 0xFF
+                    val g = bsp.lighting[cursor++].toInt() and 0xFF
+                    val b = bsp.lighting[cursor++].toInt() and 0xFF
+                    pixmap.drawPixel(pageX + x, pageY + y, (r shl 24) or (g shl 16) or (b shl 8) or 0xFF)
+                }
+            }
+        }
+
+        facePlacements[faceIndex] = BspLightmapAtlasPlacement(
+            pageIndex = pageIndex,
+            x = pageX,
+            y = pageY,
+            width = geometry.sMax,
+            height = geometry.tMax,
+            pageSize = pageSize,
+            geometry = geometry,
+        )
     }
-    return FaceLightmapData(
-        styleTextures = styleTextures,
-        geometry = geometry,
+
+    val pageTextures = pages.map { page ->
+        page.stylePixmaps.map { pixmap ->
+            Texture(pixmap).apply {
+                setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+                setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+            }.also {
+                pixmap.dispose()
+            }
+        }
+    }
+
+    return BspLightmapAtlasBuildResult(
+        pageSize = pageSize,
+        pageTextures = pageTextures,
+        facePlacements = facePlacements,
     )
+}
+
+private fun allocateAtlasPlacement(
+    pages: MutableList<BspLightmapAtlasPageBuilder>,
+    pageSize: Int,
+    width: Int,
+    height: Int,
+): Triple<Int, Int, Int>? {
+    pages.forEachIndexed { pageIndex, page ->
+        val placement = page.allocate(width, height)
+        if (placement != null) {
+            return Triple(pageIndex, placement.first, placement.second)
+        }
+    }
+    val newPage = BspLightmapAtlasPageBuilder(pageSize)
+    pages += newPage
+    val placement = newPage.allocate(width, height) ?: return null
+    return Triple(pages.lastIndex, placement.first, placement.second)
 }
 
 private fun shouldUseBspFaceLightmap(textureFlags: Int): Boolean =

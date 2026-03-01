@@ -10,7 +10,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
 - `AnimationTextureAttribute` / `AnimationNormalTextureAttribute` - position/normal VAT bindings for MD2 shader path.
-- `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel BSP lightmap sampling (`UV2`) with up to 4 lightstyle slots per face.
+- `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel BSP lightmap sampling (`UV2`) with up to 4 lightstyle slots packed into shared atlas pages.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
 ## Data / Control Flow
@@ -48,6 +48,7 @@ For world rendering specifically:
 - `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
 - `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and per-slot lightstyle weights for world lightmaps.
 - `BspLightmapShader` multiplies world diffuse albedo by baked lightmap texels sampled from UV2.
+- `BspLoader` packs all eligible BSP face lightmaps into shared atlas pages using a Q2PRO-style block allocator model (`LM_AllocBlock` equivalent).
 
 For inline brush models specifically:
 - `BspLoader` emits stable inline part ids by face (`inline_<modelIndex>_face_<faceIndex>`).
@@ -175,7 +176,7 @@ For inline brush models specifically:
   - Keep one sampled lightmap texture per face and scale by primary style only
   - Load one lightmap texture per style slot and blend in shader using runtime style weights
 - **Chosen Option & Rationale:** Per-slot textures + shader blend. This preserves UV2 per-texel detail and restores animated lightstyle behavior for non-primary slots.
-- **Consequences:** More generated textures and texture-unit usage on world surfaces with multi-style lightmaps.
+- **Consequences:** More texture-unit usage per draw. Atlas packing reduces texture-object count compared to per-face textures.
 - **Status:** accepted
 - **Definition of Done:** Triggered `CS_LIGHTS` updates (for example from `target_lightramp`) visibly affect world surfaces that reference non-primary style slots.
 
@@ -185,7 +186,7 @@ For inline brush models specifically:
   - Keep inline per-part aggregate modulation
   - Split inline models into per-face mesh parts and apply UV2 lightmaps for eligible faces
 - **Chosen Option & Rationale:** Per-face inline parts + UV2 lightmaps for non-`SURF_TRANS*` and non-`SURF_WARP` faces. This restores parity for doors/platforms/func_* lighting and makes inline lightstyle updates (`CS_LIGHTS`) behave like world faces.
-- **Consequences:** More inline mesh parts/materials and generated lightmap textures; texture animation/material controllers continue to work by mesh part id.
+- **Consequences:** More inline mesh parts/materials. Lightmaps are now sourced from shared atlas pages instead of per-face textures; texture animation/material controllers continue to work by mesh part id.
 - **Status:** accepted
 - **Definition of Done:** Inline brush entities show per-texel baked lighting on eligible faces and react to `target_lightramp` updates through style-slot weighting.
 
