@@ -270,6 +270,8 @@ class BspWorldBatchRenderer(
 
     /**
      * Draws batched translucent world surfaces (`SURF_TRANS33` / `SURF_TRANS66`) in a dedicated pass.
+     *
+     * Includes `SURF_WARP + SURF_TRANS*` liquids in alpha pass (Yamagi/Q2PRO parity).
      */
     fun renderTranslucent(
         camera: Camera,
@@ -341,12 +343,15 @@ class BspWorldBatchRenderer(
                 shaderProgram.setUniformi(uLightmapTexture2, 3)
                 shaderProgram.setUniformi(uLightmapTexture3, 4)
 
-                val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
-                    computeFlowingOffsetU(currentTimeMs)
-                } else {
-                    0f
+                val (offsetU, offsetV, scaleU, scaleV) = when {
+                    // Reference parity:
+                    // - Yamagi GL3: GL3_DrawAlphaSurfaces -> GL3_EmitWaterPolys for turbulent alpha surfaces.
+                    // - Q2PRO: statebits_for_surface keeps SURF_WARP and SURF_TRANS_MASK as independent state bits.
+                    (key.textureFlags and Defines.SURF_WARP) != 0 -> computeWarpUvTransform(currentTimeMs)
+                    (key.textureFlags and Defines.SURF_FLOWING) != 0 -> floatArrayOf(computeFlowingOffsetU(currentTimeMs), 0f, 1f, 1f)
+                    else -> floatArrayOf(0f, 0f, 1f, 1f)
                 }
-                shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
+                shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
                 shaderProgram.setUniformf(uOpacity, if (trans33) 0.33f else 0.66f)
 
                 for ((chunkIndex, surfaces) in chunkGroups) {

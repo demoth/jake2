@@ -1062,8 +1062,9 @@ private fun shouldLoadWalTexture(textureName: String, textureFlags: Int): Boolea
 private fun classifyWorldSurfacePass(textureFlags: Int, hasLightmap: Boolean): BspWorldSurfacePass {
     return when {
         (textureFlags and Defines.SURF_SKY) != 0 -> BspWorldSurfacePass.SKY
-        (textureFlags and Defines.SURF_WARP) != 0 -> BspWorldSurfacePass.WARP
+        // Yamagi/Q2PRO parity: faces carrying SURF_TRANS* must stay in alpha pass even when also SURF_WARP.
         (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0 -> BspWorldSurfacePass.TRANSLUCENT
+        (textureFlags and Defines.SURF_WARP) != 0 -> BspWorldSurfacePass.WARP
         hasLightmap -> BspWorldSurfacePass.OPAQUE_LIGHTMAPPED
         else -> BspWorldSurfacePass.OPAQUE_UNLIT
     }
