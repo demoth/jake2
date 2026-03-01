@@ -26,8 +26,14 @@ private data class FrameBatchKey(
     val lightStyleSignature: Long,
 )
 
+private data class FrameTranslucentBatchKey(
+    val activeTextureInfoIndex: Int,
+    val textureFlags: Int,
+)
+
 /**
  * Dedicated world BSP renderer for the in-progress Q2PRO-style batching path.
+ * Draws world surfaces in explicit opaque and translucent passes.
  *
  * Q2PRO references:
  * - `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`),
@@ -46,7 +52,9 @@ class BspWorldBatchRenderer(
     private val texturesByTexInfoIndex = HashMap<Int, Texture>()
 
     private val chunkMeshes: List<Mesh>
-    private val handledSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
+    private val handledOpaqueSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
+    private val handledTranslucentSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
+    private val whiteTexture: Texture
 
     private val shaderProgram: ShaderProgram
     private val dynamicLightPosRadius = FloatArray(DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS * 4)
@@ -60,6 +68,7 @@ class BspWorldBatchRenderer(
     private val uLightmapTexture3: Int
     private val uDiffuseUvTransform: Int
     private val uLightStyleWeights: Int
+    private val uOpacity: Int
     private val uGammaExponent: Int
     private val uIntensity: Int
     private val uOverbrightBits: Int
@@ -70,6 +79,7 @@ class BspWorldBatchRenderer(
     init {
         preloadDiffuseTextures()
         markHandledSurfaces()
+        whiteTexture = createWhiteTexture()
 
         chunkMeshes = worldBatchData.chunks.map { chunk ->
             Mesh(
@@ -98,6 +108,7 @@ class BspWorldBatchRenderer(
         uLightmapTexture3 = shaderProgram.fetchUniformLocation("u_lightmapTexture3", false)
         uDiffuseUvTransform = shaderProgram.fetchUniformLocation("u_diffuseUVTransform", false)
         uLightStyleWeights = shaderProgram.fetchUniformLocation("u_lightStyleWeights", false)
+        uOpacity = shaderProgram.fetchUniformLocation("u_opacity", false)
         uGammaExponent = shaderProgram.fetchUniformLocation("u_gammaExponent", false)
         uIntensity = shaderProgram.fetchUniformLocation("u_intensity", false)
         uOverbrightBits = shaderProgram.fetchUniformLocation("u_overbrightbits", false)
@@ -106,7 +117,10 @@ class BspWorldBatchRenderer(
         uDynamicLightColor = shaderProgram.fetchUniformLocation("u_dynamicLightColor", false)
     }
 
-    fun handledSurfacesMask(): BooleanArray = handledSurfaceMask.copyOf()
+    fun suppressedSurfacesMask(): BooleanArray =
+        BooleanArray(worldRenderData.surfaces.size) { index ->
+            handledOpaqueSurfaceMask[index] || handledTranslucentSurfaceMask[index]
+        }
 
     fun render(
         camera: Camera,
@@ -124,7 +138,7 @@ class BspWorldBatchRenderer(
             if (surface.worldSurfaceIndex !in visibleSurfaceMask.indices || !visibleSurfaceMask[surface.worldSurfaceIndex]) {
                 return@forEach
             }
-            if (surface.worldSurfaceIndex !in handledSurfaceMask.indices || !handledSurfaceMask[surface.worldSurfaceIndex]) {
+            if (surface.worldSurfaceIndex !in handledOpaqueSurfaceMask.indices || !handledOpaqueSurfaceMask[surface.worldSurfaceIndex]) {
                 return@forEach
             }
             val worldSurface = worldRenderData.surfaces[surface.worldSurfaceIndex]
@@ -143,7 +157,7 @@ class BspWorldBatchRenderer(
             return
         }
 
-        configurePipeline()
+        configureOpaquePipeline()
         shaderProgram.bind()
         shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
         shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
@@ -189,6 +203,96 @@ class BspWorldBatchRenderer(
                 floatArrayOf(1f, 0f, 0f, 0f)
             }
             shaderProgram.setUniformf(uLightStyleWeights, styleWeights[0], styleWeights[1], styleWeights[2], styleWeights[3])
+            shaderProgram.setUniformf(uOpacity, 1f)
+
+            for ((chunkIndex, surfaces) in chunkGroups) {
+                val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
+                val mesh = chunkMeshes.getOrNull(chunkIndex) ?: continue
+                val indexCount = surfaces.sumOf { it.indexCount }
+                if (indexCount <= 0) {
+                    continue
+                }
+                val indices = ShortArray(indexCount)
+                var cursor = 0
+                surfaces.forEach { groupedSurface ->
+                    System.arraycopy(chunk.indices, groupedSurface.indexOffset, indices, cursor, groupedSurface.indexCount)
+                    cursor += groupedSurface.indexCount
+                }
+                mesh.setIndices(indices, 0, indices.size)
+                mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+            }
+        }
+    }
+
+    /**
+     * Draws batched translucent world surfaces (`SURF_TRANS33` / `SURF_TRANS66`) in a dedicated pass.
+     */
+    fun renderTranslucent(
+        camera: Camera,
+        visibleSurfaceMask: BooleanArray,
+        currentTimeMs: Int,
+    ) {
+        if (worldBatchData.surfaces.isEmpty()) {
+            return
+        }
+
+        val drawGroups = LinkedHashMap<FrameTranslucentBatchKey, MutableMap<Int, MutableList<BspWorldBatchSurface>>>()
+        worldBatchData.surfaces.forEach { surface ->
+            if (surface.worldSurfaceIndex !in visibleSurfaceMask.indices || !visibleSurfaceMask[surface.worldSurfaceIndex]) {
+                return@forEach
+            }
+            if (
+                surface.worldSurfaceIndex !in handledTranslucentSurfaceMask.indices ||
+                !handledTranslucentSurfaceMask[surface.worldSurfaceIndex]
+            ) {
+                return@forEach
+            }
+            val key = FrameTranslucentBatchKey(
+                activeTextureInfoIndex = resolveActiveTextureInfoIndex(surface.batchKey.textureInfoIndex, currentTimeMs),
+                textureFlags = surface.batchKey.textureFlags,
+            )
+            val byChunk = drawGroups.getOrPut(key) { LinkedHashMap() }
+            byChunk.getOrPut(surface.chunkIndex) { ArrayList() } += surface
+        }
+
+        if (drawGroups.isEmpty()) {
+            return
+        }
+
+        configureTranslucentPipeline()
+        shaderProgram.bind()
+        shaderProgram.setUniformMatrix(uProjViewTrans, camera.combined)
+        shaderProgram.setUniformf(uGammaExponent, RenderTuningCvars.gammaExponent())
+        shaderProgram.setUniformf(uIntensity, RenderTuningCvars.intensity())
+        shaderProgram.setUniformf(uOverbrightBits, 1f)
+        shaderProgram.setUniformi(uDynamicLightCount, 0)
+        shaderProgram.setUniformf(uLightStyleWeights, 1f, 0f, 0f, 0f)
+
+        drawGroups.forEach { (key, chunkGroups) ->
+            val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
+            diffuseTexture.bind(0)
+            whiteTexture.bind(1)
+            whiteTexture.bind(2)
+            whiteTexture.bind(3)
+            whiteTexture.bind(4)
+            shaderProgram.setUniformi(uDiffuseTexture, 0)
+            shaderProgram.setUniformi(uLightmapTexture0, 1)
+            shaderProgram.setUniformi(uLightmapTexture1, 2)
+            shaderProgram.setUniformi(uLightmapTexture2, 3)
+            shaderProgram.setUniformi(uLightmapTexture3, 4)
+
+            val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
+                computeFlowingOffsetU(currentTimeMs)
+            } else {
+                0f
+            }
+            shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
+            val opacity = when {
+                (key.textureFlags and Defines.SURF_TRANS33) != 0 -> 0.33f
+                (key.textureFlags and Defines.SURF_TRANS66) != 0 -> 0.66f
+                else -> 1f
+            }
+            shaderProgram.setUniformf(uOpacity, opacity)
 
             for ((chunkIndex, surfaces) in chunkGroups) {
                 val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
@@ -211,6 +315,7 @@ class BspWorldBatchRenderer(
 
     override fun dispose() {
         chunkMeshes.forEach { it.dispose() }
+        whiteTexture.dispose()
         shaderProgram.dispose()
     }
 
@@ -227,16 +332,27 @@ class BspWorldBatchRenderer(
         worldBatchData.surfaces.forEach { surface ->
             val worldSurface = worldRenderData.surfaces.getOrNull(surface.worldSurfaceIndex) ?: return@forEach
             if (isBatchedOpaqueSurface(worldSurface.textureFlags, surface.batchKey.lightmapPageIndex)) {
-                handledSurfaceMask[surface.worldSurfaceIndex] = true
+                handledOpaqueSurfaceMask[surface.worldSurfaceIndex] = true
+            } else if (isBatchedTranslucentSurface(worldSurface.textureFlags)) {
+                handledTranslucentSurfaceMask[surface.worldSurfaceIndex] = true
             }
         }
     }
 
-    private fun configurePipeline() {
+    private fun configureOpaquePipeline() {
         val gl = Gdx.gl
         gl.glEnable(GL20.GL_DEPTH_TEST)
         gl.glDepthMask(true)
         gl.glDisable(GL20.GL_BLEND)
+        gl.glDisable(GL20.GL_CULL_FACE)
+    }
+
+    private fun configureTranslucentPipeline() {
+        val gl = Gdx.gl
+        gl.glEnable(GL20.GL_DEPTH_TEST)
+        gl.glDepthMask(false)
+        gl.glEnable(GL20.GL_BLEND)
+        gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         gl.glDisable(GL20.GL_CULL_FACE)
     }
 
@@ -292,6 +408,23 @@ class BspWorldBatchRenderer(
         return true
     }
 
+    private fun isBatchedTranslucentSurface(textureFlags: Int): Boolean {
+        if ((textureFlags and Defines.SURF_SKY) != 0) {
+            return false
+        }
+        if ((textureFlags and Defines.SURF_WARP) != 0) {
+            return false
+        }
+        return (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0
+    }
+
+    private fun createWhiteTexture(): Texture {
+        val pixmap = com.badlogic.gdx.graphics.Pixmap(1, 1, com.badlogic.gdx.graphics.Pixmap.Format.RGB888)
+        pixmap.setColor(1f, 1f, 1f, 1f)
+        pixmap.fill()
+        return Texture(pixmap).also { pixmap.dispose() }
+    }
+
     companion object {
         private const val VERTEX_SHADER = """
 attribute vec3 a_position;
@@ -325,6 +458,7 @@ uniform sampler2D u_lightmapTexture1;
 uniform sampler2D u_lightmapTexture2;
 uniform sampler2D u_lightmapTexture3;
 uniform vec4 u_lightStyleWeights;
+uniform float u_opacity;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
@@ -368,7 +502,7 @@ void main() {
     vec3 lit = albedo.rgb * light;
     lit *= u_intensity;
     lit = pow(max(lit, vec3(0.0)), vec3(u_gammaExponent));
-    gl_FragColor = vec4(lit, albedo.a);
+    gl_FragColor = vec4(lit, albedo.a * u_opacity);
 }
 """
     }

@@ -69,7 +69,7 @@ Planned phases:
 - [x] Step 3: precomputed batched world geometry/ranges/chunking metadata.
 - [x] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
 - [x] Step 5: move world animation/lightstyle/flowing to draw-command state.
-- [ ] Step 6: translucent world pass parity on batched path.
+- [x] Step 6: translucent world pass parity on batched path.
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 

@@ -31,7 +31,7 @@ Main desktop entrypoint:
 
 The world BSP renderer migration is guarded by a runtime toggle:
 
-- `r_bsp_batch_world` (default `0`) - enables the in-progress Q2PRO-style world BSP batching path.
+- `r_bsp_batch_world` (default `0`) - enables the in-progress Q2PRO-style world BSP batching path (opaque + dedicated translucent world passes).
 
 Q2PRO references for the target path:
 

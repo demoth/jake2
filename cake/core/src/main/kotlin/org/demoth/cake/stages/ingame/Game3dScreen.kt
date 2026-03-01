@@ -275,6 +275,11 @@ class Game3dScreen(
             entityManager.lerpAcc += delta
 
         }
+        worldBatchRenderer?.renderTranslucent(
+            camera = camera,
+            visibleSurfaceMask = worldVisibilityController?.visibleSurfaceMaskSnapshot() ?: BooleanArray(0),
+            currentTimeMs = Globals.curtime,
+        )
         effectsSystem.renderParticles(camera)
         modelBatch.use(camera) { modelBatch ->
             effectsSystem.render(modelBatch)
@@ -609,7 +614,7 @@ class Game3dScreen(
             null
         }
         worldBatchRenderer?.let { batchRenderer ->
-            val suppressedMask = batchRenderer.handledSurfacesMask()
+            val suppressedMask = batchRenderer.suppressedSurfacesMask()
             worldVisibilityController?.setSuppressedSurfaces(suppressedMask)
             worldTextureAnimationController?.setSuppressedSurfaces(suppressedMask)
             worldSurfaceMaterialController?.setSuppressedSurfaces(suppressedMask)

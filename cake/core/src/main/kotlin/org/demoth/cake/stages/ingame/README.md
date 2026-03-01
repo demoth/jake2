@@ -34,7 +34,7 @@ FrameHeader + PacketEntities + PlayerInfo
   -> render
 
 If `r_bsp_batch_world = 1`:
-- opaque world BSP surfaces are rendered by `BspWorldBatchRenderer`,
+- world BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/translucent passes,
 - legacy world `NodePart` visibility/material/texture controllers suppress those same surfaces to avoid double draw.
 
 SoundMessage
