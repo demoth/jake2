@@ -263,7 +263,6 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             models = buildModels(
                 bsp = bsp,
                 manager = manager,
-                worldSurfaces = worldSurfaces,
                 inlineRenderData = inlineRenderData,
                 lightmapAtlas = lightmapAtlas,
             ),
@@ -310,7 +309,6 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     private fun buildModels(
         bsp: Bsp,
         manager: AssetManager,
-        worldSurfaces: List<BspWorldSurfaceRecord>,
         inlineRenderData: List<BspInlineModelRenderData>,
         lightmapAtlas: BspLightmapAtlasBuildResult,
     ): List<Model> {
@@ -318,46 +316,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         return bsp.models.mapIndexed { modelIndex, _ ->
             val modelBuilder = ModelBuilder()
             modelBuilder.begin()
-            if (modelIndex == 0) {
-                worldSurfaces.forEach { surface ->
-                    val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
-                    val face = bsp.faces[surface.faceIndex]
-                    val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEach
-                    val lightmapPlacement = lightmapAtlas.facePlacements[surface.faceIndex]
-                    val materialAttributes = mutableListOf<Attribute>(
-                        TextureAttribute(TextureAttribute.Diffuse, texture),
-                    )
-                    lightmapPlacement?.let { placement ->
-                        val pageTextures = lightmapAtlas.pageTextures[placement.pageIndex]
-                        // Slot order must stay stable across loader + shader + runtime style weights:
-                        // 0..3 -> lightMapStyles[0..3] / u_lightStyleWeights.rgba.
-                        materialAttributes += BspLightmapTextureAttribute(pageTextures[0])
-                        materialAttributes += BspLightmapTexture1Attribute(pageTextures[1])
-                        materialAttributes += BspLightmapTexture2Attribute(pageTextures[2])
-                        materialAttributes += BspLightmapTexture3Attribute(pageTextures[3])
-                    }
-                    val material = Material(*materialAttributes.toTypedArray())
-                    val meshBuilder = modelBuilder.part(
-                        surface.meshPartId,
-                        GL_TRIANGLES,
-                        VertexAttributes(
-                            VertexAttribute.Position(),
-                            VertexAttribute.TexCoords(0),
-                            VertexAttribute.TexCoords(1),
-                        ),
-                        material
-                    )
-                    addFaceAsTriangles(
-                        bsp = bsp,
-                        face = face,
-                        vertexIndices = vertexIndices,
-                        texture = texture,
-                        meshBuilder = meshBuilder,
-                        includeLightmapUv = true,
-                        lightmapPlacement = lightmapPlacement,
-                    )
-                }
-            } else {
+            if (modelIndex != 0) {
                 val inlineParts = inlineRenderDataByModel[modelIndex]?.parts.orEmpty()
                 inlineParts.forEach { part ->
                     val texturePath = toWalPath(part.textureName)

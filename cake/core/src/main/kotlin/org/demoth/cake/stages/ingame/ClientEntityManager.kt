@@ -42,7 +42,6 @@ class ClientEntityManager : Disposable {
     private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0)
     private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0)
     private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0)
-    private val rDrawWorld = Cvar.getInstance().Get("r_drawworld", "1", 0)
     private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
 
     // model instances to be drawn - updated on every server frame
@@ -54,7 +53,6 @@ class ClientEntityManager : Disposable {
 
     var viewGun: ClientEntity? = null
 
-    var levelEntity: ClientEntity? = null
     var skyEntity: ClientEntity? = null
 
     // debug related
@@ -305,9 +303,7 @@ class ClientEntityManager : Disposable {
             }
             visibleEntities += debugWorldOrigin!!
         }
-        if (levelEntity != null && rDrawWorld?.value != 0f && !RenderTuningCvars.bspBatchWorldEnabled()) {
-            visibleEntities += levelEntity!!
-        }
+        // World model-0 rendering is owned by the dedicated batch renderer path.
 
         val mask = Defines.MAX_PARSE_ENTITIES - 1
 

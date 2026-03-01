@@ -18,8 +18,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Enables/disables dynamic light contribution.
 - `r_particles` (default `4096`)  
   Global particle budget (`0` disables particles; positive values cap live particles, clamped to `MAX_PARTICLES` parity target).
-- `r_bsp_batch_world` (default `0`)  
-  Guards the in-progress Q2PRO-style world BSP batching path during parity migration.
+- `r_bsp_batch_debug` (default `0`)  
+  Emits throttled per-frame world/entity/sprite/beam/particle submission diagnostics for BSP batching.
 
 ## Master Feature List
 
@@ -70,6 +70,7 @@ Planned phases:
 - [x] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
 - [x] Step 5: move world animation/lightstyle/flowing to draw-command state.
 - [x] Step 6: translucent world pass parity on batched path.
+- [x] Step 7: remove legacy per-face world rendering path (batch renderer is now world-owner).
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 

@@ -88,11 +88,8 @@ class Game3dScreen(
 
     private val beamRenderer = BeamRenderer(assetManager)
     private val sp2Renderer = Sp2Renderer()
-    private var worldVisibilityController: BspWorldVisibilityController? = null
     private var worldVisibilityMaskTracker: BspWorldVisibilityMaskTracker? = null
-    private var worldTextureAnimationController: BspWorldTextureAnimationController? = null
     private var inlineTextureAnimationController: BspInlineTextureAnimationController? = null
-    private var worldSurfaceMaterialController: BspWorldSurfaceMaterialController? = null
     private var inlineSurfaceMaterialController: BspInlineSurfaceMaterialController? = null
     private var worldBatchRenderer: BspWorldBatchRenderer? = null
     private var entityLightSampler: BspEntityLightSampler? = null
@@ -215,11 +212,8 @@ class Game3dScreen(
             )
         )
         syncEntityLoopSounds()
-        worldVisibilityController?.update(camera.position, entityManager.currentFrame.areabits)
         worldVisibilityMaskTracker?.update(camera.position, entityManager.currentFrame.areabits)
-        worldTextureAnimationController?.update(Globals.curtime)
         refreshLightStyles(Globals.curtime)
-        worldSurfaceMaterialController?.update(Globals.curtime, ::lightStyleValue)
         advanceSkyRotation(delta)
         effectsSystem.update(delta, entityManager.currentFrame.serverframe)
         collectEntityEffectTrails()
@@ -255,7 +249,7 @@ class Game3dScreen(
                 }
 
             entityManager.visibleEntities.forEach {
-                if (RenderTuningCvars.bspBatchWorldEnabled() && it.name == "level") {
+                if (it.name == "level") {
                     return@forEach
                 }
                 if (!isTranslucentModelPassEntity(it)) {
@@ -271,7 +265,7 @@ class Game3dScreen(
                 }
             }
             entityManager.visibleEntities.forEach {
-                if (RenderTuningCvars.bspBatchWorldEnabled() && it.name == "level") {
+                if (it.name == "level") {
                     return@forEach
                 }
                 if (isTranslucentModelPassEntity(it)) {
@@ -421,7 +415,6 @@ class Game3dScreen(
 
     private fun worldVisibilityMask(): BooleanArray {
         worldVisibilityMaskTracker?.let { return it.visibleSurfaceMaskSnapshot() }
-        worldVisibilityController?.let { return it.visibleSurfaceMaskSnapshot() }
         return BooleanArray(0)
     }
 
@@ -616,11 +609,8 @@ class Game3dScreen(
     override fun dispose() {
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
-        worldVisibilityController = null
         worldVisibilityMaskTracker = null
-        worldTextureAnimationController = null
         inlineTextureAnimationController = null
-        worldSurfaceMaterialController = null
         inlineSurfaceMaterialController = null
         entityLightSampler = null
         audioSystem.dispose()
@@ -642,10 +632,8 @@ class Game3dScreen(
      * Load resources into the memory, that are referenced in the config strings or assumed always required (like weapon sounds)
      *
      * World model terminology (Quake2 -> libGDX):
-     * - Quake2 BSP `model 0` (static world) -> one libGDX [com.badlogic.gdx.graphics.g3d.Model].
-     * - Runtime world entity (`levelEntity`) -> [ModelInstance] of that model.
-     * - Quake2 world surfaces/faces -> libGDX mesh parts (`com.badlogic.gdx.graphics.g3d.model.NodePart.meshPart.id == surface_<faceIndex>`).
-     * - Visibility/animation controllers mutate `com.badlogic.gdx.graphics.g3d.model.NodePart.enabled` and diffuse texture on that world [ModelInstance].
+     * - Quake2 BSP `model 0` (static world) is rendered by [BspWorldBatchRenderer].
+     * - Legacy per-face world `ModelInstance` path is no longer used.
      *
      * todo: make resource loading asynchronous
      */
@@ -676,51 +664,17 @@ class Game3dScreen(
             configString.resource = model
         }
 
-        // The world model is not replicated as a normal packet entity.
-        // Keep one persistent ModelInstance that controllers mutate each frame.
-        entityManager.levelEntity = ClientEntity("level").apply {
-            modelInstance = ModelInstance(brushModels.first())
-        }
-
         collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
-        if (RenderTuningCvars.bspBatchWorldEnabled()) {
-            worldVisibilityController = null
-            worldTextureAnimationController = null
-            worldSurfaceMaterialController = null
-            worldVisibilityMaskTracker = BspWorldVisibilityMaskTracker(
-                worldRenderData = bspMap.worldRenderData,
-                collisionModel = collisionModel,
-            )
-            worldBatchRenderer = BspWorldBatchRenderer(
-                worldRenderData = bspMap.worldRenderData,
-                worldBatchData = bspMap.worldBatchData,
-                lightmapAtlasPages = bspMap.lightmapAtlasPages,
-                assetManager = assetManager,
-            )
-        } else {
-            worldVisibilityMaskTracker = null
-            worldVisibilityController = BspWorldVisibilityController(
-                worldRenderData = bspMap.worldRenderData,
-                modelInstance = entityManager.levelEntity!!.modelInstance,
-                collisionModel = collisionModel,
-            )
-            worldTextureAnimationController = BspWorldTextureAnimationController(
-                worldRenderData = bspMap.worldRenderData,
-                modelInstance = entityManager.levelEntity!!.modelInstance,
-                assetManager = assetManager,
-            )
-            worldSurfaceMaterialController = BspWorldSurfaceMaterialController(
-                worldRenderData = bspMap.worldRenderData,
-                modelInstance = entityManager.levelEntity!!.modelInstance,
-            )
-            worldBatchRenderer = null
-        }
-        worldBatchRenderer?.let { batchRenderer ->
-            val suppressedMask = batchRenderer.suppressedSurfacesMask()
-            worldVisibilityController?.setSuppressedSurfaces(suppressedMask)
-            worldTextureAnimationController?.setSuppressedSurfaces(suppressedMask)
-            worldSurfaceMaterialController?.setSuppressedSurfaces(suppressedMask)
-        }
+        worldVisibilityMaskTracker = BspWorldVisibilityMaskTracker(
+            worldRenderData = bspMap.worldRenderData,
+            collisionModel = collisionModel,
+        )
+        worldBatchRenderer = BspWorldBatchRenderer(
+            worldRenderData = bspMap.worldRenderData,
+            worldBatchData = bspMap.worldBatchData,
+            lightmapAtlasPages = bspMap.lightmapAtlasPages,
+            assetManager = assetManager,
+        )
         inlineTextureAnimationController = BspInlineTextureAnimationController(
             inlineRenderData = bspMap.inlineRenderData,
             textureInfos = bspMap.worldRenderData.textureInfos,

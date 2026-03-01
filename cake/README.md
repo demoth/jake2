@@ -27,24 +27,25 @@ Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
-## BSP Batching Migration
+## BSP World Renderer
 
-The world BSP renderer migration is guarded by a runtime toggle:
+Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).
 
-- `r_bsp_batch_world` (default `0`) - enables the in-progress Q2PRO-style world BSP batching path (opaque + dedicated translucent world passes).
+Runtime diagnostics:
+
+- `r_bsp_batch_debug` (default `0`) - prints throttled world/entity/sprite/beam/particle submission stats.
 
 Q2PRO references for the target path:
 
 - `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`)
 - `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`)
 
-Baseline profiling before enabling the new path:
+Profiling workflow:
 
 1. Enable debug graphs:
    - `set r_debug_drawcalls 1`
    - `set r_debug_texturebindings 1`
-2. Capture baseline on representative maps/views with `r_bsp_batch_world 0`.
-3. Re-run the same views with `r_bsp_batch_world 1` to exercise the dedicated opaque world batch renderer path.
+2. Enable `r_bsp_batch_debug 1` and capture representative maps/views.
 
 ### Bitmap Font Tool
 

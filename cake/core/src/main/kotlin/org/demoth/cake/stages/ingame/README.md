@@ -15,7 +15,8 @@ It does not own:
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
-- `BspWorldBatchRenderer` - dedicated opaque world BSP renderer used by the optional Q2PRO-style batching path (`r_bsp_batch_world`).
+- `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).
+- `BspWorldVisibilityMaskTracker` - batch-mode PVS/areabits visibility mask tracker (no NodePart mutation).
 - `GameConfiguration` (`org.demoth.cake`) - configstring-backed asset ownership/lookup for map assets and generic sounds.
 - `PlayerConfiguration` (`org.demoth.cake`) - player slot/inventory state and variation-aware model/icon/sound resolution.
 
@@ -33,9 +34,8 @@ FrameHeader + PacketEntities + PlayerInfo
   -> Game3dScreen.playEntityEventSounds
   -> render
 
-If `r_bsp_batch_world = 1`:
-- world BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/translucent passes,
-- legacy world `NodePart` visibility/material/texture controllers suppress those same surfaces to avoid double draw.
+World BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/warp/translucent passes.
+Visibility is driven by `BspWorldVisibilityMaskTracker` (PVS + areabits) and fed directly into the batched renderer.
 
 SoundMessage
   -> Game3dScreen.processSoundMessage
