@@ -609,7 +609,10 @@ class Game3dScreen(
             null
         }
         worldBatchRenderer?.let { batchRenderer ->
-            worldVisibilityController?.setSuppressedSurfaces(batchRenderer.handledSurfacesMask())
+            val suppressedMask = batchRenderer.handledSurfacesMask()
+            worldVisibilityController?.setSuppressedSurfaces(suppressedMask)
+            worldTextureAnimationController?.setSuppressedSurfaces(suppressedMask)
+            worldSurfaceMaterialController?.setSuppressedSurfaces(suppressedMask)
         }
         inlineTextureAnimationController = BspInlineTextureAnimationController(
             inlineRenderData = bspMap.inlineRenderData,

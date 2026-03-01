@@ -48,6 +48,7 @@ class BspWorldSurfaceMaterialController(
         )
     }
     private val nodePartsById = collectNodePartsById(modelInstance)
+    private val suppressedSurfaceMask = BooleanArray(bindings.size)
 
     /**
      * Updates world-surface material state for the current render frame.
@@ -66,7 +67,19 @@ class BspWorldSurfaceMaterialController(
             nodePartsById = nodePartsById,
             currentTimeMs = currentTimeMs,
             lightStyleResolver = lightStyleResolver,
+            shouldApply = { surfaceIndex -> !suppressedSurfaceMask[surfaceIndex] },
         )
+    }
+
+    /**
+     * Marks world surfaces rendered by the batched renderer so NodePart material mutation is skipped.
+     */
+    fun setSuppressedSurfaces(mask: BooleanArray) {
+        suppressedSurfaceMask.fill(false)
+        val count = minOf(suppressedSurfaceMask.size, mask.size)
+        repeat(count) { index ->
+            suppressedSurfaceMask[index] = mask[index]
+        }
     }
 }
 
@@ -133,9 +146,13 @@ private fun applySurfaceMaterialState(
     nodePartsById: Map<String, NodePart>,
     currentTimeMs: Int,
     lightStyleResolver: (Int) -> Float,
+    shouldApply: (Int) -> Boolean = { true },
 ) {
-    bindings.forEach { binding ->
-        val nodePart = nodePartsById[binding.meshPartId] ?: return@forEach
+    bindings.forEachIndexed { surfaceIndex, binding ->
+        if (!shouldApply(surfaceIndex)) {
+            return@forEachIndexed
+        }
+        val nodePart = nodePartsById[binding.meshPartId] ?: return@forEachIndexed
         applySurfaceTransparency(nodePart, binding.textureFlags)
         applySurfaceFlowing(nodePart, binding.textureFlags, currentTimeMs)
         applySurfaceLightstyles(

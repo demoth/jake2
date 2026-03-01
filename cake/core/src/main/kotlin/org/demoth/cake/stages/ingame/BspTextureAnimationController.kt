@@ -38,6 +38,7 @@ class BspWorldTextureAnimationController(
     private val animationResources: TextureAnimationResources
     private val surfaceBindings: List<TextureAnimationPartBinding>
     private val nodePartsById: Map<String, NodePart>
+    private val suppressedSurfaceMask: BooleanArray
     private var lastAnimationFrame: Int = Int.MIN_VALUE
 
     init {
@@ -49,6 +50,7 @@ class BspWorldTextureAnimationController(
             assetManager = assetManager,
         )
         nodePartsById = collectNodePartsById(modelInstance)
+        suppressedSurfaceMask = BooleanArray(surfaceBindings.size)
     }
 
     /**
@@ -67,13 +69,27 @@ class BspWorldTextureAnimationController(
             return
         }
 
-        applyAnimatedTextureBindings(
-            bindings = surfaceBindings,
-            nodePartsById = nodePartsById,
-            texturesByTexInfoIndex = animationResources.texturesByTexInfoIndex,
-            selectTexInfoIndex = { chain -> selectTextureAnimationTexInfo(chain, currentTimeMs) },
-        )
+        surfaceBindings.forEachIndexed { surfaceIndex, binding ->
+            if (surfaceIndex in suppressedSurfaceMask.indices && suppressedSurfaceMask[surfaceIndex]) {
+                return@forEachIndexed
+            }
+            val nodePart = nodePartsById[binding.meshPartId] ?: return@forEachIndexed
+            val texInfoIndex = selectTextureAnimationTexInfo(binding.texInfoChain, currentTimeMs) ?: return@forEachIndexed
+            val texture = animationResources.texturesByTexInfoIndex[texInfoIndex] ?: return@forEachIndexed
+            applyDiffuseTexture(nodePart, texture)
+        }
         lastAnimationFrame = animationFrame
+    }
+
+    /**
+     * Marks world surfaces that are rendered by the batched world renderer and should not mutate NodePart materials.
+     */
+    fun setSuppressedSurfaces(mask: BooleanArray) {
+        suppressedSurfaceMask.fill(false)
+        val count = minOf(suppressedSurfaceMask.size, mask.size)
+        repeat(count) { index ->
+            suppressedSurfaceMask[index] = mask[index]
+        }
     }
 }
 

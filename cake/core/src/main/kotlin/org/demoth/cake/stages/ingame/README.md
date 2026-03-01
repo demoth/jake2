@@ -33,6 +33,10 @@ FrameHeader + PacketEntities + PlayerInfo
   -> Game3dScreen.playEntityEventSounds
   -> render
 
+If `r_bsp_batch_world = 1`:
+- opaque world BSP surfaces are rendered by `BspWorldBatchRenderer`,
+- legacy world `NodePart` visibility/material/texture controllers suppress those same surfaces to avoid double draw.
+
 SoundMessage
   -> Game3dScreen.processSoundMessage
   -> GameConfiguration.getSound(soundIndex, entityIndex)
