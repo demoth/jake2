@@ -31,6 +31,12 @@ private data class FrameTranslucentBatchKey(
     val textureFlags: Int,
 )
 
+data class BspWorldBatchRenderStats(
+    val visibleSurfaceCount: Int = 0,
+    val groupedSurfaceCount: Int = 0,
+    val drawCalls: Int = 0,
+)
+
 /**
  * Dedicated world BSP renderer for the in-progress Q2PRO-style batching path.
  * Draws world surfaces in explicit opaque and translucent passes.
@@ -75,6 +81,11 @@ class BspWorldBatchRenderer(
     private val uDynamicLightCount: Int
     private val uDynamicLightPosRadius: Int
     private val uDynamicLightColor: Int
+
+    var lastOpaqueStats: BspWorldBatchRenderStats = BspWorldBatchRenderStats()
+        private set
+    var lastTranslucentStats: BspWorldBatchRenderStats = BspWorldBatchRenderStats()
+        private set
 
     init {
         preloadDiffuseTextures()
@@ -130,10 +141,12 @@ class BspWorldBatchRenderer(
         dynamicLights: List<SceneDynamicLight>,
     ) {
         if (worldBatchData.surfaces.isEmpty()) {
+            lastOpaqueStats = BspWorldBatchRenderStats()
             return
         }
 
         val drawGroups = LinkedHashMap<FrameBatchKey, MutableMap<Int, MutableList<BspWorldBatchSurface>>>()
+        var visibleSurfaceCount = 0
         worldBatchData.surfaces.forEach { surface ->
             if (surface.worldSurfaceIndex !in visibleSurfaceMask.indices || !visibleSurfaceMask[surface.worldSurfaceIndex]) {
                 return@forEach
@@ -141,6 +154,7 @@ class BspWorldBatchRenderer(
             if (surface.worldSurfaceIndex !in handledOpaqueSurfaceMask.indices || !handledOpaqueSurfaceMask[surface.worldSurfaceIndex]) {
                 return@forEach
             }
+            visibleSurfaceCount++
             val worldSurface = worldRenderData.surfaces[surface.worldSurfaceIndex]
             val activeTextureInfoIndex = resolveActiveTextureInfoIndex(surface.batchKey.textureInfoIndex, currentTimeMs)
             val key = FrameBatchKey(
@@ -154,9 +168,12 @@ class BspWorldBatchRenderer(
         }
 
         if (drawGroups.isEmpty()) {
+            lastOpaqueStats = BspWorldBatchRenderStats(visibleSurfaceCount = visibleSurfaceCount)
             return
         }
 
+        var drawCallCount = 0
+        var groupedSurfaceCount = 0
         configureOpaquePipeline()
         try {
             shaderProgram.bind()
@@ -213,6 +230,7 @@ class BspWorldBatchRenderer(
                     if (indexCount <= 0) {
                         continue
                     }
+                    groupedSurfaceCount += surfaces.size
                     val indices = ShortArray(indexCount)
                     var cursor = 0
                     surfaces.forEach { groupedSurface ->
@@ -221,11 +239,17 @@ class BspWorldBatchRenderer(
                     }
                     mesh.setIndices(indices, 0, indices.size)
                     mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                    drawCallCount++
                 }
             }
         } finally {
             restoreDefaultPipelineState()
         }
+        lastOpaqueStats = BspWorldBatchRenderStats(
+            visibleSurfaceCount = visibleSurfaceCount,
+            groupedSurfaceCount = groupedSurfaceCount,
+            drawCalls = drawCallCount,
+        )
     }
 
     /**
@@ -237,10 +261,12 @@ class BspWorldBatchRenderer(
         currentTimeMs: Int,
     ) {
         if (worldBatchData.surfaces.isEmpty()) {
+            lastTranslucentStats = BspWorldBatchRenderStats()
             return
         }
 
         val drawGroups = LinkedHashMap<FrameTranslucentBatchKey, MutableMap<Int, MutableList<BspWorldBatchSurface>>>()
+        var visibleSurfaceCount = 0
         worldBatchData.surfaces.forEach { surface ->
             if (surface.worldSurfaceIndex !in visibleSurfaceMask.indices || !visibleSurfaceMask[surface.worldSurfaceIndex]) {
                 return@forEach
@@ -251,6 +277,7 @@ class BspWorldBatchRenderer(
             ) {
                 return@forEach
             }
+            visibleSurfaceCount++
             val key = FrameTranslucentBatchKey(
                 activeTextureInfoIndex = resolveActiveTextureInfoIndex(surface.batchKey.textureInfoIndex, currentTimeMs),
                 textureFlags = surface.batchKey.textureFlags,
@@ -260,9 +287,12 @@ class BspWorldBatchRenderer(
         }
 
         if (drawGroups.isEmpty()) {
+            lastTranslucentStats = BspWorldBatchRenderStats(visibleSurfaceCount = visibleSurfaceCount)
             return
         }
 
+        var drawCallCount = 0
+        var groupedSurfaceCount = 0
         configureTranslucentPipeline()
         try {
             shaderProgram.bind()
@@ -307,6 +337,7 @@ class BspWorldBatchRenderer(
                     if (indexCount <= 0) {
                         continue
                     }
+                    groupedSurfaceCount += surfaces.size
                     val indices = ShortArray(indexCount)
                     var cursor = 0
                     surfaces.forEach { groupedSurface ->
@@ -315,11 +346,17 @@ class BspWorldBatchRenderer(
                     }
                     mesh.setIndices(indices, 0, indices.size)
                     mesh.render(shaderProgram, GL20.GL_TRIANGLES, 0, indices.size)
+                    drawCallCount++
                 }
             }
         } finally {
             restoreDefaultPipelineState()
         }
+        lastTranslucentStats = BspWorldBatchRenderStats(
+            visibleSurfaceCount = visibleSurfaceCount,
+            groupedSurfaceCount = groupedSurfaceCount,
+            drawCalls = drawCallCount,
+        )
     }
 
     override fun dispose() {

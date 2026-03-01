@@ -209,6 +209,12 @@ class ClientEffectsSystem(
         particleSystem.render(camera)
     }
 
+    fun debugLiveParticleCount(): Int = particleSystem.liveParticleCount()
+
+    fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
+
+    fun debugActiveEffectCount(): Int = activeEffects.size
+
     override fun dispose() {
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()

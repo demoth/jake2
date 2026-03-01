@@ -23,6 +23,7 @@ object RenderTuningCvars {
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
     private val rBspBatchWorld = cvars.Get("r_bsp_batch_world", "1", Defines.CVAR_ARCHIVE)
+    private val rBspBatchDebug = cvars.Get("r_bsp_batch_debug", "0", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
@@ -67,4 +68,9 @@ object RenderTuningCvars {
      * - `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`)
      */
     fun bspBatchWorldEnabled(): Boolean = rBspBatchWorld.value != 0f
+
+    /**
+     * Enables periodic world/entity pass diagnostics for BSP batching migration.
+     */
+    fun bspBatchDebugEnabled(): Boolean = rBspBatchDebug.value != 0f
 }

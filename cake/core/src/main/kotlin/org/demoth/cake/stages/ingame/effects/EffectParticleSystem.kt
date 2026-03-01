@@ -187,6 +187,10 @@ class EffectParticleSystem : Disposable {
         renderer.flush()
     }
 
+    fun liveParticleCount(): Int = activeCount
+
+    fun lastRenderStats(): ParticleRenderer.Stats = renderer.lastStats
+
     override fun dispose() {
         activeCount = 0
         renderer.dispose()

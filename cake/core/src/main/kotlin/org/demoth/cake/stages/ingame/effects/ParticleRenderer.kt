@@ -34,6 +34,11 @@ import kotlin.math.tan
  * - billboard path is backend-ready and intentionally data-compatible for future sprite atlas usage.
  */
 class ParticleRenderer : Disposable {
+    data class Stats(
+        val submittedParticles: Int = 0,
+        val drawCalls: Int = 0,
+    )
+
     private var alphaPointVertices = FloatArray(INITIAL_MAX_PARTICLES * POINT_FLOATS_PER_VERTEX)
     private var additivePointVertices = FloatArray(INITIAL_MAX_PARTICLES * POINT_FLOATS_PER_VERTEX)
     private var alphaBillboardParticles = FloatArray(INITIAL_MAX_PARTICLES * PARTICLE_FLOATS)
@@ -63,6 +68,8 @@ class ParticleRenderer : Disposable {
     private val tempRight = Vector3()
     private val tempUp = Vector3()
     private val tempForward = Vector3()
+    var lastStats: Stats = Stats()
+        private set
 
     /**
      * Starts a frame-local submission window.
@@ -175,11 +182,13 @@ class ParticleRenderer : Disposable {
     fun flush() {
         val total = alphaPointCount + additivePointCount + alphaBillboardCount + additiveBillboardCount
         if (total == 0) {
+            lastStats = Stats()
             return
         }
         ensurePointMeshCapacity(max(alphaPointCount, additivePointCount))
         ensureBillboardMeshCapacity(max(alphaBillboardCount, additiveBillboardCount))
 
+        var drawCalls = 0
         val gl = Gdx.gl
         gl.glEnable(GL20.GL_DEPTH_TEST)
         gl.glDepthMask(false)
@@ -190,23 +199,31 @@ class ParticleRenderer : Disposable {
         if (alphaPointCount > 0) {
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             drawPoints(alphaPointVertices, alphaPointCount)
+            drawCalls++
         }
         if (additivePointCount > 0) {
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE)
             drawPoints(additivePointVertices, additivePointCount)
+            drawCalls++
         }
         if (alphaBillboardCount > 0) {
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             drawBillboards(alphaBillboardParticles, alphaBillboardCount)
+            drawCalls++
         }
         if (additiveBillboardCount > 0) {
             gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE)
             drawBillboards(additiveBillboardParticles, additiveBillboardCount)
+            drawCalls++
         }
 
         gl.glDisable(GL_PROGRAM_POINT_SIZE)
         gl.glDisable(GL20.GL_BLEND)
         gl.glDepthMask(true)
+        lastStats = Stats(
+            submittedParticles = total,
+            drawCalls = drawCalls,
+        )
     }
 
     override fun dispose() {

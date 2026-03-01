@@ -97,6 +97,7 @@ class Game3dScreen(
     private var entityLightSampler: BspEntityLightSampler? = null
     private val lightStyleValues = FloatArray(Defines.MAX_LIGHTSTYLES) { 1f }
     private var lastLightStyleTick: Int = Int.MIN_VALUE
+    private var lastBatchDebugLogTimeMs: Int = Int.MIN_VALUE
 
     /**
      * id of the player in the game. can be used to determine if the entity is the current player
@@ -234,6 +235,13 @@ class Game3dScreen(
 
         // render entities
         val lateDepthHackEntities = mutableListOf<ClientEntity>()
+        var renderedOpaqueModels = 0
+        var renderedTranslucentModels = 0
+        var renderedDepthHackModels = 0
+        var renderedBeams = 0
+        var renderedOpaqueSprites = 0
+        var renderedTranslucentSprites = 0
+        var levelEntityRendered = false
         modelBatch.use(camera) { modelBatch ->
             if (entityManager.rDrawSky?.value != 0f)
                 entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
@@ -249,6 +257,10 @@ class Game3dScreen(
                         lateDepthHackEntities += it
                     } else {
                         renderModelEntity(modelBatch, it)
+                        renderedOpaqueModels++
+                        if (it.name == "level") {
+                            levelEntityRendered = true
+                        }
                     }
                 }
             }
@@ -258,22 +270,29 @@ class Game3dScreen(
                         lateDepthHackEntities += it
                     } else {
                         renderModelEntity(modelBatch, it)
+                        renderedTranslucentModels++
+                        if (it.name == "level") {
+                            levelEntityRendered = true
+                        }
                     }
                 }
             }
             entityManager.visibleBeams.forEach {
                 beamRenderer.render(modelBatch, it)
+                renderedBeams++
             }
             // Preserve legacy draw ordering: opaque first, translucent second.
             // Do not merge into a naive single pass; mixed ordering breaks alpha/depth results.
             entityManager.visibleSprites.forEach {
                 if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
                     sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+                    renderedOpaqueSprites++
                 }
             }
             entityManager.visibleSprites.forEach {
                 if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
                     sp2Renderer.render(modelBatch, it, camera, lerpFrac)
+                    renderedTranslucentSprites++
                 }
             }
             entityManager.lerpAcc += delta
@@ -290,9 +309,28 @@ class Game3dScreen(
         }
         if (lateDepthHackEntities.isNotEmpty()) {
             modelBatch.use(camera) { modelBatch ->
-                lateDepthHackEntities.forEach { renderModelEntity(modelBatch, it) }
+                lateDepthHackEntities.forEach {
+                    renderModelEntity(modelBatch, it)
+                    renderedDepthHackModels++
+                    if (it.name == "level") {
+                        levelEntityRendered = true
+                    }
+                }
             }
         }
+        logBatchDiagnostics(
+            currentTimeMs = Globals.curtime,
+            visibleEntities = entityManager.visibleEntities.size,
+            renderedOpaqueModels = renderedOpaqueModels,
+            renderedTranslucentModels = renderedTranslucentModels,
+            renderedDepthHackModels = renderedDepthHackModels,
+            visibleSprites = entityManager.visibleSprites.size,
+            renderedOpaqueSprites = renderedOpaqueSprites,
+            renderedTranslucentSprites = renderedTranslucentSprites,
+            visibleBeams = entityManager.visibleBeams.size,
+            renderedBeams = renderedBeams,
+            levelEntityRendered = levelEntityRendered,
+        )
 
         // draw hud
         spriteBatch.use {
@@ -334,6 +372,42 @@ class Game3dScreen(
             }
         }
         audioSystem.endFrame()
+    }
+
+    private fun logBatchDiagnostics(
+        currentTimeMs: Int,
+        visibleEntities: Int,
+        renderedOpaqueModels: Int,
+        renderedTranslucentModels: Int,
+        renderedDepthHackModels: Int,
+        visibleSprites: Int,
+        renderedOpaqueSprites: Int,
+        renderedTranslucentSprites: Int,
+        visibleBeams: Int,
+        renderedBeams: Int,
+        levelEntityRendered: Boolean,
+    ) {
+        if (!RenderTuningCvars.bspBatchDebugEnabled()) {
+            lastBatchDebugLogTimeMs = Int.MIN_VALUE
+            return
+        }
+        if (lastBatchDebugLogTimeMs != Int.MIN_VALUE && currentTimeMs - lastBatchDebugLogTimeMs < BATCH_DEBUG_LOG_INTERVAL_MS) {
+            return
+        }
+        lastBatchDebugLogTimeMs = currentTimeMs
+        val opaqueWorldStats = worldBatchRenderer?.lastOpaqueStats
+        val translucentWorldStats = worldBatchRenderer?.lastTranslucentStats
+        val particleStats = effectsSystem.debugParticleRenderStats()
+        Com.Printf(
+            "bsp_batch_debug t=$currentTimeMs " +
+                "worldOpaque(vis=${opaqueWorldStats?.visibleSurfaceCount ?: 0},grp=${opaqueWorldStats?.groupedSurfaceCount ?: 0},dc=${opaqueWorldStats?.drawCalls ?: 0}) " +
+                "worldTrans(vis=${translucentWorldStats?.visibleSurfaceCount ?: 0},grp=${translucentWorldStats?.groupedSurfaceCount ?: 0},dc=${translucentWorldStats?.drawCalls ?: 0}) " +
+                "models(vis=$visibleEntities,opq=$renderedOpaqueModels,trans=$renderedTranslucentModels,depth=$renderedDepthHackModels,level=$levelEntityRendered) " +
+                "sprites(vis=$visibleSprites,opq=$renderedOpaqueSprites,trans=$renderedTranslucentSprites) " +
+                "beams(vis=$visibleBeams,draw=$renderedBeams) " +
+                "particles(live=${effectsSystem.debugLiveParticleCount()},sub=${particleStats.submittedParticles},dc=${particleStats.drawCalls}) " +
+                "effects(active=${effectsSystem.debugActiveEffectCount()})\n"
+        )
     }
 
     // Preserve legacy ordering: opaque model entities first, translucent model entities second.
@@ -1432,5 +1506,6 @@ class Game3dScreen(
         private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
         private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
         private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
+        private const val BATCH_DEBUG_LOG_INTERVAL_MS = 1000
     }
 }
