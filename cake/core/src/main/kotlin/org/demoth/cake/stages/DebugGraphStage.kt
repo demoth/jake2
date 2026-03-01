@@ -85,7 +85,8 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     private val shapeRenderer = ShapeRenderer()
     private val metricEnabledCvars = EnumMap<MetricId, jake2.qcommon.exec.cvar_t>(MetricId::class.java)
     private val metricSeries = EnumMap<MetricId, MetricSeries>(MetricId::class.java)
-    private val metricLabels = EnumMap<MetricId, Label>(MetricId::class.java)
+    private val metricMaxValueLabels = EnumMap<MetricId, Label>(MetricId::class.java)
+    private val metricCurrentValueLabels = EnumMap<MetricId, Label>(MetricId::class.java)
     private val metricNameLabels = EnumMap<MetricId, Label>(MetricId::class.java)
 
     init {
@@ -97,8 +98,15 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 isVisible = false
                 color = Color(definition.color)
             }
-            metricLabels[metricId] = label
+            metricMaxValueLabels[metricId] = label
             addActor(label)
+
+            val currentLabel = Label("", Scene2DSkin.defaultSkin).apply {
+                isVisible = false
+                color = Color(definition.color)
+            }
+            metricCurrentValueLabels[metricId] = currentLabel
+            addActor(currentLabel)
 
             val nameLabel = Label(definition.name, Scene2DSkin.defaultSkin).apply {
                 isVisible = false
@@ -164,17 +172,20 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         metricDefinitions
             .filterNot { isMetricEnabled(it.id) }
             .forEach { definition ->
-                metricLabels.getValue(definition.id).isVisible = false
+                metricMaxValueLabels.getValue(definition.id).isVisible = false
+                metricCurrentValueLabels.getValue(definition.id).isVisible = false
                 metricNameLabels.getValue(definition.id).isVisible = false
             }
 
         enabledMetricDefinitions.forEachIndexed { metricIndex, definition ->
             val metricId = definition.id
             val series = metricSeries.getValue(metricId)
-            val label = metricLabels.getValue(metricId)
+            val label = metricMaxValueLabels.getValue(metricId)
+            val currentLabel = metricCurrentValueLabels.getValue(metricId)
             val nameLabel = metricNameLabels.getValue(metricId)
             if (series.size == 0) {
                 label.isVisible = false
+                currentLabel.isVisible = false
                 nameLabel.isVisible = false
                 return@forEachIndexed
             }
@@ -182,12 +193,17 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
             val segmentTop = viewport.worldHeight - metricIndex * segmentHeight
             val segmentBottom = segmentTop - segmentHeight
             val metricMax = currentMaxValue(series)
+            val metricCurrent = currentValue(series)
             val metricScaleMax = metricMax.toFloat().coerceAtLeast(1f)
             val metricColor = definition.color
 
             label.setText(metricMax.toString())
             label.setColor(metricColor)
             label.pack()
+
+            currentLabel.setText(metricCurrent.toString())
+            currentLabel.setColor(metricColor)
+            currentLabel.pack()
 
             nameLabel.setText(definition.name)
             nameLabel.setColor(metricColor)
@@ -220,6 +236,16 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                     )
             )
             label.isVisible = true
+
+            currentLabel.setPosition(
+                (graphWidth - currentLabel.width - LABEL_LEFT_MARGIN).coerceAtLeast(LABEL_LEFT_MARGIN),
+                (metricMaxY - currentLabel.height - LABEL_LINE_GAP)
+                    .coerceIn(
+                        segmentBottom + SEGMENT_LABEL_PADDING,
+                        segmentTop - currentLabel.height - SEGMENT_LABEL_PADDING
+                    )
+            )
+            currentLabel.isVisible = true
 
             nameLabel.setPosition(
                 LABEL_LEFT_MARGIN,
@@ -264,6 +290,9 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         return currentMax
     }
 
+    private fun currentValue(series: MetricSeries): Int =
+        historyValueAt(series, series.size - 1)
+
     private fun ensureMetricHistoryWidth(width: Int) {
         val anyMismatched = metricDefinitions.any { definition ->
             metricSeries.getValue(definition.id).history.size != width
@@ -292,7 +321,8 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         metricEnabledCvars.getValue(metricId).value != 0f
 
     private fun hideAllMetricLabels() {
-        metricLabels.values.forEach { it.isVisible = false }
+        metricMaxValueLabels.values.forEach { it.isVisible = false }
+        metricCurrentValueLabels.values.forEach { it.isVisible = false }
         metricNameLabels.values.forEach { it.isVisible = false }
     }
 }
