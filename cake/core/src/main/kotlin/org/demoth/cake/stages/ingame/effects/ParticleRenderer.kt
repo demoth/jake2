@@ -12,6 +12,10 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
+import org.demoth.cake.particleBillboardFragmentShader
+import org.demoth.cake.particleBillboardVertexShader
+import org.demoth.cake.particlePointFragmentShader
+import org.demoth.cake.particlePointVertexShader
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
 import kotlin.math.tan
@@ -32,6 +36,8 @@ import kotlin.math.tan
  * Current scope:
  * - point-sprite path is primary and tuned for Quake-style transient effects,
  * - billboard path is backend-ready and intentionally data-compatible for future sprite atlas usage.
+ *
+ * Shader sources are external assets (`shaders/particle_point.vert/.frag`, `shaders/particle_billboard.vert/.frag`).
  */
 class ParticleRenderer : Disposable {
     data class Stats(
@@ -55,12 +61,18 @@ class ParticleRenderer : Disposable {
     private var pointMesh = createPointMesh(INITIAL_MAX_PARTICLES)
     private var billboardMesh = createBillboardMesh(INITIAL_MAX_PARTICLES * BILLBOARD_VERTICES_PER_PARTICLE)
     private var billboardVertices = FloatArray(INITIAL_MAX_PARTICLES * BILLBOARD_VERTICES_PER_PARTICLE * BILLBOARD_FLOATS_PER_VERTEX)
-    private val pointShader = ShaderProgram(POINT_VERTEX_SHADER, POINT_FRAGMENT_SHADER).also { shader ->
+    private val pointShader = ShaderProgram(
+        loadShaderSource(particlePointVertexShader),
+        loadShaderSource(particlePointFragmentShader),
+    ).also { shader ->
         if (!shader.isCompiled) {
             throw GdxRuntimeException("Failed to compile point particle shader: ${shader.log}")
         }
     }
-    private val billboardShader = ShaderProgram(BILLBOARD_VERTEX_SHADER, BILLBOARD_FRAGMENT_SHADER).also { shader ->
+    private val billboardShader = ShaderProgram(
+        loadShaderSource(particleBillboardVertexShader),
+        loadShaderSource(particleBillboardFragmentShader),
+    ).also { shader ->
         if (!shader.isCompiled) {
             throw GdxRuntimeException("Failed to compile billboard particle shader: ${shader.log}")
         }
@@ -466,6 +478,8 @@ class ParticleRenderer : Disposable {
         )
     }
 
+    private fun loadShaderSource(path: String): String = Gdx.files.internal(path).readString()
+
     companion object {
         private const val POINT_FLOATS_PER_VERTEX = 8
         private const val BILLBOARD_FLOATS_PER_VERTEX = 9
@@ -475,76 +489,5 @@ class ParticleRenderer : Disposable {
         private const val BASE_POINT_PROJECTION_SCALE = 540f
         private const val PARTICLE_SIZE_ATTRIBUTE = "a_size"
         private const val GL_PROGRAM_POINT_SIZE = 0x8642
-
-        private const val POINT_VERTEX_SHADER = """
-attribute vec3 a_position;
-attribute vec4 a_color;
-attribute float a_size;
-
-uniform mat4 u_projViewTrans;
-uniform vec3 u_cameraPos;
-uniform float u_pointProjectionScale;
-
-varying vec4 v_color;
-
-void main() {
-    v_color = a_color;
-    gl_Position = u_projViewTrans * vec4(a_position, 1.0);
-    float pointDist = max(length(a_position - u_cameraPos), 1.0);
-    gl_PointSize = max(1.0, (a_size * u_pointProjectionScale) / pointDist);
-}
-"""
-
-        private const val POINT_FRAGMENT_SHADER = """
-varying vec4 v_color;
-
-uniform float u_gammaExponent;
-
-void main() {
-    vec2 uv = gl_PointCoord * 2.0 - 1.0;
-    float distSquared = dot(uv, uv);
-    if (distSquared > 1.0) {
-        discard;
-    }
-
-    vec3 corrected = pow(max(v_color.rgb, vec3(0.0)), vec3(u_gammaExponent));
-    gl_FragColor = vec4(corrected, v_color.a);
-}
-"""
-
-        private const val BILLBOARD_VERTEX_SHADER = """
-attribute vec3 a_position;
-attribute vec4 a_color;
-attribute vec2 a_texCoord0;
-
-uniform mat4 u_projViewTrans;
-
-varying vec4 v_color;
-varying vec2 v_uv;
-
-void main() {
-    v_color = a_color;
-    v_uv = a_texCoord0;
-    gl_Position = u_projViewTrans * vec4(a_position, 1.0);
-}
-"""
-
-        private const val BILLBOARD_FRAGMENT_SHADER = """
-varying vec4 v_color;
-varying vec2 v_uv;
-
-uniform float u_gammaExponent;
-
-void main() {
-    vec2 uv = v_uv * 2.0 - 1.0;
-    float distSquared = dot(uv, uv);
-    if (distSquared > 1.0) {
-        discard;
-    }
-
-    vec3 corrected = pow(max(v_color.rgb, vec3(0.0)), vec3(u_gammaExponent));
-    gl_FragColor = vec4(corrected, v_color.a);
-}
-"""
     }
 }

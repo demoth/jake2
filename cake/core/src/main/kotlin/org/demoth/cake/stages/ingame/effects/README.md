@@ -57,6 +57,7 @@ Legacy counterparts:
 - `TE_RAILTRAIL` uses legacy palette ranges for both particle groups (`0x74..0x7B` spiral and `0x00..0x0F` core).
 - Impact palette emission does not carry per-effect fallback color branches (legacy parity: palette index driven); only a single internal safety fallback exists if palette data is unavailable.
 - Particle brightness follows legacy-style path: gamma correction is applied, while particle intensity/overbright scaling is not.
+- Particle shader sources are loaded from `assets/shaders` (`particle_point.vert/.frag`, `particle_billboard.vert/.frag`).
 
 ## Decision Log
 Newest first.

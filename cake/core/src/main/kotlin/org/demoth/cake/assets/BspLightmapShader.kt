@@ -1,5 +1,6 @@
 package org.demoth.cake.assets
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g3d.Renderable
@@ -12,6 +13,8 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.utils.GdxRuntimeException
+import org.demoth.cake.bspLightmapFragmentShader
+import org.demoth.cake.bspLightmapVertexShader
 import org.demoth.cake.stages.ingame.DynamicLightSystem
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import org.demoth.cake.stages.ingame.SceneDynamicLight
@@ -78,6 +81,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * - lightmap texture attributes 0..3 map to style slots 0..3.
  * - style slot weights are read from `ColorAttribute.Diffuse` channels (r/g/b/a).
  * - material copies may downcast custom lightmap attributes to base [TextureAttribute], so lookups cast to base type.
+ * - shader sources are external assets (`shaders/bsp_lightmap.vert`, `shaders/bsp_lightmap.frag`).
  *
  * Legacy references:
  * - `client/render/fast/Light.R_BuildLightMap` (style-slot accumulation with `Defines.MAXLIGHTMAPS`).
@@ -113,7 +117,10 @@ class BspLightmapShader : BaseShader() {
     private val uOverbrightBits = register(Uniform("u_overbrightbits"))
 
     override fun init() {
-        shaderProgram = ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER)
+        shaderProgram = ShaderProgram(
+            loadShaderSource(bspLightmapVertexShader),
+            loadShaderSource(bspLightmapFragmentShader),
+        )
         if (!shaderProgram.isCompiled) {
             throw GdxRuntimeException("Failed to compile BSP lightmap shader: ${shaderProgram.log}")
         }
@@ -245,90 +252,7 @@ class BspLightmapShader : BaseShader() {
         }
     }
 
-    companion object {
-        private const val VERTEX_SHADER = """
-attribute vec3 a_position;
-attribute vec2 a_texCoord0;
-attribute vec2 a_texCoord1;
-
-uniform mat4 u_projViewTrans;
-uniform mat4 u_worldTrans;
-uniform vec4 u_diffuseUVTransform;
-
-varying vec2 v_diffuseUv;
-varying vec2 v_lightmapUv;
-varying vec3 v_worldPos;
-
-void main() {
-    vec4 worldPos = u_worldTrans * vec4(a_position, 1.0);
-    v_diffuseUv = a_texCoord0 * u_diffuseUVTransform.zw + u_diffuseUVTransform.xy;
-    v_lightmapUv = a_texCoord1;
-    v_worldPos = worldPos.xyz;
-    gl_Position = u_projViewTrans * worldPos;
-}
-"""
-
-        private const val FRAGMENT_SHADER = """
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform sampler2D u_diffuseTexture;
-uniform sampler2D u_lightmapTexture0;
-uniform sampler2D u_lightmapTexture1;
-uniform sampler2D u_lightmapTexture2;
-uniform sampler2D u_lightmapTexture3;
-uniform vec4 u_lightStyleWeights;
-uniform float u_opacity;
-uniform float u_gammaExponent;
-uniform float u_intensity;
-uniform float u_overbrightbits;
-uniform int u_dynamicLightCount;
-uniform vec4 u_dynamicLightPosRadius[8];
-uniform vec4 u_dynamicLightColor[8];
-
-varying vec2 v_diffuseUv;
-varying vec2 v_lightmapUv;
-varying vec3 v_worldPos;
-
-vec3 accumulateDynamicLights(vec3 worldPos) {
-    vec3 sum = vec3(0.0);
-    for (int i = 0; i < 8; ++i) {
-        if (i >= u_dynamicLightCount) {
-            break;
-        }
-        vec3 lightPos = u_dynamicLightPosRadius[i].xyz;
-        float radius = max(u_dynamicLightPosRadius[i].w, 0.001);
-        float distanceToLight = distance(lightPos, worldPos);
-        if (distanceToLight >= radius) {
-            continue;
-        }
-        float attenuation = 1.0 - (distanceToLight / radius);
-        sum += u_dynamicLightColor[i].rgb * attenuation;
-    }
-    return sum;
-}
-
-void main() {
-    vec4 albedo = texture2D(u_diffuseTexture, v_diffuseUv);
-    vec3 light0 = texture2D(u_lightmapTexture0, v_lightmapUv).rgb * u_lightStyleWeights.x;
-    vec3 light1 = texture2D(u_lightmapTexture1, v_lightmapUv).rgb * u_lightStyleWeights.y;
-    vec3 light2 = texture2D(u_lightmapTexture2, v_lightmapUv).rgb * u_lightStyleWeights.z;
-    vec3 light3 = texture2D(u_lightmapTexture3, v_lightmapUv).rgb * u_lightStyleWeights.w;
-    vec3 light = (light0 + light1 + light2 + light3) * u_overbrightbits;
-    light += accumulateDynamicLights(v_worldPos);
-    // Safety guard: if sampled lightmap is effectively black (invalid upload/UV path),
-    // fall back to unlit albedo to avoid fully disappearing world geometry.
-    if (max(light.r, max(light.g, light.b)) < 0.001) {
-        light = vec3(1.0);
-    }
-    vec3 lit = albedo.rgb * light;
-    lit *= u_intensity;
-    lit = pow(max(lit, vec3(0.0)), vec3(u_gammaExponent));
-    gl_FragColor = vec4(lit, albedo.a * u_opacity);
-}
-"""
-    }
+    private fun loadShaderSource(path: String): String = Gdx.files.internal(path).readString()
 }
 
 /**
