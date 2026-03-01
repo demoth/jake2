@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.model.NodePart
 import org.demoth.cake.assets.BspInlineModelRenderData
-import org.demoth.cake.assets.BspWorldRenderData
 import org.demoth.cake.assets.BspWorldTextureInfoRecord
 import java.util.IdentityHashMap
 
@@ -19,79 +18,8 @@ internal data class TextureAnimationPartBinding(
 )
 
 private data class TextureAnimationResources(
-    val textureInfosByIndex: Map<Int, BspWorldTextureInfoRecord>,
     val texturesByTexInfoIndex: Map<Int, Texture>,
 )
-
-/**
- * Drives Quake2-style world texture animation using BSP texinfo `nexttexinfo` chains.
- *
- * Legacy counterpart:
- * - `client/render/fast/Surf.R_TextureAnimation` (texinfo chain walk by frame index).
- * - `client/render/fast/Surf.R_DrawWorld` (`currententity.frame = (int)(r_newrefdef.time * 2)`).
- */
-class BspWorldTextureAnimationController(
-    private val worldRenderData: BspWorldRenderData,
-    private val modelInstance: ModelInstance,
-    private val assetManager: AssetManager,
-) {
-    private val animationResources: TextureAnimationResources
-    private val surfaceBindings: List<TextureAnimationPartBinding>
-    private val nodePartsById: Map<String, NodePart>
-    private val suppressedSurfaceMask: BooleanArray
-    private var lastAnimationFrame: Int = Int.MIN_VALUE
-
-    init {
-        val textureInfosByIndex = worldRenderData.textureInfos.associateBy { it.textureInfoIndex }
-        surfaceBindings = buildWorldSurfaceBindings(worldRenderData, textureInfosByIndex)
-        animationResources = createTextureAnimationResources(
-            textureInfosByIndex = textureInfosByIndex,
-            chains = surfaceBindings.asSequence().map { it.texInfoChain },
-            assetManager = assetManager,
-        )
-        nodePartsById = collectNodePartsById(modelInstance)
-        suppressedSurfaceMask = BooleanArray(surfaceBindings.size)
-    }
-
-    /**
-     * Applies the animated texture frame for each world surface.
-     *
-     * The update is throttled to legacy cadence (2 Hz): if the frame index did not change,
-     * no material mutations are performed.
-     */
-    fun update(currentTimeMs: Int) {
-        if (surfaceBindings.isEmpty()) {
-            return
-        }
-
-        val animationFrame = currentTimeMs / WORLD_TEXTURE_ANIMATION_FRAME_MS
-        if (animationFrame == lastAnimationFrame) {
-            return
-        }
-
-        surfaceBindings.forEachIndexed { surfaceIndex, binding ->
-            if (surfaceIndex in suppressedSurfaceMask.indices && suppressedSurfaceMask[surfaceIndex]) {
-                return@forEachIndexed
-            }
-            val nodePart = nodePartsById[binding.meshPartId] ?: return@forEachIndexed
-            val texInfoIndex = selectTextureAnimationTexInfo(binding.texInfoChain, currentTimeMs) ?: return@forEachIndexed
-            val texture = animationResources.texturesByTexInfoIndex[texInfoIndex] ?: return@forEachIndexed
-            applyDiffuseTexture(nodePart, texture)
-        }
-        lastAnimationFrame = animationFrame
-    }
-
-    /**
-     * Marks world surfaces that are rendered by the batched world renderer and should not mutate NodePart materials.
-     */
-    fun setSuppressedSurfaces(mask: BooleanArray) {
-        suppressedSurfaceMask.fill(false)
-        val count = minOf(suppressedSurfaceMask.size, mask.size)
-        repeat(count) { index ->
-            suppressedSurfaceMask[index] = mask[index]
-        }
-    }
-}
 
 /**
  * Drives texinfo-chain texture animation for inline BSP brush models (`*1`, `*2`, ...).
@@ -137,18 +65,6 @@ class BspInlineTextureAnimationController(
     }
 }
 
-private fun buildWorldSurfaceBindings(
-    worldRenderData: BspWorldRenderData,
-    textureInfosByIndex: Map<Int, BspWorldTextureInfoRecord>,
-): List<TextureAnimationPartBinding> {
-    return worldRenderData.surfaces.map { surface ->
-        TextureAnimationPartBinding(
-            meshPartId = surface.meshPartId,
-            texInfoChain = resolveTextureAnimationChain(surface.textureInfoIndex, textureInfosByIndex),
-        )
-    }
-}
-
 private fun buildInlineModelBindings(
     inlineRenderData: List<BspInlineModelRenderData>,
     textureInfosByIndex: Map<Int, BspWorldTextureInfoRecord>,
@@ -182,7 +98,6 @@ private fun createTextureAnimationResources(
         }
     }
     return TextureAnimationResources(
-        textureInfosByIndex = textureInfosByIndex,
         texturesByTexInfoIndex = texturesByTexInfoIndex,
     )
 }

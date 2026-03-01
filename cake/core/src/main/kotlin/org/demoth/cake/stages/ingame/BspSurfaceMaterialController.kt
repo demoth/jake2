@@ -10,10 +10,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.model.NodePart
 import jake2.qcommon.Defines
-import org.demoth.cake.assets.BspLightmapTextureAttribute
 import org.demoth.cake.assets.BspInlineModelRenderData
 import org.demoth.cake.assets.BspLightStyleContributionRecord
-import org.demoth.cake.assets.BspWorldRenderData
+import org.demoth.cake.assets.BspLightmapTextureAttribute
 import java.util.IdentityHashMap
 import kotlin.math.floor
 
@@ -26,65 +25,7 @@ private data class SurfaceMaterialBinding(
 )
 
 /**
- * Applies material-side BSP surface effects for world model surfaces:
- * - `SURF_FLOWING` UV scrolling,
- * - `SURF_TRANS33` / `SURF_TRANS66` blending state,
- * - lightstyle-driven baked lightmap modulation.
- *
- * For world lightmapped surfaces, style-slot weights are encoded into
- * `ColorAttribute.Diffuse` channels (r/g/b/a), consumed by [org.demoth.cake.assets.BspLightmapShader].
- */
-class BspWorldSurfaceMaterialController(
-    worldRenderData: BspWorldRenderData,
-    modelInstance: ModelInstance,
-) {
-    private val bindings = worldRenderData.surfaces.map { surface ->
-        SurfaceMaterialBinding(
-            meshPartId = surface.meshPartId,
-            textureFlags = surface.textureFlags,
-            lightMapStyles = surface.lightMapStyles,
-            primaryLightStyleIndex = surface.primaryLightStyleIndex,
-            lightStyleContributions = surface.lightStyleContributions,
-        )
-    }
-    private val nodePartsById = collectNodePartsById(modelInstance)
-    private val suppressedSurfaceMask = BooleanArray(bindings.size)
-
-    /**
-     * Updates world-surface material state for the current render frame.
-     *
-     * Ownership/lifecycle:
-     * - created by [Game3dScreen] after BSP precache for world model instance,
-     * - reused across frames until map unload.
-     *
-     * Timing/threading:
-     * - called from render loop (main libGDX thread),
-     * - [currentTimeMs] must match the same timeline used by legacy-style lightstyle ticks.
-     */
-    fun update(currentTimeMs: Int, lightStyleResolver: (Int) -> Float) {
-        applySurfaceMaterialState(
-            bindings = bindings,
-            nodePartsById = nodePartsById,
-            currentTimeMs = currentTimeMs,
-            lightStyleResolver = lightStyleResolver,
-            shouldApply = { surfaceIndex -> !suppressedSurfaceMask[surfaceIndex] },
-        )
-    }
-
-    /**
-     * Marks world surfaces rendered by the batched renderer so NodePart material mutation is skipped.
-     */
-    fun setSuppressedSurfaces(mask: BooleanArray) {
-        suppressedSurfaceMask.fill(false)
-        val count = minOf(suppressedSurfaceMask.size, mask.size)
-        repeat(count) { index ->
-            suppressedSurfaceMask[index] = mask[index]
-        }
-    }
-}
-
-/**
- * Applies the same BSP surface material effects for inline brush models (`*1`, `*2`, ...).
+ * Applies BSP surface material effects for inline brush models (`*1`, `*2`, ...).
  */
 class BspInlineSurfaceMaterialController(
     inlineRenderData: List<BspInlineModelRenderData>,
@@ -112,15 +53,13 @@ class BspInlineSurfaceMaterialController(
      * Returns true when the inline model contains at least one translucent BSP surface
      * (`SURF_TRANS33` or `SURF_TRANS66`).
      *
-     * Used by render-pass classification: legacy brush path draws such surfaces in alpha pass
+     * Used by render-pass classification: brush models with translucent parts are rendered in alpha pass
      * regardless of entity `RF_TRANSLUCENT`.
      */
     fun hasTranslucentParts(inlineModelIndex: Int): Boolean = inlineModelIndex in translucentModelIndices
 
     /**
      * Updates material state for one inline brush model instance.
-     *
-     * The controller keeps `meshPart.id -> NodePart` caches keyed per [ModelInstance].
      */
     fun update(
         modelInstance: ModelInstance,
@@ -146,13 +85,9 @@ private fun applySurfaceMaterialState(
     nodePartsById: Map<String, NodePart>,
     currentTimeMs: Int,
     lightStyleResolver: (Int) -> Float,
-    shouldApply: (Int) -> Boolean = { true },
 ) {
-    bindings.forEachIndexed { surfaceIndex, binding ->
-        if (!shouldApply(surfaceIndex)) {
-            return@forEachIndexed
-        }
-        val nodePart = nodePartsById[binding.meshPartId] ?: return@forEachIndexed
+    bindings.forEach { binding ->
+        val nodePart = nodePartsById[binding.meshPartId] ?: return@forEach
         applySurfaceTransparency(nodePart, binding.textureFlags)
         applySurfaceFlowing(nodePart, binding.textureFlags, currentTimeMs)
         applySurfaceLightstyles(
@@ -232,10 +167,6 @@ private fun applySurfaceLightstyles(
     // Legacy references:
     // - `client/render/fast/Light.R_BuildLightMap` combines up to 4 style slots per face.
     // - `client/render/fast/Surf.GL_RenderLightmappedPoly` uploads/uses updated lightmaps.
-    //
-    // Behavior difference:
-    // - World/inline lightmapped faces: Cake keeps per-slot textures static and updates only style weights in shader.
-    // - Non-lightmapped faces (SURF_TRANS*/SURF_WARP): Cake falls back to diffuse-color modulation path.
     if (nodePart.material.has(BspLightmapTextureAttribute.Type)) {
         // Encode style slot weights into Diffuse color channels for BspLightmapShader:
         // r/g/b/a => slot 0/1/2/3.
@@ -249,21 +180,11 @@ private fun applySurfaceLightstyles(
             nodePart.material.set(
                 ColorAttribute(
                     ColorAttribute.Diffuse,
-                    Color(
-                        w0,
-                        w1,
-                        w2,
-                        w3,
-                    )
+                    Color(w0, w1, w2, w3)
                 )
             )
         } else {
-            lightmapTint.color.set(
-                w0,
-                w1,
-                w2,
-                w3,
-            )
+            lightmapTint.color.set(w0, w1, w2, w3)
         }
         return
     }
@@ -300,11 +221,6 @@ internal fun computeLightmapStyleWeights(
     // Legacy reference:
     // `client/render/fast/Light.R_BuildLightMap` style-slot convention and
     // `qcommon/Defines.MAXLIGHTMAPS` (=4), with 255 terminator in face styles array.
-    //
-    // Constraint:
-    // returned array order is fixed and consumed as slot0..3 => RGBA.
-    // BSP stores up to 4 style slots per face (255 terminator). Keep ordering stable:
-    // slot 0..3 -> RGBA style-weight channels.
     val styles = lightMapStyles
         .map { it.toInt() and 0xFF }
         .takeWhile { it != 255 }
