@@ -22,7 +22,7 @@ object RenderTuningCvars {
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
-    private val rBspBatchWorld = cvars.Get("r_bsp_batch_world", "0", Defines.CVAR_ARCHIVE)
+    private val rBspBatchWorld = cvars.Get("r_bsp_batch_world", "1", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
