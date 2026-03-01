@@ -92,7 +92,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     init {
         metricDefinitions.forEach { definition ->
             val metricId = definition.id
-            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "1", 0)
+            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "0", 0)
             metricSeries[metricId] = MetricSeries()
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
