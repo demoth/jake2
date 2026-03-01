@@ -140,6 +140,9 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         hideAllMetricLabels()
     }
 
+    fun hasEnabledMetrics(): Boolean =
+        metricDefinitions.any { definition -> isMetricEnabled(definition.id) }
+
     override fun draw() {
         if (metricDefinitions.none { isMetricEnabled(it.id) }) {
             hideAllMetricLabels()

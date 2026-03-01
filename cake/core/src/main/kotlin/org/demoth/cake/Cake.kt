@@ -82,6 +82,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
+    private var glProfilerActive: Boolean = false
     private lateinit var viewport: StretchViewport
 
     // whenever these are changed, input handlers should be updated
@@ -168,7 +169,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         consoleStage = ConsoleStage(viewport)
         debugGraphStage = DebugGraphStage(viewport)
         glProfiler = GLProfiler(Gdx.graphics).apply {
-            enable()
+            disable()
             reset()
         }
 
@@ -373,6 +374,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun render() {
+        updateGlProfilerState()
         assetManager.update() // todo: 1000/fps millis
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
@@ -406,10 +408,27 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleStage.draw()
         }
 
-        debugGraphStage.collectMetrics(glProfiler)
-        debugGraphStage.act(deltaSeconds)
-        debugGraphStage.draw()
-        glProfiler.reset()
+        if (glProfilerActive) {
+            debugGraphStage.collectMetrics(glProfiler)
+            debugGraphStage.act(deltaSeconds)
+            debugGraphStage.draw()
+            glProfiler.reset()
+        }
+    }
+
+    private fun updateGlProfilerState() {
+        val shouldEnableProfiler = debugGraphStage.hasEnabledMetrics()
+        if (shouldEnableProfiler == glProfilerActive) {
+            return
+        }
+        if (shouldEnableProfiler) {
+            glProfiler.enable()
+            glProfiler.reset()
+        } else {
+            glProfiler.disable()
+            debugGraphStage.resetMetrics()
+        }
+        glProfilerActive = shouldEnableProfiler
     }
 
     /**
@@ -473,7 +492,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
-        glProfiler.disable()
+        if (glProfilerActive) {
+            glProfiler.disable()
+            glProfilerActive = false
+        }
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
     }
