@@ -46,6 +46,10 @@ Profiling workflow:
    - `set r_debug_drawcalls 1`
    - `set r_debug_texturebindings 1`
 2. Enable `r_bsp_batch_debug 1` and capture representative maps/views.
+3. Enable gameplay fps overlay (Yamagi-style):
+   - `set cl_showfps 1` (avg fps)
+   - `set cl_showfps 2` (min/max/avg fps)
+   - `set cl_showfps 3` (adds frame-time line)
 
 ### Bitmap Font Tool
 

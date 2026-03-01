@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame.hud
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.utils.TimeUtils
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Defines.PRINT_CHAT
 import jake2.qcommon.Globals
@@ -13,6 +14,7 @@ import jake2.qcommon.player_state_t
 import jake2.qcommon.exec.Cvar
 import org.demoth.cake.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
+import java.util.Locale
 
 /**
  * Read-only game-state bridge for IdTech2 HUD layout execution.
@@ -358,6 +360,7 @@ internal class Hud(
         const val INVENTORY_DISPLAY_ITEMS = 17
         const val INVENTORY_WIDTH = 256
         const val INVENTORY_HEIGHT = 240
+        const val FPS_SAMPLE_WINDOW = 60
     }
 
     private var centerPrintText: String = ""
@@ -365,8 +368,13 @@ internal class Hud(
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
     private val crosshairCvar = Cvar.getInstance().Get("crosshair", "1", Defines.CVAR_ARCHIVE)
+    private val clShowFpsCvar = Cvar.getInstance().Get("cl_showfps", "0", Defines.CVAR_ARCHIVE)
     private var crosshairPic: String? = null
     private var crosshairTexture: Texture? = null
+    private val fpsFrameTimesMicros = LongArray(FPS_SAMPLE_WINDOW)
+    private var fpsFrameTimeWriteIndex = 0
+    private var fpsFrameTimeSamples = 0
+    private var fpsPreviousFrameTimeMicros = 0L
 
     private data class NotifyLine(
         val text: String,
@@ -549,6 +557,7 @@ internal class Hud(
      */
     fun update(delta: Float, screenWidth: Int, screenHeight: Int) {
         drawNotifyMessages(screenHeight)
+        drawFpsCounter(screenWidth, screenHeight)
 
         if (centerPrintTimeLeftSeconds <= 0f || centerPrintText.isEmpty()) {
             return
@@ -592,6 +601,115 @@ internal class Hud(
             )
             y += NOTIFY_CHAR_SIZE
         }
+    }
+
+    /**
+     * Draws legacy-style FPS statistics controlled by `cl_showfps`.
+     *
+     * Mode parity with Yamagi:
+     * - `0`: disabled
+     * - `1`: average fps
+     * - `2+`: min/max/avg fps
+     * - `3+`: adds a second line with max/min/avg frame time in milliseconds
+     */
+    private fun drawFpsCounter(screenWidth: Int, screenHeight: Int) {
+        val showFpsMode = clShowFpsCvar.value.toInt()
+        if (showFpsMode < 1) {
+            return
+        }
+        if (!pushFpsFrameSample()) {
+            return
+        }
+        val sampleCount = fpsFrameTimeSamples
+        if (sampleCount <= 0) {
+            return
+        }
+
+        var sumMicros = 0L
+        var minFrameMicros = Long.MAX_VALUE
+        var maxFrameMicros = 1L
+        for (i in 0 until sampleCount) {
+            val frameMicros = fpsFrameTimeAt(i)
+            if (frameMicros <= 0L) {
+                continue
+            }
+            sumMicros += frameMicros
+            minFrameMicros = minOf(minFrameMicros, frameMicros)
+            maxFrameMicros = maxOf(maxFrameMicros, frameMicros)
+        }
+        if (sumMicros <= 0L || minFrameMicros == Long.MAX_VALUE) {
+            return
+        }
+        val averageFrameMicros = sumMicros.toFloat() / sampleCount.toFloat()
+
+        if (showFpsMode == 1) {
+            val averageFps = 1_000_000f / averageFrameMicros
+            drawTopRightHudText(
+                text = String.format(Locale.US, "%3.2ffps", averageFps),
+                lineIndex = 0,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+            )
+            return
+        }
+
+        val minFps = 1_000_000f / maxFrameMicros.toFloat()
+        val maxFps = 1_000_000f / minFrameMicros.toFloat()
+        val averageFps = 1_000_000f / averageFrameMicros
+        drawTopRightHudText(
+            text = String.format(Locale.US, "Min: %7.2ffps, Max: %7.2ffps, Avg: %7.2ffps", minFps, maxFps, averageFps),
+            lineIndex = 0,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+        )
+        if (showFpsMode > 2) {
+            drawTopRightHudText(
+                text = String.format(
+                    Locale.US,
+                    "Max: %5.2fms, Min: %5.2fms, Avg: %5.2fms",
+                    maxFrameMicros / 1000f,
+                    minFrameMicros / 1000f,
+                    averageFrameMicros / 1000f
+                ),
+                lineIndex = 1,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+            )
+        }
+    }
+
+    private fun drawTopRightHudText(text: String, lineIndex: Int, screenWidth: Int, screenHeight: Int) {
+        val idTech2X = (screenWidth - text.length * 8 - 2).coerceAtLeast(0)
+        val idTech2Y = lineIndex * 10
+        drawTextIdTech2(
+            x = idTech2X,
+            y = idTech2Y,
+            text = text,
+            alt = false,
+            centerWidth = null,
+            screenHeight = screenHeight,
+        )
+    }
+
+    private fun pushFpsFrameSample(): Boolean {
+        val currentMicros = TimeUtils.nanoTime() / 1_000L
+        if (fpsPreviousFrameTimeMicros == 0L) {
+            fpsPreviousFrameTimeMicros = currentMicros
+            return false
+        }
+        val frameMicros = (currentMicros - fpsPreviousFrameTimeMicros).coerceAtLeast(1L)
+        fpsPreviousFrameTimeMicros = currentMicros
+
+        fpsFrameTimesMicros[fpsFrameTimeWriteIndex] = frameMicros
+        fpsFrameTimeWriteIndex = (fpsFrameTimeWriteIndex + 1) % fpsFrameTimesMicros.size
+        fpsFrameTimeSamples = minOf(fpsFrameTimeSamples + 1, fpsFrameTimesMicros.size)
+        return true
+    }
+
+    private fun fpsFrameTimeAt(indexFromOldest: Int): Long {
+        val oldestIndex = if (fpsFrameTimeSamples == fpsFrameTimesMicros.size) fpsFrameTimeWriteIndex else 0
+        val historyIndex = (oldestIndex + indexFromOldest) % fpsFrameTimesMicros.size
+        return fpsFrameTimesMicros[historyIndex]
     }
 
     /**

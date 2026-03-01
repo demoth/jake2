@@ -8,6 +8,7 @@ Owned here:
 - Parsing + executing layout script commands on each frame (`executeLayoutScript`, `Hud.executeLayout`).
 - IdTech2-to-libGDX coordinate mapping (`LayoutCoordinateMapper`).
 - Timed HUD text overlays: center-print + top-left notify prints (`Hud.update`).
+- Gameplay FPS overlay controlled by `cl_showfps` (`Hud.update`).
 
 Not owned here:
 - Server message dispatch (`org.demoth.cake.Cake`, `Game3dScreen`).
@@ -47,6 +48,11 @@ PrintMessage / PrintCenterMessage
 - `GameConfiguration.playerIndex` is the local-player source of truth for HUD-highlighted branches (`ctf`).
 - Notify print keeps max 4 visible lines and expires each line after 3000 ms.
 - Center print uses legacy-like timeout (2.5 s) and line-count-based vertical anchor.
+- `cl_showfps` mode parity:
+  - `0` off,
+  - `1` average fps,
+  - `2+` min/max/avg fps,
+  - `3+` adds frame-time stats line.
 
 ## Decision Log
 Newest first.
