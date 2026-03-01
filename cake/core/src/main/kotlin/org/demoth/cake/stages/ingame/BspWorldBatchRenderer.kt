@@ -17,8 +17,6 @@ import org.demoth.cake.assets.BspWorldBatchData
 import org.demoth.cake.assets.BspWorldBatchSurface
 import org.demoth.cake.assets.BspWorldRenderData
 import org.demoth.cake.assets.BspWorldSurfacePass
-import kotlin.math.cos
-import kotlin.math.sin
 
 private const val BATCH_LIGHT_STYLE_SLOTS = 4
 
@@ -80,6 +78,9 @@ class BspWorldBatchRenderer(
     private val uLightStyleWeights: Int
     private val uOpacity: Int
     private val uTurbLightScale: Int
+    private val uWarpEnabled: Int
+    private val uWarpTimeSec: Int
+    private val uWarpScrollU: Int
     private val uGammaExponent: Int
     private val uIntensity: Int
     private val uOverbrightBits: Int
@@ -126,6 +127,9 @@ class BspWorldBatchRenderer(
         uLightStyleWeights = shaderProgram.fetchUniformLocation("u_lightStyleWeights", false)
         uOpacity = shaderProgram.fetchUniformLocation("u_opacity", false)
         uTurbLightScale = shaderProgram.fetchUniformLocation("u_turbLightScale", false)
+        uWarpEnabled = shaderProgram.fetchUniformLocation("u_warpEnabled", false)
+        uWarpTimeSec = shaderProgram.fetchUniformLocation("u_warpTimeSec", false)
+        uWarpScrollU = shaderProgram.fetchUniformLocation("u_warpScrollU", false)
         uGammaExponent = shaderProgram.fetchUniformLocation("u_gammaExponent", false)
         uIntensity = shaderProgram.fetchUniformLocation("u_intensity", false)
         uOverbrightBits = shaderProgram.fetchUniformLocation("u_overbrightbits", false)
@@ -215,12 +219,14 @@ class BspWorldBatchRenderer(
                 shaderProgram.setUniformi(uLightmapTexture2, 3)
                 shaderProgram.setUniformi(uLightmapTexture3, 4)
 
-                val (offsetU, offsetV, scaleU, scaleV) = when {
-                    key.surfacePass == BspWorldSurfacePass.WARP -> computeWarpUvTransform(currentTimeMs)
-                    (key.textureFlags and Defines.SURF_FLOWING) != 0 -> floatArrayOf(computeFlowingOffsetU(currentTimeMs), 0f, 1f, 1f)
-                    else -> floatArrayOf(0f, 0f, 1f, 1f)
-                }
-                shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
+                val isWarpSurface = (key.textureFlags and Defines.SURF_WARP) != 0
+                val isFlowingSurface = (key.textureFlags and Defines.SURF_FLOWING) != 0
+                val diffuseOffsetU = if (!isWarpSurface && isFlowingSurface) computeFlowingOffsetU(currentTimeMs) else 0f
+                val warpScrollU = if (isWarpSurface && isFlowingSurface) computeWarpScrollOffsetU(currentTimeMs) else 0f
+                shaderProgram.setUniformf(uDiffuseUvTransform, diffuseOffsetU, 0f, 1f, 1f)
+                shaderProgram.setUniformf(uWarpEnabled, if (isWarpSurface) 1f else 0f)
+                shaderProgram.setUniformf(uWarpTimeSec, currentTimeMs / 1000f)
+                shaderProgram.setUniformf(uWarpScrollU, warpScrollU)
                 shaderProgram.setUniformf(uTurbLightScale, computeTurbLightScale(key.textureFlags, key.activeTextureInfoIndex))
 
                 val styleWeights = if (useAtlasLightmap) {
@@ -347,16 +353,22 @@ class BspWorldBatchRenderer(
                 shaderProgram.setUniformi(uLightmapTexture3, 4)
 
                 val (offsetU, offsetV, scaleU, scaleV) = when {
-                    // Reference parity:
-                    // - Yamagi GL3: GL3_DrawAlphaSurfaces -> GL3_EmitWaterPolys for turbulent alpha surfaces.
-                    // - Q2PRO: statebits_for_surface keeps SURF_WARP and SURF_TRANS_MASK as independent state bits.
-                    (key.textureFlags and Defines.SURF_WARP) != 0 -> computeWarpUvTransform(currentTimeMs)
-                    (key.textureFlags and Defines.SURF_FLOWING) != 0 -> floatArrayOf(computeFlowingOffsetU(currentTimeMs), 0f, 1f, 1f)
+                    (key.textureFlags and Defines.SURF_FLOWING) != 0 && (key.textureFlags and Defines.SURF_WARP) == 0 ->
+                        floatArrayOf(computeFlowingOffsetU(currentTimeMs), 0f, 1f, 1f)
                     else -> floatArrayOf(0f, 0f, 1f, 1f)
+                }
+                val isWarpSurface = (key.textureFlags and Defines.SURF_WARP) != 0
+                val warpScrollU = if (isWarpSurface && (key.textureFlags and Defines.SURF_FLOWING) != 0) {
+                    computeWarpScrollOffsetU(currentTimeMs)
+                } else {
+                    0f
                 }
                 shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
                 shaderProgram.setUniformf(uOpacity, legacySurfaceOpacity(key.textureFlags))
                 shaderProgram.setUniformf(uTurbLightScale, computeTurbLightScale(key.textureFlags, key.activeTextureInfoIndex))
+                shaderProgram.setUniformf(uWarpEnabled, if (isWarpSurface) 1f else 0f)
+                shaderProgram.setUniformf(uWarpTimeSec, currentTimeMs / 1000f)
+                shaderProgram.setUniformf(uWarpScrollU, warpScrollU)
 
                 for ((chunkIndex, surfaces) in chunkGroups) {
                     val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
@@ -499,12 +511,12 @@ class BspWorldBatchRenderer(
         return Texture(pixmap).also { pixmap.dispose() }
     }
 
-    private fun computeWarpUvTransform(currentTimeMs: Int): FloatArray {
-        val timeSeconds = currentTimeMs / 1000f
-        val offsetU = sin(timeSeconds * 1.3f) * 0.02f
-        val offsetV = cos(timeSeconds * 0.9f) * 0.02f
-        return floatArrayOf(offsetU, offsetV, 1f, 1f)
-    }
+    /**
+     * Converts legacy flowing scroll from texture-space texels to normalized UV units.
+     * Legacy formula returns [-64, 0], while shader sampling expects normalized coordinates.
+     */
+    private fun computeWarpScrollOffsetU(currentTimeMs: Int): Float =
+        computeFlowingOffsetU(currentTimeMs) / 64f
 
     /**
      * Matches Yamagi GL3 turbulent surface light scaling:
@@ -554,6 +566,9 @@ uniform sampler2D u_lightmapTexture3;
 uniform vec4 u_lightStyleWeights;
 uniform float u_opacity;
 uniform float u_turbLightScale;
+uniform float u_warpEnabled;
+uniform float u_warpTimeSec;
+uniform float u_warpScrollU;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
@@ -584,7 +599,19 @@ vec3 accumulateDynamicLights(vec3 worldPos) {
 }
 
 void main() {
-    vec4 albedo = texture2D(u_diffuseTexture, v_diffuseUv);
+    vec2 sampleUv = v_diffuseUv;
+    if (u_warpEnabled > 0.5) {
+        // Yamagi GL3 counterpart (`fragmentSrc3Dwater`):
+        // tc.s += sin(tc.t * 0.125 + time) * 4.0; tc.t += sin(tc.s * 0.125 + time) * 4.0; tc *= 1/64.
+        vec2 tc = sampleUv * 64.0;
+        float baseS = tc.x;
+        float baseT = tc.y;
+        tc.x = baseS + sin(baseT * 0.125 + u_warpTimeSec) * 4.0;
+        tc.y = baseT + sin(baseS * 0.125 + u_warpTimeSec) * 4.0;
+        sampleUv = tc * (1.0 / 64.0);
+        sampleUv.x += u_warpScrollU;
+    }
+    vec4 albedo = texture2D(u_diffuseTexture, sampleUv);
     vec3 light0 = texture2D(u_lightmapTexture0, v_lightmapUv).rgb * u_lightStyleWeights.x;
     vec3 light1 = texture2D(u_lightmapTexture1, v_lightmapUv).rgb * u_lightStyleWeights.y;
     vec3 light2 = texture2D(u_lightmapTexture2, v_lightmapUv).rgb * u_lightStyleWeights.z;

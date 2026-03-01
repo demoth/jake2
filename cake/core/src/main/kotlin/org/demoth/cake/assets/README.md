@@ -255,6 +255,11 @@ For inline brush models specifically:
   - **Legacy counterpart:** `client/render/fast/Surf.DrawGLFlowingPoly`.
   - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
 
+- **What:** Turbulent (`SURF_WARP`) world surfaces use per-fragment wave distortion.
+  - **Why:** Match legacy/Yamagi behavior where warp is driven by local UV (cell-level distortion), not a whole-plane UV translation.
+  - **Cake counterpart:** `BspWorldBatchRenderer` fragment shader (`u_warpEnabled`, `u_warpTimeSec`, `u_warpScrollU`).
+  - **Legacy counterpart:** Yamagi GL3 `fragmentSrc3Dwater`; Q2PRO `GLS_WARP_ENABLE` shader path.
+
 - **What:** Turbulent (`SURF_WARP`) surfaces apply a non-lava light scale.
   - **Why:** Legacy/Yamagi avoid full-bright water in dark scenes.
   - **Cake counterpart:** `BspWorldBatchRenderer.computeTurbLightScale`.
