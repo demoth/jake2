@@ -66,7 +66,7 @@ Planned phases:
 
 - [x] Step 1: runtime guardrail + profiling baseline workflow (`r_bsp_batch_world`).
 - [x] Step 2: lightmap atlas pages (replace per-face lightmap textures).
-- [ ] Step 3: precomputed batched world geometry/ranges/chunking metadata.
+- [x] Step 3: precomputed batched world geometry/ranges/chunking metadata.
 - [ ] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
 - [ ] Step 5: move world animation/lightstyle/flowing to draw-command state.
 - [ ] Step 6: translucent world pass parity on batched path.

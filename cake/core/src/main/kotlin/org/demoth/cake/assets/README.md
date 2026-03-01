@@ -11,6 +11,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
 - `AnimationTextureAttribute` / `AnimationNormalTextureAttribute` - position/normal VAT bindings for MD2 shader path.
 - `BspLightmapShader` / `BspLightmapTexture*Attribute` - per-texel BSP lightmap sampling (`UV2`) with up to 4 lightstyle slots packed into shared atlas pages.
+- `BspWorldBatchData` - chunked world BSP geometry + per-surface batch keys/ranges for Q2PRO-style world batching.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
 ## Data / Control Flow

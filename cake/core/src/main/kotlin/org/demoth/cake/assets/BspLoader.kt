@@ -30,6 +30,7 @@ import kotlin.math.floor
  *
  * [models] are generated GPU resources owned by this asset instance.
  * [worldRenderData] stores per-surface and per-leaf world representation for runtime visibility/lighting passes.
+ * [worldBatchData] stores chunked world geometry + per-surface draw-command metadata for batched BSP rendering.
  * [inlineRenderData] stores stable per-face part metadata for inline brush models (`*1`, `*2`, ...).
  * [lightmapAtlas] describes packed BSP lightmap pages generated at load time.
  * [generatedTextures] are runtime-generated lightmap atlas page textures (4 style-slot textures per page).
@@ -39,6 +40,7 @@ class BspMapAsset(
     val mapData: ByteArray,
     val models: List<Model>,
     val worldRenderData: BspWorldRenderData,
+    val worldBatchData: BspWorldBatchData,
     val inlineRenderData: List<BspInlineModelRenderData>,
     val lightmapAtlas: BspLightmapAtlasMetadata? = null,
     val generatedTextures: List<Texture> = emptyList(),
@@ -243,6 +245,12 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
         val inlineRenderData = collectInlineModelRenderData(bsp)
         val lightmapAtlas = buildLightmapAtlas(bsp)
+        val worldBatchData = buildWorldBatchData(
+            bsp = bsp,
+            manager = manager,
+            worldSurfaces = worldSurfaces,
+            lightmapAtlas = lightmapAtlas,
+        )
         val generatedTextures = mutableListOf<Texture>()
         generatedTextures += lightmapAtlas.allTextures()
         return BspMapAsset(
@@ -255,6 +263,7 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                 lightmapAtlas = lightmapAtlas,
             ),
             worldRenderData = buildWorldRenderData(bsp, worldSurfaces),
+            worldBatchData = worldBatchData,
             inlineRenderData = inlineRenderData,
             lightmapAtlas = lightmapAtlas.toMetadata(),
             generatedTextures = generatedTextures,
@@ -383,6 +392,81 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         }
     }
 
+    /**
+     * Builds chunked world geometry + per-surface draw-command metadata for the upcoming batched renderer.
+     *
+     * Q2PRO references:
+     * - `q2pro/src/refresh/world.c` (`GL_DrawWorld` world-surface collection),
+     * - `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D` batch flush model).
+     */
+    private fun buildWorldBatchData(
+        bsp: Bsp,
+        manager: AssetManager,
+        worldSurfaces: List<BspWorldSurfaceRecord>,
+        lightmapAtlas: BspLightmapAtlasBuildResult,
+    ): BspWorldBatchData {
+        if (worldSurfaces.isEmpty()) {
+            return BspWorldBatchData(emptyList(), emptyList())
+        }
+
+        val chunkBuilders = mutableListOf(WorldBatchChunkBuilder())
+        var currentChunk = chunkBuilders.last()
+        val batchedSurfaces = ArrayList<BspWorldBatchSurface>(worldSurfaces.size)
+
+        worldSurfaces.forEachIndexed { worldSurfaceIndex, surface ->
+            val face = bsp.faces[surface.faceIndex]
+            val vertexIndices = extractFaceVertexIndices(bsp, face) ?: return@forEachIndexed
+            val texture = manager.get(toWalPath(surface.textureName), Texture::class.java)
+            val lightmapPlacement = lightmapAtlas.facePlacements[surface.faceIndex]
+            val vertexBuffer = buildFaceTriangleVertexBuffer(
+                bsp = bsp,
+                face = face,
+                vertexIndices = vertexIndices,
+                texture = texture,
+                includeLightmapUv = true,
+                lightmapPlacement = lightmapPlacement,
+            )
+            val vertexCount = vertexBuffer.size / WORLD_BATCH_FLOATS_PER_VERTEX
+            if (vertexCount == 0) {
+                return@forEachIndexed
+            }
+
+            if (
+                currentChunk.vertexCount > 0 &&
+                currentChunk.vertexCount + vertexCount > WORLD_BATCH_MAX_VERTICES_PER_CHUNK
+            ) {
+                currentChunk = WorldBatchChunkBuilder()
+                chunkBuilders += currentChunk
+            }
+
+            val firstVertex = currentChunk.vertexCount
+            val indexOffset = currentChunk.indicesCount
+            currentChunk.appendVertices(vertexBuffer)
+            currentChunk.appendSequentialIndices(firstVertex, vertexCount)
+
+            batchedSurfaces += BspWorldBatchSurface(
+                worldSurfaceIndex = worldSurfaceIndex,
+                faceIndex = surface.faceIndex,
+                chunkIndex = chunkBuilders.lastIndex,
+                indexOffset = indexOffset,
+                indexCount = vertexCount,
+                batchKey = BspWorldBatchKey(
+                    textureInfoIndex = surface.textureInfoIndex,
+                    textureFlags = surface.textureFlags,
+                    lightmapPageIndex = lightmapPlacement?.pageIndex ?: -1,
+                ),
+            )
+        }
+
+        val chunks = chunkBuilders
+            .filter { it.vertexCount > 0 }
+            .map { it.build() }
+        return BspWorldBatchData(
+            chunks = chunks,
+            surfaces = batchedSurfaces,
+        )
+    }
+
 private fun addFaceAsTriangles(
     bsp: Bsp,
     face: jake2.qcommon.filesystem.BspFace,
@@ -396,36 +480,76 @@ private fun addFaceAsTriangles(
     if (vertexIndices.size < 3) {
         return
     }
-    val textureInfo = bsp.textures[face.textureInfoIndex]
+    val vertexBuffer = buildFaceTriangleVertexBuffer(
+        bsp = bsp,
+        face = face,
+        vertexIndices = vertexIndices,
+        texture = texture,
+        includeLightmapUv = includeLightmapUv,
+        lightmapPlacement = lightmapPlacement,
+    )
+    val floatsPerVertex = if (includeLightmapUv) 7 else 5
+    val size = vertexBuffer.size / floatsPerVertex
+    meshBuilder.addMesh(vertexBuffer, (0..<size).map { it.toShort() }.toShortArray())
+}
 
-    val vertexBuffer = vertexIndices.drop(1).windowed(2).flatMap { (i1, i2) ->
-        val v0 = bsp.vertices[vertexIndices.first()]
-        val v1 = bsp.vertices[i1]
-        val v2 = bsp.vertices[i2]
-        val uv0 = textureInfo.calculateUV(v0, texture.width, texture.height)
+private fun buildFaceTriangleVertexBuffer(
+    bsp: Bsp,
+    face: jake2.qcommon.filesystem.BspFace,
+    vertexIndices: List<Int>,
+    texture: Texture,
+    includeLightmapUv: Boolean,
+    lightmapPlacement: BspLightmapAtlasPlacement?,
+): FloatArray {
+    val textureInfo = bsp.textures[face.textureInfoIndex]
+    val vertexFloats = if (includeLightmapUv) 7 else 5
+    val output = FloatArray((vertexIndices.size - 2) * 3 * vertexFloats)
+    var out = 0
+    val root = bsp.vertices[vertexIndices.first()]
+
+    for (window in vertexIndices.drop(1).windowed(2)) {
+        val v1 = bsp.vertices[window[0]]
+        val v2 = bsp.vertices[window[1]]
+
+        val uv0 = textureInfo.calculateUV(root, texture.width, texture.height)
         val uv1 = textureInfo.calculateUV(v1, texture.width, texture.height)
         val uv2 = textureInfo.calculateUV(v2, texture.width, texture.height)
-            val lm0 = calculateLightmapUv(v0, textureInfo, lightmapPlacement)
-            val lm1 = calculateLightmapUv(v1, textureInfo, lightmapPlacement)
-            val lm2 = calculateLightmapUv(v2, textureInfo, lightmapPlacement)
-            if (includeLightmapUv) {
-                listOf(
-                    v2.x, v2.y, v2.z, uv2.first(), uv2.last(), lm2.first, lm2.second,
-                    v1.x, v1.y, v1.z, uv1.first(), uv1.last(), lm1.first, lm1.second,
-                    v0.x, v0.y, v0.z, uv0.first(), uv0.last(), lm0.first, lm0.second,
-                )
-            } else {
-                listOf(
-                    v2.x, v2.y, v2.z, uv2.first(), uv2.last(),
-                    v1.x, v1.y, v1.z, uv1.first(), uv1.last(),
-                    v0.x, v0.y, v0.z, uv0.first(), uv0.last(),
-                )
-            }
-        }
-        val floatsPerVertex = if (includeLightmapUv) 7 else 5
-        val size = vertexBuffer.size / floatsPerVertex
-        meshBuilder.addMesh(vertexBuffer.toFloatArray(), (0..<size).map { it.toShort() }.toShortArray())
+
+        val lm0 = calculateLightmapUv(root, textureInfo, lightmapPlacement)
+        val lm1 = calculateLightmapUv(v1, textureInfo, lightmapPlacement)
+        val lm2 = calculateLightmapUv(v2, textureInfo, lightmapPlacement)
+
+        out = appendFaceVertex(output, out, v2.x, v2.y, v2.z, uv2.first(), uv2.last(), lm2, includeLightmapUv)
+        out = appendFaceVertex(output, out, v1.x, v1.y, v1.z, uv1.first(), uv1.last(), lm1, includeLightmapUv)
+        out = appendFaceVertex(output, out, root.x, root.y, root.z, uv0.first(), uv0.last(), lm0, includeLightmapUv)
     }
+
+    return output
+}
+
+private fun appendFaceVertex(
+    out: FloatArray,
+    index: Int,
+    x: Float,
+    y: Float,
+    z: Float,
+    u: Float,
+    v: Float,
+    lightmapUv: Pair<Float, Float>,
+    includeLightmapUv: Boolean,
+): Int {
+    var write = index
+    out[write++] = x
+    out[write++] = y
+    out[write++] = z
+    out[write++] = u
+    out[write++] = v
+    if (includeLightmapUv) {
+        out[write++] = lightmapUv.first
+        out[write++] = lightmapUv.second
+    }
+    return write
+}
 }
 
 /**
@@ -625,6 +749,33 @@ private fun calculateLightmapUv(
 
 private const val LIGHTMAP_ATLAS_STYLE_SLOTS = 4
 private const val LIGHTMAP_ATLAS_PAGE_SIZE = 512
+private const val WORLD_BATCH_FLOATS_PER_VERTEX = 7
+private const val WORLD_BATCH_MAX_VERTICES_PER_CHUNK = 60_000
+
+private class WorldBatchChunkBuilder {
+    private val vertexData = ArrayList<Float>()
+    private val indexData = ArrayList<Short>()
+
+    val vertexCount: Int
+        get() = vertexData.size / WORLD_BATCH_FLOATS_PER_VERTEX
+    val indicesCount: Int
+        get() = indexData.size
+
+    fun appendVertices(vertices: FloatArray) {
+        vertices.forEach(vertexData::add)
+    }
+
+    fun appendSequentialIndices(firstVertex: Int, count: Int) {
+        repeat(count) { localIndex ->
+            indexData += (firstVertex + localIndex).toShort()
+        }
+    }
+
+    fun build(): BspWorldBatchChunk = BspWorldBatchChunk(
+        vertices = vertexData.toFloatArray(),
+        indices = indexData.toShortArray(),
+    )
+}
 
 private class BspLightmapAtlasPageBuilder(private val pageSize: Int) {
     // Q2PRO reference:
