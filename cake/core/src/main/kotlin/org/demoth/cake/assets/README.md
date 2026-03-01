@@ -36,19 +36,17 @@ Legacy counterparts:
 - For player entities (`modelindex == 255`), runtime shader `skinIndex` is forced to `0` because only one skin texture is loaded for that variant.
 
 ## Terminology Alignment (Quake2 vs libGDX)
-- Quake2 BSP **model 0** (worldspawn geometry) maps to one libGDX `Model` produced by `BspLoader`.
+- Quake2 BSP **model 0** (worldspawn geometry) maps to precomputed batch chunks in `BspWorldBatchData`.
 - Quake2 **inline brush model** (`*1`, `*2`, ...) maps to additional libGDX `Model` objects in the same BSP asset.
 - Quake2 **render entity** maps to libGDX `ModelInstance`.
-- Quake2 world **surface/face** maps to one libGDX `NodePart` mesh part for model 0 (`meshPart.id = surface_<faceIndex>`).
+- Quake2 world **surface/face** maps to one stable `BspWorldSurfaceRecord` used by batch draw metadata.
 - Quake2 BSP **texinfo** maps to `BspWorldTextureInfoRecord`; texture animation follows `nexttexinfo` chain.
-- Quake2 **leaf/cluster/area** visibility metadata maps to `BspWorldLeafRecord` and drives per-surface `NodePart.enabled`.
+- Quake2 **leaf/cluster/area** visibility metadata maps to `BspWorldLeafRecord` and drives batch visibility masks.
 
 For world rendering specifically:
-- `Game3dScreen.precache()` creates one `levelEntity.modelInstance` from world `Model` (model 0).
-- `BspWorldVisibilityController` toggles world `NodePart.enabled`.
-- `BspWorldTextureAnimationController` swaps world `NodePart` diffuse textures by texinfo animation frame.
-- `BspWorldSurfaceMaterialController` applies `SURF_FLOWING`, surface transparency flags, and per-slot lightstyle weights for world lightmaps.
-- `BspLightmapShader` multiplies world diffuse albedo by baked lightmap texels sampled from UV2.
+- `Game3dScreen.precache()` builds world batch metadata and initializes `BspWorldBatchRenderer`.
+- `BspWorldVisibilityMaskTracker` computes world surface visibility masks from PVS + areabits.
+- `BspWorldBatchRenderer` owns world opaque/warp/translucent passes and dynamic light sampling.
 - `BspLoader` packs all eligible BSP face lightmaps into shared atlas pages using a Q2PRO-style block allocator model (`LM_AllocBlock` equivalent).
 
 For inline brush models specifically:

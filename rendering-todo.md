@@ -64,7 +64,7 @@ Current migration target follows Q2PRO brush-world batching ideas:
 
 Planned phases:
 
-- [x] Step 1: runtime guardrail + profiling baseline workflow (`r_bsp_batch_world`).
+- [x] Step 1: runtime guardrail + profiling baseline workflow.
 - [x] Step 2: lightmap atlas pages (replace per-face lightmap textures).
 - [x] Step 3: precomputed batched world geometry/ranges/chunking metadata.
 - [x] Step 4: dedicated opaque world batch renderer (outside `ModelBatch`).
@@ -244,7 +244,7 @@ Planned phases:
 - BSP rendering pipeline (`world + inline brush entities`):
   - Estimate formula:  
     `dc_bsp ~= visible_world_surfaces + sum(visible_inline_faces_per_instance) + sky_calls`
-  - `visible_world_surfaces` is directly driven by PVS/areabits via `NodePart.enabled`.
+  - `visible_world_surfaces` is driven by PVS/areabits through `BspWorldVisibilityMaskTracker`.
   - Inline brush models are emitted per-face; each visible face of each visible inline instance adds one call.
   - `sky_calls` is typically `0..1` (sky model rendered separately when present).
   - Practical range:

@@ -5,7 +5,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class BspWorldTextureAnimationControllerTest {
+class BspTextureAnimationTest {
 
     @Test
     fun resolveTextureAnimationChainFollowsNextLinksUntilCycle() {

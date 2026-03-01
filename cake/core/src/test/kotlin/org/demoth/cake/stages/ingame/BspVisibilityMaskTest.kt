@@ -7,7 +7,7 @@ import org.demoth.cake.assets.BspWorldTextureInfoRecord
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class BspWorldVisibilityControllerTest {
+class BspVisibilityMaskTest {
 
     @Test
     fun computeVisibleSurfaceMaskUsesPvsAndAreaBits() {
