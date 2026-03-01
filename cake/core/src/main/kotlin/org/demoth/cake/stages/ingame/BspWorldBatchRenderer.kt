@@ -16,6 +16,9 @@ import org.demoth.cake.assets.BspLightmapAtlasPageTextures
 import org.demoth.cake.assets.BspWorldBatchData
 import org.demoth.cake.assets.BspWorldBatchSurface
 import org.demoth.cake.assets.BspWorldRenderData
+import org.demoth.cake.assets.BspWorldSurfacePass
+import kotlin.math.cos
+import kotlin.math.sin
 
 private const val BATCH_LIGHT_STYLE_SLOTS = 4
 
@@ -23,6 +26,7 @@ private data class FrameBatchKey(
     val activeTextureInfoIndex: Int,
     val lightmapPageIndex: Int,
     val textureFlags: Int,
+    val surfacePass: BspWorldSurfacePass,
     val lightStyleSignature: Long,
 )
 
@@ -58,6 +62,7 @@ class BspWorldBatchRenderer(
     private val texturesByTexInfoIndex = HashMap<Int, Texture>()
 
     private val chunkMeshes: List<Mesh>
+    private val ownedSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val handledOpaqueSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val handledTranslucentSurfaceMask = BooleanArray(worldRenderData.surfaces.size)
     private val whiteTexture: Texture
@@ -129,9 +134,7 @@ class BspWorldBatchRenderer(
     }
 
     fun suppressedSurfacesMask(): BooleanArray =
-        BooleanArray(worldRenderData.surfaces.size) { index ->
-            handledOpaqueSurfaceMask[index] || handledTranslucentSurfaceMask[index]
-        }
+        ownedSurfaceMask.copyOf()
 
     fun render(
         camera: Camera,
@@ -161,6 +164,7 @@ class BspWorldBatchRenderer(
                 activeTextureInfoIndex = activeTextureInfoIndex,
                 lightmapPageIndex = surface.batchKey.lightmapPageIndex,
                 textureFlags = surface.batchKey.textureFlags,
+                surfacePass = surface.batchKey.surfacePass,
                 lightStyleSignature = packLightStyleSignature(worldSurface),
             )
             val byChunk = drawGroups.getOrPut(key) { LinkedHashMap() }
@@ -185,38 +189,54 @@ class BspWorldBatchRenderer(
 
             drawGroups.forEach { (key, chunkGroups) ->
                 val diffuseTexture = texturesByTexInfoIndex[key.activeTextureInfoIndex] ?: return@forEach
-                val atlasPage = lightmapAtlasPages.getOrNull(key.lightmapPageIndex) ?: return@forEach
-                if (atlasPage.textures.size < BATCH_LIGHT_STYLE_SLOTS) {
+                if (key.surfacePass == BspWorldSurfacePass.SKY || key.surfacePass == BspWorldSurfacePass.TRANSLUCENT) {
+                    return@forEach
+                }
+
+                val useAtlasLightmap = key.surfacePass == BspWorldSurfacePass.OPAQUE_LIGHTMAPPED
+                val atlasPage = if (useAtlasLightmap) lightmapAtlasPages.getOrNull(key.lightmapPageIndex) else null
+                if (useAtlasLightmap && (atlasPage == null || atlasPage.textures.size < BATCH_LIGHT_STYLE_SLOTS)) {
                     return@forEach
                 }
 
                 diffuseTexture.bind(0)
-                atlasPage.textures[0].bind(1)
-                atlasPage.textures[1].bind(2)
-                atlasPage.textures[2].bind(3)
-                atlasPage.textures[3].bind(4)
+                if (atlasPage != null) {
+                    atlasPage.textures[0].bind(1)
+                    atlasPage.textures[1].bind(2)
+                    atlasPage.textures[2].bind(3)
+                    atlasPage.textures[3].bind(4)
+                } else {
+                    whiteTexture.bind(1)
+                    whiteTexture.bind(2)
+                    whiteTexture.bind(3)
+                    whiteTexture.bind(4)
+                }
                 shaderProgram.setUniformi(uDiffuseTexture, 0)
                 shaderProgram.setUniformi(uLightmapTexture0, 1)
                 shaderProgram.setUniformi(uLightmapTexture1, 2)
                 shaderProgram.setUniformi(uLightmapTexture2, 3)
                 shaderProgram.setUniformi(uLightmapTexture3, 4)
 
-                val flowingOffset = if ((key.textureFlags and Defines.SURF_FLOWING) != 0) {
-                    computeFlowingOffsetU(currentTimeMs)
-                } else {
-                    0f
+                val (offsetU, offsetV, scaleU, scaleV) = when {
+                    key.surfacePass == BspWorldSurfacePass.WARP -> computeWarpUvTransform(currentTimeMs)
+                    (key.textureFlags and Defines.SURF_FLOWING) != 0 -> floatArrayOf(computeFlowingOffsetU(currentTimeMs), 0f, 1f, 1f)
+                    else -> floatArrayOf(0f, 0f, 1f, 1f)
                 }
-                shaderProgram.setUniformf(uDiffuseUvTransform, flowingOffset, 0f, 1f, 1f)
+                shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
 
-                val referenceSurface = chunkGroups.values.firstOrNull()?.firstOrNull()?.let { groupedSurface ->
-                    worldRenderData.surfaces[groupedSurface.worldSurfaceIndex]
-                }
-                val styleWeights = if (referenceSurface != null) {
-                    computeLightmapStyleWeights(
-                        lightMapStyles = referenceSurface.lightMapStyles,
-                        primaryLightStyleIndex = referenceSurface.primaryLightStyleIndex,
-                        lightStyleResolver = lightStyleResolver,
-                    )
+                val styleWeights = if (useAtlasLightmap) {
+                    val referenceSurface = chunkGroups.values.firstOrNull()?.firstOrNull()?.let { groupedSurface ->
+                        worldRenderData.surfaces[groupedSurface.worldSurfaceIndex]
+                    }
+                    if (referenceSurface != null) {
+                        computeLightmapStyleWeights(
+                            lightMapStyles = referenceSurface.lightMapStyles,
+                            primaryLightStyleIndex = referenceSurface.primaryLightStyleIndex,
+                            lightStyleResolver = lightStyleResolver,
+                        )
+                    } else {
+                        floatArrayOf(1f, 0f, 0f, 0f)
+                    }
                 } else {
                     floatArrayOf(1f, 0f, 0f, 0f)
                 }
@@ -275,6 +295,9 @@ class BspWorldBatchRenderer(
                 surface.worldSurfaceIndex !in handledTranslucentSurfaceMask.indices ||
                 !handledTranslucentSurfaceMask[surface.worldSurfaceIndex]
             ) {
+                return@forEach
+            }
+            if (surface.batchKey.surfacePass != BspWorldSurfacePass.TRANSLUCENT) {
                 return@forEach
             }
             visibleSurfaceCount++
@@ -352,7 +375,7 @@ class BspWorldBatchRenderer(
         } finally {
             restoreDefaultPipelineState()
         }
-        lastTranslucentStats = BspWorldBatchRenderStats(
+        lastOpaqueStats = BspWorldBatchRenderStats(
             visibleSurfaceCount = visibleSurfaceCount,
             groupedSurfaceCount = groupedSurfaceCount,
             drawCalls = drawCallCount,
@@ -376,11 +399,24 @@ class BspWorldBatchRenderer(
 
     private fun markHandledSurfaces() {
         worldBatchData.surfaces.forEach { surface ->
-            val worldSurface = worldRenderData.surfaces.getOrNull(surface.worldSurfaceIndex) ?: return@forEach
-            if (isBatchedOpaqueSurface(worldSurface.textureFlags, surface.batchKey.lightmapPageIndex)) {
-                handledOpaqueSurfaceMask[surface.worldSurfaceIndex] = true
-            } else if (isBatchedTranslucentSurface(worldSurface.textureFlags)) {
-                handledTranslucentSurfaceMask[surface.worldSurfaceIndex] = true
+            val worldSurfaceIndex = surface.worldSurfaceIndex
+            if (worldSurfaceIndex !in ownedSurfaceMask.indices) {
+                return@forEach
+            }
+            when (surface.batchKey.surfacePass) {
+                BspWorldSurfacePass.OPAQUE_LIGHTMAPPED,
+                BspWorldSurfacePass.OPAQUE_UNLIT,
+                BspWorldSurfacePass.WARP -> {
+                    ownedSurfaceMask[worldSurfaceIndex] = true
+                    handledOpaqueSurfaceMask[worldSurfaceIndex] = true
+                }
+                BspWorldSurfacePass.TRANSLUCENT -> {
+                    ownedSurfaceMask[worldSurfaceIndex] = true
+                    handledTranslucentSurfaceMask[worldSurfaceIndex] = true
+                }
+                BspWorldSurfacePass.SKY -> {
+                    ownedSurfaceMask[worldSurfaceIndex] = true
+                }
             }
         }
     }
@@ -449,37 +485,18 @@ class BspWorldBatchRenderer(
         return signature
     }
 
-    private fun isBatchedOpaqueSurface(textureFlags: Int, lightmapPageIndex: Int): Boolean {
-        if (lightmapPageIndex < 0) {
-            return false
-        }
-        if ((textureFlags and Defines.SURF_SKY) != 0) {
-            return false
-        }
-        if ((textureFlags and Defines.SURF_WARP) != 0) {
-            return false
-        }
-        if ((textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0) {
-            return false
-        }
-        return true
-    }
-
-    private fun isBatchedTranslucentSurface(textureFlags: Int): Boolean {
-        if ((textureFlags and Defines.SURF_SKY) != 0) {
-            return false
-        }
-        if ((textureFlags and Defines.SURF_WARP) != 0) {
-            return false
-        }
-        return (textureFlags and (Defines.SURF_TRANS33 or Defines.SURF_TRANS66)) != 0
-    }
-
     private fun createWhiteTexture(): Texture {
         val pixmap = com.badlogic.gdx.graphics.Pixmap(1, 1, com.badlogic.gdx.graphics.Pixmap.Format.RGB888)
         pixmap.setColor(1f, 1f, 1f, 1f)
         pixmap.fill()
         return Texture(pixmap).also { pixmap.dispose() }
+    }
+
+    private fun computeWarpUvTransform(currentTimeMs: Int): FloatArray {
+        val timeSeconds = currentTimeMs / 1000f
+        val offsetU = sin(timeSeconds * 1.3f) * 0.02f
+        val offsetV = cos(timeSeconds * 0.9f) * 0.02f
+        return floatArrayOf(offsetU, offsetV, 1f, 1f)
     }
 
     companion object {
