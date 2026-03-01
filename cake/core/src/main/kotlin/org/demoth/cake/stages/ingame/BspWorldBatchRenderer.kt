@@ -79,6 +79,7 @@ class BspWorldBatchRenderer(
     private val uDiffuseUvTransform: Int
     private val uLightStyleWeights: Int
     private val uOpacity: Int
+    private val uTurbLightScale: Int
     private val uGammaExponent: Int
     private val uIntensity: Int
     private val uOverbrightBits: Int
@@ -124,6 +125,7 @@ class BspWorldBatchRenderer(
         uDiffuseUvTransform = shaderProgram.fetchUniformLocation("u_diffuseUVTransform", false)
         uLightStyleWeights = shaderProgram.fetchUniformLocation("u_lightStyleWeights", false)
         uOpacity = shaderProgram.fetchUniformLocation("u_opacity", false)
+        uTurbLightScale = shaderProgram.fetchUniformLocation("u_turbLightScale", false)
         uGammaExponent = shaderProgram.fetchUniformLocation("u_gammaExponent", false)
         uIntensity = shaderProgram.fetchUniformLocation("u_intensity", false)
         uOverbrightBits = shaderProgram.fetchUniformLocation("u_overbrightbits", false)
@@ -219,6 +221,7 @@ class BspWorldBatchRenderer(
                     else -> floatArrayOf(0f, 0f, 1f, 1f)
                 }
                 shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
+                shaderProgram.setUniformf(uTurbLightScale, computeTurbLightScale(key.textureFlags, key.activeTextureInfoIndex))
 
                 val styleWeights = if (useAtlasLightmap) {
                     val referenceSurface = chunkGroups.values.firstOrNull()?.firstOrNull()?.let { groupedSurface ->
@@ -352,7 +355,8 @@ class BspWorldBatchRenderer(
                     else -> floatArrayOf(0f, 0f, 1f, 1f)
                 }
                 shaderProgram.setUniformf(uDiffuseUvTransform, offsetU, offsetV, scaleU, scaleV)
-                shaderProgram.setUniformf(uOpacity, if (trans33) 0.33f else 0.66f)
+                shaderProgram.setUniformf(uOpacity, legacySurfaceOpacity(key.textureFlags))
+                shaderProgram.setUniformf(uTurbLightScale, computeTurbLightScale(key.textureFlags, key.activeTextureInfoIndex))
 
                 for ((chunkIndex, surfaces) in chunkGroups) {
                     val chunk = worldBatchData.chunks.getOrNull(chunkIndex) ?: continue
@@ -502,6 +506,19 @@ class BspWorldBatchRenderer(
         return floatArrayOf(offsetU, offsetV, 1f, 1f)
     }
 
+    /**
+     * Matches Yamagi GL3 turbulent surface light scaling:
+     * non-lava warp surfaces are dimmed by 0.5, lava stays at full scale.
+     */
+    private fun computeTurbLightScale(textureFlags: Int, activeTextureInfoIndex: Int): Float {
+        if ((textureFlags and Defines.SURF_WARP) == 0) {
+            return 1f
+        }
+        val textureName = textureInfosByIndex[activeTextureInfoIndex]?.textureName.orEmpty()
+        val isLava = textureName.contains("lava", ignoreCase = true)
+        return if (isLava) 1f else 0.5f
+    }
+
     companion object {
         private const val VERTEX_SHADER = """
 attribute vec3 a_position;
@@ -536,6 +553,7 @@ uniform sampler2D u_lightmapTexture2;
 uniform sampler2D u_lightmapTexture3;
 uniform vec4 u_lightStyleWeights;
 uniform float u_opacity;
+uniform float u_turbLightScale;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform float u_overbrightbits;
@@ -577,6 +595,7 @@ void main() {
         light = vec3(1.0);
     }
     vec3 lit = albedo.rgb * light;
+    lit *= u_turbLightScale;
     lit *= u_intensity;
     lit = pow(max(lit, vec3(0.0)), vec3(u_gammaExponent));
     gl_FragColor = vec4(lit, albedo.a * u_opacity);

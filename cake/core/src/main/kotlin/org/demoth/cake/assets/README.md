@@ -247,12 +247,18 @@ For inline brush models specifically:
   - **Cake counterpart:** `BspSurfaceMaterialController.applySurfaceTransparency`.
   - **Legacy counterpart:** enqueue in `Surf.R_RecursiveWorldNode` / `Surf.R_DrawInlineBModel`, render in `Surf.R_DrawAlphaSurfaces`.
   - **Difference:** Legacy had dedicated alpha pass; Cake sets `BlendingAttribute` and disables depth writes per material.
+  - **Parity detail:** Use exact legacy alpha factors (`SURF_TRANS33 = 85/255`, `SURF_TRANS66 = 170/255`).
 
 - **What:** Flowing surfaces use time-based U offset.
   - **Why:** Preserve classic scroll cadence.
   - **Cake counterpart:** `BspSurfaceMaterialController.applySurfaceFlowing`.
   - **Legacy counterpart:** `client/render/fast/Surf.DrawGLFlowingPoly`.
   - **Difference:** Same formula (`-64 * frac(time/40)`), but applied via texture attribute offset instead of immediate-mode vertex texcoord rewrite.
+
+- **What:** Turbulent (`SURF_WARP`) surfaces apply a non-lava light scale.
+  - **Why:** Legacy/Yamagi avoid full-bright water in dark scenes.
+  - **Cake counterpart:** `BspWorldBatchRenderer.computeTurbLightScale`.
+  - **Legacy counterpart:** Yamagi GL3 `GL3_EmitWaterPolys` (`lightScaleForTurb`: `0.5` for water, `1.0` for lava).
 
 - **What:** Lightstyle application keeps a fallback branch for non-lightmapped BSP faces.
 - **Why:** Legacy excludes `SURF_TRANS33`, `SURF_TRANS66`, and `SURF_WARP` from lightmap sampling.

@@ -16,6 +16,23 @@ import org.demoth.cake.assets.BspLightmapTextureAttribute
 import java.util.IdentityHashMap
 import kotlin.math.floor
 
+internal const val LEGACY_ALPHA_TRANS33 = 85f / 255f
+internal const val LEGACY_ALPHA_TRANS66 = 170f / 255f
+
+/**
+ * Resolves classic Quake2 translucent surface alpha from `SURF_TRANS*` flags.
+ *
+ * Reference parity:
+ * - Yamagi GL3 `GL3_DrawAlphaSurfaces`: `0.333f` for `SURF_TRANS33`, `0.666f` for `SURF_TRANS66`.
+ * - Q2PRO `color_for_surface`: `85/255` and `170/255` alpha values.
+ */
+internal fun legacySurfaceOpacity(textureFlags: Int): Float =
+    when {
+        (textureFlags and Defines.SURF_TRANS33) != 0 -> LEGACY_ALPHA_TRANS33
+        (textureFlags and Defines.SURF_TRANS66) != 0 -> LEGACY_ALPHA_TRANS66
+        else -> 1f
+    }
+
 private data class SurfaceMaterialBinding(
     val meshPartId: String,
     val textureFlags: Int,
@@ -115,7 +132,7 @@ private fun applySurfaceTransparency(nodePart: NodePart, textureFlags: Int) {
         return
     }
 
-    val opacity = if (trans33) 0.33f else 0.66f
+    val opacity = legacySurfaceOpacity(textureFlags)
     val blending = nodePart.material.get(BlendingAttribute.Type) as? BlendingAttribute
     if (blending == null) {
         nodePart.material.set(BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, opacity))
