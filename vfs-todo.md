@@ -401,7 +401,7 @@ public interface VfsDataOutput {
 - [x] Phase 10: convert `QuakeFile` into VFS-backed compatibility adapter (remove direct legacy FS search dependency).
 - [ ] Phase 11: implement Cake save persistence via JSON/Jackson (no legacy binary compatibility target).
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
-- [ ] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
+- [x] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
 - [x] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
 
@@ -423,6 +423,7 @@ Phase 10 progress:
 Phase 13 progress:
 - Added Cake/model-viewer resolver parity integration tests for mod/base/package precedence and missing-asset behavior.
 - Added qcommon FS compatibility tests for `OpenReadFile`/`OpenWriteFile` roundtrip and missing-file behavior.
+- Added qcommon VFS read/write integration coverage for deterministic read-layer precedence and writable save path roundtrip.
 
 Phase 11 progress:
 - Cake screenshot writes now target `$HOME/.cake/<mod>/scrnshot/` through `DefaultWritableFileSystem` instead of local working-directory storage.
