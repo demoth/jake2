@@ -389,8 +389,8 @@ public interface VfsDataOutput {
 - [x] Phase 2.5: add single-root `WritableFileSystem` for save/screenshot/config output.
 - [x] Phase 3: implement `.pak` reader backend.
 - [ ] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
-- [ ] Phase 5: implement deterministic pack ordering policy.
-- [ ] Phase 6: implement runtime `reconfigure` and `mountPackage`.
+- [x] Phase 5: implement deterministic pack ordering policy.
+- [x] Phase 6: implement runtime `reconfigure` and `mountPackage`.
 - [ ] Phase 7: add server compatibility adapter (`FS` delegates to VFS).
 - [ ] Phase 8: add Cake adapter (`CakeFileResolver` delegates to VFS).
 - [ ] Phase 9: add model viewer adapter (`ModelViewerFileResolver` delegates to thin viewer VFS wrapper).
