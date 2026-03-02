@@ -240,6 +240,14 @@ public final class FS extends Globals {
                 }
             }
 
+            syncVfsCaseSensitivity();
+            if (fs_vfsCompat != null) {
+                QuakeFile vfsFile = fs_vfsCompat.openFile(filename);
+                if (vfsFile != null) {
+                    return vfsFile;
+                }
+            }
+
             //
             // search through the path, one element at a time
             //

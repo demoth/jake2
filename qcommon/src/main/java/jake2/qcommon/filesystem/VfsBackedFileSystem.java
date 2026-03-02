@@ -9,6 +9,7 @@ import jake2.qcommon.vfs.VfsResult;
 import jake2.qcommon.vfs.VirtualFileSystem;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -116,6 +117,28 @@ public final class VfsBackedFileSystem {
             return false;
         }
         return vfs.exists(path, VfsLookupOptions.DEFAULT);
+    }
+
+    /**
+     * Opens a loose file through the VFS index.
+     * Package entries intentionally return {@code null} in this phase and are handled by legacy FS fallback.
+     */
+    public QuakeFile openFile(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+
+        VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
+        if (!lookup.found || lookup.entry.source.type != VfsSourceType.DIRECTORY) {
+            return null;
+        }
+
+        Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
+        try {
+            return new QuakeFile(sourcePath.toFile(), "r", false, lookup.entry.size);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
     }
 
     /**

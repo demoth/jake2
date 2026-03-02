@@ -116,6 +116,36 @@ public class VfsBackedFileSystemTest {
         assertArrayEquals("pakcin".getBytes(StandardCharsets.US_ASCII), bytes);
     }
 
+    @Test
+    public void openFileOpensLooseEntries() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        Path file = basedir.resolve("baseq2/maps/test.bsp");
+        Files.createDirectories(file.getParent());
+        Files.write(file, "bsp".getBytes(StandardCharsets.UTF_8));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", null, true, false);
+
+        QuakeFile opened = fs.openFile("maps/test.bsp");
+        assertNotNull(opened);
+        assertFalse(opened.fromPack);
+        byte[] bytes = opened.toBytes();
+        assertArrayEquals("bsp".getBytes(StandardCharsets.UTF_8), bytes);
+    }
+
+    @Test
+    public void openFileReturnsNullForPackageEntries() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        Path pak = basedir.resolve("baseq2/pak0.pak");
+        writePak(pak, Map.of("maps/test.bsp", "packbsp".getBytes(StandardCharsets.US_ASCII)));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", null, true, false);
+
+        assertTrue(fs.exists("maps/test.bsp"));
+        assertTrue("Package entries are still served by legacy FS fallback in this phase", fs.openFile("maps/test.bsp") == null);
+    }
+
     private static void writePak(Path target, Map<String, byte[]> entries) throws IOException {
         Files.createDirectories(target.getParent());
         ByteArrayOutputStream data = new ByteArrayOutputStream();
