@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -196,6 +197,10 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
+        File linkedFile = resolveLinkedFile(filename);
+        if (linkedFile != null) {
+            return true;
+        }
         syncVfsCaseSensitivity();
         if (fs_vfsCompat != null && fs_vfsCompat.exists(filename)) {
             return true;
@@ -231,13 +236,9 @@ public final class FS extends Globals {
             }
 
             // check for links first
-            for (filelink_t link : fs_links) {
-                if (filename.startsWith(link.from)) {
-                    File file = new File(link.to + filename.substring(link.from.length()));
-                    if (file.canRead()) {
-                        return new QuakeFile(file, "r", false, file.length());
-                    }
-                }
+            File linkedFile = resolveLinkedFile(filename);
+            if (linkedFile != null) {
+                return new QuakeFile(linkedFile, "r", false, linkedFile.length());
             }
 
             syncVfsCaseSensitivity();
@@ -344,6 +345,16 @@ public final class FS extends Globals {
         if (index != -1)
             path = path.substring(0, index);
 
+        File linkedFile = resolveLinkedFile(path);
+        if (linkedFile != null) {
+            try {
+                return Files.readAllBytes(linkedFile.toPath());
+            } catch (IOException e) {
+                Com.Error(Defines.ERR_FATAL, e.toString());
+                return null;
+            }
+        }
+
         syncVfsCaseSensitivity();
         if (fs_vfsCompat != null) {
             byte[] bytes = fs_vfsCompat.loadFile(path);
@@ -377,6 +388,18 @@ public final class FS extends Globals {
      * Used for big files like cinematics
      */
     public static ByteBuffer LoadMappedFile(String filename) {
+        File linkedFile = resolveLinkedFile(filename);
+        if (linkedFile != null) {
+            try (FileInputStream input = new FileInputStream(linkedFile);
+                 FileChannel channel = input.getChannel()) {
+                int fileLength = (int) channel.size();
+                return channel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
         syncVfsCaseSensitivity();
         if (fs_vfsCompat != null) {
             ByteBuffer mapped = fs_vfsCompat.loadMappedFile(filename);
@@ -386,21 +409,6 @@ public final class FS extends Globals {
         }
 
         try {
-            // check for links first
-            for (filelink_t fs_link : fs_links) {
-                // if filename starts with fs.from
-                if (filename.startsWith(fs_link.from)) {
-                    File file = new File(fs_link.to + filename.substring(fs_link.from.length()));
-                    if (file.canRead()) {
-                        try (FileInputStream input = new FileInputStream(file);
-                             FileChannel channel = input.getChannel()) {
-                            int fileLength = (int) channel.size();
-                            return channel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
-                        }
-                    }
-                }
-            }
-
             //
             // search through the path, one element at a time
             //
@@ -925,6 +933,21 @@ public final class FS extends Globals {
         if (fs_vfsCompat.isCaseSensitive() != desired) {
             fs_vfsCompat.setCaseSensitive(desired);
         }
+    }
+
+    private static File resolveLinkedFile(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        for (filelink_t link : fs_links) {
+            if (filename.startsWith(link.from)) {
+                File file = new File(link.to + filename.substring(link.from.length()));
+                if (file.canRead()) {
+                    return file;
+                }
+            }
+        }
+        return null;
     }
     
     //	RAFAEL
