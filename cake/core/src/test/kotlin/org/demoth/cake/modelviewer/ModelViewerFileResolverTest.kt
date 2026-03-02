@@ -13,7 +13,14 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.LinkedHashMap
 
 class ModelViewerFileResolverTest {
 
@@ -73,6 +80,42 @@ class ModelViewerFileResolverTest {
     }
 
     @Test
+    fun fallsBackToBasedirPakWhenProvided() {
+        val openedFile = createFile("viewer/tris.md2")
+        writePak(
+            Path.of(temp.root.absolutePath, "baseq2", "pak0.pak"),
+            linkedMapOf("models/monsters/berserk/skin.pcx" to "pak-skin".toByteArray(StandardCharsets.US_ASCII)),
+        )
+        val resolver = ModelViewerFileResolver(
+            openedFilePath = openedFile.absolutePath,
+            basedir = temp.root.absolutePath,
+        )
+
+        val resolved = resolver.resolve("models/monsters/berserk/skin.pcx")
+
+        assertNotNull(resolved)
+        assertEquals("pak-skin", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
+    }
+
+    @Test
+    fun fallsBackToBasedirZipWhenProvided() {
+        val openedFile = createFile("viewer/tris.md2")
+        writeZip(
+            Path.of(temp.root.absolutePath, "baseq2", "assets.pk3"),
+            linkedMapOf("textures/e1u1/wall.wal" to "zip-wall".toByteArray(StandardCharsets.US_ASCII)),
+        )
+        val resolver = ModelViewerFileResolver(
+            openedFilePath = openedFile.absolutePath,
+            basedir = temp.root.absolutePath,
+        )
+
+        val resolved = resolver.resolve("textures/e1u1/wall.wal")
+
+        assertNotNull(resolved)
+        assertEquals("zip-wall", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
+    }
+
+    @Test
     fun resolvesMapTextureFromParentFolder() {
         val openedMap = createFile("baseq2/maps/base1.bsp")
         val texture = createFile("baseq2/textures/e1u1/wall.wal")
@@ -99,6 +142,49 @@ class ModelViewerFileResolverTest {
         file.parentFile.mkdirs()
         file.writeText("")
         return file
+    }
+
+    private fun writePak(target: Path, entries: LinkedHashMap<String, ByteArray>) {
+        Files.createDirectories(target.parent)
+        val data = ByteArrayOutputStream()
+        val directory = ByteArrayOutputStream()
+
+        var offset = 12
+        entries.forEach { (name, content) ->
+            data.write(content)
+
+            val dirEntry = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN)
+            val nameBytes = name.toByteArray(StandardCharsets.US_ASCII)
+            require(nameBytes.size <= 56) { "Entry name too long for pak fixture: $name" }
+            dirEntry.put(nameBytes)
+            dirEntry.position(56)
+            dirEntry.putInt(offset)
+            dirEntry.putInt(content.size)
+            directory.write(dirEntry.array())
+            offset += content.size
+        }
+
+        val header = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
+        header.put('P'.code.toByte()).put('A'.code.toByte()).put('C'.code.toByte()).put('K'.code.toByte())
+        header.putInt(12 + data.size())
+        header.putInt(directory.size())
+
+        val full = ByteArrayOutputStream()
+        full.write(header.array())
+        full.write(data.toByteArray())
+        full.write(directory.toByteArray())
+        Files.write(target, full.toByteArray())
+    }
+
+    private fun writeZip(target: Path, entries: LinkedHashMap<String, ByteArray>) {
+        Files.createDirectories(target.parent)
+        java.util.zip.ZipOutputStream(Files.newOutputStream(target)).use { out ->
+            entries.forEach { (name, content) ->
+                out.putNextEntry(java.util.zip.ZipEntry(name))
+                out.write(content)
+                out.closeEntry()
+            }
+        }
     }
 
     companion object {
