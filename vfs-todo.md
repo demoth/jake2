@@ -404,7 +404,8 @@ Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
 - `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.
 - Added `fs_casesensitive` compatibility wiring so FS-side VFS lookup can switch strict mode.
-- Remaining Phase 7 work: migrate `FOpenFile`/`LoadMappedFile` and path/link parity before full delegation.
+- `FS.LoadMappedFile` now uses VFS first; loose files are mapped directly, package entries are returned as read-only buffers.
+- Remaining Phase 7 work: migrate `FOpenFile` and path/link parity before full delegation.
 
 ## Open questions
 

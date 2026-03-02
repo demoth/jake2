@@ -2,10 +2,16 @@ package jake2.qcommon.filesystem;
 
 import jake2.qcommon.vfs.DefaultVirtualFileSystem;
 import jake2.qcommon.vfs.VfsConfig;
+import jake2.qcommon.vfs.VfsLookupResult;
 import jake2.qcommon.vfs.VfsLookupOptions;
+import jake2.qcommon.vfs.VfsSourceType;
 import jake2.qcommon.vfs.VfsResult;
 import jake2.qcommon.vfs.VirtualFileSystem;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
@@ -110,5 +116,36 @@ public final class VfsBackedFileSystem {
             return false;
         }
         return vfs.exists(path, VfsLookupOptions.DEFAULT);
+    }
+
+    /**
+     * Returns a read-only buffer for compatibility with legacy mapped-file call sites.
+     * Loose files are memory-mapped directly, package entries are exposed as read-only heap buffers.
+     */
+    public ByteBuffer loadMappedFile(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+
+        VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
+        if (!lookup.found) {
+            return null;
+        }
+
+        if (lookup.entry.source.type == VfsSourceType.DIRECTORY) {
+            Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
+            try (FileInputStream input = new FileInputStream(sourcePath.toFile());
+                 FileChannel channel = input.getChannel()) {
+                return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        VfsResult<byte[]> result = vfs.loadBytes(path, VfsLookupOptions.DEFAULT);
+        if (!result.success || result.value == null) {
+            return null;
+        }
+        return ByteBuffer.wrap(result.value).asReadOnlyBuffer();
     }
 }

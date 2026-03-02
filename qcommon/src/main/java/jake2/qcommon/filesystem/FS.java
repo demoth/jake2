@@ -369,6 +369,13 @@ public final class FS extends Globals {
      * Used for big files like cinematics
      */
     public static ByteBuffer LoadMappedFile(String filename) {
+        syncVfsCaseSensitivity();
+        if (fs_vfsCompat != null) {
+            ByteBuffer mapped = fs_vfsCompat.loadMappedFile(filename);
+            if (mapped != null) {
+                return mapped;
+            }
+        }
 
         try {
             // check for links first
