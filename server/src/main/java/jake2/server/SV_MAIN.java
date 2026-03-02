@@ -45,7 +45,6 @@ import jake2.qcommon.util.Lib;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1132,9 +1131,9 @@ public class SV_MAIN implements JakeServer {
 
         // make sure the server.ssv file exists
         String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv";
-        RandomAccessFile f;
+        QuakeFile f;
         try {
-            f = new RandomAccessFile(name, "r");
+            f = FS.OpenReadFile(name);
         }
         catch (FileNotFoundException e) {
             Com.Printf("No such savegame: " + name + "\n");
@@ -1160,7 +1159,7 @@ public class SV_MAIN implements JakeServer {
         Com.DPrintf("SV_ReadMapCommand()\n");
 
         try {
-            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv", "r");
+            QuakeFile f = FS.OpenReadFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv");
             // read the comment field
             Com.DPrintf("SV_ReadMapCommand: Loading save: " + f.readString() + "\n");
 

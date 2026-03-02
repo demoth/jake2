@@ -33,6 +33,7 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -283,6 +284,20 @@ public final class FS extends Globals {
             Com.Printf("Could not open the file " + filename + " due to " + e.getMessage() + '\n');
         }
         return null;
+    }
+
+    /**
+     * Opens a readable file using the full FS search policy.
+     *
+     * This is the preferred read-path entry point for compatibility call sites that
+     * historically instantiated {@link QuakeFile} directly with mode {@code "r"}.
+     */
+    public static QuakeFile OpenReadFile(String filename) throws FileNotFoundException {
+        QuakeFile file = FOpenFile(filename);
+        if (file == null) {
+            throw new FileNotFoundException("Resource not found: " + filename);
+        }
+        return file;
     }
 
     // read in blocks of 64k

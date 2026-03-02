@@ -409,6 +409,11 @@ Phase 9 progress:
 - `ModelViewerFileResolver` now resolves opened-file ancestor paths through a thin local VFS adapter.
 - Model viewer basedir/mod fallback now reuses `CakeVfsAssetSource` and therefore supports package-aware lookup parity with the main Cake resolver.
 
+Phase 10 progress:
+- Added `FS.OpenReadFile(...)` as the preferred read-mode compatibility entry point over FS/VFS search policy.
+- Migrated server/game save-load read call sites away from direct `new QuakeFile(path, "r")` constructors.
+- Write-mode `QuakeFile(..., "rw")` paths remain unchanged for now.
+
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
 - `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.

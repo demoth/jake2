@@ -148,7 +148,7 @@ public class GameImportsImpl implements GameImports {
 
             Com.DPrintf("SV_ReadServerFile()\n");
 
-            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "r");
+            QuakeFile f = FS.OpenReadFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv");
 
             // read all CVAR_LATCH cvars
             // these will be things like coop, skill, deathmatch, etc

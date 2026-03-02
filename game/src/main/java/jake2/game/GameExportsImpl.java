@@ -5,6 +5,7 @@ import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.InventoryMessage;
@@ -1597,7 +1598,7 @@ public class GameExportsImpl implements GameExports {
 
         try {
 
-            QuakeFile f = new QuakeFile(filename, "r");
+            QuakeFile f = FS.OpenReadFile(filename);
 
             game.load(f);
 
@@ -1643,7 +1644,7 @@ public class GameExportsImpl implements GameExports {
     public void ReadLevel(String filename) {
         try {
 
-            QuakeFile f = new QuakeFile(filename, "r");
+            QuakeFile f = FS.OpenReadFile(filename);
 
             num_edicts = game.maxclients + 1;
 

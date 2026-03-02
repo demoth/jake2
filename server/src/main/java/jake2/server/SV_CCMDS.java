@@ -209,7 +209,7 @@ public class SV_CCMDS {
 
 		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sv2";
 		try {
-			QuakeFile f = new QuakeFile(name, "r");
+			QuakeFile f = FS.OpenReadFile(name);
 
 			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
 				gameImports.sv.configstrings[n] = f.readString();
