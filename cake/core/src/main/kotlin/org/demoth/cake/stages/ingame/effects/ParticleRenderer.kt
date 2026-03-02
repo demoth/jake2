@@ -1,6 +1,7 @@
 package org.demoth.cake.stages.ingame.effects
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Mesh
@@ -16,6 +17,7 @@ import org.demoth.cake.particleBillboardFragmentShader
 import org.demoth.cake.particleBillboardVertexShader
 import org.demoth.cake.particlePointFragmentShader
 import org.demoth.cake.particlePointVertexShader
+import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import kotlin.math.max
 import kotlin.math.tan
@@ -38,8 +40,11 @@ import kotlin.math.tan
  * - billboard path is backend-ready and intentionally data-compatible for future sprite atlas usage.
  *
  * Shader sources are external assets (`shaders/particle_point.vert/.frag`, `shaders/particle_billboard.vert/.frag`).
+ * Shader text is loaded via [AssetManager] to reuse [org.demoth.cake.assets.CakeFileResolver] resolution rules.
  */
-class ParticleRenderer : Disposable {
+class ParticleRenderer(
+    private val assetManager: AssetManager,
+) : Disposable {
     data class Stats(
         val submittedParticles: Int = 0,
         val drawCalls: Int = 0,
@@ -478,7 +483,7 @@ class ParticleRenderer : Disposable {
         )
     }
 
-    private fun loadShaderSource(path: String): String = Gdx.files.internal(path).readString()
+    private fun loadShaderSource(path: String): String = assetManager.getLoaded(path)
 
     companion object {
         private const val POINT_FLOATS_PER_VERTEX = 8

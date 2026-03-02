@@ -58,6 +58,7 @@ Legacy counterparts:
 - Impact palette emission does not carry per-effect fallback color branches (legacy parity: palette index driven); only a single internal safety fallback exists if palette data is unavailable.
 - Particle brightness follows legacy-style path: gamma correction is applied, while particle intensity/overbright scaling is not.
 - Particle shader sources are loaded from `assets/shaders` (`particle_point.vert/.frag`, `particle_billboard.vert/.frag`).
+- Particle shader text is loaded via `AssetManager` (`TextAssetLoader`) to keep resolver/mod override behavior consistent with other assets.
 
 ## Decision Log
 Newest first.

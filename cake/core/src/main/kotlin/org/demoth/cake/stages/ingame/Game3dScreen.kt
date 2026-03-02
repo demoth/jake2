@@ -128,7 +128,7 @@ class Game3dScreen(
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
 
-        bspLightmapShader = BspLightmapShader().apply { init() }
+        bspLightmapShader = BspLightmapShader(assetManager).apply { init() }
         val md2Shader = initializeMd2Shader(assetManager)
         modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
     }

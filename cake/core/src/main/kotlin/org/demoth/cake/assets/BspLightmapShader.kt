@@ -1,6 +1,6 @@
 package org.demoth.cake.assets
 
-import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g3d.Renderable
@@ -82,6 +82,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * - style slot weights are read from `ColorAttribute.Diffuse` channels (r/g/b/a).
  * - material copies may downcast custom lightmap attributes to base [TextureAttribute], so lookups cast to base type.
  * - shader sources are external assets (`shaders/bsp_lightmap.vert`, `shaders/bsp_lightmap.frag`).
+ * - shader sources are loaded through [AssetManager] (`TextAssetLoader` + [CakeFileResolver] path resolution).
  *
  * Legacy references:
  * - `client/render/fast/Light.R_BuildLightMap` (style-slot accumulation with `Defines.MAXLIGHTMAPS`).
@@ -93,7 +94,9 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * - selected via [Md2ShaderProvider] for BSP world surfaces,
  * - disposed by shader provider during screen teardown.
  */
-class BspLightmapShader : BaseShader() {
+class BspLightmapShader(
+    private val assetManager: AssetManager,
+) : BaseShader() {
     private lateinit var shaderProgram: ShaderProgram
     private val dynamicLightPosRadius = FloatArray(DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS * 4)
     private val dynamicLightColors = FloatArray(DynamicLightSystem.MAX_SHADER_DYNAMIC_LIGHTS * 4)
@@ -252,7 +255,7 @@ class BspLightmapShader : BaseShader() {
         }
     }
 
-    private fun loadShaderSource(path: String): String = Gdx.files.internal(path).readString()
+    private fun loadShaderSource(path: String): String = assetManager.getLoaded(path)
 }
 
 /**

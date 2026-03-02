@@ -19,6 +19,7 @@ import org.demoth.cake.assets.BspWorldBatchData
 import org.demoth.cake.assets.BspWorldBatchSurface
 import org.demoth.cake.assets.BspWorldRenderData
 import org.demoth.cake.assets.BspWorldSurfacePass
+import org.demoth.cake.assets.getLoaded
 
 private const val BATCH_LIGHT_STYLE_SLOTS = 4
 
@@ -49,7 +50,8 @@ data class BspWorldBatchRenderStats(
  * - `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`),
  * - `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`).
  *
- * Shader sources are external assets (`shaders/bsp_world_batch.vert`, `shaders/bsp_world_batch.frag`).
+ * Shader sources are external assets (`shaders/bsp_world_batch.vert`, `shaders/bsp_world_batch.frag`),
+ * loaded through [AssetManager] so resolver/mod override rules are consistent with other assets.
  */
 class BspWorldBatchRenderer(
     private val worldRenderData: BspWorldRenderData,
@@ -538,5 +540,5 @@ class BspWorldBatchRenderer(
         return if (isLava) 1f else 0.5f
     }
 
-    private fun loadShaderSource(path: String): String = Gdx.files.internal(path).readString()
+    private fun loadShaderSource(path: String): String = assetManager.getLoaded(path)
 }

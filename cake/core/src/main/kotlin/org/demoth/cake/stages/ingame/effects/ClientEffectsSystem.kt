@@ -68,7 +68,7 @@ class ClientEffectsSystem(
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
-    private val particleSystem = EffectParticleSystem()
+    private val particleSystem = EffectParticleSystem(assetManager)
     private val q2Palette: IntArray? by lazy {
         if (assetManager.isLoaded("q2palette.bin", Any::class.java)) {
             assetManager.get("q2palette.bin", Any::class.java) as? IntArray

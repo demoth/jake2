@@ -1,5 +1,6 @@
 package org.demoth.cake.stages.ingame.effects
 
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.math.Vector3
@@ -26,7 +27,9 @@ import kotlin.math.min
  * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
  * - live particles are capped by `r_particles` budget (clamped to legacy `MAX_PARTICLES` parity), overflow spawns are dropped.
  */
-class EffectParticleSystem : Disposable {
+class EffectParticleSystem(
+    assetManager: AssetManager,
+) : Disposable {
     private var activeCount = 0
     private var capacity = INITIAL_CAPACITY
     private var posX = FloatArray(capacity)
@@ -46,7 +49,7 @@ class EffectParticleSystem : Disposable {
     private var colorB = FloatArray(capacity)
     private var renderMode = ByteArray(capacity)
     private var blendMode = ByteArray(capacity)
-    private val renderer = ParticleRenderer()
+    private val renderer = ParticleRenderer(assetManager)
 
     /**
      * Emits a burst of particles with shared spawn parameters.
