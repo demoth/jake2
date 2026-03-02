@@ -767,6 +767,19 @@ public final class FS extends Globals {
             wildcard = args.get(1);
         }
 
+        if (fs_vfsCompat != null) {
+            syncVfsCaseSensitivity();
+            List<String> matches = fs_vfsCompat.debugFilesMatching(wildcard);
+            if (!matches.isEmpty()) {
+                Com.Printf("Directory of " + wildcard + '\n');
+                for (String match : matches) {
+                    Com.Printf("  " + match + '\n');
+                }
+                Com.Printf("\n");
+                return;
+            }
+        }
+
         for (SearchPath s : searchPaths) {
             if (s.pack != null)
                 continue;
@@ -796,8 +809,20 @@ public final class FS extends Globals {
      * Shows all current search paths and links
      */
     private static void Path_f() {
-        for (SearchPath s : searchPaths) {
-            Com.Printf(s.toString() + "\n");
+        if (fs_vfsCompat != null) {
+            syncVfsCaseSensitivity();
+            List<String> mounts = fs_vfsCompat.debugMounts();
+            if (!mounts.isEmpty()) {
+                for (String mount : mounts) {
+                    Com.Printf(mount + "\n");
+                }
+            } else {
+                Com.Printf("No VFS mounts available.\n");
+            }
+        } else {
+            for (SearchPath s : searchPaths) {
+                Com.Printf(s.toString() + "\n");
+            }
         }
 
         if (!fs_links.isEmpty()) {
@@ -872,6 +897,22 @@ public final class FS extends Globals {
      * Allows enumerating all of the directories in the search path
      */
     public static String NextPath(String prevpath) {
+        if (fs_vfsCompat != null) {
+            syncVfsCaseSensitivity();
+            List<String> roots = fs_vfsCompat.debugLooseMountRoots();
+            if (!roots.isEmpty()) {
+                if (prevpath == null || prevpath.length() == 0) {
+                    return roots.get(0);
+                }
+
+                for (int i = 0; i < roots.size() - 1; i++) {
+                    if (prevpath.equals(roots.get(i))) {
+                        return roots.get(i + 1);
+                    }
+                }
+                return null;
+            }
+        }
 
         if (prevpath == null || prevpath.length() == 0)
             return fs_gamedir;
@@ -1047,6 +1088,16 @@ public final class FS extends Globals {
      * Developer_searchpath
      */
     public static int Developer_searchpath() {
+        if (fs_vfsCompat != null) {
+            syncVfsCaseSensitivity();
+            for (String root : fs_vfsCompat.debugLooseMountRoots()) {
+                String normalized = root.replace('\\', '/').toLowerCase(Locale.ROOT);
+                if (normalized.contains("/xatrix"))
+                    return 1;
+                if (normalized.contains("/rogue"))
+                    return 2;
+            }
+        }
 
         for (SearchPath s: searchPaths) {
             if (s.filename.contains("xatrix"))

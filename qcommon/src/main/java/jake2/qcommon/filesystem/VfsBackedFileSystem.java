@@ -20,11 +20,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Thin compatibility wrapper around the new common VFS for legacy FS call sites.
@@ -158,6 +160,32 @@ public final class VfsBackedFileSystem {
     }
 
     /**
+     * Returns loose mount roots (mod/base directories) in effective lookup order.
+     */
+    public List<String> debugLooseMountRoots() {
+        if (vfs instanceof DefaultVirtualFileSystem) {
+            DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
+            return debugVfs.debugLooseMountRoots().stream().map(Path::toString).toList();
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns resolved winner files matching a wildcard using Quake-style '*' and '?' segments.
+     */
+    public List<String> debugFilesMatching(String wildcard) {
+        String effective = (wildcard == null || wildcard.isBlank()) ? "*.*" : wildcard;
+        Pattern matcher = compileWildcard(effective);
+        List<String> matches = new ArrayList<>();
+        for (String entry : debugResolvedFiles()) {
+            if (matcher.matcher(entry).matches()) {
+                matches.add(entry);
+            }
+        }
+        return matches;
+    }
+
+    /**
      * Opens a loose file through the VFS index.
      * Package entries intentionally return {@code null} in this phase and are handled by legacy FS fallback.
      */
@@ -285,5 +313,25 @@ public final class VfsBackedFileSystem {
             }
         }
         packagedOpenCache.clear();
+    }
+
+    private static Pattern compileWildcard(String wildcard) {
+        String normalized = wildcard.replace('\\', '/');
+        StringBuilder regex = new StringBuilder(normalized.length() * 2);
+        regex.append('^');
+        for (int i = 0; i < normalized.length(); i++) {
+            char c = normalized.charAt(i);
+            if (c == '*') {
+                regex.append("[^/]*");
+            } else if (c == '?') {
+                regex.append("[^/]");
+            } else if (".[]{}()+-^$|\\".indexOf(c) >= 0) {
+                regex.append('\\').append(c);
+            } else {
+                regex.append(c);
+            }
+        }
+        regex.append('$');
+        return Pattern.compile(regex.toString());
     }
 }

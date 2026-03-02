@@ -395,7 +395,7 @@ public interface VfsDataOutput {
 - [x] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
 - [x] Phase 5: implement deterministic pack ordering policy.
 - [x] Phase 6: implement runtime `reconfigure` and `mountPackage`.
-- [ ] Phase 7: add server compatibility adapter (`FS` delegates to VFS).
+- [x] Phase 7: add server compatibility adapter (`FS` delegates to VFS).
 - [x] Phase 8: add Cake adapter (`CakeFileResolver` delegates to VFS).
 - [x] Phase 9: add model viewer adapter (`ModelViewerFileResolver` delegates to thin viewer VFS wrapper).
 - [ ] Phase 10: convert `QuakeFile` into VFS-backed compatibility adapter (remove direct legacy FS search dependency).
@@ -438,7 +438,8 @@ Phase 7 progress:
 - `FS.LoadMappedFile` now uses VFS first; loose files are mapped directly, package entries are returned as read-only buffers.
 - `FS.FOpenFile` now uses VFS for loose files, `.pak` entries (offset-open), and ZIP-backed entries (temp-file compatibility bridge).
 - Restored legacy `fs_links` precedence for `FileExists`, `LoadFile`, and `LoadMappedFile` before VFS fallback.
-- Remaining Phase 7 work: broader FS command/listing parity and full delegation cleanup.
+- `FS.path` now prints VFS mounts (with legacy fallback), and `FS.dir` now lists VFS-resolved files for wildcard queries before legacy directory fallback.
+- `FS.NextPath` and `FS.Developer_searchpath` now use VFS loose mount state first, preserving legacy fallback behavior.
 
 ## Open questions
 

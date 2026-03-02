@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -276,6 +277,23 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             lines.add(key + " -> " + sources);
         }
         return lines;
+    }
+
+    /**
+     * Returns loose mount roots in effective layer/priority order.
+     */
+    public synchronized List<Path> debugLooseMountRoots() {
+        ensureConfigured();
+        List<LooseMount> ordered = new ArrayList<>(looseMounts);
+        ordered.sort(Comparator
+                .comparingInt((LooseMount mount) -> mount.layer.ordinal())
+                .thenComparingInt(mount -> mount.priority));
+
+        List<Path> roots = new ArrayList<>(ordered.size());
+        for (LooseMount mount : ordered) {
+            roots.add(mount.root);
+        }
+        return roots;
     }
 
     private void ensureConfigured() {

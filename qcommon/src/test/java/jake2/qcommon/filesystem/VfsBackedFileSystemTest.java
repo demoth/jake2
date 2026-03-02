@@ -195,6 +195,30 @@ public class VfsBackedFileSystemTest {
         assertTrue(overrides.stream().anyMatch(line -> line.startsWith("textures/wall.wal ->")));
     }
 
+    @Test
+    public void debugLooseRootsAndWildcardListingUseVfsOrder() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        Files.createDirectories(basedir.resolve("baseq2/players/male"));
+        Files.createDirectories(basedir.resolve("rogue/players/female"));
+        Files.write(basedir.resolve("baseq2/players/male/tris.md2"), "base".getBytes(StandardCharsets.US_ASCII));
+        Files.write(basedir.resolve("rogue/players/female/tris.md2"), "mod".getBytes(StandardCharsets.US_ASCII));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", "rogue", true, false);
+
+        List<String> roots = fs.debugLooseMountRoots();
+        assertEquals(2, roots.size());
+        assertTrue(roots.get(0).replace('\\', '/').endsWith("/rogue"));
+        assertTrue(roots.get(1).replace('\\', '/').endsWith("/baseq2"));
+
+        List<String> matches = fs.debugFilesMatching("players/*/tris.md2");
+        assertTrue(matches.contains("players/female/tris.md2"));
+        assertTrue(matches.contains("players/male/tris.md2"));
+
+        List<String> slashMatches = fs.debugFilesMatching("players\\*\\tris.md2");
+        assertEquals(matches, slashMatches);
+    }
+
     private static void writePak(Path target, Map<String, byte[]> entries) throws IOException {
         Files.createDirectories(target.getParent());
         ByteArrayOutputStream data = new ByteArrayOutputStream();
