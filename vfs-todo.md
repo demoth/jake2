@@ -421,6 +421,7 @@ Phase 10 progress:
 
 Phase 13 progress:
 - Added Cake/model-viewer resolver parity integration tests for mod/base/package precedence and missing-asset behavior.
+- Added qcommon FS compatibility tests for `OpenReadFile`/`OpenWriteFile` roundtrip and missing-file behavior.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
