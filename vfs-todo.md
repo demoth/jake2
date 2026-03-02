@@ -42,6 +42,9 @@ Build one shared VFS core in `qcommon` that:
   - writable save/config flows must be handled by VFS-backed writable API, not by direct path-bound `RandomAccessFile` constructors.
 - Cake savegame compatibility with legacy binary format is explicitly not required.
 - Cake save persistence should use a JSON layer (Jackson), replacing legacy-style binary save writing.
+- Writable path target:
+  - Cake write root should be `$HOME/.cake/<mod>` (savegames, screenshots, configs).
+  - Legacy/server write root can remain under current policy until migrated.
 
 ## Current Jake2 baseline (must preserve or replace)
 
@@ -61,6 +64,16 @@ Build one shared VFS core in `qcommon` that:
 Implication:
 - the new VFS must become the single source of truth for package/loose precedence, with `FS` and Cake both delegating to it.
 - decommissioning needs to include both read path and writable persistence path (savegame/config/server state), because current code uses `QuakeFile(..., \"rw\")` directly in game/server save logic.
+
+## Target state (write path)
+
+- Read path: unified shared VFS index for loose + package data.
+- Write path: simple writable-root resolver, not search-path based.
+- Cake writable root: `$HOME/.cake/<mod>`.
+- Writable categories under root:
+  - `save/`
+  - `scrnshot/`
+  - `config.cfg` and related user configs
 
 ## Findings From Reference Implementations
 
@@ -371,7 +384,7 @@ public interface VfsDataOutput {
 
 ## Phased implementation checklist
 
-- [ ] Phase 1: introduce VFS core interfaces/models in `qcommon`.
+- [x] Phase 1: introduce VFS core interfaces/models in `qcommon`.
 - [ ] Phase 2: implement loose-directory mount/index/lookup.
 - [ ] Phase 3: implement `.pak` reader backend.
 - [ ] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
