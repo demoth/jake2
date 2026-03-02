@@ -388,7 +388,7 @@ public interface VfsDataOutput {
 - [x] Phase 2: implement loose-directory mount/index/lookup.
 - [x] Phase 2.5: add single-root `WritableFileSystem` for save/screenshot/config output.
 - [x] Phase 3: implement `.pak` reader backend.
-- [ ] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
+- [x] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
 - [x] Phase 5: implement deterministic pack ordering policy.
 - [x] Phase 6: implement runtime `reconfigure` and `mountPackage`.
 - [ ] Phase 7: add server compatibility adapter (`FS` delegates to VFS).

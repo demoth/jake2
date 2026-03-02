@@ -456,6 +456,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         if ("pak".equals(extension)) {
             return new PakPackReader(packagePath, config.caseSensitive);
         }
+        if ("pk2".equals(extension) || "pk3".equals(extension) || "pkz".equals(extension) || "zip".equals(extension)) {
+            return new ZipPackReader(packagePath, config.caseSensitive);
+        }
         throw new IOException("Package format backend is not implemented yet for extension: " + extension);
     }
 

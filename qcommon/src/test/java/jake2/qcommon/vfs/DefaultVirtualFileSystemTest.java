@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -155,6 +157,23 @@ public class DefaultVirtualFileSystemTest {
         assertFalse(vfs.exists("textures/new.wal", VfsLookupOptions.DEFAULT));
     }
 
+    @Test
+    public void baseZipPackIsIndexed() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        writeZip(
+                basedir.resolve("baseq2/textures.pk3"),
+                Map.of("textures/zip.wal", "zip".getBytes(StandardCharsets.US_ASCII))
+        );
+
+        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(config(basedir, null, false, false, Collections.emptyList()));
+
+        VfsResult<byte[]> bytes = vfs.loadBytes("textures/zip.wal", VfsLookupOptions.DEFAULT);
+        assertTrue(bytes.success);
+        assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes.value);
+        assertEquals(VfsLayer.BASE_PACK, vfs.resolve("textures/zip.wal", VfsLookupOptions.DEFAULT).entry.layer);
+    }
+
     private VfsConfig config(
             Path basedir,
             String gameMod,
@@ -218,5 +237,17 @@ public class DefaultVirtualFileSystemTest {
         full.write(data.toByteArray());
         full.write(directory.toByteArray());
         Files.write(target, full.toByteArray());
+    }
+
+    private static void writeZip(Path target, Map<String, byte[]> entries) throws IOException {
+        Files.createDirectories(target.getParent());
+        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(target))) {
+            for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+                ZipEntry zipEntry = new ZipEntry(entry.getKey());
+                out.putNextEntry(zipEntry);
+                out.write(entry.getValue());
+                out.closeEntry();
+            }
+        }
     }
 }
