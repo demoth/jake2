@@ -1,6 +1,8 @@
 package jake2.qcommon.filesystem;
 
 import jake2.qcommon.vfs.DefaultVirtualFileSystem;
+import jake2.qcommon.vfs.PackEntry;
+import jake2.qcommon.vfs.PakPackReader;
 import jake2.qcommon.vfs.VfsConfig;
 import jake2.qcommon.vfs.VfsLookupResult;
 import jake2.qcommon.vfs.VfsLookupOptions;
@@ -15,6 +17,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,6 +36,7 @@ public final class VfsBackedFileSystem {
     private String gameMod;
     private boolean serverMode;
     private boolean caseSensitive;
+    private final Map<Path, Map<String, PackEntry>> pakEntryCache = new HashMap<>();
 
     public VfsBackedFileSystem() {
         this(new DefaultVirtualFileSystem());
@@ -47,6 +52,7 @@ public final class VfsBackedFileSystem {
         this.gameMod = gameMod;
         this.serverMode = serverMode;
         this.caseSensitive = caseSensitive;
+        this.pakEntryCache.clear();
 
         vfs.configure(new VfsConfig(
                 basedir,
@@ -65,6 +71,7 @@ public final class VfsBackedFileSystem {
             return;
         }
         this.gameMod = gameMod;
+        this.pakEntryCache.clear();
         vfs.configure(new VfsConfig(
                 basedir,
                 baseGame,
@@ -82,6 +89,7 @@ public final class VfsBackedFileSystem {
             return;
         }
         this.caseSensitive = caseSensitive;
+        this.pakEntryCache.clear();
         if (basedir == null) {
             return;
         }
@@ -130,7 +138,13 @@ public final class VfsBackedFileSystem {
 
         VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
         if (!lookup.found || lookup.entry.source.type != VfsSourceType.DIRECTORY) {
-            return null;
+            if (!lookup.found || lookup.entry.source.type != VfsSourceType.PACKAGE_ENTRY) {
+                return null;
+            }
+            if (!"pak".equals(lookup.entry.source.packType)) {
+                return null;
+            }
+            return openPakEntry(lookup);
         }
 
         Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
@@ -170,5 +184,34 @@ public final class VfsBackedFileSystem {
             return null;
         }
         return ByteBuffer.wrap(result.value).asReadOnlyBuffer();
+    }
+
+    private QuakeFile openPakEntry(VfsLookupResult lookup) {
+        Path packagePath = lookup.entry.source.containerPath.toAbsolutePath().normalize();
+        Map<String, PackEntry> entries = pakEntryCache.computeIfAbsent(packagePath, this::readPakEntries);
+        PackEntry packEntry = entries.get(lookup.entry.normalizedPath);
+        if (packEntry == null) {
+            return null;
+        }
+        try {
+            QuakeFile file = new QuakeFile(packagePath.toFile(), "r", true, packEntry.length);
+            file.seek(packEntry.offset);
+            return file;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private Map<String, PackEntry> readPakEntries(Path packagePath) {
+        try {
+            PakPackReader reader = new PakPackReader(packagePath, caseSensitive);
+            Map<String, PackEntry> entries = new HashMap<>();
+            for (PackEntry entry : reader.entries()) {
+                entries.putIfAbsent(entry.normalizedPath, entry);
+            }
+            return entries;
+        } catch (IOException e) {
+            return Collections.emptyMap();
+        }
     }
 }

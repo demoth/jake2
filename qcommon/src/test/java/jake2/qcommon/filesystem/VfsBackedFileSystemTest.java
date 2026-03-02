@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
@@ -134,7 +136,7 @@ public class VfsBackedFileSystemTest {
     }
 
     @Test
-    public void openFileReturnsNullForPackageEntries() throws Exception {
+    public void openFileOpensPakPackageEntries() throws Exception {
         Path basedir = temp.newFolder("q2").toPath();
         Path pak = basedir.resolve("baseq2/pak0.pak");
         writePak(pak, Map.of("maps/test.bsp", "packbsp".getBytes(StandardCharsets.US_ASCII)));
@@ -142,8 +144,24 @@ public class VfsBackedFileSystemTest {
         VfsBackedFileSystem fs = new VfsBackedFileSystem();
         fs.configure(basedir, "baseq2", null, true, false);
 
-        assertTrue(fs.exists("maps/test.bsp"));
-        assertTrue("Package entries are still served by legacy FS fallback in this phase", fs.openFile("maps/test.bsp") == null);
+        QuakeFile opened = fs.openFile("maps/test.bsp");
+        assertNotNull(opened);
+        assertTrue(opened.fromPack);
+        byte[] bytes = opened.toBytes();
+        assertArrayEquals("packbsp".getBytes(StandardCharsets.US_ASCII), bytes);
+    }
+
+    @Test
+    public void openFileReturnsNullForZipEntries() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        Path zip = basedir.resolve("baseq2/assets.pk3");
+        writeZip(zip, Map.of("pics/colormap.pcx", "zip".getBytes(StandardCharsets.US_ASCII)));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", null, true, false);
+
+        assertTrue(fs.exists("pics/colormap.pcx"));
+        assertTrue(fs.openFile("pics/colormap.pcx") == null);
     }
 
     private static void writePak(Path target, Map<String, byte[]> entries) throws IOException {
@@ -180,5 +198,17 @@ public class VfsBackedFileSystemTest {
         full.write(data.toByteArray());
         full.write(directory.toByteArray());
         Files.write(target, full.toByteArray());
+    }
+
+    private static void writeZip(Path target, Map<String, byte[]> entries) throws IOException {
+        Files.createDirectories(target.getParent());
+        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(target))) {
+            for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+                ZipEntry zipEntry = new ZipEntry(entry.getKey());
+                out.putNextEntry(zipEntry);
+                out.write(entry.getValue());
+                out.closeEntry();
+            }
+        }
     }
 }
