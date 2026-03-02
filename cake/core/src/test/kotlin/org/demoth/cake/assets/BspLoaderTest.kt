@@ -13,7 +13,8 @@ class BspLoaderTest {
     @Test
     fun collectWalTexturePathsSkipsSkyAndDeduplicates() {
         val bspData = minimalBspWithTextures(
-            textureNames = listOf("floor", "skybox", "floor", " ", "lava")
+            textureNames = listOf("floor", "skybox", "floor", " ", "lava"),
+            textureFlags = listOf(0, Defines.SURF_SKY, 0, 0, 0),
         )
 
         val paths = collectWalTexturePaths(bspData)
@@ -51,6 +52,7 @@ class BspLoaderTest {
     fun buildWorldRenderDataMapsLeavesToWorldSurfaces() {
         val bspData = minimalBspWithTextures(
             textureNames = listOf("floor", "skybox", "lava"),
+            textureFlags = listOf(0, Defines.SURF_SKY, 0),
             leafFaceIndices = listOf(0, 1, 2)
         )
         val bsp = Bsp(ByteBuffer.wrap(bspData))
@@ -129,12 +131,16 @@ class BspLoaderTest {
 
     private fun minimalBspWithTextures(
         textureNames: List<String>,
+        textureFlags: List<Int> = List(textureNames.size) { 0 },
         texInfoNextIndices: List<Int> = List(textureNames.size) { 0 },
         faceTextureInfoIndices: List<Int> = textureNames.indices.toList(),
         faceLightStyles: List<ByteArray> = List(faceTextureInfoIndices.size) { byteArrayOf(0, 0, 0, 0) },
         leafFaceIndices: List<Int> = emptyList(),
         modelFaceRanges: List<Pair<Int, Int>>? = null,
     ): ByteArray {
+        check(textureFlags.size == textureNames.size) {
+            "textureFlags must match textureNames size"
+        }
         check(texInfoNextIndices.size == textureNames.size) {
             "texInfoNextIndices must match textureNames size"
         }
@@ -213,7 +219,7 @@ class BspLoaderTest {
             .apply {
                 textureNames.forEachIndexed { textureIndex, textureName ->
                     repeat(8) { putFloat(0f) } // uAxis + uOffset + vAxis + vOffset
-                    putInt(0) // flags
+                    putInt(textureFlags[textureIndex]) // flags
                     putInt(0) // value
                     val nameBytes = ByteArray(32)
                     val rawNameBytes = textureName.toByteArray(Charsets.US_ASCII)
