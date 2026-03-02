@@ -16,6 +16,8 @@ dependencies {
   api "io.github.libktx:ktx-scene2d:$ktxVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
+  implementation "com.fasterxml.jackson.core:jackson-databind:2.18.2"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2"
 
   implementation(project(":qcommon"))
   testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"

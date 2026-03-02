@@ -54,6 +54,7 @@ Profiling workflow:
 Screenshot output:
 
 - `screenshot` command writes PNG files to `$HOME/.cake/<mod>/scrnshot/`.
+- Cake JSON save metadata (new VFS-backed store) is written to `$HOME/.cake/<mod>/save/<slot>/cake-save.json`.
 
 ### Bitmap Font Tool
 

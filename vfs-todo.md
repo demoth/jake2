@@ -427,6 +427,7 @@ Phase 13 progress:
 
 Phase 11 progress:
 - Cake screenshot writes now target `$HOME/.cake/<mod>/scrnshot/` through `DefaultWritableFileSystem` instead of local working-directory storage.
+- Added Cake JSON save metadata store (`CakeJsonSaveStore`) that persists to `$HOME/.cake/<mod>/save/<slot>/cake-save.json` via writable VFS root.
 
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
