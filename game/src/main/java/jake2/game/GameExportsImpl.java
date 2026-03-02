@@ -1578,7 +1578,7 @@ public class GameExportsImpl implements GameExports {
             if (!autosave)
                 SaveClientData();
 
-            QuakeFile f = new QuakeFile(filename, "rw");
+            QuakeFile f = FS.OpenWriteFile(filename);
 
             game.autosaved = autosave;
             game.write(f);
@@ -1619,7 +1619,7 @@ public class GameExportsImpl implements GameExports {
     public void WriteLevel(String filename) {
         try {
 
-            QuakeFile f = new QuakeFile(filename, "rw");
+            QuakeFile f = FS.OpenWriteFile(filename);
 
             // write out level_locals_t
             level.write(f);

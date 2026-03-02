@@ -654,7 +654,7 @@ public class GameImportsImpl implements GameImports {
         String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sv2";
 
         try {
-            QuakeFile f = new QuakeFile(name, "rw");
+            QuakeFile f = FS.OpenWriteFile(name);
 
             for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
                 f.writeString(sv.configstrings[i]);
@@ -686,7 +686,7 @@ public class GameImportsImpl implements GameImports {
         Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
         try {
-            QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv", "rw");
+            QuakeFile f = FS.OpenWriteFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv");
 
             final String comment;
             if (autosave) {
@@ -700,7 +700,7 @@ public class GameImportsImpl implements GameImports {
             f.close();
 
 
-            QuakeFile cvarsFile = new QuakeFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv", "rw");
+            QuakeFile cvarsFile = FS.OpenWriteFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv");
 
             // write all CVAR_LATCH cvars
             // these will be things like coop, skill, deathmatch, etc

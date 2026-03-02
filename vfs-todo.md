@@ -417,7 +417,7 @@ Phase 9 progress:
 Phase 10 progress:
 - Added `FS.OpenReadFile(...)` as the preferred read-mode compatibility entry point over FS/VFS search policy.
 - Migrated server/game save-load read call sites away from direct `new QuakeFile(path, "r")` constructors.
-- Write-mode `QuakeFile(..., "rw")` paths remain unchanged for now.
+- Added `FS.OpenWriteFile(...)` and migrated server/game write call sites away from direct `new QuakeFile(path, "rw")`.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.

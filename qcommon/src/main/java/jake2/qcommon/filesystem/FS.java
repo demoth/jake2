@@ -300,6 +300,16 @@ public final class FS extends Globals {
         return file;
     }
 
+    /**
+     * Opens a writable file and ensures parent directories exist first.
+     *
+     * This centralizes write-path handling while preserving legacy QuakeFile semantics.
+     */
+    public static QuakeFile OpenWriteFile(String filename) throws FileNotFoundException {
+        CreatePath(filename);
+        return new QuakeFile(filename, "rw");
+    }
+
     // read in blocks of 64k
     private static final int MAX_READ = 0x10000;
 
