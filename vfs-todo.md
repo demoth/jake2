@@ -398,7 +398,7 @@ public interface VfsDataOutput {
 - [x] Phase 7: add server compatibility adapter (`FS` delegates to VFS).
 - [x] Phase 8: add Cake adapter (`CakeFileResolver` delegates to VFS).
 - [x] Phase 9: add model viewer adapter (`ModelViewerFileResolver` delegates to thin viewer VFS wrapper).
-- [ ] Phase 10: convert `QuakeFile` into VFS-backed compatibility adapter (remove direct legacy FS search dependency).
+- [x] Phase 10: convert `QuakeFile` into VFS-backed compatibility adapter (remove direct legacy FS search dependency).
 - [ ] Phase 11: implement Cake save persistence via JSON/Jackson (no legacy binary compatibility target).
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
 - [ ] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
@@ -418,6 +418,7 @@ Phase 10 progress:
 - Added `FS.OpenReadFile(...)` as the preferred read-mode compatibility entry point over FS/VFS search policy.
 - Migrated server/game save-load read call sites away from direct `new QuakeFile(path, "r")` constructors.
 - Added `FS.OpenWriteFile(...)` and migrated server/game write call sites away from direct `new QuakeFile(path, "rw")`.
+- Migrated remaining legacy-client save metadata read path to `FS.OpenReadFile(...)`, so external game code no longer opens read-mode `QuakeFile` directly.
 
 Phase 13 progress:
 - Added Cake/model-viewer resolver parity integration tests for mod/base/package precedence and missing-asset behavior.

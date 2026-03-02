@@ -2084,7 +2084,7 @@ public final class Menu extends Key {
             name = FS.getWriteDir() + "/save/save" + i + "/server_mapcmd.ssv";
 
             try {
-                f = new QuakeFile(name, "r", false, -1);
+                f = FS.OpenReadFile(name);
                 String str = f.readString();
                 if (str != null)
                     m_savestrings[i] = str;
