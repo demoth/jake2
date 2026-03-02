@@ -366,10 +366,14 @@ public final class FS extends Globals {
         try {
             QuakeFile file = FOpenFile(path);
             if (file == null) {
-                file = FOpenFile(path.toLowerCase());
-                if (file != null) {
-                    // some mods mess up the case
-                    Com.Printf("Found file by lowercase: " + path + "\n");
+                if (!isVfsCaseSensitive()) {
+                    file = FOpenFile(path.toLowerCase());
+                    if (file != null) {
+                        // some mods mess up the case
+                        Com.Printf("Found file by lowercase: " + path + "\n");
+                    } else {
+                        return null;
+                    }
                 } else {
                     return null;
                 }
