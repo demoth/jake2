@@ -405,8 +405,8 @@ Phase 7 progress:
 - `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.
 - Added `fs_casesensitive` compatibility wiring so FS-side VFS lookup can switch strict mode.
 - `FS.LoadMappedFile` now uses VFS first; loose files are mapped directly, package entries are returned as read-only buffers.
-- `FS.FOpenFile` now uses VFS for loose files and `.pak` entries; ZIP-backed package entries still fall back to legacy logic.
-- Remaining Phase 7 work: ZIP `FOpenFile` compatibility strategy and legacy path/link parity before full delegation.
+- `FS.FOpenFile` now uses VFS for loose files, `.pak` entries (offset-open), and ZIP-backed entries (temp-file compatibility bridge).
+- Remaining Phase 7 work: legacy path/link parity before full delegation.
 
 ## Open questions
 

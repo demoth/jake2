@@ -6,6 +6,8 @@ import jake2.qcommon.vfs.PakPackReader;
 import jake2.qcommon.vfs.VfsConfig;
 import jake2.qcommon.vfs.VfsLookupResult;
 import jake2.qcommon.vfs.VfsLookupOptions;
+import jake2.qcommon.vfs.VfsOpenOptions;
+import jake2.qcommon.vfs.VfsReadableHandle;
 import jake2.qcommon.vfs.VfsSourceType;
 import jake2.qcommon.vfs.VfsResult;
 import jake2.qcommon.vfs.VirtualFileSystem;
@@ -13,8 +15,10 @@ import jake2.qcommon.vfs.VirtualFileSystem;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +41,7 @@ public final class VfsBackedFileSystem {
     private boolean serverMode;
     private boolean caseSensitive;
     private final Map<Path, Map<String, PackEntry>> pakEntryCache = new HashMap<>();
+    private final Map<String, Path> packagedOpenCache = new HashMap<>();
 
     public VfsBackedFileSystem() {
         this(new DefaultVirtualFileSystem());
@@ -52,7 +57,7 @@ public final class VfsBackedFileSystem {
         this.gameMod = gameMod;
         this.serverMode = serverMode;
         this.caseSensitive = caseSensitive;
-        this.pakEntryCache.clear();
+        clearPackageCaches();
 
         vfs.configure(new VfsConfig(
                 basedir,
@@ -71,7 +76,7 @@ public final class VfsBackedFileSystem {
             return;
         }
         this.gameMod = gameMod;
-        this.pakEntryCache.clear();
+        clearPackageCaches();
         vfs.configure(new VfsConfig(
                 basedir,
                 baseGame,
@@ -89,7 +94,7 @@ public final class VfsBackedFileSystem {
             return;
         }
         this.caseSensitive = caseSensitive;
-        this.pakEntryCache.clear();
+        clearPackageCaches();
         if (basedir == null) {
             return;
         }
@@ -142,7 +147,7 @@ public final class VfsBackedFileSystem {
                 return null;
             }
             if (!"pak".equals(lookup.entry.source.packType)) {
-                return null;
+                return openNonPakEntry(lookup, path);
             }
             return openPakEntry(lookup);
         }
@@ -213,5 +218,47 @@ public final class VfsBackedFileSystem {
         } catch (IOException e) {
             return Collections.emptyMap();
         }
+    }
+
+    private QuakeFile openNonPakEntry(VfsLookupResult lookup, String logicalPath) {
+        String cacheKey = lookup.entry.source.containerPath.toAbsolutePath().normalize()
+                + "|" + lookup.entry.normalizedPath
+                + "|" + lookup.entry.modifiedTimeMillis;
+
+        Path cached = packagedOpenCache.get(cacheKey);
+        if (cached != null && Files.isRegularFile(cached)) {
+            try {
+                return new QuakeFile(cached.toFile(), "r", true, Files.size(cached));
+            } catch (IOException e) {
+                packagedOpenCache.remove(cacheKey);
+            }
+        }
+
+        VfsResult<VfsReadableHandle> opened = vfs.openRead(logicalPath, VfsOpenOptions.DEFAULT);
+        if (!opened.success || opened.value == null) {
+            return null;
+        }
+        try (VfsReadableHandle handle = opened.value; InputStream input = handle.inputStream()) {
+            byte[] bytes = input.readAllBytes();
+            Path temp = Files.createTempFile("jake2-vfs-", ".tmp");
+            Files.write(temp, bytes);
+            temp.toFile().deleteOnExit();
+            packagedOpenCache.put(cacheKey, temp);
+            return new QuakeFile(temp.toFile(), "r", true, bytes.length);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private void clearPackageCaches() {
+        pakEntryCache.clear();
+        for (Path path : packagedOpenCache.values()) {
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException ignored) {
+                // Best-effort cleanup.
+            }
+        }
+        packagedOpenCache.clear();
     }
 }

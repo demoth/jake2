@@ -152,7 +152,7 @@ public class VfsBackedFileSystemTest {
     }
 
     @Test
-    public void openFileReturnsNullForZipEntries() throws Exception {
+    public void openFileOpensZipEntriesThroughTempBridge() throws Exception {
         Path basedir = temp.newFolder("q2").toPath();
         Path zip = basedir.resolve("baseq2/assets.pk3");
         writeZip(zip, Map.of("pics/colormap.pcx", "zip".getBytes(StandardCharsets.US_ASCII)));
@@ -160,8 +160,11 @@ public class VfsBackedFileSystemTest {
         VfsBackedFileSystem fs = new VfsBackedFileSystem();
         fs.configure(basedir, "baseq2", null, true, false);
 
-        assertTrue(fs.exists("pics/colormap.pcx"));
-        assertTrue(fs.openFile("pics/colormap.pcx") == null);
+        QuakeFile opened = fs.openFile("pics/colormap.pcx");
+        assertNotNull(opened);
+        assertTrue(opened.fromPack);
+        byte[] bytes = opened.toBytes();
+        assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes);
     }
 
     private static void writePak(Path target, Map<String, byte[]> entries) throws IOException {
