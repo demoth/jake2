@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -130,6 +131,30 @@ public final class VfsBackedFileSystem {
             return false;
         }
         return vfs.exists(path, VfsLookupOptions.DEFAULT);
+    }
+
+    public List<String> debugResolvedFiles() {
+        if (vfs instanceof DefaultVirtualFileSystem) {
+            DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
+            return debugVfs.debugResolvedFiles();
+        }
+        return Collections.emptyList();
+    }
+
+    public List<String> debugMounts() {
+        if (vfs instanceof DefaultVirtualFileSystem) {
+            DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
+            return debugVfs.debugMounts();
+        }
+        return Collections.emptyList();
+    }
+
+    public List<String> debugOverrides() {
+        if (vfs instanceof DefaultVirtualFileSystem) {
+            DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
+            return debugVfs.debugOverrides();
+        }
+        return Collections.emptyList();
     }
 
     /**

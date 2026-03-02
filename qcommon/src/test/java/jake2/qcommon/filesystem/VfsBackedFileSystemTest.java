@@ -12,11 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -165,6 +167,32 @@ public class VfsBackedFileSystemTest {
         assertTrue(opened.fromPack);
         byte[] bytes = opened.toBytes();
         assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes);
+    }
+
+    @Test
+    public void debugViewsExposeFilesMountsAndOverrides() throws Exception {
+        Path basedir = temp.newFolder("q2").toPath();
+        Files.createDirectories(basedir.resolve("baseq2/textures"));
+        Files.write(basedir.resolve("baseq2/textures/wall.wal"), "loose".getBytes(StandardCharsets.US_ASCII));
+        writePak(basedir.resolve("baseq2/pak0.pak"), Map.of("textures/wall.wal", "pak".getBytes(StandardCharsets.US_ASCII)));
+        writeZip(basedir.resolve("baseq2/assets.pk3"), Map.of("models/items/ammo/tris.md2", "zip".getBytes(StandardCharsets.US_ASCII)));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", null, true, false);
+
+        List<String> files = fs.debugResolvedFiles();
+        List<String> mounts = fs.debugMounts();
+        List<String> overrides = fs.debugOverrides();
+
+        assertTrue(files.contains("textures/wall.wal"));
+        assertTrue(files.contains("models/items/ammo/tris.md2"));
+        assertEquals(files, files.stream().sorted().toList());
+
+        assertTrue(mounts.stream().anyMatch(line -> line.contains("[BASE_LOOSE]")));
+        assertTrue(mounts.stream().anyMatch(line -> line.contains("[BASE_PACK]") && line.contains("pak0.pak")));
+        assertTrue(mounts.stream().anyMatch(line -> line.contains("[BASE_PACK]") && line.contains("assets.pk3")));
+
+        assertTrue(overrides.stream().anyMatch(line -> line.startsWith("textures/wall.wal ->")));
     }
 
     private static void writePak(Path target, Map<String, byte[]> entries) throws IOException {

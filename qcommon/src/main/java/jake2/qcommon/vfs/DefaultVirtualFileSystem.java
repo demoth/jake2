@@ -30,6 +30,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final Map<Path, PackageMount> packageMountByPath = new HashMap<>();
     private final EnumMap<VfsLayer, Map<String, VfsEntry>> perLayerIndex = new EnumMap<>(VfsLayer.class);
     private final Map<String, VfsEntry> flattenedIndex = new HashMap<>();
+    private final Map<String, List<VfsEntry>> allEntriesByPath = new HashMap<>();
 
     @Override
     public synchronized void configure(VfsConfig config) {
@@ -219,6 +220,64 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return new VfsSnapshot(flattenedIndex.size(), entryCounts, mountCounts);
     }
 
+    /**
+     * Returns resolved winner paths in ascending order.
+     */
+    public synchronized List<String> debugResolvedFiles() {
+        ensureConfigured();
+        List<String> resolved = new ArrayList<>(flattenedIndex.keySet());
+        Collections.sort(resolved);
+        return resolved;
+    }
+
+    /**
+     * Returns mount summaries in effective priority order.
+     */
+    public synchronized List<String> debugMounts() {
+        ensureConfigured();
+        List<String> lines = new ArrayList<>();
+        for (VfsLayer layer : VfsLayer.values()) {
+            for (LooseMount mount : looseMounts) {
+                if (mount.layer != layer) {
+                    continue;
+                }
+                lines.add("[" + layer + "] dir " + mount.root + " (files=" + mount.indexedFileCount + ")");
+            }
+            for (PackageMount mount : packageMounts) {
+                if (mount.layer != layer) {
+                    continue;
+                }
+                lines.add("[" + layer + "] " + mount.reader.type() + " " + mount.packagePath + " (files=" + mount.indexedFileCount + ")");
+            }
+        }
+        return lines;
+    }
+
+    /**
+     * Returns override summaries for logical files present in more than one source.
+     */
+    public synchronized List<String> debugOverrides() {
+        ensureConfigured();
+        List<String> keys = allEntriesByPath.entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<String> lines = new ArrayList<>();
+        for (String key : keys) {
+            List<VfsEntry> entries = allEntriesByPath.get(key);
+            if (entries == null || entries.size() <= 1) {
+                continue;
+            }
+            String sources = entries.stream()
+                    .map(this::describeSource)
+                    .collect(Collectors.joining(" ; "));
+            lines.add(key + " -> " + sources);
+        }
+        return lines;
+    }
+
     private void ensureConfigured() {
         if (config == null || normalizer == null) {
             throw new IllegalStateException("VFS is not configured");
@@ -363,6 +422,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     private void rebuildIndexes() {
         perLayerIndex.clear();
+        allEntriesByPath.clear();
         for (VfsLayer layer : VfsLayer.values()) {
             perLayerIndex.put(layer, new HashMap<>());
         }
@@ -384,6 +444,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     private void indexLooseMount(LooseMount mount) {
+        final int[] indexedCount = new int[]{0};
         try {
             Files.walk(mount.root).filter(Files::isRegularFile).forEach(path -> {
                 Path relativePath = mount.root.relativize(path);
@@ -393,9 +454,6 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                     return;
                 }
                 Map<String, VfsEntry> layerMap = perLayerIndex.get(mount.layer);
-                if (layerMap.containsKey(normalized)) {
-                    return;
-                }
                 try {
                     VfsSource source = new VfsSource(
                             VfsSourceType.DIRECTORY,
@@ -414,7 +472,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                             Files.size(path),
                             Files.getLastModifiedTime(path).toMillis()
                     );
-                    layerMap.put(normalized, vfsEntry);
+                    addAllEntry(vfsEntry);
+                    indexedCount[0]++;
+                    layerMap.putIfAbsent(normalized, vfsEntry);
                 } catch (IOException ignored) {
                     // Broken file entry should not fail full index build.
                 }
@@ -422,14 +482,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         } catch (IOException ignored) {
             // Mount may become unreadable at runtime; skip it from this index pass.
         }
+        mount.indexedFileCount = indexedCount[0];
     }
 
     private void indexPackageMount(PackageMount mount) {
         Map<String, VfsEntry> layerMap = perLayerIndex.get(mount.layer);
+        int indexedCount = 0;
         for (PackEntry packEntry : mount.entriesByNormalizedPath.values()) {
-            if (layerMap.containsKey(packEntry.normalizedPath)) {
-                continue;
-            }
             VfsSource source = new VfsSource(
                     VfsSourceType.PACKAGE_ENTRY,
                     mount.packagePath,
@@ -447,8 +506,25 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                     packEntry.length,
                     mount.modifiedTimeMillis
             );
+            addAllEntry(entry);
+            indexedCount++;
+            if (layerMap.containsKey(packEntry.normalizedPath)) {
+                continue;
+            }
             layerMap.put(packEntry.normalizedPath, entry);
         }
+        mount.indexedFileCount = indexedCount;
+    }
+
+    private void addAllEntry(VfsEntry entry) {
+        allEntriesByPath.computeIfAbsent(entry.normalizedPath, ignored -> new ArrayList<>()).add(entry);
+    }
+
+    private String describeSource(VfsEntry entry) {
+        if (entry.source.type == VfsSourceType.DIRECTORY) {
+            return entry.layer + ":dir:" + entry.source.containerPath + "/" + entry.source.entryPath;
+        }
+        return entry.layer + ":" + entry.source.packType + ":" + entry.source.containerPath + "::" + entry.source.entryPath;
     }
 
     private PackReader createPackReader(Path packagePath) throws IOException {
@@ -565,6 +641,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         final VfsLayer layer;
         final Path root;
         final int priority;
+        int indexedFileCount;
 
         LooseMount(String id, VfsLayer layer, Path root, int priority) {
             this.id = id;
@@ -582,6 +659,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         final PackReader reader;
         final Map<String, PackEntry> entriesByNormalizedPath;
         final long modifiedTimeMillis;
+        int indexedFileCount;
 
         PackageMount(
                 String id,

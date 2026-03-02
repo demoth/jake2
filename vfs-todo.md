@@ -403,7 +403,7 @@ public interface VfsDataOutput {
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
 - [ ] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
-- [ ] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
+- [x] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
 
 Phase 8 progress:
 - Added `CakeVfsAssetSource` adapter over qcommon `DefaultVirtualFileSystem`.
@@ -425,6 +425,10 @@ Phase 13 progress:
 
 Phase 11 progress:
 - Cake screenshot writes now target `$HOME/.cake/<mod>/scrnshot/` through `DefaultWritableFileSystem` instead of local working-directory storage.
+
+Phase 15 progress:
+- Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
+- Added VFS debug views for resolved winners, mount order + file counts, and override collisions.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
