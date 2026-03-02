@@ -132,6 +132,7 @@ public final class FS extends Globals {
     private static cvar_t fs_basedir;
 
     private static cvar_t fs_cddir;
+    private static cvar_t fs_casesensitive;
 
     public static cvar_t fs_gamedirvar;
     private static VfsBackedFileSystem fs_vfsCompat;
@@ -195,6 +196,7 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
+        syncVfsCaseSensitivity();
         if (fs_vfsCompat != null && fs_vfsCompat.exists(filename)) {
             return true;
         }
@@ -334,6 +336,7 @@ public final class FS extends Globals {
         if (index != -1)
             path = path.substring(0, index);
 
+        syncVfsCaseSensitivity();
         if (fs_vfsCompat != null) {
             byte[] bytes = fs_vfsCompat.loadFile(path);
             if (bytes != null) {
@@ -816,6 +819,7 @@ public final class FS extends Globals {
 
         // check for game override
         fs_gamedirvar = Cvar.getInstance().Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+        fs_casesensitive = Cvar.getInstance().Get("fs_casesensitive", "0", CVAR_ARCHIVE);
 
         if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
@@ -879,7 +883,7 @@ public final class FS extends Globals {
                 Globals.BASEQ2,
                 gameMod,
                 true,
-                false
+                isVfsCaseSensitive()
         );
     }
 
@@ -891,6 +895,20 @@ public final class FS extends Globals {
             fs_vfsCompat.setGameMod(null);
         } else {
             fs_vfsCompat.setGameMod(gameName);
+        }
+    }
+
+    private static boolean isVfsCaseSensitive() {
+        return fs_casesensitive != null && fs_casesensitive.value != 0.0f;
+    }
+
+    private static void syncVfsCaseSensitivity() {
+        if (fs_vfsCompat == null || fs_casesensitive == null) {
+            return;
+        }
+        boolean desired = isVfsCaseSensitive();
+        if (fs_vfsCompat.isCaseSensitive() != desired) {
+            fs_vfsCompat.setCaseSensitive(desired);
         }
     }
     

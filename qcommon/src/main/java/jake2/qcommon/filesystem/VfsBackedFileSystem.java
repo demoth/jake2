@@ -22,6 +22,7 @@ public final class VfsBackedFileSystem {
     private final VirtualFileSystem vfs;
     private Path basedir;
     private String baseGame;
+    private String gameMod;
     private boolean serverMode;
     private boolean caseSensitive;
 
@@ -36,6 +37,7 @@ public final class VfsBackedFileSystem {
     public void configure(Path basedir, String baseGame, String gameMod, boolean serverMode, boolean caseSensitive) {
         this.basedir = basedir;
         this.baseGame = baseGame;
+        this.gameMod = gameMod;
         this.serverMode = serverMode;
         this.caseSensitive = caseSensitive;
 
@@ -55,6 +57,7 @@ public final class VfsBackedFileSystem {
         if (basedir == null) {
             return;
         }
+        this.gameMod = gameMod;
         vfs.configure(new VfsConfig(
                 basedir,
                 baseGame,
@@ -65,6 +68,30 @@ public final class VfsBackedFileSystem {
                 Collections.emptyList(),
                 SUPPORTED_EXTENSIONS
         ));
+    }
+
+    public void setCaseSensitive(boolean caseSensitive) {
+        if (this.caseSensitive == caseSensitive) {
+            return;
+        }
+        this.caseSensitive = caseSensitive;
+        if (basedir == null) {
+            return;
+        }
+        vfs.configure(new VfsConfig(
+                basedir,
+                baseGame,
+                gameMod,
+                serverMode,
+                false,
+                caseSensitive,
+                Collections.emptyList(),
+                SUPPORTED_EXTENSIONS
+        ));
+    }
+
+    public boolean isCaseSensitive() {
+        return caseSensitive;
     }
 
     public byte[] loadFile(String path) {
