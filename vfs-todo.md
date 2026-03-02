@@ -45,6 +45,10 @@ Build one shared VFS core in `qcommon` that:
 - Writable path target:
   - Cake write root should be `$HOME/.cake/<mod>` (savegames, screenshots, configs).
   - Legacy/server write root can remain under current policy until migrated.
+- VFS diagnostics commands are required (planned, not immediate):
+  - `fs_files`: print all resolved files in ascending order.
+  - `fs_mounts`: print mounted loose roots/packages in effective priority order; include package file counts.
+  - `fs_overrides`: print logical paths that exist in more than one source (override collisions).
 
 ## Current Jake2 baseline (must preserve or replace)
 
@@ -399,6 +403,7 @@ public interface VfsDataOutput {
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
 - [ ] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
+- [ ] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
 
 Phase 8 progress:
 - Added `CakeVfsAssetSource` adapter over qcommon `DefaultVirtualFileSystem`.
