@@ -28,16 +28,16 @@ class CakeFileResolver(
 
     /**
      * look for files in the following order:
-     * 1. classpath (java classpath)
-     * 2. internal (assets folder)
-     * 3. list of mounted locations:
-     *      3.1 basedir/gamemod/
-     *      3.2 basedir/gamemod/other_pak_files
-     *      3.3 basedir/gamemod/pak\d+.pak files
-     * 4. same but for the basemod folder
-     *      4.1 basedir/basemod/
-     *      4.2 basedir/basemod/other_pak_files
-     *      4.3 basedir/basemod/pak\d+.pak files
+     * 1. mounted game/mod locations:
+     *      1.1 basedir/gamemod/
+     *      1.2 basedir/gamemod/other_pak_files
+     *      1.3 basedir/gamemod/pak\d+.pak files
+     * 2. mounted base game locations:
+     *      2.1 basedir/basemod/
+     *      2.2 basedir/basemod/other_pak_files
+     *      2.3 basedir/basemod/pak\d+.pak files
+     * 3. classpath (java classpath)
+     * 4. internal (engine assets folder)
      *
      *  supports case-insensitive lookup if the exact match is not found
      *
@@ -71,10 +71,6 @@ class CakeFileResolver(
         }
 
         val roots = mutableListOf<FileHandle>()
-        // bootstrap assets - not overridable
-        roots.add(Gdx.files.classpath(""))
-        // engine "assets" folder
-        roots.add(Gdx.files.internal(""))
 
         if (basedir != null) {
             // check mod override
@@ -86,6 +82,10 @@ class CakeFileResolver(
             roots.add(Gdx.files.absolute("$basedir/$basemod"))
             // todo: check the basemod pak files
         }
+
+        // Fallback-only roots: bundled resources should not override mounted game content.
+        roots.add(Gdx.files.classpath(""))
+        roots.add(Gdx.files.internal(""))
 
         for (root in roots) {
             val resolved = if (caseInsensitive) {
