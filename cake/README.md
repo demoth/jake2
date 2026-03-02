@@ -51,6 +51,10 @@ Profiling workflow:
    - `set cl_showfps 2` (min/max/avg fps)
    - `set cl_showfps 3` (adds frame-time line)
 
+Screenshot output:
+
+- `screenshot` command writes PNG files to `$HOME/.cake/<mod>/scrnshot/`.
+
 ### Bitmap Font Tool
 
 Generate a libGDX bitmap font (`.fnt` + `.png`) from a TTF:

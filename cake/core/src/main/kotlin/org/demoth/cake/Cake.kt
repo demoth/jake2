@@ -32,6 +32,7 @@ import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
+import jake2.qcommon.vfs.DefaultWritableFileSystem
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.assets.TextAssetLoader
@@ -807,10 +808,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     1
                 )
             }
-            val screenshotDirectory = Gdx.files.local("screenshots")
-            screenshotDirectory.mkdirs()
             val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
-            val screenshotFile = screenshotDirectory.child(filename)
+            val writable = DefaultWritableFileSystem.forHome("cake", fileResolver.gamemod)
+            val screenshotPath = writable.resolveWritePath("scrnshot/$filename")
+            if (screenshotPath == null) {
+                throw IllegalStateException("Failed to resolve screenshot write path")
+            }
+            val screenshotFile = Gdx.files.absolute(screenshotPath)
             PixmapIO.writePNG(screenshotFile, flippedPixmap)
             Com.Println("Screenshot saved: ${screenshotFile.file().absolutePath}")
         } catch (e: Exception) {

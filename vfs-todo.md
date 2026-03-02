@@ -423,6 +423,9 @@ Phase 13 progress:
 - Added Cake/model-viewer resolver parity integration tests for mod/base/package precedence and missing-asset behavior.
 - Added qcommon FS compatibility tests for `OpenReadFile`/`OpenWriteFile` roundtrip and missing-file behavior.
 
+Phase 11 progress:
+- Cake screenshot writes now target `$HOME/.cake/<mod>/scrnshot/` through `DefaultWritableFileSystem` instead of local working-directory storage.
+
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
 - `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.
