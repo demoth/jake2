@@ -6,7 +6,8 @@ This package owns runtime asset resolving/loading for the Cake client (maps, mod
 It does **not** own gameplay selection rules (for example which player model/skin to pick from `CS_PLAYERSKINS`) - that logic lives in `org.demoth.cake.GameConfiguration`.
 
 ## Key Types
-- `CakeFileResolver` - resolves logical asset names to actual files (classpath/internal/mod/baseq2), including synthetic player MD2 variant keys.
+- `CakeFileResolver` - thin resolver that delegates game-data lookup to qcommon VFS layers and keeps classpath/internal fallbacks, including synthetic player MD2 variant keys.
+- `CakeVfsAssetSource` - Cake adapter over qcommon VFS that materializes packaged entries as temp files for libGDX loaders.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
 - `AnimationTextureAttribute` / `AnimationNormalTextureAttribute` - position/normal VAT bindings for MD2 shader path.
@@ -35,7 +36,7 @@ Legacy counterparts:
 - `Md2Loader` gives synthetic key skin prefix priority over embedded MD2 skins.
 - For player entities (`modelindex == 255`), runtime shader `skinIndex` is forced to `0` because only one skin texture is loaded for that variant.
 - Runtime shader sources are loaded from `assets/shaders` (`md2.vert`, `md2.frag`, `bsp_lightmap.vert/.frag`, `bsp_world_batch.vert/.frag`).
-- Runtime shader text is loaded through `AssetManager` (`TextAssetLoader`), so shader source resolution follows `CakeFileResolver` mod/base lookup order.
+- Runtime shader text is loaded through `AssetManager` (`TextAssetLoader`), so shader source resolution follows `CakeFileResolver` VFS mod/base lookup order.
 
 ## Terminology Alignment (Quake2 vs libGDX)
 - Quake2 BSP **model 0** (worldspawn geometry) maps to precomputed batch chunks in `BspWorldBatchData`.

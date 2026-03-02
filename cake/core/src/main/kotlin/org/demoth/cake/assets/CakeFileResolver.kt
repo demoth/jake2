@@ -14,32 +14,49 @@ import jake2.qcommon.Com
  * [basedir] Game installation directory, should be an absolute path
  * [basemod] Base game mod, default is "baseq2"
  * [gamemod] Game mod override like rogue or xatrix, has higher priority than the basemod
- * todo: implement resolvers for pak files
- * todo: implement indexing of pak files
- * todo: impelment setters for basedir/gamemod, with reindexing of pak files
+ * [caseSensitive] strict lookup mode, default remains case-insensitive for compatibility
  */
 class CakeFileResolver(
-    var basedir: String? = null,
-    var gamemod: String? = null
+    basedir: String? = null,
+    gamemod: String? = null,
+    caseSensitive: Boolean = false,
 ) : FileHandleResolver {
 
-    // tothink: do we need to be able to override this? like for q1 it will be id1
-    private val basemod: String = "baseq2"
+    private val vfsAssetSource = CakeVfsAssetSource()
+
+    var caseSensitive: Boolean = caseSensitive
+        set(value) {
+            field = value
+            vfsAssetSource.configure(basedir = basedir, gameMod = gamemod, caseSensitive = field)
+        }
+
+    var basedir: String? = basedir
+        set(value) {
+            field = value
+            vfsAssetSource.configure(basedir = field, gameMod = gamemod, caseSensitive = caseSensitive)
+        }
+
+    var gamemod: String? = gamemod
+        set(value) {
+            field = value
+            vfsAssetSource.configure(basedir = basedir, gameMod = field, caseSensitive = caseSensitive)
+        }
+
+    init {
+        vfsAssetSource.configure(basedir = this.basedir, gameMod = this.gamemod, caseSensitive = this.caseSensitive)
+    }
 
     /**
      * look for files in the following order:
-     * 1. mounted game/mod locations:
-     *      1.1 basedir/gamemod/
-     *      1.2 basedir/gamemod/other_pak_files
-     *      1.3 basedir/gamemod/pak\d+.pak files
-     * 2. mounted base game locations:
-     *      2.1 basedir/basemod/
-     *      2.2 basedir/basemod/other_pak_files
-     *      2.3 basedir/basemod/pak\d+.pak files
-     * 3. classpath (java classpath)
-     * 4. internal (engine assets folder)
+     * 1. qcommon VFS game-data layers:
+     *      1.1 basedir/gamemod loose
+     *      1.2 basedir/gamemod packages (.pak/.pk2/.pk3/.pkz/.zip)
+     *      1.3 basedir/baseq2 loose
+     *      1.4 basedir/baseq2 packages
+     * 2. classpath fallback (java classpath)
+     * 3. internal fallback (engine assets folder)
      *
-     *  supports case-insensitive lookup if the exact match is not found
+     * supports case-insensitive lookup by default (strict mode via [caseSensitive]).
      *
      * Synthetic key support:
      * - player MD2 variants use `<skinPath>|<modelPath>` for AssetManager cache separation.
@@ -49,51 +66,37 @@ class CakeFileResolver(
         // Variant keys can include skin prefix metadata (e.g. "<skin>|<model>"),
         // only the trailing model path should be resolved on disk.
         val path = fileName.substringAfterLast('|')
-        // first try to resolve the file matching the case
-        val file = resolveInternal(path, caseInsensitive = false)
-        if (file != null) return file
-        // fallback to case-insensitive lookup using libgdx FileHandle API
-        val caseInsensitive = resolveInternal(path, caseInsensitive = true)
-        if (caseInsensitive != null) {
-            Com.Warn("Resource $path was found with different case")
-            return caseInsensitive
+        val vfsResolved = vfsAssetSource.resolve(path)
+        if (vfsResolved != null) {
+            return vfsResolved
+        }
+
+        val fallbackResolved = resolveFallback(path)
+        if (fallbackResolved != null) {
+            return fallbackResolved
         }
         Com.Warn("Resource $path was not found")
         return null
     }
 
-    private fun resolveInternal(fileName: String, caseInsensitive: Boolean): FileHandle? {
-
+    private fun resolveFallback(fileName: String): FileHandle? {
         // SkyLoader uses synthetic keys like sky/<name>.sky; no physical file is required.
         val normalized = fileName.replace('\\', '/').lowercase()
         if (normalized.startsWith("sky/") && normalized.endsWith(".sky")) {
             return Gdx.files.internal("") // return an empty file handle
         }
 
-        val roots = mutableListOf<FileHandle>()
-
-        if (basedir != null) {
-            // check mod override
-            if (gamemod != null) {
-                roots.add(Gdx.files.absolute("$basedir/$gamemod"))
-                // todo: check the game mod pak files
-            }
-            // fallback to the base mod
-            roots.add(Gdx.files.absolute("$basedir/$basemod"))
-            // todo: check the basemod pak files
-        }
-
         // Fallback-only roots: bundled resources should not override mounted game content.
-        roots.add(Gdx.files.classpath(""))
-        roots.add(Gdx.files.internal(""))
+        val roots = listOf(Gdx.files.classpath(""), Gdx.files.internal(""))
 
         for (root in roots) {
-            val resolved = if (caseInsensitive) {
-                findCaseInsensitive(root, normalized)
-            } else {
-                root.child(fileName)
+            val exact = root.child(fileName)
+            if (exact.exists()) return exact
+            val caseInsensitive = findCaseInsensitive(root, normalized)
+            if (caseInsensitive != null && caseInsensitive.exists()) {
+                Com.Warn("Resource $fileName was found with different case")
+                return caseInsensitive
             }
-            if (resolved != null && resolved.exists()) return resolved
         }
         return null
     }
