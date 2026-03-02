@@ -134,6 +134,7 @@ public final class FS extends Globals {
     private static cvar_t fs_cddir;
 
     public static cvar_t fs_gamedirvar;
+    private static VfsBackedFileSystem fs_vfsCompat;
 
     static class filelink_t {
         final String from;
@@ -194,6 +195,9 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
+        if (fs_vfsCompat != null && fs_vfsCompat.exists(filename)) {
+            return true;
+        }
         try {
             RandomAccessFile raf = FOpenFile(filename);
             if (raf != null) {
@@ -329,6 +333,13 @@ public final class FS extends Globals {
         int index = path.indexOf('\0');
         if (index != -1)
             path = path.substring(0, index);
+
+        if (fs_vfsCompat != null) {
+            byte[] bytes = fs_vfsCompat.loadFile(path);
+            if (bytes != null) {
+                return bytes;
+            }
+        }
 
         try {
             QuakeFile file = FOpenFile(path);
@@ -630,6 +641,7 @@ public final class FS extends Globals {
         }
 
         setWriteDir(gameName, true);
+        updateVfsCompat(gameName);
     }
 
     /*
@@ -807,6 +819,8 @@ public final class FS extends Globals {
 
         if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
+
+        initVfsCompat();
     }
 
     private static String autodetectBasedir() {
@@ -852,6 +866,32 @@ public final class FS extends Globals {
         fs_cddir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE);
         if (fs_cddir.string.length() > 0)
             AddGameDirectory(fs_cddir.string, false);
+    }
+
+    private static void initVfsCompat() {
+        String gameMod = null;
+        if (fs_gamedirvar != null && !fs_gamedirvar.string.isEmpty()) {
+            gameMod = fs_gamedirvar.string;
+        }
+        fs_vfsCompat = new VfsBackedFileSystem();
+        fs_vfsCompat.configure(
+                Paths.get(fs_basedir.string),
+                Globals.BASEQ2,
+                gameMod,
+                true,
+                false
+        );
+    }
+
+    private static void updateVfsCompat(String gameName) {
+        if (fs_vfsCompat == null) {
+            return;
+        }
+        if (gameName == null || gameName.isEmpty() || gameName.equals(Globals.BASEQ2)) {
+            fs_vfsCompat.setGameMod(null);
+        } else {
+            fs_vfsCompat.setGameMod(gameName);
+        }
     }
     
     //	RAFAEL

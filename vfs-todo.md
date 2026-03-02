@@ -400,6 +400,11 @@ public interface VfsDataOutput {
 - [ ] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
 
+Phase 7 progress:
+- Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
+- `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.
+- Remaining Phase 7 work: migrate `FOpenFile`/`LoadMappedFile` and path/link parity before full delegation.
+
 ## Open questions
 
 - Should numbered official packs be marked as "protected" by default in Jake2?
