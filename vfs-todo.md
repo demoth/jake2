@@ -419,6 +419,9 @@ Phase 10 progress:
 - Migrated server/game save-load read call sites away from direct `new QuakeFile(path, "r")` constructors.
 - Added `FS.OpenWriteFile(...)` and migrated server/game write call sites away from direct `new QuakeFile(path, "rw")`.
 
+Phase 13 progress:
+- Added Cake/model-viewer resolver parity integration tests for mod/base/package precedence and missing-asset behavior.
+
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
 - `FS.LoadFile` and `FS.FileExists` now use VFS fast-path first, with legacy search-path fallback preserved.
