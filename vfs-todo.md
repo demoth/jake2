@@ -386,6 +386,7 @@ public interface VfsDataOutput {
 
 - [x] Phase 1: introduce VFS core interfaces/models in `qcommon`.
 - [x] Phase 2: implement loose-directory mount/index/lookup.
+- [x] Phase 2.5: add single-root `WritableFileSystem` for save/screenshot/config output.
 - [ ] Phase 3: implement `.pak` reader backend.
 - [ ] Phase 4: implement ZIP-based backend for `.pk2/.pk3/.pkz/.zip`.
 - [ ] Phase 5: implement deterministic pack ordering policy.

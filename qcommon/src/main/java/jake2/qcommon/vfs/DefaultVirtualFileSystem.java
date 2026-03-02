@@ -83,7 +83,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
         Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
         try {
-            return VfsResult.ok(new FileReadableHandle(sourcePath, lookup.entry.size));
+            return VfsResult.ok(new PathReadableHandle(sourcePath, lookup.entry.size));
         } catch (IOException e) {
             return VfsResult.fail("Failed to open resource: " + e.getMessage());
         }
@@ -273,28 +273,4 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         }
     }
 
-    private static final class FileReadableHandle implements VfsReadableHandle {
-        private final InputStream stream;
-        private final long size;
-
-        FileReadableHandle(Path path, long size) throws IOException {
-            this.stream = Files.newInputStream(path);
-            this.size = size;
-        }
-
-        @Override
-        public InputStream inputStream() {
-            return stream;
-        }
-
-        @Override
-        public long size() {
-            return size;
-        }
-
-        @Override
-        public void close() throws IOException {
-            stream.close();
-        }
-    }
 }
