@@ -45,17 +45,14 @@ public class Jake2Dedicated {
             Cvar.Init();
 
             // we need to add the early commands twice, because
-            // a basedir or cddir needs to be set before execing
-            // config files, but we want other parms to override
-            // the settings of the config files
+            // basedir needs to be set before execing config files,
+            // but we want other parms to override config settings
             Cbuf.AddEarlySetCommands(args1, false);
             Cbuf.Execute();
 
             FS.InitFilesystem();
 
             Cbuf.reconfigure(args1, false);
-
-            FS.setCDDir(); // use cddir from config.cfg
 
             Cbuf.reconfigure(args1, true); // reload default.cfg and config.cfg
 

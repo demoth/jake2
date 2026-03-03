@@ -79,7 +79,6 @@ public final class FS extends Globals {
 
     private static cvar_t fs_basedir;
 
-    private static cvar_t fs_cddir;
     private static cvar_t fs_casesensitive;
 
     public static cvar_t fs_gamedirvar;
@@ -591,13 +590,6 @@ public final class FS extends Globals {
             fs_basedir = Cvar.getInstance().Get("basedir", autoDetectedBasedir, CVAR_NOSET);
         }
 
-        //
-        // cddir <path>
-        // Logically concatenates the cddir after the basedir for
-        // allows the game to run from outside the data tree
-        //
-
-        setCDDir();
         fs_gamedir = fs_basedir.string + '/' + Globals.BASEQ2;
 
         // check for game override
@@ -644,13 +636,6 @@ public final class FS extends Globals {
 
 
         return ".";
-    }
-
-    /**
-     * set baseq2 directory
-     */
-    public static void setCDDir() {
-        fs_cddir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE);
     }
 
     private static void initVfsCompat() {

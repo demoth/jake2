@@ -404,6 +404,10 @@ public interface VfsDataOutput {
 - [x] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [x] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
 - [x] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
+- [x] Phase 16: remove dead `cddir` integration path and legacy bootstrap calls (`FS.setCDDir`) now that VFS is the only read index.
+- [ ] Phase 17: decommission low-value legacy FS API surface (`ListFiles`, `NextPath`, `Developer_searchpath`, `Read`) behind explicit compatibility policy.
+- [ ] Phase 18: document and freeze FS compatibility boundary (`absolute-path` + `fs_links` behavior) with targeted tests.
+- [ ] Phase 19: add `qcommon/vfs/README.md` describing VFS/FS responsibilities, API surface, and migration state.
 
 Phase 8 progress:
 - Added `CakeVfsAssetSource` adapter over qcommon `DefaultVirtualFileSystem`.
@@ -440,9 +444,42 @@ Phase 14 progress:
 - Removed legacy FS pack/searchpath internals (`pack_t`, `packfile_t`, `SearchPath`, `LoadPackFile`, `AddGameDirectory`) and completed FS read-path delegation to VFS.
 - `FS.InitFilesystem` and `FS.SetGamedir` now reconfigure VFS/cvars/write-dir without maintaining duplicated legacy read indexes.
 
+## Hardening Findings (2026-03-03)
+
+- `cddir` read-index integration was dead after Phase 14 and is now removed in Phase 16 (`FS.setCDDir` + dedicated/fullgame bootstrap calls).
+- Remaining non-VFS read behavior in `FS` is compatibility-only:
+  - absolute-path direct reads (`/abs/path`) in `FileExists/FOpenFile/LoadFile/LoadMappedFile`
+  - `fs_links` override path.
+- Legacy/low-value FS API remains mostly for deprecated old-client call paths:
+  - `ListFiles`, `NextPath`, `Developer_searchpath`, `Read`.
+- VFS runtime mutation API exists and is test-covered (`mountPackage/unmount/rebuildIndex/snapshot`) but not yet used by live server/client flows.
+- `VfsBackedFileSystem` comments still reference pre-migration fallback assumptions and should be cleaned to match current behavior.
+
+## Remaining Work For Full Server+Client VFS Switch
+
+1. Trim FS to a minimal compatibility facade over VFS.
+   - Define retained API explicitly (`LoadFile`, `LoadMappedFile`, `OpenReadFile`, `OpenWriteFile`, `FOpenFile`, `FileExists`, `SetGamedir`, write-dir helpers).
+   - Deprecate/remove low-value APIs only used by legacy client (`ListFiles`, `NextPath`, `Developer_searchpath`) unless a modern caller is added.
+2. Freeze and test compatibility-only exceptions.
+   - Decide policy for absolute-path reads and `fs_links`.
+   - Add explicit tests so behavior is intentional, not accidental.
+3. Align runtime package lifecycle with production flows.
+   - Wire `mountPackage/unmount` into real runtime mutation path (downloads/mod changes) or formally mark as deferred.
+4. Finalize docs and ownership boundaries.
+   - Add `qcommon/vfs/README.md` with:
+     - VFS core API (`VirtualFileSystem`, `WritableFileSystem`)
+     - FS compatibility API and what remains intentionally
+     - Cake/model-viewer integration points
+     - diagnostics commands and expected output semantics.
+
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
 - Added VFS debug views for resolved winners, mount order + file counts, and override collisions.
+
+Phase 16 progress:
+- Removed dead `FS.setCDDir()` integration from FS initialization.
+- Removed obsolete dedicated/fullgame bootstrap calls that re-applied `cddir` after early reconfigure.
+- Kept legacy `cddir` cvar behavior outside FS read-indexing path for compatibility with old client-side audio paths.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
