@@ -2,8 +2,36 @@
 junit4 = "4.13.2"
 commonsCsv = "1.9.0"
 logbackClassic = "1.4.14"
+gdx = "1.12.1"
+gdxControllers = "2.2.3"
+ktx = "1.12.1-rc1"
+kotlinStdlib = "2.0.21"
+kotlinxCoroutines = "1.6.4"
+jackson = "2.18.2"
+graalHelper = "2.0.1"
 
 [libraries]
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 commonsCsv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+gdxControllersCore = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "gdxControllers" }
+gdxFreetype = { module = "com.badlogicgames.gdx:gdx-freetype", version.ref = "gdx" }
+gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
+ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
+ktxAssetsAsync = { module = "io.github.libktx:ktx-assets-async", version.ref = "ktx" }
+ktxAssets = { module = "io.github.libktx:ktx-assets", version.ref = "ktx" }
+ktxAsync = { module = "io.github.libktx:ktx-async", version.ref = "ktx" }
+ktxCollections = { module = "io.github.libktx:ktx-collections", version.ref = "ktx" }
+ktxFreetypeAsync = { module = "io.github.libktx:ktx-freetype-async", version.ref = "ktx" }
+ktxFreetype = { module = "io.github.libktx:ktx-freetype", version.ref = "ktx" }
+ktxGraphics = { module = "io.github.libktx:ktx-graphics", version.ref = "ktx" }
+ktxLog = { module = "io.github.libktx:ktx-log", version.ref = "ktx" }
+ktxScene2d = { module = "io.github.libktx:ktx-scene2d", version.ref = "ktx" }
+kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+gdxBackendHeadless = { module = "com.badlogicgames.gdx:gdx-backend-headless", version.ref = "gdx" }
+gdxTools = { module = "com.badlogicgames.gdx:gdx-tools", version.ref = "gdx" }
+gdxSvmhelperAnnotations = { module = "io.github.berstanio:gdx-svmhelper-annotations", version.ref = "graalHelper" }

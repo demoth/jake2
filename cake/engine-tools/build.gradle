@@ -7,9 +7,9 @@ application {
 }
 
 dependencies {
-  implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
-  implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-  implementation "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+  implementation libs.gdx
+  implementation libs.gdxFreetype
+  implementation libs.gdxTools
   runtimeOnly("com.badlogicgames.gdx:gdx-platform:$gdxVersion") {
     artifact {
       classifier = 'natives-desktop'

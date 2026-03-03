@@ -47,6 +47,7 @@
 - [x] S23: Re-validate warning baseline after fixes (clean build warning-free; native compile limited to upstream LWJGL experimental metadata warnings).
 - [x] S24: Accept remaining LWJGL native-image experimental metadata warnings as upstream noise (no local override).
 - [x] S25: Start dependency catalog migration (introduce `libs.versions.toml`; migrate root JUnit and `game`/`maptools` external dependencies).
+- [x] S26: Expand catalog usage to `cake/core` and `cake/engine-tools` dependencies.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -91,6 +92,8 @@
   - `game` `commons-csv` to `libs.commonsCsv`,
   - `maptools` `logback-classic` to `libs.logbackClassic`;
   verification command:
+  - `./gradlew build --warning-mode all --console=plain`
+- S26 expanded catalog entries and migrated `cake/core` + `cake/engine-tools` from string coordinates to aliases where straightforward (kept classifier-based runtime dependencies unchanged for now); verification command:
   - `./gradlew build --warning-mode all --console=plain`
 
 ## Current Warning Buckets
