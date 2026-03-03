@@ -1,10 +1,9 @@
 package jake2.qcommon.filesystem;
 
 import jake2.qcommon.exec.Cmd;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.BeforeClass;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,23 +12,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FSCompatibilityTest {
-    @BeforeClass
+    @BeforeAll
     public static void initFilesystemCommands() {
         FS.InitFilesystem();
     }
 
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void openWriteAndOpenReadRoundTripAbsolutePath() throws Exception {
-        File target = new File(temp.getRoot(), "save/current/server_mapcmd.ssv");
+        File target = temp.resolve("save/current/server_mapcmd.ssv").toFile();
         String absolutePath = target.getAbsolutePath();
 
         try (QuakeFile out = FS.OpenWriteFile(absolutePath)) {
@@ -47,14 +46,14 @@ public class FSCompatibilityTest {
 
     @Test
     public void openReadThrowsForMissingAbsolutePath() throws Exception {
-        File missing = new File(temp.getRoot(), "save/current/missing.ssv");
+        File missing = temp.resolve("save/current/missing.ssv").toFile();
         assertThrows(FileNotFoundException.class, () ->
                 FS.OpenReadFile(missing.getAbsolutePath()));
     }
 
     @Test
     public void openWriteCreatesParentDirectories() throws Exception {
-        File target = new File(temp.getRoot(), "deep/path/to/config.cfg");
+        File target = temp.resolve("deep/path/to/config.cfg").toFile();
         assertTrue(!target.getParentFile().exists());
 
         try (QuakeFile out = FS.OpenWriteFile(target.getAbsolutePath())) {
@@ -67,7 +66,7 @@ public class FSCompatibilityTest {
 
     @Test
     public void loadMappedFileReadsAbsolutePath() throws Exception {
-        File target = new File(temp.getRoot(), "video/test.cin");
+        File target = temp.resolve("video/test.cin").toFile();
         FS.CreatePath(target.getAbsolutePath());
         byte[] payload = "cin-data".getBytes(StandardCharsets.US_ASCII);
         try (QuakeFile out = FS.OpenWriteFile(target.getAbsolutePath())) {
@@ -83,7 +82,7 @@ public class FSCompatibilityTest {
 
     @Test
     public void fileExistsResolvesFsLinks() throws Exception {
-        Path mountRoot = temp.newFolder("link-root").toPath();
+        Path mountRoot = Files.createDirectories(temp.resolve("link-root"));
         Files.createDirectories(mountRoot.resolve("maps"));
         Files.writeString(mountRoot.resolve("maps/test.bsp"), "dummy", StandardCharsets.US_ASCII);
 
@@ -95,7 +94,7 @@ public class FSCompatibilityTest {
 
     @Test
     public void loadFileResolvesFsLinks() throws Exception {
-        Path mountRoot = temp.newFolder("link-root-load").toPath();
+        Path mountRoot = Files.createDirectories(temp.resolve("link-root-load"));
         Files.createDirectories(mountRoot.resolve("pics"));
         Files.writeString(mountRoot.resolve("pics/colormap.pcx"), "pcx-payload", StandardCharsets.US_ASCII);
 
@@ -109,7 +108,7 @@ public class FSCompatibilityTest {
 
     @Test
     public void loadMappedFileResolvesFsLinks() throws Exception {
-        Path mountRoot = temp.newFolder("link-root-mapped").toPath();
+        Path mountRoot = Files.createDirectories(temp.resolve("link-root-mapped"));
         Files.createDirectories(mountRoot.resolve("video"));
         Files.writeString(mountRoot.resolve("video/intro.cin"), "mapped-link-data", StandardCharsets.US_ASCII);
 

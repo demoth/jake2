@@ -52,6 +52,7 @@
 - [x] S28: Complete JUnit5 migration Stage A (JUnit Platform + Jupiter + Vintage, keeping existing JUnit4 tests runnable).
 - [x] S29: Start JUnit5 Stage B by replacing `@Test(expected=...)` usage with `assertThrows` in active-module tests.
 - [x] S30: Convert first JUnit4 TemporaryFolder tests to Jupiter (`@TempDir`) in qcommon VFS tests.
+- [x] S31: Convert `FSCompatibilityTest` to Jupiter annotations (`@BeforeAll`, `@Test`, `@TempDir`).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -110,6 +111,9 @@
   verification command:
   - `./gradlew test --warning-mode all --console=plain`
 - S30 migrated `qcommon` `PakPackReaderTest` and `ZipPackReaderTest` from JUnit4 `@Rule TemporaryFolder` to JUnit5 `@TempDir` and Jupiter assertions; verification commands:
+  - `./gradlew :qcommon:test --warning-mode all --console=plain`
+  - `./gradlew test --warning-mode all --console=plain`
+- S31 migrated `qcommon` `FSCompatibilityTest` from JUnit4 lifecycle/rule annotations to Jupiter equivalents while preserving behavior; verification commands:
   - `./gradlew :qcommon:test --warning-mode all --console=plain`
   - `./gradlew test --warning-mode all --console=plain`
 
