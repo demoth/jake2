@@ -548,13 +548,13 @@ public class PrintfFormat {
 	 * @return  The formatted String.
 	 */
 	public String sprintf(Object[] o) {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		int i = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -610,12 +610,12 @@ public class PrintfFormat {
 	 * @return  the formatted String.
 	 */
 	public String sprintf() {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -633,12 +633,12 @@ public class PrintfFormat {
 	 *     or S.
 	 */
 	public String sprintf(int x) throws IllegalArgumentException {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -658,12 +658,12 @@ public class PrintfFormat {
 	 *     or S.
 	 */
 	public String sprintf(long x) throws IllegalArgumentException {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -683,12 +683,12 @@ public class PrintfFormat {
 	 *     d, d, x, X, or o.
 	 */
 	public String sprintf(double x) throws IllegalArgumentException {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -707,12 +707,12 @@ public class PrintfFormat {
 	 *   conversion character is neither s nor S.
 	 */
 	public String sprintf(String x) throws IllegalArgumentException {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -737,12 +737,12 @@ public class PrintfFormat {
 	 *    formatting an unwrapped value.
 	 */
 	public String sprintf(Object x) throws IllegalArgumentException {
-		Enumeration e = vFmt.elements();
+		Enumeration<ConversionSpecification> e = vFmt.elements();
 		ConversionSpecification cs = null;
 		char c = 0;
 		StringBuffer sb = new StringBuffer();
 		while (e.hasMoreElements()) {
-			cs = (ConversionSpecification) e.nextElement();
+			cs = e.nextElement();
 			c = cs.getConversionCharacter();
 			if (c == '\0')
 				sb.append(cs.getLiteral());
@@ -3207,7 +3207,7 @@ public class PrintfFormat {
 		private String fmt;
 	}
 	/** Vector of control strings and format literals. */
-	private Vector vFmt = new Vector();
+	private Vector<ConversionSpecification> vFmt = new Vector<>();
 	/** Character position.  Used by the constructor. */
 	private int cPos = 0;
 	/** Character position.  Used by the constructor. */

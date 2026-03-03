@@ -40,6 +40,7 @@
 - [x] S16: Remove invalid Graal `--add-exports` warnings by excluding outdated `gdx-svmhelper` native-image metadata.
 - [x] S17: Resolve dedicated module deprecation compile note for intentional `longjmpException` handling.
 - [x] S18: Resolve `qcommon` test deprecation compile note for intentional `Com.ParseHelp` legacy coverage.
+- [x] S19: Remove `qcommon` unchecked warnings by generifying legacy raw `Vector` usage in formatting helpers.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -65,6 +66,9 @@
   - `./gradlew :dedicated:compileJava --rerun-tasks --warning-mode all --console=plain`
 - S18 added class-level `@SuppressWarnings("deprecation")` to `qcommon/src/test/java/jake2/qcommon/TestCOM.java` (tests intentionally cover deprecated parser API); re-run command:
   - `./gradlew :qcommon:compileTestJava --rerun-tasks --warning-mode all --console=plain`
+- S19 updated `qcommon` formatting helpers (`Vargs`, `PrintfFormat`) to use generics instead of raw `Vector`, removing unchecked compiler warnings in `qcommon`; verification commands:
+  - `./gradlew -I /tmp/javac-lint.init.gradle :qcommon:compileJava --rerun-tasks --warning-mode all --console=plain`
+  - `./gradlew :qcommon:compileJava --rerun-tasks --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -72,7 +76,7 @@
    - Addressed in S17 for `dedicated`.
    - Addressed in S18 for `qcommon` tests.
 2. Java compiler unchecked/unsafe notes:
-   - Seen in `qcommon`.
+   - Addressed in S19 (`qcommon` unchecked notes no longer emitted in standard compile).
 3. Graal native-image metadata warnings from dependencies:
    - Remaining: experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
    - Addressed in S16: invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` metadata.
