@@ -27,7 +27,7 @@
 - [x] S3: Run and fix full build/test under Java 21 baseline.
 - [x] S4: Validate Graal native compile using `~/.sdkman/candidates/java/21.0.2-graalce`.
 - [x] S5: Upgrade baseline test dependency (JUnit 4.12 -> 4.13.2) and verify.
-- [ ] S6: Begin build-logic modernization pass 1 (safe incremental refactor, no behavior change).
+- [x] S6: Begin build-logic modernization pass 1 (safe incremental refactor, no behavior change).
 - [ ] S7: Centralize dependency repositories in `settings.gradle.kts` and remove duplicate project-level repo declarations.
 - [ ] S8: Replace root Kotlin plugin `buildscript classpath` usage with `plugins { ... apply false }`.
 
@@ -35,3 +35,4 @@
 - S4 native compile command that worked:
   - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile`
 - S4 emitted Graal native-image warnings from upstream metadata (experimental options and invalid `--add-exports` from `gdx-svmhelper`), but produced executable successfully.
+- S6 modernization pass 1 replaced direct task-name configuration (`compileJava`, `compileKotlin`, `compileTestKotlin`) with typed task configuration (`tasks.withType(...)`) in root build logic.

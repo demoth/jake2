@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.gradle.api.tasks.compile.JavaCompile
 
 buildscript {
   repositories {
@@ -25,13 +27,14 @@ configure(subprojects) {
       languageVersion = JavaLanguageVersion.of(21)
     }
   }
-  compileJava {
+  tasks.withType(JavaCompile).configureEach {
     options.incremental = true
     options.release = 21
   }
 
-  compileKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
-  compileTestKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+  tasks.withType(KotlinJvmCompile).configureEach {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+  }
 
 }
 
