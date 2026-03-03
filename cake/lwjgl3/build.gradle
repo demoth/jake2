@@ -1,23 +1,7 @@
-buildscript {
-  repositories {
-    gradlePluginPortal()
-  }
-  dependencies {
-// using jpackage only works if the JDK version is 14 or higher.
-// your JAVA_HOME environment variable may also need to be a JDK with version 14 or higher.
-    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
-      classpath "org.beryx:badass-runtime-plugin:1.13.0"
-    }
-    if(enableGraalNative == 'true') {
-      classpath "org.graalvm.buildtools.native:org.graalvm.buildtools.native.gradle.plugin:0.9.28"
-    }
-  }
-}
-if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
-  apply plugin: 'org.beryx.runtime'
-}
-else {
-  apply plugin: 'application'
+plugins {
+  id 'application'
+  id 'org.beryx.runtime' version '1.13.0'
+  id 'org.graalvm.buildtools.native' version '0.9.28' apply false
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
@@ -109,5 +93,6 @@ tasks.register('dist') {
 }
 
 if(enableGraalNative == 'true') {
+  apply plugin: 'org.graalvm.buildtools.native'
   apply from: file("nativeimage.gradle")
 }

@@ -30,6 +30,7 @@
 - [x] S6: Begin build-logic modernization pass 1 (safe incremental refactor, no behavior change).
 - [x] S7: Centralize dependency repositories in `settings.gradle.kts` and remove duplicate project-level repo declarations.
 - [x] S8: Replace root Kotlin plugin `buildscript classpath` usage with `plugins { ... apply false }`.
+- [x] S9: Migrate `cake/lwjgl3` plugin setup from legacy `buildscript` classpath wiring to `plugins` DSL.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -38,3 +39,4 @@
 - S6 modernization pass 1 replaced direct task-name configuration (`compileJava`, `compileKotlin`, `compileTestKotlin`) with typed task configuration (`tasks.withType(...)`) in root build logic.
 - S7 added `dependencyResolutionManagement` and `pluginManagement` repository blocks in `settings.gradle.kts`, and removed duplicated dependency repository declarations from `build.gradle`.
 - S8 migrated root Kotlin plugin declaration from legacy `buildscript/dependencies/classpath` to modern `plugins` DSL (`apply false`) and kept build green.
+- S9 moved `cake/lwjgl3` plugin declarations (`application`, `org.beryx.runtime`, `org.graalvm.buildtools.native`) to `plugins` DSL, with conditional native plugin application retained for `enableGraalNative`.
