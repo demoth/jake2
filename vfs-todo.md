@@ -463,14 +463,15 @@ Phase 14 progress:
 2. Freeze and test compatibility-only exceptions.
    - Decide policy for absolute-path reads and `fs_links`.
    - Add explicit tests so behavior is intentional, not accidental.
-3. Align runtime package lifecycle with production flows.
-   - Wire `mountPackage/unmount` into real runtime mutation path (downloads/mod changes) or formally mark as deferred.
-4. Finalize docs and ownership boundaries.
+3. Finalize docs and ownership boundaries.
    - Add `qcommon/vfs/README.md` with:
      - VFS core API (`VirtualFileSystem`, `WritableFileSystem`)
      - FS compatibility API and what remains intentionally
      - Cake/model-viewer integration points
      - diagnostics commands and expected output semantics.
+4. Optional follow-up: automatic runtime package lifecycle hooks.
+   - Manual runtime lifecycle is available via `fs_mount`, `fs_unmount`, and `fs_rebuild`.
+   - Integrate these APIs with download/mod-change flows when that runtime path is implemented.
 
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
@@ -490,6 +491,14 @@ Phase 18 progress:
 - Added explicit FS compatibility-boundary note in code: absolute-path direct access plus `fs_links` remapping are intentionally retained.
 - Extended `FSCompatibilityTest` coverage to freeze `fs_links` behavior for `FileExists`, `LoadFile`, and `LoadMappedFile`.
 - Kept existing absolute-path compatibility tests (`OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`) as boundary guards.
+
+Runtime lifecycle alignment progress:
+- Exposed manual runtime VFS mutation commands through shared command registration:
+  - `fs_mount <packagePath>`
+  - `fs_unmount <mountId>`
+  - `fs_rebuild [full|mod|base|pack]`
+- Wired FS compatibility provider to `mountPackage/unmount/rebuildIndex` so runtime mutation now works in live server/client sessions where FS is initialized.
+- Kept automatic download/mod-change runtime hook integration as a follow-up task.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.

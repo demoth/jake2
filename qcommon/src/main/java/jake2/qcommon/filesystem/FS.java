@@ -31,7 +31,9 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
+import jake2.qcommon.vfs.RebuildScope;
 import jake2.qcommon.vfs.VfsDebugCommands;
+import jake2.qcommon.vfs.VfsResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -531,6 +533,33 @@ public final class FS extends Globals {
             public List<String> overrides() {
                 syncVfsCaseSensitivity();
                 return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugOverrides();
+            }
+
+            @Override
+            public VfsResult<String> mountPackage(String packagePath) {
+                syncVfsCaseSensitivity();
+                if (fs_vfsCompat == null) {
+                    return VfsResult.fail("VFS compatibility layer is not initialized.");
+                }
+                return fs_vfsCompat.mountPackage(packagePath);
+            }
+
+            @Override
+            public VfsResult<Void> unmountPackage(String mountId) {
+                syncVfsCaseSensitivity();
+                if (fs_vfsCompat == null) {
+                    return VfsResult.fail("VFS compatibility layer is not initialized.");
+                }
+                return fs_vfsCompat.unmountPackage(mountId);
+            }
+
+            @Override
+            public void rebuildIndex(RebuildScope scope) {
+                syncVfsCaseSensitivity();
+                if (fs_vfsCompat == null) {
+                    return;
+                }
+                fs_vfsCompat.rebuildIndex(scope);
             }
         });
 

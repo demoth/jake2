@@ -8,6 +8,7 @@ import jake2.qcommon.vfs.VfsLookupResult;
 import jake2.qcommon.vfs.VfsLookupOptions;
 import jake2.qcommon.vfs.VfsOpenOptions;
 import jake2.qcommon.vfs.VfsReadableHandle;
+import jake2.qcommon.vfs.RebuildScope;
 import jake2.qcommon.vfs.VfsSourceType;
 import jake2.qcommon.vfs.VfsResult;
 import jake2.qcommon.vfs.VirtualFileSystem;
@@ -159,6 +160,21 @@ public final class VfsBackedFileSystem {
         return Collections.emptyList();
     }
 
+    public VfsResult<String> mountPackage(String packagePath) {
+        clearPackageCaches();
+        return vfs.mountPackage(packagePath);
+    }
+
+    public VfsResult<Void> unmountPackage(String mountId) {
+        clearPackageCaches();
+        return vfs.unmount(mountId);
+    }
+
+    public void rebuildIndex(RebuildScope scope) {
+        clearPackageCaches();
+        vfs.rebuildIndex(scope);
+    }
+
     /**
      * Returns loose mount roots (mod/base directories) in effective lookup order.
      */
@@ -187,7 +203,7 @@ public final class VfsBackedFileSystem {
 
     /**
      * Opens a loose file through the VFS index.
-     * Package entries intentionally return {@code null} in this phase and are handled by legacy FS fallback.
+     * Package entries are opened via direct `.pak` offset access or extracted temp files for ZIP-based packs.
      */
     public QuakeFile openFile(String path) {
         if (path == null || path.isBlank()) {
