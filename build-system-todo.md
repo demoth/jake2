@@ -24,7 +24,7 @@
 ## Execution Log (one commit per step)
 - [x] S1: Create `build-system-todo.md` with findings, constraints, and plan.
 - [x] S2: Bump Java baseline/toolchain to 21 across active modules.
-- [ ] S3: Run and fix full build/test under Java 21 baseline.
+- [x] S3: Run and fix full build/test under Java 21 baseline.
 - [ ] S4: Validate Graal native compile using `~/.sdkman/candidates/java/21.0.2-graalce`.
 - [ ] S5: Upgrade baseline test dependency (JUnit 4.12 -> 4.13.2) and verify.
 - [ ] S6: Begin build-logic modernization pass 1 (safe incremental refactor, no behavior change).
