@@ -49,6 +49,7 @@
 - [x] S25: Start dependency catalog migration (introduce `libs.versions.toml`; migrate root JUnit and `game`/`maptools` external dependencies).
 - [x] S26: Expand catalog usage to `cake/core` and `cake/engine-tools` dependencies.
 - [x] S27: Complete active-module catalog rollout (`cake/lwjgl3` + nativeimage script), and remove now-unused version properties from `gradle.properties`.
+- [x] S28: Complete JUnit5 migration Stage A (JUnit Platform + Jupiter + Vintage, keeping existing JUnit4 tests runnable).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -98,6 +99,8 @@
   - `./gradlew build --warning-mode all --console=plain`
 - S27 migrated remaining active-module dependency coordinates to catalog aliases (`cake/lwjgl3`, `cake/lwjgl3/nativeimage.gradle`, classifier-based runtime dependencies), then removed now-unused dependency version properties from `gradle.properties`; verification command:
   - `./gradlew build --warning-mode all --console=plain`
+- S28 enabled `useJUnitPlatform()` for all subprojects, added explicit JUnit5/Jupiter/Vintage dependencies plus `junit-platform-launcher` in root shared test configuration, and verified mixed JUnit4/5 execution compatibility:
+  - `./gradlew test --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -140,8 +143,8 @@
 
 ### Next wave status
 - [x] N1: Dependency catalog rollout is complete for active modules.
+- [x] N2 Stage A: JUnit Platform + Jupiter + Vintage is enabled with tests green.
 
 ### Upcoming execution items (pending)
-- [ ] N2: Introduce JUnit Platform + Jupiter + Vintage and keep tests green without source rewrites.
-- [ ] N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
+- [ ] N2 Stage B / N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
 - [ ] N4 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.
