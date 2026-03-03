@@ -69,7 +69,7 @@ private val funcObjectFall = registerThink("func_object_release") { self, game -
 
 private val funcObjectTouch = registerTouch("func_object_touch") { self, other, plane, surf, game ->
     // only squash thing we fall on top of
-    if (plane == null || plane.normal[2] < 1.0)
+    if (plane.normal[2] < 1.0f)
         return@registerTouch
     
     if (other.takedamage == Defines.DAMAGE_NO)

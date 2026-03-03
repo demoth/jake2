@@ -477,6 +477,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     }
 
+    @Suppress("DEPRECATION")
     private fun queueUserInfoUpdateIfNeeded() {
         if (Globals.userinfo_modified) {
             netchan.reliablePending.add(UserInfoMessage(Cvar.getInstance().Userinfo()))
@@ -573,6 +574,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun SendConnectPacket() {
         val adr = netadr_t.fromString(servername, PORT_SERVER)
         if (adr == null) {

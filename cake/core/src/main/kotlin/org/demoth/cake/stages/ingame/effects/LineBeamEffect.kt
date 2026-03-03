@@ -24,6 +24,7 @@ import com.badlogic.gdx.math.Vector3
  * Resource behavior:
  * each instance owns a small generated [Model] and disposes it on expiry.
  */
+@Suppress("DEPRECATION")
 class LineBeamEffect(
     start: Vector3,
     end: Vector3,

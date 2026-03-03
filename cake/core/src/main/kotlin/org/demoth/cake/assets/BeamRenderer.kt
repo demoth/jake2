@@ -89,6 +89,7 @@ class BeamRenderer(
      * radius=1, height=1.
      * It is transformed per-entity in [render].
      */
+    @Suppress("DEPRECATION")
     private fun getOrCreateBeamRenderable(paletteIndex: Int, translucent: Boolean): BeamRenderable {
         // pack translucency in bit 8, palette index in bits [0..7]
         val key = paletteIndex or (if (translucent) 1 shl 8 else 0)
