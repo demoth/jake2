@@ -56,6 +56,7 @@
 - [x] S32: Convert remaining qcommon TemporaryFolder tests to Jupiter (`@TempDir`) and Jupiter assertions.
 - [x] S33: Convert remaining cake/core TemporaryFolder + class lifecycle tests to Jupiter (`@TempDir`, `@BeforeAll/@AfterAll`).
 - [x] S34: Complete active-module JUnit5 Stage B migration (bulk Jupiter import/assertion migration, convert parameterized test infrastructure, and drop JUnit4/Vintage runtime from active build).
+- [x] S35: Execute Gradle major-version spike and adopt wrapper upgrade to 9.0.0 after full active-module compatibility verification.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -134,6 +135,12 @@
   verification commands:
   - `./gradlew test --warning-mode all --console=plain`
   - `./gradlew build --warning-mode all --console=plain`
+- S35 upgraded Gradle wrapper from `8.14.3` to `9.0.0` and validated active-module compatibility:
+  - `./gradlew --version`
+  - `./gradlew test --warning-mode all --console=plain`
+  - `./gradlew build --warning-mode all --console=plain`
+  - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain`
+  Result: all commands passed; native compile behavior and accepted LWJGL experimental metadata warnings remain unchanged.
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -163,9 +170,9 @@
    - Complexity: High
    - Notes: Active-module migration is complete in S34; remaining JUnit4 usage is limited to archival `fullgame` tests (excluded by default build).
 3. Gradle wrapper major upgrade (to latest available line)
-   - Feasibility: Medium
-   - Complexity: High
-   - Notes: wrapper is currently `8.14.3`; latest upstream line is `9.x`, but major upgrade risk is mainly plugin compatibility (Kotlin plugin and runtime/native-image plugins). This is explicitly optional and can be deferred by one major version cycle.
+   - Feasibility: High (validated in S35)
+   - Complexity: Medium
+   - Notes: wrapper is now `9.0.0`; active-module plugin/tooling stack is compatible based on `test`, `build`, and `nativeCompile`.
 
 ### Recommended order
 1. N1: Introduce dependency catalog with no behavior change first.
@@ -178,7 +185,7 @@
 - [x] N1: Dependency catalog rollout is complete for active modules.
 - [x] N2 Stage A: JUnit Platform + Jupiter + Vintage is enabled with tests green.
 - [x] N2 Stage B: Active-module tests are fully on JUnit5 APIs; active build no longer depends on JUnit4/Vintage.
-- [~] N3 (Optional): In progress (evaluation/decision pending).
+- [x] N3 (Optional): Gradle major upgrade adopted to 9.0.0 after compatibility spike.
 
 ### Upcoming execution items (pending)
-- [ ] N3 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on `build` + `nativeCompile` outcomes.
+- [ ] Optional follow-up: evaluate newer 9.x patch/minor updates periodically and adopt when low-risk.
