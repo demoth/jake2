@@ -49,6 +49,11 @@ class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager,
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
+    data class SaveMetadataDefaults(
+        val mapPath: String?,
+        val title: String?,
+    )
+
     private var precached: Boolean = false
 
     private val modelBatch: ModelBatch
@@ -114,6 +119,16 @@ class Game3dScreen(
     private var skyRotationDegreesPerSecond: Float = 0f
     private var skyRotationAngleDegrees: Float = 0f
     private val skyRotationAxis = Vector3()
+
+    /**
+     * Returns best-effort save metadata fields derived from the active configstrings.
+     */
+    fun saveMetadataDefaults(): SaveMetadataDefaults {
+        val mapPath = gameConfig.getMapName()?.takeUnless { it.isBlank() }
+        val title = gameConfig.getConfigValue(Defines.CS_NAME)?.takeUnless { it.isBlank() }
+            ?: levelString.takeUnless { it.isBlank() }
+        return SaveMetadataDefaults(mapPath = mapPath, title = title)
+    }
 
     init {
         // create camera

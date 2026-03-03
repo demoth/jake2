@@ -399,7 +399,7 @@ public interface VfsDataOutput {
 - [x] Phase 8: add Cake adapter (`CakeFileResolver` delegates to VFS).
 - [x] Phase 9: add model viewer adapter (`ModelViewerFileResolver` delegates to thin viewer VFS wrapper).
 - [x] Phase 10: convert `QuakeFile` into VFS-backed compatibility adapter (remove direct legacy FS search dependency).
-- [ ] Phase 11: implement Cake save persistence via JSON/Jackson (no legacy binary compatibility target).
+- [x] Phase 11: implement Cake save persistence via JSON/Jackson (no legacy binary compatibility target).
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
 - [x] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
 - [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
@@ -428,6 +428,9 @@ Phase 13 progress:
 Phase 11 progress:
 - Cake screenshot writes now target `$HOME/.cake/<mod>/scrnshot/` through `DefaultWritableFileSystem` instead of local working-directory storage.
 - Added Cake JSON save metadata store (`CakeJsonSaveStore`) that persists to `$HOME/.cake/<mod>/save/<slot>/cake-save.json` via writable VFS root.
+- Wired runtime Cake console commands:
+  - `cake_save_meta <slot> [autosave] [title]` to write metadata snapshots.
+  - `cake_load_meta <slot>` to read and print metadata snapshots.
 
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.

@@ -53,6 +53,8 @@ import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.save.CakeJsonSaveStore
+import org.demoth.cake.save.CakeSaveSnapshot
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
@@ -118,6 +120,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
+    private val saveMetadataStore = CakeJsonSaveStore()
 
     private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
 
@@ -291,6 +294,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         Cmd.AddCommand("screenshot") {
             takeScreenshot()
+        }
+
+        Cmd.AddCommand("cake_save_meta") { args ->
+            saveMetadata(args)
+        }
+
+        Cmd.AddCommand("cake_load_meta") { args ->
+            loadMetadata(args)
         }
 
         /*
@@ -822,6 +833,75 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         } finally {
             flippedPixmap.dispose()
             pixmap.dispose()
+        }
+    }
+
+    private fun saveMetadata(args: List<String>) {
+        if (args.size < 2) {
+            Com.Printf("usage: cake_save_meta <slot> [autosave(0|1|true|false)] [title]\n")
+            return
+        }
+        val slot = args[1]
+        var autosave = false
+        var titleStartIndex = 2
+        if (args.size > 2) {
+            val parsedAutosave = parseBooleanArg(args[2])
+            if (parsedAutosave != null) {
+                autosave = parsedAutosave
+                titleStartIndex = 3
+            }
+        }
+
+        val gameScreen = game3dScreen
+        val defaults = gameScreen?.saveMetadataDefaults()
+        val title = Cmd.getArguments(args, titleStartIndex)
+            .ifBlank { defaults?.title ?: if (autosave) "Autosave" else "Savegame" }
+        val snapshot = CakeSaveSnapshot(
+            map = defaults?.mapPath ?: "unknown",
+            title = title,
+            timestampMillis = System.currentTimeMillis(),
+            autosave = autosave
+        )
+
+        try {
+            val path = saveMetadataStore.write(slot, fileResolver.gamemod, snapshot)
+            Com.Printf("Saved Cake metadata to: $path\n")
+        } catch (e: IllegalArgumentException) {
+            Com.Warn("Invalid save metadata slot: ${e.message}\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to save Cake metadata: ${e.message}\n")
+        }
+    }
+
+    private fun loadMetadata(args: List<String>) {
+        if (args.size != 2) {
+            Com.Printf("usage: cake_load_meta <slot>\n")
+            return
+        }
+        val slot = args[1]
+        try {
+            val snapshot = saveMetadataStore.read(slot, fileResolver.gamemod)
+            if (snapshot == null) {
+                Com.Printf("No Cake metadata found for slot '$slot'.\n")
+                return
+            }
+            Com.Printf("Cake metadata [$slot]\n")
+            Com.Printf("  map: ${snapshot.map}\n")
+            Com.Printf("  title: ${snapshot.title}\n")
+            Com.Printf("  timestampMillis: ${snapshot.timestampMillis}\n")
+            Com.Printf("  autosave: ${snapshot.autosave}\n")
+        } catch (e: IllegalArgumentException) {
+            Com.Warn("Invalid metadata slot: ${e.message}\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to load Cake metadata: ${e.message}\n")
+        }
+    }
+
+    private fun parseBooleanArg(value: String): Boolean? {
+        return when (value.lowercase()) {
+            "1", "true", "yes", "on" -> true
+            "0", "false", "no", "off" -> false
+            else -> null
         }
     }
 
