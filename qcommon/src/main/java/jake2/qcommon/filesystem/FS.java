@@ -39,7 +39,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -74,58 +73,6 @@ public final class FS extends Globals {
      * ==================================================
      */
 
-    /**
-     * Represents a file inside a PAK archive
-     */
-    static class packfile_t {
-        static final int SIZE = 64;
-
-        static final int NAME_SIZE = 56;
-
-        // char name[56]
-        final String name;
-        final int filepos;
-        final int filelen;
-
-        packfile_t(String name, int filepos, int filelen) {
-            this.name = name;
-            this.filepos = filepos;
-            this.filelen = filelen;
-        }
-
-        public String toString() {
-            return name + " [ length: " + filelen + " pos: " + filepos + " ]";
-        }
-    }
-
-    static class pack_t {
-        final String filename;
-        final int numfiles;
-        final Map<String, packfile_t> files;
-
-        RandomAccessFile handle;
-
-
-        pack_t(String filename, int numfiles, Map<String, packfile_t> files) {
-            this.filename = filename;
-            this.numfiles = numfiles;
-            this.files = files;
-        }
-
-        void closeQuietly() {
-            try {
-                handle.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public String toString() {
-            return filename + " (" + numfiles + ')';
-        }
-    }
-
     private static String fs_gamedir;
 
     private static String fs_userdir;
@@ -159,26 +106,6 @@ public final class FS extends Globals {
 
     private static List<filelink_t> fs_links = new LinkedList<>();
 
-    static class SearchPath {
-        // only one of filename or pack will be used
-        final String filename;
-        final pack_t pack;
-        // all entries with 'true' values will be freed after change of 'game' cvar
-        final boolean isGame;
-
-        SearchPath(String filename, pack_t pack, boolean isGame) {
-            this.filename = filename;
-            this.pack = pack;
-            this.isGame = isGame;
-        }
-
-        @Override
-        public String toString() {
-            return pack != null ? pack.toString() : filename;
-        }
-    }
-    private static final Deque<SearchPath> searchPaths = new ArrayDeque<>();
-
 
     /*
      * CreatePath
@@ -197,23 +124,18 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
+        if (filename == null || filename.isBlank()) {
+            return false;
+        }
+        if (filename.startsWith("/")) {
+            return new File(filename).canRead();
+        }
         File linkedFile = resolveLinkedFile(filename);
         if (linkedFile != null) {
             return true;
         }
         syncVfsCaseSensitivity();
-        if (fs_vfsCompat != null && fs_vfsCompat.exists(filename)) {
-            return true;
-        }
-        try {
-            RandomAccessFile raf = FOpenFile(filename);
-            if (raf != null) {
-                raf.close();
-                return true;
-            } else return false;
-        } catch (Exception e) {
-            return false;
-        }
+        return fs_vfsCompat != null && fs_vfsCompat.exists(filename);
     }
 
     /**
@@ -225,7 +147,9 @@ public final class FS extends Globals {
      * @return null in case of error
      */
     public static QuakeFile FOpenFile(String filename) {
-
+        if (filename == null || filename.isBlank()) {
+            return null;
+        }
 
         try {
             // used for tools
@@ -249,36 +173,6 @@ public final class FS extends Globals {
                 }
             }
 
-            //
-            // search through the path, one element at a time
-            //
-            for (SearchPath searchPath : searchPaths) {
-                if (searchPath.pack != null) {
-                    packfile_t fileInPak = searchPath.pack.files.get(filename.toLowerCase());
-
-                    if (fileInPak != null) {
-                        // found it!
-                        File file = new File(searchPath.pack.filename);
-                        if (!file.canRead())
-                            Com.Error(Defines.ERR_FATAL, "Couldn't reopen " + searchPath.pack.filename + '\n');
-                        if (searchPath.pack.handle == null || !searchPath.pack.handle.getFD().valid()) {
-                            // hold the pakfile handle open
-                            searchPath.pack.handle = new RandomAccessFile(searchPath.pack.filename, "r");
-                        }
-                        // open a new file on the pakfile
-
-                        QuakeFile qf = new QuakeFile(file, "r", true, fileInPak.filelen);
-                        qf.seek(fileInPak.filepos);
-                        return qf;
-                    }
-
-                } else {
-                    File file = new File(searchPath.filename + '/' + filename);
-                    if (file.exists() && file.canRead()) {
-                        return new QuakeFile(file, "r", false, file.length());
-                    }
-                }
-            }
         } catch (Exception e) {
             Com.Printf("Could not open the file " + filename + " due to " + e.getMessage() + '\n');
         }
@@ -364,10 +258,21 @@ public final class FS extends Globals {
      * return the file content as byte[]
      */
     public static byte[] LoadFile(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
         // TODO hack for bad strings (fuck \0)
         int index = path.indexOf('\0');
         if (index != -1)
             path = path.substring(0, index);
+
+        if (path.startsWith("/")) {
+            try {
+                return Files.readAllBytes(Paths.get(path));
+            } catch (IOException e) {
+                return null;
+            }
+        }
 
         File linkedFile = resolveLinkedFile(path);
         if (linkedFile != null) {
@@ -385,28 +290,15 @@ public final class FS extends Globals {
             if (bytes != null) {
                 return bytes;
             }
-        }
-
-        try {
-            QuakeFile file = FOpenFile(path);
-            if (file == null) {
-                if (!isVfsCaseSensitive()) {
-                    file = FOpenFile(path.toLowerCase());
-                    if (file != null) {
-                        // some mods mess up the case
-                        Com.Printf("Found file by lowercase: " + path + "\n");
-                    } else {
-                        return null;
-                    }
-                } else {
-                    return null;
+            if (!isVfsCaseSensitive()) {
+                bytes = fs_vfsCompat.loadFile(path.toLowerCase(Locale.ROOT));
+                if (bytes != null) {
+                    Com.Printf("Found file by lowercase: " + path + "\n");
+                    return bytes;
                 }
             }
-            return file.toBytes();
-        } catch (IOException e) {
-            Com.Error(Defines.ERR_FATAL, e.toString());
-            return null;
         }
+        return null;
     }
 
     /**
@@ -449,126 +341,6 @@ public final class FS extends Globals {
         return null;
     }
 
-    private static final int IDPAKHEADER = (('K' << 24) + ('C' << 16) + ('A' << 8) + 'P');
-
-    static class dpackheader_t {
-        final int ident; // IDPAKHEADER
-        final int dirofs;
-        final int dirlen;
-
-        dpackheader_t(int ident, int dirofs, int dirlen) {
-            this.ident = ident;
-            this.dirofs = dirofs;
-            this.dirlen = dirlen;
-        }
-    }
-
-    private static final int MAX_FILES_IN_PACK = 4096;
-
-    /**
-     *
-     * Takes an explicit (not game tree related) path to a pak file.
-     * 
-     * Loads the header and directory, adding the files at the beginning of the
-     * list so they override previous pack files.
-     */
-    private static pack_t LoadPackFile(String packfile) {
-
-        dpackheader_t header;
-        Map<String, packfile_t> newfiles;
-        RandomAccessFile file;
-        int numpackfiles;
-        //		unsigned checksum;
-        //
-        try {
-        	file = new RandomAccessFile(packfile, "r");
-        	FileChannel fc = file.getChannel();
-            ByteBuffer packhandle = fc.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-            packhandle.order(ByteOrder.LITTLE_ENDIAN);
- 
-            fc.close();
-            
-            if (packhandle.limit() < 1)
-                return null;
-
-            header = new dpackheader_t(packhandle.getInt(), packhandle.getInt(), packhandle.getInt());
-
-            if (header.ident != IDPAKHEADER)
-                Com.Error(Defines.ERR_FATAL, packfile + " is not a packfile");
-
-            numpackfiles = header.dirlen / packfile_t.SIZE;
-
-            if (numpackfiles > MAX_FILES_IN_PACK)
-                Com.Error(Defines.ERR_FATAL, packfile + " has " + numpackfiles + " files");
-
-            newfiles = new HashMap<>(numpackfiles);
-
-            packhandle.position(header.dirofs);
-
-            // parse the directory
-
-            byte[] name = new byte[packfile_t.NAME_SIZE];
-
-            for (int i = 0; i < numpackfiles; i++) {
-                packhandle.get(name);
-                packfile_t entry = new packfile_t(new String(name).trim(), packhandle.getInt(), packhandle.getInt());
-                newfiles.put(entry.name.toLowerCase(), entry);
-            }
-
-        } catch (IOException e) {
-            Com.DPrintf("jake2.qcommon.filesystem.FS.LoadPackFile" + e.getMessage() + '\n');
-            return null;
-        }
-
-        pack_t pack = new pack_t(packfile, numpackfiles, newfiles);
-        pack.handle = file;
-
-        Com.Printf("Added packfile " + packfile + " (" + numpackfiles + " files)\n");
-
-        return pack;
-    }
-
-    /**
-     *
-     * Sets fs_gamedir, adds the directory to the head of the path, then loads
-     * and adds pak2.pak, pak1.pak, pak0.pak ...
-     *
-     * @param isGame true for mod directories, false for baseq2
-     */
-    private static void AddGameDirectory(String dir, boolean isGame) {
-        if (!isGame)
-            searchPaths.add(new SearchPath(dir, null, false));
-
-        fs_gamedir = dir;
-        // add the directory to the search path
-        // ensure fs_userdir is first in searchpath
-
-        // todo add custom packs (like cool_models.pk3) before pak0.pak
-
-        //
-        // add any pak files in the format pak0.pak pak1.pak, ...
-        //
-        int maxPacks = 9;
-        for (int i = maxPacks; i >= 0; i--) {
-            int pakIndex = isGame ? maxPacks - i : i;
-            String pakfile = dir + "/pak" + pakIndex + ".pak";
-            if (!(new File(pakfile).canRead()))
-                continue;
-
-            pack_t pak = LoadPackFile(pakfile);
-            if (pak == null)
-                continue;
-
-            if (isGame)
-                searchPaths.push(new SearchPath(dir, pak, true));
-            else
-                searchPaths.add(new SearchPath(dir, pak, false));
-        }
-
-        if (isGame)
-            searchPaths.push(new SearchPath(dir, null, true));
-    }
-
     /**
      * Called to find where to write a file (demos, savegames, etc)
      * this is modified to `user.home`/.jake2/`game_name`
@@ -577,11 +349,9 @@ public final class FS extends Globals {
         return (fs_userdir != null) ? fs_userdir : Globals.BASEQ2;
     }
 
-    private static void setWriteDir(String gameName, boolean isGame) {
+    private static void setWriteDir(String gameName) {
         fs_userdir = System.getProperty("user.home") + "/.jake2/" + gameName;
         FS.CreatePath(fs_userdir + "/");
-        if (isGame)
-            AddGameDirectory(fs_userdir, true);
     }
 
     /*
@@ -618,18 +388,6 @@ public final class FS extends Globals {
             return;
         }
 
-
-        //
-        // free up any current game dir info
-        //
-        searchPaths.removeIf(path -> {
-            if (path.isGame) {
-                if (path.pack != null)
-                    path.pack.closeQuietly();
-                return true;
-            } else return false;
-        });
-
         //
         // flush all data, so it will be forced to reload
         //
@@ -645,13 +403,9 @@ public final class FS extends Globals {
             Cvar.getInstance().FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
         } else {
             Cvar.getInstance().FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
-            if (fs_cddir.string != null && fs_cddir.string.length() > 0)
-                AddGameDirectory(fs_cddir.string + '/' + gameName, true);
-
-            AddGameDirectory(fs_basedir.string + '/' + gameName, true);
         }
 
-        setWriteDir(gameName, true);
+        setWriteDir(gameName);
         updateVfsCompat(gameName);
     }
 
@@ -736,29 +490,7 @@ public final class FS extends Globals {
             Com.Printf("\n");
             return;
         }
-
-        for (SearchPath s : searchPaths) {
-            if (s.pack != null)
-                continue;
-            String path = s.filename;
-
-            String findname = path + '/' + wildcard;
-
-            String[] dirnames = ListFiles(findname, 0, 0);
-
-            if (dirnames != null && dirnames.length > 0) {
-                Com.Printf("Directory of " + findname + '\n');
-                for (String dirname : dirnames) {
-                    int index;
-                    if ((index = dirname.lastIndexOf('/')) > 0) {
-                        Com.Printf("  " + dirname.substring(index + 1) + '\n');
-                    } else {
-                        Com.Printf("  " + dirname + '\n');
-                    }
-                }
-                Com.Printf("\n");
-            }
-        }
+        Com.Printf("VFS compatibility layer is not initialized.\n");
     }
 
     /**
@@ -776,9 +508,7 @@ public final class FS extends Globals {
                 Com.Printf("No VFS mounts available.\n");
             }
         } else {
-            for (SearchPath s : searchPaths) {
-                Com.Printf(s.toString() + "\n");
-            }
+            Com.Printf("VFS compatibility layer is not initialized.\n");
         }
 
         if (!fs_links.isEmpty()) {
@@ -793,37 +523,23 @@ public final class FS extends Globals {
      * Allows enumerating all of the directories in the search path
      */
     public static String NextPath(String prevpath) {
-        if (fs_vfsCompat != null) {
-            syncVfsCaseSensitivity();
-            List<String> roots = fs_vfsCompat.debugLooseMountRoots();
-            if (!roots.isEmpty()) {
-                if (prevpath == null || prevpath.length() == 0) {
-                    return roots.get(0);
-                }
+        if (fs_vfsCompat == null) {
+            return prevpath == null || prevpath.length() == 0 ? fs_gamedir : null;
+        }
+        syncVfsCaseSensitivity();
+        List<String> roots = fs_vfsCompat.debugLooseMountRoots();
+        if (roots.isEmpty()) {
+            return prevpath == null || prevpath.length() == 0 ? fs_gamedir : null;
+        }
+        if (prevpath == null || prevpath.length() == 0) {
+            return roots.get(0);
+        }
 
-                for (int i = 0; i < roots.size() - 1; i++) {
-                    if (prevpath.equals(roots.get(i))) {
-                        return roots.get(i + 1);
-                    }
-                }
-                return null;
+        for (int i = 0; i < roots.size() - 1; i++) {
+            if (prevpath.equals(roots.get(i))) {
+                return roots.get(i + 1);
             }
         }
-
-        if (prevpath == null || prevpath.length() == 0)
-            return fs_gamedir;
-
-        String dir = fs_gamedir;
-        for (SearchPath s : searchPaths) {
-            if (s.pack != null)
-                continue;
-
-            if (prevpath.equals(dir))
-                return s.filename;
-
-            dir = s.filename;
-        }
-
         return null;
     }
 
@@ -862,9 +578,7 @@ public final class FS extends Globals {
 
         // by default all saves, screenshots etc go to ~/.jake2/baseq2
         // overridden by 'game' cvar, i.e xatrix saves to go ~/.jake2/xatrix
-        setWriteDir(Globals.BASEQ2, false);
-
-        FS.AddGameDirectory(fs_userdir, false);
+        setWriteDir(Globals.BASEQ2);
 
         //
         // basedir <path>
@@ -884,11 +598,7 @@ public final class FS extends Globals {
         //
 
         setCDDir();
-
-        //
-        // start up with baseq2 by default
-        //
-        AddGameDirectory(fs_basedir.string + '/' + Globals.BASEQ2, false);
+        fs_gamedir = fs_basedir.string + '/' + Globals.BASEQ2;
 
         // check for game override
         fs_gamedirvar = Cvar.getInstance().Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
@@ -941,8 +651,6 @@ public final class FS extends Globals {
      */
     public static void setCDDir() {
         fs_cddir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE);
-        if (fs_cddir.string.length() > 0)
-            AddGameDirectory(fs_cddir.string, false);
     }
 
     private static void initVfsCompat() {
@@ -1005,22 +713,15 @@ public final class FS extends Globals {
      * Developer_searchpath
      */
     public static int Developer_searchpath() {
-        if (fs_vfsCompat != null) {
-            syncVfsCaseSensitivity();
-            for (String root : fs_vfsCompat.debugLooseMountRoots()) {
-                String normalized = root.replace('\\', '/').toLowerCase(Locale.ROOT);
-                if (normalized.contains("/xatrix"))
-                    return 1;
-                if (normalized.contains("/rogue"))
-                    return 2;
-            }
+        if (fs_vfsCompat == null) {
+            return 0;
         }
-
-        for (SearchPath s: searchPaths) {
-            if (s.filename.contains("xatrix"))
+        syncVfsCaseSensitivity();
+        for (String root : fs_vfsCompat.debugLooseMountRoots()) {
+            String normalized = root.replace('\\', '/').toLowerCase(Locale.ROOT);
+            if (normalized.contains("/xatrix"))
                 return 1;
-
-            if (s.filename.contains("rogue"))
+            if (normalized.contains("/rogue"))
                 return 2;
         }
 

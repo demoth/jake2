@@ -402,7 +402,7 @@ public interface VfsDataOutput {
 - [x] Phase 11: implement Cake save persistence via JSON/Jackson (no legacy binary compatibility target).
 - [ ] Phase 12: (optional, legacy/server path) introduce explicit `VfsDataInput/VfsDataOutput` for binary save serialization and migrate game/server save-load code.
 - [x] Phase 13: add integration tests across server + Cake + model viewer + save/load paths.
-- [ ] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
+- [x] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
 - [x] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
 
 Phase 8 progress:
@@ -437,6 +437,8 @@ Phase 14 progress:
 - Removed legacy per-pack mapped-channel cache path in `FS.pack_t`; mapped reads now share common resolver/open behavior.
 - `FS.dir` now uses VFS-backed resolved file listings whenever VFS compatibility is initialized (legacy directory walk kept only for non-VFS bootstrap/fallback).
 - Added shared `VfsDebugCommands` registration in `qcommon` and wired both FS and Cake startup paths to it, so `fs_files/fs_mounts/fs_overrides` are available wherever VFS is initialized.
+- Removed legacy FS pack/searchpath internals (`pack_t`, `packfile_t`, `SearchPath`, `LoadPackFile`, `AddGameDirectory`) and completed FS read-path delegation to VFS.
+- `FS.InitFilesystem` and `FS.SetGamedir` now reconfigure VFS/cvars/write-dir without maintaining duplicated legacy read indexes.
 
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
