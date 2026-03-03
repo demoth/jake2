@@ -38,6 +38,7 @@
 - [x] S14: Remove cross-project mutation from `cake/lwjgl3/nativeimage.gradle` and keep Graal helper dependencies module-local.
 - [x] S15: Re-run clean build/native compile and group current warnings into actionable buckets.
 - [x] S16: Remove invalid Graal `--add-exports` warnings by excluding outdated `gdx-svmhelper` native-image metadata.
+- [x] S17: Resolve dedicated module deprecation compile note for intentional `longjmpException` handling.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -59,10 +60,13 @@
   - explicitly pass `-H:+UnlockExperimentalVMOptions`, and
   - exclude `META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties` via `--exclude-config`,
   which removed invalid `--add-exports org.graalvm.sdk/...` warnings while keeping native compile successful.
+- S17 added `@SuppressWarnings("deprecation")` on `Jake2Dedicated.main` to silence intentional handling of deprecated `longjmpException`; re-run command:
+  - `./gradlew :dedicated:compileJava --rerun-tasks --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
-   - Seen in `qcommon`, `server`, `dedicated`, `game`, and `qcommon` tests.
+   - Remaining in `qcommon`, `server`, `game`, and `qcommon` tests.
+   - Addressed in S17 for `dedicated`.
 2. Java compiler unchecked/unsafe notes:
    - Seen in `qcommon`.
 3. Graal native-image metadata warnings from dependencies:

@@ -22,6 +22,7 @@ import static jake2.qcommon.MainCommon.debugLogTraces;
 
 public class Jake2Dedicated {
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
 
 
