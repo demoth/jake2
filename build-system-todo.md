@@ -36,6 +36,7 @@
 - [x] S12: Document archival module boundary via `includeArchivalModules` opt-in setting in `settings.gradle.kts`.
 - [x] S13: Move remaining frequently-changed hardcoded versions into `gradle.properties`.
 - [x] S14: Remove cross-project mutation from `cake/lwjgl3/nativeimage.gradle` and keep Graal helper dependencies module-local.
+- [x] S15: Re-run clean build/native compile and group current warnings into actionable buckets.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -50,3 +51,15 @@
 - S12 made archival modules explicit and opt-in via `-PincludeArchivalModules=true`, while keeping default builds focused on active modules.
 - S13 centralized `junitVersion`, `beryxRuntimePluginVersion`, and `graalNativeBuildToolsVersion` in `gradle.properties` and wired build scripts to use them.
 - S14 removed `project(":...")` wrappers from `cake/lwjgl3/nativeimage.gradle` and moved `cake:core` Graal helper annotation dependency to `cake/core/build.gradle` behind `enableGraalNative`, preserving successful `build` and `:cake:lwjgl3:nativeCompile`.
+- S15 warning baseline commands:
+  - `./gradlew clean build --warning-mode all --console=plain`
+  - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain`
+
+## Current Warning Buckets
+1. Java compiler deprecation notes:
+   - Seen in `qcommon`, `server`, `dedicated`, `game`, and `qcommon` tests.
+2. Java compiler unchecked/unsafe notes:
+   - Seen in `qcommon`.
+3. Graal native-image metadata warnings from dependencies:
+   - Experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
+   - Invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` native-image metadata.
