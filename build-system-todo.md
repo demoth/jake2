@@ -29,7 +29,7 @@
 - [x] S5: Upgrade baseline test dependency (JUnit 4.12 -> 4.13.2) and verify.
 - [x] S6: Begin build-logic modernization pass 1 (safe incremental refactor, no behavior change).
 - [x] S7: Centralize dependency repositories in `settings.gradle.kts` and remove duplicate project-level repo declarations.
-- [ ] S8: Replace root Kotlin plugin `buildscript classpath` usage with `plugins { ... apply false }`.
+- [x] S8: Replace root Kotlin plugin `buildscript classpath` usage with `plugins { ... apply false }`.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -37,3 +37,4 @@
 - S4 emitted Graal native-image warnings from upstream metadata (experimental options and invalid `--add-exports` from `gdx-svmhelper`), but produced executable successfully.
 - S6 modernization pass 1 replaced direct task-name configuration (`compileJava`, `compileKotlin`, `compileTestKotlin`) with typed task configuration (`tasks.withType(...)`) in root build logic.
 - S7 added `dependencyResolutionManagement` and `pluginManagement` repository blocks in `settings.gradle.kts`, and removed duplicated dependency repository declarations from `build.gradle`.
+- S8 migrated root Kotlin plugin declaration from legacy `buildscript/dependencies/classpath` to modern `plugins` DSL (`apply false`) and kept build green.

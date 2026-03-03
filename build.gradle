@@ -2,19 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.gradle.api.tasks.compile.JavaCompile
 
-buildscript {
-  repositories {
-    mavenCentral()
-    maven { url = 'https://s01.oss.sonatype.org' }
-    gradlePluginPortal()
-    mavenLocal()
-    google()
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-  }
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-  }
+plugins {
+  id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply false
 }
 
 configure(subprojects) {
