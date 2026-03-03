@@ -103,6 +103,9 @@ public final class FS extends Globals {
         }
     }
 
+    // Explicit FS compatibility boundary:
+    // 1) absolute-path direct access
+    // 2) legacy fs_links remap behavior
     private static List<filelink_t> fs_links = new LinkedList<>();
 
 
