@@ -1,8 +1,7 @@
 package jake2.qcommon.vfs;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,19 +14,19 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ZipPackReaderTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void readsEntriesAndStreamsData() throws Exception {
-        Path pk3 = temp.newFile("pak2.pk3").toPath();
+        Path pk3 = temp.resolve("pak2.pk3");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("textures/wall.wal", "WALL".getBytes(StandardCharsets.US_ASCII));
         files.put("models/monsters/ogre/tris.md2", "MD2".getBytes(StandardCharsets.US_ASCII));
@@ -51,7 +50,7 @@ public class ZipPackReaderTest {
 
     @Test
     public void skipsInvalidTraversalEntries() throws Exception {
-        Path zip = temp.newFile("mod.zip").toPath();
+        Path zip = temp.resolve("mod.zip");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("../bad/file", "BAD".getBytes(StandardCharsets.US_ASCII));
         files.put("good/file.txt", "GOOD".getBytes(StandardCharsets.US_ASCII));
@@ -65,14 +64,14 @@ public class ZipPackReaderTest {
 
     @Test
     public void failsForInvalidZip() throws Exception {
-        Path broken = temp.newFile("broken.pk3").toPath();
+        Path broken = temp.resolve("broken.pk3");
         Files.write(broken, "NOTZIP".getBytes(StandardCharsets.US_ASCII));
         assertThrows(IOException.class, () -> new ZipPackReader(broken, false));
     }
 
     @Test
     public void caseSensitiveModePreservesCase() throws Exception {
-        Path zip = temp.newFile("pak3.pk3").toPath();
+        Path zip = temp.resolve("pak3.pk3");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("Players/Male/Tris.MD2", "X".getBytes(StandardCharsets.US_ASCII));
         writeZip(zip, files);

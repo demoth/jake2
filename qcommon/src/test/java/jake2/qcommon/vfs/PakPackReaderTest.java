@@ -1,8 +1,7 @@
 package jake2.qcommon.vfs;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,19 +15,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PakPackReaderTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void readsEntriesAndStreamsData() throws Exception {
-        Path pak = temp.newFile("pak0.pak").toPath();
+        Path pak = temp.resolve("pak0.pak");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("textures/wall.wal", "WALL".getBytes(StandardCharsets.US_ASCII));
         files.put("models/monsters/ogre/tris.md2", "MD2".getBytes(StandardCharsets.US_ASCII));
@@ -51,7 +50,7 @@ public class PakPackReaderTest {
 
     @Test
     public void skipsInvalidTraversalEntries() throws Exception {
-        Path pak = temp.newFile("pak1.pak").toPath();
+        Path pak = temp.resolve("pak1.pak");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("../bad/file", "BAD".getBytes(StandardCharsets.US_ASCII));
         files.put("good/file.txt", "GOOD".getBytes(StandardCharsets.US_ASCII));
@@ -65,14 +64,14 @@ public class PakPackReaderTest {
 
     @Test
     public void failsForInvalidHeader() throws Exception {
-        Path pak = temp.newFile("broken.pak").toPath();
+        Path pak = temp.resolve("broken.pak");
         Files.write(pak, "NOTPAK".getBytes(StandardCharsets.US_ASCII));
         assertThrows(IOException.class, () -> new PakPackReader(pak, false));
     }
 
     @Test
     public void caseSensitiveModePreservesCase() throws Exception {
-        Path pak = temp.newFile("pak2.pak").toPath();
+        Path pak = temp.resolve("pak2.pak");
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("Players/Male/Tris.MD2", "X".getBytes(StandardCharsets.US_ASCII));
         writePak(pak, files);

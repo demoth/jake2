@@ -51,6 +51,7 @@
 - [x] S27: Complete active-module catalog rollout (`cake/lwjgl3` + nativeimage script), and remove now-unused version properties from `gradle.properties`.
 - [x] S28: Complete JUnit5 migration Stage A (JUnit Platform + Jupiter + Vintage, keeping existing JUnit4 tests runnable).
 - [x] S29: Start JUnit5 Stage B by replacing `@Test(expected=...)` usage with `assertThrows` in active-module tests.
+- [x] S30: Convert first JUnit4 TemporaryFolder tests to Jupiter (`@TempDir`) in qcommon VFS tests.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -107,6 +108,9 @@
   - `game`: 3 tests,
   - `qcommon`: 3 tests;
   verification command:
+  - `./gradlew test --warning-mode all --console=plain`
+- S30 migrated `qcommon` `PakPackReaderTest` and `ZipPackReaderTest` from JUnit4 `@Rule TemporaryFolder` to JUnit5 `@TempDir` and Jupiter assertions; verification commands:
+  - `./gradlew :qcommon:test --warning-mode all --console=plain`
   - `./gradlew test --warning-mode all --console=plain`
 
 ## Current Warning Buckets
