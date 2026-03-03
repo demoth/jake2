@@ -44,6 +44,7 @@
 - [x] S20: Resolve server module deprecation compile note for intentional legacy API usage.
 - [x] S21: Resolve game module deprecation compile note for intentional `GameSVCmds` legacy usage.
 - [x] S22: Resolve remaining qcommon module deprecation compile notes for intentional legacy API usage.
+- [x] S23: Re-validate warning baseline after fixes (clean build warning-free; native compile limited to upstream LWJGL experimental metadata warnings).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -79,6 +80,9 @@
 - S22 added targeted `@SuppressWarnings("deprecation")` on qcommon legacy bridge classes (`Lib`, `CM`, `Com`, `MainCommon`, `Cmd`, `Cvar`); verification commands:
   - `./gradlew :qcommon:compileJava --rerun-tasks --warning-mode all --console=plain`
   - `./gradlew clean build --warning-mode all --console=plain`
+- S23 final verification commands:
+  - `./gradlew clean build --warning-mode all --console=plain` (no Java compile warnings emitted)
+  - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain` (remaining warnings are LWJGL-provided experimental metadata options only)
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -92,3 +96,7 @@
 3. Graal native-image metadata warnings from dependencies:
    - Remaining: experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
    - Addressed in S16: invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` metadata.
+
+## Current Status
+- `./gradlew clean build --warning-mode all --console=plain` is warning-free for active Java/Kotlin compilation.
+- Native compile remains successful and warning surface is limited to upstream LWJGL experimental metadata options.
