@@ -1,8 +1,7 @@
 package jake2.qcommon.filesystem;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,19 +16,19 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VfsBackedFileSystemTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void resolvesBaseFilesAfterConfigure() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path file = basedir.resolve("baseq2/config.cfg");
         Files.createDirectories(file.getParent());
         Files.write(file, "cfg".getBytes(StandardCharsets.UTF_8));
@@ -43,7 +42,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void setGameModSwitchesResolution() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path base = basedir.resolve("baseq2/config.cfg");
         Path mod = basedir.resolve("rogue/config.cfg");
         Files.createDirectories(base.getParent());
@@ -61,7 +60,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void missingEntriesReturnNullOrFalse() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         VfsBackedFileSystem fs = new VfsBackedFileSystem();
         fs.configure(basedir, "baseq2", null, true, false);
 
@@ -72,7 +71,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void caseSensitiveModeCanBeToggled() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path model = basedir.resolve("baseq2/Players/Male/Tris.MD2");
         Files.createDirectories(model.getParent());
         Files.write(model, "md2".getBytes(StandardCharsets.UTF_8));
@@ -88,7 +87,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void loadMappedFileMapsLooseFile() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path file = basedir.resolve("baseq2/video/test.cin");
         Files.createDirectories(file.getParent());
         Files.write(file, "cin".getBytes(StandardCharsets.UTF_8));
@@ -105,7 +104,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void loadMappedFileReadsPakEntryAsReadonlyBuffer() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path pak = basedir.resolve("baseq2/pak0.pak");
         writePak(pak, Map.of("video/test.cin", "pakcin".getBytes(StandardCharsets.US_ASCII)));
 
@@ -122,7 +121,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void openFileOpensLooseEntries() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path file = basedir.resolve("baseq2/maps/test.bsp");
         Files.createDirectories(file.getParent());
         Files.write(file, "bsp".getBytes(StandardCharsets.UTF_8));
@@ -139,7 +138,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void openFileOpensPakPackageEntries() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path pak = basedir.resolve("baseq2/pak0.pak");
         writePak(pak, Map.of("maps/test.bsp", "packbsp".getBytes(StandardCharsets.US_ASCII)));
 
@@ -155,7 +154,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void openFileOpensZipEntriesThroughTempBridge() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path zip = basedir.resolve("baseq2/assets.pk3");
         writeZip(zip, Map.of("pics/colormap.pcx", "zip".getBytes(StandardCharsets.US_ASCII)));
 
@@ -171,7 +170,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void debugViewsExposeFilesMountsAndOverrides() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Files.createDirectories(basedir.resolve("baseq2/textures"));
         Files.write(basedir.resolve("baseq2/textures/wall.wal"), "loose".getBytes(StandardCharsets.US_ASCII));
         writePak(basedir.resolve("baseq2/pak0.pak"), Map.of("textures/wall.wal", "pak".getBytes(StandardCharsets.US_ASCII)));
@@ -197,7 +196,7 @@ public class VfsBackedFileSystemTest {
 
     @Test
     public void debugLooseRootsAndWildcardListingUseVfsOrder() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Files.createDirectories(basedir.resolve("baseq2/players/male"));
         Files.createDirectories(basedir.resolve("rogue/players/female"));
         Files.write(basedir.resolve("baseq2/players/male/tris.md2"), "base".getBytes(StandardCharsets.US_ASCII));

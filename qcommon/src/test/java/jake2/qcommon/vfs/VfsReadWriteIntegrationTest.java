@@ -1,9 +1,8 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.filesystem.VfsBackedFileSystem;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,20 +14,20 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Cross-checks read-side VFS layering and writable save-path behavior together.
  */
 public class VfsReadWriteIntegrationTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void readLayeringAndWritableSavePathStayDeterministic() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writePak(
                 basedir.resolve("baseq2/pak0.pak"),
                 Map.of("maps/test.bsp", "base-pack".getBytes(StandardCharsets.US_ASCII))
@@ -42,7 +41,7 @@ public class VfsReadWriteIntegrationTest {
 
         assertArrayEquals("mod-loose".getBytes(StandardCharsets.US_ASCII), readFs.loadFile("maps/test.bsp"));
 
-        Path writeRoot = temp.newFolder("write-root").toPath();
+        Path writeRoot = Files.createDirectories(temp.resolve("write-root"));
         DefaultWritableFileSystem writable = new DefaultWritableFileSystem(writeRoot);
         byte[] saveData = "autosave".getBytes(StandardCharsets.US_ASCII);
 

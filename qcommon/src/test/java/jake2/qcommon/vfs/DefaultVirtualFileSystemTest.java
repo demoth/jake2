@@ -1,8 +1,7 @@
 package jake2.qcommon.vfs;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,18 +17,18 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultVirtualFileSystemTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void modLooseOverridesBaseLoose() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writeFile(basedir.resolve("baseq2/textures/wall.wal"), "base");
         writeFile(basedir.resolve("rogue/textures/wall.wal"), "mod");
 
@@ -45,7 +44,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void modPackOverridesBasePack() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writePak(
                 basedir.resolve("baseq2/pak0.pak"),
                 Map.of("textures/wall.wal", "basePack".getBytes(StandardCharsets.US_ASCII))
@@ -66,7 +65,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void baseLooseOverridesBasePack() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writeFile(basedir.resolve("baseq2/config.cfg"), "loose");
         writePak(
                 basedir.resolve("baseq2/pak0.pak"),
@@ -84,8 +83,8 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void fallbackResolvesButIsExcludedForGameDataOnly() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
-        Path fallback = temp.newFolder("fallback").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
+        Path fallback = Files.createDirectories(temp.resolve("fallback"));
         writeFile(fallback.resolve("shaders/test.glsl"), "fallback");
 
         DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
@@ -97,7 +96,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void setGameModRebuildsLooseAndPackMounts() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writeFile(basedir.resolve("baseq2/config.cfg"), "base");
         writePak(
                 basedir.resolve("xatrix/pak0.pak"),
@@ -114,7 +113,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void strictCaseModeRequiresExactCase() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writeFile(basedir.resolve("baseq2/Players/Male/Tris.MD2"), "md2");
 
         DefaultVirtualFileSystem looseCaseInsensitive = new DefaultVirtualFileSystem();
@@ -129,7 +128,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void mountPackageAndUnmountUpdateLookup() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         Path runtimePak = basedir.resolve("baseq2/runtime.pak");
         writePak(
                 runtimePak,
@@ -141,7 +140,7 @@ public class DefaultVirtualFileSystemTest {
 
         assertTrue(vfs.exists("textures/runtime.wal", VfsLookupOptions.DEFAULT));
         VfsResult<String> mount = vfs.mountPackage(runtimePak.toString());
-        assertFalse("Already indexed startup package must fail explicit remount", mount.success);
+        assertFalse(mount.success, "Already indexed startup package must fail explicit remount");
 
         Path latePak = basedir.resolve("downloads/new.pak");
         writePak(
@@ -159,7 +158,7 @@ public class DefaultVirtualFileSystemTest {
 
     @Test
     public void baseZipPackIsIndexed() throws Exception {
-        Path basedir = temp.newFolder("q2").toPath();
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
         writeZip(
                 basedir.resolve("baseq2/textures.pk3"),
                 Map.of("textures/zip.wal", "zip".getBytes(StandardCharsets.US_ASCII))

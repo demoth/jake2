@@ -1,24 +1,23 @@
 package jake2.qcommon.vfs;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultWritableFileSystemTest {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    Path temp;
 
     @Test
     public void writeAndReadRoundTripInRoot() throws Exception {
-        Path root = temp.newFolder("write-root").toPath();
+        Path root = temp.resolve("write-root");
         DefaultWritableFileSystem wfs = new DefaultWritableFileSystem(root);
 
         byte[] written = "save-data".getBytes(StandardCharsets.UTF_8);
@@ -37,7 +36,7 @@ public class DefaultWritableFileSystemTest {
 
     @Test
     public void appendModeAppendsContent() throws Exception {
-        Path root = temp.newFolder("write-root").toPath();
+        Path root = temp.resolve("write-root");
         DefaultWritableFileSystem wfs = new DefaultWritableFileSystem(root);
 
         VfsResult<VfsWritableHandle> first = wfs.openWrite("config.cfg", VfsWriteOptions.TRUNCATE);
@@ -60,7 +59,7 @@ public class DefaultWritableFileSystemTest {
 
     @Test
     public void rejectsTraversalOutsideRoot() {
-        Path root = temp.getRoot().toPath().resolve("write-root");
+        Path root = temp.resolve("write-root");
         DefaultWritableFileSystem wfs = new DefaultWritableFileSystem(root);
 
         VfsResult<VfsWritableHandle> result = wfs.openWrite("../secrets.txt", VfsWriteOptions.TRUNCATE);
