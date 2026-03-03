@@ -1698,6 +1698,7 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void ServerCommand(List<String> args) {
         GameSVCmds.ServerCommand(args, this);
     }

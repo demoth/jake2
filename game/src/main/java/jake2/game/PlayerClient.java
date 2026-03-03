@@ -985,6 +985,7 @@ public class PlayerClient {
      * Run checks before the clients is allowed to connect and then connect the client
      * @return if client successfully connected
      */
+    @SuppressWarnings("deprecation")
     static boolean ClientConnect(GameEntity ent, String userinfo, GameExportsImpl gameExports) {
         // check to see if they are on the banned IP list
         String ip = Info.Info_ValueForKey(userinfo, "ip");

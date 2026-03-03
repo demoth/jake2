@@ -42,6 +42,7 @@
 - [x] S18: Resolve `qcommon` test deprecation compile note for intentional `Com.ParseHelp` legacy coverage.
 - [x] S19: Remove `qcommon` unchecked warnings by generifying legacy raw `Vector` usage in formatting helpers.
 - [x] S20: Resolve server module deprecation compile note for intentional legacy API usage.
+- [x] S21: Resolve game module deprecation compile note for intentional `GameSVCmds` legacy usage.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -72,13 +73,16 @@
   - `./gradlew :qcommon:compileJava --rerun-tasks --warning-mode all --console=plain`
 - S20 added `@SuppressWarnings("deprecation")` to `server` legacy integration classes (`GameImportsImpl`, `SV_MAIN`); verification command:
   - `./gradlew :server:compileJava --rerun-tasks --warning-mode all --console=plain`
+- S21 added targeted `@SuppressWarnings("deprecation")` on legacy `GameSVCmds` call sites (`PlayerClient.ClientConnect`, `GameExportsImpl.ServerCommand`); verification command:
+  - `./gradlew :game:compileJava --rerun-tasks --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
-   - Remaining in `qcommon` and `game`.
+   - Remaining in `qcommon`.
    - Addressed in S17 for `dedicated`.
    - Addressed in S18 for `qcommon` tests.
    - Addressed in S20 for `server`.
+   - Addressed in S21 for `game`.
 2. Java compiler unchecked/unsafe notes:
    - Addressed in S19 (`qcommon` unchecked notes no longer emitted in standard compile).
 3. Graal native-image metadata warnings from dependencies:
