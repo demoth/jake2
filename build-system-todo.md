@@ -45,6 +45,7 @@
 - [x] S21: Resolve game module deprecation compile note for intentional `GameSVCmds` legacy usage.
 - [x] S22: Resolve remaining qcommon module deprecation compile notes for intentional legacy API usage.
 - [x] S23: Re-validate warning baseline after fixes (clean build warning-free; native compile limited to upstream LWJGL experimental metadata warnings).
+- [x] S24: Accept remaining LWJGL native-image experimental metadata warnings as upstream noise (no local override).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -83,6 +84,7 @@
 - S23 final verification commands:
   - `./gradlew clean build --warning-mode all --console=plain` (no Java compile warnings emitted)
   - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain` (remaining warnings are LWJGL-provided experimental metadata options only)
+- S24 decision: keep LWJGL experimental metadata warnings as-is, because they are upstream-provided and do not block successful native compilation.
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -94,9 +96,9 @@
 2. Java compiler unchecked/unsafe notes:
    - Addressed in S19 (`qcommon` unchecked notes no longer emitted in standard compile).
 3. Graal native-image metadata warnings from dependencies:
-   - Remaining: experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
+   - Accepted as-is: experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
    - Addressed in S16: invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` metadata.
 
 ## Current Status
 - `./gradlew clean build --warning-mode all --console=plain` is warning-free for active Java/Kotlin compilation.
-- Native compile remains successful and warning surface is limited to upstream LWJGL experimental metadata options.
+- Native compile remains successful; remaining LWJGL experimental metadata warnings are explicitly accepted.
