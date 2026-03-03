@@ -48,6 +48,7 @@
 - [x] S24: Accept remaining LWJGL native-image experimental metadata warnings as upstream noise (no local override).
 - [x] S25: Start dependency catalog migration (introduce `libs.versions.toml`; migrate root JUnit and `game`/`maptools` external dependencies).
 - [x] S26: Expand catalog usage to `cake/core` and `cake/engine-tools` dependencies.
+- [x] S27: Complete active-module catalog rollout (`cake/lwjgl3` + nativeimage script), and remove now-unused version properties from `gradle.properties`.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -95,6 +96,8 @@
   - `./gradlew build --warning-mode all --console=plain`
 - S26 expanded catalog entries and migrated `cake/core` + `cake/engine-tools` from string coordinates to aliases where straightforward (kept classifier-based runtime dependencies unchanged for now); verification command:
   - `./gradlew build --warning-mode all --console=plain`
+- S27 migrated remaining active-module dependency coordinates to catalog aliases (`cake/lwjgl3`, `cake/lwjgl3/nativeimage.gradle`, classifier-based runtime dependencies), then removed now-unused dependency version properties from `gradle.properties`; verification command:
+  - `./gradlew build --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -135,8 +138,10 @@
    - Stage B: migrate tests off JUnit4 APIs (`TemporaryFolder` -> `@TempDir`, `@Test(expected=...)` -> `assertThrows`, class lifecycle annotations), then drop Vintage + JUnit4 dependency.
 3. N3: Optionally attempt Gradle major upgrade only after N1/N2 are stable, with a dedicated compatibility pass for Kotlin and build plugins.
 
+### Next wave status
+- [x] N1: Dependency catalog rollout is complete for active modules.
+
 ### Upcoming execution items (pending)
-- [ ] N1: Continue catalog rollout across remaining active modules (primarily `cake/*` dependencies and shared version properties).
 - [ ] N2: Introduce JUnit Platform + Jupiter + Vintage and keep tests green without source rewrites.
 - [ ] N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
 - [ ] N4 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.

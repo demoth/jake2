@@ -1,6 +1,6 @@
 dependencies {
-  implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
-  implementation "io.github.berstanio:gdx-svmhelper-extension-freetype:$graalHelperVersion"
+  implementation libs.gdxSvmhelperBackendLwjgl3
+  implementation libs.gdxSvmhelperExtensionFreetype
 }
 
 graalvmNative {

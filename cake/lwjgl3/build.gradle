@@ -10,10 +10,18 @@ application {
   mainClass.set(mainClassName)
 }
 dependencies {
-  implementation "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
-  implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-  implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
-  implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  implementation libs.gdxControllersDesktop
+  implementation libs.gdxBackendLwjgl3
+  implementation(libs.gdxFreetypePlatform) {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
+  implementation(libs.gdxPlatform) {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
   implementation project(':cake:core')
 }
 

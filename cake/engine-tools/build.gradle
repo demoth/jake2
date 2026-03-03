@@ -10,12 +10,12 @@ dependencies {
   implementation libs.gdx
   implementation libs.gdxFreetype
   implementation libs.gdxTools
-  runtimeOnly("com.badlogicgames.gdx:gdx-platform:$gdxVersion") {
+  runtimeOnly(libs.gdxPlatform) {
     artifact {
       classifier = 'natives-desktop'
     }
   }
-  runtimeOnly("com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion") {
+  runtimeOnly(libs.gdxFreetypePlatform) {
     artifact {
       classifier = 'natives-desktop'
     }

@@ -2,7 +2,7 @@ dependencies {
   api libs.gdxControllersCore
   api libs.gdxFreetype
   api libs.gdx
-//  api "com.badlogicgames.gdx:scene2d.ui:$gdxVersion"
+//  api "com.badlogicgames.gdx:scene2d.ui:<version>"
   api libs.ktxActors
   api libs.ktxApp
   api libs.ktxAssetsAsync
@@ -21,7 +21,11 @@ dependencies {
 
   implementation(project(":qcommon"))
   testImplementation libs.gdxBackendHeadless
-  testRuntimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  testRuntimeOnly(libs.gdxPlatform) {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
 }
 
 if (enableGraalNative == 'true') {

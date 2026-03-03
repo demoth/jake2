@@ -17,6 +17,10 @@ logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "log
 gdxControllersCore = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "gdxControllers" }
 gdxFreetype = { module = "com.badlogicgames.gdx:gdx-freetype", version.ref = "gdx" }
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+gdxControllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "gdxControllers" }
+gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
+gdxPlatform = { module = "com.badlogicgames.gdx:gdx-platform", version.ref = "gdx" }
+gdxFreetypePlatform = { module = "com.badlogicgames.gdx:gdx-freetype-platform", version.ref = "gdx" }
 ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
 ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
 ktxAssetsAsync = { module = "io.github.libktx:ktx-assets-async", version.ref = "ktx" }
@@ -35,3 +39,5 @@ jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-ko
 gdxBackendHeadless = { module = "com.badlogicgames.gdx:gdx-backend-headless", version.ref = "gdx" }
 gdxTools = { module = "com.badlogicgames.gdx:gdx-tools", version.ref = "gdx" }
 gdxSvmhelperAnnotations = { module = "io.github.berstanio:gdx-svmhelper-annotations", version.ref = "graalHelper" }
+gdxSvmhelperBackendLwjgl3 = { module = "io.github.berstanio:gdx-svmhelper-backend-lwjgl3", version.ref = "graalHelper" }
+gdxSvmhelperExtensionFreetype = { module = "io.github.berstanio:gdx-svmhelper-extension-freetype", version.ref = "graalHelper" }
