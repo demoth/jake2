@@ -25,9 +25,6 @@ def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
 application {
   mainClass.set(mainClassName)
 }
-java.sourceCompatibility = 11
-java.targetCompatibility = 11
-
 dependencies {
   implementation "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
