@@ -34,6 +34,7 @@
 - [x] S10: Migrate `cake/engine-tools` from `apply plugin` to `plugins` DSL.
 - [x] S11: Replace `configure(subprojects)` usage with a unified `subprojects` configuration block.
 - [x] S12: Document archival module boundary via `includeArchivalModules` opt-in setting in `settings.gradle.kts`.
+- [x] S13: Move remaining frequently-changed hardcoded versions into `gradle.properties`.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -46,3 +47,4 @@
 - S10 migrated `cake/engine-tools/build.gradle` to use `plugins { id 'application' }` instead of legacy `apply plugin`.
 - S11 removed legacy `configure(subprojects)` style in root build logic by consolidating shared configuration into one `subprojects` block.
 - S12 made archival modules explicit and opt-in via `-PincludeArchivalModules=true`, while keeping default builds focused on active modules.
+- S13 centralized `junitVersion`, `beryxRuntimePluginVersion`, and `graalNativeBuildToolsVersion` in `gradle.properties` and wired build scripts to use them.
