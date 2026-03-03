@@ -116,17 +116,17 @@
 3. Gradle wrapper major upgrade (to latest available line)
    - Feasibility: Medium
    - Complexity: High
-   - Notes: wrapper is currently `8.14.3`; latest upstream line is `9.x`, but major upgrade risk is mainly plugin compatibility (Kotlin plugin and runtime/native-image plugins).
+   - Notes: wrapper is currently `8.14.3`; latest upstream line is `9.x`, but major upgrade risk is mainly plugin compatibility (Kotlin plugin and runtime/native-image plugins). This is explicitly optional and can be deferred by one major version cycle.
 
 ### Recommended order
 1. N1: Introduce dependency catalog with no behavior change first.
 2. N2: Migrate tests to JUnit 5 in two stages:
    - Stage A: enable JUnit Platform with Jupiter + Vintage so existing JUnit4 tests still run.
    - Stage B: migrate tests off JUnit4 APIs (`TemporaryFolder` -> `@TempDir`, `@Test(expected=...)` -> `assertThrows`, class lifecycle annotations), then drop Vintage + JUnit4 dependency.
-3. N3: Attempt Gradle major upgrade only after N1/N2 are stable, with a dedicated compatibility pass for Kotlin and build plugins.
+3. N3: Optionally attempt Gradle major upgrade only after N1/N2 are stable, with a dedicated compatibility pass for Kotlin and build plugins.
 
 ### Upcoming execution items (pending)
 - [ ] N1: Create `gradle/libs.versions.toml` and migrate active-module dependency coordinates/versions to catalog aliases.
 - [ ] N2: Introduce JUnit Platform + Jupiter + Vintage and keep tests green without source rewrites.
 - [ ] N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
-- [ ] N4: Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.
+- [ ] N4 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.
