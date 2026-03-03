@@ -432,6 +432,10 @@ Phase 11 progress:
   - `cake_save_meta <slot> [autosave] [title]` to write metadata snapshots.
   - `cake_load_meta <slot>` to read and print metadata snapshots.
 
+Phase 14 progress:
+- `FS.LoadMappedFile` now delegates to VFS + `FS.FOpenFile` instead of maintaining an independent legacy search-path traversal.
+- Removed legacy per-pack mapped-channel cache path in `FS.pack_t`; mapped reads now share common resolver/open behavior.
+
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
 - Added VFS debug views for resolved winners, mount order + file counts, and override collisions.

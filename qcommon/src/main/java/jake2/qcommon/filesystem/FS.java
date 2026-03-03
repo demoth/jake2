@@ -103,8 +103,6 @@ public final class FS extends Globals {
         final Map<String, packfile_t> files;
 
         RandomAccessFile handle;
-        
-        ByteBuffer mappedFileChannel;
 
 
         pack_t(String filename, int numfiles, Map<String, packfile_t> files) {
@@ -438,56 +436,13 @@ public final class FS extends Globals {
         }
 
         try {
-            //
-            // search through the path, one element at a time
-            //
-            for (SearchPath search : searchPaths) {
-                // is the element a pak file?
-                if (search.pack != null) {
-                    // look through all the pak file elements
-                    packfile_t entry = search.pack.files.get(filename.toLowerCase());
-
-                    if (entry != null) {
-                        // found it!
-                        //Com.DPrintf ("PackFile: " + pak.filename + " : " +
-                        // filename + '\n');
-                        File file = new File(search.pack.filename);
-                        if (!file.canRead())
-                            Com.Error(Defines.ERR_FATAL, "Couldn't reopen "
-                                    + search.pack.filename);
-                        if (search.pack.handle == null || !search.pack.handle.getFD().valid()) {
-                            // hold the pakfile handle open
-                            search.pack.handle = new RandomAccessFile(search.pack.filename, "r");
-                        }
-                        // open a new file on the pakfile
-                        if (search.pack.mappedFileChannel == null) {
-                            try (FileChannel channel = search.pack.handle.getChannel()) {
-                                search.pack.mappedFileChannel = channel.map(FileChannel.MapMode.READ_ONLY, 0, search.pack.handle.length());
-                            }
-                        }
-                        search.pack.mappedFileChannel.position(entry.filepos);
-                        ByteBuffer buffer = search.pack.mappedFileChannel.slice();
-                        buffer.limit(entry.filelen);
-                        return buffer;
-                    }
-                } else {
-                    // check a file in the directory tree
-
-                    File file = new File(search.filename + '/' + filename);
-                    if (!file.canRead())
-                        continue;
-
-                    //Com.DPrintf("FindFile: " + netpath +'\n');
-                    try (FileInputStream input = new FileInputStream(file);
-                         FileChannel channel = input.getChannel()) {
-
-                        int fileLength = (int) channel.size();
-                        return channel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
-
-                    }
-                }
+            QuakeFile file = FOpenFile(filename);
+            if (file == null) {
+                return null;
             }
-        } catch (Exception e) {
+            byte[] data = file.toBytes();
+            return ByteBuffer.wrap(data).asReadOnlyBuffer();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;

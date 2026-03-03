@@ -6,6 +6,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
@@ -50,5 +51,21 @@ public class FSCompatibilityTest {
 
         assertTrue(target.getParentFile().exists());
         assertTrue(target.exists());
+    }
+
+    @Test
+    public void loadMappedFileReadsAbsolutePath() throws Exception {
+        File target = new File(temp.getRoot(), "video/test.cin");
+        FS.CreatePath(target.getAbsolutePath());
+        byte[] payload = "cin-data".getBytes(StandardCharsets.US_ASCII);
+        try (QuakeFile out = FS.OpenWriteFile(target.getAbsolutePath())) {
+            out.write(payload);
+        }
+
+        ByteBuffer mapped = FS.LoadMappedFile(target.getAbsolutePath());
+        assertTrue(mapped != null);
+        byte[] read = new byte[mapped.remaining()];
+        mapped.get(read);
+        assertEquals("cin-data", new String(read, StandardCharsets.US_ASCII));
     }
 }
