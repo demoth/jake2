@@ -35,6 +35,7 @@
 - [x] S11: Replace `configure(subprojects)` usage with a unified `subprojects` configuration block.
 - [x] S12: Document archival module boundary via `includeArchivalModules` opt-in setting in `settings.gradle.kts`.
 - [x] S13: Move remaining frequently-changed hardcoded versions into `gradle.properties`.
+- [x] S14: Remove cross-project mutation from `cake/lwjgl3/nativeimage.gradle` and keep Graal helper dependencies module-local.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -48,3 +49,4 @@
 - S11 removed legacy `configure(subprojects)` style in root build logic by consolidating shared configuration into one `subprojects` block.
 - S12 made archival modules explicit and opt-in via `-PincludeArchivalModules=true`, while keeping default builds focused on active modules.
 - S13 centralized `junitVersion`, `beryxRuntimePluginVersion`, and `graalNativeBuildToolsVersion` in `gradle.properties` and wired build scripts to use them.
+- S14 removed `project(":...")` wrappers from `cake/lwjgl3/nativeimage.gradle` and moved `cake:core` Graal helper annotation dependency to `cake/core/build.gradle` behind `enableGraalNative`, preserving successful `build` and `:cake:lwjgl3:nativeCompile`.

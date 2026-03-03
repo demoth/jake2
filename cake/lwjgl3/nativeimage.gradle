@@ -1,30 +1,21 @@
-project(":cake:lwjgl3") {
-  apply plugin: "org.graalvm.buildtools.native"
+dependencies {
+  implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
+  implementation "io.github.berstanio:gdx-svmhelper-extension-freetype:$graalHelperVersion"
+}
 
-  dependencies {
-    implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
-    implementation "io.github.berstanio:gdx-svmhelper-extension-freetype:$graalHelperVersion"
-  }
-  graalvmNative {
-    binaries {
-      main {
-        imageName = appName
-        mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3GameLauncher')
-        requiredVersion = '23.0'
-        buildArgs.add("-march=compatibility")
-        jvmArgs.addAll("-Dfile.encoding=UTF8")
-        sharedLibrary = false
-      }
+graalvmNative {
+  binaries {
+    main {
+      imageName = appName
+      mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3GameLauncher')
+      requiredVersion = '23.0'
+      buildArgs.add("-march=compatibility")
+      jvmArgs.addAll("-Dfile.encoding=UTF8")
+      sharedLibrary = false
     }
-  }
-
-  run {
-    doNotTrackState("Running the app should not be affected by Graal.")
   }
 }
 
-project(":cake:core") {
-  dependencies {
-    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
-  }
+run {
+  doNotTrackState("Running the app should not be affected by Graal.")
 }
