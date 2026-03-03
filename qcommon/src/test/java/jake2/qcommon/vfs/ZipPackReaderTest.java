@@ -19,6 +19,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ZipPackReaderTest {
     @Rule
@@ -62,11 +63,11 @@ public class ZipPackReaderTest {
         assertEquals("good/file.txt", reader.entries().get(0).normalizedPath);
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void failsForInvalidZip() throws Exception {
         Path broken = temp.newFile("broken.pk3").toPath();
         Files.write(broken, "NOTZIP".getBytes(StandardCharsets.US_ASCII));
-        new ZipPackReader(broken, false);
+        assertThrows(IOException.class, () -> new ZipPackReader(broken, false));
     }
 
     @Test

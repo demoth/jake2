@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FSCompatibilityTest {
     @BeforeClass
@@ -44,10 +45,11 @@ public class FSCompatibilityTest {
         }
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test
     public void openReadThrowsForMissingAbsolutePath() throws Exception {
         File missing = new File(temp.getRoot(), "save/current/missing.ssv");
-        FS.OpenReadFile(missing.getAbsolutePath());
+        assertThrows(FileNotFoundException.class, () ->
+                FS.OpenReadFile(missing.getAbsolutePath()));
     }
 
     @Test

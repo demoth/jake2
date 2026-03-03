@@ -6,6 +6,7 @@ import java.util.Map;
 
 import static jake2.qcommon.Defines.EF_COLOR_SHELL;
 import static jake2.qcommon.Defines.EF_ROTATE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.Assert.assertEquals;
 
 public class GameItemTest {
@@ -41,23 +42,26 @@ public class GameItemTest {
         assertEquals(0, flags);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testEmptyDictFlags() {
-        GameItem.parseFlags("EF_ROTATE|EF_COLOR_SHELL", null);
+        assertThrows(IllegalArgumentException.class, () ->
+                GameItem.parseFlags("EF_ROTATE|EF_COLOR_SHELL", null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testUnknownFlags() {
-        GameItem.parseFlags("EF_ROTATE|EF_BLAH_BLAH", Map.of(
+        assertThrows(IllegalArgumentException.class, () ->
+            GameItem.parseFlags("EF_ROTATE|EF_BLAH_BLAH", Map.of(
                 "EF_ROTATE", EF_ROTATE,
-                "EF_COLOR_SHELL", EF_COLOR_SHELL));
+                "EF_COLOR_SHELL", EF_COLOR_SHELL)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testUnknownFlag() {
-        GameItem.parseFlags("EF_BLAH_BLAH", Map.of(
+        assertThrows(IllegalArgumentException.class, () ->
+            GameItem.parseFlags("EF_BLAH_BLAH", Map.of(
                 "EF_ROTATE", EF_ROTATE,
-                "EF_COLOR_SHELL", EF_COLOR_SHELL));
+                "EF_COLOR_SHELL", EF_COLOR_SHELL)));
     }
 
 

@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.assertThrows
 import java.nio.file.Files
 
 class CakeJsonSaveStoreTest {
@@ -46,17 +47,19 @@ class CakeJsonSaveStoreTest {
         assertNull(store.read("missing", "rogue"))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun rejectsTraversalSlotName() {
         val root = temp.root.toPath()
         val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
             DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
         })
 
-        store.write(
-            "../outside",
-            "rogue",
-            CakeSaveSnapshot("base1", "bad", 1L, autosave = false),
-        )
+        assertThrows<IllegalArgumentException> {
+            store.write(
+                "../outside",
+                "rogue",
+                CakeSaveSnapshot("base1", "bad", 1L, autosave = false),
+            )
+        }
     }
 }

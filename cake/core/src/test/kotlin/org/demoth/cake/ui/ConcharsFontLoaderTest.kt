@@ -2,6 +2,7 @@ package org.demoth.cake.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.jupiter.api.assertThrows
 
 class ConcharsFontLoaderTest {
     @Test
@@ -24,8 +25,10 @@ class ConcharsFontLoaderTest {
         assertEquals(120, cells.last().y)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun rejectsNonGridMultipleAtlasSize() {
-        ConcharsFontLoader.mapCells(130, 128)
+        assertThrows<IllegalArgumentException> {
+            ConcharsFontLoader.mapCells(130, 128)
+        }
     }
 }

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PakPackReaderTest {
     @Rule
@@ -62,11 +63,11 @@ public class PakPackReaderTest {
         assertEquals("good/file.txt", reader.entries().get(0).normalizedPath);
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void failsForInvalidHeader() throws Exception {
         Path pak = temp.newFile("broken.pak").toPath();
         Files.write(pak, "NOTPAK".getBytes(StandardCharsets.US_ASCII));
-        new PakPackReader(pak, false);
+        assertThrows(IOException.class, () -> new PakPackReader(pak, false));
     }
 
     @Test
