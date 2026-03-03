@@ -2,6 +2,9 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 
 rootProject.name = "jake2"
 
+// Archival modules stay out of default builds. Opt-in with -PincludeArchivalModules=true.
+val includeArchivalModules = (providers.gradleProperty("includeArchivalModules").orNull ?: "false").toBoolean()
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -29,11 +32,14 @@ dependencyResolutionManagement {
 include (":qcommon")
 include (":game")
 include (":server")
-//include (":client")
 include (":dedicated")
-//include (":fullgame")
 include (":maptools")
 include (":cake")
 include (":cake:core")
 include (":cake:lwjgl3")
 include (":cake:engine-tools")
+
+if (includeArchivalModules) {
+    include(":client")
+    include(":fullgame")
+}
