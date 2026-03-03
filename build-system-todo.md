@@ -39,6 +39,7 @@
 - [x] S15: Re-run clean build/native compile and group current warnings into actionable buckets.
 - [x] S16: Remove invalid Graal `--add-exports` warnings by excluding outdated `gdx-svmhelper` native-image metadata.
 - [x] S17: Resolve dedicated module deprecation compile note for intentional `longjmpException` handling.
+- [x] S18: Resolve `qcommon` test deprecation compile note for intentional `Com.ParseHelp` legacy coverage.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -62,11 +63,14 @@
   which removed invalid `--add-exports org.graalvm.sdk/...` warnings while keeping native compile successful.
 - S17 added `@SuppressWarnings("deprecation")` on `Jake2Dedicated.main` to silence intentional handling of deprecated `longjmpException`; re-run command:
   - `./gradlew :dedicated:compileJava --rerun-tasks --warning-mode all --console=plain`
+- S18 added class-level `@SuppressWarnings("deprecation")` to `qcommon/src/test/java/jake2/qcommon/TestCOM.java` (tests intentionally cover deprecated parser API); re-run command:
+  - `./gradlew :qcommon:compileTestJava --rerun-tasks --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
-   - Remaining in `qcommon`, `server`, `game`, and `qcommon` tests.
+   - Remaining in `qcommon`, `server`, and `game`.
    - Addressed in S17 for `dedicated`.
+   - Addressed in S18 for `qcommon` tests.
 2. Java compiler unchecked/unsafe notes:
    - Seen in `qcommon`.
 3. Graal native-image metadata warnings from dependencies:
