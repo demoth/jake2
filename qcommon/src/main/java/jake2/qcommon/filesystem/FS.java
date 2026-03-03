@@ -202,54 +202,6 @@ public final class FS extends Globals {
         return new QuakeFile(filename, "rw");
     }
 
-    // read in blocks of 64k
-    private static final int MAX_READ = 0x10000;
-
-    /**
-     * Read
-     * 
-     * Properly handles partial reads
-     */
-    public static void Read(byte[] buffer, int len, RandomAccessFile f) {
-
-        int offset = 0;
-        int read = 0;
-        int tries = 0;
-        // read in chunks for progress bar
-        int remaining = len;
-        int block;
-
-        while (remaining != 0) {
-            block = Math.min(remaining, MAX_READ);
-            try {
-                read = f.read(buffer, offset, block);
-            } catch (IOException e) {
-                Com.Error(Defines.ERR_FATAL, e.toString());
-            }
-
-            if (read == 0) {
-            	
-            	// we might have been trying to read from a CD
-            	if (tries == 0)
-            	{
-            		tries = 1;
-            		// todo: check if this hack is requried (does anyone has CD these days?)
-            		// CDAudio.Stop();
-            	} else {
-            		Com.Error(Defines.ERR_FATAL, "FS_Read: 0 bytes read");
-            	}
-
-            } else if (read == -1) {
-                Com.Error(Defines.ERR_FATAL, "FS_Read: -1 bytes read");
-            }
-            //
-            // do some progress bar thing here...
-            //
-            remaining -= read;
-            offset += read;
-        }
-    }
-
     /*
      * LoadFile
      * 
@@ -443,9 +395,11 @@ public final class FS extends Globals {
         }
     }
 
-    /*
-     * ListFiles
+    /**
+     * Legacy compatibility API used by deprecated old-client UI flows.
+     * New code should use VFS snapshot/debug listings instead.
      */
+    @Deprecated(forRemoval = true)
     public static String[] ListFiles(String findname, int musthave, int canthave) {
         String[] list = null;
 
@@ -519,8 +473,10 @@ public final class FS extends Globals {
     }
 
     /**
-     * Allows enumerating all of the directories in the search path
+     * Legacy compatibility API used by deprecated old-client UI flows.
+     * New code should use VFS mount snapshots instead.
      */
+    @Deprecated(forRemoval = true)
     public static String NextPath(String prevpath) {
         if (fs_vfsCompat == null) {
             return prevpath == null || prevpath.length() == 0 ? fs_gamedir : null;
@@ -693,10 +649,11 @@ public final class FS extends Globals {
         return null;
     }
     
-    //	RAFAEL
-    /*
-     * Developer_searchpath
+    /**
+     * Legacy compatibility API used by deprecated old-client menu/render paths.
+     * New code should infer behavior from current game/mod state directly.
      */
+    @Deprecated(forRemoval = true)
     public static int Developer_searchpath() {
         if (fs_vfsCompat == null) {
             return 0;

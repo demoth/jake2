@@ -32,6 +32,7 @@ import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
 import jake2.qcommon.util.Vec3Cache;
 
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -1745,7 +1746,11 @@ public class CM {
 
         byte buf[] = new byte[len];
 
-        FS.Read(buf, len, f);
+        try {
+            f.readFully(buf);
+        } catch (IOException e) {
+            Com.Error(Defines.ERR_FATAL, e.toString());
+        }
 
         ByteBuffer bb = ByteBuffer.wrap(buf);
         IntBuffer ib = bb.asIntBuffer();

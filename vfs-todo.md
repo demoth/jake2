@@ -405,7 +405,7 @@ public interface VfsDataOutput {
 - [x] Phase 14: remove duplicated resolver logic and decommission legacy FS internals once parity is verified.
 - [x] Phase 15: add VFS diagnostics commands (`fs_files`, `fs_mounts`, `fs_overrides`) and bind them to console.
 - [x] Phase 16: remove dead `cddir` integration path and legacy bootstrap calls (`FS.setCDDir`) now that VFS is the only read index.
-- [ ] Phase 17: decommission low-value legacy FS API surface (`ListFiles`, `NextPath`, `Developer_searchpath`, `Read`) behind explicit compatibility policy.
+- [x] Phase 17: decommission low-value legacy FS API surface (`ListFiles`, `NextPath`, `Developer_searchpath`, `Read`) behind explicit compatibility policy.
 - [ ] Phase 18: document and freeze FS compatibility boundary (`absolute-path` + `fs_links` behavior) with targeted tests.
 - [ ] Phase 19: add `qcommon/vfs/README.md` describing VFS/FS responsibilities, API surface, and migration state.
 
@@ -480,6 +480,11 @@ Phase 16 progress:
 - Removed dead `FS.setCDDir()` integration from FS initialization.
 - Removed obsolete dedicated/fullgame bootstrap calls that re-applied `cddir` after early reconfigure.
 - Kept legacy `cddir` cvar behavior outside FS read-indexing path for compatibility with old client-side audio paths.
+
+Phase 17 progress:
+- Removed `FS.Read(...)` and migrated remaining qcommon callers to `RandomAccessFile.readFully(...)`.
+- Marked `FS.ListFiles(...)`, `FS.NextPath(...)`, and `FS.Developer_searchpath(...)` as deprecated legacy compatibility API.
+- Kept these three APIs alive for deprecated old-client code paths while explicitly documenting them as non-target APIs for server/cake VFS flows.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
