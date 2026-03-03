@@ -1,4 +1,6 @@
-apply plugin: 'application'
+plugins {
+  id 'application'
+}
 
 application {
   mainClass = 'org.demoth.cake.enginetools.BitmapFontGeneratorTool'
