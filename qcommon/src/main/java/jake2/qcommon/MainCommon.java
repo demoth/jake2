@@ -8,6 +8,7 @@ import java.io.IOException;
 /**
  * Common procedures for main functions
  */
+@SuppressWarnings("deprecation")
 public class MainCommon {
     public static void debugLogTraces() {
         if (Globals.showtrace.value != 0.0f) {

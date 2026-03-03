@@ -35,6 +35,7 @@ import java.util.*;
 /**
  * Cmd
  */
+@SuppressWarnings("deprecation")
 public final class Cmd {
 
     private final static Command List_f = (List<String> args) -> {

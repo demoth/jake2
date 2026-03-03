@@ -36,6 +36,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+@SuppressWarnings("deprecation")
 public class Lib {
 
 

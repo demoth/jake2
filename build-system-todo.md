@@ -43,6 +43,7 @@
 - [x] S19: Remove `qcommon` unchecked warnings by generifying legacy raw `Vector` usage in formatting helpers.
 - [x] S20: Resolve server module deprecation compile note for intentional legacy API usage.
 - [x] S21: Resolve game module deprecation compile note for intentional `GameSVCmds` legacy usage.
+- [x] S22: Resolve remaining qcommon module deprecation compile notes for intentional legacy API usage.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -75,10 +76,13 @@
   - `./gradlew :server:compileJava --rerun-tasks --warning-mode all --console=plain`
 - S21 added targeted `@SuppressWarnings("deprecation")` on legacy `GameSVCmds` call sites (`PlayerClient.ClientConnect`, `GameExportsImpl.ServerCommand`); verification command:
   - `./gradlew :game:compileJava --rerun-tasks --warning-mode all --console=plain`
+- S22 added targeted `@SuppressWarnings("deprecation")` on qcommon legacy bridge classes (`Lib`, `CM`, `Com`, `MainCommon`, `Cmd`, `Cvar`); verification commands:
+  - `./gradlew :qcommon:compileJava --rerun-tasks --warning-mode all --console=plain`
+  - `./gradlew clean build --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
-   - Remaining in `qcommon`.
+   - Addressed in S22 for `qcommon`.
    - Addressed in S17 for `dedicated`.
    - Addressed in S18 for `qcommon` tests.
    - Addressed in S20 for `server`.

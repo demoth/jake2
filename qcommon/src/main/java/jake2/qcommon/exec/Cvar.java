@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 /**
  * Cvar implements console variables. The original code is located in cvar.c
  */
+@SuppressWarnings("deprecation")
 public class Cvar extends Globals {
 
     private static final Cvar instance = new Cvar();

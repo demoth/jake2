@@ -39,6 +39,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
+@SuppressWarnings("deprecation")
 public class CM {
     public CM() {
         for (int n = 0; n < Defines.MAX_MAP_BRUSHSIDES; n++)

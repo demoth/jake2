@@ -34,6 +34,7 @@ import jake2.qcommon.util.Vargs;
  * Common print related functions including redirection
  *
  */
+@SuppressWarnings("deprecation")
 public final class Com
 {
 
