@@ -725,14 +725,15 @@ public final class FS extends Globals {
         if (fs_vfsCompat != null) {
             syncVfsCaseSensitivity();
             List<String> matches = fs_vfsCompat.debugFilesMatching(wildcard);
-            if (!matches.isEmpty()) {
-                Com.Printf("Directory of " + wildcard + '\n');
-                for (String match : matches) {
-                    Com.Printf("  " + match + '\n');
-                }
-                Com.Printf("\n");
-                return;
+            Com.Printf("Directory of " + wildcard + '\n');
+            for (String match : matches) {
+                Com.Printf("  " + match + '\n');
             }
+            if (matches.isEmpty()) {
+                Com.Printf("  <no matches>\n");
+            }
+            Com.Printf("\n");
+            return;
         }
 
         for (SearchPath s : searchPaths) {
@@ -755,7 +756,6 @@ public final class FS extends Globals {
                     }
                 }
                 Com.Printf("\n");
-
             }
         }
     }
