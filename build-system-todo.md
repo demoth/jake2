@@ -46,6 +46,7 @@
 - [x] S22: Resolve remaining qcommon module deprecation compile notes for intentional legacy API usage.
 - [x] S23: Re-validate warning baseline after fixes (clean build warning-free; native compile limited to upstream LWJGL experimental metadata warnings).
 - [x] S24: Accept remaining LWJGL native-image experimental metadata warnings as upstream noise (no local override).
+- [x] S25: Start dependency catalog migration (introduce `libs.versions.toml`; migrate root JUnit and `game`/`maptools` external dependencies).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -85,6 +86,12 @@
   - `./gradlew clean build --warning-mode all --console=plain` (no Java compile warnings emitted)
   - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain` (remaining warnings are LWJGL-provided experimental metadata options only)
 - S24 decision: keep LWJGL experimental metadata warnings as-is, because they are upstream-provided and do not block successful native compilation.
+- S25 introduced `gradle/libs.versions.toml` and migrated:
+  - root `testImplementation` (`junit:junit`) to `libs.junit4`,
+  - `game` `commons-csv` to `libs.commonsCsv`,
+  - `maptools` `logback-classic` to `libs.logbackClassic`;
+  verification command:
+  - `./gradlew build --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -126,7 +133,7 @@
 3. N3: Optionally attempt Gradle major upgrade only after N1/N2 are stable, with a dedicated compatibility pass for Kotlin and build plugins.
 
 ### Upcoming execution items (pending)
-- [ ] N1: Create `gradle/libs.versions.toml` and migrate active-module dependency coordinates/versions to catalog aliases.
+- [ ] N1: Continue catalog rollout across remaining active modules (primarily `cake/*` dependencies and shared version properties).
 - [ ] N2: Introduce JUnit Platform + Jupiter + Vintage and keep tests green without source rewrites.
 - [ ] N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
 - [ ] N4 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.
