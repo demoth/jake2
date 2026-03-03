@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertTrue(result.isEmpty());
+        Assertions.assertTrue(result.isEmpty());
     }
 
     @Test
@@ -49,7 +49,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("testrene", "=", "ein mal eins", ";", "a=3", ""), result);
+        Assertions.assertEquals(Arrays.asList("testrene", "=", "ein mal eins", ";", "a=3", ""), result);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("rene", "=", "3", ""), result);
+        Assertions.assertEquals(Arrays.asList("rene", "=", "3", ""), result);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("testrene", "=", "ein mal eins", ";", "a=3", ""), result);
+        Assertions.assertEquals(Arrays.asList("testrene", "=", "ein mal eins", ";", "a=3", ""), result);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("testrene", "=", "3", "/"), result);
+        Assertions.assertEquals(Arrays.asList("testrene", "=", "3", "/"), result);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("testrene", "=", "3", ""), result);
+        Assertions.assertEquals(Arrays.asList("testrene", "=", "3", ""), result);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("testrene", "=", "3", ""), result);
+        Assertions.assertEquals(Arrays.asList("testrene", "=", "3", ""), result);
     }
 
     @Test
@@ -116,6 +116,6 @@ public class TestCOM {
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
             result.add(Com.Parse(ph));
-        Assert.assertEquals(Arrays.asList("a", "=", ""), result);
+        Assertions.assertEquals(Arrays.asList("a", "=", ""), result);
     }
 }

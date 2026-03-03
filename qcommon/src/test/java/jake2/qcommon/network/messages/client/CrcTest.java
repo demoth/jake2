@@ -1,7 +1,7 @@
 package jake2.qcommon.network.messages.client;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static jake2.qcommon.network.messages.client.CRC.BlockSequenceCRCByte;
 import static jake2.qcommon.network.messages.client.CRC.CRC_Block;
@@ -34,7 +34,7 @@ public class CrcTest {
 
     @Test
     public void testCRC_Block() {
-        Assert.assertEquals(53183, CRC_Block(TEST_DATA, 21) & 0xffff);
+        Assertions.assertEquals(53183, CRC_Block(TEST_DATA, 21) & 0xffff);
     }
 
     @Test
@@ -48,7 +48,7 @@ public class CrcTest {
         };
 
         for (int n = 0; n < 5; n++) {
-            Assert.assertEquals(expected[n], BlockSequenceCRCByte(TEST_DATA, 0, 21, n * 10) & 0xff);
+            Assertions.assertEquals(expected[n], BlockSequenceCRCByte(TEST_DATA, 0, 21, n * 10) & 0xff);
         }
     }
 }

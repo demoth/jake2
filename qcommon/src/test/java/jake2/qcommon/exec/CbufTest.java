@@ -1,11 +1,11 @@
 package jake2.qcommon.exec;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
 import static jake2.qcommon.exec.Cbuf.splitCommandLine;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CbufTest {
     @Test

@@ -6,10 +6,10 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.ServerMessage;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GameAITest {
     private GameEntity entity;
@@ -242,7 +242,7 @@ public class GameAITest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         entity = new GameEntity(1);
         entity.s = new entity_state_t();
@@ -319,9 +319,9 @@ public class GameAITest {
         GameAI.ai_run_melee(entity, gameExports);
 
         // Verify melee was executed and state was changed
-        assertTrue("Melee attack should be executed when facing enemy", meleeAttackExecuted);
-        assertEquals("Attack state should be changed to AS_STRAIGHT", 
-            GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state);
+        assertTrue(meleeAttackExecuted, "Melee attack should be executed when facing enemy");
+        assertEquals(GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state,
+            "Attack state should be changed to AS_STRAIGHT");
     }
 
     @Test
@@ -335,9 +335,9 @@ public class GameAITest {
         GameAI.ai_run_melee(entity, gameExports);
 
         // Verify melee was not executed as we're not facing enemy
-        assertFalse("Melee attack should not be executed when not facing enemy", meleeAttackExecuted);
-        assertNotEquals("Attack state should not be changed when not facing enemy", 
-            GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state);
+        assertFalse(meleeAttackExecuted, "Melee attack should not be executed when not facing enemy");
+        assertNotEquals(GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state,
+            "Attack state should not be changed when not facing enemy");
     }
 
     @Test
@@ -351,9 +351,9 @@ public class GameAITest {
         GameAI.ai_run_missile(entity, gameExports);
 
         // Verify missile was executed and state was changed
-        assertTrue("Missile attack should be executed when facing enemy", missileAttackExecuted);
-        assertEquals("Attack state should be changed to AS_STRAIGHT", 
-            GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state);
+        assertTrue(missileAttackExecuted, "Missile attack should be executed when facing enemy");
+        assertEquals(GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state,
+            "Attack state should be changed to AS_STRAIGHT");
     }
 
     @Test
@@ -367,9 +367,9 @@ public class GameAITest {
         GameAI.ai_run_missile(entity, gameExports);
 
         // Verify missile was not executed as we're not facing enemy
-        assertFalse("Missile attack should not be executed when not facing enemy", missileAttackExecuted);
-        assertNotEquals("Attack state should not be changed when not facing enemy", 
-            GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state);
+        assertFalse(missileAttackExecuted, "Missile attack should not be executed when not facing enemy");
+        assertNotEquals(GameDefines.AS_STRAIGHT, entity.monsterinfo.attack_state,
+            "Attack state should not be changed when not facing enemy");
     }
 
     @Test

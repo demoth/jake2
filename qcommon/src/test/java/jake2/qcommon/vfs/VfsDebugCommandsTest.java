@@ -1,12 +1,12 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.exec.Cmd;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class VfsDebugCommandsTest {
 

@@ -24,15 +24,15 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestCMD {
 
@@ -43,54 +43,54 @@ public class TestCMD {
             result.add("success");
         });
         Cmd.ExecuteString("test");
-        Assert.assertEquals("success", result.get(0));
+        Assertions.assertEquals("success", result.get(0));
     }
 
     @Test
     public void testTokenizeString() {
         List<String> result = Cmd.TokenizeString("echo test", false);
-        Assert.assertEquals(Arrays.asList("echo", "test"), result);
+        Assertions.assertEquals(Arrays.asList("echo", "test"), result);
     }
 
     @Test
     public void testTokenizeWithExpansion() {
         Cvar.getInstance().Get("test1", "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", true);
-        Assert.assertEquals(Arrays.asList("echo", "world", "again"), result);
+        Assertions.assertEquals(Arrays.asList("echo", "world", "again"), result);
     }
 
     @Test
     public void testTokenizeWithQuotes() {
         List<String> result = Cmd.TokenizeString("echo \"hello world\"", true);
-        Assert.assertEquals(Arrays.asList("echo", "hello world"), result);
+        Assertions.assertEquals(Arrays.asList("echo", "hello world"), result);
     }
 
     @Test
     public void testTokenizeWithQuotesWithExpansion() {
         Cvar.getInstance().Get("test2", "world", 0);
         List<String> result = Cmd.TokenizeString("echo \"$test2\"", true);
-        Assert.assertEquals(Arrays.asList("echo", "$test2"), result);
+        Assertions.assertEquals(Arrays.asList("echo", "$test2"), result);
     }
 
     @Test
     public void testTokenizeWithExpansionFalse() {
         Cvar.getInstance().Get("test1", "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", false);
-        Assert.assertEquals(Arrays.asList("echo", "$test1", "again"), result);
+        Assertions.assertEquals(Arrays.asList("echo", "$test1", "again"), result);
     }
 
     @Test
     public void testExpandMacro() {
         Cvar.getInstance().Get("name", "world", 0);
         String result = Cmd.MacroExpandString("hello $name");
-        Assert.assertEquals("hello world", result);
+        Assertions.assertEquals("hello world", result);
     }
 
     @Test
     public void testExpandMacroMiddle() {
         Cvar.getInstance().Get("name1", "world", 0);
         String result = Cmd.MacroExpandString("hello $name1 again");
-        Assert.assertEquals("hello world again", result);
+        Assertions.assertEquals("hello world again", result);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class TestCMD {
         Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(getArguments(args)));
 
         Cmd.ExecuteString("test_cmd $test_var");
-        Assert.assertEquals("success value", result.toString());
+        Assertions.assertEquals("success value", result.toString());
     }
 
     @Test

@@ -7,8 +7,8 @@ import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import org.demoth.cake.ClientEntity
-import org.junit.Assert.assertArrayEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Test
 
 class ClientEntityManagerInterpolationGuardTest {
 

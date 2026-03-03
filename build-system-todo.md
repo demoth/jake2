@@ -55,6 +55,7 @@
 - [x] S31: Convert `FSCompatibilityTest` to Jupiter annotations (`@BeforeAll`, `@Test`, `@TempDir`).
 - [x] S32: Convert remaining qcommon TemporaryFolder tests to Jupiter (`@TempDir`) and Jupiter assertions.
 - [x] S33: Convert remaining cake/core TemporaryFolder + class lifecycle tests to Jupiter (`@TempDir`, `@BeforeAll/@AfterAll`).
+- [x] S34: Complete active-module JUnit5 Stage B migration (bulk Jupiter import/assertion migration, convert parameterized test infrastructure, and drop JUnit4/Vintage runtime from active build).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -124,6 +125,15 @@
 - S33 migrated `cake/core` tests (`CakeFileResolverTest`, `ResolverParityIntegrationTest`, `ModelViewerFileResolverTest`, `CakeJsonSaveStoreTest`) from JUnit4 rules/lifecycle annotations to Jupiter equivalents and kept tests green; verification commands:
   - `./gradlew :cake:core:test --warning-mode all --console=plain`
   - `./gradlew test --warning-mode all --console=plain`
+- S34 completed active-module JUnit5 Stage B by:
+  - migrating remaining active test imports/usages from JUnit4/TestCase to Jupiter assertions/annotations,
+  - fixing Java assertion message argument order (`assertX(message, ...)` -> Jupiter form `assertX(..., message)`),
+  - converting `qcommon` `NetworkMessageSizeTest` from JUnit4 `@RunWith(Parameterized)` style to Jupiter `@ParameterizedTest` + `@MethodSource`,
+  - adding `junit-jupiter-params` for Jupiter parameterized tests,
+  - removing shared active-module `junit4` and `junit-vintage` dependencies from root test configuration;
+  verification commands:
+  - `./gradlew test --warning-mode all --console=plain`
+  - `./gradlew build --warning-mode all --console=plain`
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -151,7 +161,7 @@
 2. JUnit 5 migration
    - Feasibility: High (staged)
    - Complexity: High
-   - Notes: test suite is heavily JUnit 4 today (72 test files total; 13 files use JUnit4-only constructs like `@Rule`/`TemporaryFolder`, `@Test(expected=...)`, `@BeforeClass`/`@AfterClass`).
+   - Notes: Active-module migration is complete in S34; remaining JUnit4 usage is limited to archival `fullgame` tests (excluded by default build).
 3. Gradle wrapper major upgrade (to latest available line)
    - Feasibility: Medium
    - Complexity: High
@@ -167,8 +177,8 @@
 ### Next wave status
 - [x] N1: Dependency catalog rollout is complete for active modules.
 - [x] N2 Stage A: JUnit Platform + Jupiter + Vintage is enabled with tests green.
-- [~] N2 Stage B / N3: In progress (first JUnit4 API migration slice completed: expected-exception annotations).
+- [x] N2 Stage B: Active-module tests are fully on JUnit5 APIs; active build no longer depends on JUnit4/Vintage.
+- [~] N3 (Optional): In progress (evaluation/decision pending).
 
 ### Upcoming execution items (pending)
-- [ ] N2 Stage B / N3: Migrate JUnit4-specific tests to pure JUnit5 and remove Vintage/JUnit4 dependencies.
-- [ ] N4 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on build + nativeCompile results.
+- [ ] N3 (Optional): Run Gradle major-version upgrade spike (wrapper + plugin compatibility updates) and decide adopt/hold based on `build` + `nativeCompile` outcomes.

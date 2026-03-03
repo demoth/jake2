@@ -1,7 +1,7 @@
 package jake2.game
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class SnapToEightsTest {
 
@@ -19,7 +19,7 @@ class SnapToEightsTest {
     @Test
     fun testSnapToEights() {
         testData.entries.forEach {
-            assertEquals("${it.key}.snapToEights() -> ${it.value}", it.value, it.key.snapToEights())
+            assertEquals(it.value, it.key.snapToEights(), "${it.key}.snapToEights() -> ${it.value}")
         }
 
 

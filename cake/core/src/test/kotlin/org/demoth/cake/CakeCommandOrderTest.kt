@@ -1,7 +1,7 @@
 package org.demoth.cake
 
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -15,13 +15,13 @@ class CakeCommandOrderTest {
         val executeBufferIdx = source.indexOf("Cbuf.Execute()")
         val sendUpdatesIdx = source.indexOf("sendUpdates()")
 
-        assertTrue("CL_ReadPackets call not found", readPacketsIdx >= 0)
-        assertTrue("Cbuf.Execute call not found", executeBufferIdx >= 0)
-        assertTrue("sendUpdates call not found", sendUpdatesIdx >= 0)
+        assertTrue(readPacketsIdx >= 0, "CL_ReadPackets call not found")
+        assertTrue(executeBufferIdx >= 0, "Cbuf.Execute call not found")
+        assertTrue(sendUpdatesIdx >= 0, "sendUpdates call not found")
 
         assertTrue(
+            readPacketsIdx < executeBufferIdx && executeBufferIdx < sendUpdatesIdx,
             "Expected CL_ReadPackets() -> Cbuf.Execute() -> sendUpdates() order",
-            readPacketsIdx < executeBufferIdx && executeBufferIdx < sendUpdatesIdx
         )
     }
 

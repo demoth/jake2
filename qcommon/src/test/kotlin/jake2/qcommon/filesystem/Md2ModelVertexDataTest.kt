@@ -1,9 +1,9 @@
 package jake2.qcommon.filesystem
 
 import jake2.qcommon.math.Vector3f
-import junit.framework.TestCase.assertEquals
-import org.junit.Assert.assertArrayEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Test
 
 /**
  * Create a simple geometry to test transformation of md2 packed data into shader-suitable format.

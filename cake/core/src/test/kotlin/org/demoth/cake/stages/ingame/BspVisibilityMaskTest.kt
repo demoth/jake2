@@ -4,8 +4,8 @@ import org.demoth.cake.assets.BspWorldLeafRecord
 import org.demoth.cake.assets.BspWorldRenderData
 import org.demoth.cake.assets.BspWorldSurfaceRecord
 import org.demoth.cake.assets.BspWorldTextureInfoRecord
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class BspVisibilityMaskTest {
 

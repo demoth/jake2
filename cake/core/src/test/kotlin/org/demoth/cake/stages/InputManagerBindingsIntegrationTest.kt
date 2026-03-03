@@ -9,9 +9,9 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class InputManagerBindingsIntegrationTest {
 

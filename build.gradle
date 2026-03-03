@@ -33,11 +33,10 @@ subprojects {
   }
 
   dependencies {
-    testImplementation(libs.junit4)
     testImplementation(libs.junitJupiterApi)
+    testImplementation(libs.junitJupiterParams)
     testRuntimeOnly(libs.junitPlatformLauncher)
     testRuntimeOnly(libs.junitJupiterEngine)
-    testRuntimeOnly(libs.junitVintageEngine)
   }
 
   tasks.withType(Test).configureEach {

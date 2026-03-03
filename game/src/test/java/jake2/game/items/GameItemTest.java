@@ -1,13 +1,13 @@
 package jake2.game.items;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static jake2.qcommon.Defines.EF_COLOR_SHELL;
 import static jake2.qcommon.Defines.EF_ROTATE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GameItemTest {
     @Test

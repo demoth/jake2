@@ -3,8 +3,8 @@ package org.demoth.cake.assets
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.Bsp
 import jake2.qcommon.filesystem.IDBSPHEADER
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 

@@ -1,6 +1,6 @@
 package jake2.game.items;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GameItemsTest {
 

@@ -1,8 +1,8 @@
 package org.demoth.cake.stages.ingame
 
 import jake2.qcommon.Globals
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class Md2LightingTest {
     @Test

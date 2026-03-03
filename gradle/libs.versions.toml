@@ -1,5 +1,4 @@
 [versions]
-junit4 = "4.13.2"
 junit5 = "5.10.2"
 commonsCsv = "1.9.0"
 logbackClassic = "1.4.14"
@@ -12,10 +11,9 @@ jackson = "2.18.2"
 graalHelper = "2.0.1"
 
 [libraries]
-junit4 = { module = "junit:junit", version.ref = "junit4" }
 junitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
+junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
 junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
-junitVintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit5" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 commonsCsv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }

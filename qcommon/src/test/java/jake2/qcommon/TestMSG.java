@@ -6,11 +6,11 @@
  */
 package jake2.qcommon;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static jake2.qcommon.Defines.MAX_MSGLEN;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author rst
@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 public class TestMSG {
     sizebuf_t buffer;
 
-    @Before
+    @BeforeEach
     public void setup() {
         buffer = new sizebuf_t();
         buffer.init(new byte[MAX_MSGLEN], MAX_MSGLEN);

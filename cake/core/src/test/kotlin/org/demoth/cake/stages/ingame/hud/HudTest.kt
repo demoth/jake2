@@ -1,8 +1,8 @@
 package org.demoth.cake.stages.ingame.hud
 
 import jake2.qcommon.Defines
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class HudTest {
     private sealed interface TestCommand {
@@ -73,7 +73,7 @@ class HudTest {
             screenHeight = 600,
         )
 
-        Assert.assertEquals(
+        Assertions.assertEquals(
             listOf(
                 TestCommand.Number(8, 16, 14, 3, 0),
                 TestCommand.Number(760, 576, 14, 3, 1),
@@ -103,7 +103,7 @@ class HudTest {
             screenHeight = 480,
         )
 
-        Assert.assertEquals(
+        Assertions.assertEquals(
             listOf(
                 TestCommand.Text(10, 10, "hello world", alt = false),
                 TestCommand.Text(15, 30, "alt words", alt = true, centerWidth = 320),
@@ -127,7 +127,7 @@ class HudTest {
             screenHeight = 600,
         )
 
-        Assert.assertEquals(
+        Assertions.assertEquals(
             listOf(
                 TestCommand.Image(240, 180, null),
                 TestCommand.Text(296, 220, "PlayerOne", alt = true),
@@ -162,8 +162,8 @@ class HudTest {
             screenHeight = 480,
         )
 
-        Assert.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 1)), frame4)
-        Assert.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 0)), frame8)
+        Assertions.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 1)), frame4)
+        Assertions.assertEquals(listOf(TestCommand.Number(0, 0, 10, 3, 0)), frame8)
     }
 
     @Test
@@ -183,8 +183,8 @@ class HudTest {
             screenHeight = 480,
         )
 
-        Assert.assertEquals(listOf(TestCommand.Text(0, 0, "picked-up-item", alt = false)), commandsA)
-        Assert.assertEquals(listOf(TestCommand.Text(0, 0, "ctf-flag", alt = false)), commandsB)
+        Assertions.assertEquals(listOf(TestCommand.Text(0, 0, "picked-up-item", alt = false)), commandsA)
+        Assertions.assertEquals(listOf(TestCommand.Text(0, 0, "ctf-flag", alt = false)), commandsB)
     }
 
     @Test
@@ -205,7 +205,7 @@ class HudTest {
             screenHeight = 480,
         )
 
-        Assert.assertEquals(
+        Assertions.assertEquals(
             listOf(TestCommand.Text(4, 4, "ok", alt = false)),
             commands,
         )
@@ -213,13 +213,13 @@ class HudTest {
 
     @Test
     fun resolvesCrosshairPicFromLegacyCvarValues() {
-        Assert.assertNull(resolveCrosshairPicName(0f))
-        Assert.assertEquals("ch1", resolveCrosshairPicName(1f))
-        Assert.assertEquals("ch2", resolveCrosshairPicName(2f))
-        Assert.assertEquals("ch3", resolveCrosshairPicName(3f))
-        Assert.assertEquals("ch3", resolveCrosshairPicName(-1f))
-        Assert.assertEquals("ch3", resolveCrosshairPicName(4f))
-        Assert.assertEquals("ch0", resolveCrosshairPicName(0.5f))
+        Assertions.assertNull(resolveCrosshairPicName(0f))
+        Assertions.assertEquals("ch1", resolveCrosshairPicName(1f))
+        Assertions.assertEquals("ch2", resolveCrosshairPicName(2f))
+        Assertions.assertEquals("ch3", resolveCrosshairPicName(3f))
+        Assertions.assertEquals("ch3", resolveCrosshairPicName(-1f))
+        Assertions.assertEquals("ch3", resolveCrosshairPicName(4f))
+        Assertions.assertEquals("ch0", resolveCrosshairPicName(0.5f))
     }
 
     @Test
@@ -245,9 +245,9 @@ class HudTest {
             screenWidth = 800,
             screenHeight = 600,
         )
-        Assert.assertTrue(singleCommands.isNotEmpty())
-        Assert.assertTrue(singleCommands.any { it is TestCommand.Number })
-        Assert.assertTrue(singleCommands.any { it is TestCommand.Image })
+        Assertions.assertTrue(singleCommands.isNotEmpty())
+        Assertions.assertTrue(singleCommands.any { it is TestCommand.Number })
+        Assertions.assertTrue(singleCommands.any { it is TestCommand.Image })
 
         val dmStats = ShortArray(64).apply {
             this[2] = 1
@@ -273,8 +273,8 @@ class HudTest {
             screenWidth = 800,
             screenHeight = 600,
         )
-        Assert.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "SPECTATOR MODE" && it.alt })
-        Assert.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "Chasing" && !it.alt })
+        Assertions.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "SPECTATOR MODE" && it.alt })
+        Assertions.assertTrue(dmCommands.any { it is TestCommand.Text && it.text == "Chasing" && !it.alt })
     }
 
     companion object {
