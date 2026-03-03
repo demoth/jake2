@@ -53,6 +53,7 @@ import static jake2.server.SV_CCMDS.SV_CopySaveGame;
 
  todo make singleton (same as game exports)
 */
+@SuppressWarnings("deprecation")
 public class GameImportsImpl implements GameImports {
 
     String name;

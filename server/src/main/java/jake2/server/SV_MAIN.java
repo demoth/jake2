@@ -55,6 +55,7 @@ import static jake2.server.SV_CCMDS.SV_WipeSavegame;
 import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
+@SuppressWarnings("deprecation")
 public class SV_MAIN implements JakeServer {
 
     @Override
