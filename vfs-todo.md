@@ -407,7 +407,7 @@ public interface VfsDataOutput {
 - [x] Phase 16: remove dead `cddir` integration path and legacy bootstrap calls (`FS.setCDDir`) now that VFS is the only read index.
 - [x] Phase 17: decommission low-value legacy FS API surface (`ListFiles`, `NextPath`, `Developer_searchpath`, `Read`) behind explicit compatibility policy.
 - [x] Phase 18: document and freeze FS compatibility boundary (`absolute-path` + `fs_links` behavior) with targeted tests.
-- [ ] Phase 19: add `qcommon/vfs/README.md` describing VFS/FS responsibilities, API surface, and migration state.
+- [x] Phase 19: add `qcommon/vfs/README.md` describing VFS/FS responsibilities, API surface, and migration state.
 
 Phase 8 progress:
 - Added `CakeVfsAssetSource` adapter over qcommon `DefaultVirtualFileSystem`.
@@ -457,21 +457,14 @@ Phase 14 progress:
 
 ## Remaining Work For Full Server+Client VFS Switch
 
-1. Trim FS to a minimal compatibility facade over VFS.
-   - Define retained API explicitly (`LoadFile`, `LoadMappedFile`, `OpenReadFile`, `OpenWriteFile`, `FOpenFile`, `FileExists`, `SetGamedir`, write-dir helpers).
-   - Deprecate/remove low-value APIs only used by legacy client (`ListFiles`, `NextPath`, `Developer_searchpath`) unless a modern caller is added.
-2. Freeze and test compatibility-only exceptions.
-   - Decide policy for absolute-path reads and `fs_links`.
-   - Add explicit tests so behavior is intentional, not accidental.
-3. Finalize docs and ownership boundaries.
-   - Add `qcommon/vfs/README.md` with:
-     - VFS core API (`VirtualFileSystem`, `WritableFileSystem`)
-     - FS compatibility API and what remains intentionally
-     - Cake/model-viewer integration points
-     - diagnostics commands and expected output semantics.
-4. Optional follow-up: automatic runtime package lifecycle hooks.
+Core migration for shared server+client VFS is complete.
+
+Optional follow-ups:
+
+1. Automatic runtime package lifecycle hooks.
    - Manual runtime lifecycle is available via `fs_mount`, `fs_unmount`, and `fs_rebuild`.
    - Integrate these APIs with download/mod-change flows when that runtime path is implemented.
+2. Optional Phase 12 for legacy binary save pipeline modernization (`VfsDataInput/VfsDataOutput`).
 
 Phase 15 progress:
 - Added console commands in `FS`: `fs_files`, `fs_mounts`, `fs_overrides`.
@@ -499,6 +492,10 @@ Runtime lifecycle alignment progress:
   - `fs_rebuild [full|mod|base|pack]`
 - Wired FS compatibility provider to `mountPackage/unmount/rebuildIndex` so runtime mutation now works in live server/client sessions where FS is initialized.
 - Kept automatic download/mod-change runtime hook integration as a follow-up task.
+
+Phase 19 progress:
+- Added `qcommon/vfs/README.md` documenting VFS goals, layering, API surface, FS compatibility boundary, integration points, and command semantics.
+- Captured current migration status and remaining optional follow-up tasks.
 
 Phase 7 progress:
 - Added `VfsBackedFileSystem` compatibility wrapper in `qcommon.filesystem`.
