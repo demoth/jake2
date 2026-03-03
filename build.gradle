@@ -6,9 +6,14 @@ plugins {
   id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply false
 }
 
-configure(subprojects) {
+subprojects {
   apply plugin: 'java-library'
   apply plugin: 'org.jetbrains.kotlin.jvm'
+
+  group = 'org.demoth'
+  version = '1.2.0'
+  ext.appName = 'cake'
+
   java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -16,6 +21,7 @@ configure(subprojects) {
       languageVersion = JavaLanguageVersion.of(21)
     }
   }
+
   tasks.withType(JavaCompile).configureEach {
     options.incremental = true
     options.release = 21
@@ -25,12 +31,6 @@ configure(subprojects) {
     compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
   }
 
-}
-
-subprojects {
-  group = 'org.demoth'
-  version = '1.2.0'
-  ext.appName = 'cake'
   dependencies {
     testImplementation('junit:junit:4.13.2')
   }

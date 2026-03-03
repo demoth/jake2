@@ -32,6 +32,7 @@
 - [x] S8: Replace root Kotlin plugin `buildscript classpath` usage with `plugins { ... apply false }`.
 - [x] S9: Migrate `cake/lwjgl3` plugin setup from legacy `buildscript` classpath wiring to `plugins` DSL.
 - [x] S10: Migrate `cake/engine-tools` from `apply plugin` to `plugins` DSL.
+- [x] S11: Replace `configure(subprojects)` usage with a unified `subprojects` configuration block.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -42,3 +43,4 @@
 - S8 migrated root Kotlin plugin declaration from legacy `buildscript/dependencies/classpath` to modern `plugins` DSL (`apply false`) and kept build green.
 - S9 moved `cake/lwjgl3` plugin declarations (`application`, `org.beryx.runtime`, `org.graalvm.buildtools.native`) to `plugins` DSL, with conditional native plugin application retained for `enableGraalNative`.
 - S10 migrated `cake/engine-tools/build.gradle` to use `plugins { id 'application' }` instead of legacy `apply plugin`.
+- S11 removed legacy `configure(subprojects)` style in root build logic by consolidating shared configuration into one `subprojects` block.
