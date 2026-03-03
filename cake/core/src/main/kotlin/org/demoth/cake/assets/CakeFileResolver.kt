@@ -46,6 +46,14 @@ class CakeFileResolver(
         vfsAssetSource.configure(basedir = this.basedir, gameMod = this.gamemod, caseSensitive = this.caseSensitive)
     }
 
+    fun isVfsInitialized(): Boolean = vfsAssetSource.isInitialized()
+
+    fun debugResolvedFiles(): List<String> = vfsAssetSource.debugResolvedFiles()
+
+    fun debugMounts(): List<String> = vfsAssetSource.debugMounts()
+
+    fun debugOverrides(): List<String> = vfsAssetSource.debugOverrides()
+
     /**
      * look for files in the following order:
      * 1. qcommon VFS game-data layers:

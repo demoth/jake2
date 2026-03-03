@@ -100,6 +100,27 @@ internal class CakeVfsAssetSource {
     }
 
     @Synchronized
+    fun isInitialized(): Boolean = initialized
+
+    @Synchronized
+    fun debugResolvedFiles(): List<String> {
+        if (!initialized) return emptyList()
+        return vfs.debugResolvedFiles()
+    }
+
+    @Synchronized
+    fun debugMounts(): List<String> {
+        if (!initialized) return emptyList()
+        return vfs.debugMounts()
+    }
+
+    @Synchronized
+    fun debugOverrides(): List<String> {
+        if (!initialized) return emptyList()
+        return vfs.debugOverrides()
+    }
+
+    @Synchronized
     private fun clearExtractedPackageFiles() {
         extractedPackageFiles.values.forEach {
             runCatching { Files.deleteIfExists(it) }

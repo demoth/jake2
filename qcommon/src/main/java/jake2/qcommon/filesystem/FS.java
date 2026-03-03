@@ -31,6 +31,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
+import jake2.qcommon.vfs.VfsDebugCommands;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -789,66 +790,6 @@ public final class FS extends Globals {
     }
 
     /**
-     * Prints all resolved VFS files in ascending order.
-     */
-    private static void FsFiles_f(List<String> args) {
-        if (fs_vfsCompat == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
-            return;
-        }
-        syncVfsCaseSensitivity();
-        List<String> files = fs_vfsCompat.debugResolvedFiles();
-        if (files.isEmpty()) {
-            Com.Printf("No VFS files indexed.\n");
-            return;
-        }
-        for (String file : files) {
-            Com.Printf(file + "\n");
-        }
-        Com.Printf("Total resolved files: " + files.size() + "\n");
-    }
-
-    /**
-     * Prints mounted VFS roots/packages in effective priority order.
-     */
-    private static void FsMounts_f(List<String> args) {
-        if (fs_vfsCompat == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
-            return;
-        }
-        syncVfsCaseSensitivity();
-        List<String> mounts = fs_vfsCompat.debugMounts();
-        if (mounts.isEmpty()) {
-            Com.Printf("No VFS mounts available.\n");
-            return;
-        }
-        for (String mount : mounts) {
-            Com.Printf(mount + "\n");
-        }
-        Com.Printf("Total mounts: " + mounts.size() + "\n");
-    }
-
-    /**
-     * Prints logical paths that are present in more than one source.
-     */
-    private static void FsOverrides_f(List<String> args) {
-        if (fs_vfsCompat == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
-            return;
-        }
-        syncVfsCaseSensitivity();
-        List<String> overrides = fs_vfsCompat.debugOverrides();
-        if (overrides.isEmpty()) {
-            Com.Printf("No VFS overrides detected.\n");
-            return;
-        }
-        for (String line : overrides) {
-            Com.Printf(line + "\n");
-        }
-        Com.Printf("Total overridden paths: " + overrides.size() + "\n");
-    }
-
-    /**
      * Allows enumerating all of the directories in the search path
      */
     public static String NextPath(String prevpath) {
@@ -894,9 +835,30 @@ public final class FS extends Globals {
         Cmd.AddCommand("link", FS::Link_f);
         Cmd.AddCommand("dir", FS::Dir_f);
         Cmd.AddCommand("ls", FS::Dir_f);
-        Cmd.AddCommand("fs_files", FS::FsFiles_f);
-        Cmd.AddCommand("fs_mounts", FS::FsMounts_f);
-        Cmd.AddCommand("fs_overrides", FS::FsOverrides_f);
+        VfsDebugCommands.register(new VfsDebugCommands.Provider() {
+            @Override
+            public boolean isInitialized() {
+                return fs_vfsCompat != null;
+            }
+
+            @Override
+            public List<String> resolvedFiles() {
+                syncVfsCaseSensitivity();
+                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugResolvedFiles();
+            }
+
+            @Override
+            public List<String> mounts() {
+                syncVfsCaseSensitivity();
+                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugMounts();
+            }
+
+            @Override
+            public List<String> overrides() {
+                syncVfsCaseSensitivity();
+                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugOverrides();
+            }
+        });
 
         // by default all saves, screenshots etc go to ~/.jake2/baseq2
         // overridden by 'game' cvar, i.e xatrix saves to go ~/.jake2/xatrix

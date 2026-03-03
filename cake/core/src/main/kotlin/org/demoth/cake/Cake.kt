@@ -32,6 +32,7 @@ import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
+import jake2.qcommon.vfs.VfsDebugCommands
 import jake2.qcommon.vfs.DefaultWritableFileSystem
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
@@ -178,6 +179,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         updateInputHandlers(false, true)
+
+        VfsDebugCommands.register(object : VfsDebugCommands.Provider {
+            override fun isInitialized(): Boolean = fileResolver.isVfsInitialized()
+
+            override fun resolvedFiles(): List<String> = fileResolver.debugResolvedFiles()
+
+            override fun mounts(): List<String> = fileResolver.debugMounts()
+
+            override fun overrides(): List<String> = fileResolver.debugOverrides()
+        })
 
         // region COMMANDS
 
