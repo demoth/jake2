@@ -37,6 +37,7 @@
 - [x] S13: Move remaining frequently-changed hardcoded versions into `gradle.properties`.
 - [x] S14: Remove cross-project mutation from `cake/lwjgl3/nativeimage.gradle` and keep Graal helper dependencies module-local.
 - [x] S15: Re-run clean build/native compile and group current warnings into actionable buckets.
+- [x] S16: Remove invalid Graal `--add-exports` warnings by excluding outdated `gdx-svmhelper` native-image metadata.
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -54,6 +55,10 @@
 - S15 warning baseline commands:
   - `./gradlew clean build --warning-mode all --console=plain`
   - `JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce GRAALVM_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew :cake:lwjgl3:nativeCompile --warning-mode all --console=plain`
+- S16 updated `cake/lwjgl3/nativeimage.gradle` to:
+  - explicitly pass `-H:+UnlockExperimentalVMOptions`, and
+  - exclude `META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties` via `--exclude-config`,
+  which removed invalid `--add-exports org.graalvm.sdk/...` warnings while keeping native compile successful.
 
 ## Current Warning Buckets
 1. Java compiler deprecation notes:
@@ -61,5 +66,5 @@
 2. Java compiler unchecked/unsafe notes:
    - Seen in `qcommon`.
 3. Graal native-image metadata warnings from dependencies:
-   - Experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
-   - Invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` native-image metadata.
+   - Remaining: experimental option warnings for `-H:JNIConfigurationResources` and `-H:ReflectionConfigurationResources` (from LWJGL metadata).
+   - Addressed in S16: invalid `--add-exports org.graalvm.sdk/...` warning from `gdx-svmhelper` metadata.
