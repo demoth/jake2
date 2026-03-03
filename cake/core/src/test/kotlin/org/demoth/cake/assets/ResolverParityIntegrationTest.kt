@@ -5,14 +5,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
 import org.demoth.cake.modelviewer.ModelViewerFileResolver
-import org.junit.AfterClass
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.BeforeClass
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -24,12 +23,12 @@ import java.util.LinkedHashMap
 
 class ResolverParityIntegrationTest {
 
-    @get:Rule
-    val temp = TemporaryFolder()
+    @TempDir
+    lateinit var temp: Path
 
     @Test
     fun cakeAndModelViewerResolveSameWinnerForModLooseVsBasePack() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val openedFile = createFile("viewer/tris.md2")
         createFile("rogue/textures/wall.wal", "mod-loose".toByteArray(StandardCharsets.US_ASCII))
         writePak(
@@ -55,7 +54,7 @@ class ResolverParityIntegrationTest {
 
     @Test
     fun cakeAndModelViewerResolveSameWinnerForBaseZip() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val openedFile = createFile("viewer/tris.md2")
         writeZip(
             Path.of(basedir, "baseq2", "assets.pk3"),
@@ -80,7 +79,7 @@ class ResolverParityIntegrationTest {
 
     @Test
     fun cakeAndModelViewerBothReturnNullForMissingAsset() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val openedFile = createFile("viewer/tris.md2")
 
         val cakeResolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
@@ -95,7 +94,7 @@ class ResolverParityIntegrationTest {
     }
 
     private fun createFile(relativePath: String, bytes: ByteArray = byteArrayOf()): File {
-        val file = File(temp.root, relativePath)
+        val file = temp.resolve(relativePath).toFile()
         file.parentFile.mkdirs()
         file.writeBytes(bytes)
         return file
@@ -147,7 +146,7 @@ class ResolverParityIntegrationTest {
     companion object {
         private var app: HeadlessApplication? = null
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupGdx() {
             if (Gdx.app == null) {
@@ -155,7 +154,7 @@ class ResolverParityIntegrationTest {
             }
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun teardownGdx() {
             app?.exit()

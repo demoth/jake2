@@ -1,22 +1,22 @@
 package org.demoth.cake.save
 
 import jake2.qcommon.vfs.DefaultWritableFileSystem
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Files
+import java.nio.file.Path
 
 class CakeJsonSaveStoreTest {
-    @get:Rule
-    val temp = TemporaryFolder()
+    @TempDir
+    lateinit var temp: Path
 
     @Test
     fun writeAndReadRoundTripBySlotAndMod() {
-        val root = temp.root.toPath()
+        val root = temp
         val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
             DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
         })
@@ -39,7 +39,7 @@ class CakeJsonSaveStoreTest {
 
     @Test
     fun readReturnsNullForMissingSlot() {
-        val root = temp.root.toPath()
+        val root = temp
         val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
             DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
         })
@@ -49,7 +49,7 @@ class CakeJsonSaveStoreTest {
 
     @Test
     fun rejectsTraversalSlotName() {
-        val root = temp.root.toPath()
+        val root = temp
         val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
             DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
         })

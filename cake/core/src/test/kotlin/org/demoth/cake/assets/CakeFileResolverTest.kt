@@ -4,15 +4,14 @@ import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
-import org.junit.AfterClass
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.BeforeClass
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -24,12 +23,12 @@ import java.util.LinkedHashMap
 
 class CakeFileResolverTest {
 
-    @get:Rule
-    val temp = TemporaryFolder()
+    @TempDir
+    lateinit var temp: Path
 
     @Test
     fun resolvesExactCaseInGamemod() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val file = createFile("rogue/sound/Alert.wav")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
 
@@ -41,7 +40,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesCaseInsensitiveInGamemod() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val file = createFile("rogue/berserk/RUN.wav")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
 
@@ -54,7 +53,7 @@ class CakeFileResolverTest {
 
     @Test
     fun gamemodOverridesBasemod() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         createFile("baseq2/textures/wall.tga")
         val file = createFile("rogue/textures/wall.tga")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
@@ -68,7 +67,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesFromBasePakWhenLooseFileIsMissing() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         writePak(
             Path.of(basedir, "baseq2", "pak0.pak"),
             linkedMapOf("sound/alert.wav" to "pak-base".toByteArray(StandardCharsets.US_ASCII)),
@@ -84,7 +83,7 @@ class CakeFileResolverTest {
 
     @Test
     fun gamemodPakOverridesBaseLoose() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         createFile("baseq2/textures/wall.tga", "base-loose".toByteArray(StandardCharsets.US_ASCII))
         writePak(
             Path.of(basedir, "rogue", "pak0.pak"),
@@ -100,7 +99,7 @@ class CakeFileResolverTest {
 
     @Test
     fun baseLooseOverridesBasePak() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         createFile("baseq2/config.cfg", "base-loose".toByteArray(StandardCharsets.US_ASCII))
         writePak(
             Path.of(basedir, "baseq2", "pak0.pak"),
@@ -116,7 +115,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesFromZipPackage() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         writeZip(
             Path.of(basedir, "baseq2", "assets.pk3"),
             linkedMapOf("models/items/ammo/tris.md2" to "zip-md2".toByteArray(StandardCharsets.US_ASCII)),
@@ -131,7 +130,7 @@ class CakeFileResolverTest {
 
     @Test
     fun changingGamemodReconfiguresVfsLookup() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         createFile("baseq2/config.cfg", "base".toByteArray(StandardCharsets.US_ASCII))
         createFile("rogue/config.cfg", "rogue".toByteArray(StandardCharsets.US_ASCII))
         val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
@@ -148,7 +147,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesModelPathWithSkinPrefixVariantKey() {
-        val basedir = temp.root.absolutePath
+        val basedir = temp.toString()
         val file = createFile("rogue/players/male/tris.md2")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
 
@@ -178,7 +177,7 @@ class CakeFileResolverTest {
     }
 
     private fun createFile(relativePath: String, bytes: ByteArray = byteArrayOf()): File {
-        val file = File(temp.root, relativePath)
+        val file = temp.resolve(relativePath).toFile()
         file.parentFile.mkdirs()
         file.writeBytes(bytes)
         return file
@@ -230,7 +229,7 @@ class CakeFileResolverTest {
     companion object {
         private var app: HeadlessApplication? = null
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupGdx() {
             if (Gdx.app == null) {
@@ -238,7 +237,7 @@ class CakeFileResolverTest {
             }
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun teardownGdx() {
             app?.exit()

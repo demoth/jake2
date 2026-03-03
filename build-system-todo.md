@@ -54,6 +54,7 @@
 - [x] S30: Convert first JUnit4 TemporaryFolder tests to Jupiter (`@TempDir`) in qcommon VFS tests.
 - [x] S31: Convert `FSCompatibilityTest` to Jupiter annotations (`@BeforeAll`, `@Test`, `@TempDir`).
 - [x] S32: Convert remaining qcommon TemporaryFolder tests to Jupiter (`@TempDir`) and Jupiter assertions.
+- [x] S33: Convert remaining cake/core TemporaryFolder + class lifecycle tests to Jupiter (`@TempDir`, `@BeforeAll/@AfterAll`).
 
 ## Notes from completed steps
 - S4 native compile command that worked:
@@ -119,6 +120,9 @@
   - `./gradlew test --warning-mode all --console=plain`
 - S32 migrated `qcommon` tests (`VfsBackedFileSystemTest`, `DefaultVirtualFileSystemTest`, `DefaultWritableFileSystemTest`, `VfsReadWriteIntegrationTest`) from JUnit4 `@Rule TemporaryFolder` to JUnit5 `@TempDir` and Jupiter assertions; verification commands:
   - `./gradlew :qcommon:test --warning-mode all --console=plain`
+  - `./gradlew test --warning-mode all --console=plain`
+- S33 migrated `cake/core` tests (`CakeFileResolverTest`, `ResolverParityIntegrationTest`, `ModelViewerFileResolverTest`, `CakeJsonSaveStoreTest`) from JUnit4 rules/lifecycle annotations to Jupiter equivalents and kept tests green; verification commands:
+  - `./gradlew :cake:core:test --warning-mode all --console=plain`
   - `./gradlew test --warning-mode all --console=plain`
 
 ## Current Warning Buckets

@@ -4,15 +4,14 @@ import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
-import org.junit.AfterClass
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.BeforeClass
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -24,8 +23,8 @@ import java.util.LinkedHashMap
 
 class ModelViewerFileResolverTest {
 
-    @get:Rule
-    val temp = TemporaryFolder()
+    @TempDir
+    lateinit var temp: Path
 
     @Test
     fun resolvesFromOpenedFileDirectory() {
@@ -70,7 +69,7 @@ class ModelViewerFileResolverTest {
         val baseSkin = createFile("baseq2/models/monsters/berserk/skin.pcx")
         val resolver = ModelViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
-            basedir = temp.root.absolutePath,
+            basedir = temp.toString(),
         )
 
         val resolved = resolver.resolve("models/monsters/berserk/skin.pcx")
@@ -83,12 +82,12 @@ class ModelViewerFileResolverTest {
     fun fallsBackToBasedirPakWhenProvided() {
         val openedFile = createFile("viewer/tris.md2")
         writePak(
-            Path.of(temp.root.absolutePath, "baseq2", "pak0.pak"),
+            temp.resolve("baseq2").resolve("pak0.pak"),
             linkedMapOf("models/monsters/berserk/skin.pcx" to "pak-skin".toByteArray(StandardCharsets.US_ASCII)),
         )
         val resolver = ModelViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
-            basedir = temp.root.absolutePath,
+            basedir = temp.toString(),
         )
 
         val resolved = resolver.resolve("models/monsters/berserk/skin.pcx")
@@ -101,12 +100,12 @@ class ModelViewerFileResolverTest {
     fun fallsBackToBasedirZipWhenProvided() {
         val openedFile = createFile("viewer/tris.md2")
         writeZip(
-            Path.of(temp.root.absolutePath, "baseq2", "assets.pk3"),
+            temp.resolve("baseq2").resolve("assets.pk3"),
             linkedMapOf("textures/e1u1/wall.wal" to "zip-wall".toByteArray(StandardCharsets.US_ASCII)),
         )
         val resolver = ModelViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
-            basedir = temp.root.absolutePath,
+            basedir = temp.toString(),
         )
 
         val resolved = resolver.resolve("textures/e1u1/wall.wal")
@@ -138,7 +137,7 @@ class ModelViewerFileResolverTest {
     }
 
     private fun createFile(relativePath: String): File {
-        val file = File(temp.root, relativePath)
+        val file = temp.resolve(relativePath).toFile()
         file.parentFile.mkdirs()
         file.writeText("")
         return file
@@ -190,7 +189,7 @@ class ModelViewerFileResolverTest {
     companion object {
         private var app: HeadlessApplication? = null
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupGdx() {
             if (Gdx.app == null) {
@@ -198,7 +197,7 @@ class ModelViewerFileResolverTest {
             }
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun teardownGdx() {
             app?.exit()
