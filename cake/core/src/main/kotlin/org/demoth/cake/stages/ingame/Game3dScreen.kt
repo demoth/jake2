@@ -5,14 +5,17 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
+import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.CM
 import jake2.qcommon.Com
@@ -119,6 +122,9 @@ class Game3dScreen(
     private var skyRotationDegreesPerSecond: Float = 0f
     private var skyRotationAngleDegrees: Float = 0f
     private val skyRotationAxis = Vector3()
+    private val postProcessBatch = SpriteBatch()
+    private var sceneFrameBuffer: FrameBuffer? = null
+    private var sceneFrameRegion: TextureRegion? = null
 
     /**
      * Returns best-effort save metadata fields derived from the active configstrings.
@@ -204,9 +210,55 @@ class Game3dScreen(
         skyRotationAngleDegrees %= 360f
     }
 
+    /**
+     * Ensures a color+depth framebuffer matching current window size exists.
+     *
+     * This is the backbone for gameplay postprocessing and captures the whole
+     * `Game3dScreen` frame (world/entities/particles/HUD) before compositing to backbuffer.
+     */
+    private fun ensureSceneFrameBuffer() {
+        val width = Gdx.graphics.width.coerceAtLeast(1)
+        val height = Gdx.graphics.height.coerceAtLeast(1)
+        val current = sceneFrameBuffer
+        if (current != null && current.width == width && current.height == height) {
+            return
+        }
+
+        current?.dispose()
+        sceneFrameBuffer = null
+        sceneFrameRegion = null
+
+        try {
+            val recreated = FrameBuffer(Pixmap.Format.RGBA8888, width, height, true)
+            sceneFrameBuffer = recreated
+            sceneFrameRegion = TextureRegion(recreated.colorBufferTexture).apply {
+                // LibGDX FBO color textures are upside-down in screen space.
+                flip(false, true)
+            }
+        } catch (e: Exception) {
+            Com.Warn("Failed to initialize scene framebuffer, falling back to direct render: ${e.message}\n")
+            sceneFrameBuffer = null
+            sceneFrameRegion = null
+        }
+    }
+
+    private fun presentSceneFrame() {
+        val region = sceneFrameRegion ?: return
+        val width = Gdx.graphics.width.toFloat()
+        val height = Gdx.graphics.height.toFloat()
+        postProcessBatch.projectionMatrix.setToOrtho2D(0f, 0f, width, height)
+        postProcessBatch.use {
+            it.draw(region, 0f, 0f, width, height)
+        }
+    }
+
     override fun render(delta: Float) {
         if (!precached)
             return
+
+        ensureSceneFrameBuffer()
+        val frameBuffer = sceneFrameBuffer
+        frameBuffer?.begin()
 
         // Keep depth/color buffers deterministic per frame.
         // This avoids stale depth values leaking between passes when custom world batching is enabled.
@@ -392,6 +444,11 @@ class Game3dScreen(
             }
         }
         audioSystem.endFrame()
+
+        if (frameBuffer != null) {
+            frameBuffer.end()
+            presentSceneFrame()
+        }
     }
 
     private fun logBatchDiagnostics(
@@ -624,6 +681,10 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        sceneFrameBuffer?.dispose()
+        sceneFrameBuffer = null
+        sceneFrameRegion = null
+        postProcessBatch.dispose()
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
         worldVisibilityMaskTracker = null

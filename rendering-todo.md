@@ -64,7 +64,7 @@ Goal:
 
 Planned phases:
 
-- [ ] Step 1: add scene framebuffer backbone.
+- [x] Step 1: add scene framebuffer backbone.
   - Render gameplay frame to offscreen color+depth target.
   - Composite offscreen texture to backbuffer every frame (always-on path for simplicity).
   - Keep fallback path (direct render) only as defensive error handling.
