@@ -16,7 +16,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
@@ -123,6 +125,7 @@ class Game3dScreen(
     private var skyRotationAngleDegrees: Float = 0f
     private val skyRotationAxis = Vector3()
     private val postProcessBatch = SpriteBatch()
+    private val postProcessShader: ShaderProgram
     private var sceneFrameBuffer: FrameBuffer? = null
     private var sceneFrameRegion: TextureRegion? = null
 
@@ -152,6 +155,7 @@ class Game3dScreen(
         bspLightmapShader = BspLightmapShader(assetManager).apply { init() }
         val md2Shader = initializeMd2Shader(assetManager)
         modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
+        postProcessShader = createPostProcessShader()
     }
 
     // todo: a lot of hacks/quirks - explain & document
@@ -247,9 +251,29 @@ class Game3dScreen(
         val width = Gdx.graphics.width.toFloat()
         val height = Gdx.graphics.height.toFloat()
         postProcessBatch.projectionMatrix.setToOrtho2D(0f, 0f, width, height)
+        val blend = entityManager.currentFrame.playerstate.blend
+        val previousShader = postProcessBatch.shader
+        postProcessBatch.shader = postProcessShader
         postProcessBatch.use {
+            postProcessShader.setUniformi("u_sceneTexture", 0)
+            postProcessShader.setUniform4fv("u_blendColor", blend, 0, 4)
+            postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.postVignetteEnabled()) 1f else 0f)
             it.draw(region, 0f, 0f, width, height)
         }
+        postProcessBatch.shader = previousShader
+    }
+
+    private fun createPostProcessShader(): ShaderProgram {
+        val vertexSource: String = assetManager.getLoaded(postProcessVertexShader)
+        val fragmentSource: String = assetManager.getLoaded(postProcessFragmentShader)
+        val shader = ShaderProgram(
+            vertexSource,
+            fragmentSource,
+        )
+        if (!shader.isCompiled) {
+            throw GdxRuntimeException("Failed to compile postprocess shader: ${shader.log}")
+        }
+        return shader
     }
 
     override fun render(delta: Float) {
@@ -684,6 +708,7 @@ class Game3dScreen(
         sceneFrameBuffer?.dispose()
         sceneFrameBuffer = null
         sceneFrameRegion = null
+        postProcessShader.dispose()
         postProcessBatch.dispose()
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null

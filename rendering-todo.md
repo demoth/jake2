@@ -69,7 +69,7 @@ Planned phases:
   - Composite offscreen texture to backbuffer every frame (always-on path for simplicity).
   - Keep fallback path (direct render) only as defensive error handling.
 
-- [ ] Step 2: add vignette-style full-screen blend (default enabled).
+- [x] Step 2: add vignette-style full-screen blend (default enabled).
   - Consume `playerstate.blend` color/alpha.
   - Use radial weighting so blend is stronger near edges (Cake style).
   - Keep runtime toggle (`r_post_vignette`, default `1`).

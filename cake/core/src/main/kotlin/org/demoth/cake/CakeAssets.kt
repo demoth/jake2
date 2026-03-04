@@ -14,3 +14,6 @@ const val particlePointVertexShader = "shaders/particle_point.vert"
 const val particlePointFragmentShader = "shaders/particle_point.frag"
 const val particleBillboardVertexShader = "shaders/particle_billboard.vert"
 const val particleBillboardFragmentShader = "shaders/particle_billboard.frag"
+
+const val postProcessVertexShader = "shaders/post_process.vert"
+const val postProcessFragmentShader = "shaders/post_process.frag"
