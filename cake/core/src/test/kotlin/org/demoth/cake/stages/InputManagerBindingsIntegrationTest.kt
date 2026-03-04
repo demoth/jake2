@@ -1,6 +1,7 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.Input
+import jake2.qcommon.Defines.BUTTON_ANY
 import jake2.qcommon.Defines.BUTTON_USE
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.YAW
@@ -88,6 +89,20 @@ class InputManagerBindingsIntegrationTest {
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame())
         assertTrue((msg.newCmd.buttons.toInt() and BUTTON_USE) != 0)
+        assertTrue((msg.newCmd.buttons.toInt() and BUTTON_ANY) != 0)
+    }
+
+    @Test
+    fun movementBindingSetsButtonAnyBit() {
+        val bindings = ClientBindings()
+        bindings.clearBindings()
+        bindings.setBindingByName("x", "+forward")
+
+        val input = InputManager(bindings = bindings)
+        input.keyDown(Input.Keys.X)
+
+        val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame())
+        assertTrue((msg.newCmd.buttons.toInt() and BUTTON_ANY) != 0)
     }
 
     @Test

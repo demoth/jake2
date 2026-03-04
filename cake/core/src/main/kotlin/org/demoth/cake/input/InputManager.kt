@@ -3,6 +3,7 @@ package org.demoth.cake.input
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import jake2.qcommon.Defines.BUTTON_ATTACK
+import jake2.qcommon.Defines.BUTTON_ANY
 import jake2.qcommon.Defines.BUTTON_USE
 import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.Defines.PM_NORMAL
@@ -41,7 +42,7 @@ import kotlin.math.abs
  * Invariants:
  * - Immediate controls (`+forward`, `+attack`, etc.) are represented as action counters.
  * - Opposing movement directions cancel on each axis.
- * - `+use` sets `BUTTON_USE`; `+attack` sets `BUTTON_ATTACK`.
+ * - `+use` sets `BUTTON_USE`; `+attack` sets `BUTTON_ATTACK`; any immediate action sets `BUTTON_ANY`.
  * - `clearInputState()` must be called when input routing/context changes to avoid stuck state.
  */
 class InputManager(
@@ -101,6 +102,10 @@ class InputManager(
 
         if (isActive(ImmediateAction.USE)) {
             cmd.buttons = cmd.buttons or BUTTON_USE.toByte()
+        }
+
+        if (hasAnyActiveImmediateAction()) {
+            cmd.buttons = cmd.buttons or BUTTON_ANY.toByte()
         }
 
         // pressing opposite movement keys cancels movement (same for all axes)
@@ -175,6 +180,15 @@ class InputManager(
     }
 
     private fun isActive(action: ImmediateAction): Boolean = immediateStates[action.ordinal] > 0
+
+    private fun hasAnyActiveImmediateAction(): Boolean {
+        for (state in immediateStates) {
+            if (state > 0) {
+                return true
+            }
+        }
+        return false
+    }
 
     private fun applyPendingMouseLook() {
         if (mouseWasMoved) {
