@@ -54,6 +54,35 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
 
+### Postprocessing Migration Plan (Cake-styled)
+
+Goal:
+- Introduce a dedicated scene framebuffer pass for gameplay rendering (`Game3dScreen`) and run postprocessing
+  on top of the composed gameplay frame (world + entities + particles + HUD).
+- Keep menu/console untouched by postprocessing by applying effects only inside `Game3dScreen`.
+- Allow distinct Cake visuals (not strict 1:1 legacy clone), while preserving gameplay readability.
+
+Planned phases:
+
+- [ ] Step 1: add scene framebuffer backbone.
+  - Render gameplay frame to offscreen color+depth target.
+  - Composite offscreen texture to backbuffer every frame (always-on path for simplicity).
+  - Keep fallback path (direct render) only as defensive error handling.
+
+- [ ] Step 2: add vignette-style full-screen blend (default enabled).
+  - Consume `playerstate.blend` color/alpha.
+  - Use radial weighting so blend is stronger near edges (Cake style).
+  - Keep runtime toggle (`r_post_vignette`, default `1`).
+
+- [ ] Step 3: add underwater warping (default enabled).
+  - Trigger when `RDF_UNDERWATER` is active.
+  - Apply subtle screen-space UV distortion over composed gameplay image.
+  - Keep runtime toggle (`r_underwater_warp`, default `1`).
+
+Validation target:
+- Effects apply to gameplay including HUD.
+- Menu and console remain unaffected.
+
 ### BSP Draw-Call Optimization Migration (Q2PRO-style)
 
 Current migration target follows Q2PRO brush-world batching ideas:
