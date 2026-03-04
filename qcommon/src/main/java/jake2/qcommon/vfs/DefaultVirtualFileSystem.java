@@ -1,9 +1,15 @@
 package jake2.qcommon.vfs;
 
+import jake2.qcommon.Com;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
@@ -17,7 +23,6 @@ import java.util.stream.Collectors;
 
 /**
  * Default read-side VFS implementation.
- *
  * Layer precedence follows Q2PRO-style search-path ordering:
  * mod loose, mod pack, base loose, base pack, engine fallback.
  */
@@ -146,9 +151,6 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         }
 
         Path resolvedPath = resolvePackagePath(packagePath);
-        if (resolvedPath == null) {
-            return VfsResult.fail("Invalid package path: " + packagePath);
-        }
         if (!Files.isRegularFile(resolvedPath)) {
             return VfsResult.fail("Package file not found: " + packagePath);
         }
@@ -263,7 +265,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 .filter(e -> e.getValue().size() > 1)
                 .map(Map.Entry::getKey)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> lines = new ArrayList<>();
         for (String key : keys) {
@@ -464,41 +466,41 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private void indexLooseMount(LooseMount mount) {
         final int[] indexedCount = new int[]{0};
         try {
-            Files.walk(mount.root).filter(Files::isRegularFile).forEach(path -> {
-                Path relativePath = mount.root.relativize(path);
-                String relative = relativePath.toString().replace('\\', '/');
-                String normalized = normalizer.normalizeOrNull(relative);
-                if (normalized == null) {
-                    return;
+            Files.walkFileTree(mount.root, new SimpleFileVisitor<>() {
+                @NotNull
+                @Override
+                public FileVisitResult visitFile(@NotNull Path path, @NotNull BasicFileAttributes attrs) {
+                    if (!attrs.isRegularFile()) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    Path relativePath = mount.root.relativize(path);
+                    String relative = relativePath.toString().replace('\\', '/');
+                    String normalized = normalizer.normalizeOrNull(relative);
+                    if (normalized == null) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    Map<String, VfsEntry> layerMap = perLayerIndex.get(mount.layer);
+                    try {
+                        VfsSource source = new VfsSource(VfsSourceType.DIRECTORY, mount.root, relative, null, false, false);
+                        VfsEntry vfsEntry = new VfsEntry(normalized, relative, mount.layer, mount.priority, source, Files.size(path), Files.getLastModifiedTime(path).toMillis());
+                        addAllEntry(vfsEntry);
+                        indexedCount[0]++;
+                        layerMap.putIfAbsent(normalized, vfsEntry);
+                    } catch (IOException e) {
+                        Com.Warn("Failed to index file: " + normalized + ", " + e.getMessage());
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-                Map<String, VfsEntry> layerMap = perLayerIndex.get(mount.layer);
-                try {
-                    VfsSource source = new VfsSource(
-                            VfsSourceType.DIRECTORY,
-                            mount.root,
-                            relative,
-                            null,
-                            false,
-                            false
-                    );
-                    VfsEntry vfsEntry = new VfsEntry(
-                            normalized,
-                            relative,
-                            mount.layer,
-                            mount.priority,
-                            source,
-                            Files.size(path),
-                            Files.getLastModifiedTime(path).toMillis()
-                    );
-                    addAllEntry(vfsEntry);
-                    indexedCount[0]++;
-                    layerMap.putIfAbsent(normalized, vfsEntry);
-                } catch (IOException ignored) {
-                    // Broken file entry should not fail full index build.
+
+                @NotNull
+                @Override
+                public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException exc) {
+                    Com.Warn("Failed to visit file: " + file + ", " + exc.getMessage());
+                    return FileVisitResult.CONTINUE;
                 }
             });
-        } catch (IOException ignored) {
-            // Mount may become unreadable at runtime; skip it from this index pass.
+        } catch (IOException | SecurityException e) {
+            Com.Warn("Failed to index mount: " + mount.layer + ", " + e.getMessage());
         }
         mount.indexedFileCount = indexedCount[0];
     }
@@ -507,23 +509,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         Map<String, VfsEntry> layerMap = perLayerIndex.get(mount.layer);
         int indexedCount = 0;
         for (PackEntry packEntry : mount.entriesByNormalizedPath.values()) {
-            VfsSource source = new VfsSource(
-                    VfsSourceType.PACKAGE_ENTRY,
-                    mount.packagePath,
-                    packEntry.displayPath,
-                    mount.reader.type(),
-                    true,
-                    isProtectedPack(mount.packagePath)
-            );
-            VfsEntry entry = new VfsEntry(
-                    packEntry.normalizedPath,
-                    packEntry.displayPath,
-                    mount.layer,
-                    mount.priority,
-                    source,
-                    packEntry.length,
-                    mount.modifiedTimeMillis
-            );
+            VfsSource source = new VfsSource(VfsSourceType.PACKAGE_ENTRY, mount.packagePath, packEntry.displayPath, mount.reader.type(), true, isProtectedPack(mount.packagePath));
+            VfsEntry entry = new VfsEntry(packEntry.normalizedPath, packEntry.displayPath, mount.layer, mount.priority, source, packEntry.length, mount.modifiedTimeMillis);
             addAllEntry(entry);
             indexedCount++;
             if (layerMap.containsKey(packEntry.normalizedPath)) {
@@ -614,6 +601,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return found ? min - 1 : 0;
     }
 
+    /**
+     * Pack that follow pak\d+.pak name are considered protected (part of a game distribution)
+     * @param packagePath
+     * @return
+     */
     private static boolean isProtectedPack(Path packagePath) {
         String name = fileName(packagePath).toLowerCase();
         if (!name.startsWith("pak")) {
