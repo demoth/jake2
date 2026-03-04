@@ -4,7 +4,7 @@ precision mediump float;
 
 varying vec2 v_uv;
 
-uniform sampler2D u_sceneTexture;
+uniform sampler2D u_texture;
 uniform vec4 u_blendColor;
 uniform float u_vignetteEnabled;
 uniform float u_underwaterEnabled;
@@ -24,7 +24,7 @@ void main() {
         sceneUv = clamp(sceneUv, vec2(0.001, 0.001), vec2(0.999, 0.999));
     }
 
-    vec4 scene = texture2D(u_sceneTexture, sceneUv);
+    vec4 scene = texture2D(u_texture, sceneUv);
 
     // Cake-style blend: preserve center readability and bias tint towards screen edges.
     float distanceToCenter = distance(v_uv, vec2(0.5, 0.5));

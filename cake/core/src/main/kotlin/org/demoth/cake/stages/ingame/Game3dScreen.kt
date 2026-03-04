@@ -258,7 +258,6 @@ class Game3dScreen(
         val previousShader = postProcessBatch.shader
         postProcessBatch.shader = postProcessShader
         postProcessBatch.use {
-            postProcessShader.setUniformi("u_sceneTexture", 0)
             postProcessShader.setUniform4fv("u_blendColor", blend, 0, 4)
             postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.postVignetteEnabled()) 1f else 0f)
             postProcessShader.setUniformf("u_underwaterEnabled", if (underwaterPostEnabled) 1f else 0f)
