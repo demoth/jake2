@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 class GameUiStyleFactoryTest {
     @Test
-    fun usesEngineStyleForUnknownGame() {
+    fun fallsBackToEngineStyleForUnknownGameWhenIdTech2AssetsCannotBeLoaded() {
         val style = GameUiStyleFactory.create(
             gameName = "unknown",
             assetManager = AssetManager(),

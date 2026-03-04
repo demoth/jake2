@@ -43,16 +43,16 @@ Render frame
 ## Decision Log
 Newest first.
 
-### Decision: Keep style selection in `GameUiStyleFactory` with IdTech2 game-name gate
-- Context: Cake still has no generic game-install registry.
+### Decision: Attempt IdTech2 HUD style for every game/mod, then fallback
+- Context: map/content-only mods often keep baseq2 HUD assets and should inherit them automatically.
 - Options considered:
-1. Add registry-driven style binding now.
-2. Keep explicit IdTech2 game-name check for now.
-- Chosen Option & Rationale: Use a small hardcoded gate (`baseq2`, `rogue`, `xatrix`, `ctf`) until generic game registration exists.
-- Consequences: adding another IdTech2-compatible game/mod requires code change in factory.
+1. Keep explicit IdTech2 game-name gate.
+2. Always try IdTech2 HUD assets via resolver mod/base layering and fallback only on missing assets.
+- Chosen Option & Rationale: Option 2 avoids false fallback to engine skin for unknown-but-IdTech2-compatible mods.
+- Consequences: unknown mods can still use IdTech2 HUD immediately when `pics/conchars.pcx` and number glyphs are available via mod or baseq2.
 - Status: accepted.
-- References: thread notes about future generic engine and deferred game installation model.
-- Definition of Done: non-IdTech2 game names use `EngineUiStyle`; IdTech2 set uses `IdTech2UiStyle`.
+- References: thread issue where map-only mods resolved to engine skin despite baseq2-compatible assets.
+- Definition of Done: style creation first attempts `pics/conchars.pcx` + `num_*`/`anum_*`, then falls back to `EngineUiStyle` only if that load path fails.
 
 ### Decision: Acquire/release style textures per style instance
 - Context: style ownership must follow HUD/screen lifecycle without unloading assets still in use by another owner.
@@ -88,9 +88,9 @@ Newest first.
 - Definition of Done: `hnum`, `anum`, `rnum`, and `num` branches render with picture glyphs, including alt/red style.
 
 ## Quirks & Workarounds
-- Supported IdTech2 game names are currently hardcoded in factory.
-- Why: no game/style registry exists yet.
-- How to work with it: update `IDTECH2_GAME_NAMES` when enabling another IdTech2-compatible title/mod.
+- Unknown/non-idtech2 games may still trigger IdTech2 style attempt first.
+- Why: content compatibility is determined by actual asset presence, not name gate.
+- How to work with it: if IdTech2 HUD assets are unavailable, factory falls back to `EngineUiStyle` automatically.
 - Removal plan: replace with registry-driven mapping when game-install configuration exists.
 
 - Conchars transparency depends on decoded texture data from Cake PCX pipeline.

@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Com
 import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
-private val IDTECH2_GAME_NAMES = setOf("baseq2", "rogue", "xatrix", "ctf")
 private const val CONCHARS_PATH = "pics/conchars.pcx"
 private const val HUD_NUM_STYLES = 2
 private const val HUD_NUM_FRAMES = 11
@@ -85,10 +84,8 @@ object GameUiStyleFactory {
         assetManager: AssetManager,
         skin: Skin,
     ): GameUiStyle {
-        if (!IDTECH2_GAME_NAMES.contains(gameName.lowercase())) {
-            return EngineUiStyle(skin)
-        }
-
+        // Always try IdTech2 HUD assets first. CakeFileResolver resolves them through
+        // mod -> baseq2 layers, so for example, map-only mods inherit baseq2 HUD assets automatically.
         val acquiredPaths = mutableListOf<String>()
         return try {
             val concharsTexture = loadTexture(assetManager, CONCHARS_PATH, acquiredPaths)
@@ -108,7 +105,7 @@ object GameUiStyleFactory {
             )
         } catch (e: Exception) {
             unloadTextures(assetManager, acquiredPaths)
-            Com.Warn("Failed to load IdTech2 UI style, using engine default style: ${e.message}")
+            Com.Warn("Failed to load IdTech2 UI style for game '$gameName', using engine default style: ${e.message}")
             EngineUiStyle(skin)
         }
     }
