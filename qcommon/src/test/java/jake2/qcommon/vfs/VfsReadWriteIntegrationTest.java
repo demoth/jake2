@@ -46,16 +46,16 @@ public class VfsReadWriteIntegrationTest {
         byte[] saveData = "autosave".getBytes(StandardCharsets.US_ASCII);
 
         VfsResult<VfsWritableHandle> openedWrite = writable.openWrite("save/current/server_mapcmd.ssv", VfsWriteOptions.TRUNCATE);
-        assertTrue(openedWrite.success);
-        try (VfsWritableHandle handle = openedWrite.value) {
+        assertTrue(openedWrite.success());
+        try (VfsWritableHandle handle = openedWrite.value()) {
             handle.outputStream().write(saveData);
         }
 
         assertFalse(readFs.exists("save/current/server_mapcmd.ssv"));
 
         VfsResult<VfsReadableHandle> openedRead = writable.openReadReal("save/current/server_mapcmd.ssv", VfsOpenOptions.DEFAULT);
-        assertTrue(openedRead.success);
-        try (VfsReadableHandle handle = openedRead.value) {
+        assertTrue(openedRead.success());
+        try (VfsReadableHandle handle = openedRead.value()) {
             assertArrayEquals(saveData, handle.inputStream().readAllBytes());
         }
     }

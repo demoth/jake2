@@ -41,7 +41,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public synchronized void configure(VfsConfig config) {
         this.config = Objects.requireNonNull(config, "config");
-        this.normalizer = new VfsPathNormalizer(config.caseSensitive);
+        this.normalizer = new VfsPathNormalizer(config.caseSensitive());
         rebuildAll();
     }
 
@@ -60,7 +60,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         }
 
         VfsLookupOptions effective = options == null ? VfsLookupOptions.DEFAULT : options;
-        if (effective.gameDataOnly && entry.layer == VfsLayer.ENGINE_FALLBACK) {
+        if (effective.gameDataOnly() && entry.layer() == VfsLayer.ENGINE_FALLBACK) {
             return VfsLookupResult.missing();
         }
 
@@ -70,11 +70,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public synchronized VfsResult<byte[]> loadBytes(String logicalPath, VfsLookupOptions options) {
         VfsResult<VfsReadableHandle> opened = openRead(logicalPath, VfsOpenOptions.DEFAULT);
-        if (!opened.success) {
-            return VfsResult.fail(opened.error);
+        if (!opened.success()) {
+            return VfsResult.fail(opened.error());
         }
 
-        try (VfsReadableHandle handle = opened.value; InputStream stream = handle.inputStream()) {
+        try (VfsReadableHandle handle = opened.value(); InputStream stream = handle.inputStream()) {
             return VfsResult.ok(stream.readAllBytes());
         } catch (IOException e) {
             return VfsResult.fail("Failed to load bytes: " + e.getMessage());
@@ -84,30 +84,30 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public synchronized VfsResult<VfsReadableHandle> openRead(String logicalPath, VfsOpenOptions options) {
         VfsLookupResult lookup = resolve(logicalPath, VfsLookupOptions.DEFAULT);
-        if (!lookup.found) {
+        if (!lookup.found()) {
             return VfsResult.fail("Resource not found: " + logicalPath);
         }
 
         VfsOpenOptions effective = options == null ? VfsOpenOptions.DEFAULT : options;
-        if (effective.realFilesOnly && lookup.entry.source.type != VfsSourceType.DIRECTORY) {
+        if (effective.realFilesOnly() && lookup.entry().source().type() != VfsSourceType.DIRECTORY) {
             return VfsResult.fail("Resource is not a real file: " + logicalPath);
         }
 
-        if (lookup.entry.source.type == VfsSourceType.DIRECTORY) {
-            Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
+        if (lookup.entry().source().type() == VfsSourceType.DIRECTORY) {
+            Path sourcePath = lookup.entry().source().containerPath().resolve(lookup.entry().source().entryPath());
             try {
-                return VfsResult.ok(new PathReadableHandle(sourcePath, lookup.entry.size));
+                return VfsResult.ok(new PathReadableHandle(sourcePath, lookup.entry().size()));
             } catch (IOException e) {
                 return VfsResult.fail("Failed to open resource: " + e.getMessage());
             }
         }
 
-        if (lookup.entry.source.type == VfsSourceType.PACKAGE_ENTRY) {
-            PackageMount mount = packageMountByPath.get(lookup.entry.source.containerPath);
+        if (lookup.entry().source().type() == VfsSourceType.PACKAGE_ENTRY) {
+            PackageMount mount = packageMountByPath.get(lookup.entry().source().containerPath());
             if (mount == null) {
-                return VfsResult.fail("Package is no longer mounted: " + lookup.entry.source.containerPath);
+                return VfsResult.fail("Package is no longer mounted: " + lookup.entry().source().containerPath());
             }
-            PackEntry packEntry = mount.entriesByNormalizedPath.get(lookup.entry.normalizedPath);
+            PackEntry packEntry = mount.entriesByNormalizedPath.get(lookup.entry().normalizedPath());
             if (packEntry == null) {
                 return VfsResult.fail("Package entry not found: " + logicalPath);
             }
@@ -119,26 +119,26 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             }
         }
 
-        return VfsResult.fail("Unsupported source type: " + lookup.entry.source.type);
+        return VfsResult.fail("Unsupported source type: " + lookup.entry().source().type());
     }
 
     @Override
     public synchronized boolean exists(String logicalPath, VfsLookupOptions options) {
-        return resolve(logicalPath, options).found;
+        return resolve(logicalPath, options).found();
     }
 
     @Override
     public synchronized void setGameMod(String gameMod) {
         ensureConfigured();
         config = new VfsConfig(
-                config.basedir,
-                config.baseGame,
+                config.basedir(),
+                config.baseGame(),
                 gameMod,
-                config.serverMode,
-                config.enableEngineFallback,
-                config.caseSensitive,
-                config.extraRoots,
-                config.supportedPackExtensions
+                config.serverMode(),
+                config.enableEngineFallback(),
+                config.caseSensitive(),
+                config.extraRoots(),
+                config.supportedPackExtensions()
         );
         rebuildAll();
     }
@@ -164,14 +164,14 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         VfsLayer layer = detectRuntimeMountLayer(resolvedPath);
         int priority = nextRuntimeMountPriority(layer);
         VfsResult<PackageMount> mountResult = createPackageMount(layer, resolvedPath, priority);
-        if (!mountResult.success) {
-            return VfsResult.fail(mountResult.error);
+        if (!mountResult.success()) {
+            return VfsResult.fail(mountResult.error());
         }
 
         // New runtime mounts are inserted at layer head to make hot content immediately visible.
-        insertPackageMount(mountResult.value, true);
+        insertPackageMount(mountResult.value(), true);
         rebuildIndexes();
-        return VfsResult.ok(mountResult.value.id);
+        return VfsResult.ok(mountResult.value().id);
     }
 
     @Override
@@ -314,9 +314,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         looseMounts.clear();
         int priority = 0;
 
-        final Path basedir = config.basedir;
-        final String baseGame = sanitizeSegment(config.baseGame);
-        final String gameMod = sanitizeSegment(config.gameMod);
+        final Path basedir = config.basedir();
+        final String baseGame = sanitizeSegment(config.baseGame());
+        final String gameMod = sanitizeSegment(config.gameMod());
 
         if (basedir != null && gameMod != null) {
             addLooseMountIfDirectory(VfsLayer.MOD_LOOSE, basedir.resolve(gameMod), priority++);
@@ -326,8 +326,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             addLooseMountIfDirectory(VfsLayer.BASE_LOOSE, basedir.resolve(baseGame), priority++);
         }
 
-        if (!config.serverMode && config.enableEngineFallback) {
-            for (Path extraRoot : config.extraRoots) {
+        if (!config.serverMode() && config.enableEngineFallback()) {
+            for (Path extraRoot : config.extraRoots()) {
                 addLooseMountIfDirectory(VfsLayer.ENGINE_FALLBACK, extraRoot, priority++);
             }
         }
@@ -337,9 +337,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         packageMounts.clear();
         packageMountByPath.clear();
 
-        final Path basedir = config.basedir;
-        final String baseGame = sanitizeSegment(config.baseGame);
-        final String gameMod = sanitizeSegment(config.gameMod);
+        final Path basedir = config.basedir();
+        final String baseGame = sanitizeSegment(config.baseGame());
+        final String gameMod = sanitizeSegment(config.gameMod());
 
         if (basedir != null && gameMod != null) {
             addPackageMountsFromDirectory(VfsLayer.MOD_PACK, basedir.resolve(gameMod));
@@ -358,10 +358,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         int priority = 0;
         for (Path packageFile : packageFiles) {
             VfsResult<PackageMount> mountResult = createPackageMount(layer, packageFile, priority++);
-            if (!mountResult.success) {
+            if (!mountResult.success()) {
                 continue;
             }
-            insertPackageMount(mountResult.value, false);
+            insertPackageMount(mountResult.value(), false);
         }
     }
 
@@ -522,23 +522,23 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     private void addAllEntry(VfsEntry entry) {
-        allEntriesByPath.computeIfAbsent(entry.normalizedPath, ignored -> new ArrayList<>()).add(entry);
+        allEntriesByPath.computeIfAbsent(entry.normalizedPath(), ignored -> new ArrayList<>()).add(entry);
     }
 
     private String describeSource(VfsEntry entry) {
-        if (entry.source.type == VfsSourceType.DIRECTORY) {
-            return entry.layer + ":dir:" + entry.source.containerPath + "/" + entry.source.entryPath;
+        if (entry.source().type() == VfsSourceType.DIRECTORY) {
+            return entry.layer() + ":dir:" + entry.source().containerPath() + "/" + entry.source().entryPath();
         }
-        return entry.layer + ":" + entry.source.packType + ":" + entry.source.containerPath + "::" + entry.source.entryPath;
+        return entry.layer() + ":" + entry.source().packType() + ":" + entry.source().containerPath() + "::" + entry.source().entryPath();
     }
 
     private PackReader createPackReader(Path packagePath) throws IOException {
         String extension = extension(packagePath);
         if ("pak".equals(extension)) {
-            return new PakPackReader(packagePath, config.caseSensitive);
+            return new PakPackReader(packagePath, config.caseSensitive());
         }
         if ("pk2".equals(extension) || "pk3".equals(extension) || "pkz".equals(extension) || "zip".equals(extension)) {
-            return new ZipPackReader(packagePath, config.caseSensitive);
+            return new ZipPackReader(packagePath, config.caseSensitive());
         }
         throw new IOException("Package format backend is not implemented yet for extension: " + extension);
     }
@@ -548,7 +548,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         if (extension == null) {
             return false;
         }
-        for (String supported : config.supportedPackExtensions) {
+        for (String supported : config.supportedPackExtensions()) {
             String candidate = supported == null ? "" : supported.trim().toLowerCase();
             if (candidate.startsWith(".")) {
                 candidate = candidate.substring(1);
@@ -562,31 +562,31 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     private Path resolvePackagePath(String packagePath) {
         Path path = Path.of(packagePath);
-        if (!path.isAbsolute() && config.basedir != null) {
-            path = config.basedir.resolve(path);
+        if (!path.isAbsolute() && config.basedir() != null) {
+            path = config.basedir().resolve(path);
         }
         return path.toAbsolutePath().normalize();
     }
 
     private VfsLayer detectRuntimeMountLayer(Path packagePath) {
         Path absolute = packagePath.toAbsolutePath().normalize();
-        Path modRoot = rootPathForSegment(config.gameMod);
+        Path modRoot = rootPathForSegment(config.gameMod());
         if (modRoot != null && absolute.startsWith(modRoot)) {
             return VfsLayer.MOD_PACK;
         }
-        Path baseRoot = rootPathForSegment(config.baseGame);
+        Path baseRoot = rootPathForSegment(config.baseGame());
         if (baseRoot != null && absolute.startsWith(baseRoot)) {
             return VfsLayer.BASE_PACK;
         }
-        return sanitizeSegment(config.gameMod) != null ? VfsLayer.MOD_PACK : VfsLayer.BASE_PACK;
+        return sanitizeSegment(config.gameMod()) != null ? VfsLayer.MOD_PACK : VfsLayer.BASE_PACK;
     }
 
     private Path rootPathForSegment(String segment) {
         String sanitized = sanitizeSegment(segment);
-        if (config.basedir == null || sanitized == null) {
+        if (config.basedir() == null || sanitized == null) {
             return null;
         }
-        return config.basedir.resolve(sanitized).toAbsolutePath().normalize();
+        return config.basedir().resolve(sanitized).toAbsolutePath().normalize();
     }
 
     private int nextRuntimeMountPriority(VfsLayer layer) {

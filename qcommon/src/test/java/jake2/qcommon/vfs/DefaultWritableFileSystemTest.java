@@ -22,14 +22,14 @@ public class DefaultWritableFileSystemTest {
 
         byte[] written = "save-data".getBytes(StandardCharsets.UTF_8);
         VfsResult<VfsWritableHandle> write = wfs.openWrite("save/current/game.json", VfsWriteOptions.TRUNCATE);
-        assertTrue(write.success);
-        try (VfsWritableHandle handle = write.value) {
+        assertTrue(write.success());
+        try (VfsWritableHandle handle = write.value()) {
             handle.outputStream().write(written);
         }
 
         VfsResult<VfsReadableHandle> read = wfs.openReadReal("save/current/game.json", VfsOpenOptions.DEFAULT);
-        assertTrue(read.success);
-        try (VfsReadableHandle handle = read.value) {
+        assertTrue(read.success());
+        try (VfsReadableHandle handle = read.value()) {
             assertArrayEquals(written, handle.inputStream().readAllBytes());
         }
     }
@@ -40,19 +40,19 @@ public class DefaultWritableFileSystemTest {
         DefaultWritableFileSystem wfs = new DefaultWritableFileSystem(root);
 
         VfsResult<VfsWritableHandle> first = wfs.openWrite("config.cfg", VfsWriteOptions.TRUNCATE);
-        assertTrue(first.success);
-        try (VfsWritableHandle handle = first.value) {
+        assertTrue(first.success());
+        try (VfsWritableHandle handle = first.value()) {
             handle.outputStream().write("a".getBytes(StandardCharsets.UTF_8));
         }
         VfsResult<VfsWritableHandle> second = wfs.openWrite("config.cfg", VfsWriteOptions.APPEND);
-        assertTrue(second.success);
-        try (VfsWritableHandle handle = second.value) {
+        assertTrue(second.success());
+        try (VfsWritableHandle handle = second.value()) {
             handle.outputStream().write("b".getBytes(StandardCharsets.UTF_8));
         }
 
         VfsResult<VfsReadableHandle> read = wfs.openReadReal("config.cfg", VfsOpenOptions.DEFAULT);
-        assertTrue(read.success);
-        try (VfsReadableHandle handle = read.value) {
+        assertTrue(read.success());
+        try (VfsReadableHandle handle = read.value()) {
             assertArrayEquals("ab".getBytes(StandardCharsets.UTF_8), handle.inputStream().readAllBytes());
         }
     }
@@ -64,7 +64,7 @@ public class DefaultWritableFileSystemTest {
 
         VfsResult<VfsWritableHandle> result = wfs.openWrite("../secrets.txt", VfsWriteOptions.TRUNCATE);
 
-        assertFalse(result.success);
+        assertFalse(result.success());
     }
 
     @Test

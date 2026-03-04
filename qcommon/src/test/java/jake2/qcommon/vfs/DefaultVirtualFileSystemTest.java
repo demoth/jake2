@@ -37,9 +37,9 @@ public class DefaultVirtualFileSystemTest {
 
         VfsResult<byte[]> bytes = vfs.loadBytes("textures/wall.wal", VfsLookupOptions.DEFAULT);
 
-        assertTrue(bytes.success);
-        assertArrayEquals("mod".getBytes(StandardCharsets.UTF_8), bytes.value);
-        assertEquals(VfsLayer.MOD_LOOSE, vfs.resolve("textures/wall.wal", VfsLookupOptions.DEFAULT).entry.layer);
+        assertTrue(bytes.success());
+        assertArrayEquals("mod".getBytes(StandardCharsets.UTF_8), bytes.value());
+        assertEquals(VfsLayer.MOD_LOOSE, vfs.resolve("textures/wall.wal", VfsLookupOptions.DEFAULT).entry().layer());
     }
 
     @Test
@@ -58,9 +58,9 @@ public class DefaultVirtualFileSystemTest {
         vfs.configure(config(basedir, "rogue", false, false, Collections.emptyList()));
 
         VfsResult<byte[]> bytes = vfs.loadBytes("textures/wall.wal", VfsLookupOptions.DEFAULT);
-        assertTrue(bytes.success);
-        assertArrayEquals("modPack".getBytes(StandardCharsets.US_ASCII), bytes.value);
-        assertEquals(VfsLayer.MOD_PACK, vfs.resolve("textures/wall.wal", VfsLookupOptions.DEFAULT).entry.layer);
+        assertTrue(bytes.success());
+        assertArrayEquals("modPack".getBytes(StandardCharsets.US_ASCII), bytes.value());
+        assertEquals(VfsLayer.MOD_PACK, vfs.resolve("textures/wall.wal", VfsLookupOptions.DEFAULT).entry().layer());
     }
 
     @Test
@@ -76,9 +76,9 @@ public class DefaultVirtualFileSystemTest {
         vfs.configure(config(basedir, null, false, false, Collections.emptyList()));
 
         VfsResult<byte[]> bytes = vfs.loadBytes("config.cfg", VfsLookupOptions.DEFAULT);
-        assertTrue(bytes.success);
-        assertArrayEquals("loose".getBytes(StandardCharsets.UTF_8), bytes.value);
-        assertEquals(VfsLayer.BASE_LOOSE, vfs.resolve("config.cfg", VfsLookupOptions.DEFAULT).entry.layer);
+        assertTrue(bytes.success());
+        assertArrayEquals("loose".getBytes(StandardCharsets.UTF_8), bytes.value());
+        assertEquals(VfsLayer.BASE_LOOSE, vfs.resolve("config.cfg", VfsLookupOptions.DEFAULT).entry().layer());
     }
 
     @Test
@@ -105,10 +105,10 @@ public class DefaultVirtualFileSystemTest {
 
         DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
         vfs.configure(config(basedir, null, false, false, Collections.emptyList()));
-        assertEquals("base", new String(vfs.loadBytes("config.cfg", VfsLookupOptions.DEFAULT).value, StandardCharsets.UTF_8));
+        assertEquals("base", new String(vfs.loadBytes("config.cfg", VfsLookupOptions.DEFAULT).value(), StandardCharsets.UTF_8));
 
         vfs.setGameMod("xatrix");
-        assertEquals("modPack", new String(vfs.loadBytes("config.cfg", VfsLookupOptions.DEFAULT).value, StandardCharsets.UTF_8));
+        assertEquals("modPack", new String(vfs.loadBytes("config.cfg", VfsLookupOptions.DEFAULT).value(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -140,7 +140,7 @@ public class DefaultVirtualFileSystemTest {
 
         assertTrue(vfs.exists("textures/runtime.wal", VfsLookupOptions.DEFAULT));
         VfsResult<String> mount = vfs.mountPackage(runtimePak.toString());
-        assertFalse(mount.success, "Already indexed startup package must fail explicit remount");
+        assertFalse(mount.success(), "Already indexed startup package must fail explicit remount");
 
         Path latePak = basedir.resolve("downloads/new.pak");
         writePak(
@@ -148,11 +148,11 @@ public class DefaultVirtualFileSystemTest {
                 Map.of("textures/new.wal", "late".getBytes(StandardCharsets.US_ASCII))
         );
         VfsResult<String> mounted = vfs.mountPackage(latePak.toString());
-        assertTrue(mounted.success);
+        assertTrue(mounted.success());
         assertTrue(vfs.exists("textures/new.wal", VfsLookupOptions.DEFAULT));
 
-        VfsResult<Void> unmounted = vfs.unmount(mounted.value);
-        assertTrue(unmounted.success);
+        VfsResult<Void> unmounted = vfs.unmount(mounted.value());
+        assertTrue(unmounted.success());
         assertFalse(vfs.exists("textures/new.wal", VfsLookupOptions.DEFAULT));
     }
 
@@ -168,9 +168,9 @@ public class DefaultVirtualFileSystemTest {
         vfs.configure(config(basedir, null, false, false, Collections.emptyList()));
 
         VfsResult<byte[]> bytes = vfs.loadBytes("textures/zip.wal", VfsLookupOptions.DEFAULT);
-        assertTrue(bytes.success);
-        assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes.value);
-        assertEquals(VfsLayer.BASE_PACK, vfs.resolve("textures/zip.wal", VfsLookupOptions.DEFAULT).entry.layer);
+        assertTrue(bytes.success());
+        assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes.value());
+        assertEquals(VfsLayer.BASE_PACK, vfs.resolve("textures/zip.wal", VfsLookupOptions.DEFAULT).entry().layer());
     }
 
     private VfsConfig config(

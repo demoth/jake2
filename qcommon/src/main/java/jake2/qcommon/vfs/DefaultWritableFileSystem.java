@@ -46,9 +46,9 @@ public final class DefaultWritableFileSystem implements WritableFileSystem {
         try {
             Files.createDirectories(path.getParent());
             final OutputStream stream;
-            if (effective.append) {
+            if (effective.append()) {
                 stream = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
-            } else if (effective.truncateExisting) {
+            } else if (effective.truncateExisting()) {
                 stream = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
             } else {
                 stream = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);

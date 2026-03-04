@@ -111,11 +111,11 @@ public final class VfsDebugCommands {
         }
         String packagePath = args.get(1);
         VfsResult<String> result = provider.mountPackage(packagePath);
-        if (!result.success) {
-            Com.Printf("fs_mount failed: " + result.error + "\n");
+        if (!result.success()) {
+            Com.Printf("fs_mount failed: " + result.error() + "\n");
             return;
         }
-        Com.Printf("Mounted package: " + packagePath + " (id=" + result.value + ")\n");
+        Com.Printf("Mounted package: " + packagePath + " (id=" + result.value() + ")\n");
     }
 
     private static void unmountPackage(Provider provider, List<String> args) {
@@ -129,8 +129,8 @@ public final class VfsDebugCommands {
         }
         String mountId = args.get(1);
         VfsResult<Void> result = provider.unmountPackage(mountId);
-        if (!result.success) {
-            Com.Printf("fs_unmount failed: " + result.error + "\n");
+        if (!result.success()) {
+            Com.Printf("fs_unmount failed: " + result.error() + "\n");
             return;
         }
         Com.Printf("Unmounted package id=" + mountId + "\n");

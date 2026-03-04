@@ -7,11 +7,11 @@ import java.util.Map;
 /**
  * Immutable snapshot of VFS index/mount counters for diagnostics.
  */
-public final class VfsSnapshot {
-    public final int totalEntries;
-    public final Map<VfsLayer, Integer> entryCountByLayer;
-    public final Map<VfsLayer, Integer> mountCountByLayer;
-
+public record VfsSnapshot(
+        int totalEntries,
+        Map<VfsLayer, Integer> entryCountByLayer,
+        Map<VfsLayer, Integer> mountCountByLayer
+) {
     public VfsSnapshot(
             int totalEntries,
             Map<VfsLayer, Integer> entryCountByLayer,

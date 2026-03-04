@@ -123,10 +123,10 @@ public final class VfsBackedFileSystem {
             return null;
         }
         VfsResult<byte[]> result = vfs.loadBytes(path, VfsLookupOptions.DEFAULT);
-        if (!result.success) {
+        if (!result.success()) {
             return null;
         }
-        return result.value;
+        return result.value();
     }
 
     public boolean exists(String path) {
@@ -211,19 +211,19 @@ public final class VfsBackedFileSystem {
         }
 
         VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
-        if (!lookup.found || lookup.entry.source.type != VfsSourceType.DIRECTORY) {
-            if (!lookup.found || lookup.entry.source.type != VfsSourceType.PACKAGE_ENTRY) {
+        if (!lookup.found() || lookup.entry().source().type() != VfsSourceType.DIRECTORY) {
+            if (!lookup.found() || lookup.entry().source().type() != VfsSourceType.PACKAGE_ENTRY) {
                 return null;
             }
-            if (!"pak".equals(lookup.entry.source.packType)) {
+            if (!"pak".equals(lookup.entry().source().packType())) {
                 return openNonPakEntry(lookup, path);
             }
             return openPakEntry(lookup);
         }
 
-        Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
+        Path sourcePath = lookup.entry().source().containerPath().resolve(lookup.entry().source().entryPath());
         try {
-            return new QuakeFile(sourcePath.toFile(), "r", false, lookup.entry.size);
+            return new QuakeFile(sourcePath.toFile(), "r", false, lookup.entry().size());
         } catch (FileNotFoundException e) {
             return null;
         }
@@ -239,12 +239,12 @@ public final class VfsBackedFileSystem {
         }
 
         VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
-        if (!lookup.found) {
+        if (!lookup.found()) {
             return null;
         }
 
-        if (lookup.entry.source.type == VfsSourceType.DIRECTORY) {
-            Path sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath);
+        if (lookup.entry().source().type() == VfsSourceType.DIRECTORY) {
+            Path sourcePath = lookup.entry().source().containerPath().resolve(lookup.entry().source().entryPath());
             try (FileInputStream input = new FileInputStream(sourcePath.toFile());
                  FileChannel channel = input.getChannel()) {
                 return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
@@ -254,16 +254,16 @@ public final class VfsBackedFileSystem {
         }
 
         VfsResult<byte[]> result = vfs.loadBytes(path, VfsLookupOptions.DEFAULT);
-        if (!result.success || result.value == null) {
+        if (!result.success() || result.value() == null) {
             return null;
         }
-        return ByteBuffer.wrap(result.value).asReadOnlyBuffer();
+        return ByteBuffer.wrap(result.value()).asReadOnlyBuffer();
     }
 
     private QuakeFile openPakEntry(VfsLookupResult lookup) {
-        Path packagePath = lookup.entry.source.containerPath.toAbsolutePath().normalize();
+        Path packagePath = lookup.entry().source().containerPath().toAbsolutePath().normalize();
         Map<String, PackEntry> entries = pakEntryCache.computeIfAbsent(packagePath, this::readPakEntries);
-        PackEntry packEntry = entries.get(lookup.entry.normalizedPath);
+        PackEntry packEntry = entries.get(lookup.entry().normalizedPath());
         if (packEntry == null) {
             return null;
         }
@@ -290,9 +290,9 @@ public final class VfsBackedFileSystem {
     }
 
     private QuakeFile openNonPakEntry(VfsLookupResult lookup, String logicalPath) {
-        String cacheKey = lookup.entry.source.containerPath.toAbsolutePath().normalize()
-                + "|" + lookup.entry.normalizedPath
-                + "|" + lookup.entry.modifiedTimeMillis;
+        String cacheKey = lookup.entry().source().containerPath().toAbsolutePath().normalize()
+                + "|" + lookup.entry().normalizedPath()
+                + "|" + lookup.entry().modifiedTimeMillis();
 
         Path cached = packagedOpenCache.get(cacheKey);
         if (cached != null && Files.isRegularFile(cached)) {
@@ -304,10 +304,10 @@ public final class VfsBackedFileSystem {
         }
 
         VfsResult<VfsReadableHandle> opened = vfs.openRead(logicalPath, VfsOpenOptions.DEFAULT);
-        if (!opened.success || opened.value == null) {
+        if (!opened.success() || opened.value() == null) {
             return null;
         }
-        try (VfsReadableHandle handle = opened.value; InputStream input = handle.inputStream()) {
+        try (VfsReadableHandle handle = opened.value(); InputStream input = handle.inputStream()) {
             byte[] bytes = input.readAllBytes();
             Path temp = Files.createTempFile("jake2-vfs-", ".tmp");
             Files.write(temp, bytes);

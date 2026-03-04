@@ -2,17 +2,10 @@ package jake2.qcommon.vfs;
 
 /**
  * Read-time lookup options.
+ *
+ * @param gameDataOnly If true, the implementation may skip fallback layers and only check mounted game data.
  */
-public final class VfsLookupOptions {
+public record VfsLookupOptions(boolean gameDataOnly) {
     public static final VfsLookupOptions DEFAULT = new VfsLookupOptions(false);
-
-    /**
-     * If true, the implementation may skip fallback layers and only check mounted game data.
-     */
-    public final boolean gameDataOnly;
-
-    public VfsLookupOptions(boolean gameDataOnly) {
-        this.gameDataOnly = gameDataOnly;
-    }
 }
 
