@@ -30,6 +30,7 @@ LibGDX InputProcessor events
 - Held key auto-repeat must not duplicate `+command` activation.
 - Wheel binds are transient events (`MWHEELUP`, `MWHEELDOWN`), not held state.
 - Input context switch (menu/console/game) must clear held gameplay state.
+- Any active immediate action sets `BUTTON_ANY` in the generated `usercmd` (intermission progression parity).
 
 ## Decision Log
 ### Decision: Execute `Cbuf` before sending client updates
