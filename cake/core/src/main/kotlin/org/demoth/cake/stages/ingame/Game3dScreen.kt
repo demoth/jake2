@@ -252,12 +252,17 @@ class Game3dScreen(
         val height = Gdx.graphics.height.toFloat()
         postProcessBatch.projectionMatrix.setToOrtho2D(0f, 0f, width, height)
         val blend = entityManager.currentFrame.playerstate.blend
+        val rdFlags = entityManager.currentFrame.playerstate.rdflags
+        val underwaterPostEnabled = (rdFlags and Defines.RDF_UNDERWATER) != 0 &&
+            RenderTuningCvars.underwaterWarpEnabled()
         val previousShader = postProcessBatch.shader
         postProcessBatch.shader = postProcessShader
         postProcessBatch.use {
             postProcessShader.setUniformi("u_sceneTexture", 0)
             postProcessShader.setUniform4fv("u_blendColor", blend, 0, 4)
             postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.postVignetteEnabled()) 1f else 0f)
+            postProcessShader.setUniformf("u_underwaterEnabled", if (underwaterPostEnabled) 1f else 0f)
+            postProcessShader.setUniformf("u_timeSeconds", Globals.curtime * 0.001f)
             it.draw(region, 0f, 0f, width, height)
         }
         postProcessBatch.shader = previousShader

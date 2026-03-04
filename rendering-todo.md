@@ -20,6 +20,10 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Global particle budget (`0` disables particles; positive values cap live particles, clamped to `MAX_PARTICLES` parity target).
 - `r_bsp_batch_debug` (default `0`)  
   Emits throttled per-frame world/entity/sprite/beam/particle submission diagnostics for BSP batching.
+- `r_post_vignette` (default `1`)  
+  Enables postprocess vignette-style application of `player_state_t.blend`.
+- `r_underwater_warp` (default `1`)  
+  Enables postprocess underwater screen warping when `RDF_UNDERWATER` is active.
 
 ## Master Feature List
 
@@ -51,7 +55,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [ ] entity Shells are not implemented
-- [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
+- [x] Postprocessing implemented: full-screen blend (`player_state_t.blend`) and underwater shader (`RDF_UNDERWATER`)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
 
 ### Postprocessing Migration Plan (Cake-styled)
@@ -74,7 +78,7 @@ Planned phases:
   - Use radial weighting so blend is stronger near edges (Cake style).
   - Keep runtime toggle (`r_post_vignette`, default `1`).
 
-- [ ] Step 3: add underwater warping (default enabled).
+- [x] Step 3: add underwater warping (default enabled).
   - Trigger when `RDF_UNDERWATER` is active.
   - Apply subtle screen-space UV distortion over composed gameplay image.
   - Keep runtime toggle (`r_underwater_warp`, default `1`).

@@ -24,6 +24,7 @@ object RenderTuningCvars {
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
     private val rBspBatchDebug = cvars.Get("r_bsp_batch_debug", "0", Defines.CVAR_ARCHIVE)
     private val rPostVignette = cvars.Get("r_post_vignette", "1", Defines.CVAR_ARCHIVE)
+    private val rUnderwaterWarp = cvars.Get("r_underwater_warp", "1", Defines.CVAR_ARCHIVE)
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
@@ -67,4 +68,9 @@ object RenderTuningCvars {
      * Enables postprocess vignette-style blending from `player_state_t.blend`.
      */
     fun postVignetteEnabled(): Boolean = rPostVignette.value != 0f
+
+    /**
+     * Enables postprocess underwater screen warp when `RDF_UNDERWATER` is active.
+     */
+    fun underwaterWarpEnabled(): Boolean = rUnderwaterWarp.value != 0f
 }
