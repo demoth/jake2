@@ -29,6 +29,9 @@ It does not own:
 - `ReplicatedEntityEffectCollector` - applies replicated `EF_*` visual side effects from packet entities.
   - Collects dynamic lights and replicated projectile trails using render-time interpolation rules.
   - Keeps legacy `CL_ents.AddPacketEntities` behavior for light/trail branches.
+- `WorldPresentationRenderer` - orchestrates one gameplay-world render frame.
+  - Preserves pass ordering across world batches, entities/sprites/beams, effects, HUD, and postprocess present.
+  - Uses callback joints to keep `Game3dScreen` ownership for subsystems not yet extracted.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).
@@ -49,7 +52,7 @@ FrameHeader + PacketEntities + PlayerInfo
   -> Game3dScreen.computeVisibleEntities
   -> IngameSoundMessageHandler.playEntityEventSounds
   -> ReplicatedEntityEffectCollector.collectTrails/collectDynamicLights
-  -> render
+  -> WorldPresentationRenderer.render
 
 World BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/warp/translucent passes.
 Visibility is driven by `BspWorldVisibilityMaskTracker` (PVS + areabits) and fed directly into the batched renderer.

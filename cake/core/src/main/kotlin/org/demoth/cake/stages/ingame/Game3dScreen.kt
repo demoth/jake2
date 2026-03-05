@@ -56,11 +56,17 @@ class Game3dScreen(
         val title: String?,
     )
 
+    /**
+     * Top-level presentation routing mode selected by server data.
+     */
     private enum class PresentationMode {
         WORLD,
         CINEMATIC,
     }
 
+    /**
+     * Per-mode render runtime contract used by [render].
+     */
     private interface PresentationRuntime {
         fun render(delta: Float)
     }
@@ -92,6 +98,7 @@ class Game3dScreen(
 
     private val gameConfig = GameConfiguration(assetManager)
     private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
+    private val worldPresentationRenderer = WorldPresentationRenderer()
     private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig) }
 
     private val entityManager = ClientEntityManager()
@@ -308,180 +315,52 @@ class Game3dScreen(
         presentationRuntime.render(delta)
     }
 
+    /**
+     * Delegates gameplay-world rendering to [WorldPresentationRenderer].
+     */
     private fun renderWorldPresentation(delta: Float) {
         if (!precached)
             return
 
         ensureSceneFrameBuffer()
-        val frameBuffer = sceneFrameBuffer
-        frameBuffer?.begin()
-
-        // Keep depth/color buffers deterministic per frame.
-        // This avoids stale depth values leaking between passes when custom world batching is enabled.
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-        // Reset depth range defensively before any pass submission.
-        Gdx.gl.glDepthRangef(0f, 1f)
-
-        val serverFrameTime = 1f/10f // 10Hz server updates
-        lerpFrac = (entityManager.lerpAcc / serverFrameTime).coerceIn(0f, 1f)
-        // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
-        // before calculating render view (`CL_ents.CalcViewValues`).
-        prediction.predictMovement(entityManager.currentFrame, inputManager, gameConfig.playerConfiguration.playerIndex)
-
-        updatePlayerView(lerpFrac)
-        audioSystem.beginFrame(
-            ListenerState(
-                position = camera.position,
-                forward = camera.direction,
-                up = camera.up,
+        worldPresentationRenderer.render(
+            WorldPresentationRenderer.FrameContext(
+                delta = delta,
+                currentTimeMs = Globals.curtime,
+                sceneFrameBuffer = sceneFrameBuffer,
+                camera = camera,
+                modelBatch = modelBatch,
+                entityManager = entityManager,
+                inputManager = inputManager,
+                gameConfig = gameConfig,
+                prediction = prediction,
+                audioSystem = audioSystem,
+                effectsSystem = effectsSystem,
+                replicatedEntityEffectCollector = replicatedEntityEffectCollector,
+                dynamicLightSystem = dynamicLightSystem,
+                bspLightmapShader = bspLightmapShader,
+                worldBatchRenderer = worldBatchRenderer,
+                beamRenderer = beamRenderer,
+                sp2Renderer = sp2Renderer,
+                hudOverlayRenderer = hudOverlayRenderer,
+                hud = hud,
+                onSetLerpFraction = { lerpFrac = it },
+                onUpdatePlayerView = ::updatePlayerView,
+                onSyncEntityLoopSounds = ::syncEntityLoopSounds,
+                onUpdateWorldVisibility = {
+                    worldVisibilityMaskTracker?.update(camera.position, entityManager.currentFrame.areabits)
+                },
+                onRefreshLightStyles = ::refreshLightStyles,
+                onAdvanceSkyRotation = ::advanceSkyRotation,
+                onWorldVisibilityMaskSnapshot = ::worldVisibilityMask,
+                onApplySkyTransform = ::applySkyTransform,
+                onIsTranslucentModelPassEntity = ::isTranslucentModelPassEntity,
+                onRenderModelEntity = ::renderModelEntity,
+                onLightStyleResolver = ::lightStyleValue,
+                onLogBatchDiagnostics = ::logBatchDiagnostics,
+                onPresentSceneFrame = ::presentSceneFrame,
             )
         )
-        syncEntityLoopSounds()
-        worldVisibilityMaskTracker?.update(camera.position, entityManager.currentFrame.areabits)
-        refreshLightStyles(Globals.curtime)
-        advanceSkyRotation(delta)
-        effectsSystem.update(delta, entityManager.currentFrame.serverframe)
-        replicatedEntityEffectCollector.collectTrails(lerpFrac)
-        dynamicLightSystem.beginFrame(Globals.curtime, delta)
-        replicatedEntityEffectCollector.collectDynamicLights(
-            lerpFrac = lerpFrac,
-            currentTimeMs = Globals.curtime,
-        )
-        val shaderDynamicLights = dynamicLightSystem.visibleLightsForShader()
-        bspLightmapShader.setDynamicLights(shaderDynamicLights)
-        val visibleWorldSurfaceMask = worldVisibilityMask()
-        worldBatchRenderer?.render(
-            camera = camera,
-            visibleSurfaceMask = visibleWorldSurfaceMask,
-            currentTimeMs = Globals.curtime,
-            lightStyleResolver = ::lightStyleValue,
-            dynamicLights = shaderDynamicLights,
-        )
-
-        // render entities
-        val lateDepthHackEntities = mutableListOf<ClientEntity>()
-        var renderedOpaqueModels = 0
-        var renderedTranslucentModels = 0
-        var renderedDepthHackModels = 0
-        var renderedBeams = 0
-        var renderedOpaqueSprites = 0
-        var renderedTranslucentSprites = 0
-        var levelEntityRendered = false
-        modelBatch.use(camera) { modelBatch ->
-            if (entityManager.rDrawSky?.value != 0f)
-                entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
-                    Gdx.gl.glDepthMask(false)
-                    applySkyTransform(skyModelInstance)
-                    modelBatch.render(skyModelInstance)
-                    Gdx.gl.glDepthMask(true)
-                }
-
-            entityManager.visibleEntities.forEach {
-                if (it.name == "level") {
-                    return@forEach
-                }
-                if (!isTranslucentModelPassEntity(it)) {
-                    if (it.depthHack) {
-                        lateDepthHackEntities += it
-                    } else {
-                        renderModelEntity(modelBatch, it)
-                        renderedOpaqueModels++
-                        if (it.name == "level") {
-                            levelEntityRendered = true
-                        }
-                    }
-                }
-            }
-            entityManager.visibleEntities.forEach {
-                if (it.name == "level") {
-                    return@forEach
-                }
-                if (isTranslucentModelPassEntity(it)) {
-                    if (it.depthHack) {
-                        lateDepthHackEntities += it
-                    } else {
-                        renderModelEntity(modelBatch, it)
-                        renderedTranslucentModels++
-                        if (it.name == "level") {
-                            levelEntityRendered = true
-                        }
-                    }
-                }
-            }
-            entityManager.visibleBeams.forEach {
-                beamRenderer.render(modelBatch, it)
-                renderedBeams++
-            }
-            // Preserve legacy draw ordering: opaque first, translucent second.
-            // Do not merge into a naive single pass; mixed ordering breaks alpha/depth results.
-            entityManager.visibleSprites.forEach {
-                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) == 0) {
-                    sp2Renderer.render(modelBatch, it, camera, lerpFrac)
-                    renderedOpaqueSprites++
-                }
-            }
-            entityManager.visibleSprites.forEach {
-                if ((it.resolvedRenderFx and Defines.RF_TRANSLUCENT) != 0) {
-                    sp2Renderer.render(modelBatch, it, camera, lerpFrac)
-                    renderedTranslucentSprites++
-                }
-            }
-            entityManager.lerpAcc += delta
-
-        }
-        worldBatchRenderer?.renderTranslucent(
-            camera = camera,
-            visibleSurfaceMask = visibleWorldSurfaceMask,
-            currentTimeMs = Globals.curtime,
-        )
-        effectsSystem.renderParticles(camera)
-        modelBatch.use(camera) { modelBatch ->
-            effectsSystem.render(modelBatch)
-        }
-        if (lateDepthHackEntities.isNotEmpty()) {
-            modelBatch.use(camera) { modelBatch ->
-                lateDepthHackEntities.forEach {
-                    renderModelEntity(modelBatch, it)
-                    renderedDepthHackModels++
-                    if (it.name == "level") {
-                        levelEntityRendered = true
-                    }
-                }
-            }
-        }
-        logBatchDiagnostics(
-            currentTimeMs = Globals.curtime,
-            visibleEntities = entityManager.visibleEntities.size,
-            renderedOpaqueModels = renderedOpaqueModels,
-            renderedTranslucentModels = renderedTranslucentModels,
-            renderedDepthHackModels = renderedDepthHackModels,
-            visibleSprites = entityManager.visibleSprites.size,
-            renderedOpaqueSprites = renderedOpaqueSprites,
-            renderedTranslucentSprites = renderedTranslucentSprites,
-            visibleBeams = entityManager.visibleBeams.size,
-            renderedBeams = renderedBeams,
-            levelEntityRendered = levelEntityRendered,
-        )
-
-        val currentFrame = entityManager.currentFrame
-        hudOverlayRenderer.render(
-            hud = hud,
-            delta = delta,
-            screenWidth = Gdx.graphics.width,
-            screenHeight = Gdx.graphics.height,
-            gameplayHudState = HudOverlayRenderer.GameplayHudState(
-                serverFrame = currentFrame.serverframe,
-                playerState = currentFrame.playerstate,
-                statusBarLayout = gameConfig.getStatusBarLayout(),
-                additionalLayout = gameConfig.layout,
-            ),
-        )
-        audioSystem.endFrame()
-
-        if (frameBuffer != null) {
-            frameBuffer.end()
-            presentSceneFrame()
-        }
     }
 
     /**
@@ -534,37 +413,27 @@ class Game3dScreen(
         }
     }
 
-    private fun logBatchDiagnostics(
-        currentTimeMs: Int,
-        visibleEntities: Int,
-        renderedOpaqueModels: Int,
-        renderedTranslucentModels: Int,
-        renderedDepthHackModels: Int,
-        visibleSprites: Int,
-        renderedOpaqueSprites: Int,
-        renderedTranslucentSprites: Int,
-        visibleBeams: Int,
-        renderedBeams: Int,
-        levelEntityRendered: Boolean,
-    ) {
+    private fun logBatchDiagnostics(frameDiagnostics: WorldPresentationRenderer.WorldFrameDiagnostics) {
         if (!RenderTuningCvars.bspBatchDebugEnabled()) {
             lastBatchDebugLogTimeMs = Int.MIN_VALUE
             return
         }
-        if (lastBatchDebugLogTimeMs != Int.MIN_VALUE && currentTimeMs - lastBatchDebugLogTimeMs < BATCH_DEBUG_LOG_INTERVAL_MS) {
+        if (lastBatchDebugLogTimeMs != Int.MIN_VALUE &&
+            frameDiagnostics.currentTimeMs - lastBatchDebugLogTimeMs < BATCH_DEBUG_LOG_INTERVAL_MS
+        ) {
             return
         }
-        lastBatchDebugLogTimeMs = currentTimeMs
+        lastBatchDebugLogTimeMs = frameDiagnostics.currentTimeMs
         val opaqueWorldStats = worldBatchRenderer?.lastOpaqueStats
         val translucentWorldStats = worldBatchRenderer?.lastTranslucentStats
         val particleStats = effectsSystem.debugParticleRenderStats()
         Com.Printf(
-            "bsp_batch_debug t=$currentTimeMs " +
+            "bsp_batch_debug t=${frameDiagnostics.currentTimeMs} " +
                 "worldOpaque(vis=${opaqueWorldStats?.visibleSurfaceCount ?: 0},grp=${opaqueWorldStats?.groupedSurfaceCount ?: 0},dc=${opaqueWorldStats?.drawCalls ?: 0}) " +
                 "worldTrans(vis=${translucentWorldStats?.visibleSurfaceCount ?: 0},grp=${translucentWorldStats?.groupedSurfaceCount ?: 0},dc=${translucentWorldStats?.drawCalls ?: 0}) " +
-                "models(vis=$visibleEntities,opq=$renderedOpaqueModels,trans=$renderedTranslucentModels,depth=$renderedDepthHackModels,level=$levelEntityRendered) " +
-                "sprites(vis=$visibleSprites,opq=$renderedOpaqueSprites,trans=$renderedTranslucentSprites) " +
-                "beams(vis=$visibleBeams,draw=$renderedBeams) " +
+                "models(vis=${frameDiagnostics.visibleEntities},opq=${frameDiagnostics.renderedOpaqueModels},trans=${frameDiagnostics.renderedTranslucentModels},depth=${frameDiagnostics.renderedDepthHackModels},level=${frameDiagnostics.levelEntityRendered}) " +
+                "sprites(vis=${frameDiagnostics.visibleSprites},opq=${frameDiagnostics.renderedOpaqueSprites},trans=${frameDiagnostics.renderedTranslucentSprites}) " +
+                "beams(vis=${frameDiagnostics.visibleBeams},draw=${frameDiagnostics.renderedBeams}) " +
                 "particles(live=${effectsSystem.debugLiveParticleCount()},sub=${particleStats.submittedParticles},dc=${particleStats.drawCalls}) " +
                 "effects(active=${effectsSystem.debugActiveEffectCount()})\n"
         )

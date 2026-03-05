@@ -129,6 +129,7 @@ Runtime modularization follow-up (post parity):
 - [x] Extract HUD composition path to `HudOverlayRenderer`.
 - [x] Extract sound message dispatch branches into `IngameSoundMessageHandler`.
 - [x] Extract replicated entity effect collectors (dynamic lights + trails) to `ReplicatedEntityEffectCollector`.
+- [x] Extract world-frame orchestration loop to `WorldPresentationRenderer`.
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 
