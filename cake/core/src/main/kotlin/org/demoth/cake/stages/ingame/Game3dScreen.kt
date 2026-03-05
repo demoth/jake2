@@ -604,11 +604,20 @@ class Game3dScreen(
             if ((renderFx and Defines.RF_SHELL_RED) != 0) red = 1f
             if ((renderFx and Defines.RF_SHELL_GREEN) != 0) green = 1f
             if ((renderFx and Defines.RF_SHELL_BLUE) != 0) blue = 1f
-            userData.lightRed = red
-            userData.lightGreen = green
-            userData.lightBlue = blue
-            setMd2ShadeVector(userData, yawDegrees)
-            return
+            // Shells are currently represented as a Fresnel rim highlight (single-pass approximation).
+            userData.highlightEnabled = 1f
+            userData.highlightRed = red
+            userData.highlightGreen = green
+            userData.highlightBlue = blue
+            userData.highlightStrength = 0.9f
+            userData.highlightRimPower = 2.5f
+        } else {
+            userData.highlightEnabled = 0f
+            userData.highlightRed = 0f
+            userData.highlightGreen = 0f
+            userData.highlightBlue = 0f
+            userData.highlightStrength = 0f
+            userData.highlightRimPower = 2.5f
         }
 
         val sampled = if ((renderFx and Defines.RF_FULLBRIGHT) != 0) {

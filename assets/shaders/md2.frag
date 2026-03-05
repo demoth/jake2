@@ -1,5 +1,7 @@
 in vec2 v_diffuseUV;
 in vec3 v_modelNormalFrame2;
+in vec3 v_worldPosition;
+in vec3 v_worldNormalFrame2;
 
 uniform int u_skinIndex;
 uniform int u_skinCount;
@@ -7,6 +9,12 @@ uniform int u_skinCount;
 uniform float u_opacity;
 uniform vec3 u_entityLightColor;
 uniform vec3 u_shadeVector;
+uniform vec4 u_cameraPosition;
+// Fresnel-rim highlight controls for shell-like entity emphasis.
+uniform float u_highlightEnabled;
+uniform vec3 u_highlightColor;
+uniform float u_highlightStrength;
+uniform float u_highlightRimPower;
 uniform float u_gammaExponent;
 uniform float u_intensity;
 uniform sampler2D u_skinTexture0;
@@ -53,6 +61,15 @@ void main() {
         directional = clamp(directional, 0.70, 1.99);
     }
     color.rgb *= u_entityLightColor * directional;
+    if (u_highlightEnabled > 0.5) {
+        // Fresnel rim: stronger near silhouette (normal perpendicular to view direction).
+        // This is the lightweight replacement for classic Quake shell rendering.
+        vec3 normal = normalize(v_worldNormalFrame2);
+        vec3 viewDir = normalize(u_cameraPosition.xyz - v_worldPosition);
+        float ndv = clamp(dot(normal, viewDir), 0.0, 1.0);
+        float rim = pow(1.0 - ndv, max(u_highlightRimPower, 0.001));
+        color.rgb += u_highlightColor * (u_highlightStrength * rim);
+    }
     color.rgb *= u_intensity;
     color.rgb = pow(max(color.rgb, vec3(0.0)), vec3(u_gammaExponent));
     color.a *= u_opacity;

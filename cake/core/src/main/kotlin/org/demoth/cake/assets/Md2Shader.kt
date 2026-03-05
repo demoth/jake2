@@ -26,12 +26,36 @@ data class Md2CustomData(
     var shadeVectorX: Float,
     var shadeVectorY: Float,
     var shadeVectorZ: Float,
+    // Fresnel-rim highlight data used to approximate legacy shell visuals in one pass.
+    var highlightEnabled: Float,
+    var highlightRed: Float,
+    var highlightGreen: Float,
+    var highlightBlue: Float,
+    var highlightStrength: Float,
+    var highlightRimPower: Float,
 ) {
     companion object {
         /**
          * Initial values before frame data arrives from the server.
          */
-        fun empty() = Md2CustomData(0, 0, 0f, 0, 1f, 1f, 1f, 0f, 0f, 1f)
+        fun empty() = Md2CustomData(
+            frame1 = 0,
+            frame2 = 0,
+            interpolation = 0f,
+            skinIndex = 0,
+            lightRed = 1f,
+            lightGreen = 1f,
+            lightBlue = 1f,
+            shadeVectorX = 0f,
+            shadeVectorY = 0f,
+            shadeVectorZ = 1f,
+            highlightEnabled = 0f,
+            highlightRed = 0f,
+            highlightGreen = 0f,
+            highlightBlue = 0f,
+            highlightStrength = 0f,
+            highlightRimPower = 2f,
+        )
     }
 }
 
@@ -214,6 +238,30 @@ class Md2Shader(
             shader.set(inputID, md2CustomData.shadeVectorX, md2CustomData.shadeVectorY, md2CustomData.shadeVectorZ)
         }
     }
+    private val highlightEnabledSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
+            val md2CustomData = renderable.userData as Md2CustomData
+            shader.set(inputID, md2CustomData.highlightEnabled)
+        }
+    }
+    private val highlightColorSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
+            val md2CustomData = renderable.userData as Md2CustomData
+            shader.set(inputID, md2CustomData.highlightRed, md2CustomData.highlightGreen, md2CustomData.highlightBlue)
+        }
+    }
+    private val highlightStrengthSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
+            val md2CustomData = renderable.userData as Md2CustomData
+            shader.set(inputID, md2CustomData.highlightStrength)
+        }
+    }
+    private val highlightRimPowerSetter = object : LocalSetter() {
+        override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
+            val md2CustomData = renderable.userData as Md2CustomData
+            shader.set(inputID, md2CustomData.highlightRimPower)
+        }
+    }
     private val gammaExponentSetter = object : LocalSetter() {
         override fun set(shader: BaseShader, inputID: Int, renderable: Renderable?, combinedAttributes: Attributes) {
             shader.set(inputID, RenderTuningCvars.gammaExponent())
@@ -241,6 +289,11 @@ class Md2Shader(
     private val u_md2Opacity = Uniform("u_opacity")
     private val u_entityLightColor = Uniform("u_entityLightColor")
     private val u_shadeVector = Uniform("u_shadeVector")
+    // Fresnel-rim highlight controls (shell approximation).
+    private val u_highlightEnabled = Uniform("u_highlightEnabled")
+    private val u_highlightColor = Uniform("u_highlightColor")
+    private val u_highlightStrength = Uniform("u_highlightStrength")
+    private val u_highlightRimPower = Uniform("u_highlightRimPower")
     private val u_gammaExponent = Uniform("u_gammaExponent")
     private val u_intensity = Uniform("u_intensity")
 
@@ -260,6 +313,10 @@ class Md2Shader(
     private val u_md2OpacityPos = register(u_md2Opacity, opacitySetter)
     private val u_entityLightColorPos = register(u_entityLightColor, entityLightColorSetter)
     private val u_shadeVectorPos = register(u_shadeVector, shadeVectorSetter)
+    private val u_highlightEnabledPos = register(u_highlightEnabled, highlightEnabledSetter)
+    private val u_highlightColorPos = register(u_highlightColor, highlightColorSetter)
+    private val u_highlightStrengthPos = register(u_highlightStrength, highlightStrengthSetter)
+    private val u_highlightRimPowerPos = register(u_highlightRimPower, highlightRimPowerSetter)
     private val u_gammaExponentPos = register(u_gammaExponent, gammaExponentSetter)
     private val u_intensityPos = register(u_intensity, intensitySetter)
     private val u_skinTexturePositions = IntArray(MAX_MD2_SKIN_TEXTURES) { slot ->

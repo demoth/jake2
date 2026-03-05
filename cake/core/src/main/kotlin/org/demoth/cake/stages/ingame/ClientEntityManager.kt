@@ -440,10 +440,23 @@ class ClientEntityManager : Disposable {
     }
 
     /**
-     * Mirrors legacy translucency flag upgrades in `CL_ents.AddPacketEntities`.
+     * Mirrors legacy renderfx upgrades in `CL_ents.AddPacketEntities`.
+     * Shell-related upgrades are consumed by the MD2 Fresnel-rim highlight path.
      */
     private fun resolveEntityRenderFx(effects: Int, renderFx: Int): Int {
         var resolved = renderFx
+        if ((effects and Defines.EF_PENT) != 0) {
+            resolved = resolved or Defines.RF_SHELL_RED
+        }
+        if ((effects and Defines.EF_QUAD) != 0) {
+            resolved = resolved or Defines.RF_SHELL_BLUE
+        }
+        if ((effects and Defines.EF_DOUBLE) != 0) {
+            resolved = resolved or Defines.RF_SHELL_DOUBLE
+        }
+        if ((effects and Defines.EF_HALF_DAMAGE) != 0) {
+            resolved = resolved or Defines.RF_SHELL_HALF_DAM
+        }
         if ((effects and Defines.EF_BFG) != 0 ||
             (effects and Defines.EF_PLASMA) != 0 ||
             (effects and Defines.EF_SPHERETRANS) != 0

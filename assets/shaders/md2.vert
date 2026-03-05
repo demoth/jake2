@@ -16,6 +16,10 @@ uniform float u_interpolation; // Interpolation factor between two animation fra
 
 out vec2 v_diffuseUV;
 out vec3 v_modelNormalFrame2;
+// World-space position/normal are passed to fragment shader for Fresnel rim highlight
+// used by shell-like entity emphasis.
+out vec3 v_worldPosition;
+out vec3 v_worldNormalFrame2;
 
 void main() {
     vec2 texelSize = vec2(1.0 / u_textureWidth, 1.0 / u_textureHeight);
@@ -34,10 +38,14 @@ void main() {
     // Interpolate between the two animated positions
     vec3 finalPosition = mix(animatedPosition1, animatedPosition2, u_interpolation);
 
+    vec4 worldPosition = u_worldTrans * vec4(finalPosition, 1.0);
+
     // Apply the final interpolated position
-    gl_Position = u_projViewTrans * u_worldTrans * vec4(finalPosition, 1.0);
+    gl_Position = u_projViewTrans * worldPosition;
     v_diffuseUV = a_texCoord1;
     // Legacy alias shading evaluates model-space normals and applies yaw bucket selection separately.
     // Keep this unrotated so yaw is not double-applied against the CPU-computed shade vector.
     v_modelNormalFrame2 = normalize(animatedNormal2);
+    v_worldPosition = worldPosition.xyz;
+    v_worldNormalFrame2 = normalize((u_worldTrans * vec4(animatedNormal2, 0.0)).xyz);
 }
