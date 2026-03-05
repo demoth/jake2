@@ -13,6 +13,7 @@ It does not own:
 
 ## Key Types
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
+  - Also owns presentation-mode routing (`WORLD` vs `CINEMATIC`) while `Cake` keeps shared networking/input orchestration.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).
@@ -50,6 +51,7 @@ SoundMessage
 - `*` config sounds are not loaded in `loadSoundConfigResource`; they are resolved at playback.
 - Variation sound fallback order must remain deterministic and cached per `(variation model, sound name)`.
 - Entity-event sounds are triggered after a valid packet-entity reconstruction.
+- Cinematic control path (`playernum == -1`) must keep normal client message processing alive and may emit `nextserver <spawncount>` on guarded user skip input.
 
 ## Decision Log
 Newest first.

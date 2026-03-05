@@ -53,6 +53,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [ ] entity Shells are not implemented
 - [ ] Postprocessing is missing: full screen blend (player_stat_t.blend), under water shader (RDF_UNDERWATER)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
+- [ ] Cinematic / end-screen presentation mode parity (`.cin` and static image maps) with `nextserver` skip flow.
 
 ### BSP Draw-Call Optimization Migration (Q2PRO-style)
 
@@ -71,6 +72,21 @@ Planned phases:
 - [x] Step 5: move world animation/lightstyle/flowing to draw-command state.
 - [x] Step 6: translucent world pass parity on batched path.
 - [x] Step 7: remove legacy per-face world rendering path (batch renderer is now world-owner).
+
+### Cinematic / Picture Mode Migration
+
+Scope note:
+- Cinematic mode must keep normal client networking/message flow alive (chat/prints/layout updates in coop or multiplayer while watching).
+- Asset decoding should be format-extensible (`.cin`, `.pcx` baseline; room for `.tga/.png/.jpg` if content or mods provide them).
+
+Planned phases:
+
+- [x] Step 1: control-plane parity: detect cinematic mode (`playernum == -1`) and support `nextserver <spawncount>` skip trigger from gameplay input after anti-spurious delay.
+- [ ] Step 2: introduce modular presentation runtime split inside `Game3dScreen` (`WorldRuntime` vs `CinematicRuntime`) without changing `Cake` networking ownership.
+- [ ] Step 3: static image rendering path (start with `.pcx`), centered/letterboxed, black background.
+- [ ] Step 4: cinematic stream path (`.cin`) with frame-time stepping and end-of-stream -> `nextserver`.
+- [ ] Step 5: widen static-image support (`.tga/.png/.jpg`) through existing texture loader pipeline when available.
+- [ ] Step 6: polish/debug hooks (`r_debug_*` counters for cinematic mode, minimal status logging, docs/readme updates).
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 

@@ -18,6 +18,7 @@ import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.util.Lib
@@ -54,7 +55,16 @@ class Game3dScreen(
         val title: String?,
     )
 
+    private enum class PresentationMode {
+        WORLD,
+        CINEMATIC,
+    }
+
     private var precached: Boolean = false
+    private var presentationMode = PresentationMode.WORLD
+    private var cinematicSpawnCount = 0
+    private var cinematicStartTimeMs = Int.MIN_VALUE
+    private var cinematicSkipSent = false
 
     private val modelBatch: ModelBatch
     private val bspLightmapShader: BspLightmapShader
@@ -205,6 +215,9 @@ class Game3dScreen(
     }
 
     override fun render(delta: Float) {
+        if (presentationMode == PresentationMode.CINEMATIC) {
+            return
+        }
         if (!precached)
             return
 
@@ -936,12 +949,48 @@ class Game3dScreen(
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
+        cinematicSpawnCount = msg.spawnCount
+        cinematicSkipSent = false
+
+        if (msg.playerNumber == -1) {
+            presentationMode = PresentationMode.CINEMATIC
+            cinematicStartTimeMs = Globals.curtime
+        } else {
+            presentationMode = PresentationMode.WORLD
+            cinematicStartTimeMs = Int.MIN_VALUE
+        }
 
         // ServerDataMessage is the authoritative game/mod style switch point.
         // Cake recreates Game3dScreen for each fresh serverdata sequence, so one HUD per screen is expected.
         hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
         val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
+    }
+
+    /**
+     * Returns one-shot `nextserver` command when cinematic skip criteria are met.
+     *
+     * Legacy cross-reference:
+     * - q2pro `src/client/keys.c`: button-style keydown in cinematic triggers `SCR_FinishCinematic()`.
+     * - q2pro `src/client/cin.c`: `SCR_FinishCinematic` sends `nextserver <servercount>`.
+     * - Jake2/Yamagi only allow skip after a short guard delay to avoid accidental abort.
+     * - Server expects `nextserver <spawncount>` while in `SS_CINEMATIC` / `SS_PIC`.
+     */
+    fun pollCinematicSkipCommand(currentTimeMs: Int): StringCmdMessage? {
+        if (presentationMode != PresentationMode.CINEMATIC) {
+            return null
+        }
+        if (cinematicSkipSent || cinematicStartTimeMs == Int.MIN_VALUE) {
+            return null
+        }
+        if (currentTimeMs - cinematicStartTimeMs <= CINEMATIC_SKIP_DELAY_MS) {
+            return null
+        }
+        if (!inputManager.hasActiveImmediateAction()) {
+            return null
+        }
+        cinematicSkipSent = true
+        return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $cinematicSpawnCount")
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -1501,6 +1550,7 @@ class Game3dScreen(
         private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
         private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
         private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
+        private const val CINEMATIC_SKIP_DELAY_MS = 1000
         private const val BATCH_DEBUG_LOG_INTERVAL_MS = 1000
     }
 }
