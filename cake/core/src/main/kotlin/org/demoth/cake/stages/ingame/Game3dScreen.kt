@@ -60,11 +60,18 @@ class Game3dScreen(
         CINEMATIC,
     }
 
+    private interface PresentationRuntime {
+        fun render(delta: Float)
+    }
+
     private var precached: Boolean = false
     private var presentationMode = PresentationMode.WORLD
     private var cinematicSpawnCount = 0
     private var cinematicStartTimeMs = Int.MIN_VALUE
     private var cinematicSkipSent = false
+    private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
+    private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
+    private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
 
     private val modelBatch: ModelBatch
     private val bspLightmapShader: BspLightmapShader
@@ -215,9 +222,10 @@ class Game3dScreen(
     }
 
     override fun render(delta: Float) {
-        if (presentationMode == PresentationMode.CINEMATIC) {
-            return
-        }
+        presentationRuntime.render(delta)
+    }
+
+    private fun renderWorldPresentation(delta: Float) {
         if (!precached)
             return
 
@@ -365,9 +373,42 @@ class Game3dScreen(
             levelEntityRendered = levelEntityRendered,
         )
 
-        // draw hud
+        renderHudOverlay(delta, includeGameplayHud = true)
+        audioSystem.endFrame()
+    }
+
+    /**
+     * Runtime split placeholder for cinematic/picture mode.
+     *
+     * This keeps server-message and networking ownership in `Game3dScreen`/`Cake` while allowing
+     * cinematic rendering to evolve independently from world rendering in follow-up steps.
+     */
+    private fun renderCinematicPresentation(delta: Float) {
+        // Cinematic mode is full-screen and starts from a black canvas.
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+        Gdx.gl.glDepthRangef(0f, 1f)
+
+        audioSystem.beginFrame(
+            ListenerState(
+                position = camera.position,
+                forward = camera.direction,
+                up = camera.up,
+            )
+        )
+        // Future cinematic decoders may emit looped sounds; keep explicit loop state clean for now.
+        audioSystem.syncEntityLoopingSounds(emptyList())
+        renderHudOverlay(delta, includeGameplayHud = false)
+        audioSystem.endFrame()
+    }
+
+    private fun renderHudOverlay(delta: Float, includeGameplayHud: Boolean) {
         spriteBatch.use {
             hud?.update(delta, Gdx.graphics.width, Gdx.graphics.height)
+
+            if (!includeGameplayHud) {
+                return@use
+            }
 
             hud?.drawCrosshair(
                 screenWidth = Gdx.graphics.width,
@@ -404,7 +445,18 @@ class Game3dScreen(
                 )
             }
         }
-        audioSystem.endFrame()
+    }
+
+    private inner class WorldPresentationRuntime : PresentationRuntime {
+        override fun render(delta: Float) {
+            renderWorldPresentation(delta)
+        }
+    }
+
+    private inner class CinematicPresentationRuntime : PresentationRuntime {
+        override fun render(delta: Float) {
+            renderCinematicPresentation(delta)
+        }
     }
 
     private fun logBatchDiagnostics(
@@ -954,9 +1006,11 @@ class Game3dScreen(
 
         if (msg.playerNumber == -1) {
             presentationMode = PresentationMode.CINEMATIC
+            presentationRuntime = cinematicPresentationRuntime
             cinematicStartTimeMs = Globals.curtime
         } else {
             presentationMode = PresentationMode.WORLD
+            presentationRuntime = worldPresentationRuntime
             cinematicStartTimeMs = Int.MIN_VALUE
         }
 
