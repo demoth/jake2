@@ -3,6 +3,7 @@ package org.demoth.cake.stages.ingame
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.audio.AudioDevice
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Pixmap
@@ -75,6 +76,7 @@ class Game3dScreen(
     private var cinematicFrameTexture: Texture? = null
     private var cinematicFramePixmap: Pixmap? = null
     private var cinematicStreamDecoder: CinematicCinDecoder? = null
+    private var cinematicAudioDevice: AudioDevice? = null
     private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
     private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
     private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
@@ -443,21 +445,29 @@ class Game3dScreen(
         val elapsedMs = (currentTimeMs - cinematicStartTimeMs).coerceAtLeast(0)
         val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
         while (decoder.decodedFrameCount <= targetFrame) {
-            val indexedFrame = decoder.readNextFrame() ?: run {
+            val decodedFrame = decoder.readNextFrame() ?: run {
                 cinematicStreamDecoder = null
                 cinematicAutoAdvancePending = true
+                cinematicAudioDevice?.dispose()
+                cinematicAudioDevice = null
                 return
             }
             uploadCinematicFrame(
                 width = decoder.width,
                 height = decoder.height,
-                indexedFrame = indexedFrame,
+                indexedFrame = decodedFrame.indexedFrame,
                 palette = decoder.currentPalette(),
             ) || run {
                 cinematicStreamDecoder = null
                 cinematicAutoAdvancePending = true
+                cinematicAudioDevice?.dispose()
+                cinematicAudioDevice = null
                 return
             }
+            streamCinematicAudioSamples(
+                pcmBytes = decodedFrame.audioPcmBytes,
+                sampleWidth = decoder.sampleWidth,
+            )
         }
     }
 
@@ -498,6 +508,47 @@ class Game3dScreen(
         existing?.dispose()
         return Pixmap(width, height, Pixmap.Format.RGBA8888).also {
             cinematicFramePixmap = it
+        }
+    }
+
+    /**
+     * Streams one decoded cinematic audio chunk to the dedicated device.
+     *
+     * The `.cin` format stores interleaved PCM samples in little-endian byte order.
+     */
+    private fun streamCinematicAudioSamples(pcmBytes: ByteArray, sampleWidth: Int) {
+        if (pcmBytes.isEmpty()) {
+            return
+        }
+        val audioDevice = cinematicAudioDevice ?: return
+        when (sampleWidth) {
+            1 -> {
+                // Unsigned 8-bit PCM -> signed 16-bit.
+                val samples = ShortArray(pcmBytes.size)
+                for (i in pcmBytes.indices) {
+                    samples[i] = (((pcmBytes[i].toInt() and 0xFF) - 128) shl 8).toShort()
+                }
+                audioDevice.writeSamples(samples, 0, samples.size)
+            }
+
+            2 -> {
+                val sampleCount = pcmBytes.size / 2
+                if (sampleCount <= 0) {
+                    return
+                }
+                val samples = ShortArray(sampleCount)
+                var byteIndex = 0
+                for (i in 0 until sampleCount) {
+                    val lo = pcmBytes[byteIndex++].toInt() and 0xFF
+                    val hi = pcmBytes[byteIndex++].toInt()
+                    samples[i] = ((hi shl 8) or lo).toShort()
+                }
+                audioDevice.writeSamples(samples, 0, samples.size)
+            }
+
+            else -> {
+                Com.Warn("Unsupported cinematic audio sample width: $sampleWidth\n")
+            }
         }
     }
 
@@ -1162,6 +1213,7 @@ class Game3dScreen(
 
         try {
             val decoder = CinematicCinDecoder(streamHandle.readBytes(), defaultPalette)
+            prepareCinematicAudioDevice(decoder)
             val firstFrame = decoder.readNextFrame()
             if (firstFrame == null) {
                 cinematicAutoAdvancePending = true
@@ -1171,17 +1223,36 @@ class Game3dScreen(
             uploadCinematicFrame(
                 width = decoder.width,
                 height = decoder.height,
-                indexedFrame = firstFrame,
+                indexedFrame = firstFrame.indexedFrame,
                 palette = decoder.currentPalette(),
             ) || run {
                 cinematicStreamDecoder = null
                 cinematicAutoAdvancePending = true
+                cinematicAudioDevice?.dispose()
+                cinematicAudioDevice = null
                 return
             }
+            streamCinematicAudioSamples(
+                pcmBytes = firstFrame.audioPcmBytes,
+                sampleWidth = decoder.sampleWidth,
+            )
         } catch (ex: RuntimeException) {
             Com.Warn("Failed to open cinematic stream $streamPath: ${ex.message}\n")
             cinematicAutoAdvancePending = true
         }
+    }
+
+    private fun prepareCinematicAudioDevice(decoder: CinematicCinDecoder) {
+        cinematicAudioDevice?.dispose()
+        cinematicAudioDevice = null
+        if (decoder.sampleRate <= 0) {
+            return
+        }
+        if (decoder.sampleChannels !in 1..2) {
+            Com.Warn("Unsupported cinematic audio channels: ${decoder.sampleChannels}\n")
+            return
+        }
+        cinematicAudioDevice = Gdx.audio.newAudioDevice(decoder.sampleRate, decoder.sampleChannels == 1)
     }
 
     private fun resolveCinematicPicturePath(cinematicName: String): String {
@@ -1203,6 +1274,8 @@ class Game3dScreen(
     private fun releaseCinematicMedia() {
         cinematicStreamDecoder = null
         cinematicAutoAdvancePending = false
+        cinematicAudioDevice?.dispose()
+        cinematicAudioDevice = null
         cinematicFrameTexture?.dispose()
         cinematicFrameTexture = null
         cinematicFramePixmap?.dispose()

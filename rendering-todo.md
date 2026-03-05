@@ -85,7 +85,7 @@ Planned phases:
 - [x] Step 2: introduce modular presentation runtime split inside `Game3dScreen` (`WorldRuntime` vs `CinematicRuntime`) without changing `Cake` networking ownership.
 - [x] Step 3: static image rendering path (start with `.pcx`), centered/letterboxed, black background.
 - [x] Step 4: cinematic stream path (`.cin`) with frame-time stepping and end-of-stream -> `nextserver`.
-- [ ] Step 4a: cinematic audio playback parity for `.cin` sample stream (current path consumes/skips audio bytes only).
+- [x] Step 4a: cinematic audio playback parity for `.cin` sample stream (decoded PCM is now streamed through runtime audio device).
 - [ ] Step 5: widen static-image support (`.tga/.png/.jpg`) through existing texture loader pipeline when available.
 - [ ] Step 6: polish/debug hooks (`r_debug_*` counters for cinematic mode, minimal status logging, docs/readme updates).
 

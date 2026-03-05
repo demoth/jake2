@@ -16,7 +16,7 @@ It does not own:
   - Also owns presentation-mode routing (`WORLD` vs `CINEMATIC`) while `Cake` keeps shared networking/input orchestration.
   - Delegates frame drawing to mode-specific runtimes (`WorldPresentationRuntime`, `CinematicPresentationRuntime`) to keep responsibilities modular.
   - Current cinematic runtime supports static `.pcx` pictures and `.cin` streamed video frames (centered/letterboxed over black background) while preserving HUD notify/center-print updates.
-  - `.cin` audio sample bytes are currently consumed/skipped for stream alignment; playback integration is pending.
+  - `.cin` audio sample chunks are streamed at runtime via a dedicated `AudioDevice` (separate from entity/event SFX path).
   - `.cin` end-of-stream raises cinematic completion and triggers `nextserver <spawncount>` through the existing command path.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.

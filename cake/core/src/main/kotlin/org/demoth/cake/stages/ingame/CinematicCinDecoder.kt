@@ -11,8 +11,8 @@ import java.nio.ByteOrder
  * - q2pro `src/client/cin.c`: runtime stepping/EOF flow (`SCR_RunCinematic`/`SCR_FinishCinematic`).
  *
  * Notes:
- * - Audio bytes are consumed and skipped to preserve frame stream alignment.
- * - Actual cinematic audio playback is intentionally deferred to a follow-up step.
+ * - Audio bytes are consumed and returned per frame to preserve stream alignment.
+ * - Runtime playback is handled by `Game3dScreen` via a dedicated `AudioDevice`.
  */
 internal class CinematicCinDecoder(
     cinBytes: ByteArray,
@@ -20,9 +20,9 @@ internal class CinematicCinDecoder(
 ) {
     val width: Int
     val height: Int
-    private val sampleRate: Int
-    private val sampleWidth: Int
-    private val sampleChannels: Int
+    val sampleRate: Int
+    val sampleWidth: Int
+    val sampleChannels: Int
     private val file: ByteBuffer = ByteBuffer.wrap(cinBytes).order(ByteOrder.LITTLE_ENDIAN)
     private val hnodes = IntArray(HUFF_PREV_CONTEXTS * HUFF_PREV_CONTEXTS * 2)
     private val numhnodes = IntArray(HUFF_PREV_CONTEXTS)
@@ -52,7 +52,7 @@ internal class CinematicCinDecoder(
 
     fun currentPalette(): IntArray = paletteRgba8888
 
-    fun readNextFrame(): ByteArray? {
+    fun readNextFrame(): DecodedCinFrame? {
         if (file.remaining() < Int.SIZE_BYTES) {
             return null
         }
@@ -85,11 +85,17 @@ internal class CinematicCinDecoder(
         if (soundBytes < 0 || soundBytes > file.remaining()) {
             return null
         }
-        file.position(file.position() + soundBytes)
+        val audioPcmBytes = ByteArray(soundBytes)
+        if (soundBytes > 0) {
+            file.get(audioPcmBytes)
+        }
 
-        val frame = huff1Decompress(compressed)
+        val indexedFrame = huff1Decompress(compressed)
         decodedFrameCount++
-        return frame
+        return DecodedCinFrame(
+            indexedFrame = indexedFrame,
+            audioPcmBytes = audioPcmBytes,
+        )
     }
 
     private fun initHuffmanTables() {
@@ -198,3 +204,8 @@ internal class CinematicCinDecoder(
         private const val CINEMATIC_FPS = 14
     }
 }
+
+internal data class DecodedCinFrame(
+    val indexedFrame: ByteArray,
+    val audioPcmBytes: ByteArray,
+)
