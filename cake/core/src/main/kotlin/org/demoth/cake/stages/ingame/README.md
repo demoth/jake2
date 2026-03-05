@@ -72,6 +72,17 @@ SoundMessage
 - Entity-event sounds are triggered after a valid packet-entity reconstruction.
 - Cinematic control path (`playernum == -1`) must keep normal client message processing alive and may emit `nextserver <spawncount>` on guarded user skip input.
 
+## MD2 Shell Highlight (Fresnel Rim)
+- Purpose: provide a clear shell-like visual emphasis for MD2 entities without introducing an extra shell mesh/render pass.
+- Current approach: single-pass Fresnel rim highlight in MD2 shader (`assets/shaders/md2.vert`, `assets/shaders/md2.frag`).
+- Effect-to-render mapping:
+1. `ClientEntityManager.resolveEntityRenderFx` maps gameplay shell effects (`EF_QUAD`, `EF_PENT`, `EF_DOUBLE`, `EF_HALF_DAMAGE`) to shell render flags (`RF_SHELL_*`).
+2. `Game3dScreen.applyMd2EntityLighting` resolves shell color from `RF_SHELL_*` and writes highlight uniforms via `Md2CustomData`.
+3. `Md2Shader` forwards those values as shader uniforms; fragment shader applies Fresnel rim term based on view direction and world normal.
+- Notes:
+1. This is an intentional approximation, not an exact legacy shell pipeline replica.
+2. Visual tuning knobs are `highlightStrength` and `highlightRimPower` in `Game3dScreen.applyMd2EntityLighting`.
+
 ## Decision Log
 Newest first.
 
