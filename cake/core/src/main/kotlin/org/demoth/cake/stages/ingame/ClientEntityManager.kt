@@ -50,6 +50,10 @@ class ClientEntityManager : Disposable {
     var visibleSprites = mutableListOf<ClientEntity>()
     // RF_BEAM entities are collected separately because they are rendered as generated geometry.
     var visibleBeams = mutableListOf<ClientEntity>()
+    // Per-frame pool for linked model passes (`modelindex2/3/4`).
+    // Reused to avoid per-frame allocations while preserving independent render instances.
+    private val linkedEntityPool = mutableListOf<ClientEntity>()
+    private var linkedEntityPoolSize = 0
 
     var viewGun: ClientEntity? = null
 
@@ -285,6 +289,7 @@ class ClientEntityManager : Disposable {
      * - `visibleEntities` entities must have `modelInstance != null`.
      * - Local player model remains culled from world entity bucket.
      * - `modelindex == 255` resolves player model via `skinnum & 0xFF` client slot.
+     * - Linked model passes (`modelindex2/3/4`) are emitted as companion entities.
      *
      * Legacy counterpart:
      * - `client/CL_ents.AddPacketEntities`.
@@ -294,6 +299,7 @@ class ClientEntityManager : Disposable {
         visibleEntities.clear()
         visibleSprites.clear()
         visibleBeams.clear()
+        linkedEntityPoolSize = 0
         if (rDebug.value != 0f) {
             if (debugWorldOrigin == null) {
                 debugWorldOrigin = ClientEntity("origin").apply {
@@ -382,6 +388,12 @@ class ClientEntityManager : Disposable {
                 } else if (entity.spriteAsset != null && rDrawSprites?.value != 0f) {
                     visibleSprites += entity
                 }
+                appendLinkedModelPasses(
+                    owner = entity,
+                    ownerState = newState,
+                    gameConfig = gameConfig,
+                    resolvedFrame = resolvedFrame,
+                )
             }
         }
 
@@ -422,6 +434,121 @@ class ClientEntityManager : Disposable {
                 userData.frame2 = currentFrame.playerstate.gunframe
             }
         }
+    }
+
+    /**
+     * Emits legacy-style linked model passes (`modelindex2/3/4`) as companion entities.
+     *
+     * Legacy counterpart:
+     * `client/CL_ents.AddPacketEntities` linked model branches.
+     */
+    private fun appendLinkedModelPasses(
+        owner: ClientEntity,
+        ownerState: entity_state_t,
+        gameConfig: GameConfiguration,
+        resolvedFrame: Int,
+    ) {
+        appendLinkedModelPass(owner, ownerState, ownerState.modelindex2, 2, gameConfig, resolvedFrame)
+        appendLinkedModelPass(owner, ownerState, ownerState.modelindex3, 3, gameConfig, resolvedFrame)
+        appendLinkedModelPass(owner, ownerState, ownerState.modelindex4, 4, gameConfig, resolvedFrame)
+    }
+
+    /**
+     * Build one linked pass entity for `modelindex2/3/4`.
+     *
+     * Important simplifications:
+     * - Uses legacy Jake2-style defaults (`flags=0`, `alpha=1`) for linked models.
+     * - Preserves defender-sphere transparency special case for `modelindex2`.
+     */
+    private fun appendLinkedModelPass(
+        owner: ClientEntity,
+        ownerState: entity_state_t,
+        linkedModelIndex: Int,
+        linkedSlot: Int,
+        gameConfig: GameConfiguration,
+        resolvedFrame: Int,
+    ) {
+        if (linkedModelIndex == 0) {
+            return
+        }
+
+        val linkedName = if (linkedModelIndex == 255) {
+            "linked_weapon"
+        } else {
+            gameConfig.getModelName(linkedModelIndex) ?: "linked${linkedSlot}_$linkedModelIndex"
+        }
+        val linkedEntity = acquireLinkedEntity(linkedName)
+
+        // Linked model passes follow the owning entity transform/animation state.
+        linkedEntity.prev.set(owner.prev)
+        linkedEntity.current.set(owner.current)
+        linkedEntity.resolvedFrame = resolvedFrame
+        linkedEntity.resolvedRenderFx = 0
+        linkedEntity.alpha = 1f
+        linkedEntity.depthHack = false
+
+        val model = if (linkedModelIndex == 255) {
+            // `modelindex2 == 255` means per-player linked weapon model in legacy protocol.
+            gameConfig.playerConfiguration.getPlayerWeaponModel(ownerState.skinnum)
+        } else {
+            gameConfig.getModel(linkedModelIndex)
+        }
+        val sprite = if (linkedModelIndex == 255) {
+            null
+        } else {
+            gameConfig.getSpriteModel(linkedModelIndex)
+        }
+
+        when {
+            model != null -> {
+                if (linkedEntity.modelInstance == null || linkedEntity.modelInstance.model !== model) {
+                    linkedEntity.modelInstance = createModelInstance(model)
+                }
+                linkedEntity.spriteAsset = null
+            }
+            sprite != null -> {
+                linkedEntity.modelInstance = null
+                linkedEntity.spriteAsset = sprite
+            }
+            else -> {
+                linkedEntity.modelInstance = null
+                linkedEntity.spriteAsset = null
+                return
+            }
+        }
+
+        if (linkedSlot == 2 && linkedModelIndex != 255) {
+            val linkedModelName = gameConfig.getModelName(linkedModelIndex)
+            if (linkedModelName.equals("models/items/shell/tris.md2", ignoreCase = true)) {
+                linkedEntity.resolvedRenderFx = Defines.RF_TRANSLUCENT
+                linkedEntity.alpha = 0.32f
+            }
+        }
+
+        if (linkedEntity.modelInstance != null) {
+            if (rDrawEntities?.value == 0f) {
+                return
+            }
+            (linkedEntity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+                userData.frame1 = owner.prev.frame
+                userData.frame2 = resolvedFrame
+                // Legacy linked model path resets skinnum for linked passes.
+                userData.skinIndex = 0
+            }
+            visibleEntities += linkedEntity
+        } else if (linkedEntity.spriteAsset != null && rDrawSprites?.value != 0f) {
+            visibleSprites += linkedEntity
+        }
+    }
+
+    private fun acquireLinkedEntity(name: String): ClientEntity {
+        if (linkedEntityPoolSize >= linkedEntityPool.size) {
+            linkedEntityPool += ClientEntity(name)
+        }
+        val linkedEntity = linkedEntityPool[linkedEntityPoolSize]
+        linkedEntityPoolSize++
+        linkedEntity.name = name
+        return linkedEntity
     }
 
     /**

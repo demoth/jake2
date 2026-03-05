@@ -194,6 +194,29 @@ class PlayerConfiguration(
         return loadPlayerModelAsset(effectiveVariation) ?: loadPlayerModelAsset(defaultVariation)
     }
 
+    /**
+     * Resolve linked player weapon model (`players/<model>/weapon.md2`) for remote player entities.
+     *
+     * Legacy counterpart:
+     * `client/CL_ents.AddPacketEntities` branch where `modelindex2 == 255`.
+     */
+    fun getPlayerWeaponModel(skinnum: Int): Model? {
+        val clientIndex = skinnum and 0xFF
+        val variation = getPlayerModelSkin(clientIndex) ?: defaultPlayerModelSkin()
+        val defaultVariation = defaultPlayerModelSkin()
+        val candidates = linkedSetOf(
+            "players/${variation.modelName}/weapon.md2",
+            "players/${defaultVariation.modelName}/weapon.md2",
+        )
+        for (path in candidates) {
+            if (assetExists(path)) {
+                val md2Asset = gameConfiguration.tryAcquireAsset<Md2Asset>(path) ?: continue
+                return md2Asset.model
+            }
+        }
+        return null
+    }
+
     private fun parseClientInfo(clientIndex: Int): ParsedClientInfo? {
         if (clientIndex !in 0 until MAX_CLIENTS) {
             return null
