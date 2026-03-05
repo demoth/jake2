@@ -16,12 +16,16 @@ void main() {
     if (u_underwaterEnabled > 0.5) {
         // Cake-style underwater postprocess:
         // combine directional wave offsets with a soft radial breathing distortion.
+        // Freeze displacement on screen edges to avoid border bleeding artifacts.
         float waveX = sin((sceneUv.y * 24.0) + u_timeSeconds * 2.2) * 0.0035;
         float waveY = cos((sceneUv.x * 21.0) - u_timeSeconds * 1.9) * 0.0030;
         vec2 fromCenter = sceneUv - vec2(0.5, 0.5);
         float radial = dot(fromCenter, fromCenter);
         vec2 radialWarp = fromCenter * (0.018 * sin(u_timeSeconds * 1.3 + radial * 18.0));
-        sceneUv += vec2(waveX, waveY) + radialWarp;
+        vec2 underwaterOffset = vec2(waveX, waveY) + radialWarp;
+        float nearestEdgeDistance = min(min(sceneUv.x, 1.0 - sceneUv.x), min(sceneUv.y, 1.0 - sceneUv.y));
+        float edgeFreezeMask = smoothstep(0.0, 0.08, nearestEdgeDistance);
+        sceneUv += underwaterOffset * edgeFreezeMask;
         sceneUv = clamp(sceneUv, vec2(0.001, 0.001), vec2(0.999, 0.999));
     }
 

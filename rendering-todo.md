@@ -82,7 +82,7 @@ Planned phases:
 
 - [x] Step 3: add underwater warping (default enabled).
   - Trigger when `RDF_UNDERWATER` is active.
-  - Apply subtle screen-space UV distortion over composed gameplay image.
+  - Apply subtle screen-space UV distortion over composed gameplay image with edge stabilization (warp fades to `0` at screen borders).
   - Keep runtime toggle (`r_underwater_warp`, default `1`).
 
 Validation target:
