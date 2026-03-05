@@ -55,6 +55,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Player weapon muzzleflash dynamic lights (`MZ_*`) are missing for several weapons (notably shotgun/machinegun)
 - [x] `RF_GLOW` pulse uses server-stepped time instead of continuously advancing client render time
 - [x] Replicated `EF_*` dynamic light origins are sampled from non-interpolated entity positions
+- [x] Map transition visual continuity: hold and render last gameplay frame while next screen is not ready
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [ ] entity Shells are not implemented
 - [x] Postprocessing implemented: full-screen blend (`player_state_t.blend`) and underwater shader (`RDF_UNDERWATER`)

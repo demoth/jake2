@@ -316,6 +316,31 @@ class Game3dScreen(
     }
 
     /**
+     * Returns whether this screen can produce a meaningful frame right now.
+     *
+     * World mode requires precache; cinematic mode can render without world precache.
+     */
+    fun canRenderPresentationFrame(): Boolean {
+        return presentationMode == PresentationMode.CINEMATIC || precached
+    }
+
+    /**
+     * Captures the latest scene framebuffer content as a pixmap.
+     *
+     * Intended for short-lived transition backdrops owned by outer runtime (`Cake`).
+     * Caller owns and must dispose the returned pixmap.
+     */
+    fun captureScenePixmapForTransition(): Pixmap? {
+        val frameBuffer = sceneFrameBuffer ?: return null
+        frameBuffer.begin()
+        return try {
+            Pixmap.createFromFrameBuffer(0, 0, frameBuffer.width, frameBuffer.height)
+        } finally {
+            frameBuffer.end()
+        }
+    }
+
+    /**
      * Delegates gameplay-world rendering to [WorldPresentationRenderer].
      */
     private fun renderWorldPresentation(delta: Float) {

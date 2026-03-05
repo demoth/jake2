@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -88,6 +90,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var glProfiler: GLProfiler
     private var glProfilerActive: Boolean = false
     private lateinit var viewport: StretchViewport
+    private val transitionBackdropBatch = SpriteBatch()
+    private var transitionBackdropTexture: Texture? = null
+    private var transitionBackdropRegion: TextureRegion? = null
+    private var transitionBackdropActive = false
 
     // whenever these are changed, input handlers should be updated
     private var consoleVisible = false
@@ -366,6 +372,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         game3dScreen?.stopAudio()
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
+        clearTransitionBackdrop()
 
         // send a disconnect message to the server
         netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
@@ -421,6 +428,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 Globals.curtime
             )
             game3dScreen?.render(deltaSeconds)
+        }
+
+        val activeScreen = game3dScreen
+        if (transitionBackdropActive) {
+            if (activeScreen != null && activeScreen.canRenderPresentationFrame()) {
+                clearTransitionBackdrop()
+            } else {
+                renderTransitionBackdrop()
+            }
         }
 
         if (menuVisible) {
@@ -522,6 +538,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
+        clearTransitionBackdrop()
+        transitionBackdropBatch.dispose()
         if (glProfilerActive) {
             glProfiler.disable()
             glProfilerActive = false
@@ -764,8 +782,54 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun beginMapTransitionRetainingConfigAssets() {
         // if a prior transition was still deferred, retire it first
         releaseDeferredConfigUnload()
+        captureTransitionBackdropFromActiveScreen()
         game3dScreen?.stopAudio()
         deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
+    }
+
+    /**
+     * Captures one frozen frame from the active gameplay screen.
+     *
+     * This is used as a light-weight visual bridge during level transitions.
+     */
+    private fun captureTransitionBackdropFromActiveScreen() {
+        val scenePixmap = game3dScreen?.captureScenePixmapForTransition() ?: return
+        transitionBackdropTexture?.dispose()
+        val snapshotTexture = Texture(scenePixmap)
+        scenePixmap.dispose()
+
+        transitionBackdropTexture = snapshotTexture
+        transitionBackdropRegion = TextureRegion(snapshotTexture).also { region ->
+            // Framebuffer snapshots are upside-down in screen space.
+            region.flip(false, true)
+        }
+        transitionBackdropActive = true
+    }
+
+    /**
+     * Draws the frozen transition backdrop while the next gameplay screen is not ready yet.
+     */
+    private fun renderTransitionBackdrop() {
+        val backdropRegion = transitionBackdropRegion ?: return
+        transitionBackdropBatch.begin()
+        transitionBackdropBatch.draw(
+            backdropRegion,
+            0f,
+            0f,
+            Gdx.graphics.width.toFloat(),
+            Gdx.graphics.height.toFloat(),
+        )
+        transitionBackdropBatch.end()
+    }
+
+    /**
+     * Releases transition backdrop resources.
+     */
+    private fun clearTransitionBackdrop() {
+        transitionBackdropRegion = null
+        transitionBackdropTexture?.dispose()
+        transitionBackdropTexture = null
+        transitionBackdropActive = false
     }
 
 
