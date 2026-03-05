@@ -260,6 +260,7 @@ class Game3dScreen(
         postProcessBatch.use {
             postProcessShader.setUniform4fv("u_blendColor", blend, 0, 4)
             postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.postVignetteEnabled()) 1f else 0f)
+            postProcessShader.setUniformf("u_vignetteStrength", RenderTuningCvars.postVignetteStrength())
             postProcessShader.setUniformf("u_underwaterEnabled", if (underwaterPostEnabled) 1f else 0f)
             postProcessShader.setUniformf("u_timeSeconds", Globals.curtime * 0.001f)
             it.draw(region, 0f, 0f, width, height)

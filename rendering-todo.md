@@ -22,6 +22,8 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
   Emits throttled per-frame world/entity/sprite/beam/particle submission diagnostics for BSP batching.
 - `r_post_vignette` (default `1`)  
   Enables postprocess vignette-style application of `player_state_t.blend`.
+- `r_post_vignette_strength` (default `1.30`)  
+  Scales postprocess vignette blend intensity (`0` disables color influence, values above `1` boost effect).
 - `r_underwater_warp` (default `1`)  
   Enables postprocess underwater screen warping when `RDF_UNDERWATER` is active.
 

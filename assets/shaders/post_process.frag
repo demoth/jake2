@@ -7,6 +7,7 @@ varying vec2 v_uv;
 uniform sampler2D u_texture;
 uniform vec4 u_blendColor;
 uniform float u_vignetteEnabled;
+uniform float u_vignetteStrength;
 uniform float u_underwaterEnabled;
 uniform float u_timeSeconds;
 
@@ -31,7 +32,7 @@ void main() {
     float vignetteMask = smoothstep(0.20, 0.78, distanceToCenter);
     float vignetteWeight = u_blendColor.a * mix(0.35, 1.0, vignetteMask);
     float enabled = step(0.5, u_vignetteEnabled);
-    float blendWeight = clamp(vignetteWeight * enabled, 0.0, 1.0);
+    float blendWeight = clamp(vignetteWeight * enabled * u_vignetteStrength, 0.0, 1.0);
 
     scene.rgb = mix(scene.rgb, u_blendColor.rgb, blendWeight);
     gl_FragColor = vec4(scene.rgb, 1.0);
