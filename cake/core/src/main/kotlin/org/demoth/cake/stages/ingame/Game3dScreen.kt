@@ -3,7 +3,6 @@ package org.demoth.cake.stages.ingame
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PerspectiveCamera
@@ -23,9 +22,9 @@ import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
@@ -33,10 +32,8 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
-import org.demoth.cake.audio.EntityLoopSoundRequest
 import org.demoth.cake.audio.FireAndForgetCakeAudioSystem
 import org.demoth.cake.audio.ListenerState
-import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
@@ -59,7 +56,20 @@ class Game3dScreen(
         val title: String?,
     )
 
+    private enum class PresentationMode {
+        WORLD,
+        CINEMATIC,
+    }
+
+    private interface PresentationRuntime {
+        fun render(delta: Float)
+    }
+
     private var precached: Boolean = false
+    private var presentationMode = PresentationMode.WORLD
+    private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
+    private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
+    private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
 
     private val modelBatch: ModelBatch
     private val bspLightmapShader: BspLightmapShader
@@ -81,6 +91,8 @@ class Game3dScreen(
     var deltaTime: Float = 0f
 
     private val gameConfig = GameConfiguration(assetManager)
+    private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
+    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig) }
 
     private val entityManager = ClientEntityManager()
     private val effectsSystem = ClientEffectsSystem(
@@ -88,6 +100,13 @@ class Game3dScreen(
         entityManager = entityManager,
         audioSystem = audioSystem,
         cameraProvider = { camera },
+        dynamicLightSystem = dynamicLightSystem,
+    )
+    private val soundMessageHandler = IngameSoundMessageHandler(
+        gameConfig = gameConfig,
+        entityManager = entityManager,
+        effectsSystem = effectsSystem,
+        audioSystem = audioSystem,
         dynamicLightSystem = dynamicLightSystem,
     )
     private val environment = Environment()
@@ -113,7 +132,6 @@ class Game3dScreen(
     private var levelString: String = ""
 
     private val spriteBatch = SpriteBatch()
-    private val loopSoundRequests = mutableListOf<EntityLoopSoundRequest>()
 
     // Initialized on ServerDataMessage, then reused for this screen lifetime.
     private var hud: Hud? = null
@@ -282,6 +300,10 @@ class Game3dScreen(
     }
 
     override fun render(delta: Float) {
+        presentationRuntime.render(delta)
+    }
+
+    private fun renderWorldPresentation(delta: Float) {
         if (!precached)
             return
 
@@ -433,50 +455,74 @@ class Game3dScreen(
             levelEntityRendered = levelEntityRendered,
         )
 
-        // draw hud
-        spriteBatch.use {
-            hud?.update(delta, Gdx.graphics.width, Gdx.graphics.height)
-
-            hud?.drawCrosshair(
-                screenWidth = Gdx.graphics.width,
-                screenHeight = Gdx.graphics.height,
-            )
-
-            hud?.executeLayout(
-                layout = gameConfig.getStatusBarLayout(),
-                serverFrame = entityManager.currentFrame.serverframe,
-                stats = entityManager.currentFrame.playerstate.stats,
-                screenWidth = Gdx.graphics.width,
-                screenHeight = Gdx.graphics.height,
-            )
-
-            // draw additional layout, like help or score
-            // SRC.DrawLayout
-            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                hud?.executeLayout(
-                    layout = gameConfig.layout,
-                    serverFrame = entityManager.currentFrame.serverframe,
-                    stats = entityManager.currentFrame.playerstate.stats,
-                    screenWidth = Gdx.graphics.width,
-                    screenHeight = Gdx.graphics.height,
-                )
-            }
-            // draw additional layout, like help or score
-            // CL_inv.DrawInventory
-            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 2) != 0) {
-                hud?.drawInventory(
-                    playerstate = entityManager.currentFrame.playerstate,
-                    screenWidth = Gdx.graphics.width,
-                    screenHeight = Gdx.graphics.height,
-                    gameConfig = gameConfig
-                )
-            }
-        }
+        val currentFrame = entityManager.currentFrame
+        hudOverlayRenderer.render(
+            hud = hud,
+            delta = delta,
+            screenWidth = Gdx.graphics.width,
+            screenHeight = Gdx.graphics.height,
+            gameplayHudState = HudOverlayRenderer.GameplayHudState(
+                serverFrame = currentFrame.serverframe,
+                playerState = currentFrame.playerstate,
+                statusBarLayout = gameConfig.getStatusBarLayout(),
+                additionalLayout = gameConfig.layout,
+            ),
+        )
         audioSystem.endFrame()
 
         if (frameBuffer != null) {
             frameBuffer.end()
             presentSceneFrame()
+        }
+    }
+
+    /**
+     * Runtime split placeholder for cinematic/picture mode.
+     *
+     * This keeps server-message and networking ownership in `Game3dScreen`/`Cake` while delegating
+     * cinematic media ownership and stepping to [CinematicPresentationController].
+     */
+    private fun renderCinematicPresentation(delta: Float) {
+        // Cinematic mode is full-screen and starts from a black canvas.
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+        Gdx.gl.glDepthRangef(0f, 1f)
+
+        cinematicController.render(
+            currentTimeMs = Globals.curtime,
+            spriteBatch = spriteBatch,
+            screenWidth = Gdx.graphics.width.toFloat(),
+            screenHeight = Gdx.graphics.height.toFloat(),
+        )
+
+        audioSystem.beginFrame(
+            ListenerState(
+                position = camera.position,
+                forward = camera.direction,
+                up = camera.up,
+            )
+        )
+        // Future cinematic decoders may emit looped sounds; keep explicit loop state clean for now.
+        audioSystem.syncEntityLoopingSounds(emptyList())
+        hudOverlayRenderer.render(
+            hud = hud,
+            delta = delta,
+            screenWidth = Gdx.graphics.width,
+            screenHeight = Gdx.graphics.height,
+            gameplayHudState = null,
+        )
+        audioSystem.endFrame()
+    }
+
+    private inner class WorldPresentationRuntime : PresentationRuntime {
+        override fun render(delta: Float) {
+            renderWorldPresentation(delta)
+        }
+    }
+
+    private inner class CinematicPresentationRuntime : PresentationRuntime {
+        override fun render(delta: Float) {
+            renderCinematicPresentation(delta)
         }
     }
 
@@ -715,6 +761,7 @@ class Game3dScreen(
         sceneFrameRegion = null
         postProcessShader.dispose()
         postProcessBatch.dispose()
+        cinematicController.dispose()
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
         worldVisibilityMaskTracker = null
@@ -1028,11 +1075,42 @@ class Game3dScreen(
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
 
+        if (msg.playerNumber == -1) {
+            presentationMode = PresentationMode.CINEMATIC
+            presentationRuntime = cinematicPresentationRuntime
+            cinematicController.begin(levelString, Globals.curtime)
+        } else {
+            presentationMode = PresentationMode.WORLD
+            presentationRuntime = worldPresentationRuntime
+            cinematicController.end()
+        }
+
         // ServerDataMessage is the authoritative game/mod style switch point.
         // Cake recreates Game3dScreen for each fresh serverdata sequence, so one HUD per screen is expected.
         hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
         val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
+    }
+
+    /**
+     * Returns one-shot `nextserver` command when cinematic skip criteria are met.
+     *
+     * Legacy cross-reference:
+     * - q2pro `src/client/keys.c`: button-style keydown in cinematic triggers `SCR_FinishCinematic()`.
+     * - q2pro `src/client/cin.c`: `SCR_FinishCinematic` sends `nextserver <servercount>`.
+     * - q2pro `src/client/cin.c`: EOF also triggers `SCR_FinishCinematic`.
+     * - Jake2/Yamagi only allow skip after a short guard delay to avoid accidental abort.
+     * - Server expects `nextserver <spawncount>` while in `SS_CINEMATIC` / `SS_PIC`.
+     */
+    fun pollCinematicSkipCommand(currentTimeMs: Int): StringCmdMessage? {
+        if (presentationMode != PresentationMode.CINEMATIC) {
+            return null
+        }
+        return cinematicController.pollSkipCommand(
+            currentTimeMs = currentTimeMs,
+            spawnCount = spawnCount,
+            hasImmediateAction = inputManager.hasActiveImmediateAction(),
+        )
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -1068,7 +1146,7 @@ class Game3dScreen(
         if (validMessage) {
             entityManager.computeVisibleEntities(gameConfig)
             // Old-client counterpart: `CL_fx.EntityEvent` runs after packet entities are reconstructed.
-            playEntityEventSounds()
+            soundMessageHandler.playEntityEventSounds()
             // Cross-reference: old `CL_ents.parsePacketEntities` calls `CL_pred.CheckPredictionError`
             // once a valid frame has been fully reconstructed.
             prediction.onServerFrameParsed(entityManager.currentFrame)
@@ -1077,78 +1155,7 @@ class Game3dScreen(
     }
 
     override fun processSoundMessage(msg: SoundMessage) {
-        val sound = gameConfig.getSound(msg.soundIndex, msg.entityIndex)
-        if (sound != null) {
-            val origin = resolveExplicitSoundOrigin(msg)
-            audioSystem.play(
-                SoundPlaybackRequest(
-                    sound = sound,
-                    baseVolume = msg.volume,
-                    attenuation = msg.attenuation,
-                    origin = origin,
-                    entityIndex = msg.entityIndex,
-                    channel = msg.sendchan,
-                    timeOffsetSeconds = msg.timeOffset,
-                )
-            )
-        } else {
-            Com.Warn("sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
-        }
-    }
-
-    /**
-     * Play client-side entity event sounds derived from reconstructed packet entities.
-     *
-     * Supported events currently mirror the subset implemented in this module:
-     * - `EV_ITEM_RESPAWN` -> `items/respawn1.wav` + item respawn particles
-     * - `EV_FOOTSTEP` -> random `player/step1..4.wav`
-     * - `EV_FALLSHORT` -> `player/land1.wav`
-     * - `EV_FALL` -> variation-specific `fall2.wav`
-     * - `EV_FALLFAR` -> variation-specific `fall1.wav`
-     * - `EV_PLAYER_TELEPORT` -> `misc/tele1.wav` + teleport particles
-     */
-    private fun playEntityEventSounds() {
-        entityManager.forEachCurrentEntityState { state ->
-            when (state.event) {
-                Defines.EV_ITEM_RESPAWN -> {
-                    val sound = gameConfig.getNamedSound("items/respawn1.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(
-                        sound = sound,
-                        entityIndex = state.index,
-                        attenuation = Defines.ATTN_IDLE.toFloat(),
-                        channel = Defines.CHAN_WEAPON,
-                    )
-                    effectsSystem.emitItemRespawnEvent(state.index)
-                }
-                Defines.EV_FOOTSTEP -> {
-                    val stepIndex = (Lib.rand().toInt() and 3) + 1
-                    val sound = gameConfig.getNamedSound("player/step$stepIndex.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(sound, state.index)
-                }
-                Defines.EV_FALLSHORT -> {
-                    val sound = gameConfig.getNamedSound("player/land1.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(sound, state.index)
-                }
-                Defines.EV_FALL -> {
-                    val sound = gameConfig.playerConfiguration.getPlayerSound(state.index, "fall2.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(sound, state.index)
-                }
-                Defines.EV_FALLFAR -> {
-                    val sound = gameConfig.playerConfiguration.getPlayerSound(state.index, "fall1.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(sound, state.index)
-                }
-                Defines.EV_PLAYER_TELEPORT -> {
-                    val sound = gameConfig.getNamedSound("misc/tele1.wav") ?: return@forEachCurrentEntityState
-                    playEntityEventSound(
-                        sound = sound,
-                        entityIndex = state.index,
-                        attenuation = Defines.ATTN_IDLE.toFloat(),
-                        channel = Defines.CHAN_WEAPON,
-                    )
-                    effectsSystem.emitPlayerTeleportEvent(state.index)
-                }
-            }
-        }
+        soundMessageHandler.processSoundMessage(msg)
     }
 
     /**
@@ -1157,121 +1164,7 @@ class Game3dScreen(
      * Legacy counterpart: `client/CL_fx.ParseMuzzleFlash`.
      */
     override fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
-        if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
-            Com.Warn("Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
-            return
-        }
-        // weapon type is stored in last 7 bits of the msg.type
-        val weaponType = msg.type and 0x7F
-        // the silenced flag is stored in the first bit
-        val silenced = (msg.type and Defines.MZ_SILENCED) != 0
-        val volume = if (silenced) 0.2f else 1f
-
-        spawnWeaponMuzzleFlashLight(msg.entityIndex, weaponType, silenced)
-
-        // login/out effects
-        if (weaponType == Defines.MZ_LOGIN || weaponType == Defines.MZ_LOGOUT || weaponType == Defines.MZ_RESPAWN) {
-            effectsSystem.emitLoginLogoutRespawnEvent(msg.entityIndex, weaponType)
-        }
-
-        when (weaponType) {
-            Defines.MZ_BLASTER -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
-            Defines.MZ_BLUEHYPERBLASTER, Defines.MZ_HYPERBLASTER -> {
-                playWeaponSound(msg.entityIndex, "weapons/hyprbf1a.wav", volume)
-            }
-            Defines.MZ_MACHINEGUN -> {
-                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
-            }
-            Defines.MZ_SHOTGUN -> {
-                playWeaponSound(msg.entityIndex, "weapons/shotgf1b.wav", volume)
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = "weapons/shotgr1b.wav",
-                    volume = volume,
-                    channel = Defines.CHAN_AUTO,
-                    timeOffsetSeconds = 0.1f,
-                )
-            }
-            Defines.MZ_SSHOTGUN -> playWeaponSound(msg.entityIndex, "weapons/sshotf1b.wav", volume)
-            Defines.MZ_CHAINGUN1 -> {
-                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
-            }
-            Defines.MZ_CHAINGUN2 -> {
-                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = randomMachineGunSound(),
-                    volume = volume,
-                    timeOffsetSeconds = 0.05f,
-                )
-            }
-            Defines.MZ_CHAINGUN3 -> {
-                playWeaponSound(msg.entityIndex, randomMachineGunSound(), volume)
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = randomMachineGunSound(),
-                    volume = volume,
-                    timeOffsetSeconds = 0.033f,
-                )
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = randomMachineGunSound(),
-                    volume = volume,
-                    timeOffsetSeconds = 0.066f,
-                )
-            }
-            Defines.MZ_RAILGUN -> playWeaponSound(msg.entityIndex, "weapons/railgf1a.wav", volume)
-            Defines.MZ_ROCKET -> {
-                playWeaponSound(msg.entityIndex, "weapons/rocklf1a.wav", volume)
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = "weapons/rocklr1b.wav",
-                    volume = volume,
-                    channel = Defines.CHAN_AUTO,
-                    timeOffsetSeconds = 0.1f,
-                )
-            }
-            Defines.MZ_GRENADE -> {
-                playWeaponSound(msg.entityIndex, "weapons/grenlf1a.wav", volume)
-                playWeaponSound(
-                    entityIndex = msg.entityIndex,
-                    soundPath = "weapons/grenlr1b.wav",
-                    volume = volume,
-                    channel = Defines.CHAN_AUTO,
-                    timeOffsetSeconds = 0.1f,
-                )
-            }
-            Defines.MZ_BFG -> playWeaponSound(msg.entityIndex, "weapons/bfg__f1y.wav", volume)
-            Defines.MZ_LOGIN, Defines.MZ_LOGOUT, Defines.MZ_RESPAWN -> {
-                playWeaponSound(msg.entityIndex, "weapons/grenlf1a.wav", 1f)
-            }
-            Defines.MZ_PHALANX -> playWeaponSound(msg.entityIndex, "weapons/plasshot.wav", volume)
-            Defines.MZ_IONRIPPER -> playWeaponSound(msg.entityIndex, "weapons/rippfire.wav", volume)
-            Defines.MZ_ETF_RIFLE -> playWeaponSound(msg.entityIndex, "weapons/nail1.wav", volume)
-            Defines.MZ_SHOTGUN2 -> playWeaponSound(msg.entityIndex, "weapons/shotg2.wav", volume)
-            Defines.MZ_BLASTER2 -> playWeaponSound(msg.entityIndex, "weapons/blastf1a.wav", volume)
-            Defines.MZ_TRACKER -> playWeaponSound(msg.entityIndex, "weapons/disint2.wav", volume)
-            Defines.MZ_HEATBEAM, Defines.MZ_NUKE1, Defines.MZ_NUKE2, Defines.MZ_NUKE4, Defines.MZ_NUKE8, Defines.MZ_UNUSED -> {
-                // Legacy path has no additional one-shot sound for these muzzleflash types.
-            }
-            else -> {
-                // Keep backward-compatible fallback for unknown mod-specific muzzleflash values.
-                val fallback = gameConfig.getWeaponSound(weaponType)
-                if (fallback == null) {
-                    Com.Warn("weapon sound $weaponType not found")
-                } else {
-                    audioSystem.play(
-                        SoundPlaybackRequest(
-                            sound = fallback,
-                            baseVolume = volume,
-                            entityIndex = msg.entityIndex,
-                            channel = Defines.CHAN_WEAPON,
-                            attenuation = Defines.ATTN_NORM.toFloat(),
-                        )
-                    )
-                }
-            }
-        }
+        soundMessageHandler.processWeaponSoundMessage(msg)
     }
 
     override fun processMuzzleFlash2Message(msg: MuzzleFlash2Message) {
@@ -1306,26 +1199,8 @@ class Game3dScreen(
 
     // endregion
 
-    private fun resolveExplicitSoundOrigin(msg: SoundMessage): Vector3? {
-        val rawOrigin = msg.origin ?: return null
-        return Vector3(rawOrigin[0], rawOrigin[1], rawOrigin[2])
-    }
-
     private fun syncEntityLoopSounds() {
-        loopSoundRequests.clear()
-        entityManager.forEachCurrentEntityState { state ->
-            val soundIndex = state.sound
-            if (soundIndex <= 0) {
-                return@forEachCurrentEntityState
-            }
-            val sound = gameConfig.getSound(soundIndex, state.index) ?: return@forEachCurrentEntityState
-            loopSoundRequests += EntityLoopSoundRequest(
-                entityIndex = state.index,
-                sound = sound,
-                attenuation = Defines.ATTN_STATIC.toFloat(),
-            )
-        }
-        audioSystem.syncEntityLoopingSounds(loopSoundRequests)
+        soundMessageHandler.syncEntityLoopSounds()
     }
 
     /**
@@ -1454,144 +1329,8 @@ class Game3dScreen(
         )
     }
 
-    /**
-     * Play an event sound using legacy-normal attenuation from the emitting entity origin.
-     */
-    private fun playEntityEventSound(
-        sound: Sound,
-        entityIndex: Int,
-        attenuation: Float = Defines.ATTN_NORM.toFloat(),
-        channel: Int = Defines.CHAN_AUTO,
-    ) {
-        audioSystem.play(
-            SoundPlaybackRequest(
-                sound = sound,
-                attenuation = attenuation,
-                origin = entityManager.getEntityOrigin(entityIndex),
-                entityIndex = entityIndex,
-                channel = channel,
-            )
-        )
-    }
-
-    /**
-     * Emits one-shot weapon muzzle dynamic lights for `MZ_*` events.
-     *
-     * Legacy counterpart: `client/CL_fx.ParseMuzzleFlash` (`CL_AllocDlight` + weapon-specific color/radius).
-     */
-    private fun spawnWeaponMuzzleFlashLight(entityIndex: Int, weaponType: Int, silenced: Boolean) {
-        val origin = entityManager.getEntityOrigin(entityIndex) ?: return
-        val angles = entityManager.getEntityAngles(entityIndex) ?: return
-
-        val forward = FloatArray(3)
-        val right = FloatArray(3)
-        Math3D.AngleVectors(angles, forward, right, null)
-
-        // Match classic muzzle offset from entity origin.
-        origin.mulAdd(Vector3(forward[0], forward[1], forward[2]), WEAPON_MUZZLE_FORWARD_OFFSET)
-        origin.mulAdd(Vector3(right[0], right[1], right[2]), WEAPON_MUZZLE_RIGHT_OFFSET)
-
-        val profile = resolveWeaponMuzzleLightProfile(weaponType) ?: return
-        val radiusBase = profile.radiusBase ?: if (silenced) {
-            WEAPON_MUZZLE_SILENCED_RADIUS_BASE
-        } else {
-            WEAPON_MUZZLE_DEFAULT_RADIUS_BASE
-        }
-        val radius = radiusBase + Globals.rnd.nextInt(WEAPON_MUZZLE_RADIUS_JITTER + 1)
-
-        dynamicLightSystem.spawnTransientLight(
-            key = entityIndex,
-            origin = origin,
-            radius = radius,
-            red = profile.red,
-            green = profile.green,
-            blue = profile.blue,
-            lifetimeMs = profile.lifetimeMs,
-            currentTimeMs = Globals.curtime,
-        )
-    }
-
-    private fun resolveWeaponMuzzleLightProfile(weaponType: Int): WeaponMuzzleLightProfile? {
-        return when (weaponType) {
-            Defines.MZ_BLASTER,
-            Defines.MZ_HYPERBLASTER,
-            Defines.MZ_MACHINEGUN,
-            Defines.MZ_SHOTGUN,
-            Defines.MZ_SSHOTGUN,
-            Defines.MZ_SHOTGUN2 -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f)
-            Defines.MZ_HEATBEAM -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
-
-            Defines.MZ_BLUEHYPERBLASTER -> WeaponMuzzleLightProfile(red = 0f, green = 0f, blue = 1f)
-            Defines.MZ_CHAINGUN1 -> WeaponMuzzleLightProfile(radiusBase = 200f, red = 1f, green = 0.25f, blue = 0f)
-            Defines.MZ_CHAINGUN2 -> WeaponMuzzleLightProfile(radiusBase = 225f, red = 1f, green = 0.5f, blue = 0f, lifetimeMs = 100)
-            Defines.MZ_CHAINGUN3 -> WeaponMuzzleLightProfile(radiusBase = 250f, red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
-            Defines.MZ_RAILGUN -> WeaponMuzzleLightProfile(red = 0.5f, green = 0.5f, blue = 1f)
-            Defines.MZ_ROCKET -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.2f)
-            Defines.MZ_GRENADE -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0f)
-            Defines.MZ_BFG -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f)
-            Defines.MZ_LOGIN -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
-            Defines.MZ_LOGOUT -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
-            Defines.MZ_RESPAWN -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS)
-            Defines.MZ_PHALANX,
-            Defines.MZ_IONRIPPER -> WeaponMuzzleLightProfile(red = 1f, green = 0.5f, blue = 0.5f)
-
-            Defines.MZ_ETF_RIFLE -> WeaponMuzzleLightProfile(red = 0.9f, green = 0.7f, blue = 0f)
-            Defines.MZ_BLASTER2 -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 0f)
-            Defines.MZ_TRACKER -> WeaponMuzzleLightProfile(red = -1f, green = -1f, blue = -1f)
-            Defines.MZ_NUKE1 -> WeaponMuzzleLightProfile(red = 1f, green = 0f, blue = 0f, lifetimeMs = 100)
-            Defines.MZ_NUKE2 -> WeaponMuzzleLightProfile(red = 1f, green = 1f, blue = 0f, lifetimeMs = 100)
-            Defines.MZ_NUKE4 -> WeaponMuzzleLightProfile(red = 0f, green = 0f, blue = 1f, lifetimeMs = 100)
-            Defines.MZ_NUKE8 -> WeaponMuzzleLightProfile(red = 0f, green = 1f, blue = 1f, lifetimeMs = 100)
-            Defines.MZ_UNUSED -> null
-            else -> null
-        }
-    }
-
-    private fun playWeaponSound(
-        entityIndex: Int,
-        soundPath: String,
-        volume: Float,
-        channel: Int = Defines.CHAN_WEAPON,
-        timeOffsetSeconds: Float = 0f,
-    ) {
-        val sound = gameConfig.getNamedSound(soundPath)
-        if (sound == null) {
-            Com.Warn("weapon sound path $soundPath not found")
-            return
-        }
-        audioSystem.play(
-            SoundPlaybackRequest(
-                sound = sound,
-                baseVolume = volume,
-                entityIndex = entityIndex,
-                channel = channel,
-                attenuation = Defines.ATTN_NORM.toFloat(),
-                timeOffsetSeconds = timeOffsetSeconds,
-            )
-        )
-    }
-
-    private fun randomMachineGunSound(): String {
-        val soundIndex = Globals.rnd.nextInt(5) + 1
-        return "weapons/machgf${soundIndex}b.wav"
-    }
-
-    private data class WeaponMuzzleLightProfile(
-        val red: Float,
-        val green: Float,
-        val blue: Float,
-        val radiusBase: Float? = null,
-        val lifetimeMs: Int = 0,
-    )
-
     companion object {
         private val BFG_LIGHT_RAMP = intArrayOf(300, 400, 600, 300, 150, 75)
-        private const val WEAPON_MUZZLE_FORWARD_OFFSET = 18f
-        private const val WEAPON_MUZZLE_RIGHT_OFFSET = 16f
-        private const val WEAPON_MUZZLE_DEFAULT_RADIUS_BASE = 200f
-        private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
-        private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
-        private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
         private const val BATCH_DEBUG_LOG_INTERVAL_MS = 1000
     }
 }

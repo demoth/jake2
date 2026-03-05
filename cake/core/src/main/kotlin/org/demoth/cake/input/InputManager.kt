@@ -190,6 +190,12 @@ class InputManager(
         return false
     }
 
+    /**
+     * Returns `true` when at least one immediate gameplay action is currently held.
+     *
+     * Used by cinematic flow to mirror legacy "button press can skip after delay" behavior.
+     */
+    fun hasActiveImmediateAction(): Boolean = hasAnyActiveImmediateAction()
     private fun applyPendingMouseLook() {
         if (mouseWasMoved) {
             mouseWasMoved = false

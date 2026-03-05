@@ -460,6 +460,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * SendCommands
      */
     private fun sendUpdates() {
+        game3dScreen?.pollCinematicSkipCommand(Globals.curtime)?.let { skipCommand ->
+            netchan.reliablePending.add(skipCommand)
+        }
+
         when (networkState) {
             CONNECTING, DISCONNECTED -> return
             CONNECTED -> {
