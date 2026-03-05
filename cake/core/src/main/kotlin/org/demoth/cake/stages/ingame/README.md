@@ -26,6 +26,9 @@ It does not own:
 - `IngameSoundMessageHandler` - central sound/event dispatch for server sound packets.
   - Handles `SoundMessage`, `WeaponSoundMessage`, packet-entity event sounds, and loop-sound sync.
   - Keeps legacy behavior for `CL_parse.ParseStartSoundPacket`, `CL_fx.ParseMuzzleFlash`, and `CL_fx.EntityEvent`.
+- `ReplicatedEntityEffectCollector` - applies replicated `EF_*` visual side effects from packet entities.
+  - Collects dynamic lights and replicated projectile trails using render-time interpolation rules.
+  - Keeps legacy `CL_ents.AddPacketEntities` behavior for light/trail branches.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).
@@ -44,7 +47,8 @@ Precache -> GameConfiguration.loadAssets (models/images/sounds + player-variatio
 FrameHeader + PacketEntities + PlayerInfo
   -> ClientEntityManager reconstruct frame
   -> Game3dScreen.computeVisibleEntities
-  -> Game3dScreen.playEntityEventSounds
+  -> IngameSoundMessageHandler.playEntityEventSounds
+  -> ReplicatedEntityEffectCollector.collectTrails/collectDynamicLights
   -> render
 
 World BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/warp/translucent passes.

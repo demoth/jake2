@@ -15,7 +15,7 @@ Not owned here:
 - Replicated entity state reconstruction/interpolation (`ClientEntityManager`).
 - Core world/entity drawing (`Game3dScreen`).
 - Player weapon muzzleflash (`WeaponSoundMessage` / `MZ_*`) dynamic lights (owned by `Game3dScreen`).
-- Continuous replicated entity `EF_*` lights (owned by `Game3dScreen.collectEntityEffectDynamicLights`).
+- Continuous replicated entity `EF_*` lights (owned by `ReplicatedEntityEffectCollector.collectDynamicLights`).
 
 ## Key Types
 - `ClientEffectsSystem` - entry point for TE/muzzle effect dispatch.

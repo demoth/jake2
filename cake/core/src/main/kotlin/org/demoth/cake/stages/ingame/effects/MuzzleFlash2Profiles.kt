@@ -26,7 +26,7 @@ internal data class MuzzleFlash2DynamicLight(
  *
  * Constraint:
  * entries here intentionally cover only `MuzzleFlash2`-driven behavior. Continuous per-entity
- * effect lights (`EF_*`) are handled in `Game3dScreen.collectEntityEffectDynamicLights()`.
+ * effect lights (`EF_*`) are handled in `ReplicatedEntityEffectCollector.collectDynamicLights()`.
  *
  * //fixme: terrible hard coupling of client and game logic.
  */

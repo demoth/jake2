@@ -128,6 +128,7 @@ Runtime modularization follow-up (post parity):
 - [x] Extract cinematic media lifecycle/skip policy to `CinematicPresentationController`.
 - [x] Extract HUD composition path to `HudOverlayRenderer`.
 - [x] Extract sound message dispatch branches into `IngameSoundMessageHandler`.
+- [x] Extract replicated entity effect collectors (dynamic lights + trails) to `ReplicatedEntityEffectCollector`.
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 
