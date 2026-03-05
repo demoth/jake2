@@ -87,7 +87,7 @@ Planned phases:
 - [x] Step 4: cinematic stream path (`.cin`) with frame-time stepping and end-of-stream -> `nextserver`.
 - [x] Step 4a: cinematic audio playback parity for `.cin` sample stream (decoded PCM is now streamed through runtime audio device).
 - [ ] Step 5: widen static-image support (`.tga/.png/.jpg`) through existing texture loader pipeline when available.
-- [ ] Step 6: polish/debug hooks (`r_debug_*` counters for cinematic mode, minimal status logging, docs/readme updates).
+- [x] Step 6: polish/debug hooks (`r_debug_*` counters remain active; added throttled `cinematic_debug` runtime logging behind `r_bsp_batch_debug` + runtime/docs cleanup).
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 

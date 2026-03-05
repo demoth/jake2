@@ -14,10 +14,12 @@ It does not own:
 ## Key Types
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
   - Also owns presentation-mode routing (`WORLD` vs `CINEMATIC`) while `Cake` keeps shared networking/input orchestration.
-  - Delegates frame drawing to mode-specific runtimes (`WorldPresentationRuntime`, `CinematicPresentationRuntime`) to keep responsibilities modular.
-  - Current cinematic runtime supports static `.pcx` pictures and `.cin` streamed video frames (centered/letterboxed over black background) while preserving HUD notify/center-print updates.
-  - `.cin` audio sample chunks are streamed at runtime via a dedicated `AudioDevice` (separate from entity/event SFX path).
-  - `.cin` end-of-stream raises cinematic completion and triggers `nextserver <spawncount>` through the existing command path.
+  - Delegates frame drawing to mode-specific runtimes (`WorldPresentationRuntime`, `CinematicPresentationRuntime`) and delegates cinematic media/skip ownership to `CinematicPresentationController`.
+- `CinematicPresentationController` - owns cinematic media decode/render lifecycle and skip command policy.
+  - Supports static `.pcx` pictures and `.cin` streamed frames (centered/letterboxed over black background) while gameplay/network message handling stays in `Game3dScreen`.
+  - Streams `.cin` audio chunks to a dedicated runtime `AudioDevice` (separate from entity/event SFX path).
+  - EOF or guarded input skip produces `nextserver <spawncount>` command parity.
+  - Emits throttled `cinematic_debug` diagnostics when `r_bsp_batch_debug 1`.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).

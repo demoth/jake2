@@ -3,16 +3,13 @@ package org.demoth.cake.stages.ingame
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.audio.AudioDevice
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
@@ -69,14 +66,6 @@ class Game3dScreen(
 
     private var precached: Boolean = false
     private var presentationMode = PresentationMode.WORLD
-    private var cinematicStartTimeMs = Int.MIN_VALUE
-    private var cinematicSkipSent = false
-    private var cinematicAutoAdvancePending = false
-    private var cinematicStaticImage: Texture? = null
-    private var cinematicFrameTexture: Texture? = null
-    private var cinematicFramePixmap: Pixmap? = null
-    private var cinematicStreamDecoder: CinematicCinDecoder? = null
-    private var cinematicAudioDevice: AudioDevice? = null
     private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
     private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
     private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
@@ -101,6 +90,7 @@ class Game3dScreen(
     var deltaTime: Float = 0f
 
     private val gameConfig = GameConfiguration(assetManager)
+    private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
 
     private val entityManager = ClientEntityManager()
     private val effectsSystem = ClientEffectsSystem(
@@ -388,8 +378,8 @@ class Game3dScreen(
     /**
      * Runtime split placeholder for cinematic/picture mode.
      *
-     * This keeps server-message and networking ownership in `Game3dScreen`/`Cake` while allowing
-     * cinematic rendering to evolve independently from world rendering in follow-up steps.
+     * This keeps server-message and networking ownership in `Game3dScreen`/`Cake` while delegating
+     * cinematic media ownership and stepping to [CinematicPresentationController].
      */
     private fun renderCinematicPresentation(delta: Float) {
         // Cinematic mode is full-screen and starts from a black canvas.
@@ -397,8 +387,12 @@ class Game3dScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl.glDepthRangef(0f, 1f)
 
-        advanceCinematicStream(Globals.curtime)
-        renderCinematicStaticImage()
+        cinematicController.render(
+            currentTimeMs = Globals.curtime,
+            spriteBatch = spriteBatch,
+            screenWidth = Gdx.graphics.width.toFloat(),
+            screenHeight = Gdx.graphics.height.toFloat(),
+        )
 
         audioSystem.beginFrame(
             ListenerState(
@@ -411,145 +405,6 @@ class Game3dScreen(
         audioSystem.syncEntityLoopingSounds(emptyList())
         renderHudOverlay(delta, includeGameplayHud = false)
         audioSystem.endFrame()
-    }
-
-    private fun renderCinematicStaticImage() {
-        val image = cinematicFrameTexture ?: cinematicStaticImage ?: return
-        val imageWidth = image.width.toFloat().coerceAtLeast(1f)
-        val imageHeight = image.height.toFloat().coerceAtLeast(1f)
-        val screenWidth = Gdx.graphics.width.toFloat()
-        val screenHeight = Gdx.graphics.height.toFloat()
-        val scale = minOf(screenWidth / imageWidth, screenHeight / imageHeight)
-        val drawWidth = imageWidth * scale
-        val drawHeight = imageHeight * scale
-        val drawX = (screenWidth - drawWidth) * 0.5f
-        val drawY = (screenHeight - drawHeight) * 0.5f
-
-        spriteBatch.use {
-            it.draw(image, drawX, drawY, drawWidth, drawHeight)
-        }
-    }
-
-    /**
-     * Advances `.cin` playback in legacy 14 FPS timebase and uploads latest decoded frame.
-     *
-     * Legacy cross-reference:
-     * - q2pro `src/client/cin.c` `SCR_RunCinematic` frame stepping.
-     * - Jake2 `client/SCR.RunCinematic` frame stepping and dropped-frame catch-up.
-     */
-    private fun advanceCinematicStream(currentTimeMs: Int) {
-        val decoder = cinematicStreamDecoder ?: return
-        if (cinematicStartTimeMs == Int.MIN_VALUE) {
-            return
-        }
-        val elapsedMs = (currentTimeMs - cinematicStartTimeMs).coerceAtLeast(0)
-        val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
-        while (decoder.decodedFrameCount <= targetFrame) {
-            val decodedFrame = decoder.readNextFrame() ?: run {
-                cinematicStreamDecoder = null
-                cinematicAutoAdvancePending = true
-                cinematicAudioDevice?.dispose()
-                cinematicAudioDevice = null
-                return
-            }
-            uploadCinematicFrame(
-                width = decoder.width,
-                height = decoder.height,
-                indexedFrame = decodedFrame.indexedFrame,
-                palette = decoder.currentPalette(),
-            ) || run {
-                cinematicStreamDecoder = null
-                cinematicAutoAdvancePending = true
-                cinematicAudioDevice?.dispose()
-                cinematicAudioDevice = null
-                return
-            }
-            streamCinematicAudioSamples(
-                pcmBytes = decodedFrame.audioPcmBytes,
-                sampleWidth = decoder.sampleWidth,
-            )
-        }
-    }
-
-    private fun uploadCinematicFrame(
-        width: Int,
-        height: Int,
-        indexedFrame: ByteArray,
-        palette: IntArray,
-    ): Boolean {
-        if (indexedFrame.size < width * height) {
-            Com.Warn("Cinematic frame is truncated (${indexedFrame.size} < ${width * height})\n")
-            return false
-        }
-        val pixmap = ensureCinematicFramePixmap(width, height)
-        var pixelOffset = 0
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val paletteIndex = indexedFrame[pixelOffset++].toInt() and 0xFF
-                pixmap.drawPixel(x, y, palette[paletteIndex])
-            }
-        }
-
-        val existingTexture = cinematicFrameTexture
-        if (existingTexture == null || existingTexture.width != width || existingTexture.height != height) {
-            existingTexture?.dispose()
-            cinematicFrameTexture = Texture(pixmap)
-        } else {
-            existingTexture.draw(pixmap, 0, 0)
-        }
-        return true
-    }
-
-    private fun ensureCinematicFramePixmap(width: Int, height: Int): Pixmap {
-        val existing = cinematicFramePixmap
-        if (existing != null && existing.width == width && existing.height == height) {
-            return existing
-        }
-        existing?.dispose()
-        return Pixmap(width, height, Pixmap.Format.RGBA8888).also {
-            cinematicFramePixmap = it
-        }
-    }
-
-    /**
-     * Streams one decoded cinematic audio chunk to the dedicated device.
-     *
-     * The `.cin` format stores interleaved PCM samples in little-endian byte order.
-     */
-    private fun streamCinematicAudioSamples(pcmBytes: ByteArray, sampleWidth: Int) {
-        if (pcmBytes.isEmpty()) {
-            return
-        }
-        val audioDevice = cinematicAudioDevice ?: return
-        when (sampleWidth) {
-            1 -> {
-                // Unsigned 8-bit PCM -> signed 16-bit.
-                val samples = ShortArray(pcmBytes.size)
-                for (i in pcmBytes.indices) {
-                    samples[i] = (((pcmBytes[i].toInt() and 0xFF) - 128) shl 8).toShort()
-                }
-                audioDevice.writeSamples(samples, 0, samples.size)
-            }
-
-            2 -> {
-                val sampleCount = pcmBytes.size / 2
-                if (sampleCount <= 0) {
-                    return
-                }
-                val samples = ShortArray(sampleCount)
-                var byteIndex = 0
-                for (i in 0 until sampleCount) {
-                    val lo = pcmBytes[byteIndex++].toInt() and 0xFF
-                    val hi = pcmBytes[byteIndex++].toInt()
-                    samples[i] = ((hi shl 8) or lo).toShort()
-                }
-                audioDevice.writeSamples(samples, 0, samples.size)
-            }
-
-            else -> {
-                Com.Warn("Unsupported cinematic audio sample width: $sampleWidth\n")
-            }
-        }
     }
 
     private fun renderHudOverlay(delta: Float, includeGameplayHud: Boolean) {
@@ -839,7 +694,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
-        releaseCinematicMedia()
+        cinematicController.dispose()
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
         worldVisibilityMaskTracker = null
@@ -1152,19 +1007,15 @@ class Game3dScreen(
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
-        cinematicSkipSent = false
-        cinematicAutoAdvancePending = false
 
         if (msg.playerNumber == -1) {
             presentationMode = PresentationMode.CINEMATIC
             presentationRuntime = cinematicPresentationRuntime
-            cinematicStartTimeMs = Globals.curtime
-            prepareCinematicMedia(levelString)
+            cinematicController.begin(levelString, Globals.curtime)
         } else {
             presentationMode = PresentationMode.WORLD
             presentationRuntime = worldPresentationRuntime
-            cinematicStartTimeMs = Int.MIN_VALUE
-            releaseCinematicMedia()
+            cinematicController.end()
         }
 
         // ServerDataMessage is the authoritative game/mod style switch point.
@@ -1172,115 +1023,6 @@ class Game3dScreen(
         hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
         val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
-    }
-
-    /**
-     * Load static cinematic image when server mapname points to picture mode.
-     *
-     * Legacy references:
-     * - q2pro: `src/client/cin.c` `SCR_PlayCinematic` (`.pcx` -> temp pic).
-     * - Jake2: `client/SCR.PlayCinematic` (`pics/<name>` lookup for static images).
-     */
-    private fun prepareCinematicMedia(cinematicName: String) {
-        releaseCinematicMedia()
-        if (cinematicName.endsWith(".cin", ignoreCase = true)) {
-            prepareCinematicStream(cinematicName)
-            return
-        }
-        if (!cinematicName.endsWith(".pcx", ignoreCase = true)) {
-            return
-        }
-        val imagePath = resolveCinematicPicturePath(cinematicName)
-        if (assetManager.fileHandleResolver.resolve(imagePath) == null) {
-            Com.Warn("Cinematic image not found: $imagePath\n")
-            return
-        }
-        cinematicStaticImage = gameConfig.acquireAsset<Texture>(imagePath)
-    }
-
-    private fun prepareCinematicStream(cinematicName: String) {
-        val streamPath = resolveCinematicStreamPath(cinematicName)
-        val streamHandle = assetManager.fileHandleResolver.resolve(streamPath)
-        if (streamHandle == null || !streamHandle.exists()) {
-            Com.Warn("Cinematic stream not found: $streamPath\n")
-            cinematicAutoAdvancePending = true
-            return
-        }
-
-        val defaultPalette = (assetManager.get("q2palette.bin", Any::class.java) as? IntArray)
-            ?.copyOf(PALETTE_COLOR_COUNT)
-            ?: IntArray(PALETTE_COLOR_COUNT) { 0xFF }
-
-        try {
-            val decoder = CinematicCinDecoder(streamHandle.readBytes(), defaultPalette)
-            prepareCinematicAudioDevice(decoder)
-            val firstFrame = decoder.readNextFrame()
-            if (firstFrame == null) {
-                cinematicAutoAdvancePending = true
-                return
-            }
-            cinematicStreamDecoder = decoder
-            uploadCinematicFrame(
-                width = decoder.width,
-                height = decoder.height,
-                indexedFrame = firstFrame.indexedFrame,
-                palette = decoder.currentPalette(),
-            ) || run {
-                cinematicStreamDecoder = null
-                cinematicAutoAdvancePending = true
-                cinematicAudioDevice?.dispose()
-                cinematicAudioDevice = null
-                return
-            }
-            streamCinematicAudioSamples(
-                pcmBytes = firstFrame.audioPcmBytes,
-                sampleWidth = decoder.sampleWidth,
-            )
-        } catch (ex: RuntimeException) {
-            Com.Warn("Failed to open cinematic stream $streamPath: ${ex.message}\n")
-            cinematicAutoAdvancePending = true
-        }
-    }
-
-    private fun prepareCinematicAudioDevice(decoder: CinematicCinDecoder) {
-        cinematicAudioDevice?.dispose()
-        cinematicAudioDevice = null
-        if (decoder.sampleRate <= 0) {
-            return
-        }
-        if (decoder.sampleChannels !in 1..2) {
-            Com.Warn("Unsupported cinematic audio channels: ${decoder.sampleChannels}\n")
-            return
-        }
-        cinematicAudioDevice = Gdx.audio.newAudioDevice(decoder.sampleRate, decoder.sampleChannels == 1)
-    }
-
-    private fun resolveCinematicPicturePath(cinematicName: String): String {
-        val normalized = cinematicName.trim().removePrefix("/")
-        if (normalized.contains('/')) {
-            return normalized
-        }
-        return "pics/$normalized"
-    }
-
-    private fun resolveCinematicStreamPath(cinematicName: String): String {
-        val normalized = cinematicName.trim().removePrefix("/")
-        if (normalized.contains('/')) {
-            return normalized
-        }
-        return "video/$normalized"
-    }
-
-    private fun releaseCinematicMedia() {
-        cinematicStreamDecoder = null
-        cinematicAutoAdvancePending = false
-        cinematicAudioDevice?.dispose()
-        cinematicAudioDevice = null
-        cinematicFrameTexture?.dispose()
-        cinematicFrameTexture = null
-        cinematicFramePixmap?.dispose()
-        cinematicFramePixmap = null
-        cinematicStaticImage = null
     }
 
     /**
@@ -1297,21 +1039,11 @@ class Game3dScreen(
         if (presentationMode != PresentationMode.CINEMATIC) {
             return null
         }
-        if (cinematicAutoAdvancePending && !cinematicSkipSent) {
-            cinematicSkipSent = true
-            return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $spawnCount")
-        }
-        if (cinematicSkipSent || cinematicStartTimeMs == Int.MIN_VALUE) {
-            return null
-        }
-        if (currentTimeMs - cinematicStartTimeMs <= CINEMATIC_SKIP_DELAY_MS) {
-            return null
-        }
-        if (!inputManager.hasActiveImmediateAction()) {
-            return null
-        }
-        cinematicSkipSent = true
-        return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $spawnCount")
+        return cinematicController.pollSkipCommand(
+            currentTimeMs = currentTimeMs,
+            spawnCount = spawnCount,
+            hasImmediateAction = inputManager.hasActiveImmediateAction(),
+        )
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
@@ -1871,9 +1603,6 @@ class Game3dScreen(
         private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
         private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
         private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
-        private const val CINEMATIC_FPS = 14
-        private const val CINEMATIC_SKIP_DELAY_MS = 1000
-        private const val PALETTE_COLOR_COUNT = 256
         private const val BATCH_DEBUG_LOG_INTERVAL_MS = 1000
     }
 }
