@@ -90,7 +90,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var glProfiler: GLProfiler
     private var glProfilerActive: Boolean = false
     private lateinit var viewport: StretchViewport
-    private val transitionBackdropBatch = SpriteBatch()
+    private var transitionBackdropBatch: SpriteBatch? = null
     private var transitionBackdropTexture: Texture? = null
     private var transitionBackdropRegion: TextureRegion? = null
     private var transitionBackdropActive = false
@@ -181,6 +181,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
         debugGraphStage = DebugGraphStage(viewport)
+        transitionBackdropBatch = SpriteBatch()
         glProfiler = GLProfiler(Gdx.graphics).apply {
             disable()
             reset()
@@ -539,7 +540,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearTransitionBackdrop()
-        transitionBackdropBatch.dispose()
+        transitionBackdropBatch?.dispose()
+        transitionBackdropBatch = null
         if (glProfilerActive) {
             glProfiler.disable()
             glProfilerActive = false
@@ -811,15 +813,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      */
     private fun renderTransitionBackdrop() {
         val backdropRegion = transitionBackdropRegion ?: return
-        transitionBackdropBatch.begin()
-        transitionBackdropBatch.draw(
+        val batch = transitionBackdropBatch ?: return
+        batch.begin()
+        batch.draw(
             backdropRegion,
             0f,
             0f,
             Gdx.graphics.width.toFloat(),
             Gdx.graphics.height.toFloat(),
         )
-        transitionBackdropBatch.end()
+        batch.end()
     }
 
     /**
