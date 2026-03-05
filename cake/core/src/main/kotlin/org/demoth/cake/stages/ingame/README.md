@@ -23,6 +23,9 @@ It does not own:
 - `HudOverlayRenderer` - composes timed HUD overlays and gameplay layouts.
   - Handles crosshair + statusbar layout + optional extra layout/inventory branches.
   - Keeps legacy ordering/semantics of `SCR_DrawStats`, `SCR_DrawLayout`, and `CL_inv.DrawInventory`.
+- `IngameSoundMessageHandler` - central sound/event dispatch for server sound packets.
+  - Handles `SoundMessage`, `WeaponSoundMessage`, packet-entity event sounds, and loop-sound sync.
+  - Keeps legacy behavior for `CL_parse.ParseStartSoundPacket`, `CL_fx.ParseMuzzleFlash`, and `CL_fx.EntityEvent`.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).

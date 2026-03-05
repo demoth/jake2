@@ -92,7 +92,7 @@ Planned phases:
 Runtime modularization follow-up (post parity):
 - [x] Extract cinematic media lifecycle/skip policy to `CinematicPresentationController`.
 - [x] Extract HUD composition path to `HudOverlayRenderer`.
-- [ ] Extract sound message dispatch branches into dedicated handler modules.
+- [x] Extract sound message dispatch branches into `IngameSoundMessageHandler`.
 
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 
