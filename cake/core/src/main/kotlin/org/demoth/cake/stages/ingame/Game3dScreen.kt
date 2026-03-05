@@ -66,7 +66,6 @@ class Game3dScreen(
 
     private var precached: Boolean = false
     private var presentationMode = PresentationMode.WORLD
-    private var cinematicSpawnCount = 0
     private var cinematicStartTimeMs = Int.MIN_VALUE
     private var cinematicSkipSent = false
     private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
@@ -1001,7 +1000,6 @@ class Game3dScreen(
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
-        cinematicSpawnCount = msg.spawnCount
         cinematicSkipSent = false
 
         if (msg.playerNumber == -1) {
@@ -1044,7 +1042,7 @@ class Game3dScreen(
             return null
         }
         cinematicSkipSent = true
-        return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $cinematicSpawnCount")
+        return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $spawnCount")
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {
