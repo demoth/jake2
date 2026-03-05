@@ -91,6 +91,7 @@ class Game3dScreen(
 
     private val gameConfig = GameConfiguration(assetManager)
     private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
+    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig) }
 
     private val entityManager = ClientEntityManager()
     private val effectsSystem = ClientEffectsSystem(
@@ -371,7 +372,19 @@ class Game3dScreen(
             levelEntityRendered = levelEntityRendered,
         )
 
-        renderHudOverlay(delta, includeGameplayHud = true)
+        val currentFrame = entityManager.currentFrame
+        hudOverlayRenderer.render(
+            hud = hud,
+            delta = delta,
+            screenWidth = Gdx.graphics.width,
+            screenHeight = Gdx.graphics.height,
+            gameplayHudState = HudOverlayRenderer.GameplayHudState(
+                serverFrame = currentFrame.serverframe,
+                playerState = currentFrame.playerstate,
+                statusBarLayout = gameConfig.getStatusBarLayout(),
+                additionalLayout = gameConfig.layout,
+            ),
+        )
         audioSystem.endFrame()
     }
 
@@ -403,53 +416,14 @@ class Game3dScreen(
         )
         // Future cinematic decoders may emit looped sounds; keep explicit loop state clean for now.
         audioSystem.syncEntityLoopingSounds(emptyList())
-        renderHudOverlay(delta, includeGameplayHud = false)
+        hudOverlayRenderer.render(
+            hud = hud,
+            delta = delta,
+            screenWidth = Gdx.graphics.width,
+            screenHeight = Gdx.graphics.height,
+            gameplayHudState = null,
+        )
         audioSystem.endFrame()
-    }
-
-    private fun renderHudOverlay(delta: Float, includeGameplayHud: Boolean) {
-        spriteBatch.use {
-            hud?.update(delta, Gdx.graphics.width, Gdx.graphics.height)
-
-            if (!includeGameplayHud) {
-                return@use
-            }
-
-            hud?.drawCrosshair(
-                screenWidth = Gdx.graphics.width,
-                screenHeight = Gdx.graphics.height,
-            )
-
-            hud?.executeLayout(
-                layout = gameConfig.getStatusBarLayout(),
-                serverFrame = entityManager.currentFrame.serverframe,
-                stats = entityManager.currentFrame.playerstate.stats,
-                screenWidth = Gdx.graphics.width,
-                screenHeight = Gdx.graphics.height,
-            )
-
-            // draw additional layout, like help or score
-            // SRC.DrawLayout
-            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 1) != 0) {
-                hud?.executeLayout(
-                    layout = gameConfig.layout,
-                    serverFrame = entityManager.currentFrame.serverframe,
-                    stats = entityManager.currentFrame.playerstate.stats,
-                    screenWidth = Gdx.graphics.width,
-                    screenHeight = Gdx.graphics.height,
-                )
-            }
-            // draw additional layout, like help or score
-            // CL_inv.DrawInventory
-            if ((entityManager.currentFrame.playerstate.stats[Defines.STAT_LAYOUTS].toInt() and 2) != 0) {
-                hud?.drawInventory(
-                    playerstate = entityManager.currentFrame.playerstate,
-                    screenWidth = Gdx.graphics.width,
-                    screenHeight = Gdx.graphics.height,
-                    gameConfig = gameConfig
-                )
-            }
-        }
     }
 
     private inner class WorldPresentationRuntime : PresentationRuntime {

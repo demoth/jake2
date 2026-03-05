@@ -20,6 +20,9 @@ It does not own:
   - Streams `.cin` audio chunks to a dedicated runtime `AudioDevice` (separate from entity/event SFX path).
   - EOF or guarded input skip produces `nextserver <spawncount>` command parity.
   - Emits throttled `cinematic_debug` diagnostics when `r_bsp_batch_debug 1`.
+- `HudOverlayRenderer` - composes timed HUD overlays and gameplay layouts.
+  - Handles crosshair + statusbar layout + optional extra layout/inventory branches.
+  - Keeps legacy ordering/semantics of `SCR_DrawStats`, `SCR_DrawLayout`, and `CL_inv.DrawInventory`.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).

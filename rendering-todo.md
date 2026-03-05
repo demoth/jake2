@@ -89,6 +89,11 @@ Planned phases:
 - [ ] Step 5: widen static-image support (`.tga/.png/.jpg`) through existing texture loader pipeline when available.
 - [x] Step 6: polish/debug hooks (`r_debug_*` counters remain active; added throttled `cinematic_debug` runtime logging behind `r_bsp_batch_debug` + runtime/docs cleanup).
 
+Runtime modularization follow-up (post parity):
+- [x] Extract cinematic media lifecycle/skip policy to `CinematicPresentationController`.
+- [x] Extract HUD composition path to `HudOverlayRenderer`.
+- [ ] Extract sound message dispatch branches into dedicated handler modules.
+
 ## Implementation Notes (Legacy + Yamagi Cross-Check)
 
 ### Inline BSP entity lightmaps
