@@ -5,6 +5,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
@@ -39,6 +40,8 @@ import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyleFactory
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -69,7 +72,11 @@ class Game3dScreen(
     private var presentationMode = PresentationMode.WORLD
     private var cinematicStartTimeMs = Int.MIN_VALUE
     private var cinematicSkipSent = false
+    private var cinematicAutoAdvancePending = false
     private var cinematicStaticImage: Texture? = null
+    private var cinematicFrameTexture: Texture? = null
+    private var cinematicFramePixmap: Pixmap? = null
+    private var cinematicStreamDecoder: CinematicCinDecoder? = null
     private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
     private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
     private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
@@ -390,6 +397,7 @@ class Game3dScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl.glDepthRangef(0f, 1f)
 
+        advanceCinematicStream(Globals.curtime)
         renderCinematicStaticImage()
 
         audioSystem.beginFrame(
@@ -406,7 +414,7 @@ class Game3dScreen(
     }
 
     private fun renderCinematicStaticImage() {
-        val image = cinematicStaticImage ?: return
+        val image = cinematicFrameTexture ?: cinematicStaticImage ?: return
         val imageWidth = image.width.toFloat().coerceAtLeast(1f)
         val imageHeight = image.height.toFloat().coerceAtLeast(1f)
         val screenWidth = Gdx.graphics.width.toFloat()
@@ -419,6 +427,79 @@ class Game3dScreen(
 
         spriteBatch.use {
             it.draw(image, drawX, drawY, drawWidth, drawHeight)
+        }
+    }
+
+    /**
+     * Advances `.cin` playback in legacy 14 FPS timebase and uploads latest decoded frame.
+     *
+     * Legacy cross-reference:
+     * - q2pro `src/client/cin.c` `SCR_RunCinematic` frame stepping.
+     * - Jake2 `client/SCR.RunCinematic` frame stepping and dropped-frame catch-up.
+     */
+    private fun advanceCinematicStream(currentTimeMs: Int) {
+        val decoder = cinematicStreamDecoder ?: return
+        if (cinematicStartTimeMs == Int.MIN_VALUE) {
+            return
+        }
+        val elapsedMs = (currentTimeMs - cinematicStartTimeMs).coerceAtLeast(0)
+        val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
+        while (decoder.decodedFrameCount <= targetFrame) {
+            val indexedFrame = decoder.readNextFrame() ?: run {
+                cinematicStreamDecoder = null
+                cinematicAutoAdvancePending = true
+                return
+            }
+            uploadCinematicFrame(
+                width = decoder.width,
+                height = decoder.height,
+                indexedFrame = indexedFrame,
+                palette = decoder.currentPalette(),
+            ) || run {
+                cinematicStreamDecoder = null
+                cinematicAutoAdvancePending = true
+                return
+            }
+        }
+    }
+
+    private fun uploadCinematicFrame(
+        width: Int,
+        height: Int,
+        indexedFrame: ByteArray,
+        palette: IntArray,
+    ): Boolean {
+        if (indexedFrame.size < width * height) {
+            Com.Warn("Cinematic frame is truncated (${indexedFrame.size} < ${width * height})\n")
+            return false
+        }
+        val pixmap = ensureCinematicFramePixmap(width, height)
+        var pixelOffset = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val paletteIndex = indexedFrame[pixelOffset++].toInt() and 0xFF
+                pixmap.drawPixel(x, y, palette[paletteIndex])
+            }
+        }
+
+        val existingTexture = cinematicFrameTexture
+        if (existingTexture == null || existingTexture.width != width || existingTexture.height != height) {
+            existingTexture?.dispose()
+            cinematicFrameTexture = Texture(pixmap)
+        } else {
+            existingTexture.draw(pixmap, 0, 0)
+        }
+        return true
+    }
+
+    private fun ensureCinematicFramePixmap(width: Int, height: Int): Pixmap {
+        val existing = cinematicFramePixmap
+        if (existing != null && existing.width == width && existing.height == height) {
+            return existing
+        }
+        existing?.dispose()
+        return Pixmap(width, height, Pixmap.Format.RGBA8888).also {
+            cinematicFramePixmap = it
         }
     }
 
@@ -1023,6 +1104,7 @@ class Game3dScreen(
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
         spawnCount = msg.spawnCount
         cinematicSkipSent = false
+        cinematicAutoAdvancePending = false
 
         if (msg.playerNumber == -1) {
             presentationMode = PresentationMode.CINEMATIC
@@ -1052,6 +1134,10 @@ class Game3dScreen(
      */
     private fun prepareCinematicMedia(cinematicName: String) {
         releaseCinematicMedia()
+        if (cinematicName.endsWith(".cin", ignoreCase = true)) {
+            prepareCinematicStream(cinematicName)
+            return
+        }
         if (!cinematicName.endsWith(".pcx", ignoreCase = true)) {
             return
         }
@@ -1063,6 +1149,43 @@ class Game3dScreen(
         cinematicStaticImage = gameConfig.acquireAsset<Texture>(imagePath)
     }
 
+    private fun prepareCinematicStream(cinematicName: String) {
+        val streamPath = resolveCinematicStreamPath(cinematicName)
+        val streamHandle = assetManager.fileHandleResolver.resolve(streamPath)
+        if (streamHandle == null || !streamHandle.exists()) {
+            Com.Warn("Cinematic stream not found: $streamPath\n")
+            cinematicAutoAdvancePending = true
+            return
+        }
+
+        val defaultPalette = (assetManager.get("q2palette.bin", Any::class.java) as? IntArray)
+            ?.copyOf(PALETTE_COLOR_COUNT)
+            ?: IntArray(PALETTE_COLOR_COUNT) { 0xFF }
+
+        try {
+            val decoder = CinematicCinDecoder(streamHandle.readBytes(), defaultPalette)
+            val firstFrame = decoder.readNextFrame()
+            if (firstFrame == null) {
+                cinematicAutoAdvancePending = true
+                return
+            }
+            cinematicStreamDecoder = decoder
+            uploadCinematicFrame(
+                width = decoder.width,
+                height = decoder.height,
+                indexedFrame = firstFrame,
+                palette = decoder.currentPalette(),
+            ) || run {
+                cinematicStreamDecoder = null
+                cinematicAutoAdvancePending = true
+                return
+            }
+        } catch (ex: RuntimeException) {
+            Com.Warn("Failed to open cinematic stream $streamPath: ${ex.message}\n")
+            cinematicAutoAdvancePending = true
+        }
+    }
+
     private fun resolveCinematicPicturePath(cinematicName: String): String {
         val normalized = cinematicName.trim().removePrefix("/")
         if (normalized.contains('/')) {
@@ -1071,7 +1194,21 @@ class Game3dScreen(
         return "pics/$normalized"
     }
 
+    private fun resolveCinematicStreamPath(cinematicName: String): String {
+        val normalized = cinematicName.trim().removePrefix("/")
+        if (normalized.contains('/')) {
+            return normalized
+        }
+        return "video/$normalized"
+    }
+
     private fun releaseCinematicMedia() {
+        cinematicStreamDecoder = null
+        cinematicAutoAdvancePending = false
+        cinematicFrameTexture?.dispose()
+        cinematicFrameTexture = null
+        cinematicFramePixmap?.dispose()
+        cinematicFramePixmap = null
         cinematicStaticImage = null
     }
 
@@ -1081,12 +1218,17 @@ class Game3dScreen(
      * Legacy cross-reference:
      * - q2pro `src/client/keys.c`: button-style keydown in cinematic triggers `SCR_FinishCinematic()`.
      * - q2pro `src/client/cin.c`: `SCR_FinishCinematic` sends `nextserver <servercount>`.
+     * - q2pro `src/client/cin.c`: EOF also triggers `SCR_FinishCinematic`.
      * - Jake2/Yamagi only allow skip after a short guard delay to avoid accidental abort.
      * - Server expects `nextserver <spawncount>` while in `SS_CINEMATIC` / `SS_PIC`.
      */
     fun pollCinematicSkipCommand(currentTimeMs: Int): StringCmdMessage? {
         if (presentationMode != PresentationMode.CINEMATIC) {
             return null
+        }
+        if (cinematicAutoAdvancePending && !cinematicSkipSent) {
+            cinematicSkipSent = true
+            return StringCmdMessage("${StringCmdMessage.NEXT_SERVER} $spawnCount")
         }
         if (cinematicSkipSent || cinematicStartTimeMs == Int.MIN_VALUE) {
             return null
@@ -1658,7 +1800,205 @@ class Game3dScreen(
         private const val WEAPON_MUZZLE_SILENCED_RADIUS_BASE = 100f
         private const val WEAPON_MUZZLE_RADIUS_JITTER = 31
         private const val LOGIN_EVENT_MUZZLE_LIGHT_LIFETIME_MS = 1
+        private const val CINEMATIC_FPS = 14
         private const val CINEMATIC_SKIP_DELAY_MS = 1000
+        private const val PALETTE_COLOR_COUNT = 256
         private const val BATCH_DEBUG_LOG_INTERVAL_MS = 1000
+    }
+}
+
+/**
+ * Minimal IdTech2 `.cin` stream decoder (video frames only).
+ *
+ * Legacy cross-reference:
+ * - Jake2 `client/SCR.java`: `Huff1TableInit`, `Huff1Decompress`, `ReadNextFrame`.
+ * - q2pro `src/client/cin.c`: runtime stepping/EOF flow (`SCR_RunCinematic`/`SCR_FinishCinematic`).
+ *
+ * Notes:
+ * - Audio bytes are consumed and skipped to preserve frame stream alignment.
+ * - Actual cinematic audio playback is intentionally deferred to a follow-up step.
+ */
+private class CinematicCinDecoder(
+    cinBytes: ByteArray,
+    defaultPalette: IntArray,
+) {
+    val width: Int
+    val height: Int
+    private val sampleRate: Int
+    private val sampleWidth: Int
+    private val sampleChannels: Int
+    private val file: ByteBuffer = ByteBuffer.wrap(cinBytes).order(ByteOrder.LITTLE_ENDIAN)
+    private val hnodes = IntArray(HUFF_PREV_CONTEXTS * HUFF_PREV_CONTEXTS * 2)
+    private val numhnodes = IntArray(HUFF_PREV_CONTEXTS)
+    private val hCount = IntArray(HUFF_MAX_NODES + 1)
+    private val hUsed = IntArray(HUFF_MAX_NODES + 1)
+    private val paletteRgba8888 = IntArray(PALETTE_COLOR_COUNT)
+
+    var decodedFrameCount: Int = 0
+        private set
+
+    init {
+        require(file.remaining() >= CIN_HEADER_BYTES) { "Invalid .cin header" }
+        width = file.int
+        height = file.int
+        sampleRate = file.int
+        sampleWidth = file.int
+        sampleChannels = file.int
+        require(width > 0 && height > 0) { "Invalid .cin dimensions: ${width}x$height" }
+        require(sampleRate >= 0) { "Invalid .cin sample rate: $sampleRate" }
+        require(sampleWidth >= 0 && sampleChannels >= 0) { "Invalid .cin audio format" }
+
+        for (i in 0 until PALETTE_COLOR_COUNT) {
+            paletteRgba8888[i] = defaultPalette.getOrElse(i) { 0xFF }
+        }
+        initHuffmanTables()
+    }
+
+    fun currentPalette(): IntArray = paletteRgba8888
+
+    fun readNextFrame(): ByteArray? {
+        if (file.remaining() < Int.SIZE_BYTES) {
+            return null
+        }
+        val command = file.int
+        if (command == CIN_COMMAND_END) {
+            return null
+        }
+        if (command == CIN_COMMAND_PALETTE) {
+            if (file.remaining() < PALETTE_RGB_BYTES) {
+                return null
+            }
+            val paletteBytes = ByteArray(PALETTE_RGB_BYTES)
+            file.get(paletteBytes)
+            updatePalette(paletteBytes)
+        }
+        if (file.remaining() < Int.SIZE_BYTES) {
+            return null
+        }
+        val compressedSize = file.int
+        if (compressedSize <= 0 || compressedSize > file.remaining()) {
+            return null
+        }
+        val compressed = ByteArray(compressedSize)
+        file.get(compressed)
+
+        val soundSampleStart = decodedFrameCount * sampleRate / CINEMATIC_FPS
+        val soundSampleEnd = (decodedFrameCount + 1) * sampleRate / CINEMATIC_FPS
+        val soundSampleCount = soundSampleEnd - soundSampleStart
+        val soundBytes = soundSampleCount * sampleWidth * sampleChannels
+        if (soundBytes < 0 || soundBytes > file.remaining()) {
+            return null
+        }
+        file.position(file.position() + soundBytes)
+
+        val frame = huff1Decompress(compressed)
+        decodedFrameCount++
+        return frame
+    }
+
+    private fun initHuffmanTables() {
+        for (prev in 0 until HUFF_PREV_CONTEXTS) {
+            hCount.fill(0)
+            hUsed.fill(0)
+            if (file.remaining() < HUFF_PREV_CONTEXTS) {
+                throw IllegalArgumentException("Truncated .cin Huffman table")
+            }
+            val counts = ByteArray(HUFF_PREV_CONTEXTS)
+            file.get(counts)
+            for (i in 0 until HUFF_PREV_CONTEXTS) {
+                hCount[i] = counts[i].toInt() and 0xFF
+            }
+
+            var nodes = HUFF_PREV_CONTEXTS
+            val nodeBase = prev * HUFF_PREV_CONTEXTS * 2
+            while (nodes != HUFF_MAX_NODES) {
+                val index = nodeBase + (nodes - HUFF_PREV_CONTEXTS) * 2
+                hnodes[index] = smallestNode(nodes)
+                if (hnodes[index] == -1) {
+                    break
+                }
+                hnodes[index + 1] = smallestNode(nodes)
+                if (hnodes[index + 1] == -1) {
+                    break
+                }
+                hCount[nodes] = hCount[hnodes[index]] + hCount[hnodes[index + 1]]
+                nodes++
+            }
+            numhnodes[prev] = nodes - 1
+        }
+    }
+
+    private fun smallestNode(numNodes: Int): Int {
+        var bestCount = Int.MAX_VALUE
+        var bestNode = -1
+        for (node in 0 until numNodes) {
+            if (hUsed[node] != 0 || hCount[node] == 0) {
+                continue
+            }
+            if (hCount[node] < bestCount) {
+                bestCount = hCount[node]
+                bestNode = node
+            }
+        }
+        if (bestNode != -1) {
+            hUsed[bestNode] = 1
+        }
+        return bestNode
+    }
+
+    private fun updatePalette(rgbBytes: ByteArray) {
+        for (i in 0 until PALETTE_COLOR_COUNT) {
+            val r = rgbBytes[i * 3].toInt() and 0xFF
+            val g = rgbBytes[i * 3 + 1].toInt() and 0xFF
+            val b = rgbBytes[i * 3 + 2].toInt() and 0xFF
+            paletteRgba8888[i] = (r shl 24) or (g shl 16) or (b shl 8) or 0xFF
+        }
+    }
+
+    private fun huff1Decompress(compressed: ByteArray): ByteArray {
+        if (compressed.size < Int.SIZE_BYTES) {
+            return ByteArray(0)
+        }
+        val outputCount = (compressed[0].toInt() and 0xFF) or
+            ((compressed[1].toInt() and 0xFF) shl 8) or
+            ((compressed[2].toInt() and 0xFF) shl 16) or
+            ((compressed[3].toInt() and 0xFF) shl 24)
+        if (outputCount <= 0) {
+            return ByteArray(0)
+        }
+
+        val output = ByteArray(outputCount)
+        var outputPos = 0
+        var inputPos = Int.SIZE_BYTES
+        var nodeBase = -HUFF_PREV_CONTEXTS * 2
+        var node = numhnodes[0]
+
+        while (outputPos < outputCount && inputPos < compressed.size) {
+            var inByte = compressed[inputPos++].toInt() and 0xFF
+            repeat(8) {
+                if (node < HUFF_PREV_CONTEXTS) {
+                    nodeBase = -HUFF_PREV_CONTEXTS * 2 + (node shl 9)
+                    output[outputPos++] = node.toByte()
+                    if (outputPos >= outputCount) {
+                        return output
+                    }
+                    node = numhnodes[node]
+                }
+                node = hnodes[nodeBase + node * 2 + (inByte and 1)]
+                inByte = inByte ushr 1
+            }
+        }
+        return output
+    }
+
+    private companion object {
+        private const val CIN_HEADER_BYTES = 20
+        private const val CIN_COMMAND_PALETTE = 1
+        private const val CIN_COMMAND_END = 2
+        private const val HUFF_PREV_CONTEXTS = 256
+        private const val HUFF_MAX_NODES = 511
+        private const val PALETTE_COLOR_COUNT = 256
+        private const val PALETTE_RGB_BYTES = PALETTE_COLOR_COUNT * 3
+        private const val CINEMATIC_FPS = 14
     }
 }
