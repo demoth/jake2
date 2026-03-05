@@ -58,7 +58,7 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [x] Map transition visual continuity: hold and render last gameplay frame while next screen is not ready
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [x] entity Shells implemented as MD2 Fresnel-rim highlight approximation
-- [ ] `EF_POWERSCREEN` extra-model overlay pass is missing
+- [x] `EF_POWERSCREEN` extra-model overlay pass is missing
 - [ ] Linked model passes (`modelindex2/3/4`) are not fully implemented
 - [x] Postprocessing implemented: full-screen blend (`player_state_t.blend`) and underwater shader (`RDF_UNDERWATER`)
 - [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
@@ -181,7 +181,7 @@ Runtime modularization follow-up (post parity):
 - Behavior difference:
   - Cake keeps modern VAT/shader plumbing, but lighting response now targets legacy alias behavior.
 
-### `EF_POWERSCREEN` parity gap
+### `EF_POWERSCREEN` parity status
 
 - Reference behavior (legacy Jake2 / yquake2 / q2pro):
   - `EF_POWERSCREEN` creates an additional render entity using `models/items/armor/effect/tris.md2`.
@@ -194,20 +194,10 @@ Runtime modularization follow-up (post parity):
     - model registration in `client/CL_tent.java` and reference temp-entity/model registration files.
 
 - Current Cake status:
-  - No explicit `EF_POWERSCREEN` handling in the runtime render/entity path.
-  - No linked extra-model pass generation for `modelindex2/3/4` in `ClientEntityManager.computeVisibleEntities`.
-  - Effect asset catalog does not currently preload `models/items/armor/effect/tris.md2`.
-
-- Suggested implementation path:
-  1. Add fixed powerscreen model preload (`models/items/armor/effect/tris.md2`) in a config/effects asset owner.
-  2. In `ClientEntityManager.computeVisibleEntities`, emit a companion overlay entity when `EF_POWERSCREEN` is set:
-     - model: powerscreen MD2,
-     - frame/oldframe: `0`,
-     - flags: at least `RF_TRANSLUCENT`,
-     - alpha: `baseAlpha * 0.30` (fallback `0.30` for opaque base entity).
-  3. Keep first implementation q2pro-like (translucent textured overlay) instead of shell-green Fresnel highlight reuse.
-  4. Optionally add remaster-scale workaround if this model appears too small with modern assets.
-  5. Follow up with broader linked-model parity (`modelindex2/3/4`) because powerscreen is one case of the same missing pattern.
+  - Implemented in `ClientEntityManager.computeVisibleEntities` as a companion pass when `EF_POWERSCREEN` is set.
+  - Uses fixed model `models/items/armor/effect/tris.md2` (loaded via `GameConfiguration.tryAcquireAsset`).
+  - Pass uses `frame=0`, `oldframe=0`, `RF_TRANSLUCENT | RF_SHELL_GREEN`, and alpha `baseAlpha * 0.30`.
+  - Rendered using the same linked-entity pool used for `modelindex2/3/4` companion passes.
 ### Minor Visual Gap Investigation (2026-02-28)
 
 - `MZ_*` muzzleflash dlights (shotgun/machinegun missing):

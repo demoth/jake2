@@ -17,6 +17,7 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.GameConfiguration
+import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.modelviewer.createOriginArrows
@@ -25,6 +26,11 @@ import kotlin.math.abs
 // responsible for managing entity states which are updated from the server
 // also manages client side entities (gun model, level model)
 class ClientEntityManager : Disposable {
+    companion object {
+        private const val POWERSCREEN_MODEL_PATH = "models/items/armor/effect/tris.md2"
+        private const val LEGACY_POWERSCREEN_ALPHA = 0.30f
+    }
+
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
 
     var parse_entities: Int = 0 // index (not anded off) into cl_parse_entities[]
@@ -395,6 +401,11 @@ class ClientEntityManager : Disposable {
                     gameConfig = gameConfig,
                     resolvedFrame = resolvedFrame,
                 )
+                appendPowerScreenPass(
+                    owner = entity,
+                    ownerState = newState,
+                    gameConfig = gameConfig,
+                )
             }
         }
 
@@ -452,6 +463,48 @@ class ClientEntityManager : Disposable {
         appendLinkedModelPass(owner, ownerState, ownerState.modelindex2, 2, gameConfig, resolvedFrame)
         appendLinkedModelPass(owner, ownerState, ownerState.modelindex3, 3, gameConfig, resolvedFrame)
         appendLinkedModelPass(owner, ownerState, ownerState.modelindex4, 4, gameConfig, resolvedFrame)
+    }
+
+    /**
+     * Emits legacy powerscreen companion pass when `EF_POWERSCREEN` is active.
+     *
+     * Legacy counterpart:
+     * `client/CL_ents.AddPacketEntities` powerscreen branch (`models/items/armor/effect/tris.md2`).
+     */
+    private fun appendPowerScreenPass(
+        owner: ClientEntity,
+        ownerState: entity_state_t,
+        gameConfig: GameConfiguration,
+    ) {
+        if ((ownerState.effects and Defines.EF_POWERSCREEN) == 0) {
+            return
+        }
+        if (rDrawEntities?.value == 0f) {
+            return
+        }
+
+        val powerScreenModel = gameConfig.tryAcquireAsset<Md2Asset>(POWERSCREEN_MODEL_PATH)?.model ?: return
+        val powerScreenEntity = acquireLinkedEntity("powerscreen")
+
+        powerScreenEntity.prev.set(owner.prev)
+        powerScreenEntity.current.set(owner.current)
+        powerScreenEntity.resolvedFrame = 0
+        powerScreenEntity.resolvedRenderFx = Defines.RF_TRANSLUCENT or Defines.RF_SHELL_GREEN
+        powerScreenEntity.alpha = owner.alpha * LEGACY_POWERSCREEN_ALPHA
+        powerScreenEntity.depthHack = false
+        powerScreenEntity.spriteAsset = null
+
+        if (powerScreenEntity.modelInstance == null || powerScreenEntity.modelInstance.model !== powerScreenModel) {
+            powerScreenEntity.modelInstance = createModelInstance(powerScreenModel)
+        }
+
+        (powerScreenEntity.modelInstance.userData as? Md2CustomData)?.let { userData ->
+            // Legacy powerscreen pass is rendered in frame 0 with default skin.
+            userData.frame1 = 0
+            userData.frame2 = 0
+            userData.skinIndex = 0
+        }
+        visibleEntities += powerScreenEntity
     }
 
     /**

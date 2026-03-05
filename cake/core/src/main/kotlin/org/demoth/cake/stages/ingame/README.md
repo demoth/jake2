@@ -70,6 +70,7 @@ SoundMessage
 - `*` config sounds are not loaded in `loadSoundConfigResource`; they are resolved at playback.
 - Variation sound fallback order must remain deterministic and cached per `(variation model, sound name)`.
 - Linked player weapon pass (`modelindex2 == 255`) uses `skinnum >> 8` as weapon model index from `CS_MODELS` `#...` entries; `cl_vwep 0` forces index `0`.
+- `EF_POWERSCREEN` emits a companion MD2 pass (`models/items/armor/effect/tris.md2`) with frame `0` and translucent green shell flags.
 - Entity-event sounds are triggered after a valid packet-entity reconstruction.
 - Cinematic control path (`playernum == -1`) must keep normal client message processing alive and may emit `nextserver <spawncount>` on guarded user skip input.
 
