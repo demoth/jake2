@@ -12,8 +12,7 @@ import jake2.qcommon.Com
  * It doesn't load or cache anything.
  *
  * [basedir] Game installation directory, should be an absolute path
- * [basemod] Base game mod, default is "baseq2"
- * [gamemod] Game mod override like rogue or xatrix, has higher priority than the basemod
+ * [gamemod] Game mod override like rogue or xatrix, has higher priority than the basemod (default baseq2)
  * [caseSensitive] strict lookup mode, default remains case-insensitive for compatibility
  */
 class CakeFileResolver(
@@ -73,7 +72,12 @@ class CakeFileResolver(
     override fun resolve(fileName: String): FileHandle? {
         // Variant keys can include skin prefix metadata (e.g. "<skin>|<model>"),
         // only the trailing model path should be resolved on disk.
-        val path = fileName.substringAfterLast('|')
+        val rawPath = fileName.substringAfterLast('|')
+        val path = normalizeLookupPath(rawPath)
+        if (path == null) {
+            Com.Warn("Resource $rawPath was not found")
+            return null
+        }
         val vfsResolved = vfsAssetSource.resolve(path)
         if (vfsResolved != null) {
             return vfsResolved
@@ -85,6 +89,37 @@ class CakeFileResolver(
         }
         Com.Warn("Resource $path was not found")
         return null
+    }
+
+    /**
+     * Canonicalize a logical asset path while preserving game-root sandboxing.
+     *
+     * Quake2 content can reference sibling assets with parent segments
+     * (for example `models/monsters/tank/../ctank/pain.pcx`).
+     * We collapse such segments, but reject attempts to escape above root.
+     */
+    private fun normalizeLookupPath(rawPath: String): String? {
+        val parts = rawPath.replace('\\', '/').split('/')
+        val normalized = ArrayDeque<String>()
+
+        for (part in parts) {
+            if (part.isEmpty() || part == ".") {
+                continue
+            }
+            if (part == "..") {
+                if (normalized.isEmpty()) {
+                    return null
+                }
+                normalized.removeLast()
+                continue
+            }
+            normalized.addLast(part)
+        }
+
+        if (normalized.isEmpty()) {
+            return null
+        }
+        return normalized.joinToString("/")
     }
 
     private fun resolveFallback(fileName: String): FileHandle? {

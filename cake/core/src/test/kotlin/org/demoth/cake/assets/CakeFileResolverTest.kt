@@ -158,6 +158,38 @@ class CakeFileResolverTest {
     }
 
     @Test
+    fun resolvesPathContainingParentSegmentsInsideGameRoot() {
+        val basedir = temp.toString()
+        val file = createFile("baseq2/models/monsters/ctank/pain.pcx")
+        val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
+
+        val resolved = resolver.resolve("models/monsters/tank/../ctank/pain.pcx")
+
+        assertNotNull(resolved)
+        assertEquals(file.absolutePath, resolved!!.file().absolutePath)
+    }
+
+    @Test
+    fun rejectsPathTraversalBeyondGameRootBeginning() {
+        val basedir = temp.toString()
+        val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
+
+        val resolved = resolver.resolve("../outside.pcx")
+
+        assertNull(resolved)
+    }
+    @Test
+
+    fun rejectsPathTraversalBeyondGameRootMiddle() {
+        val basedir = temp.toString()
+        val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
+
+        val resolved = resolver.resolve("models/../../outside.pcx")
+
+        assertNull(resolved)
+    }
+
+    @Test
     fun resolvesVirtualSkyAssetWithoutPhysicalFile() {
         val resolver = CakeFileResolver()
 
