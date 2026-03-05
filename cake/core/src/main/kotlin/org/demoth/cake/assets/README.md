@@ -28,6 +28,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 Legacy counterparts:
 - `client/CL_parse.LoadClientinfo` (model/skin fallback)
 - `client/CL_ents.AddPacketEntities` (`modelindex == 255`, `skinnum & 0xFF`)
+- `client/CL_ents.AddPacketEntities` linked weapon pass (`modelindex2 == 255`, `skinnum >> 8`, `cl_weaponmodels[]`)
 
 ## Invariants
 - Player MD2 variant key format is exactly: `<skinPath>|<modelPath>`.

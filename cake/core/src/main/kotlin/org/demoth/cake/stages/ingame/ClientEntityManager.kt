@@ -43,6 +43,7 @@ class ClientEntityManager : Disposable {
     private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0)
     private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0)
     private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
+    private val clVwep = Cvar.getInstance().Get("cl_vwep", "1", Defines.CVAR_ARCHIVE)
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
@@ -489,7 +490,10 @@ class ClientEntityManager : Disposable {
 
         val model = if (linkedModelIndex == 255) {
             // `modelindex2 == 255` means per-player linked weapon model in legacy protocol.
-            gameConfig.playerConfiguration.getPlayerWeaponModel(ownerState.skinnum)
+            gameConfig.playerConfiguration.getPlayerWeaponModel(
+                skinnum = ownerState.skinnum,
+                vwepEnabled = clVwep.value != 0f,
+            )
         } else {
             gameConfig.getModel(linkedModelIndex)
         }

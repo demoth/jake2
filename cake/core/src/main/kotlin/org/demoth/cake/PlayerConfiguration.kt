@@ -5,10 +5,13 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
 import jake2.qcommon.Com
+import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.CS_PLAYERSKINS
 import jake2.qcommon.Defines.CS_SOUNDS
 import jake2.qcommon.Defines.MAX_CLIENTS
+import jake2.qcommon.Defines.MAX_CLIENTWEAPONMODELS
 import jake2.qcommon.Defines.MAX_ITEMS
+import jake2.qcommon.Defines.MAX_MODELS
 import jake2.qcommon.Defines.MAX_SOUNDS
 import jake2.qcommon.Defines.RF_USE_DISGUISE
 import org.demoth.cake.assets.Md2Asset
@@ -63,6 +66,8 @@ class PlayerConfiguration(
 
     private val currentPlayerInfos: MutableMap<Int, PlayerModelSkin?> = mutableMapOf()
     private val playerVariationSoundPathCache: MutableMap<String, String?> = mutableMapOf()
+    // Lazy cache for legacy `cl_weaponmodels[]` equivalent (`#` entries in `CS_MODELS`).
+    private var cachedWeaponModelNames: List<String>? = null
 
     /**
      * Apply `CS_PLAYERSKINS` update side effects for one client slot.
@@ -77,10 +82,18 @@ class PlayerConfiguration(
         }
     }
 
+    /**
+     * Invalidate cached `cl_weaponmodels[]` list when model configstrings change.
+     */
+    fun onModelConfigUpdated() {
+        cachedWeaponModelNames = null
+    }
+
     /** Clear non-configstring runtime state when parent [GameConfiguration] unloads. */
     fun clearTransientState() {
         currentPlayerInfos.clear()
         playerVariationSoundPathCache.clear()
+        cachedWeaponModelNames = null
         playerIndex = GameConfiguration.UNKNOWN_PLAYER_INDEX
     }
 
@@ -195,19 +208,33 @@ class PlayerConfiguration(
     }
 
     /**
-     * Resolve linked player weapon model (`players/<model>/weapon.md2`) for remote player entities.
+     * Resolve linked player weapon model for remote entities (`modelindex2 == 255`).
      *
      * Legacy counterpart:
-     * `client/CL_ents.AddPacketEntities` branch where `modelindex2 == 255`.
+     * `client/CL_ents.AddPacketEntities` with `cl_weaponmodels[]` + `skinnum >> 8` index.
      */
-    fun getPlayerWeaponModel(skinnum: Int): Model? {
+    fun getPlayerWeaponModel(skinnum: Int, vwepEnabled: Boolean): Model? {
         val clientIndex = skinnum and 0xFF
         val variation = getPlayerModelSkin(clientIndex) ?: defaultPlayerModelSkin()
         val defaultVariation = defaultPlayerModelSkin()
-        val candidates = linkedSetOf(
-            "players/${variation.modelName}/weapon.md2",
-            "players/${defaultVariation.modelName}/weapon.md2",
-        )
+        val weaponModelNames = resolveClientWeaponModelNames()
+        val fallbackWeaponModelName = weaponModelNames.firstOrNull() ?: "weapon.md2"
+
+        var weaponModelIndex = (skinnum ushr 8) and 0xFF
+        if (!vwepEnabled || weaponModelIndex !in weaponModelNames.indices) {
+            weaponModelIndex = 0
+        }
+        val selectedWeaponModelName = weaponModelNames.getOrElse(weaponModelIndex) { fallbackWeaponModelName }
+
+        val candidates = linkedSetOf("players/${variation.modelName}/$selectedWeaponModelName")
+        if (weaponModelIndex != 0) {
+            // Legacy path falls back to model 0 when selected vwep model is missing.
+            candidates += "players/${variation.modelName}/$fallbackWeaponModelName"
+        }
+        // Legacy `CL_LoadClientinfo` also falls back to male weapon models for missing variants.
+        candidates += "players/${defaultVariation.modelName}/$selectedWeaponModelName"
+        candidates += "players/${defaultVariation.modelName}/$fallbackWeaponModelName"
+
         for (path in candidates) {
             if (assetExists(path)) {
                 val md2Asset = gameConfiguration.tryAcquireAsset<Md2Asset>(path) ?: continue
@@ -215,6 +242,38 @@ class PlayerConfiguration(
             }
         }
         return null
+    }
+
+    /**
+     * Build legacy `cl_weaponmodels[]` from `CS_MODELS`:
+     * - entry 0 is always `weapon.md2`
+     * - each `#...` model config appends one weapon model name (max 20)
+     */
+    private fun resolveClientWeaponModelNames(): List<String> {
+        cachedWeaponModelNames?.let { return it }
+
+        val resolved = buildList {
+            add("weapon.md2")
+            for (modelIndex in 1 until MAX_MODELS) {
+                val rawConfig = gameConfiguration[CS_MODELS + modelIndex]?.value ?: break
+                if (rawConfig.isBlank()) {
+                    break
+                }
+                if (!rawConfig.startsWith("#")) {
+                    continue
+                }
+                val weaponModelName = rawConfig.removePrefix("#")
+                if (weaponModelName.isBlank()) {
+                    continue
+                }
+                if (size >= MAX_CLIENTWEAPONMODELS) {
+                    break
+                }
+                add(weaponModelName)
+            }
+        }
+        cachedWeaponModelNames = resolved
+        return resolved
     }
 
     private fun parseClientInfo(clientIndex: Int): ParsedClientInfo? {

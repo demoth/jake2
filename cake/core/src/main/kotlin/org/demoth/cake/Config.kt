@@ -131,6 +131,7 @@ class GameConfiguration(
      *
      * Invariants:
      * - `CS_PLAYERSKINS` updates invalidate per-client player variation cache entries.
+     * - `CS_MODELS` updates invalidate cached client weapon-model lookup (`#...` entries).
      * - `*` sounds remain unresolved here and are handled later by variation-aware sound lookup.
      */
     fun applyConfigString(index: Int, value: String, loadResource: Boolean = false): Config {
@@ -139,7 +140,12 @@ class GameConfiguration(
         if (index in CS_PLAYERSKINS until (CS_PLAYERSKINS + MAX_CLIENTS)) {
             val clientIndex = index - CS_PLAYERSKINS
             playerConfiguration.onPlayerSkinConfigUpdated(clientIndex, loadResource)
-        } else if (loadResource) {
+        } else {
+            if (index in (CS_MODELS + 1)..<(CS_MODELS + MAX_MODELS)) {
+                playerConfiguration.onModelConfigUpdated()
+            }
+        }
+        if (loadResource) {
             loadConfigResource(index, config)
         }
         return config
