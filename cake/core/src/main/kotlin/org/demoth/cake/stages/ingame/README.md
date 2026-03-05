@@ -15,6 +15,7 @@ It does not own:
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.
   - Also owns presentation-mode routing (`WORLD` vs `CINEMATIC`) while `Cake` keeps shared networking/input orchestration.
   - Delegates frame drawing to mode-specific runtimes (`WorldPresentationRuntime`, `CinematicPresentationRuntime`) to keep responsibilities modular.
+  - Current cinematic runtime supports static `.pcx` pictures (centered/letterboxed over black background) while preserving HUD notify/center-print updates.
 - `ClientEntityManager` - frame/entity reconstruction, continuity, and visible buckets.
 - `ClientPrediction` - movement prediction and view smoothing.
 - `BspWorldBatchRenderer` - dedicated world BSP renderer (opaque/warp/translucent passes).

@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
@@ -68,6 +69,7 @@ class Game3dScreen(
     private var presentationMode = PresentationMode.WORLD
     private var cinematicStartTimeMs = Int.MIN_VALUE
     private var cinematicSkipSent = false
+    private var cinematicStaticImage: Texture? = null
     private val worldPresentationRuntime: PresentationRuntime = WorldPresentationRuntime()
     private val cinematicPresentationRuntime: PresentationRuntime = CinematicPresentationRuntime()
     private var presentationRuntime: PresentationRuntime = worldPresentationRuntime
@@ -388,6 +390,8 @@ class Game3dScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl.glDepthRangef(0f, 1f)
 
+        renderCinematicStaticImage()
+
         audioSystem.beginFrame(
             ListenerState(
                 position = camera.position,
@@ -399,6 +403,23 @@ class Game3dScreen(
         audioSystem.syncEntityLoopingSounds(emptyList())
         renderHudOverlay(delta, includeGameplayHud = false)
         audioSystem.endFrame()
+    }
+
+    private fun renderCinematicStaticImage() {
+        val image = cinematicStaticImage ?: return
+        val imageWidth = image.width.toFloat().coerceAtLeast(1f)
+        val imageHeight = image.height.toFloat().coerceAtLeast(1f)
+        val screenWidth = Gdx.graphics.width.toFloat()
+        val screenHeight = Gdx.graphics.height.toFloat()
+        val scale = minOf(screenWidth / imageWidth, screenHeight / imageHeight)
+        val drawWidth = imageWidth * scale
+        val drawHeight = imageHeight * scale
+        val drawX = (screenWidth - drawWidth) * 0.5f
+        val drawY = (screenHeight - drawHeight) * 0.5f
+
+        spriteBatch.use {
+            it.draw(image, drawX, drawY, drawWidth, drawHeight)
+        }
     }
 
     private fun renderHudOverlay(delta: Float, includeGameplayHud: Boolean) {
@@ -688,6 +709,7 @@ class Game3dScreen(
     }
 
     override fun dispose() {
+        releaseCinematicMedia()
         worldBatchRenderer?.dispose()
         worldBatchRenderer = null
         worldVisibilityMaskTracker = null
@@ -1006,10 +1028,12 @@ class Game3dScreen(
             presentationMode = PresentationMode.CINEMATIC
             presentationRuntime = cinematicPresentationRuntime
             cinematicStartTimeMs = Globals.curtime
+            prepareCinematicMedia(levelString)
         } else {
             presentationMode = PresentationMode.WORLD
             presentationRuntime = worldPresentationRuntime
             cinematicStartTimeMs = Int.MIN_VALUE
+            releaseCinematicMedia()
         }
 
         // ServerDataMessage is the authoritative game/mod style switch point.
@@ -1017,6 +1041,38 @@ class Game3dScreen(
         hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
         val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
+    }
+
+    /**
+     * Load static cinematic image when server mapname points to picture mode.
+     *
+     * Legacy references:
+     * - q2pro: `src/client/cin.c` `SCR_PlayCinematic` (`.pcx` -> temp pic).
+     * - Jake2: `client/SCR.PlayCinematic` (`pics/<name>` lookup for static images).
+     */
+    private fun prepareCinematicMedia(cinematicName: String) {
+        releaseCinematicMedia()
+        if (!cinematicName.endsWith(".pcx", ignoreCase = true)) {
+            return
+        }
+        val imagePath = resolveCinematicPicturePath(cinematicName)
+        if (assetManager.fileHandleResolver.resolve(imagePath) == null) {
+            Com.Warn("Cinematic image not found: $imagePath\n")
+            return
+        }
+        cinematicStaticImage = gameConfig.acquireAsset<Texture>(imagePath)
+    }
+
+    private fun resolveCinematicPicturePath(cinematicName: String): String {
+        val normalized = cinematicName.trim().removePrefix("/")
+        if (normalized.contains('/')) {
+            return normalized
+        }
+        return "pics/$normalized"
+    }
+
+    private fun releaseCinematicMedia() {
+        cinematicStaticImage = null
     }
 
     /**

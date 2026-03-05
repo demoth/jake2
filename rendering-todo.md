@@ -83,7 +83,7 @@ Planned phases:
 
 - [x] Step 1: control-plane parity: detect cinematic mode (`playernum == -1`) and support `nextserver <spawncount>` skip trigger from gameplay input after anti-spurious delay.
 - [x] Step 2: introduce modular presentation runtime split inside `Game3dScreen` (`WorldRuntime` vs `CinematicRuntime`) without changing `Cake` networking ownership.
-- [ ] Step 3: static image rendering path (start with `.pcx`), centered/letterboxed, black background.
+- [x] Step 3: static image rendering path (start with `.pcx`), centered/letterboxed, black background.
 - [ ] Step 4: cinematic stream path (`.cin`) with frame-time stepping and end-of-stream -> `nextserver`.
 - [ ] Step 5: widen static-image support (`.tga/.png/.jpg`) through existing texture loader pipeline when available.
 - [ ] Step 6: polish/debug hooks (`r_debug_*` counters for cinematic mode, minimal status logging, docs/readme updates).
