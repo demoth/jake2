@@ -139,6 +139,24 @@ class Md2Shader(
 ): DefaultShader(renderable, config) {
     private val reusableTextureDescriptor = TextureDescriptor<Texture>()
 
+    /**
+     * Normalizes MD2 frame index against VAT row count.
+     *
+     * Legacy counterpart:
+     * q2pro/yquake2 alias renderers validate `frame/oldframe` per model at draw time.
+     * Cake mirrors that behavior by clamping invalid indices to frame 0.
+     */
+    private fun normalizeFrameIndex(frame: Int, combinedAttributes: Attributes): Int {
+        val vatTexture = (combinedAttributes.get(AnimationTextureAttribute.Type) as? TextureAttribute)
+            ?.textureDescription
+            ?.texture
+        val frameCount = vatTexture?.height ?: 0
+        if (frameCount <= 0) {
+            return 0
+        }
+        return if (frame in 0 until frameCount) frame else 0
+    }
+
     private fun resolveSkinTexture(combinedAttributes: Attributes, skinSlot: Int): Texture {
         val skinAttribute = combinedAttributes.get(Md2SkinTexturesAttribute.Type) as? Md2SkinTexturesAttribute
         if (skinAttribute != null && skinAttribute.textures.isNotEmpty()) { // todo: warning if null or empty
@@ -203,13 +221,13 @@ class Md2Shader(
     private val frame1Setter = object : LocalSetter() {
         override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
             val md2CustomData = renderable.userData as Md2CustomData
-            shader.set(inputID, md2CustomData.frame1)
+            shader.set(inputID, normalizeFrameIndex(md2CustomData.frame1, combinedAttributes))
         }
     }
     private val frame2Setter = object : LocalSetter() {
         override fun set(shader: BaseShader, inputID: Int, renderable: Renderable, combinedAttributes: Attributes) {
             val md2CustomData = renderable.userData as Md2CustomData
-            shader.set(inputID, md2CustomData.frame2)
+            shader.set(inputID, normalizeFrameIndex(md2CustomData.frame2, combinedAttributes))
         }
     }
     private val interpolationSetter = object : LocalSetter() {
