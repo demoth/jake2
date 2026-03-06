@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
+import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import ktx.actors.onClick
 import ktx.scene2d.Scene2DSkin
@@ -59,9 +60,9 @@ class MainMenuStage(
                     isVisible = false
                 }
                 row()
-
-                val singlePlayer = textButton("Singleplayer (future)")
-                singlePlayer.isDisabled = true
+                textButton("Singleplayer (future)").apply {
+                    isDisabled = true
+                }
                 row()
                 textButton("Multiplayer") {
                     onClick {
@@ -69,12 +70,13 @@ class MainMenuStage(
                     }
                 }
                 row()
-                val hostGame = textButton("Host Game (future)")
-                hostGame.isDisabled = true
+                textButton("Host Game (future)").apply {
+                    isDisabled = true
+                }
                 row()
                 textButton("Options") {
                     onClick {
-                        Cbuf.AddText("console_print Options menu is not implemented yet.\n")
+                        Com.Println("console_print Options menu is not implemented yet.")
                     }
                 }
                 row()
