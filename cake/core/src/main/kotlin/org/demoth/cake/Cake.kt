@@ -56,6 +56,8 @@ import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.profile.CakeGameProfile
+import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.save.CakeJsonSaveStore
 import org.demoth.cake.save.CakeSaveSnapshot
 import org.demoth.cake.stages.ConsoleStage
@@ -128,8 +130,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
     private val saveMetadataStore = CakeJsonSaveStore()
-
-    private var fileResolver = CakeFileResolver(basedir = System.getProperty("basedir"))
+    private val gameProfileStore = CakeGameProfileStore()
+    private var activeGameProfile: CakeGameProfile? = null
+    private var fileResolver = CakeFileResolver()
 
     private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
@@ -159,6 +162,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     override fun create() {
         initializeShaderCompatibility()
+        loadStartupGameProfile()
 
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
@@ -322,6 +326,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         Cmd.AddCommand("cake_load_meta") { args ->
             loadMetadata(args)
+        }
+
+        Cmd.AddCommand("cake_profile") {
+            printActiveGameProfile()
+        }
+
+        Cmd.AddCommand("cake_profile_set") { args ->
+            setActiveGameProfile(args)
+        }
+
+        Cmd.AddCommand("cake_profile_clear") {
+            clearActiveGameProfile()
         }
 
         /*
@@ -921,6 +937,85 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         } finally {
             flippedPixmap.dispose()
             pixmap.dispose()
+        }
+    }
+
+    private fun loadStartupGameProfile() {
+        val persistedProfile = try {
+            gameProfileStore.readSelected()
+        } catch (e: Exception) {
+            Com.Warn("Failed to read persisted Cake game profile: ${e.message}\n")
+            null
+        }
+        val propertyBasedProfile = createProfileFromJvmProperties()
+
+        val resolved = persistedProfile ?: propertyBasedProfile
+        applyGameProfile(resolved)
+
+        if (persistedProfile == null && propertyBasedProfile != null) {
+            try {
+                val path = gameProfileStore.upsertProfile(propertyBasedProfile, select = true)
+                Com.Printf("Persisted startup game profile from JVM properties: $path\n")
+            } catch (e: Exception) {
+                Com.Warn("Failed to persist startup game profile: ${e.message}\n")
+            }
+        }
+    }
+
+    private fun createProfileFromJvmProperties(): CakeGameProfile? {
+        val basedir = System.getProperty("basedir")?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val gamemod = System.getProperty("game")?.trim()?.takeIf { it.isNotEmpty() }
+        return CakeGameProfile(
+            id = CakeGameProfileStore.DEFAULT_PROFILE_ID,
+            basedir = basedir,
+            gamemod = gamemod,
+        )
+    }
+
+    private fun applyGameProfile(profile: CakeGameProfile?) {
+        val normalized = profile?.normalized()
+        activeGameProfile = normalized
+        fileResolver.basedir = normalized?.basedir
+        fileResolver.gamemod = normalized?.gamemod
+    }
+
+    private fun printActiveGameProfile() {
+        val profile = activeGameProfile
+        Com.Printf("Cake game profile\n")
+        Com.Printf("  profile.id: ${profile?.id ?: "<unset>"}\n")
+        Com.Printf("  profile.basedir: ${profile?.basedir ?: "<unset>"}\n")
+        Com.Printf("  profile.gamemod: ${profile?.gamemod ?: "<unset>"}\n")
+        Com.Printf("  resolver.basedir: ${fileResolver.basedir ?: "<unset>"}\n")
+        Com.Printf("  resolver.gamemod: ${fileResolver.gamemod ?: "<unset>"}\n")
+    }
+
+    private fun setActiveGameProfile(args: List<String>) {
+        if (args.size < 3) {
+            Com.Printf("usage: cake_profile_set <id> <basedir> [gamemod]\n")
+            return
+        }
+        val profile = CakeGameProfile(
+            id = args[1],
+            basedir = args[2],
+            gamemod = args.getOrNull(3),
+        ).normalized()
+
+        applyGameProfile(profile)
+        try {
+            val path = gameProfileStore.upsertProfile(profile, select = true)
+            Com.Printf("Cake profile saved: $path\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to save Cake profile: ${e.message}\n")
+        }
+    }
+
+    private fun clearActiveGameProfile() {
+        applyGameProfile(null)
+        try {
+            gameProfileStore.clear()
+            Com.Printf("Cleared persisted Cake profile.\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to clear Cake profile: ${e.message}\n")
         }
     }
 
