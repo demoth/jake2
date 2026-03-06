@@ -3,12 +3,13 @@
 ## Goal
 - Make Cake usable from first launch without manual config-file edits.
 - Prioritize thin-client flow (join remote servers) before local hosting/singleplayer.
+- Keep v1 implementation intentionally small and migration-friendly.
 
 ## Scope
 
 ### In Scope (now)
 - Thin client usability from startup to joining a server.
-- Game profile setup and selection (`basedir`, `gamemod`).
+- Game profile setup and selection (`id`, `basedir`, optional `gamemod`).
 - Main menu + options + multiplayer/join/player setup screens.
 - First-run autodetect + guided setup fallback.
 
@@ -33,6 +34,23 @@
 - First launch without detected content: guided setup to choose `basedir`.
 - Switching mod/profile should not require manual file edits.
 - Join remote multiplayer server entirely from UI.
+- Profile-local writable state lives under `.cake/<profileId>`.
+
+## Decisions (2026-03-06)
+- `profiles.json` will contain:
+  - schema `version`
+  - `selectedProfileId`
+  - `profiles[]`
+- Minimal profile shape for now:
+  - `id` (alphanumeric only, unique, used as folder name)
+  - `basedir`
+  - optional `gamemod`
+- No separate display name yet (can be added later).
+- Keep implementation simple:
+  - small Kotlin data classes (single-line style where practical)
+  - Jackson serialization/deserialization
+- Near-term install model supports one game installation root (`basedir`) per profile.
+- Future multi-install support will extend profile schema (additional roots) when needed.
 
 ## Screen Plan (thin client)
 - Startup Gate
@@ -68,11 +86,14 @@
 ## Delivery Plan
 
 ### Phase 1: Startup/Foundation
-- Introduce launcher-level game profile model (separate from runtime `GameConfiguration`).
+- Introduce launcher-level game profile model (separate from runtime `GameConfiguration`):
+  - `profiles.json` root model with `version`, `selectedProfileId`, `profiles`
+  - `GameProfile(id, basedir, gamemod?)`
 - Implement startup resolver:
   - CLI overrides (if any) > saved profile > autodetect > setup screen.
 - Wire Steam autodetect into Cake startup path.
 - Remove hard dependency on `System.getProperty("basedir")` for normal startup flow.
+- Route writable profile data into `.cake/<profileId>/...` (configs/screenshots/saves).
 
 ### Phase 2: Navigation Shell
 - Replace placeholder main menu with structured navigation.
@@ -96,6 +117,32 @@
 - Keep interfaces between launcher config and runtime clean to support dual modes later:
   - thin-client mode
   - integrated mode (future).
+
+## Next Implementation Steps (immediate)
+1. Profile schema + persistence
+- Finalize `profiles.json` v1 models and Jackson mapping.
+- Ensure default bootstrap behavior:
+  - if no file exists, create default profile record
+  - persist `selectedProfileId`
+- Validate `id` (alphanumeric), `basedir` existence, and `gamemod` directory-token safety.
+
+2. Startup integration
+- Load selected profile during Cake boot.
+- Resolve effective game configuration from selected profile (`basedir`, optional `gamemod`).
+- Use existing Steam autodetect as fallback when profile file is absent or invalid.
+
+3. Profile-scoped writable paths
+- Introduce profile data root helper (`.cake/<profileId>`).
+- Point config/screenshot/save outputs to profile root.
+
+4. UI increment (minimum usable shell)
+- Main menu: add current profile switch entry + multiplayer/options/exit.
+- Keep singleplayer/host visible but disabled with thin-client note.
+- Add basic profile list/select screen before full editor UX.
+
+5. Tests
+- Unit tests for profile read/write/default bootstrap/validation.
+- Startup resolver tests for precedence and fallback paths.
 
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
