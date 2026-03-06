@@ -157,7 +157,10 @@
 - Done: profile-scoped writable paths.
   - Screenshots and save metadata now write under `.cake/<profileId>/...`.
 - Done: tests for new profile store and updated save store behavior.
-- Next: UI increment (main menu profile switch/list/select + disabled singleplayer/host entries).
+- Done: minimum UI increment.
+  - Main menu now shows current profile and allows profile selection from existing profiles.
+  - Singleplayer and Host Game are visible but disabled as future thin-client-incompatible modes.
+- Next: dedicated game configuration/profile edit screens (list/add/edit UX instead of menu-level selector only).
 
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
