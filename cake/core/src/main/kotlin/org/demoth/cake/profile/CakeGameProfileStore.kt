@@ -103,6 +103,21 @@ class CakeGameProfileStore(
         )
     }
 
+    fun selectProfile(profileId: String): String {
+        val normalizedId = profileId.trim()
+        require(idPattern.matches(normalizedId)) { "Profile id must be alphanumeric" }
+
+        val config = readConfig()?.normalized()
+            ?: throw IllegalStateException("No profiles config found")
+        require(config.profiles.any { it.id == normalizedId }) { "Unknown profile id: $normalizedId" }
+
+        return writeConfig(
+            config.copy(
+                selectedProfileId = normalizedId,
+            ),
+        )
+    }
+
     fun bootstrapDefault(defaultProfile: CakeGameProfile): CakeGameProfile {
         val existing = readSelected()
         if (existing != null) {

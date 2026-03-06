@@ -67,6 +67,20 @@ class CakeGameProfileStoreTest {
     }
 
     @Test
+    fun selectProfileSwitchesSelectedProfile() {
+        val basedir = Files.createDirectories(temp.resolve("quake2"))
+        val store = CakeGameProfileStore(
+            writableFactory = { DefaultWritableFileSystem(temp) },
+        )
+
+        store.upsertProfile(CakeGameProfile(id = "Alpha", basedir = basedir.toString()))
+        store.upsertProfile(CakeGameProfile(id = "Beta", basedir = basedir.toString()), select = false)
+        store.selectProfile("Beta")
+
+        assertEquals("Beta", store.readSelected()?.id)
+    }
+
+    @Test
     fun rejectsInvalidProfileValues() {
         val basedir = Files.createDirectories(temp.resolve("quake2"))
         val store = CakeGameProfileStore(

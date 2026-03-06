@@ -182,7 +182,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        menuStage = MainMenuStage(viewport) // fixme: cvar
+        menuStage = MainMenuStage(
+            viewport = viewport,
+            activeProfileIdProvider = { activeProfileId() },
+            availableProfileIdsProvider = { listProfileIdsForMenu() },
+            onProfileSelected = { profileId -> selectProfileForMenu(profileId) },
+        ) // fixme: cvar
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
@@ -948,6 +953,31 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun profileWritable(): DefaultWritableFileSystem {
         val home = Path.of(System.getProperty("user.home"))
         return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
+    }
+
+    private fun listProfileIdsForMenu(): List<String> = try {
+        gameProfileStore.readConfig()?.profiles?.map { it.id }.orEmpty()
+    } catch (e: Exception) {
+        Com.Warn("Failed to list Cake profiles: ${e.message}\n")
+        emptyList()
+    }
+
+    private fun selectProfileForMenu(profileId: String) {
+        val selected = try {
+            val config = gameProfileStore.readConfig() ?: return
+            config.profiles.firstOrNull { it.id == profileId } ?: return
+        } catch (e: Exception) {
+            Com.Warn("Failed to load profiles config: ${e.message}\n")
+            return
+        }
+
+        try {
+            gameProfileStore.selectProfile(profileId)
+            applyGameProfile(selected)
+            Com.Printf("Active profile switched to '$profileId'\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to switch profile '$profileId': ${e.message}\n")
+        }
     }
 
     private fun loadStartupGameProfile() {
