@@ -59,10 +59,10 @@ Reach practical Quake2 gameplay parity for world/entity/effects lighting and tra
 - [ ] Optional non-legacy enhancement: smooth lightstyle interpolation between 100ms ticks
 - [x] entity Shells implemented as MD2 Fresnel-rim highlight approximation
 - [x] `EF_POWERSCREEN` extra-model overlay pass is missing
-- [ ] Linked model passes (`modelindex2/3/4`) are not fully implemented
+- [x] Linked model passes (`modelindex2/3/4`) are not fully implemented
 - [x] Postprocessing implemented: full-screen blend (`player_state_t.blend`) and underwater shader (`RDF_UNDERWATER`)
-- [ ] Optimize number of draw calls per frame (bsp rendering is too expensive now)
-- [ ] Cinematic / end-screen presentation mode parity (`.cin` and static image maps) with `nextserver` skip flow.
+- [x] Optimize number of draw calls per frame (bsp rendering is too expensive now)
+- [x] Cinematic / end-screen presentation mode parity (`.cin` and static image maps) with `nextserver` skip flow.
 
 ### Postprocessing Migration Plan (Cake-styled)
 
