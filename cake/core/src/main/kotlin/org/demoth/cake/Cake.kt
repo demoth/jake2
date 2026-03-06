@@ -64,6 +64,8 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -947,29 +949,61 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Warn("Failed to read persisted Cake game profile: ${e.message}\n")
             null
         }
-        val propertyBasedProfile = createProfileFromJvmProperties()
-
-        val resolved = persistedProfile ?: propertyBasedProfile
-        applyGameProfile(resolved)
-
-        if (persistedProfile == null && propertyBasedProfile != null) {
-            try {
-                val path = gameProfileStore.upsertProfile(propertyBasedProfile, select = true)
-                Com.Printf("Persisted startup game profile from JVM properties: $path\n")
-            } catch (e: Exception) {
-                Com.Warn("Failed to persist startup game profile: ${e.message}\n")
-            }
+        if (persistedProfile != null) {
+            applyGameProfile(persistedProfile)
+            return
         }
+
+        val fallbackProfile = buildDefaultStartupProfile()
+        val resolved = try {
+            gameProfileStore.bootstrapDefault(fallbackProfile)
+        } catch (e: Exception) {
+            Com.Warn("Failed to bootstrap default Cake profile: ${e.message}\n")
+            fallbackProfile
+        }
+        applyGameProfile(resolved)
     }
 
-    private fun createProfileFromJvmProperties(): CakeGameProfile? {
-        val basedir = System.getProperty("basedir")?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    private fun buildDefaultStartupProfile(): CakeGameProfile {
+        val basedir = resolveStartupBasedir()
         val gamemod = System.getProperty("game")?.trim()?.takeIf { it.isNotEmpty() }
         return CakeGameProfile(
             id = CakeGameProfileStore.DEFAULT_PROFILE_ID,
             basedir = basedir,
             gamemod = gamemod,
         )
+    }
+
+    private fun resolveStartupBasedir(): String {
+        val explicit = System.getProperty("basedir")?.trim()?.takeIf { it.isNotEmpty() }
+        if (explicit != null) {
+            return explicit
+        }
+        val autoDetected = autodetectSteamBasedir()
+        if (autoDetected != null) {
+            Com.Printf("Auto-detected Quake2 basedir: $autoDetected\n")
+            return autoDetected
+        }
+        return "."
+    }
+
+    private fun autodetectSteamBasedir(): String? {
+        val home = System.getProperty("user.home")?.takeIf { it.isNotBlank() }
+        val candidates = mutableListOf<Path>()
+        if (home != null) {
+            candidates.add(Path.of(home, ".steam", "steam", "steamapps", "common", "Quake 2"))
+            candidates.add(Path.of(home, "Library", "Application Support", "Steam", "steamapps", "common", "Quake 2"))
+        }
+
+        candidates.add(Path.of("c:", "Program Files (x86)", "Steam", "steamapps", "common", "Quake 2"))
+        candidates.add(Path.of("c:", "Program Files", "Steam", "steamapps", "common", "Quake 2"))
+
+        return candidates.firstOrNull { isUsableQ2Basedir(it) }?.toAbsolutePath()?.normalize()?.toString()
+    }
+
+    private fun isUsableQ2Basedir(path: Path): Boolean {
+        if (!Files.isDirectory(path)) return false
+        return Files.isDirectory(path.resolve("baseq2"))
     }
 
     private fun applyGameProfile(profile: CakeGameProfile?) {
