@@ -144,6 +144,21 @@
 - Unit tests for profile read/write/default bootstrap/validation.
 - Startup resolver tests for precedence and fallback paths.
 
+## Progress (2026-03-06)
+- Done: profile schema + persistence.
+  - Added `.cake/profiles.json` with `version`, `selectedProfileId`, `profiles[]`.
+  - Added profile validation (`id`, `basedir`, `gamemod`).
+- Done: startup integration.
+  - Cake now loads selected profile on startup.
+  - If no profile exists, Cake bootstraps a default profile (`id=default`) with basedir resolution:
+    - JVM `basedir` property
+    - Steam autodetect paths
+    - fallback `"."`
+- Done: profile-scoped writable paths.
+  - Screenshots and save metadata now write under `.cake/<profileId>/...`.
+- Done: tests for new profile store and updated save store behavior.
+- Next: UI increment (main menu profile switch/list/select + disabled singleplayer/host entries).
+
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
 - Q2Pro: strong data-driven menu definitions (`q2pro.menu`) and flexible menu scripting.
