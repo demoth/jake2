@@ -8,6 +8,7 @@ import jake2.qcommon.vfs.VfsOpenOptions
 import jake2.qcommon.vfs.VfsWriteOptions
 import jake2.qcommon.vfs.WritableFileSystem
 import java.io.IOException
+import java.nio.file.Path
 
 /**
  * JSON save metadata persistence for Cake.
@@ -16,16 +17,17 @@ import java.io.IOException
  * `save/<slot>/cake-save.json`.
  */
 class CakeJsonSaveStore(
-    private val writableFactory: (String?) -> WritableFileSystem = { gameMod ->
-        DefaultWritableFileSystem.forHome("cake", gameMod)
+    private val writableFactory: (String) -> WritableFileSystem = { profileId ->
+        val home = Path.of(System.getProperty("user.home"))
+        DefaultWritableFileSystem(home.resolve(".cake").resolve(profileId))
     },
     private val mapper: ObjectMapper = jacksonObjectMapper(),
 ) {
 
-    fun write(slot: String, gameMod: String?, snapshot: CakeSaveSnapshot): String {
+    fun write(slot: String, profileId: String, snapshot: CakeSaveSnapshot): String {
         val normalizedSlot = normalizeSlot(slot)
         val logicalPath = "save/$normalizedSlot/cake-save.json"
-        val writable = writableFactory(gameMod)
+        val writable = writableFactory(normalizeProfileId(profileId))
 
         val opened = writable.openWrite(logicalPath, VfsWriteOptions.TRUNCATE)
         if (!opened.success || opened.value == null) {
@@ -40,10 +42,10 @@ class CakeJsonSaveStore(
         return writable.resolveWritePath(logicalPath)
     }
 
-    fun read(slot: String, gameMod: String?): CakeSaveSnapshot? {
+    fun read(slot: String, profileId: String): CakeSaveSnapshot? {
         val normalizedSlot = normalizeSlot(slot)
         val logicalPath = "save/$normalizedSlot/cake-save.json"
-        val writable = writableFactory(gameMod)
+        val writable = writableFactory(normalizeProfileId(profileId))
 
         val opened = writable.openReadReal(logicalPath, VfsOpenOptions.DEFAULT)
         if (!opened.success || opened.value == null) {
@@ -63,6 +65,13 @@ class CakeJsonSaveStore(
         require(!value.contains("..")) { "Save slot must not contain '..'" }
         require(!value.contains("/")) { "Save slot must be a simple name" }
         require(!value.contains(":")) { "Save slot must not contain ':'" }
+        return value
+    }
+
+    private fun normalizeProfileId(profileId: String): String {
+        val value = profileId.trim()
+        require(value.isNotEmpty()) { "Profile id must not be empty" }
+        require(value.all { it.isLetterOrDigit() }) { "Profile id must be alphanumeric" }
         return value
     }
 }

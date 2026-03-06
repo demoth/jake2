@@ -926,7 +926,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 )
             }
             val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
-            val writable = DefaultWritableFileSystem.forHome("cake", fileResolver.gamemod)
+            val writable = profileWritable()
             val screenshotPath = writable.resolveWritePath("scrnshot/$filename")
             if (screenshotPath == null) {
                 throw IllegalStateException("Failed to resolve screenshot write path")
@@ -940,6 +940,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             flippedPixmap.dispose()
             pixmap.dispose()
         }
+    }
+
+    private fun activeProfileId(): String =
+        activeGameProfile?.id ?: CakeGameProfileStore.DEFAULT_PROFILE_ID
+
+    private fun profileWritable(): DefaultWritableFileSystem {
+        val home = Path.of(System.getProperty("user.home"))
+        return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
     }
 
     private fun loadStartupGameProfile() {
@@ -1081,7 +1089,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         )
 
         try {
-            val path = saveMetadataStore.write(slot, fileResolver.gamemod, snapshot)
+            val path = saveMetadataStore.write(slot, activeProfileId(), snapshot)
             Com.Printf("Saved Cake metadata to: $path\n")
         } catch (e: IllegalArgumentException) {
             Com.Warn("Invalid save metadata slot: ${e.message}\n")
@@ -1097,7 +1105,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
         val slot = args[1]
         try {
-            val snapshot = saveMetadataStore.read(slot, fileResolver.gamemod)
+            val snapshot = saveMetadataStore.read(slot, activeProfileId())
             if (snapshot == null) {
                 Com.Printf("No Cake metadata found for slot '$slot'.\n")
                 return

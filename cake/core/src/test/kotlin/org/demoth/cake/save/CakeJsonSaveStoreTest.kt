@@ -15,10 +15,10 @@ class CakeJsonSaveStoreTest {
     lateinit var temp: Path
 
     @Test
-    fun writeAndReadRoundTripBySlotAndMod() {
+    fun writeAndReadRoundTripBySlotAndProfile() {
         val root = temp
-        val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
-            DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
+        val store = CakeJsonSaveStore(writableFactory = { profileId: String ->
+            DefaultWritableFileSystem(root.resolve(profileId))
         })
 
         val snapshot = CakeSaveSnapshot(
@@ -28,36 +28,36 @@ class CakeJsonSaveStoreTest {
             autosave = true,
         )
 
-        val writtenPath = store.write("current", "rogue", snapshot)
+        val writtenPath = store.write("current", "default", snapshot)
         assertNotNull(writtenPath)
-        assertEquals(root.resolve("rogue/save/current/cake-save.json").toString(), writtenPath)
-        assertEquals(true, Files.exists(root.resolve("rogue/save/current/cake-save.json")))
+        assertEquals(root.resolve("default/save/current/cake-save.json").toString(), writtenPath)
+        assertEquals(true, Files.exists(root.resolve("default/save/current/cake-save.json")))
 
-        val loaded = store.read("current", "rogue")
+        val loaded = store.read("current", "default")
         assertEquals(snapshot, loaded)
     }
 
     @Test
     fun readReturnsNullForMissingSlot() {
         val root = temp
-        val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
-            DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
+        val store = CakeJsonSaveStore(writableFactory = { profileId: String ->
+            DefaultWritableFileSystem(root.resolve(profileId))
         })
 
-        assertNull(store.read("missing", "rogue"))
+        assertNull(store.read("missing", "default"))
     }
 
     @Test
     fun rejectsTraversalSlotName() {
         val root = temp
-        val store = CakeJsonSaveStore(writableFactory = { gameMod: String? ->
-            DefaultWritableFileSystem(root.resolve(gameMod ?: "baseq2"))
+        val store = CakeJsonSaveStore(writableFactory = { profileId: String ->
+            DefaultWritableFileSystem(root.resolve(profileId))
         })
 
         assertThrows<IllegalArgumentException> {
             store.write(
                 "../outside",
-                "rogue",
+                "default",
                 CakeSaveSnapshot("base1", "bad", 1L, autosave = false),
             )
         }
