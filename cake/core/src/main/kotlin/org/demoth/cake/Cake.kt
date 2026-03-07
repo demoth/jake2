@@ -64,6 +64,7 @@ import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
+import org.demoth.cake.stages.ProfileEditStage
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -74,6 +75,11 @@ private enum class ClientNetworkState {
     CONNECTING, // started the connection procedure
     CONNECTED, // connection established, preparing resources
     ACTIVE // game is running
+}
+
+private enum class MenuView {
+    MAIN,
+    PROFILE_EDIT,
 }
 
 /**
@@ -89,6 +95,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private lateinit var menuStage: MainMenuStage
+    private lateinit var profileEditStage: ProfileEditStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -111,6 +118,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             field = value
             updateInputHandlers(consoleVisible, field)
         }
+    private var menuView = MenuView.MAIN
 
     // network
     private var networkState = DISCONNECTED
@@ -185,12 +193,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuStage = MainMenuStage(
             viewport = viewport,
             activeProfileIdProvider = { activeProfileId() },
-            availableProfileIdsProvider = { listProfileIdsForMenu() },
-            isDisconnectedProvider = { isProfileSwitchAllowed() },
             canDisconnectProvider = { networkState != DISCONNECTED },
             onDisconnectRequested = { disconnect() },
-            onProfileSelected = { profileId -> selectProfileForMenu(profileId) },
+            onOpenProfileEditor = { openProfileEditMenu() },
         ) // fixme: cvar
+        profileEditStage = ProfileEditStage(
+            viewport = viewport,
+            activeProfileIdProvider = { activeProfileId() },
+            onBackRequested = { openMainMenu() },
+        )
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
@@ -418,7 +429,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
-            menuVisible -> menuStage
+            menuVisible -> when (menuView) {
+                MenuView.MAIN -> menuStage
+                MenuView.PROFILE_EDIT -> profileEditStage
+            }
             else -> {
                 // delegate to the game screen
                 game3dScreen?.let { screen -> object : InputProcessor by screen {} }
@@ -467,8 +481,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         if (menuVisible) {
-            menuStage.act()
-            menuStage.draw()
+            when (menuView) {
+                MenuView.MAIN -> {
+                    menuStage.act()
+                    menuStage.draw()
+                }
+                MenuView.PROFILE_EDIT -> {
+                    profileEditStage.act(deltaSeconds)
+                    profileEditStage.draw()
+                }
+            }
         }
 
         if (consoleVisible) {
@@ -553,7 +575,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Input.Keys.ESCAPE -> {
                 if (consoleVisible)
                     consoleVisible = false
-                else menuVisible = !menuVisible
+                else {
+                    menuVisible = !menuVisible
+                    if (menuVisible) {
+                        menuView = MenuView.MAIN
+                        updateInputHandlers(consoleVisible, menuVisible)
+                    }
+                }
             }
             else -> return false
         }
@@ -563,6 +591,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // fixme is it called from somewhere?
     override fun dispose() {
         menuStage.dispose()
+        profileEditStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearTransitionBackdrop()
@@ -962,6 +991,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun profileWritable(): DefaultWritableFileSystem {
         val home = Path.of(System.getProperty("user.home"))
         return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
+    }
+
+    private fun openMainMenu() {
+        menuView = MenuView.MAIN
+        menuVisible = true
+    }
+
+    private fun openProfileEditMenu() {
+        menuView = MenuView.PROFILE_EDIT
+        menuVisible = true
     }
 
     private fun listProfileIdsForMenu(): List<String> = try {
