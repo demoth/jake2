@@ -35,11 +35,18 @@ class MainMenuStage(
     viewport: Viewport,
     private val activeProfileIdProvider: () -> String,
     private val availableProfileIdsProvider: () -> List<String>,
+    private val isDisconnectedProvider: () -> Boolean,
+    private val canDisconnectProvider: () -> Boolean,
+    private val onDisconnectRequested: () -> Unit,
     private val onProfileSelected: (String) -> Unit,
 ) : Stage(viewport) {
     private lateinit var currentProfileLabel: Label
+    private lateinit var profileSwitchHintLabel: Label
     private lateinit var profileListTable: Table
+    private lateinit var switchProfileButton: TextButton
+    private lateinit var disconnectButton: TextButton
     private var renderedProfileId: String = ""
+    private var lastDisconnectedState: Boolean = true
 
     init {
         actors {
@@ -49,15 +56,23 @@ class MainMenuStage(
 
                 currentProfileLabel = label("")
                 row()
-                textButton("Switch Profile") {
+                switchProfileButton = textButton("Switch Profile") {
                     onClick {
                         toggleProfileList()
                     }
                 }
                 row()
+                profileSwitchHintLabel = label("")
+                row()
                 profileListTable = table {
                     defaults().pad(6f).fillX()
                     isVisible = false
+                }
+                row()
+                disconnectButton = textButton("Disconnect") {
+                    onClick {
+                        onDisconnectRequested()
+                    }
                 }
                 row()
                 textButton("Singleplayer (future)").apply {
@@ -90,17 +105,22 @@ class MainMenuStage(
         }
 
         refreshProfileHeader()
+        refreshConnectionDependentUi()
         rebuildProfileList()
     }
 
     override fun act(delta: Float) {
         super.act(delta)
         val active = activeProfileIdProvider().trim()
+        val disconnected = isDisconnectedProvider()
         if (active != renderedProfileId) {
             refreshProfileHeader()
             if (profileListTable.isVisible) {
                 rebuildProfileList()
             }
+        }
+        if (disconnected != lastDisconnectedState) {
+            refreshConnectionDependentUi()
         }
     }
 
@@ -110,7 +130,22 @@ class MainMenuStage(
         currentProfileLabel.setText("Current profile: $shown")
     }
 
+    private fun refreshConnectionDependentUi() {
+        lastDisconnectedState = isDisconnectedProvider()
+        switchProfileButton.isDisabled = !lastDisconnectedState
+        disconnectButton.isDisabled = !canDisconnectProvider()
+        profileSwitchHintLabel.setText(
+            if (lastDisconnectedState) "" else "Disconnect first to switch profile",
+        )
+        if (!lastDisconnectedState) {
+            profileListTable.isVisible = false
+        }
+    }
+
     private fun toggleProfileList() {
+        if (!isDisconnectedProvider()) {
+            return
+        }
         if (!profileListTable.isVisible) {
             rebuildProfileList()
         }
@@ -134,6 +169,9 @@ class MainMenuStage(
             val text = if (id == activeId) "$id (active)" else id
             val profileButton = TextButton(text, Scene2DSkin.defaultSkin)
             profileButton.onClick {
+                if (!isDisconnectedProvider()) {
+                    return@onClick
+                }
                 onProfileSelected(id)
                 refreshProfileHeader()
                 profileListTable.isVisible = false

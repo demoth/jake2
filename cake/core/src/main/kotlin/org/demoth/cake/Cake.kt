@@ -186,6 +186,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             viewport = viewport,
             activeProfileIdProvider = { activeProfileId() },
             availableProfileIdsProvider = { listProfileIdsForMenu() },
+            isDisconnectedProvider = { isProfileSwitchAllowed() },
+            canDisconnectProvider = { networkState != DISCONNECTED },
+            onDisconnectRequested = { disconnect() },
             onProfileSelected = { profileId -> selectProfileForMenu(profileId) },
         ) // fixme: cvar
         // todo: gather all early logging (which is generated before the console is created)
@@ -940,7 +943,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             PixmapIO.writePNG(screenshotFile, flippedPixmap)
             Com.Println("Screenshot saved: ${screenshotFile.file().absolutePath}")
         } catch (e: Exception) {
-            Com.Warn("Failed to save screenshot: ${e.message}\n")
+            Com.Warn("Failed to save screenshot:3 ${e.message}\n")
         } finally {
             flippedPixmap.dispose()
             pixmap.dispose()
@@ -962,7 +965,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         emptyList()
     }
 
+    private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED
+
     private fun selectProfileForMenu(profileId: String) {
+        if (!isProfileSwitchAllowed()) {
+            Com.Warn("Profile switching is only allowed while disconnected.\n")
+            return
+        }
         val selected = try {
             val config = gameProfileStore.readConfig() ?: return
             config.profiles.firstOrNull { it.id == profileId } ?: return
@@ -1062,6 +1071,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun setActiveGameProfile(args: List<String>) {
+        if (!isProfileSwitchAllowed()) {
+            Com.Warn("Profile switching is only allowed while disconnected.\n")
+            return
+        }
         if (args.size < 3) {
             Com.Printf("usage: cake_profile_set <id> <basedir> [gamemod]\n")
             return
@@ -1082,6 +1095,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun clearActiveGameProfile() {
+        if (!isProfileSwitchAllowed()) {
+            Com.Warn("Profile switching is only allowed while disconnected.\n")
+            return
+        }
         applyGameProfile(null)
         try {
             gameProfileStore.clear()
