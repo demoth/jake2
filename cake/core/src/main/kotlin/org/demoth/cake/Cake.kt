@@ -199,7 +199,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         ) // fixme: cvar
         profileEditStage = ProfileEditStage(
             viewport = viewport,
-            activeProfileIdProvider = { activeProfileId() },
+            availableProfileIdsProvider = { listProfileIdsForMenu() },
+            selectedProfileIdProvider = { persistedSelectedProfileId() ?: activeGameProfile?.id },
+            profileByIdProvider = { profileId -> loadProfileById(profileId) },
+            canEditProvider = { isProfileSwitchAllowed() },
+            onSelectProfileRequested = { profileId -> selectProfileForEditor(profileId) },
+            onCreateNewRequested = { createNewProfileDraft() },
+            onAutodetectRequested = { autodetectSteamBasedir() },
+            onSaveRequested = { profile -> saveProfileFromEditor(profile) },
             onBackRequested = { openMainMenu() },
         )
         // todo: gather all early logging (which is generated before the console is created)
@@ -1003,6 +1010,17 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuVisible = true
     }
 
+    private fun loadProfileById(profileId: String): CakeGameProfile? {
+        val normalizedId = profileId.trim()
+        if (normalizedId.isBlank()) return null
+        return try {
+            gameProfileStore.readConfig()?.profiles?.firstOrNull { it.id == normalizedId }
+        } catch (e: Exception) {
+            Com.Warn("Failed to load profile '$profileId': ${e.message}\n")
+            null
+        }
+    }
+
     private fun listProfileIdsForMenu(): List<String> = try {
         gameProfileStore.readConfig()?.profiles?.map { it.id }.orEmpty()
     } catch (e: Exception) {
@@ -1011,6 +1029,40 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED
+
+    private fun selectProfileForEditor(profileId: String): CakeGameProfile? {
+        selectProfileForMenu(profileId)
+        return activeGameProfile?.takeIf { it.id == profileId }
+    }
+
+    private fun createNewProfileDraft(): CakeGameProfile {
+        val base = activeGameProfile?.basedir ?: autodetectSteamBasedir().orEmpty()
+        return CakeGameProfile(
+            id = "",
+            basedir = base,
+            gamemod = null,
+        )
+    }
+
+    private fun saveProfileFromEditor(profile: CakeGameProfile): String {
+        if (!isProfileSwitchAllowed()) {
+            return "Disconnect first to edit profiles"
+        }
+        val normalized = profile.normalized()
+        if (normalized.id.isBlank()) {
+            return "Profile ID must not be blank"
+        }
+        if (normalized.basedir.isBlank()) {
+            return "Basedir must not be blank"
+        }
+        return try {
+            gameProfileStore.upsertProfile(normalized, select = true)
+            applyGameProfile(normalized)
+            "Saved profile '${normalized.id}'"
+        } catch (e: Exception) {
+            "Failed to save profile: ${e.message}"
+        }
+    }
 
     // when switching profiles, we expect no active game, therefore, no loaded game resources
     private fun selectProfileForMenu(profileId: String) {

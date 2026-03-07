@@ -168,7 +168,11 @@
 - Done: minimum UI increment.
   - Main menu now shows current profile and allows profile selection from existing profiles.
   - Singleplayer and Host Game are visible but disabled as future thin-client-incompatible modes.
-- Next: dedicated game configuration/profile edit screens (list/add/edit UX instead of menu-level selector only).
+- Done: dedicated game configuration/profile edit stage.
+  - Clicking current profile now opens a dedicated profile editor stage.
+  - Added two-pane layout: profile list (left) and editable profile form (right).
+  - Added `Create New Profile`, `Autodetect`, `Save`, and `Back` actions.
+- Next: first-run setup/guided profile bootstrap flow.
 - Done: `Disconnect` main menu action and connection-aware menu state.
 - Done: profile switching locked to disconnected state (UI + command guard).
 - Verify/keep: profile `basedir` seeds VFS via `applyGameProfile` (`fileResolver.basedir` -> `CakeVfsAssetSource.configure`).
