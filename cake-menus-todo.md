@@ -24,8 +24,11 @@
   - Local coop hosting mode.
 
 ## Key Findings (codebase)
-- Cake main menu is still placeholder-only in `cake/core/src/main/kotlin/org/demoth/cake/stages/MainMenuStage.kt`.
-- Cake startup currently seeds VFS path from JVM system property in `cake/core/src/main/kotlin/org/demoth/cake/Cake.kt` (`System.getProperty("basedir")`).
+- Main menu has a minimum shell in `cake/core/src/main/kotlin/org/demoth/cake/stages/MainMenuStage.kt`:
+  - current profile display + selector
+  - `Singleplayer` and `Host Game` disabled placeholders
+- Cake startup resolves selected/default profile and applies it to resolver in
+  `cake/core/src/main/kotlin/org/demoth/cake/Cake.kt` (`applyGameProfile` -> `fileResolver.basedir/gamemod`).
 - Shared FS already has Steam autodetect logic in `qcommon/src/main/java/jake2/qcommon/filesystem/FS.java` (`autodetectBasedir`).
 - Cake already exposes VFS diagnostics and mount/index metadata via `VfsDebugCommands`, which can later power an asset explorer UI.
 
@@ -61,6 +64,7 @@
   - Auto-detect result + manual browse/edit path.
   - Validate and save profile.
 - Main Menu
+  - `Disconnect` (enabled only when connected/in-game)
   - `Multiplayer` (enabled)
   - `Options` (enabled)
   - `Game Configuration` (enabled)
@@ -82,6 +86,10 @@
 - Keep `Singleplayer` and `Host Game` visible but disabled.
 - Disabled entries should clearly show "future/not available in thin-client mode".
 - Avoid dead buttons: every enabled entry must navigate or perform a valid action.
+- Game profile switching is allowed only while disconnected (menu/offline state).
+- During active connection/game:
+  - profile selector UI is disabled/read-only
+  - show short hint that profile changes require disconnect first.
 
 ## Delivery Plan
 
@@ -161,6 +169,8 @@
   - Main menu now shows current profile and allows profile selection from existing profiles.
   - Singleplayer and Host Game are visible but disabled as future thin-client-incompatible modes.
 - Next: dedicated game configuration/profile edit screens (list/add/edit UX instead of menu-level selector only).
+- Next: add `Disconnect` main menu action and connection-aware menu state.
+- Verify/keep: profile `basedir` seeds VFS via `applyGameProfile` (`fileResolver.basedir` -> `CakeVfsAssetSource.configure`).
 
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
