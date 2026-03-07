@@ -177,6 +177,16 @@
 - Done: profile switching locked to disconnected state (UI + command guard).
 - Verify/keep: profile `basedir` seeds VFS via `applyGameProfile` (`fileResolver.basedir` -> `CakeVfsAssetSource.configure`).
 
+## Profile Edit Refinements (2026-03-07)
+- Keep current behavior: selecting a profile in the left list applies it immediately (no deferred apply on `Back`).
+- Layout adjustments:
+  - left panel should be packed/minimal width (no fixed wide column),
+  - right panel should consume remaining horizontal space.
+- Move `Back` button to the left panel under the profile list/actions.
+- Keep right-side form simple and stacked (`label` then `textfield` rows).
+- Implement explicit checked/toggled state for the selected profile button in the list.
+- `Autodetect` should be a no-op when detection fails (do not overwrite fields).
+
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
 - Q2Pro: strong data-driven menu definitions (`q2pro.menu`) and flexible menu scripting.
