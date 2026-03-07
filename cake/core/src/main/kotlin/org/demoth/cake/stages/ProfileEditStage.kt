@@ -1,6 +1,7 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -33,14 +34,16 @@ class ProfileEditStage(
     private val onSaveRequested: (CakeGameProfile) -> String,
     private val onBackRequested: () -> Unit,
 ) : Stage(viewport) {
-    private lateinit var profilesListTable: Table
-    private lateinit var createProfileButton: TextButton
-    private lateinit var profileIdField: TextField
-    private lateinit var basedirField: TextField
-    private lateinit var gamemodField: TextField
-    private lateinit var autodetectButton: TextButton
-    private lateinit var saveButton: TextButton
-    private lateinit var statusLabel: Label
+    private var profilesListTable: Table
+    private var createProfileButton: TextButton
+    private var backButton: TextButton
+    private var profileIdField: TextField
+    private var basedirField: TextField
+    private var gamemodField: TextField
+    private var autodetectButton: TextButton
+    private var saveButton: TextButton
+    private var statusLabel: Label
+    private val profileButtonsById: MutableMap<String, TextButton> = linkedMapOf()
 
     private var renderedSelectedProfileId: String = ""
     private var renderedCanEdit: Boolean = true
@@ -72,8 +75,13 @@ class ProfileEditStage(
                         }
                     }
                     add(createProfileButton).fillX().row()
+
+                    backButton = textButton("Back") {
+                        onClick { onBackRequested() }
+                    }
+                    add(backButton).fillX().row()
                 }
-                add(leftPane).left().top().width(320f).fillY()
+                add(leftPane).left().top().fillY()
 
                 val rightPane = table {
                     defaults().pad(8f).fillX()
@@ -90,12 +98,9 @@ class ProfileEditStage(
                     autodetectButton = textButton("Autodetect") {
                         onClick {
                             val detected = onAutodetectRequested()
-                            if (detected.isNullOrBlank()) {
-                                statusLabel.setText("Autodetect did not find a Quake2 installation")
-                            } else {
-                                basedirField.text = detected
-                                statusLabel.setText("Autodetected basedir: $detected")
-                            }
+                            if (detected.isNullOrBlank()) return@onClick
+                            basedirField.text = detected
+                            statusLabel.setText("Autodetected basedir: $detected")
                         }
                     }
                     add(autodetectButton).left().row()
@@ -115,19 +120,15 @@ class ProfileEditStage(
                                     ),
                                 ),
                             )
-                            rebuildProfilesList()
+                            refreshSelectedProfile()
                         }
                     }
                     add(saveButton).left().row()
 
-                    textButton("Back") {
-                        onClick { onBackRequested() }
-                    }.also { add(it).left().row() }
-
                     statusLabel = label("")
                     add(statusLabel).left().row()
                 }
-                add(rightPane).growX().top()
+                add(rightPane).grow().top()
             }
         }
         rebuildProfilesList()
@@ -149,9 +150,11 @@ class ProfileEditStage(
 
     private fun refreshSelectedProfile() {
         renderedSelectedProfileId = selectedProfileIdProvider()?.trim().orEmpty()
-        if (renderedSelectedProfileId.isBlank()) return
-        profileByIdProvider(renderedSelectedProfileId)?.let { loadProfileIntoForm(it) }
+        if (renderedSelectedProfileId.isNotBlank()) {
+            profileByIdProvider(renderedSelectedProfileId)?.let { loadProfileIntoForm(it) }
+        }
         rebuildProfilesList()
+        updateCheckedProfileButton(renderedSelectedProfileId)
     }
 
     private fun refreshEditState(force: Boolean) {
@@ -165,6 +168,7 @@ class ProfileEditStage(
         gamemodField.isDisabled = !canEdit
         autodetectButton.isDisabled = !canEdit
         saveButton.isDisabled = !canEdit
+        profileButtonsById.values.forEach { it.isDisabled = !canEdit }
         if (!canEdit) {
             statusLabel.setText("Disconnect first to edit profiles")
         }
@@ -172,6 +176,12 @@ class ProfileEditStage(
 
     private fun rebuildProfilesList() {
         profilesListTable.clearChildren()
+        profileButtonsById.clear()
+        val buttonGroup = ButtonGroup<TextButton>().apply {
+            setMinCheckCount(0)
+            setMaxCheckCount(1)
+        }
+
         val profileIds = availableProfileIdsProvider()
             .map { it.trim() }
             .filter { it.isNotEmpty() }
@@ -184,13 +194,17 @@ class ProfileEditStage(
 
         val selectedId = selectedProfileIdProvider()?.trim().orEmpty()
         for (id in profileIds) {
-            val text = if (id == selectedId) "$id (selected)" else id
-            val profileButton = TextButton(text, Scene2DSkin.defaultSkin)
+            val profileButton = TextButton(id, Scene2DSkin.defaultSkin)
+            profileButton.isDisabled = !renderedCanEdit
+            profileButton.isChecked = (id == selectedId)
+            buttonGroup.add(profileButton)
+            profileButtonsById[id] = profileButton
             profileButton.onClick {
                 val selected = onSelectProfileRequested(id)
                 if (selected != null) {
                     loadProfileIntoForm(selected)
                     statusLabel.setText("Selected profile: ${selected.id}")
+                    updateCheckedProfileButton(selected.id)
                 }
             }
             profilesListTable.add(profileButton).fillX().row()
@@ -201,5 +215,11 @@ class ProfileEditStage(
         profileIdField.text = profile.id
         basedirField.text = profile.basedir
         gamemodField.text = profile.gamemod ?: ""
+    }
+
+    private fun updateCheckedProfileButton(selectedId: String) {
+        profileButtonsById.forEach { (profileId, button) ->
+            button.isChecked = profileId == selectedId
+        }
     }
 }
