@@ -973,6 +973,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED
 
+    // when switching profiles, we expect no active game, therefore, no loaded game resources
     private fun selectProfileForMenu(profileId: String) {
         if (!isProfileSwitchAllowed()) {
             Com.Warn("Profile switching is only allowed while disconnected.\n")

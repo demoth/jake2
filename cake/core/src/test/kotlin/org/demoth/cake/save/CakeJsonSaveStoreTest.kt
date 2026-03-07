@@ -62,4 +62,22 @@ class CakeJsonSaveStoreTest {
             )
         }
     }
+
+    @Test
+    fun supportsProfileIdWithSpaces() {
+        val root = temp
+        val store = CakeJsonSaveStore(writableFactory = { profileId: String ->
+            DefaultWritableFileSystem(root.resolve(profileId))
+        })
+        val snapshot = CakeSaveSnapshot(
+            map = "base1",
+            title = "Save",
+            timestampMillis = 1L,
+            autosave = false,
+        )
+
+        val path = store.write("current", "q2 new maps", snapshot)
+        assertEquals(root.resolve("q2 new maps/save/current/cake-save.json").toString(), path)
+        assertEquals(snapshot, store.read("current", "q2 new maps"))
+    }
 }

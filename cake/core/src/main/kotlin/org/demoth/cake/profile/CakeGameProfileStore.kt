@@ -42,7 +42,6 @@ class CakeGameProfileStore(
     private val mapper: ObjectMapper = jacksonObjectMapper(),
 ) {
     private val logicalPath = "profiles.json"
-    private val idPattern = Regex("^[A-Za-z0-9]+$")
 
     fun readConfig(): CakeProfilesConfig? {
         val writable = writableFactory()
@@ -91,6 +90,7 @@ class CakeGameProfileStore(
     fun readSelectedProfileId(): String? {
         val config = readConfig() ?: return null
         if (config.version != PROFILES_VERSION_V1) {
+            // todo: warn, migration?
             return null
         }
         val selectedId = config.selectedProfileId.trim()
@@ -125,7 +125,7 @@ class CakeGameProfileStore(
 
     fun selectProfile(profileId: String): String {
         val normalizedId = profileId.trim()
-        require(idPattern.matches(normalizedId)) { "Profile id must be alphanumeric" }
+        require(isSafeProfileId(normalizedId)) { "Profile id must be a safe folder name token" }
 
         val config = readConfig()?.normalized()
             ?: throw IllegalStateException("No profiles config found")
@@ -167,7 +167,7 @@ class CakeGameProfileStore(
     }
 
     private fun validateProfile(profile: CakeGameProfile) {
-        require(idPattern.matches(profile.id)) { "Profile id must be alphanumeric" }
+        require(isSafeProfileId(profile.id)) { "Profile id must be a safe folder name token" }
         require(profile.basedir.isNotBlank()) { "Profile basedir must not be blank" }
         val basedirPath = try {
             Path.of(profile.basedir)
@@ -189,6 +189,11 @@ class CakeGameProfileStore(
         if (value.contains('\\')) return false
         if (value.contains(':')) return false
         return true
+    }
+
+    private fun isSafeProfileId(value: String): Boolean {
+        if (value.isBlank()) return false
+        return isSafeDirectoryToken(value)
     }
 
     companion object {

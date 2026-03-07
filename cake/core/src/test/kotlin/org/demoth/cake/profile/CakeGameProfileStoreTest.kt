@@ -116,7 +116,7 @@ class CakeGameProfileStoreTest {
         )
 
         assertThrows(IllegalArgumentException::class.java) {
-            store.upsertProfile(CakeGameProfile(id = "not-valid", basedir = basedir.toString()))
+            store.upsertProfile(CakeGameProfile(id = "../bad", basedir = basedir.toString()))
         }
         assertThrows(IllegalArgumentException::class.java) {
             store.upsertProfile(CakeGameProfile(id = "Valid01", basedir = temp.resolve("missing").toString()))

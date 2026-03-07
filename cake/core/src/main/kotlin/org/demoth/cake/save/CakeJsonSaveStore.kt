@@ -71,7 +71,10 @@ class CakeJsonSaveStore(
     private fun normalizeProfileId(profileId: String): String {
         val value = profileId.trim()
         require(value.isNotEmpty()) { "Profile id must not be empty" }
-        require(value.all { it.isLetterOrDigit() }) { "Profile id must be alphanumeric" }
+        require(!value.contains("..")) { "Profile id must not contain '..'" }
+        require(!value.contains("/")) { "Profile id must not contain '/'" }
+        require(!value.contains("\\")) { "Profile id must not contain '\\'" }
+        require(!value.contains(":")) { "Profile id must not contain ':'" }
         return value
     }
 }
