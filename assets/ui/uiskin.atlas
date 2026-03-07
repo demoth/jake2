@@ -388,9 +388,9 @@ window-resize
   index: -1
 chamfer-panel
   rotate: false
-  xy: 95, 53
-  size: 31, 31
-  split: 15, 15, 15, 15
-  orig: 31, 31
+  xy: 94, 53
+  size: 33, 33
+  split: 16, 16, 16, 16
+  orig: 33, 33
   offset: 0, 0
   index: -1
