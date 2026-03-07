@@ -169,7 +169,8 @@
   - Main menu now shows current profile and allows profile selection from existing profiles.
   - Singleplayer and Host Game are visible but disabled as future thin-client-incompatible modes.
 - Next: dedicated game configuration/profile edit screens (list/add/edit UX instead of menu-level selector only).
-- Next: add `Disconnect` main menu action and connection-aware menu state.
+- Done: `Disconnect` main menu action and connection-aware menu state.
+- Done: profile switching locked to disconnected state (UI + command guard).
 - Verify/keep: profile `basedir` seeds VFS via `applyGameProfile` (`fileResolver.basedir` -> `CakeVfsAssetSource.configure`).
 
 ## Reference Notes (for ideas)
