@@ -2,6 +2,7 @@ package org.demoth.cake.profile
 
 import jake2.qcommon.vfs.DefaultWritableFileSystem
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -78,6 +79,33 @@ class CakeGameProfileStoreTest {
         store.selectProfile("Beta")
 
         assertEquals("Beta", store.readSelected()?.id)
+    }
+
+    @Test
+    fun readSelectedUsesSelectedEntryEvenWhenAnotherProfileIsInvalid() {
+        val validBasedir = Files.createDirectories(temp.resolve("quake2"))
+        val store = CakeGameProfileStore(
+            writableFactory = { DefaultWritableFileSystem(temp) },
+        )
+
+        Files.writeString(
+            temp.resolve("profiles.json"),
+            """
+            {
+              "version": 1,
+              "selectedProfileId": "Alpha",
+              "profiles": [
+                {"id":"Alpha","basedir":"${validBasedir.toString().replace("\\", "\\\\")}","gamemod":""},
+                {"id":"Beta","basedir":"${temp.resolve("missing").toString().replace("\\", "\\\\")}","gamemod":""}
+              ]
+            }
+            """.trimIndent(),
+        )
+
+        val selected = store.readSelected()
+        assertNotNull(selected)
+        assertEquals("Alpha", selected?.id)
+        assertEquals("Alpha", store.readSelectedProfileId())
     }
 
     @Test

@@ -41,7 +41,6 @@ class MainMenuStage(
     private val onProfileSelected: (String) -> Unit,
 ) : Stage(viewport) {
     private lateinit var currentProfileLabel: Label
-    private lateinit var profileSwitchHintLabel: Label
     private lateinit var profileListTable: Table
     private lateinit var switchProfileButton: TextButton
     private lateinit var disconnectButton: TextButton
@@ -61,8 +60,6 @@ class MainMenuStage(
                         toggleProfileList()
                     }
                 }
-                row()
-                profileSwitchHintLabel = label("")
                 row()
                 profileListTable = table {
                     defaults().pad(6f).fillX()
@@ -134,9 +131,6 @@ class MainMenuStage(
         lastDisconnectedState = isDisconnectedProvider()
         switchProfileButton.isDisabled = !lastDisconnectedState
         disconnectButton.isDisabled = !canDisconnectProvider()
-        profileSwitchHintLabel.setText(
-            if (lastDisconnectedState) "" else "Disconnect first to switch profile",
-        )
         if (!lastDisconnectedState) {
             profileListTable.isVisible = false
         }

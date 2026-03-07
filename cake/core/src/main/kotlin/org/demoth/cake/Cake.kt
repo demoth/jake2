@@ -951,7 +951,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun activeProfileId(): String =
-        activeGameProfile?.id ?: CakeGameProfileStore.DEFAULT_PROFILE_ID
+        persistedSelectedProfileId() ?: activeGameProfile?.id ?: CakeGameProfileStore.DEFAULT_PROFILE_ID
+
+    private fun persistedSelectedProfileId(): String? = try {
+        gameProfileStore.readSelectedProfileId()
+    } catch (_: Exception) {
+        null
+    }
 
     private fun profileWritable(): DefaultWritableFileSystem {
         val home = Path.of(System.getProperty("user.home"))

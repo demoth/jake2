@@ -76,11 +76,31 @@ class CakeGameProfileStore(
 
     fun readSelected(): CakeGameProfile? {
         val config = readConfig() ?: return null
-        if (config.profiles.isEmpty() || config.selectedProfileId.isBlank()) {
+        if (config.version != PROFILES_VERSION_V1) {
             return null
         }
-        validateConfig(config)
-        return config.profiles.firstOrNull { it.id == config.selectedProfileId }
+        val selectedId = config.selectedProfileId.trim()
+        if (selectedId.isBlank()) {
+            return null
+        }
+        val profile = config.profiles.firstOrNull { it.id == selectedId } ?: return null
+        validateProfile(profile)
+        return profile
+    }
+
+    fun readSelectedProfileId(): String? {
+        val config = readConfig() ?: return null
+        if (config.version != PROFILES_VERSION_V1) {
+            return null
+        }
+        val selectedId = config.selectedProfileId.trim()
+        if (selectedId.isBlank()) {
+            return null
+        }
+        if (config.profiles.none { it.id == selectedId }) {
+            return null
+        }
+        return selectedId
     }
 
     fun upsertProfile(profile: CakeGameProfile, select: Boolean = true): String {
