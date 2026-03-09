@@ -24,6 +24,12 @@ class ProfileEditStage(
     viewport: Viewport,
     private val menuEventBus: MenuEventBus,
 ) : Stage(viewport) {
+    companion object {
+        private const val DEBUG_LAYOUT: Boolean = false
+        private const val FORM_FIELD_MIN_WIDTH: Float = 320f
+        private const val FORM_FIELD_PREF_WIDTH: Float = 640f
+    }
+
     private lateinit var profilesListTable: Table
     private lateinit var createProfileButton: TextButton
     private lateinit var profileIdField: TextField
@@ -43,10 +49,12 @@ class ProfileEditStage(
     init {
         actors {
             table {
-                defaults().pad(12f)
+                defaults().top().left().pad(12f)
                 setFillParent(true)
+                top().left()
 
                 val leftPane = table {
+                    top().left()
                     defaults().pad(8f).fillX()
                     add(label("Profiles")).left().row()
 
@@ -78,19 +86,20 @@ class ProfileEditStage(
                         }
                     }.also { add(it).fillX().row() }
                 }
-                add(leftPane).left().top().padRight(20f)
+                add(leftPane).top().left().padRight(20f)
 
                 val rightPane = table {
+                    top().left()
                     defaults().pad(8f).left()
                     add(label("Profile Editor")).left().row()
 
                     add(label("Profile ID")).left().row()
                     profileIdField = textField("")
-                    add(profileIdField).growX().fillX().row()
+                    add(profileIdField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                     add(label("Basedir")).left().row()
                     basedirField = textField("")
-                    add(basedirField).growX().fillX().row()
+                    add(basedirField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                     autodetectButton = textButton("Autodetect") {
                         onClick {
@@ -101,7 +110,7 @@ class ProfileEditStage(
 
                     add(label("Gamemod (optional)")).left().row()
                     gamemodField = textField("")
-                    add(gamemodField).growX().fillX().row()
+                    add(gamemodField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                     saveButton = textButton("Save") {
                         onClick {
@@ -119,9 +128,14 @@ class ProfileEditStage(
                     add(saveButton).left().row()
 
                     statusLabel = label("")
+                    statusLabel.setWrap(true)
                     add(statusLabel).growX().fillX().row()
                 }
-                add(rightPane).expand().fill().top()
+                add(rightPane).top().left().expandX().fillX()
+
+                if (DEBUG_LAYOUT) {
+                    debugAll()
+                }
             }
         }
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
