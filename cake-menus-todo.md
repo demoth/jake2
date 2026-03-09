@@ -187,6 +187,18 @@
 - Implement explicit checked/toggled state for the selected profile button in the list.
 - `Autodetect` should be a no-op when detection fails (do not overwrite fields).
 
+## Menu Messaging Refactor (2026-03-09)
+- Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:
+  - `MenuIntent` (UI -> app actions)
+  - `MenuSignal` + `MenuStateSnapshot` (app -> UI state)
+  - `MenuEventBus` (in-memory FIFO, frame-drained)
+- Added `MenuController` to process intents and produce menu state snapshots.
+- Migrated both `MainMenuStage` and `ProfileEditStage` to bus-driven interaction/state.
+- Removed stage-specific lambda callback coupling for main/profile screens.
+- Added tests for:
+  - bus FIFO/limit/state behavior
+  - controller intent-to-state transitions for profile flow.
+
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
 - Q2Pro: strong data-driven menu definitions (`q2pro.menu`) and flexible menu scripting.
