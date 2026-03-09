@@ -70,16 +70,16 @@ class ProfileEditStage(
                 add(leftPane).left().top().padRight(20f)
 
                 val rightPane = table {
-                    defaults().pad(8f).fillX()
+                    defaults().pad(8f).left()
                     add(label("Profile Editor")).left().row()
 
                     add(label("Profile ID")).left().row()
                     profileIdField = textField("")
-                    add(profileIdField).fillX().row()
+                    add(profileIdField).growX().fillX().row()
 
                     add(label("Basedir")).left().row()
                     basedirField = textField("")
-                    add(basedirField).fillX().row()
+                    add(basedirField).growX().fillX().row()
 
                     autodetectButton = textButton("Autodetect") {
                         onClick {
@@ -90,7 +90,7 @@ class ProfileEditStage(
 
                     add(label("Gamemod (optional)")).left().row()
                     gamemodField = textField("")
-                    add(gamemodField).fillX().row()
+                    add(gamemodField).growX().fillX().row()
 
                     saveButton = textButton("Save") {
                         onClick {
@@ -108,7 +108,7 @@ class ProfileEditStage(
                     add(saveButton).left().row()
 
                     statusLabel = label("")
-                    add(statusLabel).left().row()
+                    add(statusLabel).growX().fillX().row()
                 }
                 add(rightPane).expand().fill().top()
             }
