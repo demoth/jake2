@@ -20,9 +20,11 @@ class MenuController(
 ) {
     private var state: MenuStateSnapshot = MenuStateSnapshot()
     private var editingExistingProfileId: String? = null
+    private var draftProfileId: String? = null
 
     fun initialize() {
         editingExistingProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
+        draftProfileId = null
         refreshState(
             activeScreen = MenuScreen.MAIN,
             formOverride = currentSelectedProfileForm(),
@@ -40,6 +42,7 @@ class MenuController(
         refreshState(
             activeScreen = state.activeScreen,
             formOverride = state.profileEditor.form,
+            includeFormIdInList = draftProfileId != null,
         )
     }
 
@@ -71,6 +74,7 @@ class MenuController(
             is MenuIntent.SelectProfile -> {
                 val selected = backend.selectProfile(intent.profileId) ?: return
                 editingExistingProfileId = selected.id
+                draftProfileId = null
                 refreshState(
                     formOverride = selected,
                     statusOverride = "Selected profile: ${selected.id}",
@@ -80,8 +84,11 @@ class MenuController(
             is MenuIntent.CreateProfileDraft -> {
                 val draft = backend.createProfileDraft() ?: return
                 editingExistingProfileId = null
+                draftProfileId = draft.id.trim().takeIf { it.isNotEmpty() }
                 refreshState(
                     formOverride = draft,
+                    selectedProfileIdOverride = draftProfileId,
+                    includeFormIdInList = draftProfileId != null,
                     statusOverride = "Editing new profile draft",
                 )
             }
@@ -102,8 +109,10 @@ class MenuController(
                     ?: intent.form
                 val status = backend.saveProfile(effectiveForm)
                 editingExistingProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
+                draftProfileId = null
                 refreshState(
                     formOverride = currentSelectedProfileForm(),
+                    selectedProfileIdOverride = editingExistingProfileId,
                     statusOverride = status,
                 )
             }
@@ -113,21 +122,37 @@ class MenuController(
     private fun refreshState(
         activeScreen: MenuScreen = state.activeScreen,
         formOverride: ProfileFormState? = null,
+        selectedProfileIdOverride: String? = null,
+        includeFormIdInList: Boolean = false,
         statusOverride: String? = null,
     ) {
-        val selectedProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
+        val form = formOverride ?: currentSelectedProfileForm()
+        val selectedProfileId = selectedProfileIdOverride?.trim()?.takeIf { it.isNotEmpty() }
+            ?: editingExistingProfileId
+            ?: draftProfileId
+            ?: backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
         val mainMenuState = MainMenuState(
             activeProfileId = backend.activeProfileId(),
             canDisconnect = backend.canDisconnect(),
         )
+        val availableProfileIds = backend.listProfileIds()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .toMutableList()
+        if (includeFormIdInList) {
+            val formId = form.id.trim().takeIf { it.isNotEmpty() }
+            if (formId != null && !availableProfileIds.contains(formId)) {
+                availableProfileIds.add(formId)
+            }
+        }
+        if (selectedProfileId != null && !availableProfileIds.contains(selectedProfileId)) {
+            availableProfileIds.add(selectedProfileId)
+        }
         val profileEditorState = ProfileEditorState(
-            availableProfileIds = backend.listProfileIds()
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-                .sorted(),
+            availableProfileIds = availableProfileIds.sorted(),
             selectedProfileId = selectedProfileId,
-            form = formOverride ?: currentSelectedProfileForm(),
+            form = form,
             canEdit = backend.canEditProfiles(),
             statusMessage = statusOverride ?: state.profileEditor.statusMessage,
         )

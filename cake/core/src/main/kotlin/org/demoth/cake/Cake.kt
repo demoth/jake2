@@ -1014,11 +1014,28 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private fun createNewProfileDraft(): CakeGameProfile {
         val base = activeGameProfile?.basedir ?: autodetectSteamBasedir().orEmpty()
+        val draftId = nextDraftProfileId()
         return CakeGameProfile(
-            id = "",
+            id = draftId,
             basedir = base,
             gamemod = null,
         )
+    }
+
+    private fun nextDraftProfileId(): String {
+        val existing = listProfileIdsForMenu()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+        val base = "newprofile"
+        if (!existing.contains(base)) {
+            return base
+        }
+        var suffix = 2
+        while (existing.contains("$base$suffix")) {
+            suffix++
+        }
+        return "$base$suffix"
     }
 
     private fun saveProfileFromEditor(profile: CakeGameProfile): String {

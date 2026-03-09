@@ -3,6 +3,7 @@ package org.demoth.cake.ui.menu
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MenuControllerTest {
@@ -104,6 +105,27 @@ class MenuControllerTest {
     }
 
     @Test
+    fun createProfileDraftAddsUnsavedProfileToList() {
+        val backend = FakeMenuBackend().apply {
+            formsById["default"] = ProfileFormState("default", "/q2", "")
+            selectedProfileIdValue = "default"
+            activeProfileIdValue = "default"
+            createDraftForm = ProfileFormState("newprofile", "/q2", "")
+        }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+
+        bus.postIntent(MenuIntent.CreateProfileDraft)
+        controller.pumpIntents()
+
+        val state = bus.latestState()
+        assertEquals("newprofile", state.profileEditor.selectedProfileId)
+        assertEquals("newprofile", state.profileEditor.form.id)
+        assertTrue(state.profileEditor.availableProfileIds.contains("newprofile"))
+    }
+
+    @Test
     fun saveWhileEditingExistingProfileOverwritesSelectedId() {
         val backend = FakeMenuBackend().apply {
             formsById["q2"] = ProfileFormState("q2", "/q2", "")
@@ -144,6 +166,11 @@ class MenuControllerTest {
         var autodetectValue: String? = null
         var saveStatus: String = "Saved"
         var lastSavedForm: ProfileFormState? = null
+        var createDraftForm: ProfileFormState? = ProfileFormState(
+            id = "",
+            basedir = "",
+            gamemod = "",
+        )
 
         override fun activeProfileId(): String = activeProfileIdValue
 
@@ -169,12 +196,7 @@ class MenuControllerTest {
             return form
         }
 
-        override fun createProfileDraft(): ProfileFormState? =
-            ProfileFormState(
-                id = "",
-                basedir = "",
-                gamemod = "",
-            )
+        override fun createProfileDraft(): ProfileFormState? = createDraftForm
 
         override fun autodetectBasedir(): String? = autodetectValue
 
