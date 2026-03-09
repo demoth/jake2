@@ -1007,20 +1007,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
     }
 
-    private fun openMainMenu() {
-        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
-        menuController.pumpIntents()
-        syncMenuViewFromBusState()
-        menuVisible = true
-    }
-
-    private fun openProfileEditMenu() {
-        menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
-        menuController.pumpIntents()
-        syncMenuViewFromBusState()
-        menuVisible = true
-    }
-
     private fun loadProfileById(profileId: String): CakeGameProfile? {
         val normalizedId = profileId.trim()
         if (normalizedId.isBlank()) return null
