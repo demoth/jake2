@@ -26,10 +26,17 @@ public class VfsPathNormalizerTest {
     }
 
     @Test
-    public void rejectsTraversal() {
+    public void collapsesSafeParentSegments() {
         VfsPathNormalizer normalizer = new VfsPathNormalizer(false);
 
-        assertNull(normalizer.normalizeOrNull("models/../secret/file"));
+        assertEquals("secret/file", normalizer.normalizeOrNull("models/../secret/file"));
+    }
+
+    @Test
+    public void rejectsTraversalBeyondRoot() {
+        VfsPathNormalizer normalizer = new VfsPathNormalizer(false);
+
+        assertNull(normalizer.normalizeOrNull("../secret/file"));
     }
 
     @Test
@@ -39,4 +46,3 @@ public class VfsPathNormalizerTest {
         assertNull(normalizer.normalizeOrNull("././"));
     }
 }
-

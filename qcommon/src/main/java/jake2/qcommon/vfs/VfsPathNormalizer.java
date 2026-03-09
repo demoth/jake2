@@ -31,7 +31,11 @@ public final class VfsPathNormalizer {
                 continue;
             }
             if ("..".equals(part)) {
-                return null;
+                if (normalizedParts.isEmpty()) {
+                    return null;
+                }
+                normalizedParts.removeLast();
+                continue;
             }
             normalizedParts.add(part);
         }
@@ -44,4 +48,3 @@ public final class VfsPathNormalizer {
         return caseSensitive ? joined : joined.toLowerCase(Locale.ROOT);
     }
 }
-

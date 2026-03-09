@@ -63,6 +63,19 @@ public class ZipPackReaderTest {
     }
 
     @Test
+    public void normalizesParentSegmentsInsideEntryPath() throws Exception {
+        Path zip = temp.resolve("mod-parent.zip");
+        Map<String, byte[]> files = new LinkedHashMap<>();
+        files.put("models/monsters/tank/../ctank/skin.pcx", "SKIN".getBytes(StandardCharsets.US_ASCII));
+        writeZip(zip, files);
+
+        ZipPackReader reader = new ZipPackReader(zip, false);
+
+        assertEquals(1, reader.entries().size());
+        assertEquals("models/monsters/ctank/skin.pcx", reader.entries().get(0).normalizedPath);
+    }
+
+    @Test
     public void failsForInvalidZip() throws Exception {
         Path broken = temp.resolve("broken.pk3");
         Files.write(broken, "NOTZIP".getBytes(StandardCharsets.US_ASCII));

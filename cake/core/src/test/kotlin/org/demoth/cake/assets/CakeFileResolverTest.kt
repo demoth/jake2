@@ -170,6 +170,21 @@ class CakeFileResolverTest {
     }
 
     @Test
+    fun resolvesPakEntryStoredWithParentSegments() {
+        val basedir = temp.toString()
+        writePak(
+            Path.of(basedir, "baseq2", "pak0.pak"),
+            linkedMapOf("models/monsters/tank/../ctank/skin.pcx" to "ctank-skin".toByteArray(StandardCharsets.US_ASCII)),
+        )
+        val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
+
+        val resolved = resolver.resolve("models/monsters/ctank/skin.pcx")
+
+        assertNotNull(resolved)
+        assertEquals("ctank-skin", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
+    }
+
+    @Test
     fun rejectsPathTraversalBeyondGameRootBeginning() {
         val basedir = temp.toString()
         val resolver = CakeFileResolver(basedir = basedir, gamemod = null)

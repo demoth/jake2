@@ -63,6 +63,19 @@ public class PakPackReaderTest {
     }
 
     @Test
+    public void normalizesParentSegmentsInsideEntryPath() throws Exception {
+        Path pak = temp.resolve("pak-parent.pak");
+        Map<String, byte[]> files = new LinkedHashMap<>();
+        files.put("models/monsters/tank/../ctank/skin.pcx", "SKIN".getBytes(StandardCharsets.US_ASCII));
+        writePak(pak, files);
+
+        PakPackReader reader = new PakPackReader(pak, false);
+
+        assertEquals(1, reader.entries().size());
+        assertEquals("models/monsters/ctank/skin.pcx", reader.entries().get(0).normalizedPath);
+    }
+
+    @Test
     public void failsForInvalidHeader() throws Exception {
         Path pak = temp.resolve("broken.pak");
         Files.write(pak, "NOTPAK".getBytes(StandardCharsets.US_ASCII));
