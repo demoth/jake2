@@ -14,39 +14,30 @@ import ktx.scene2d.label
 import ktx.scene2d.table
 import ktx.scene2d.textButton
 import ktx.scene2d.textField
-import org.demoth.cake.profile.CakeGameProfile
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuIntent
+import org.demoth.cake.ui.menu.ProfileEditorState
+import org.demoth.cake.ui.menu.ProfileFormState
 
-/**
- * Dedicated profile configuration stage.
- *
- * This stage owns the layout and basic interaction widgets.
- * Data operations are delegated via callbacks to Cake.
- */
 class ProfileEditStage(
     viewport: Viewport,
-    private val availableProfileIdsProvider: () -> List<String>,
-    private val selectedProfileIdProvider: () -> String?,
-    private val profileByIdProvider: (String) -> CakeGameProfile?,
-    private val canEditProvider: () -> Boolean,
-    private val onSelectProfileRequested: (String) -> CakeGameProfile?,
-    private val onCreateNewRequested: () -> CakeGameProfile?,
-    private val onAutodetectRequested: () -> String?,
-    private val onSaveRequested: (CakeGameProfile) -> String,
-    private val onBackRequested: () -> Unit,
+    private val menuEventBus: MenuEventBus,
 ) : Stage(viewport) {
-    private var profilesListTable: Table
-    private var createProfileButton: TextButton
-    private var backButton: TextButton
-    private var profileIdField: TextField
-    private var basedirField: TextField
-    private var gamemodField: TextField
-    private var autodetectButton: TextButton
-    private var saveButton: TextButton
-    private var statusLabel: Label
+    private lateinit var profilesListTable: Table
+    private lateinit var createProfileButton: TextButton
+    private lateinit var profileIdField: TextField
+    private lateinit var basedirField: TextField
+    private lateinit var gamemodField: TextField
+    private lateinit var autodetectButton: TextButton
+    private lateinit var saveButton: TextButton
+    private lateinit var statusLabel: Label
     private val profileButtonsById: MutableMap<String, TextButton> = linkedMapOf()
 
+    private var renderedProfileIds: List<String> = emptyList()
     private var renderedSelectedProfileId: String = ""
     private var renderedCanEdit: Boolean = true
+    private var renderedForm: ProfileFormState = ProfileFormState()
+    private var renderedStatusMessage: String = ""
 
     init {
         actors {
@@ -65,21 +56,16 @@ class ProfileEditStage(
 
                     createProfileButton = textButton("Create New Profile") {
                         onClick {
-                            val created = onCreateNewRequested()
-                            if (created != null) {
-                                loadProfileIntoForm(created)
-                                statusLabel.setText("Editing new profile draft")
-                            } else {
-                                statusLabel.setText("Failed to create new profile draft")
-                            }
+                            menuEventBus.postIntent(MenuIntent.CreateProfileDraft)
                         }
                     }
                     add(createProfileButton).fillX().row()
 
-                    backButton = textButton("Back") {
-                        onClick { onBackRequested() }
-                    }
-                    add(backButton).fillX().row()
+                    textButton("Back") {
+                        onClick {
+                            menuEventBus.postIntent(MenuIntent.OpenMainMenu)
+                        }
+                    }.also { add(it).fillX().row() }
                 }
                 add(leftPane).left().top().fillY()
 
@@ -97,10 +83,7 @@ class ProfileEditStage(
 
                     autodetectButton = textButton("Autodetect") {
                         onClick {
-                            val detected = onAutodetectRequested()
-                            if (detected.isNullOrBlank()) return@onClick
-                            basedirField.text = detected
-                            statusLabel.setText("Autodetected basedir: $detected")
+                            menuEventBus.postIntent(MenuIntent.AutodetectBasedirRequested)
                         }
                     }
                     add(autodetectButton).left().row()
@@ -111,16 +94,15 @@ class ProfileEditStage(
 
                     saveButton = textButton("Save") {
                         onClick {
-                            statusLabel.setText(
-                                onSaveRequested(
-                                    CakeGameProfile(
+                            menuEventBus.postIntent(
+                                MenuIntent.SaveProfile(
+                                    ProfileFormState(
                                         id = profileIdField.text,
                                         basedir = basedirField.text,
-                                        gamemod = gamemodField.text.takeIf { it.isNotBlank() },
+                                        gamemod = gamemodField.text,
                                     ),
                                 ),
                             )
-                            refreshSelectedProfile()
                         }
                     }
                     add(saveButton).left().row()
@@ -131,37 +113,59 @@ class ProfileEditStage(
                 add(rightPane).grow().top()
             }
         }
-        rebuildProfilesList()
-        refreshSelectedProfile()
-        refreshEditState(force = true)
+        menuEventBus.postIntent(MenuIntent.RequestStateSync)
+        applyState(menuEventBus.latestState().profileEditor, force = true)
     }
 
     override fun act(delta: Float) {
         super.act(delta)
-        val selected = selectedProfileIdProvider()?.trim().orEmpty()
-        if (selected != renderedSelectedProfileId) {
-            refreshSelectedProfile()
-        }
-        val canEdit = canEditProvider()
-        if (canEdit != renderedCanEdit) {
-            refreshEditState(force = false)
-        }
+        applyState(menuEventBus.latestState().profileEditor, force = false)
     }
 
-    private fun refreshSelectedProfile() {
-        renderedSelectedProfileId = selectedProfileIdProvider()?.trim().orEmpty()
-        if (renderedSelectedProfileId.isNotBlank()) {
-            profileByIdProvider(renderedSelectedProfileId)?.let { loadProfileIntoForm(it) }
+    private fun applyState(
+        state: ProfileEditorState,
+        force: Boolean,
+    ) {
+        val normalizedIds = state.availableProfileIds
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .sorted()
+        val normalizedSelectedId = state.selectedProfileId?.trim().orEmpty()
+
+        if (
+            force ||
+            normalizedIds != renderedProfileIds ||
+            normalizedSelectedId != renderedSelectedProfileId ||
+            state.canEdit != renderedCanEdit
+        ) {
+            rebuildProfilesList(
+                profileIds = normalizedIds,
+                selectedProfileId = normalizedSelectedId,
+                canEdit = state.canEdit,
+            )
         }
-        rebuildProfilesList()
-        updateCheckedProfileButton(renderedSelectedProfileId)
+
+        if (force || state.form != renderedForm) {
+            loadProfileIntoForm(state.form)
+        }
+
+        if (force || state.statusMessage != renderedStatusMessage) {
+            statusLabel.setText(state.statusMessage)
+        }
+
+        if (force || state.canEdit != renderedCanEdit) {
+            refreshEditState(state.canEdit)
+        }
+
+        renderedProfileIds = normalizedIds
+        renderedSelectedProfileId = normalizedSelectedId
+        renderedCanEdit = state.canEdit
+        renderedForm = state.form
+        renderedStatusMessage = state.statusMessage
     }
 
-    private fun refreshEditState(force: Boolean) {
-        val canEdit = canEditProvider()
-        if (!force && canEdit == renderedCanEdit) return
-        renderedCanEdit = canEdit
-
+    private fun refreshEditState(canEdit: Boolean) {
         createProfileButton.isDisabled = !canEdit
         profileIdField.isDisabled = !canEdit
         basedirField.isDisabled = !canEdit
@@ -169,57 +173,40 @@ class ProfileEditStage(
         autodetectButton.isDisabled = !canEdit
         saveButton.isDisabled = !canEdit
         profileButtonsById.values.forEach { it.isDisabled = !canEdit }
-        if (!canEdit) {
-            statusLabel.setText("Disconnect first to edit profiles")
-        }
     }
 
-    private fun rebuildProfilesList() {
+    private fun rebuildProfilesList(
+        profileIds: List<String>,
+        selectedProfileId: String,
+        canEdit: Boolean,
+    ) {
         profilesListTable.clearChildren()
         profileButtonsById.clear()
         val buttonGroup = ButtonGroup<TextButton>().apply {
             setMinCheckCount(0)
             setMaxCheckCount(1)
         }
-
-        val profileIds = availableProfileIdsProvider()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .distinct()
-            .sorted()
         if (profileIds.isEmpty()) {
             profilesListTable.add(Label("No profiles", Scene2DSkin.defaultSkin)).left().row()
             return
         }
 
-        val selectedId = selectedProfileIdProvider()?.trim().orEmpty()
         for (id in profileIds) {
             val profileButton = TextButton(id, Scene2DSkin.defaultSkin)
-            profileButton.isDisabled = !renderedCanEdit
-            profileButton.isChecked = (id == selectedId)
+            profileButton.isDisabled = !canEdit
+            profileButton.isChecked = (id == selectedProfileId)
             buttonGroup.add(profileButton)
             profileButtonsById[id] = profileButton
             profileButton.onClick {
-                val selected = onSelectProfileRequested(id)
-                if (selected != null) {
-                    loadProfileIntoForm(selected)
-                    statusLabel.setText("Selected profile: ${selected.id}")
-                    updateCheckedProfileButton(selected.id)
-                }
+                menuEventBus.postIntent(MenuIntent.SelectProfile(id))
             }
             profilesListTable.add(profileButton).fillX().row()
         }
     }
 
-    private fun loadProfileIntoForm(profile: CakeGameProfile) {
-        profileIdField.text = profile.id
-        basedirField.text = profile.basedir
-        gamemodField.text = profile.gamemod ?: ""
-    }
-
-    private fun updateCheckedProfileButton(selectedId: String) {
-        profileButtonsById.forEach { (profileId, button) ->
-            button.isChecked = profileId == selectedId
-        }
+    private fun loadProfileIntoForm(form: ProfileFormState) {
+        profileIdField.text = form.id
+        basedirField.text = form.basedir
+        gamemodField.text = form.gamemod
     }
 }

@@ -208,15 +208,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         ) // fixme: cvar
         profileEditStage = ProfileEditStage(
             viewport = viewport,
-            availableProfileIdsProvider = { listProfileIdsForMenu() },
-            selectedProfileIdProvider = { persistedSelectedProfileId() ?: activeGameProfile?.id },
-            profileByIdProvider = { profileId -> loadProfileById(profileId) },
-            canEditProvider = { isProfileSwitchAllowed() },
-            onSelectProfileRequested = { profileId -> selectProfileForEditor(profileId) },
-            onCreateNewRequested = { createNewProfileDraft() },
-            onAutodetectRequested = { autodetectSteamBasedir() },
-            onSaveRequested = { profile -> saveProfileFromEditor(profile) },
-            onBackRequested = { openMainMenu() },
+            menuEventBus = menuEventBus,
         )
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
