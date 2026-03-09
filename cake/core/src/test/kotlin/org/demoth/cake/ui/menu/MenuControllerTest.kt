@@ -85,6 +85,9 @@ class MenuControllerTest {
         val controller = MenuController(backend, bus)
         controller.initialize()
 
+        bus.postIntent(MenuIntent.CreateProfileDraft)
+        controller.pumpIntents()
+
         val form = ProfileFormState(
             id = "custom",
             basedir = "/q2/custom",
@@ -98,6 +101,37 @@ class MenuControllerTest {
         val state = bus.latestState()
         assertEquals("custom", state.profileEditor.selectedProfileId)
         assertEquals("Saved profile 'custom'", state.profileEditor.statusMessage)
+    }
+
+    @Test
+    fun saveWhileEditingExistingProfileOverwritesSelectedId() {
+        val backend = FakeMenuBackend().apply {
+            formsById["q2"] = ProfileFormState("q2", "/q2", "")
+            selectedProfileIdValue = "q2"
+            activeProfileIdValue = "q2"
+            saveStatus = "Saved profile 'q2'"
+        }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+
+        bus.postIntent(
+            MenuIntent.SaveProfile(
+                ProfileFormState(
+                    id = "q2_renamed_unexpectedly",
+                    basedir = "/q2/updated",
+                    gamemod = "",
+                ),
+            ),
+        )
+        controller.pumpIntents()
+
+        assertNotNull(backend.lastSavedForm)
+        assertEquals("q2", backend.lastSavedForm?.id)
+        assertEquals("/q2/updated", backend.lastSavedForm?.basedir)
+        val state = bus.latestState()
+        assertEquals("q2", state.profileEditor.selectedProfileId)
+        assertEquals("q2", state.profileEditor.form.id)
     }
 
     private class FakeMenuBackend : MenuBackend {

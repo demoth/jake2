@@ -19,8 +19,10 @@ class MenuController(
     private val bus: MenuEventBus,
 ) {
     private var state: MenuStateSnapshot = MenuStateSnapshot()
+    private var editingExistingProfileId: String? = null
 
     fun initialize() {
+        editingExistingProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
         refreshState(
             activeScreen = MenuScreen.MAIN,
             formOverride = currentSelectedProfileForm(),
@@ -68,6 +70,7 @@ class MenuController(
 
             is MenuIntent.SelectProfile -> {
                 val selected = backend.selectProfile(intent.profileId) ?: return
+                editingExistingProfileId = selected.id
                 refreshState(
                     formOverride = selected,
                     statusOverride = "Selected profile: ${selected.id}",
@@ -76,6 +79,7 @@ class MenuController(
 
             is MenuIntent.CreateProfileDraft -> {
                 val draft = backend.createProfileDraft() ?: return
+                editingExistingProfileId = null
                 refreshState(
                     formOverride = draft,
                     statusOverride = "Editing new profile draft",
@@ -93,7 +97,11 @@ class MenuController(
             }
 
             is MenuIntent.SaveProfile -> {
-                val status = backend.saveProfile(intent.form)
+                val effectiveForm = editingExistingProfileId
+                    ?.let { selectedId -> intent.form.copy(id = selectedId) }
+                    ?: intent.form
+                val status = backend.saveProfile(effectiveForm)
+                editingExistingProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
                 refreshState(
                     formOverride = currentSelectedProfileForm(),
                     statusOverride = status,
