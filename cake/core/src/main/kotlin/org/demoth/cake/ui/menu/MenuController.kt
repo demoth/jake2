@@ -96,10 +96,15 @@ class MenuController(
             is MenuIntent.AutodetectBasedirRequested -> {
                 val detected = backend.autodetectBasedir()
                 if (detected.isNullOrBlank()) {
+                    refreshState(
+                        formOverride = state.profileEditor.form,
+                        statusOverride = "Autodetect did not find a Quake2 installation",
+                    )
                     return
                 }
                 refreshState(
                     formOverride = state.profileEditor.form.copy(basedir = detected),
+                    statusOverride = "Autodetected basedir: $detected",
                 )
             }
 

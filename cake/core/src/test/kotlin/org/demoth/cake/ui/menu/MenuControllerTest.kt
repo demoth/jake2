@@ -72,6 +72,7 @@ class MenuControllerTest {
 
         val state = bus.latestState()
         assertEquals("/old/path", state.profileEditor.form.basedir)
+        assertEquals("Autodetect did not find a Quake2 installation", state.profileEditor.statusMessage)
     }
 
     @Test
