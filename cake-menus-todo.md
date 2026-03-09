@@ -199,6 +199,13 @@
   - bus FIFO/limit/state behavior
   - controller intent-to-state transitions for profile flow.
 
+## Profile Layout Stabilization (2026-03-09)
+- Made profile screen column sizing explicit:
+  - left panel remains packed/content-driven,
+  - right panel expands to take remaining width.
+- Updated profile editor form rows so text fields use `growX + fillX`.
+- Wrapped the profile list into a bounded vertical `ScrollPane` to prevent long lists from distorting the stage layout.
+
 ## Reference Notes (for ideas)
 - Yamagi: classic robust multiplayer split (`join/start/player setup`).
 - Q2Pro: strong data-driven menu definitions (`q2pro.menu`) and flexible menu scripting.
