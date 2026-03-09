@@ -117,5 +117,7 @@ class MainMenuStage(
         if (!force && canDisconnect == lastCanDisconnectState) return
         lastCanDisconnectState = canDisconnect
         disconnectButton.isDisabled = !canDisconnect
+        // Profile switching is allowed only while disconnected.
+        currentProfileButton.isDisabled = canDisconnect
     }
 }
