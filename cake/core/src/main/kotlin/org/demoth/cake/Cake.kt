@@ -65,6 +65,10 @@ import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.ProfileEditStage
+import org.demoth.cake.ui.menu.MenuBackend
+import org.demoth.cake.ui.menu.MenuController
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.ProfileFormState
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -143,6 +147,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private val gameProfileStore = CakeGameProfileStore()
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
+    private val menuEventBus = MenuEventBus()
+    private lateinit var menuController: MenuController
 
     private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
@@ -190,6 +196,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // doesn't really stretch because we don't yet allow the window to freely resize
         viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        menuController = MenuController(
+            backend = createMenuBackend(),
+            bus = menuEventBus,
+        )
         menuStage = MainMenuStage(
             viewport = viewport,
             activeProfileIdProvider = { activeProfileId() },
@@ -218,6 +228,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             disable()
             reset()
         }
+        menuController.initialize()
 
         updateInputHandlers(false, true)
 
@@ -455,6 +466,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     override fun render() {
         updateGlProfilerState()
+        menuController.pumpIntents()
+        menuController.refreshExternalState()
         assetManager.update() // todo: 1000/fps millis
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
@@ -1205,6 +1218,48 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Warn("Failed to clear Cake profile: ${e.message}\n")
         }
     }
+
+    private fun createMenuBackend(): MenuBackend = object : MenuBackend {
+        override fun activeProfileId(): String = this@Cake.activeProfileId()
+
+        override fun canDisconnect(): Boolean = networkState != DISCONNECTED
+
+        override fun disconnect() {
+            this@Cake.disconnect()
+        }
+
+        override fun listProfileIds(): List<String> = listProfileIdsForMenu()
+
+        override fun selectedProfileId(): String? = persistedSelectedProfileId() ?: activeGameProfile?.id
+
+        override fun profileFormById(profileId: String): ProfileFormState? =
+            loadProfileById(profileId)?.toProfileFormState()
+
+        override fun canEditProfiles(): Boolean = isProfileSwitchAllowed()
+
+        override fun selectProfile(profileId: String): ProfileFormState? =
+            selectProfileForEditor(profileId)?.toProfileFormState()
+
+        override fun createProfileDraft(): ProfileFormState? =
+            createNewProfileDraft().toProfileFormState()
+
+        override fun autodetectBasedir(): String? = autodetectSteamBasedir()
+
+        override fun saveProfile(form: ProfileFormState): String =
+            saveProfileFromEditor(form.toCakeGameProfile())
+    }
+
+    private fun CakeGameProfile.toProfileFormState(): ProfileFormState = ProfileFormState(
+        id = id,
+        basedir = basedir,
+        gamemod = gamemod.orEmpty(),
+    )
+
+    private fun ProfileFormState.toCakeGameProfile(): CakeGameProfile = CakeGameProfile(
+        id = id,
+        basedir = basedir,
+        gamemod = gamemod.takeIf { it.isNotBlank() },
+    )
 
     private fun saveMetadata(args: List<String>) {
         if (args.size < 2) {

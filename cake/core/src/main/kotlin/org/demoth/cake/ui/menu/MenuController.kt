@@ -34,6 +34,13 @@ class MenuController(
         }
     }
 
+    fun refreshExternalState() {
+        refreshState(
+            activeScreen = state.activeScreen,
+            formOverride = state.profileEditor.form,
+        )
+    }
+
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
             is MenuIntent.RequestStateSync -> {
