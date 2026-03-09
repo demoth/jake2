@@ -10,6 +10,8 @@ import ktx.scene2d.actors
 import ktx.scene2d.label
 import ktx.scene2d.table
 import ktx.scene2d.textButton
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuIntent
 
 /**
  * TEMPORARY Main menu stage for pre-game navigation commands.
@@ -30,10 +32,7 @@ import ktx.scene2d.textButton
  */
 class MainMenuStage(
     viewport: Viewport,
-    private val activeProfileIdProvider: () -> String,
-    private val canDisconnectProvider: () -> Boolean,
-    private val onDisconnectRequested: () -> Unit,
-    private val onOpenProfileEditor: () -> Unit,
+    private val menuEventBus: MenuEventBus,
 ) : Stage(viewport) {
     private lateinit var currentProfileButton: TextButton
     private lateinit var disconnectButton: TextButton
@@ -48,13 +47,13 @@ class MainMenuStage(
 
                 currentProfileButton = textButton("") {
                     onClick {
-                        onOpenProfileEditor()
+                        menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
                     }
                 }
                 row()
                 disconnectButton = textButton("Disconnect") {
                     onClick {
-                        onDisconnectRequested()
+                        menuEventBus.postIntent(MenuIntent.DisconnectRequested)
                     }
                 }
                 row()
@@ -87,30 +86,34 @@ class MainMenuStage(
             label("version: 1.2.0")
         }
 
-        refreshProfileHeader()
+        menuEventBus.postIntent(MenuIntent.RequestStateSync)
+        refreshProfileHeader("<unset>")
         refreshConnectionDependentUi(force = true)
     }
 
     override fun act(delta: Float) {
         super.act(delta)
-        val active = activeProfileIdProvider().trim()
+        val state = menuEventBus.latestState().mainMenu
+        val active = state.activeProfileId.trim()
         if (active != renderedProfileId) {
-            refreshProfileHeader()
+            refreshProfileHeader(active)
         }
-        val canDisconnect = canDisconnectProvider()
+        val canDisconnect = state.canDisconnect
         if (canDisconnect != lastCanDisconnectState) {
-            refreshConnectionDependentUi(force = false)
+            refreshConnectionDependentUi(force = false, canDisconnect = canDisconnect)
         }
     }
 
-    private fun refreshProfileHeader() {
-        renderedProfileId = activeProfileIdProvider().trim()
+    private fun refreshProfileHeader(activeProfileId: String) {
+        renderedProfileId = activeProfileId
         val shown = renderedProfileId.ifBlank { "<unset>" }
         currentProfileButton.setText("Current profile: $shown")
     }
 
-    private fun refreshConnectionDependentUi(force: Boolean) {
-        val canDisconnect = canDisconnectProvider()
+    private fun refreshConnectionDependentUi(
+        force: Boolean,
+        canDisconnect: Boolean = menuEventBus.latestState().mainMenu.canDisconnect,
+    ) {
         if (!force && canDisconnect == lastCanDisconnectState) return
         lastCanDisconnectState = canDisconnect
         disconnectButton.isDisabled = !canDisconnect

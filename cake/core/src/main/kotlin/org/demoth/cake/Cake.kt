@@ -68,6 +68,8 @@ import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.ui.menu.MenuBackend
 import org.demoth.cake.ui.menu.MenuController
 import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuIntent
+import org.demoth.cake.ui.menu.MenuScreen
 import org.demoth.cake.ui.menu.ProfileFormState
 import java.nio.file.Files
 import java.nio.file.Path
@@ -202,10 +204,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         )
         menuStage = MainMenuStage(
             viewport = viewport,
-            activeProfileIdProvider = { activeProfileId() },
-            canDisconnectProvider = { networkState != DISCONNECTED },
-            onDisconnectRequested = { disconnect() },
-            onOpenProfileEditor = { openProfileEditMenu() },
+            menuEventBus = menuEventBus,
         ) // fixme: cvar
         profileEditStage = ProfileEditStage(
             viewport = viewport,
@@ -468,6 +467,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         updateGlProfilerState()
         menuController.pumpIntents()
         menuController.refreshExternalState()
+        syncMenuViewFromBusState()
         assetManager.update() // todo: 1000/fps millis
         val deltaSeconds = Gdx.graphics.deltaTime
         Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
@@ -598,7 +598,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 else {
                     menuVisible = !menuVisible
                     if (menuVisible) {
-                        menuView = MenuView.MAIN
+                        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
+                        menuController.pumpIntents()
+                        syncMenuViewFromBusState()
                         updateInputHandlers(consoleVisible, menuVisible)
                     }
                 }
@@ -1014,12 +1016,16 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun openMainMenu() {
-        menuView = MenuView.MAIN
+        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
+        menuController.pumpIntents()
+        syncMenuViewFromBusState()
         menuVisible = true
     }
 
     private fun openProfileEditMenu() {
-        menuView = MenuView.PROFILE_EDIT
+        menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
+        menuController.pumpIntents()
+        syncMenuViewFromBusState()
         menuVisible = true
     }
 
@@ -1260,6 +1266,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         basedir = basedir,
         gamemod = gamemod.takeIf { it.isNotBlank() },
     )
+
+    private fun syncMenuViewFromBusState() {
+        val targetView = when (menuEventBus.latestState().activeScreen) {
+            MenuScreen.MAIN -> MenuView.MAIN
+            MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
+        }
+        if (targetView == menuView) return
+        menuView = targetView
+        if (menuVisible) {
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
+    }
 
     private fun saveMetadata(args: List<String>) {
         if (args.size < 2) {
