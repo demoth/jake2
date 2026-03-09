@@ -34,8 +34,8 @@ class MainMenuStage(
     viewport: Viewport,
     private val menuEventBus: MenuEventBus,
 ) : Stage(viewport) {
-    private lateinit var currentProfileButton: TextButton
-    private lateinit var disconnectButton: TextButton
+    private var currentProfileButton: TextButton
+    private var disconnectButton: TextButton
     private var renderedProfileId: String = ""
     private var lastCanDisconnectState: Boolean = false
 

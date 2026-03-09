@@ -197,7 +197,6 @@ class CakeGameProfileStore(
     }
 
     companion object {
-        const val CURRENT_PROFILES_VERSION: Int = PROFILES_VERSION_V1
         const val DEFAULT_PROFILE_ID: String = PROFILE_ID_DEFAULT
     }
 }

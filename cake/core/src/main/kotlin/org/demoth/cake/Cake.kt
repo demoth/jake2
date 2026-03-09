@@ -1,10 +1,6 @@
 package org.demoth.cake
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputAdapter
-import com.badlogic.gdx.InputMultiplexer
-import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
@@ -34,26 +30,14 @@ import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
-import jake2.qcommon.vfs.VfsDebugCommands
 import jake2.qcommon.vfs.DefaultWritableFileSystem
+import jake2.qcommon.vfs.VfsDebugCommands
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
 import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.defaultStyle
 import org.demoth.cake.ClientNetworkState.*
-import org.demoth.cake.assets.CakeFileResolver
-import org.demoth.cake.assets.BspLoader
-import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2Loader
-import org.demoth.cake.assets.ObjectLoader
-import org.demoth.cake.assets.PcxLoader
-import org.demoth.cake.assets.SkyLoader
-import org.demoth.cake.assets.Sp2Asset
-import org.demoth.cake.assets.Sp2Loader
-import org.demoth.cake.assets.ConvertingSoundLoader
-import org.demoth.cake.assets.WalLoader
+import org.demoth.cake.assets.*
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
@@ -62,15 +46,10 @@ import org.demoth.cake.save.CakeJsonSaveStore
 import org.demoth.cake.save.CakeSaveSnapshot
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
-import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.ProfileEditStage
-import org.demoth.cake.ui.menu.MenuBackend
-import org.demoth.cake.ui.menu.MenuController
-import org.demoth.cake.ui.menu.MenuEventBus
-import org.demoth.cake.ui.menu.MenuIntent
-import org.demoth.cake.ui.menu.MenuScreen
-import org.demoth.cake.ui.menu.ProfileFormState
+import org.demoth.cake.stages.ingame.Game3dScreen
+import org.demoth.cake.ui.menu.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -518,6 +497,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
+    @Suppress("GDXKotlinProfilingCode")
     private fun updateGlProfilerState() {
         val shouldEnableProfiler = debugGraphStage.hasEnabledMetrics()
         if (shouldEnableProfiler == glProfilerActive) {
@@ -1224,7 +1204,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         override fun selectProfile(profileId: String): ProfileFormState? =
             selectProfileForEditor(profileId)?.toProfileFormState()
 
-        override fun createProfileDraft(): ProfileFormState? =
+        override fun createProfileDraft(): ProfileFormState =
             createNewProfileDraft().toProfileFormState()
 
         override fun autodetectBasedir(): String? = autodetectSteamBasedir()
@@ -1275,7 +1255,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         val gameScreen = game3dScreen
         val defaults = gameScreen?.saveMetadataDefaults()
-        val title = Cmd.getArguments(args, titleStartIndex)
+        val title = getArguments(args, titleStartIndex)
             .ifBlank { defaults?.title ?: if (autosave) "Autosave" else "Savegame" }
         val snapshot = CakeSaveSnapshot(
             map = defaults?.mapPath ?: "unknown",
