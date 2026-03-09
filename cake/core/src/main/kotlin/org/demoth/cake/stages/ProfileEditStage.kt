@@ -3,6 +3,7 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
@@ -52,7 +53,17 @@ class ProfileEditStage(
                     profilesListTable = table {
                         defaults().pad(4f).fillX()
                     }
-                    add(profilesListTable).growX().row()
+                    val profilesScrollPane = ScrollPane(profilesListTable, Scene2DSkin.defaultSkin).apply {
+                        setFadeScrollBars(false)
+                        setScrollingDisabled(true, false)
+                    }
+                    add(profilesScrollPane)
+                        .minWidth(180f)
+                        .prefWidth(220f)
+                        .maxHeight(420f)
+                        .growY()
+                        .fillY()
+                        .row()
 
                     createProfileButton = textButton("Create New Profile") {
                         onClick {
