@@ -67,7 +67,7 @@ class ProfileEditStage(
                         }
                     }.also { add(it).fillX().row() }
                 }
-                add(leftPane).left().top().fillY()
+                add(leftPane).left().top().padRight(20f)
 
                 val rightPane = table {
                     defaults().pad(8f).fillX()
@@ -110,7 +110,7 @@ class ProfileEditStage(
                     statusLabel = label("")
                     add(statusLabel).left().row()
                 }
-                add(rightPane).grow().top()
+                add(rightPane).expand().fill().top()
             }
         }
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
