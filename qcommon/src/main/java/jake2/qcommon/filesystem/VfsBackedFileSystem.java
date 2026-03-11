@@ -202,6 +202,18 @@ public final class VfsBackedFileSystem {
     }
 
     /**
+     * Returns all indexed logical files from the first mounted package matching {@code packName}.
+     * Accepts either pack filename (e.g. {@code pak0.pak}) or full package path.
+     */
+    public VfsResult<List<String>> debugFilesInPack(String packName) {
+        if (vfs instanceof DefaultVirtualFileSystem) {
+            DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
+            return debugVfs.debugFilesInPack(packName);
+        }
+        return VfsResult.fail("Pack listing is not supported by this VFS implementation.");
+    }
+
+    /**
      * Opens a loose file through the VFS index.
      * Package entries are opened via direct `.pak` offset access or extracted temp files for ZIP-based packs.
      */

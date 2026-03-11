@@ -452,6 +452,40 @@ public final class FS extends Globals {
     }
 
     /**
+     * Lists files from a single mounted package.
+     * Usage: packfiles <packname>
+     */
+    private static void PackFiles_f(List<String> args) {
+        if (args.size() != 2) {
+            Com.Printf("USAGE: packfiles <packname>\n");
+            return;
+        }
+
+        if (fs_vfsCompat == null) {
+            Com.Printf("VFS compatibility layer is not initialized.\n");
+            return;
+        }
+
+        syncVfsCaseSensitivity();
+        String packName = args.get(1);
+        VfsResult<List<String>> result = fs_vfsCompat.debugFilesInPack(packName);
+        if (!result.success()) {
+            Com.Printf(result.error() + "\n");
+            return;
+        }
+
+        List<String> files = result.value();
+        Com.Printf("Files in pack " + packName + "\n");
+        for (String file : files) {
+            Com.Printf("  " + file + "\n");
+        }
+        if (files.isEmpty()) {
+            Com.Printf("  <pack is empty>\n");
+        }
+        Com.Printf("Total files in pack: " + files.size() + "\n\n");
+    }
+
+    /**
      * Shows all current search paths and links
      */
     private static void Path_f() {
@@ -511,6 +545,8 @@ public final class FS extends Globals {
         Cmd.AddCommand("link", FS::Link_f);
         Cmd.AddCommand("dir", FS::Dir_f);
         Cmd.AddCommand("ls", FS::Dir_f);
+        Cmd.AddCommand("packfiles", FS::PackFiles_f);
+        Cmd.AddCommand("packdir", FS::PackFiles_f);
         VfsDebugCommands.register(new VfsDebugCommands.Provider() {
             @Override
             public boolean isInitialized() {

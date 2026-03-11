@@ -298,6 +298,34 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return roots;
     }
 
+    /**
+     * Returns all logical entries from the first mounted package matching {@code packName}.
+     * Match accepts either full package path or package file name.
+     */
+    public synchronized VfsResult<List<String>> debugFilesInPack(String packName) {
+        ensureConfigured();
+        if (packName == null || packName.isBlank()) {
+            return VfsResult.fail("Pack name is empty.");
+        }
+
+        String query = normalizePackQuery(packName);
+        PackageMount selected = null;
+        for (PackageMount mount : packageMounts) {
+            if (matchesPackQuery(mount.packagePath, query)) {
+                selected = mount;
+                break;
+            }
+        }
+
+        if (selected == null) {
+            return VfsResult.fail("No mounted pack matches: " + packName);
+        }
+
+        List<String> files = new ArrayList<>(selected.entriesByNormalizedPath.keySet());
+        Collections.sort(files);
+        return VfsResult.ok(files);
+    }
+
     private void ensureConfigured() {
         if (config == null || normalizer == null) {
             throw new IllegalStateException("VFS is not configured");
@@ -633,6 +661,28 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private static String fileName(Path path) {
         Path fileName = path.getFileName();
         return fileName == null ? "" : fileName.toString();
+    }
+
+    private String normalizePackQuery(String packName) {
+        String normalized = packName.trim().replace('\\', '/');
+        return config.caseSensitive() ? normalized : normalized.toLowerCase();
+    }
+
+    private boolean matchesPackQuery(Path packagePath, String query) {
+        String fullPath = packagePath.toString().replace('\\', '/');
+        String fileOnly = fileName(packagePath).replace('\\', '/');
+        if (!config.caseSensitive()) {
+            fullPath = fullPath.toLowerCase();
+            fileOnly = fileOnly.toLowerCase();
+        }
+
+        if (query.contains("/")) {
+            if (fullPath.equals(query)) {
+                return true;
+            }
+            return fullPath.endsWith("/" + query);
+        }
+        return fileOnly.equals(query);
     }
 
     private static String sanitizeSegment(String value) {
