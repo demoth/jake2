@@ -744,12 +744,57 @@ public class CM {
         if (l.length > Defines.MAX_MAP_VISIBILITY)
             Com.Error(Defines.ERR_DROP, "Map has too large visibility lump");
 
+        if (l.length == 0) {
+            Com.Warn("Map has no visibility lump; PVS/PHS culling disabled (all clusters treated as visible)");
+            map_vis = null;
+            return;
+        }
+
+        if (l.length < Integer.BYTES) {
+            Com.Error(Defines.ERR_DROP, "Map has truncated visibility lump (" + l.length + " bytes)");
+        }
+
         System.arraycopy(cmod_base, l.offset, map_visibility, 0, l.length);
 
         ByteBuffer bb = ByteBuffer.wrap(map_visibility, 0, l.length);
         bb.order(ByteOrder.LITTLE_ENDIAN);
 
-        map_vis = new qfiles.dvis_t(bb);
+        int visClusters = bb.getInt();
+        if (visClusters < 0 || visClusters > Defines.MAX_MAP_LEAFS) {
+            Com.Error(Defines.ERR_DROP, "Map has invalid visibility cluster count " + visClusters);
+        }
+
+        long headerSize = Integer.BYTES + (long) visClusters * 2L * Integer.BYTES;
+        if (headerSize > l.length) {
+            Com.Error(Defines.ERR_DROP, "Map has truncated visibility header: expected at least "
+                    + headerSize + " bytes but lump has " + l.length);
+        }
+
+        if (visClusters < numclusters) {
+            Com.Error(Defines.ERR_DROP, "Map visibility cluster count " + visClusters
+                    + " is smaller than leaf cluster count " + numclusters);
+        }
+
+        bb.position(0);
+        try {
+            map_vis = new qfiles.dvis_t(bb);
+        } catch (IllegalArgumentException ex) {
+            Com.Error(Defines.ERR_DROP, "Invalid visibility lump: " + ex.getMessage());
+        }
+
+        int minDataOffset = (int) headerSize;
+        for (int i = 0; i < map_vis.numclusters; i++) {
+            for (int visType = 0; visType < 2; visType++) {
+                int bitOffset = map_vis.bitofs[i][visType];
+                if (bitOffset == -1) {
+                    continue;
+                }
+                if (bitOffset < minDataOffset || bitOffset >= l.length) {
+                    Com.Error(Defines.ERR_DROP, "Map has invalid visibility offset " + bitOffset
+                            + " for cluster " + i);
+                }
+            }
+        }
 
     }
 
@@ -1551,8 +1596,6 @@ public class CM {
      * =================== CM_DecompressVis ===================
      */
     public void CM_DecompressVis(byte[] in, int offset, byte[] out) {
-        int c;
-
         int row;
 
         row = (numclusters + 7) >> 3;
@@ -1561,21 +1604,42 @@ public class CM {
 
         if (in == null || numvisibility == 0) { // no vis info, so make all
                                                 // visible
-            while (row != 0) {
-                out[outp++] = (byte) 0xFF;
-                row--;
-            }
+            Arrays.fill(out, 0, row, (byte) 0xFF);
             return;
         }
 
-        do {
-            if (in[inp] != 0) {
-                out[outp++] = in[inp++];
+        if (offset < 0 || offset >= numvisibility || offset >= in.length) {
+            Com.DPrintf("warning: Vis offset out of bounds (" + offset + ")\n");
+            Arrays.fill(out, 0, row, (byte) 0xFF);
+            return;
+        }
+
+        while (outp < row) {
+            if (inp >= numvisibility || inp >= in.length) {
+                Com.DPrintf("warning: Vis decompression read overrun\n");
+                Arrays.fill(out, outp, row, (byte) 0xFF);
+                return;
+            }
+
+            int next = in[inp++] & 0xFF;
+            if (next != 0) {
+                out[outp++] = (byte) next;
                 continue;
             }
 
-            c = in[inp + 1] & 0xFF;
-            inp += 2;
+            if (inp >= numvisibility || inp >= in.length) {
+                Com.DPrintf("warning: Vis decompression truncated RLE sequence\n");
+                Arrays.fill(out, outp, row, (byte) 0xFF);
+                return;
+            }
+
+            int c = in[inp++] & 0xFF;
+            if (c == 0) {
+                Com.DPrintf("warning: Vis decompression invalid zero run length\n");
+                Arrays.fill(out, outp, row, (byte) 0xFF);
+                return;
+            }
+
             if (outp + c > row) {
                 c = row - (outp);
                 Com.DPrintf("warning: Vis decompression overrun\n");
@@ -1584,7 +1648,7 @@ public class CM {
                 out[outp++] = 0;
                 c--;
             }
-        } while (outp < row);
+        }
     }
 
     public byte[] pvsrow = new byte[Defines.MAX_MAP_LEAFS / 8];
@@ -1594,6 +1658,8 @@ public class CM {
     public byte[] CM_ClusterPVS(int cluster) {
         if (cluster == -1)
             Arrays.fill(pvsrow, 0, (numclusters + 7) >> 3, (byte) 0);
+        else if (map_vis == null || numvisibility == 0 || cluster < 0 || cluster >= map_vis.numclusters)
+            CM_DecompressVis(null, 0, pvsrow);
         else
             CM_DecompressVis(map_visibility,
                     map_vis.bitofs[cluster][Defines.DVIS_PVS], pvsrow);
@@ -1603,6 +1669,8 @@ public class CM {
     public byte[] CM_ClusterPHS(int cluster) {
         if (cluster == -1)
             Arrays.fill(phsrow, 0, (numclusters + 7) >> 3, (byte) 0);
+        else if (map_vis == null || numvisibility == 0 || cluster < 0 || cluster >= map_vis.numclusters)
+            CM_DecompressVis(null, 0, phsrow);
         else
             CM_DecompressVis(map_visibility,
                     map_vis.bitofs[cluster][Defines.DVIS_PHS], phsrow);

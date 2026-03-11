@@ -457,7 +457,21 @@ public class qfiles {
 	public static class dvis_t {
 
 		public dvis_t(ByteBuffer bb) {
+			if (bb.remaining() < Integer.BYTES) {
+				throw new IllegalArgumentException("Visibility lump too small: missing cluster count");
+			}
+
 			numclusters = bb.getInt();
+			if (numclusters < 0) {
+				throw new IllegalArgumentException("Visibility lump has negative cluster count: " + numclusters);
+			}
+
+			long bytesNeededForOffsets = (long) numclusters * 2L * Integer.BYTES;
+			if (bb.remaining() < bytesNeededForOffsets) {
+				throw new IllegalArgumentException("Visibility lump truncated: expected at least "
+						+ bytesNeededForOffsets + " bytes for offset table, got " + bb.remaining());
+			}
+
 			bitofs = new int[numclusters][2];
 
 			for (int i = 0; i < numclusters; i++) {

@@ -966,7 +966,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             PixmapIO.writePNG(screenshotFile, flippedPixmap)
             Com.Println("Screenshot saved: ${screenshotFile.file().absolutePath}")
         } catch (e: Exception) {
-            Com.Warn("Failed to save screenshot:3 ${e.message}\n")
+            Com.Warn("Failed to save screenshot: ${e.message}\n")
         } finally {
             flippedPixmap.dispose()
             pixmap.dispose()
