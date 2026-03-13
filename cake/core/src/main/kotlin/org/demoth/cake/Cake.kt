@@ -75,6 +75,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
+        private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
         private val SCREENSHOT_TIMESTAMP_FORMATTER: DateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
     }
@@ -86,6 +87,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var glProfiler: GLProfiler
     private var glProfilerActive: Boolean = false
     private lateinit var viewport: StretchViewport
+    private var profileBackgroundBatch: SpriteBatch? = null
+    private var profileBackgroundTexture: Texture? = null
     private var transitionBackdropBatch: SpriteBatch? = null
     private var transitionBackdropTexture: Texture? = null
     private var transitionBackdropRegion: TextureRegion? = null
@@ -193,6 +196,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // and put into the console when it's ready
         consoleStage = ConsoleStage(viewport)
         debugGraphStage = DebugGraphStage(viewport)
+        profileBackgroundBatch = SpriteBatch()
         transitionBackdropBatch = SpriteBatch()
         glProfiler = GLProfiler(Gdx.graphics).apply {
             disable()
@@ -433,6 +437,38 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         updateInputHandlers(consoleVisible, menuVisible)
     }
 
+    private fun clearProfileBackground() {
+        profileBackgroundTexture = null
+        if (assetManager.isLoaded(PROFILE_BACKGROUND_PATH, Texture::class.java)) {
+            assetManager.unload(PROFILE_BACKGROUND_PATH)
+        }
+    }
+
+    private fun reloadProfileBackground() {
+        clearProfileBackground()
+
+        if (fileResolver.tryResolve(PROFILE_BACKGROUND_PATH) == null) {
+            return
+        }
+
+        try {
+            assetManager.load(PROFILE_BACKGROUND_PATH, Texture::class.java)
+            assetManager.finishLoadingAsset<Texture>(PROFILE_BACKGROUND_PATH)
+            profileBackgroundTexture = assetManager.get(PROFILE_BACKGROUND_PATH, Texture::class.java)
+        } catch (error: RuntimeException) {
+            clearProfileBackground()
+            Com.Warn("Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}\n")
+        }
+    }
+
+    private fun renderProfileBackground() {
+        val texture = profileBackgroundTexture ?: return
+        val batch = profileBackgroundBatch ?: return
+        batch.begin()
+        batch.draw(texture, 0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        batch.end()
+    }
+
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
@@ -469,6 +505,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
             game3dScreen?.deltaTime = deltaSeconds
             ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
+            if (game3dScreen == null) {
+                renderProfileBackground()
+            }
 
             CheckForResend(deltaSeconds)
             CL_ReadPackets()
@@ -621,6 +660,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         profileEditStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
+        clearProfileBackground()
+        profileBackgroundBatch?.dispose()
+        profileBackgroundBatch = null
         clearTransitionBackdrop()
         transitionBackdropBatch?.dispose()
         transitionBackdropBatch = null
@@ -1185,6 +1227,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
+        reloadProfileBackground()
     }
 
     private fun printActiveGameProfile() {

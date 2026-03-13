@@ -217,6 +217,22 @@
 - Singleplayer/host paths are disabled clearly (not broken).
 - Architecture has an explicit extension point for future integrated wrapper module.
 
+## Profile Background (2026-03-14)
+- Goal:
+  - Show an optional profile-specific background image while no `Game3dScreen` is active.
+  - Use `pics/conback.pcx` so mod overrides naturally brand the current profile.
+- Decisions:
+  - Background load/reload is owned by `Cake`, not by `GameConfiguration`.
+  - `applyGameProfile(...)` is the single load/reload hook for both:
+    - startup selected profile
+    - runtime profile switching while disconnected
+  - Missing `conback.pcx` is non-fatal and silent.
+  - Render only while `game3dScreen == null`.
+- Progress:
+  - Added Cake-owned background texture/batch state.
+  - Added background reload on `applyGameProfile(...)`.
+  - Added background rendering in the main loop after clear and before menu/console.
+
 ## Client Stability Track (2026-03-13)
 
 ### Goal
