@@ -216,3 +216,171 @@
 - Autodetect/setup handles missing content gracefully.
 - Singleplayer/host paths are disabled clearly (not broken).
 - Architecture has an explicit extension point for future integrated wrapper module.
+
+## Client Stability Track (2026-03-13)
+
+### Goal
+- Make Cake survive missing or malformed client resources without process-level crashes.
+- Replace legacy `Com.Error`-driven client flow in the `cake/` module with typed Kotlin exceptions and explicit recovery boundaries.
+- Make missing-resource behavior configurable:
+  - strict mode: fail fast with a typed `MissingResourceException`
+  - fallback mode: use engine-owned placeholder assets where supported
+
+### Current Findings (codebase)
+- `CakeFileResolver.resolve(...)` currently returns `null` for missing assets.
+- LibGDX synchronous loaders in Cake declare non-null `FileHandle` parameters, so a missing resolver result becomes a generic Kotlin NPE instead of a domain error.
+- The main offenders are:
+  - `cake/core/src/main/kotlin/org/demoth/cake/assets/CakeFileResolver.kt`
+  - `cake/core/src/main/kotlin/org/demoth/cake/assets/CakeTextureLoaders.kt`
+  - `cake/core/src/main/kotlin/org/demoth/cake/assets/Md2ModelLoader.kt`
+- Missing-resource handling is inconsistent today:
+  - some call sites pre-check `assetManager.fileHandleResolver.resolve(path) == null`
+  - some call `tryAcquireAsset(...)` and absorb `GdxRuntimeException`
+  - some paths still rely on generic top-level exception recovery in `Cake`
+- Cake already has a generic drop-to-console boundary in `Cake.render()`, but it is still coupled to legacy `Com.Error`/`longjmpException` behavior.
+- Cake still contains at least one direct `Com.Error` call in network/message handling (`Server disconnected` path in `Cake.kt`).
+
+### Reference Notes (verified)
+- Yamagi/Q2Pro still use `ERR_DROP` / `ERR_DISCONNECT` as a client-frame recovery mechanism, then disconnect back to a stable console/client shell.
+- Reference renderers also keep engine-owned fallback textures instead of crashing on every missing texture:
+  - Yamagi GL1 keeps `r_notexture`
+  - Q2Pro reuses placeholder images and keeps a notion of missing-image diagnostics
+- The Cake equivalent should preserve the same high-level behavior, but using typed exceptions and Kotlin recovery boundaries instead of legacy `Com.Error` in the client module.
+
+### Decisions
+- Introduce a domain exception: `MissingResourceException`.
+- `cake/` must stop using `Com.Error` for expected client-side resource/runtime recovery.
+- Missing resources must be handled generically at two boundaries:
+  - startup / connection / precache / screen init
+  - per-frame `Game3dScreen.render`
+- Recovery target for non-fatal client failures is:
+  - disconnect client state if needed
+  - leave the app running
+  - return to console/menu shell
+  - print a concise warning/error describing the missing resource and phase
+- Add a new cvar: `fs_debug_loaders`.
+
+### `MissingResourceException` Shape
+- Add a typed runtime exception in Cake asset/runtime code:
+  - `path: String`
+  - `phase: String` (`resolver`, `loader`, `precache`, `render`, `connection`)
+  - optional `cause: Throwable`
+- Use it for:
+  - resolver misses that should be treated as fatal in strict mode
+  - loader dependency misses
+  - malformed fallback asset situations where Cake cannot supply a placeholder
+
+### `fs_debug_loaders` Policy
+- Add `fs_debug_loaders` as the loader-policy cvar.
+- Proposed semantics:
+  - `0`: strict mode
+  - `1`: fallback mode for supported resource classes
+- Strict mode behavior:
+  - throw `MissingResourceException`
+  - let generic Cake/Game3dScreen boundaries disconnect to console
+- Fallback mode behavior:
+  - substitute engine-owned placeholder assets where a type-specific fallback exists
+  - emit `Com.Warn` once per missing path/resource kind
+  - continue execution unless fallback cannot be provided
+- Initial fallback scope:
+  - textures -> `_missing.pcx`, `_missing.wal`
+  - md2 models -> `_missing.md2`
+  - skyboxes -> `_missing.sky`
+  - sprite -> `_missing.sp2`
+
+- Deferred fallback scope:
+  - sounds - print a warning, play nothing instead
+  - cinematics - simply skip with a warning
+- Fallback assets must be engine-owned, mounted predictably, and not depend on mod content being complete.
+
+### Resolver / Loader Rules
+- Stop treating `null` `FileHandle` as a normal resolver contract inside Cake loaders.
+- Replace resolver-driven NPEs with one of two paths:
+  - strict: throw `MissingResourceException`
+  - fallback: resolve to a placeholder `FileHandle` if the asset type supports it
+- Rules for loaders:
+  - loaders must validate the incoming file/dependency path before dereferencing
+  - loaders must not throw generic `NullPointerException` for missing input
+  - loaders should wrap malformed-content errors with path/context when practical
+- Rules for `GameConfiguration` / asset acquisition:
+  - centralize missing-resource mapping in one asset-acquisition path
+  - remove ad hoc `resolve(path) == null` pre-checks from callers where possible
+  - keep `tryAcquireAsset(...)` domain-aware instead of relying on generic `GdxRuntimeException` handling
+
+### Recovery Boundaries
+- Add explicit generic handlers around:
+  - `Game3dScreen` initialization / precache path
+  - `Game3dScreen.render`
+  - connection/startup transitions in `Cake`
+- Boundary behavior:
+  - `MissingResourceException` -> warn, disconnect, return to console
+  - other recoverable asset/runtime exceptions -> log with context, disconnect, return to console
+  - clearly fatal engine/runtime exceptions -> rethrow
+- Remove the remaining direct `Com.Error` usage from Cake and replace it with normal Kotlin control flow plus the shared recovery boundary.
+
+### Implementation Plan
+1. Exception model
+- Add `MissingResourceException`
+
+2. Loader policy
+- Fix *Loader signatures, make fun load() receive nullable FileHandle? and hande it explicitly instead of java/kotlin boundary behavior
+- Add `fs_debug_loaders`.
+- Add a small policy helper in Cake asset loading code that answers:
+  - strict vs fallback
+  - placeholder path for a given resource kind (should exist!)
+  - warn-once bookkeeping
+
+3. Resolver refactor
+- Refactor `CakeFileResolver` so missing resources no longer flow into non-null loader parameters as `null`.
+- Keep the resolver behavior explicit enough that callers and loaders can distinguish:
+  - real asset file
+  - placeholder asset file
+  - strict missing-resource failure
+
+4. Loader hardening
+- Update `PcxLoader`, `WalLoader`, `Md2Loader`, and other custom loaders to:
+  - reject missing input with `MissingResourceException`
+  - use placeholder assets when policy allows
+  - preserve useful path/cause information
+
+5. Asset acquisition cleanup
+- Refactor `GameConfiguration` and nearby callers to stop scattering `resolve(path) == null` checks.
+- Route all asset loads through a common path that understands `MissingResourceException` and fallback policy.
+
+6. Recovery boundaries
+- Move from the current one-off Cake exception handling to explicit reusable handlers for:
+  - startup / connection / precache
+  - in-game render
+- Replace the last Cake `Com.Error` usage with normal exception-driven disconnect flow.
+
+7. Placeholder content
+- Add/verify `_missing.pcx`, `_missing.md2`, and others
+- Ensure they can load without depending on optional mod assets.
+- Fallback assets live in Cake engine's asset folder.
+
+8. Tests
+- Add tests for strict/fallback resolver behavior.
+- Add loader tests proving missing assets raise `MissingResourceException` instead of NPE.
+- Add tests proving fallback mode returns placeholder assets for supported types.
+- Add tests for generic boundary behavior:
+  - startup/precache failure drops to console
+  - render-time failure drops to console
+  - app process remains alive
+
+### Required Design Details Before Implementation
+- `fs_debug_loaders` stays boolean-like (`0/1`)
+- Decide whether unsupported types in fallback mode should:
+  - still throw `MissingResourceException`
+  - or silently return `null`
+- Current recommendation: unsupported types should still throw. Silent `null` keeps the current instability.
+  - Decision: follow the missing resource exception path
+- Decide whether malformed assets and missing assets share the same recovery path.
+  - Decision: MissingResourceException will have a root cause exception which should be enough to know the reason
+
+### Verification Checklist
+- Verify there are no remaining direct `Com.Error` calls in `cake/`.
+- Verify no Cake custom loader can produce a generic Kotlin NPE for missing file input.
+- Verify connecting to a server with a missing texture/model drops cleanly to console instead of terminating the app.
+- Verify render-time missing assets follow the same recovery path as startup/precache misses.
+- Verify fallback mode logs the missing path and actual placeholder used.
+- Verify strict mode surfaces the original missing path, resource kind, and phase.
