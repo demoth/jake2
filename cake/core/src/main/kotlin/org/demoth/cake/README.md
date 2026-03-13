@@ -39,6 +39,30 @@ Runtime lookups
 ## Decision Log
 Newest first.
 
+### Decision: Handle Cake missing-resource failures by dropping to console
+- Context: missing supported client assets should not terminate the process or rely on legacy `Com.Error` flow inside the `cake/` module.
+- Options Considered:
+1. Keep local one-off recovery and allow generic runtime exceptions to surface.
+2. Catch broad runtime failures and always disconnect.
+3. Catch typed missing-resource failures and return to a stable console state.
+- Chosen Option & Rationale: Option 3. It keeps the stability path intentionally narrow, removes `Com.Error` from Cake app flow, and makes handled failures predictable: disconnect, dispose the active `Game3dScreen`, and show the console.
+- Consequences: `Cake.render()` now treats `MissingResourceException` as a recoverable client-content failure, while unrelated runtime errors still surface normally.
+- Status: accepted.
+- Definition of Done: supported missing-resource failures during startup/precache/render drop to console without killing the app process.
+- References: thread decisions around generic missing-resource handling and “drop to console on exception”.
+
+### Decision: Load optional profile background through `applyGameProfile(...)`
+- Context: Cake needed a profile/game-specific menu background before `Game3dScreen` exists, and mods commonly override `pics/conback.pcx`.
+- Options Considered:
+1. Load background only on startup and keep profile switching separate.
+2. Let menu stages own the background.
+3. Let `Cake` own a small optional background asset and reload it whenever `applyGameProfile(...)` changes resolver context.
+- Chosen Option & Rationale: Option 3. It reuses the existing profile-application path for both startup and disconnected profile switches, keeps ownership at app scope, and avoids coupling menu stages to asset lifecycle.
+- Consequences: `Cake` now owns one optional background texture/batch, rendered only while `game3dScreen == null`. Missing `pics/conback.pcx` is intentionally silent and non-fatal.
+- Status: accepted.
+- Definition of Done: startup selected profile and runtime disconnected profile changes both update the optional `conback.pcx` background through the same `applyGameProfile(...)` path.
+- References: thread feature request for game background/profile branding via `conback.pcx`.
+
 ### Decision: Expose `playerConfiguration` and remove wrapper API in `GameConfiguration`
 - Context: player-related config and lookups had outgrown `GameConfiguration` and cluttered map-level concerns.
 - Options Considered:
@@ -75,6 +99,11 @@ Newest first.
 - References: thread migration work.
 
 ## Quirks & Workarounds
+- Quirk: `Cake` owns one optional profile background outside `Game3dScreen`.
+  - Why: it must render before gameplay screen creation and survive disconnected profile switches.
+  - How to work with it: reload only through `applyGameProfile(...)`; do not add separate startup/profile-switch background paths.
+  - Removal plan: none currently; this is the intended ownership boundary.
+
 - Quirk: `PlayerConfiguration` receives a `GameConfiguration` owner reference.
   - Why: it must read configstrings and acquire assets while preserving one ownership/refcount authority.
   - How to work with it: avoid loading player assets through `AssetManager` directly from new code; use `gameConfiguration.tryAcquireAsset`.

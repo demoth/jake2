@@ -7,6 +7,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 
 ## Key Types
 - `CakeFileResolver` - thin resolver that delegates game-data lookup to qcommon VFS layers and keeps classpath/internal fallbacks, including synthetic player MD2 variant keys.
+- `ResourceKind` / `MissingResourceException` - asset-kind policy and typed missing-resource failure contract for Cake runtime.
 - `CakeVfsAssetSource` - Cake adapter over qcommon VFS that materializes packaged entries as temp files for libGDX loaders.
 - `Md2Loader` / `Md2Asset` - loads MD2 geometry into VAT-ready `Model` + resolved skins.
 - `Md2Shader` / `Md2SkinTexturesAttribute` - runtime MD2 frame interpolation + skin selection on GPU.
@@ -60,6 +61,29 @@ For inline brush models specifically:
 - Inline animation frame source is entity-local (`ClientEntity.resolvedFrame`), not global time.
 
 ## Decision Log
+
+### Decision: Keep missing-resource policy inside `CakeFileResolver`
+- **Context:** missing client assets previously produced inconsistent behavior: nullable resolver probes, generic Kotlin NPEs in loaders, and ad hoc recovery in app code.
+- **Options Considered:**
+  - Keep `resolve(...)` as a pure nullable lookup and implement strict/fallback behavior at call sites
+  - Add a separate Cake-side wrapper around resolver calls
+  - Make `CakeFileResolver.resolve(...)` own missing-resource policy directly
+- **Chosen Option & Rationale:** Make `CakeFileResolver.resolve(...)` own the policy. This keeps supported asset kinds on one code path and avoids scattering strict/fallback decisions across `GameConfiguration`, loaders, and `Cake`.
+- **Consequences:** `resolve(...)` is no longer a pure existence probe for supported kinds. Code that wants raw lookup semantics must use `CakeFileResolver.tryResolve(...)` (or `tryResolveRaw(...)` through `FileHandleResolver` helpers). Missing-resource handling is now keyed by `ResourceKind`, `fs_debug_loaders`, and resolver-local warn-once bookkeeping.
+- **Status:** accepted
+- **Definition of Done:** missing `pcx`/`wal`/`md2`/`sp2` are resolved through one strict/fallback policy path; `sound/*` remains tolerable missing; no supported kind relies on generic null-to-NPE flow.
+- **References:** thread decisions around “get rid of `Com.Error` in cake module”, `MissingResourceException`, `fs_debug_loaders`, and “focus on resolver first”.
+
+### Decision: Preserve original logical asset keys when fallback content is served
+- **Context:** fallback assets (`_missing.pcx`, `_missing.wal`, `_missing.md2`, `_missing.sp2`) are engine-owned stand-ins, but gameplay ownership/refcounting still needs to remain tied to the originally requested asset path.
+- **Options Considered:**
+  - Rewrite asset requests to fallback paths before loading
+  - Keep the original asset key and let the resolver return fallback file handles behind that key
+- **Chosen Option & Rationale:** Keep the original logical key. This keeps `AssetManager` ownership, config-scoped unloads, and caller-visible paths stable while still allowing fallback content to render.
+- **Consequences:** diagnostics must distinguish between “requested path” and “physical fallback file”; background/raw existence probes must not use policy-aware `resolve(...)` by accident.
+- **Status:** accepted
+- **Definition of Done:** a request for `models/foo/tris.md2` can be satisfied from `_missing.md2`, while the owned/refcounted asset path remains `models/foo/tris.md2`.
+- **References:** thread decision “missing resource can will be loaded with a fallback once” and agreement to preserve original keys.
 
 ### Decision: Encode player model variants as `<skinPath>|<modelPath>` asset keys
 - **Context:** AssetManager caches by asset path. Multiple players can share model path but require different skins.
@@ -214,6 +238,16 @@ For inline brush models specifically:
 - **Definition of Done:** Muzzle/explosion/`EF_*` dynamic lights visibly affect world and inline lightmapped faces in gameplay.
 
 ## Quirks & Workarounds
+- **What:** `CakeFileResolver.resolve(...)` is policy-aware for supported missing-resource kinds.
+  - **Why:** strict/fallback behavior is centralized in the resolver instead of being repeated across callers.
+  - **How to work with it:** use `CakeFileResolver.tryResolve(...)` or `FileHandleResolver.tryResolveRaw(...)` when code is selecting candidates or probing optional assets.
+  - **Removal plan:** none currently; this is the intended boundary for missing-resource policy.
+
+- **What:** `fs_debug_loaders` only affects supported fallback kinds (`pcx`, `wal`, `md2`, `sp2`).
+  - **Why:** the current stability track is intentionally small; sounds remain tolerable missing and cinematics/malformed assets are out of scope.
+  - **How to work with it:** do not assume `fs_debug_loaders=1` provides a fallback for every asset class; unsupported kinds still need explicit policy before joining this path.
+  - **Removal plan:** extend kind coverage only when the next asset class has a clear fallback contract.
+
 - **What:** Synthetic variant key uses `|` separator.
   - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.
   - **How to work with it:** Always build keys via `GameConfiguration.playerModelVariantAssetPath(...)`; do not handcraft elsewhere.
