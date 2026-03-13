@@ -71,11 +71,8 @@ class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset,
         file: FileHandle?,
         parameter: AssetLoaderParameters<Sp2Asset>?
     ): Array<AssetDescriptor<*>>? {
-        if (file == null) {
-            return null
-        }
-
-        val sprite = readSp2(file.readBytes(), fileName)
+        val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.SP2, "loader")
+        val sprite = readSp2(resolvedFile.readBytes(), fileName)
         val imagePaths = LinkedHashSet<String>()
         sprite.frames.forEach { frame ->
             if (frame.imageFileName.isNotBlank()) {

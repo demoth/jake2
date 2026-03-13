@@ -96,10 +96,8 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         file: FileHandle?,
         parameter: Parameters?
     ): Array<AssetDescriptor<*>>? {
-        if (file == null) {
-            return null
-        }
-        val md2 = readMd2Model(file.readBytes())
+        val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.MD2, "loader")
+        val md2 = readMd2Model(resolvedFile.readBytes())
         val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
         if (skinPaths.isEmpty()) {
             return null

@@ -454,3 +454,9 @@
   - Added `tryResolveRaw(...)` helper for code paths that are selecting candidates rather than loading.
   - Updated `GameConfiguration`, `PlayerConfiguration`, cinematics, and effect precache to stop probing through policy-aware `resolve(...)`.
   - Actual asset loads now go through the resolver policy, while legacy fallback-selection logic still uses raw existence checks.
+- Done: Cake missing-resource recovery boundary.
+  - Wrapped the main Cake frame/update path so `MissingResourceException` drops cleanly to console instead of terminating the client.
+  - Removed the last direct `Com.Error(...)` call from `cake/`.
+  - Handled missing-resource recovery by disposing the active `Game3dScreen` and unloading its config-owned assets through the existing disconnect path.
+- Done: loader-side null-file hardening for dependency discovery.
+  - `Md2Loader` and `Sp2Loader` now throw `MissingResourceException` instead of silently accepting `null` dependency files.

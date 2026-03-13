@@ -409,6 +409,30 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         challenge = 0
     }
 
+    private fun handleMissingResourceFailure(error: MissingResourceException) {
+        Com.Warn("${error.message}\n")
+        dropToConsole()
+    }
+
+    private fun findMissingResourceFailure(error: Throwable): MissingResourceException? {
+        var current: Throwable? = error
+        while (current != null) {
+            if (current is MissingResourceException) {
+                return current
+            }
+            current = current.cause
+        }
+        return null
+    }
+
+    private fun dropToConsole() {
+        disconnect()
+        menuVisible = false
+        consoleVisible = true
+        consoleStage.focus()
+        updateInputHandlers(consoleVisible, menuVisible)
+    }
+
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
@@ -435,65 +459,74 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     override fun render() {
-        updateGlProfilerState()
-        menuController.pumpIntents()
-        menuController.refreshExternalState()
-        syncMenuViewFromBusState()
-        assetManager.update() // todo: 1000/fps millis
-        val deltaSeconds = Gdx.graphics.deltaTime
-        Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
-        game3dScreen?.deltaTime = deltaSeconds
-        ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
+        try {
+            updateGlProfilerState()
+            menuController.pumpIntents()
+            menuController.refreshExternalState()
+            syncMenuViewFromBusState()
+            assetManager.update() // todo: 1000/fps millis
+            val deltaSeconds = Gdx.graphics.deltaTime
+            Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
+            game3dScreen?.deltaTime = deltaSeconds
+            ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
 
-        CheckForResend(deltaSeconds)
-        CL_ReadPackets()
-        Cbuf.Execute()
-        sendUpdates()
+            CheckForResend(deltaSeconds)
+            CL_ReadPackets()
+            Cbuf.Execute()
+            sendUpdates()
 
-        if (game3dScreen != null) {
-            // Keep prediction state aligned with netchan before render-time replay.
-            // Cross-reference: old client reads `cls.netchan.incoming_acknowledged/outgoing_sequence`
-            // in `CL_pred.PredictMovement`.
-            game3dScreen?.updatePredictionNetworkState(
-                netchan.incoming_acknowledged,
-                netchan.outgoing_sequence,
-                Globals.curtime
-            )
-            game3dScreen?.render(deltaSeconds)
-        }
-
-        val activeScreen = game3dScreen
-        if (transitionBackdropActive) {
-            if (activeScreen != null && activeScreen.canRenderPresentationFrame()) {
-                clearTransitionBackdrop()
-            } else {
-                renderTransitionBackdrop()
+            if (game3dScreen != null) {
+                // Keep prediction state aligned with netchan before render-time replay.
+                // Cross-reference: old client reads `cls.netchan.incoming_acknowledged/outgoing_sequence`
+                // in `CL_pred.PredictMovement`.
+                game3dScreen?.updatePredictionNetworkState(
+                    netchan.incoming_acknowledged,
+                    netchan.outgoing_sequence,
+                    Globals.curtime
+                )
+                game3dScreen?.render(deltaSeconds)
             }
-        }
 
-        if (menuVisible) {
-            when (menuView) {
-                MenuView.MAIN -> {
-                    menuStage.act()
-                    menuStage.draw()
-                }
-                MenuView.PROFILE_EDIT -> {
-                    profileEditStage.act(deltaSeconds)
-                    profileEditStage.draw()
+            val activeScreen = game3dScreen
+            if (transitionBackdropActive) {
+                if (activeScreen != null && activeScreen.canRenderPresentationFrame()) {
+                    clearTransitionBackdrop()
+                } else {
+                    renderTransitionBackdrop()
                 }
             }
-        }
 
-        if (consoleVisible) {
-            consoleStage.act()
-            consoleStage.draw()
-        }
+            if (menuVisible) {
+                when (menuView) {
+                    MenuView.MAIN -> {
+                        menuStage.act()
+                        menuStage.draw()
+                    }
+                    MenuView.PROFILE_EDIT -> {
+                        profileEditStage.act(deltaSeconds)
+                        profileEditStage.draw()
+                    }
+                }
+            }
 
-        if (glProfilerActive) {
-            debugGraphStage.collectMetrics(glProfiler)
-            debugGraphStage.act(deltaSeconds)
-            debugGraphStage.draw()
-            glProfiler.reset()
+            if (consoleVisible) {
+                consoleStage.act()
+                consoleStage.draw()
+            }
+
+            if (glProfilerActive) {
+                debugGraphStage.collectMetrics(glProfiler)
+                debugGraphStage.act(deltaSeconds)
+                debugGraphStage.draw()
+                glProfiler.reset()
+            }
+        } catch (error: RuntimeException) {
+            val missingResource = findMissingResourceFailure(error)
+            if (missingResource != null) {
+                handleMissingResourceFailure(missingResource)
+                return
+            }
+            throw error
         }
     }
 
@@ -721,7 +754,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         messages.forEach { msg ->
             when (msg) {
                 is DisconnectMessage -> {
-                    Com.Error(ERR_DISCONNECT, "Server disconnected\n")
+                    Com.Printf("Server disconnected\n")
+                    dropToConsole()
+                    return
                 }
 
                 // NB: it is not sent during map change (instead - StuffTextMessage("reconnect"))
