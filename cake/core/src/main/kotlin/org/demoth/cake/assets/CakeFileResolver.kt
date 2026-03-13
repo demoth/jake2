@@ -5,6 +5,9 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
+import jake2.qcommon.Defines
+import jake2.qcommon.exec.Cvar
+import java.util.Locale
 
 
 /**
@@ -21,7 +24,9 @@ class CakeFileResolver(
     caseSensitive: Boolean = false,
 ) : FileHandleResolver {
 
+    private val fsDebugLoaders = Cvar.getInstance().Get("fs_debug_loaders", "0", Defines.CVAR_ARCHIVE)
     private val vfsAssetSource = CakeVfsAssetSource()
+    private val warnedMissing = LinkedHashSet<Pair<String, ResourceKind>>()
 
     var caseSensitive: Boolean = caseSensitive
         set(value) {
@@ -75,20 +80,33 @@ class CakeFileResolver(
         val rawPath = fileName.substringAfterLast('|')
         val path = normalizeLookupPath(rawPath)
         if (path == null) {
-            Com.Warn("Resource $rawPath was not found")
             return null
         }
-        val vfsResolved = vfsAssetSource.resolve(path)
+
+        tryResolve(path)?.let { return it }
+
+        val resourceKind = ResourceKind.fromPath(path) ?: return null
+        if (resourceKind.tolerableMissing) {
+            warnMissingOnce(path, resourceKind, "continuing without it")
+            return null
+        }
+
+        if (fsDebugLoaders.value != 0f) {
+            val fallbackPath = resourceKind.fallbackAssetPath
+                ?: throw MissingResourceException(path, resourceKind, "resolver")
+            warnMissingOnce(path, resourceKind, "using fallback '$fallbackPath'")
+            return resolveBundledAsset(fallbackPath) ?: Gdx.files.internal(fallbackPath)
+        }
+
+        throw MissingResourceException(path, resourceKind, "resolver")
+    }
+
+    internal fun tryResolve(fileName: String): FileHandle? {
+        val vfsResolved = vfsAssetSource.resolve(fileName)
         if (vfsResolved != null) {
             return vfsResolved
         }
-
-        val fallbackResolved = resolveFallback(path)
-        if (fallbackResolved != null) {
-            return fallbackResolved
-        }
-        Com.Warn("Resource $path was not found")
-        return null
+        return resolveBundledAsset(fileName)
     }
 
     /**
@@ -122,9 +140,9 @@ class CakeFileResolver(
         return normalized.joinToString("/")
     }
 
-    private fun resolveFallback(fileName: String): FileHandle? {
+    private fun resolveBundledAsset(fileName: String): FileHandle? {
         // SkyLoader uses synthetic keys like sky/<name>.sky; no physical file is required.
-        val normalized = fileName.replace('\\', '/').lowercase()
+        val normalized = fileName.replace('\\', '/').lowercase(Locale.ROOT)
         if (normalized.startsWith("sky/") && normalized.endsWith(".sky")) {
             return Gdx.files.internal("") // return an empty file handle
         }
@@ -142,6 +160,13 @@ class CakeFileResolver(
             }
         }
         return null
+    }
+
+    private fun warnMissingOnce(path: String, resourceKind: ResourceKind, detail: String) {
+        val key = path.lowercase(Locale.ROOT) to resourceKind
+        if (warnedMissing.add(key)) {
+            Com.Warn("Missing ${resourceKind.name.lowercase(Locale.ROOT)} resource '$path'; $detail")
+        }
     }
 
     /**

@@ -8,7 +8,6 @@ import org.demoth.cake.modelviewer.ModelViewerFileResolver
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -75,22 +74,6 @@ class ResolverParityIntegrationTest {
         assertNotNull(viewerHandle)
         assertEquals("zip-md2", String(cakeHandle!!.readBytes(), StandardCharsets.US_ASCII))
         assertEquals("zip-md2", String(viewerHandle!!.readBytes(), StandardCharsets.US_ASCII))
-    }
-
-    @Test
-    fun cakeAndModelViewerBothReturnNullForMissingAsset() {
-        val basedir = temp.toString()
-        val openedFile = createFile("viewer/tris.md2")
-
-        val cakeResolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
-        val viewerResolver = ModelViewerFileResolver(
-            openedFilePath = openedFile.absolutePath,
-            basedir = basedir,
-            gamemod = "rogue",
-        )
-
-        assertNull(cakeResolver.resolve("missing/file.pcx"))
-        assertNull(viewerResolver.resolve("missing/file.pcx"))
     }
 
     private fun createFile(relativePath: String, bytes: ByteArray = byteArrayOf()): File {

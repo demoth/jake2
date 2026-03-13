@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import jake2.qcommon.exec.Cvar
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -28,6 +30,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesExactCaseInGamemod() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val file = createFile("rogue/sound/Alert.wav")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
@@ -40,6 +43,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesCaseInsensitiveInGamemod() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val file = createFile("rogue/berserk/RUN.wav")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
@@ -53,6 +57,7 @@ class CakeFileResolverTest {
 
     @Test
     fun gamemodOverridesBasemod() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         createFile("baseq2/textures/wall.tga")
         val file = createFile("rogue/textures/wall.tga")
@@ -67,6 +72,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesFromBasePakWhenLooseFileIsMissing() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         writePak(
             Path.of(basedir, "baseq2", "pak0.pak"),
@@ -83,6 +89,7 @@ class CakeFileResolverTest {
 
     @Test
     fun gamemodPakOverridesBaseLoose() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         createFile("baseq2/textures/wall.tga", "base-loose".toByteArray(StandardCharsets.US_ASCII))
         writePak(
@@ -99,6 +106,7 @@ class CakeFileResolverTest {
 
     @Test
     fun baseLooseOverridesBasePak() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         createFile("baseq2/config.cfg", "base-loose".toByteArray(StandardCharsets.US_ASCII))
         writePak(
@@ -115,6 +123,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesFromZipPackage() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         writeZip(
             Path.of(basedir, "baseq2", "assets.pk3"),
@@ -130,6 +139,7 @@ class CakeFileResolverTest {
 
     @Test
     fun changingGamemodReconfiguresVfsLookup() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         createFile("baseq2/config.cfg", "base".toByteArray(StandardCharsets.US_ASCII))
         createFile("rogue/config.cfg", "rogue".toByteArray(StandardCharsets.US_ASCII))
@@ -147,6 +157,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesModelPathWithSkinPrefixVariantKey() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val file = createFile("rogue/players/male/tris.md2")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
@@ -159,6 +170,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesPathContainingParentSegmentsInsideGameRoot() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val file = createFile("baseq2/models/monsters/ctank/pain.pcx")
         val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
@@ -171,6 +183,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesPakEntryStoredWithParentSegments() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         writePak(
             Path.of(basedir, "baseq2", "pak0.pak"),
@@ -186,6 +199,7 @@ class CakeFileResolverTest {
 
     @Test
     fun rejectsPathTraversalBeyondGameRootBeginning() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
 
@@ -196,6 +210,7 @@ class CakeFileResolverTest {
     @Test
 
     fun rejectsPathTraversalBeyondGameRootMiddle() {
+        setFsDebugLoaders("0")
         val basedir = temp.toString()
         val resolver = CakeFileResolver(basedir = basedir, gamemod = null)
 
@@ -206,6 +221,7 @@ class CakeFileResolverTest {
 
     @Test
     fun resolvesVirtualSkyAssetWithoutPhysicalFile() {
+        setFsDebugLoaders("0")
         val resolver = CakeFileResolver()
 
         val resolved = resolver.resolve("sky/desert_.sky")
@@ -215,10 +231,37 @@ class CakeFileResolverTest {
     }
 
     @Test
-    fun missingAssetReturnsNullWithoutThrowing() {
+    fun missingMd2ThrowsInStrictMode() {
+        setFsDebugLoaders("0")
         val resolver = CakeFileResolver()
 
-        val resolved = resolver.resolve("models/missing/file.md2")
+        val error = assertThrows(MissingResourceException::class.java) {
+            resolver.resolve("models/missing/file.md2")
+        }
+
+        assertEquals(ResourceKind.MD2, error.resourceKind)
+        assertEquals("models/missing/file.md2", error.path)
+        assertEquals("resolver", error.phase)
+    }
+
+    @Test
+    fun missingPcxUsesFallbackInFallbackMode() {
+        setFsDebugLoaders("1")
+        val resolver = CakeFileResolver()
+
+        val resolved = resolver.resolve("textures/missing/file.pcx")
+
+        assertNotNull(resolved)
+        assertTrue(resolved!!.exists())
+        assertTrue(resolved.path().replace('\\', '/').endsWith("_missing.pcx"))
+    }
+
+    @Test
+    fun missingSoundRemainsTolerableInStrictMode() {
+        setFsDebugLoaders("0")
+        val resolver = CakeFileResolver()
+
+        val resolved = resolver.resolve("sound/missing/file.wav")
 
         assertNull(resolved)
     }
@@ -289,6 +332,10 @@ class CakeFileResolverTest {
         fun teardownGdx() {
             app?.exit()
             app = null
+        }
+
+        private fun setFsDebugLoaders(value: String) {
+            Cvar.getInstance().ForceSet("fs_debug_loaders", value)
         }
     }
 
