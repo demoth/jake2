@@ -450,3 +450,7 @@
   - strict mode throws for missing `md2`
   - fallback mode redirects missing `pcx`
   - missing `sound/*` remains tolerable
+- Done: split raw existence probes from policy-aware loads.
+  - Added `tryResolveRaw(...)` helper for code paths that are selecting candidates rather than loading.
+  - Updated `GameConfiguration`, `PlayerConfiguration`, cinematics, and effect precache to stop probing through policy-aware `resolve(...)`.
+  - Actual asset loads now go through the resolver policy, while legacy fallback-selection logic still uses raw existence checks.

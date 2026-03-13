@@ -10,9 +10,11 @@ import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.BspMapAsset
+import org.demoth.cake.assets.MissingResourceException
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.Sp2Asset
+import org.demoth.cake.assets.tryResolveRaw
 
 /**
  * Runtime storage for server-driven configstrings and their loaded client-side resources.
@@ -266,11 +268,11 @@ class GameConfiguration(
         }
 
         for (path in candidates) {
-            if (assetManager.fileHandleResolver.resolve(path) != null) {
+            if (assetExists(path)) {
                 return tryAcquireAsset<Texture>(path)
             }
         }
-        return null
+        return candidates.lastOrNull()?.let { tryAcquireAsset<Texture>(it) }
     }
 
     fun getWeaponSound(weaponType: Int): Sound? {
@@ -297,7 +299,7 @@ class GameConfiguration(
                 return@forEach
             }
             val assetPath = "sound/$soundPath"
-            if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
+            if (!assetExists(assetPath)) {
                 return@forEach
             }
             tryAcquireAsset<Sound>(assetPath)?.let { loaded ->
@@ -405,9 +407,6 @@ class GameConfiguration(
         if (modelPath.isBlank() || modelPath.startsWith("*") || modelPath.startsWith("#")) {
             return false
         }
-        if (assetManager.fileHandleResolver.resolve(modelPath) == null) {
-            return false
-        } // todo: warning if not found!
         return when {
             modelPath.endsWith(".md2", ignoreCase = true) -> {
                 val md2Asset = acquireAsset<Md2Asset>(modelPath)
@@ -430,7 +429,7 @@ class GameConfiguration(
             return false
         }
         val assetPath = "sound/$soundPath"
-        if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
+        if (!assetExists(assetPath)) {
             return false
         } // todo: warning if not found!
         config.resource = tryAcquireAsset<Sound>(assetPath)
@@ -450,6 +449,11 @@ class GameConfiguration(
         }
         return try {
             acquireAsset<T>(assetPath)
+        } catch (e: MissingResourceException) {
+            val error = e.message ?: e.javaClass.simpleName
+            failedAssets[assetPath] = error
+            Com.Warn("Failed to load asset $assetPath: $error")
+            null
         } catch (e: GdxRuntimeException) {
             val error = rootCauseMessage(e)
             failedAssets[assetPath] = error
@@ -459,7 +463,7 @@ class GameConfiguration(
     }
 
     private fun assetExists(path: String): Boolean {
-        return assetManager.fileHandleResolver.resolve(path) != null
+        return assetManager.fileHandleResolver.tryResolveRaw(path) != null
     }
 
     fun rootCauseMessage(t: Throwable): String {
@@ -476,9 +480,6 @@ class GameConfiguration(
             return false
         }
         val assetPath = "pics/$imageName.pcx"
-        if (assetManager.fileHandleResolver.resolve(assetPath) == null) {
-            return false
-        } // todo: warning if not found!
         config.resource = acquireAsset<Texture>(assetPath)
         return true
     }
@@ -490,9 +491,6 @@ class GameConfiguration(
             return false
         }
         val skyAssetPath = SkyLoader.assetPath(skyName)
-        if (assetManager.fileHandleResolver.resolve(skyAssetPath) == null) {
-            return false
-        }
         config.resource = acquireAsset<Model>(skyAssetPath)
         return true
     }

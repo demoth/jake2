@@ -15,6 +15,7 @@ import jake2.qcommon.Defines.MAX_MODELS
 import jake2.qcommon.Defines.MAX_SOUNDS
 import jake2.qcommon.Defines.RF_USE_DISGUISE
 import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.tryResolveRaw
 
 /**
  * Player-scoped runtime configuration derived from server configstrings.
@@ -184,7 +185,7 @@ class PlayerConfiguration(
                 return gameConfiguration.tryAcquireAsset(path)
             }
         }
-        return null
+        return candidatePaths.lastOrNull()?.let { gameConfiguration.tryAcquireAsset<Texture>(it) }
     }
 
     /**
@@ -241,7 +242,7 @@ class PlayerConfiguration(
                 return md2Asset.model
             }
         }
-        return null
+        return candidates.lastOrNull()?.let { gameConfiguration.tryAcquireAsset<Md2Asset>(it)?.model }
     }
 
     /**
@@ -423,7 +424,8 @@ class PlayerConfiguration(
     private fun loadPlayerModelAsset(variation: PlayerModelSkin): Model? {
         val modelPath = variation.modelPath()
         val skinPath = variation.skinPath()
-        if (!assetExists(modelPath) || !assetExists(skinPath)) {
+        val defaultVariation = defaultPlayerModelSkin()
+        if ((!assetExists(modelPath) || !assetExists(skinPath)) && variation != defaultVariation) {
             return null
         }
         val modelAssetPath = "$skinPath${playerVariantSeparator}$modelPath"
@@ -442,7 +444,7 @@ class PlayerConfiguration(
     }
 
     private fun assetExists(path: String): Boolean {
-        return assetManager.fileHandleResolver.resolve(path) != null
+        return assetManager.fileHandleResolver.tryResolveRaw(path) != null
     }
 
     /** Bundle of per-player model/skin identity used by rendering, icon, and sound resolution. */

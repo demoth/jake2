@@ -11,6 +11,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import ktx.graphics.use
 import org.demoth.cake.GameConfiguration
+import org.demoth.cake.assets.tryResolveRaw
 
 /**
  * Owns cinematic/picture-mode media state and skip control flow.
@@ -98,7 +99,7 @@ class CinematicPresentationController(
             return
         }
         val imagePath = resolvePicturePath(cinematicName)
-        if (assetManager.fileHandleResolver.resolve(imagePath) == null) {
+        if (assetManager.fileHandleResolver.tryResolveRaw(imagePath) == null) {
             Com.Warn("Cinematic image not found: $imagePath\n")
             return
         }
@@ -107,7 +108,7 @@ class CinematicPresentationController(
 
     private fun prepareStream(cinematicName: String) {
         val streamPath = resolveStreamPath(cinematicName)
-        val streamHandle = assetManager.fileHandleResolver.resolve(streamPath)
+        val streamHandle = assetManager.fileHandleResolver.tryResolveRaw(streamPath)
         if (streamHandle == null || !streamHandle.exists()) {
             Com.Warn("Cinematic stream not found: $streamPath\n")
             autoAdvancePending = true
