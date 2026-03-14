@@ -20,7 +20,6 @@ data class ProfileEditorState(
     val availableProfileIds: List<String> = emptyList(),
     val selectedProfileId: String? = null,
     val form: ProfileFormState = ProfileFormState(),
-    val canEdit: Boolean = true,
     val statusMessage: String = "",
 )
 

@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -38,7 +37,6 @@ class ProfileEditStage(
 
     private var renderedProfileIds: List<String> = emptyList()
     private var renderedSelectedProfileId: String = ""
-    private var renderedCanEdit: Boolean = true
     private var renderedForm: ProfileFormState = ProfileFormState()
     private var renderedStatusMessage: String = ""
 
@@ -168,13 +166,9 @@ class ProfileEditStage(
 
         if (
             force ||
-            normalizedIds != renderedProfileIds ||
-            state.canEdit != renderedCanEdit
+            normalizedIds != renderedProfileIds
         ) {
-            syncProfileItems(
-                profileIds = normalizedIds,
-                canEdit = state.canEdit,
-            )
+            syncProfileItems(profileIds = normalizedIds)
         }
 
         if (force || normalizedSelectedId != renderedSelectedProfileId) {
@@ -192,34 +186,14 @@ class ProfileEditStage(
             statusLabel.setText(state.statusMessage)
         }
 
-        if (force || state.canEdit != renderedCanEdit) {
-            refreshEditState(state.canEdit)
-        }
-
         renderedProfileIds = normalizedIds
         renderedSelectedProfileId = normalizedSelectedId
-        renderedCanEdit = state.canEdit
         renderedForm = state.form
         renderedStatusMessage = state.statusMessage
     }
 
-    private fun refreshEditState(canEdit: Boolean) {
-        createProfileButton.isDisabled = !canEdit
-        profileIdField.isDisabled = !canEdit
-        basedirField.isDisabled = !canEdit
-        gamemodField.isDisabled = !canEdit
-        autodetectButton.isDisabled = !canEdit
-        saveButton.isDisabled = !canEdit
-        profilesListWidget.touchable = if (canEdit) Touchable.enabled else Touchable.disabled
-        profilesEmptyLabel.color.a = if (canEdit) 1f else 0.6f
-    }
-
-    private fun syncProfileItems(
-        profileIds: List<String>,
-        canEdit: Boolean,
-    ) {
+    private fun syncProfileItems(profileIds: List<String>) {
         profilesListWidget.setItems(*profileIds.toTypedArray())
-        profilesListWidget.touchable = if (canEdit) Touchable.enabled else Touchable.disabled
         profilesEmptyLabel.isVisible = profileIds.isEmpty()
     }
 

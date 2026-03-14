@@ -7,7 +7,6 @@ interface MenuBackend {
     fun listProfileIds(): List<String>
     fun selectedProfileId(): String?
     fun profileFormById(profileId: String): ProfileFormState?
-    fun canEditProfiles(): Boolean
     fun selectProfile(profileId: String): ProfileFormState?
     fun createProfileDraft(): ProfileFormState?
     fun autodetectBasedir(): String?
@@ -158,7 +157,6 @@ class MenuController(
             availableProfileIds = availableProfileIds.sorted(),
             selectedProfileId = selectedProfileId,
             form = form,
-            canEdit = backend.canEditProfiles(),
             statusMessage = statusOverride ?: state.profileEditor.statusMessage,
         )
         state = MenuStateSnapshot(

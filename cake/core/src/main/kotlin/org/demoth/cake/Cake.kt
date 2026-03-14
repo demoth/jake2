@@ -1294,8 +1294,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         override fun profileFormById(profileId: String): ProfileFormState? =
             loadProfileById(profileId)?.toProfileFormState()
 
-        override fun canEditProfiles(): Boolean = isProfileSwitchAllowed()
-
         override fun selectProfile(profileId: String): ProfileFormState? =
             selectProfileForEditor(profileId)?.toProfileFormState()
 

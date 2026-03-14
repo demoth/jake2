@@ -161,7 +161,6 @@ class MenuControllerTest {
         var activeProfileIdValue: String = "default"
         var canDisconnectValue: Boolean = false
         var disconnectedCalls: Int = 0
-        var canEditProfilesValue: Boolean = true
         var selectedProfileIdValue: String? = null
         val formsById: MutableMap<String, ProfileFormState> = linkedMapOf()
         var autodetectValue: String? = null
@@ -187,8 +186,6 @@ class MenuControllerTest {
         override fun selectedProfileId(): String? = selectedProfileIdValue
 
         override fun profileFormById(profileId: String): ProfileFormState? = formsById[profileId]
-
-        override fun canEditProfiles(): Boolean = canEditProfilesValue
 
         override fun selectProfile(profileId: String): ProfileFormState? {
             val form = formsById[profileId] ?: return null
