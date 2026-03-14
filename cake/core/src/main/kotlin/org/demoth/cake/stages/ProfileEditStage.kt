@@ -1,8 +1,10 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.viewport.Viewport
+import ktx.actors.onChange
 import ktx.actors.onClick
 import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.actors
@@ -11,6 +13,7 @@ import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.ProfileEditorState
 import org.demoth.cake.ui.menu.ProfileFormState
+import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
 
 class ProfileEditStage(
     viewport: Viewport,
@@ -22,7 +25,8 @@ class ProfileEditStage(
         private const val FORM_FIELD_PREF_WIDTH: Float = 640f
     }
 
-    private var profilesListTable: Table
+    private var profilesListWidget: Scene2dList<String>
+    private var profilesEmptyLabel: Label
     private var createProfileButton: TextButton
     private var profileIdField: TextField
     private var basedirField: TextField
@@ -30,7 +34,7 @@ class ProfileEditStage(
     private var autodetectButton: TextButton
     private var saveButton: TextButton
     private var statusLabel: Label
-    private val profileButtonsById: MutableMap<String, TextButton> = linkedMapOf()
+    private var suppressProfileSelectionEvents: Boolean = false
 
     private var renderedProfileIds: List<String> = emptyList()
     private var renderedSelectedProfileId: String = ""
@@ -51,10 +55,13 @@ class ProfileEditStage(
                     defaults().pad(8f).fillX()
                     add(Label("Profiles", Scene2DSkin.defaultSkin)).left().row()
 
-                    profilesListTable = Table(Scene2DSkin.defaultSkin).apply {
-                        defaults().pad(4f).fillX()
+                    profilesListWidget = Scene2dList<String>(Scene2DSkin.defaultSkin).apply {
+                        onChange {
+                            if (suppressProfileSelectionEvents) return@onChange
+                            selected?.let { menuEventBus.postIntent(MenuIntent.SelectProfile(it)) }
+                        }
                     }
-                    val profilesScrollPane = ScrollPane(profilesListTable, Scene2DSkin.defaultSkin).apply {
+                    val profilesScrollPane = ScrollPane(profilesListWidget, Scene2DSkin.defaultSkin, "list").apply {
                         setFadeScrollBars(false)
                         setScrollingDisabled(true, false)
                     }
@@ -65,6 +72,11 @@ class ProfileEditStage(
                         .growY()
                         .fillY()
                         .row()
+
+                    profilesEmptyLabel = Label("No profiles", Scene2DSkin.defaultSkin).apply {
+                        isVisible = false
+                    }
+                    add(profilesEmptyLabel).left().row()
 
                     createProfileButton = TextButton("Create New Profile", Scene2DSkin.defaultSkin).apply {
                         onClick {
@@ -157,13 +169,18 @@ class ProfileEditStage(
         if (
             force ||
             normalizedIds != renderedProfileIds ||
-            normalizedSelectedId != renderedSelectedProfileId ||
             state.canEdit != renderedCanEdit
         ) {
-            rebuildProfilesList(
+            syncProfileItems(
+                profileIds = normalizedIds,
+                canEdit = state.canEdit,
+            )
+        }
+
+        if (force || normalizedSelectedId != renderedSelectedProfileId) {
+            syncProfileSelection(
                 profileIds = normalizedIds,
                 selectedProfileId = normalizedSelectedId,
-                canEdit = state.canEdit,
             )
         }
 
@@ -193,35 +210,32 @@ class ProfileEditStage(
         gamemodField.isDisabled = !canEdit
         autodetectButton.isDisabled = !canEdit
         saveButton.isDisabled = !canEdit
-        profileButtonsById.values.forEach { it.isDisabled = !canEdit }
+        profilesListWidget.touchable = if (canEdit) Touchable.enabled else Touchable.disabled
+        profilesEmptyLabel.color.a = if (canEdit) 1f else 0.6f
     }
 
-    private fun rebuildProfilesList(
+    private fun syncProfileItems(
         profileIds: List<String>,
-        selectedProfileId: String,
         canEdit: Boolean,
     ) {
-        profilesListTable.clearChildren()
-        profileButtonsById.clear()
-        val buttonGroup = ButtonGroup<TextButton>().apply {
-            setMinCheckCount(0)
-            setMaxCheckCount(1)
-        }
-        if (profileIds.isEmpty()) {
-            profilesListTable.add(Label("No profiles", Scene2DSkin.defaultSkin)).left().row()
-            return
-        }
+        profilesListWidget.setItems(*profileIds.toTypedArray())
+        profilesListWidget.touchable = if (canEdit) Touchable.enabled else Touchable.disabled
+        profilesEmptyLabel.isVisible = profileIds.isEmpty()
+    }
 
-        for (id in profileIds) {
-            val profileButton = TextButton(id, Scene2DSkin.defaultSkin)
-            profileButton.isDisabled = !canEdit
-            profileButton.isChecked = (id == selectedProfileId)
-            buttonGroup.add(profileButton)
-            profileButtonsById[id] = profileButton
-            profileButton.onClick {
-                menuEventBus.postIntent(MenuIntent.SelectProfile(id))
+    private fun syncProfileSelection(
+        profileIds: List<String>,
+        selectedProfileId: String,
+    ) {
+        suppressProfileSelectionEvents = true
+        try {
+            when {
+                selectedProfileId.isBlank() -> profilesListWidget.selection.clear()
+                profileIds.contains(selectedProfileId) -> profilesListWidget.selected = selectedProfileId
+                else -> profilesListWidget.selection.clear()
             }
-            profilesListTable.add(profileButton).fillX().row()
+        } finally {
+            suppressProfileSelectionEvents = false
         }
     }
 
