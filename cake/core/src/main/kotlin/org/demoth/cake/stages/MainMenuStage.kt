@@ -1,6 +1,7 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.Com
@@ -34,7 +35,8 @@ class MainMenuStage(
     viewport: Viewport,
     private val menuEventBus: MenuEventBus,
 ) : Stage(viewport) {
-    private var currentProfileButton: TextButton
+    private var currentProfileLabel: Label
+    private var switchProfileButton: TextButton
     private var disconnectButton: TextButton
     private var renderedProfileId: String = ""
     private var lastCanDisconnectState: Boolean = false
@@ -45,7 +47,9 @@ class MainMenuStage(
                 defaults().pad(16f).uniformX().fillX()
                 setFillParent(true)
 
-                currentProfileButton = textButton("") {
+                currentProfileLabel = label("")
+                row()
+                switchProfileButton = textButton("Switch profile") {
                     onClick {
                         menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
                     }
@@ -107,7 +111,7 @@ class MainMenuStage(
     private fun refreshProfileHeader(activeProfileId: String) {
         renderedProfileId = activeProfileId
         val shown = renderedProfileId.ifBlank { "<unset>" }
-        currentProfileButton.setText("Current profile: $shown")
+        currentProfileLabel.setText("Profile: $shown")
     }
 
     private fun refreshConnectionDependentUi(
@@ -118,6 +122,6 @@ class MainMenuStage(
         lastCanDisconnectState = canDisconnect
         disconnectButton.isDisabled = !canDisconnect
         // Profile switching is allowed only while disconnected.
-        currentProfileButton.isDisabled = canDisconnect
+        switchProfileButton.isDisabled = canDisconnect
     }
 }
