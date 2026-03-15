@@ -451,9 +451,7 @@ Phase 14 progress:
 ## Hardening Findings (2026-03-03)
 
 - `cddir` read-index integration was dead after Phase 14 and is now removed in Phase 16 (`FS.setCDDir` + dedicated/fullgame bootstrap calls).
-- Remaining non-VFS read behavior in `FS` is compatibility-only:
-  - absolute-path direct reads (`/abs/path`) in `FileExists/FOpenFile/LoadFile/LoadMappedFile`
-  - `fs_links` override path.
+- The old absolute-path read shim and `fs_links` remap path were the main remaining non-VFS read behavior in `FS`; both are now decommission targets rather than preserved compatibility.
 - Legacy/low-value FS API remains mostly for deprecated old-client call paths:
   - `ListFiles`, `NextPath`, `Developer_searchpath`, `Read`.
 - VFS runtime mutation API exists and is test-covered (`mountPackage/unmount/rebuildIndex/snapshot`) but not yet used by live server/client flows.
@@ -812,8 +810,6 @@ Phase G: Collapse/remove `VfsBackedFileSystem`
 - If `FS` still needs a small shim, inline the remaining logic into `FS`
 - Otherwise remove `VfsBackedFileSystem` entirely
 - Retain only explicitly chosen FS compatibility behavior:
-  - absolute-path access
-  - `fs_links`
   - deprecated old-client APIs, if still kept
 
 Exit criteria:
@@ -850,9 +846,9 @@ This means all three legacy types can be treated as decommission targets:
      - `Cmd`/`Cvar`/`CM`: common engine reads and gamedir reconfigure
    - The next step is to inject or expose the real `VirtualFileSystem` for those read paths instead of routing through `FS`.
 
-4. Freeze or remove the `FS` compatibility boundary.
-   - Decide whether absolute-path access and `fs_links` survive as an explicitly legacy-only shim.
-   - If the target is “pure VFS”, they should not remain on the main path.
+4. Remove the `FS` read-side compatibility boundary.
+   - Absolute-path reads and `fs_links` should not remain on the active path.
+   - Keep only narrowly scoped write-root helpers until `FS` itself is retired.
 
 5. Remove `VfsBackedFileSystem`.
    - Once `FS` no longer needs to return `QuakeFile`, the bridge can be inlined away or deleted.
@@ -907,9 +903,12 @@ Phase 17 progress:
 - Kept these three APIs alive for deprecated old-client code paths while explicitly documenting them as non-target APIs for server/cake VFS flows.
 
 Phase 18 progress:
-- Added explicit FS compatibility-boundary note in code: absolute-path direct access plus `fs_links` remapping are intentionally retained.
-- Extended `FSCompatibilityTest` coverage to freeze `fs_links` behavior for `FileExists`, `LoadFile`, and `LoadMappedFile`.
-- Kept existing absolute-path compatibility tests (`OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`) as boundary guards.
+- Removed the explicit FS compatibility boundary for absolute-path reads and `fs_links`.
+- `FS.FileExists`, `FS.IsFromPack`, `FS.FOpenFile`, `FS.LoadFile`, and `FS.LoadMappedFile` now resolve only through VFS-backed logical paths.
+- `FSCompatibilityTest` now asserts the stricter contract:
+  - absolute-path reads are rejected outside VFS
+  - `fs_links` prefixes are no longer resolved
+  - `OpenWriteFile`/`CreatePath` remain as transitional write-side helpers
 
 Runtime lifecycle alignment progress:
 - Exposed manual runtime VFS mutation commands through shared command registration:
@@ -930,9 +929,19 @@ Phase 7 progress:
 - `FS.LoadFile` now skips legacy lowercase fallback when `fs_casesensitive` is enabled.
 - `FS.LoadMappedFile` now uses VFS first; loose files are mapped directly, package entries are returned as read-only buffers.
 - `FS.FOpenFile` now uses VFS for loose files, `.pak` entries (offset-open), and ZIP-backed entries (temp-file compatibility bridge).
-- Restored legacy `fs_links` precedence for `FileExists`, `LoadFile`, and `LoadMappedFile` before VFS fallback.
+- The old absolute-path and `fs_links` read-side compatibility shim has since been removed; active FS reads now depend on VFS logical paths only.
 - `FS.path` now prints VFS mounts (with legacy fallback), and `FS.dir` now lists VFS-resolved files for wildcard queries before legacy directory fallback.
 - `FS.NextPath` and `FS.Developer_searchpath` now use VFS loose mount state first, preserving legacy fallback behavior.
+
+Implementation progress (2026-03-15):
+- Removed the remaining `FS` read-side compatibility boundary:
+  - no absolute-path direct reads in `FileExists`, `IsFromPack`, `FOpenFile`, `LoadFile`, or `LoadMappedFile`
+  - no `fs_links` remap state or `link` console command
+- Kept `OpenWriteFile` and `CreatePath` only as transitional write-side helpers while `FS` still exists.
+- Verified with focused `qcommon` tests:
+  - `FSCompatibilityTest`
+  - `VfsBackedFileSystemTest`
+  - `VfsReadWriteIntegrationTest`
 
 ## Open questions
 
