@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -121,7 +122,9 @@ class MainMenuStage(
         if (!force && canDisconnect == lastCanDisconnectState) return
         lastCanDisconnectState = canDisconnect
         disconnectButton.isDisabled = !canDisconnect
+        disconnectButton.touchable = if (canDisconnect) Touchable.enabled else Touchable.disabled
         // Profile switching is allowed only while disconnected.
         switchProfileButton.isDisabled = canDisconnect
+        switchProfileButton.touchable = if (canDisconnect) Touchable.disabled else Touchable.enabled
     }
 }
