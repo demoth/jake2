@@ -26,8 +26,8 @@ package jake2.server;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.sys.Sys;
+import jake2.server.save.ServerLevelJsonStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -207,23 +207,16 @@ public class SV_CCMDS {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sv2";
 		try {
-			QuakeFile f = FS.OpenReadFile(name);
-
-			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
-				gameImports.sv.configstrings[n] = f.readString();
-
-			gameImports.cm.CM_ReadPortalState(f);
-
-			f.close();
+			ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(FS.getWriteDir());
+			store.applyLevelState(store.readLevelState("current", saveName), gameImports.sv.configstrings, gameImports.cm);
 		}
-		catch (IOException e1) {
-			Com.Printf("Failed to open " + name + "\n");
+		catch (Exception e1) {
+			Com.Printf("Failed to open current level state for " + saveName + "\n");
 			e1.printStackTrace();
 		}
 
-		name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
+		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
 		gameImports.gameExports.ReadLevel(name);
 	}
 

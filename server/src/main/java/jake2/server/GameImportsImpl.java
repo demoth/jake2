@@ -28,7 +28,6 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.messages.NetworkMessage;
@@ -37,6 +36,7 @@ import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
+import jake2.server.save.ServerLevelJsonStore;
 import jake2.server.save.ServerSaveJsonStore;
 
 import java.io.IOException;
@@ -649,23 +649,16 @@ public class GameImportsImpl implements GameImports {
 
         Com.DPrintf("SV_WriteLevelFile()\n");
 
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sv2";
-
         try {
-            QuakeFile f = FS.OpenWriteFile(name);
-
-            for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
-                f.writeString(sv.configstrings[i]);
-
-            cm.CM_WritePortalState(f);
-            f.close();
+            ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(FS.getWriteDir());
+            store.writeLevelState("current", sv.name, sv.configstrings, cm.portalopen);
         }
         catch (Exception e) {
-            Com.Printf("Failed to open " + name + "\n");
+            Com.Printf("Failed to write current level state for " + sv.name + "\n");
             e.printStackTrace();
         }
 
-        name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
         gameExports.WriteLevel(name);
     }
 
