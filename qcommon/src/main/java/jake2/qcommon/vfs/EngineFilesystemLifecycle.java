@@ -7,19 +7,19 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.VfsBackedFileSystem;
 import jake2.qcommon.sys.Sys;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Shared lifecycle/bootstrap owner for engine filesystem setup.
  *
- * <p>This carries the remaining startup, gamedir, and compatibility bridge
- * state while `FS` is being reduced to a legacy facade.
+ * <p>This carries startup, gamedir, and debug-command registration around the
+ * shared engine VFS instance.
  */
 public final class EngineFilesystemLifecycle {
     private static String gameDirPath;
@@ -27,7 +27,6 @@ public final class EngineFilesystemLifecycle {
     private static cvar_t baseDir;
     private static cvar_t caseSensitive;
     private static cvar_t gameDirVar;
-    private static VfsBackedFileSystem compatFileSystem;
 
     private EngineFilesystemLifecycle() {
     }
@@ -41,51 +40,43 @@ public final class EngineFilesystemLifecycle {
         VfsDebugCommands.register(new VfsDebugCommands.Provider() {
             @Override
             public boolean isInitialized() {
-                return compatFileSystem != null;
+                return EngineVfs.isInitialized();
             }
 
             @Override
             public List<String> resolvedFiles() {
                 syncVfsCaseSensitivity();
-                return compatFileSystem == null ? List.of() : compatFileSystem.debugResolvedFiles();
+                return EngineVfs.debugResolvedFiles();
             }
 
             @Override
             public List<String> mounts() {
                 syncVfsCaseSensitivity();
-                return compatFileSystem == null ? List.of() : compatFileSystem.debugMounts();
+                return EngineVfs.debugMounts();
             }
 
             @Override
             public List<String> overrides() {
                 syncVfsCaseSensitivity();
-                return compatFileSystem == null ? List.of() : compatFileSystem.debugOverrides();
+                return EngineVfs.debugOverrides();
             }
 
             @Override
             public VfsResult<String> mountPackage(String packagePath) {
                 syncVfsCaseSensitivity();
-                if (compatFileSystem == null) {
-                    return VfsResult.fail("VFS compatibility layer is not initialized.");
-                }
-                return compatFileSystem.mountPackage(packagePath);
+                return EngineVfs.mountPackage(packagePath);
             }
 
             @Override
             public VfsResult<Void> unmountPackage(String mountId) {
                 syncVfsCaseSensitivity();
-                if (compatFileSystem == null) {
-                    return VfsResult.fail("VFS compatibility layer is not initialized.");
-                }
-                return compatFileSystem.unmountPackage(mountId);
+                return EngineVfs.unmount(mountId);
             }
 
             @Override
             public void rebuildIndex(RebuildScope scope) {
                 syncVfsCaseSensitivity();
-                if (compatFileSystem != null) {
-                    compatFileSystem.rebuildIndex(scope);
-                }
+                EngineVfs.rebuildIndex(scope);
             }
         });
 
@@ -105,7 +96,7 @@ public final class EngineFilesystemLifecycle {
             setGameDir(gameDirVar.string);
         }
 
-        initCompatFileSystem();
+        initEngineVfs();
     }
 
     public static void execAutoexec() {
@@ -143,11 +134,7 @@ public final class EngineFilesystemLifecycle {
         }
 
         setWriteDir(gameName);
-        updateCompatGameMod(gameName);
-    }
-
-    public static VfsBackedFileSystem compatFileSystem() {
-        return compatFileSystem;
+        updateGameMod(gameName);
     }
 
     public static String currentGameDir() {
@@ -159,13 +146,10 @@ public final class EngineFilesystemLifecycle {
     }
 
     public static void syncVfsCaseSensitivity() {
-        if (compatFileSystem == null || caseSensitive == null) {
+        if (caseSensitive == null) {
             return;
         }
-        boolean desired = isVfsCaseSensitive();
-        if (compatFileSystem.isCaseSensitive() != desired) {
-            compatFileSystem.setCaseSensitive(desired);
-        }
+        EngineVfs.setCaseSensitive(isVfsCaseSensitive());
     }
 
     private static void setWriteDir(String gameName) {
@@ -173,29 +157,30 @@ public final class EngineFilesystemLifecycle {
         EngineWriteRoot.setRoot(Path.of(userDirPath));
     }
 
-    private static void initCompatFileSystem() {
+    private static void initEngineVfs() {
         String gameMod = null;
         if (gameDirVar != null && !gameDirVar.string.isEmpty()) {
             gameMod = gameDirVar.string;
         }
-        compatFileSystem = new VfsBackedFileSystem(EngineVfs.shared());
-        compatFileSystem.configure(
-                Paths.get(baseDir.string),
-                Globals.BASEQ2,
-                gameMod,
-                true,
-                isVfsCaseSensitive()
+        EngineVfs.configure(
+                new VfsConfig(
+                        Paths.get(baseDir.string),
+                        Globals.BASEQ2,
+                        gameMod,
+                        true,
+                        false,
+                        isVfsCaseSensitive(),
+                        List.of(),
+                        Set.of("pak", "pk2", "pk3", "pkz", "zip")
+                )
         );
     }
 
-    private static void updateCompatGameMod(String gameName) {
-        if (compatFileSystem == null) {
-            return;
-        }
+    private static void updateGameMod(String gameName) {
         if (gameName == null || gameName.isEmpty() || gameName.equals(Globals.BASEQ2)) {
-            compatFileSystem.setGameMod(null);
+            EngineVfs.setGameMod(null);
         } else {
-            compatFileSystem.setGameMod(gameName);
+            EngineVfs.setGameMod(gameName);
         }
     }
 
@@ -236,13 +221,13 @@ public final class EngineFilesystemLifecycle {
             wildcard = args.get(1);
         }
 
-        if (compatFileSystem == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
+        if (!EngineVfs.isInitialized()) {
+            Com.Printf("VFS is not initialized.\n");
             return;
         }
 
         syncVfsCaseSensitivity();
-        List<String> matches = compatFileSystem.debugFilesMatching(wildcard);
+        List<String> matches = EngineVfs.debugFilesMatching(wildcard);
         Com.Printf("Directory of " + wildcard + '\n');
         for (String match : matches) {
             Com.Printf("  " + match + '\n');
@@ -259,14 +244,14 @@ public final class EngineFilesystemLifecycle {
             return;
         }
 
-        if (compatFileSystem == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
+        if (!EngineVfs.isInitialized()) {
+            Com.Printf("VFS is not initialized.\n");
             return;
         }
 
         syncVfsCaseSensitivity();
         String packName = args.get(1);
-        VfsResult<List<String>> result = compatFileSystem.debugFilesInPack(packName);
+        VfsResult<List<String>> result = EngineVfs.debugFilesInPack(packName);
         if (!result.success()) {
             Com.Printf(result.error() + "\n");
             return;
@@ -284,13 +269,13 @@ public final class EngineFilesystemLifecycle {
     }
 
     private static void printPath() {
-        if (compatFileSystem == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
+        if (!EngineVfs.isInitialized()) {
+            Com.Printf("VFS is not initialized.\n");
             return;
         }
 
         syncVfsCaseSensitivity();
-        List<String> mounts = compatFileSystem.debugMounts();
+        List<String> mounts = EngineVfs.debugMounts();
         if (mounts.isEmpty()) {
             Com.Printf("No VFS mounts available.\n");
             return;
