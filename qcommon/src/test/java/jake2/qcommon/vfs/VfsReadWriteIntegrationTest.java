@@ -1,6 +1,5 @@
 package jake2.qcommon.vfs;
 
-import jake2.qcommon.filesystem.VfsBackedFileSystem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -36,10 +35,18 @@ public class VfsReadWriteIntegrationTest {
         Files.createDirectories(modMap.getParent());
         Files.write(modMap, "mod-loose".getBytes(StandardCharsets.US_ASCII));
 
-        VfsBackedFileSystem readFs = new VfsBackedFileSystem();
-        readFs.configure(basedir, "baseq2", "rogue", true, false);
+        EngineVfs.configure(new VfsConfig(
+                basedir,
+                "baseq2",
+                "rogue",
+                true,
+                false,
+                false,
+                java.util.List.of(),
+                java.util.Set.of("pak", "pk2", "pk3", "pkz", "zip")
+        ));
 
-        assertArrayEquals("mod-loose".getBytes(StandardCharsets.US_ASCII), readFs.loadFile("maps/test.bsp"));
+        assertArrayEquals("mod-loose".getBytes(StandardCharsets.US_ASCII), EngineVfs.loadBytes("maps/test.bsp"));
 
         Path writeRoot = Files.createDirectories(temp.resolve("write-root"));
         DefaultWritableFileSystem writable = new DefaultWritableFileSystem(writeRoot);
@@ -51,7 +58,7 @@ public class VfsReadWriteIntegrationTest {
             handle.outputStream().write(saveData);
         }
 
-        assertFalse(readFs.exists("save/current/server_mapcmd.ssv.json"));
+        assertFalse(EngineVfs.exists("save/current/server_mapcmd.ssv.json"));
 
         VfsResult<VfsReadableHandle> openedRead = writable.openReadReal("save/current/server_mapcmd.ssv.json", VfsOpenOptions.DEFAULT);
         assertTrue(openedRead.success());
