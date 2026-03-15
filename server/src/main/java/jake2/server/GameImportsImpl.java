@@ -37,8 +37,10 @@ import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
+import jake2.server.save.ServerSaveJsonStore;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -148,22 +150,17 @@ public class GameImportsImpl implements GameImports {
         try {
 
             Com.DPrintf("SV_ReadServerFile()\n");
-
-            QuakeFile f = FS.OpenReadFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv");
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+            ServerSaveJsonStore.ServerLatchedCvarsSnapshot snapshot = store.readLatchedCvars("current");
 
             // read all CVAR_LATCH cvars
             // these will be things like coop, skill, deathmatch, etc
-            while (true) {
-                String name = f.readString();
-                if (name == null)
-                    break;
-                String value = f.readString();
-
+            for (ServerSaveJsonStore.LatchedCvarSnapshot cvar : snapshot.cvars()) {
+                String name = cvar.name();
+                String value = cvar.value();
                 Com.DPrintf("Set " + name + " = " + value + "\n");
                 Cvar.getInstance().ForceSet(name, value);
             }
-
-            f.close();
 
             // read game state
             this.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv");
@@ -687,7 +684,7 @@ public class GameImportsImpl implements GameImports {
         Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
         try {
-            QuakeFile f = FS.OpenWriteFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv");
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
 
             final String comment;
             if (autosave) {
@@ -696,27 +693,15 @@ public class GameImportsImpl implements GameImports {
                 comment = new Date() + " " + sv.configstrings[Defines.CS_NAME];
             }
 
-            f.writeString(comment);
-            f.writeString(mapcmd);
-            f.close();
-
-
-            QuakeFile cvarsFile = FS.OpenWriteFile(FS.getWriteDir() + "/save/current/server_latched_cvars.ssv");
+            store.writeMapCommand("current", comment, mapcmd);
 
             // write all CVAR_LATCH cvars
             // these will be things like coop, skill, deathmatch, etc
+            List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
             Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-                try {
-                    cvarsFile.writeString(var.name);
-                    cvarsFile.writeString(var.string);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string));
             });
-
-            // rst: for termination.
-            cvarsFile.writeString(null);
-            cvarsFile.close();
+            store.writeLatchedCvars("current", latchedCvars);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

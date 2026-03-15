@@ -28,7 +28,6 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
@@ -42,9 +41,8 @@ import jake2.qcommon.network.messages.server.ReconnectMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
+import jake2.server.save.ServerSaveJsonStore;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1130,22 +1128,12 @@ public class SV_MAIN implements JakeServer {
             return;
         }
 
-        // make sure the server.ssv file exists
-        String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv";
-        QuakeFile f;
-        try {
-            f = FS.OpenReadFile(name);
-        }
-        catch (FileNotFoundException e) {
+        // make sure the server metadata file exists
+        ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+        if (!store.hasMapCommand(saveGame)) {
+            String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv";
             Com.Printf("No such savegame: " + name + "\n");
             return;
-        }
-
-        try {
-            f.close();
-        }
-        catch (IOException e1) {
-            e1.printStackTrace();
         }
 
         SV_CopySaveGame(saveGame, "current");
@@ -1160,12 +1148,13 @@ public class SV_MAIN implements JakeServer {
         Com.DPrintf("SV_ReadMapCommand()\n");
 
         try {
-            QuakeFile f = FS.OpenReadFile(FS.getWriteDir() + "/save/current/server_mapcmd.ssv");
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+            ServerSaveJsonStore.ServerMapCommandSnapshot snapshot = store.readMapCommand("current");
             // read the comment field
-            Com.DPrintf("SV_ReadMapCommand: Loading save: " + f.readString() + "\n");
+            Com.DPrintf("SV_ReadMapCommand: Loading save: " + snapshot.comment() + "\n");
 
             // read the mapcmd
-            return f.readString();
+            return snapshot.mapCommand();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
