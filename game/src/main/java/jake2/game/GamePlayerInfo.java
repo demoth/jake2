@@ -465,6 +465,14 @@ public class GamePlayerInfo implements ServerPlayerInfo {
 		return index;
 	}
 
+	public boolean isShowHelpIcon() {
+		return showhelpicon;
+	}
+
+	public void setShowHelpIcon(boolean showHelpIcon) {
+		this.showhelpicon = showHelpIcon;
+	}
+
 	public void setIndex(int index) {
 		this.index = index;
 	}

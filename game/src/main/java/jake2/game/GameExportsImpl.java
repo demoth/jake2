@@ -15,6 +15,7 @@ import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -1574,20 +1575,24 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void WriteGame(String filename, boolean autosave) {
         try {
-
             if (!autosave)
                 SaveClientData();
 
-            QuakeFile f = FS.OpenWriteFile(filename);
-
+            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(FS.getWriteDir());
             game.autosaved = autosave;
-            game.write(f);
-            game.autosaved = false;
-
-            for (int i = 0; i < game.maxclients; i++)
-                game.clients[i].write(f);
-
-            Lib.fclose(f);
+            try {
+                List<GamePlayerSnapshot> clients = new ArrayList<>();
+                for (int i = 0; i < game.maxclients; i++) {
+                    clients.add(GamePlayerSnapshots.snapshot(game.clients[i]));
+                }
+                store.write(filename, new GameSaveFileSnapshot(
+                        GameSaveJsonStore.SCHEMA_VERSION,
+                        GameSaveSnapshots.snapshot(game),
+                        clients
+                ));
+            } finally {
+                game.autosaved = false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1597,17 +1602,16 @@ public class GameExportsImpl implements GameExports {
     public void readGameLocals(String filename) {
 
         try {
-
-            QuakeFile f = FS.OpenReadFile(filename);
-
-            game.load(f);
+            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(FS.getWriteDir());
+            GameSaveFileSnapshot snapshot = store.read(filename);
+            GameSaveSnapshots.apply(game, snapshot.getGame());
 
             for (int i = 0; i < game.maxclients; i++) {
                 game.clients[i] = new GamePlayerInfo(i);
-                game.clients[i].read(f, g_edicts, this);
+                if (i < snapshot.getClients().size()) {
+                    GamePlayerSnapshots.apply(game.clients[i], snapshot.getClients().get(i), items, g_edicts);
+                }
             }
-
-            f.close();
         }
 
         catch (Exception e) {
