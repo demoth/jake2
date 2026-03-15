@@ -21,7 +21,4 @@ public interface VirtualFileSystem {
     VfsResult<Void> unmount(String mountId);
 
     void rebuildIndex(RebuildScope scope);
-
-    VfsSnapshot snapshot();
 }
-

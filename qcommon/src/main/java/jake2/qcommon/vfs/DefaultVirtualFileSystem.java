@@ -10,15 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -203,24 +195,6 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         ensureConfigured();
         // Scoped rebuild will be introduced later; for now keep deterministic full rebuild.
         rebuildAll();
-    }
-
-    @Override
-    public synchronized VfsSnapshot snapshot() {
-        ensureConfigured();
-        EnumMap<VfsLayer, Integer> entryCounts = new EnumMap<>(VfsLayer.class);
-        EnumMap<VfsLayer, Integer> mountCounts = new EnumMap<>(VfsLayer.class);
-        for (VfsLayer layer : VfsLayer.values()) {
-            entryCounts.put(layer, perLayerIndex.get(layer).size());
-            mountCounts.put(layer, 0);
-        }
-        for (LooseMount mount : looseMounts) {
-            mountCounts.put(mount.layer, mountCounts.get(mount.layer) + 1);
-        }
-        for (PackageMount mount : packageMounts) {
-            mountCounts.put(mount.layer, mountCounts.get(mount.layer) + 1);
-        }
-        return new VfsSnapshot(flattenedIndex.size(), entryCounts, mountCounts);
     }
 
     /**

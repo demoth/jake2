@@ -1,6 +1,5 @@
 package jake2.qcommon.vfs;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 

@@ -73,7 +73,6 @@ The API surface behind that is the shared `VirtualFileSystem` contract:
 - `mountPackage(...)`
 - `unmount(...)`
 - `rebuildIndex(...)`
-- `snapshot()`
 
 ## Write Path
 

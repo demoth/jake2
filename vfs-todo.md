@@ -15,7 +15,7 @@ This file is intentionally reduced to active follow-up items only. Historical mi
   - package entries indexed
   - rebuild duration
 
-- Add a richer diagnostics command, likely `fs_stats`, on top of `VfsSnapshot` or a dedicated stats model.
+- Add a richer diagnostics command, likely `fs_stats`, on top of a dedicated stats model.
 
 - Replace Cake temp extraction for package-backed assets with a VFS-backed handle where possible.
   - preferred direction: a `VfsFileHandle`-style adapter for libGDX-facing code
