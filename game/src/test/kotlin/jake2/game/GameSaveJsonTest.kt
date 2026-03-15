@@ -141,8 +141,8 @@ class GameSaveJsonTest {
             clients = clients
         )
 
-        store.write("save/current/game.ssv", snapshot)
-        val restored = store.read("save/current/game.ssv")
+        store.write("save/current/game.ssv.json", snapshot)
+        val restored = store.read("save/current/game.ssv.json")
 
         assertEquals(snapshot.schemaVersion, restored.schemaVersion)
         assertEquals(snapshot.game.helpMessage1(), restored.game.helpMessage1())
@@ -153,7 +153,7 @@ class GameSaveJsonTest {
     @Test
     fun gameSaveJsonStoreAcceptsAbsolutePathsUnderWriteRoot() {
         val store = GameSaveJsonStore(DefaultWritableFileSystem(tempDir))
-        val absolutePath = tempDir.resolve("save/current/game.ssv").toString()
+        val absolutePath = tempDir.resolve("save/current/game.ssv.json").toString()
         val snapshot = GameSaveFileSnapshot(
             schemaVersion = GameSaveJsonStore.SCHEMA_VERSION,
             game = GameSaveSnapshots.snapshot(game_locals_t().apply { maxclients = 1 }),
@@ -164,7 +164,7 @@ class GameSaveJsonTest {
         val restored = store.read(absolutePath)
 
         assertEquals(1, restored.game.maxClients())
-        assertTrue(tempDir.resolve("save/current/game.ssv").toFile().isFile)
+        assertTrue(tempDir.resolve("save/current/game.ssv.json").toFile().isFile)
     }
 
     private fun item(index: Int, classname: String): GameItem =

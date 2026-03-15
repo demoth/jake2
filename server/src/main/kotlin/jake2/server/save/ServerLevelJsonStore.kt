@@ -69,7 +69,7 @@ class ServerLevelJsonStore(private val writable: WritableFileSystem) {
     }
 
     private fun levelStatePath(slot: String, mapName: String): String {
-        return "save/${normalizeSegment(slot, "slot")}/${normalizeSegment(mapName, "mapName")}.sv2"
+        return "save/${normalizeSegment(slot, "slot")}/${normalizeSegment(mapName, "mapName")}.sv2.json"
     }
 
     private fun normalizeSegment(value: String, label: String): String {

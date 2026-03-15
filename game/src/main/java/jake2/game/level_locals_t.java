@@ -29,7 +29,7 @@ import java.io.IOException;
 
 /**
  * this structure is cleared as each map is entered
- * it is read/written to the level.sav file for savegames
+ * it is read/written to the level.sav.json file for savegames
  */
 public class level_locals_t {
     public int framenum;

@@ -57,16 +57,16 @@ public class SV_CCMDS {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
-		String name = FS.getWriteDir() + "/save/" + savename + "/server_latched_cvars.ssv";
+		String name = FS.getWriteDir() + "/save/" + savename + "/server_latched_cvars.ssv.json";
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/server_mapcmd.ssv";
+		name = FS.getWriteDir() + "/save/" + savename + "/server_mapcmd.ssv.json";
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/game.ssv";
+		name = FS.getWriteDir() + "/save/" + savename + "/game.ssv.json";
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/*.sav";
+		name = FS.getWriteDir() + "/save/" + savename + "/*.sav.json";
 
 		File f = Sys.FindFirst(name, 0, 0);
 		while (f != null) {
@@ -75,7 +75,7 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 
-		name = FS.getWriteDir() + "/save/" + savename + "/*.sv2";
+		name = FS.getWriteDir() + "/save/" + savename + "/*.sv2.json";
 
 		f = Sys.FindFirst(name, 0, 0);
 
@@ -162,23 +162,23 @@ public class SV_CCMDS {
 		SV_WipeSavegame(dst);
 
 		// copy the savegame over
-		String name = FS.getWriteDir() + "/save/" + src + "/server_latched_cvars.ssv";
-		String name2 = FS.getWriteDir() + "/save/" + dst + "/server_latched_cvars.ssv";
+		String name = FS.getWriteDir() + "/save/" + src + "/server_latched_cvars.ssv.json";
+		String name2 = FS.getWriteDir() + "/save/" + dst + "/server_latched_cvars.ssv.json";
 		FS.CreatePath(name2);
 		CopyFile(name, name2);
 
 		// copy the savegame over
-		name = FS.getWriteDir() + "/save/" + src + "/server_mapcmd.ssv";
-		name2 = FS.getWriteDir() + "/save/" + dst + "/server_mapcmd.ssv";
+		name = FS.getWriteDir() + "/save/" + src + "/server_mapcmd.ssv.json";
+		name2 = FS.getWriteDir() + "/save/" + dst + "/server_mapcmd.ssv.json";
 		FS.CreatePath(name2);
 		CopyFile(name, name2);
 
-		name = FS.getWriteDir() + "/save/" + src + "/game.ssv";
-		name2 = FS.getWriteDir() + "/save/" + dst + "/game.ssv";
+		name = FS.getWriteDir() + "/save/" + src + "/game.ssv.json";
+		name2 = FS.getWriteDir() + "/save/" + dst + "/game.ssv.json";
 		CopyFile(name, name2);
 
 		String name1 = FS.getWriteDir() + "/save/" + src + "/";
-		name = FS.getWriteDir() + "/save/" + src + "/*.sav";
+		name = FS.getWriteDir() + "/save/" + src + "/*.sav.json";
 
 		File found = Sys.FindFirst(name, 0, 0);
 
@@ -188,9 +188,8 @@ public class SV_CCMDS {
 
 			CopyFile(name, name2);
 
-			// change sav to sv2
-			name = name.substring(0, name.length() - 3) + "sv2";
-			name2 = name2.substring(0, name2.length() - 3) + "sv2";
+			name = name.replace(".sav.json", ".sv2.json");
+			name2 = name2.replace(".sav.json", ".sv2.json");
 
 			CopyFile(name, name2);
 
@@ -216,7 +215,7 @@ public class SV_CCMDS {
 			e1.printStackTrace();
 		}
 
-		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
+		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sav.json";
 		gameImports.gameExports.ReadLevel(name);
 	}
 

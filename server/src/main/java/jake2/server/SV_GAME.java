@@ -286,7 +286,7 @@ public class SV_GAME {
         if (Cvar.getInstance().VariableValue("deathmatch") != 0)
             return false;
 
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav.json";
 
         return new File(name).exists();
 

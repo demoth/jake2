@@ -84,11 +84,11 @@ public final class ServerSaveJsonStore {
     }
 
     private static String mapCommandPath(String slot) {
-        return "save/" + normalizeSlot(slot) + "/server_mapcmd.ssv";
+        return "save/" + normalizeSlot(slot) + "/server_mapcmd.ssv.json";
     }
 
     private static String latchedCvarsPath(String slot) {
-        return "save/" + normalizeSlot(slot) + "/server_latched_cvars.ssv";
+        return "save/" + normalizeSlot(slot) + "/server_latched_cvars.ssv.json";
     }
 
     private static String normalizeSlot(String slot) {

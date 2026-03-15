@@ -163,7 +163,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             // read game state
-            this.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv");
+            this.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv.json");
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
         }
@@ -658,7 +658,7 @@ public class GameImportsImpl implements GameImports {
             e.printStackTrace();
         }
 
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav.json";
         gameExports.WriteLevel(name);
     }
 
@@ -700,7 +700,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // write game state
-        gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
+        gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv.json", autosave);
     }
 
     /**

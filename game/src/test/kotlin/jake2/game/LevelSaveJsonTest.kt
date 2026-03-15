@@ -213,8 +213,8 @@ class LevelSaveJsonTest {
             entities = listOf(LevelSaveSnapshots.snapshot(2, entity))
         )
 
-        store.write("save/current/level.sav", snapshot)
-        val restored = store.read("save/current/level.sav")
+        store.write("save/current/level.sav.json", snapshot)
+        val restored = store.read("save/current/level.sav.json")
 
         assertEquals(LevelSaveJsonStore.SCHEMA_VERSION, restored.schemaVersion)
         assertEquals("testmap", restored.level.mapName)
@@ -226,7 +226,7 @@ class LevelSaveJsonTest {
     @Test
     fun levelSaveJsonStoreAcceptsAbsolutePathsUnderWriteRoot() {
         val store = LevelSaveJsonStore(DefaultWritableFileSystem(tempDir))
-        val absolutePath = tempDir.resolve("save/current/base1.sav").toString()
+        val absolutePath = tempDir.resolve("save/current/base1.sav.json").toString()
         val snapshot = LevelSaveFileSnapshot(
             schemaVersion = LevelSaveJsonStore.SCHEMA_VERSION,
             level = LevelSaveSnapshots.snapshot(level_locals_t().apply { mapname = "base1" }),
@@ -237,7 +237,7 @@ class LevelSaveJsonTest {
         val restored = store.read(absolutePath)
 
         assertEquals("base1", restored.level.mapName)
-        assertTrue(tempDir.resolve("save/current/base1.sav").toFile().isFile)
+        assertTrue(tempDir.resolve("save/current/base1.sav.json").toFile().isFile)
     }
 
     private fun item(index: Int, classname: String): GameItem =

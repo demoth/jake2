@@ -28,7 +28,7 @@ public class FSCompatibilityTest {
 
     @Test
     public void openWriteAndOpenReadRoundTripAbsolutePath() throws Exception {
-        File target = temp.resolve("save/current/server_mapcmd.ssv").toFile();
+        File target = temp.resolve("save/current/server_mapcmd.ssv.json").toFile();
         String absolutePath = target.getAbsolutePath();
 
         try (QuakeFile out = FS.OpenWriteFile(absolutePath)) {

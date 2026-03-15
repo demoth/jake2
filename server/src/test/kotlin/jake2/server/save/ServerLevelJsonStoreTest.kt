@@ -63,6 +63,6 @@ class ServerLevelJsonStoreTest {
 
         store.writeLevelState("current", "base1", arrayOfNulls(Defines.MAX_CONFIGSTRINGS), BooleanArray(Defines.MAX_MAP_AREAPORTALS))
 
-        assertTrue(Files.isRegularFile(temp.resolve("save/current/base1.sv2")))
+        assertTrue(Files.isRegularFile(temp.resolve("save/current/base1.sv2.json")))
     }
 }

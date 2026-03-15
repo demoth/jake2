@@ -1131,7 +1131,7 @@ public class SV_MAIN implements JakeServer {
         // make sure the server metadata file exists
         ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
         if (!store.hasMapCommand(saveGame)) {
-            String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv";
+            String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv.json";
             Com.Printf("No such savegame: " + name + "\n");
             return;
         }

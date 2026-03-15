@@ -61,6 +61,6 @@ class ServerSaveJsonStoreTest {
 
         store.writeMapCommand("current", "comment", "mapcmd");
 
-        assertTrue(Files.isRegularFile(temp.resolve("save/current/server_mapcmd.ssv")));
+        assertTrue(Files.isRegularFile(temp.resolve("save/current/server_mapcmd.ssv.json")));
     }
 }
