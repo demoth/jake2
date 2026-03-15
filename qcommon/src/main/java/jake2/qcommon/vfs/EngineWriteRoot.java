@@ -9,8 +9,8 @@ import java.nio.file.Path;
 /**
  * Shared write-root policy for active engine code.
  *
- * <p>This keeps save/config output location outside the deprecated `FS`
- * compatibility API while preserving the current on-disk layout.
+ * <p>This keeps save/config output location under an explicit VFS-owned policy
+ * while preserving the current on-disk layout.
  */
 public final class EngineWriteRoot {
     private static volatile Path root = Path.of(Globals.BASEQ2);

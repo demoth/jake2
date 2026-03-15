@@ -18,7 +18,7 @@ import java.util.Objects;
  * JSON-backed persistence for server-owned save metadata.
  *
  * Legacy filenames are preserved so save copy/wipe flows do not need to change
- * while the content format moves away from QuakeFile binary storage.
+ * while the content format stays distinct from the removed binary save path.
  */
 public final class ServerSaveJsonStore {
     public static final int SCHEMA_VERSION = 1;

@@ -1004,24 +1004,15 @@ The remaining decommission work is now narrow and explicit.
 
 ### `QuakeFile` remaining role
 
-- `QuakeFile` no longer participates in active save persistence.
-- Remaining production references are effectively compatibility-only:
-  - `qcommon.filesystem.FS`
-  - `qcommon.filesystem.VfsBackedFileSystem`
-  - `qcommon.filesystem.QuakeFile`
-- The old `SuperAdapter.writeAdapter/readAdapter` binary helpers have now been removed.
-- Remaining test references are only bridge coverage:
-  - `FSCompatibilityTest`
-  - `VfsBackedFileSystemTest`
+- `QuakeFile` has been removed from the active build.
+- The old `SuperAdapter.writeAdapter/readAdapter` binary helpers were removed before that deletion.
+- Any remaining mentions are historical notes in docs or deprecated client/reference code outside the active build.
 
 ### `VfsBackedFileSystem` remaining role
 
-- `VfsBackedFileSystem` is no longer part of the production path.
+- `VfsBackedFileSystem` has been removed from the active build.
 - `EngineFilesystemLifecycle` now talks directly to `EngineVfs` for configuration, diagnostics, and runtime mount operations.
-- `VfsBackedFileSystem` now exists only as a shrinking `QuakeFile` compatibility test target.
-- The most important behavior still trapped there is the ZIP package temp-extraction bridge:
-  - `.pak` entries are opened by offset from the pack
-  - ZIP-backed package entries are extracted to temp files only because `QuakeFile` requires an OS file
+- This also removes the ZIP temp-extraction bridge that existed only to fabricate `QuakeFile` views over package entries.
 
 ### Concrete blockers before deletion
 
@@ -1032,19 +1023,18 @@ The remaining decommission work is now narrow and explicit.
 3. Remove `QuakeFile` bridge APIs.
    - Done as part of removing `FS` from the active build.
 4. Delete `VfsBackedFileSystem`.
-   - Production no longer depends on it.
-   - Remaining work is to delete the test-only bridge and its ZIP temp-extraction path together with `QuakeFile`.
+   - Done.
 5. Delete `QuakeFile`.
-   - Once no production code or tests depend on it, remove the type entirely.
+   - Done.
 6. Reduce or delete `FS`.
-   - Preferred end state: `FS` disappears.
-   - Acceptable temporary end state: `FS` becomes a minimal deprecated bootstrap shim with no file I/O API surface.
+   - Done for the active build.
 
 ### Recommended deletion order
 
-1. Delete `VfsBackedFileSystem`.
-2. Delete `QuakeFile`.
-3. Delete or trivialize any lingering `FS` documentation/reference mentions.
+1. Delete `FS`.
+2. Delete `VfsBackedFileSystem`.
+3. Delete `QuakeFile`.
+4. Clean up lingering documentation/reference mentions.
 
 ### End-state criteria
 
@@ -1057,8 +1047,10 @@ The remaining decommission work is now narrow and explicit.
 
 Current state:
 
-- `FS` is decommissioned from the active build.
-- Remaining deletion target is now `VfsBackedFileSystem` + `QuakeFile`.
+- `FS` is removed from the active build.
+- `VfsBackedFileSystem` is removed from the active build.
+- `QuakeFile` is removed from the active build.
+- Remaining work is documentation cleanup and any future client-side temp-extraction cleanup such as a `VfsFileHandle`.
 
 ## Open questions
 

@@ -59,13 +59,13 @@ Writable side:
 
 ## Compatibility Bridge
 
-The old `FS` facade has been removed from the active build.
+The old `FS`, `VfsBackedFileSystem`, and `QuakeFile` compatibility layer has been removed from the active build.
 
-The remaining compatibility bridge is split into:
+What remains is:
 
-- `EngineFilesystemLifecycle` for startup, gamedir changes, debug command registration, and VFS bridge lifecycle
-- `VfsBackedFileSystem` for the shrinking `QuakeFile` compatibility path
-- `QuakeFile` itself, which is still pending removal
+- `EngineFilesystemLifecycle` for startup, gamedir changes, and debug command registration
+- `EngineVfs` as the shared read-side engine VFS owner
+- core `VirtualFileSystem` / `WritableFileSystem` APIs
 
 ## Integration Points
 
@@ -103,6 +103,8 @@ Completed:
 
 - legacy FS search-path internals removed
 - legacy `FS` facade removed from the active build
+- legacy `VfsBackedFileSystem` bridge removed from the active build
+- legacy `QuakeFile` compatibility type removed from the active build
 - server/cake/model-viewer read-path unified on VFS
 - compatibility boundary tested for absolute-path + `fs_links`
 - runtime mutation commands exposed (`fs_mount`, `fs_unmount`, `fs_rebuild`)
