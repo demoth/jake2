@@ -28,6 +28,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
@@ -997,7 +998,7 @@ public class SV_MAIN implements JakeServer {
         });
 
         Cmd.AddCommand("listmaps", (List<String> args) -> {
-            byte[] bytes = FS.LoadFile("maps.lst");
+            byte[] bytes = EngineVfs.loadBytes("maps.lst");
             if (bytes == null) {
                 Com.Error(ERR_DROP, "Could not read maps.lst");
                 return;
@@ -1391,7 +1392,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         String mapName = args.get(1);
         if (!mapName.contains(".")) {
             String mapPath = "maps/" + mapName + ".bsp";
-            if (FS.LoadFile(mapPath) == null) {
+            if (!EngineVfs.exists(mapPath)) {
                 Com.Printf("Can't find " + mapPath + "\n");
                 return;
             }

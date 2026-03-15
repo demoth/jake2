@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem;
 
+import jake2.qcommon.vfs.EngineVfs;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -181,6 +182,19 @@ public class VfsBackedFileSystemTest {
 
         fs.setGameMod("rogue");
         assertFalse(fs.isFromPack("maps/test.bsp"));
+    }
+
+    @Test
+    public void engineVfsReadsFromSharedConfiguredIndex() throws Exception {
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
+        writePak(basedir.resolve("baseq2/pak0.pak"), Map.of("maps/test.bsp", "pak".getBytes(StandardCharsets.US_ASCII)));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem(EngineVfs.shared());
+        fs.configure(basedir, "baseq2", null, true, false);
+
+        assertArrayEquals("pak".getBytes(StandardCharsets.US_ASCII), EngineVfs.loadBytes("maps/test.bsp"));
+        assertTrue(EngineVfs.exists("maps/test.bsp"));
+        assertTrue(EngineVfs.isFromPack("maps/test.bsp"));
     }
 
     @Test

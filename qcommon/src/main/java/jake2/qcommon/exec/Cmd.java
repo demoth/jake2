@@ -28,7 +28,7 @@ package jake2.qcommon.exec;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.vfs.EngineVfs;
 
 import java.util.*;
 
@@ -53,7 +53,7 @@ public final class Cmd {
             return;
         }
 
-        byte[] f = FS.LoadFile(args.get(1));
+        byte[] f = EngineVfs.loadBytes(args.get(1));
         if (f == null) {
             Com.Printf("couldn't exec " + args.get(1) + "\n");
             return;

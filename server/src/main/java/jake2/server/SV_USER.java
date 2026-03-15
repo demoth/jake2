@@ -29,6 +29,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.*;
+import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
@@ -303,7 +304,7 @@ class SV_USER {
             return;
         }
 
-        client.download = FS.LoadFile(name);
+        client.download = EngineVfs.loadBytes(name);
         
         // rst: this handles loading errors, no message yet visible 
         if (client.download == null) {
@@ -317,7 +318,7 @@ class SV_USER {
             client.downloadcount = client.downloadsize;
 
         // special check for maps, if it came from a pak file, don't allow download ZOID
-        if (name.startsWith("maps/") && FS.IsFromPack(name)) {
+        if (name.startsWith("maps/") && EngineVfs.isFromPack(name)) {
             Com.DPrintf("Couldn't download " + name + " to " + client.name + "\n");
             if (client.download != null) {
                 client.download = null;

@@ -25,8 +25,8 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.BspHeader;
 import jake2.qcommon.filesystem.BspLump;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
+import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
@@ -273,7 +273,7 @@ public class CM {
         //
         // load the file
         //
-        byte[] buf = FS.LoadFile(name);
+        byte[] buf = EngineVfs.loadBytes(name);
 
         return CM_LoadMapFile(buf, name, checksum);
     }

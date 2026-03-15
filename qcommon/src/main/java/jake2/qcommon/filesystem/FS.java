@@ -31,6 +31,7 @@ import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
+import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.vfs.RebuildScope;
 import jake2.qcommon.vfs.VfsDebugCommands;
 import jake2.qcommon.vfs.VfsResult;
@@ -105,19 +106,13 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
-        if (filename == null || filename.isBlank()) {
-            return false;
-        }
         syncVfsCaseSensitivity();
-        return fs_vfsCompat != null && fs_vfsCompat.exists(filename);
+        return EngineVfs.exists(filename);
     }
 
     public static boolean IsFromPack(String filename) {
-        if (filename == null || filename.isBlank()) {
-            return false;
-        }
         syncVfsCaseSensitivity();
-        return fs_vfsCompat != null && fs_vfsCompat.isFromPack(filename);
+        return EngineVfs.isFromPack(filename);
     }
 
     /**
@@ -191,17 +186,15 @@ public final class FS extends Globals {
             path = path.substring(0, index);
 
         syncVfsCaseSensitivity();
-        if (fs_vfsCompat != null) {
-            byte[] bytes = fs_vfsCompat.loadFile(path);
+        byte[] bytes = EngineVfs.loadBytes(path);
+        if (bytes != null) {
+            return bytes;
+        }
+        if (!isVfsCaseSensitive()) {
+            bytes = EngineVfs.loadBytes(path.toLowerCase(Locale.ROOT));
             if (bytes != null) {
+                Com.Printf("Found file by lowercase: " + path + "\n");
                 return bytes;
-            }
-            if (!isVfsCaseSensitive()) {
-                bytes = fs_vfsCompat.loadFile(path.toLowerCase(Locale.ROOT));
-                if (bytes != null) {
-                    Com.Printf("Found file by lowercase: " + path + "\n");
-                    return bytes;
-                }
             }
         }
         return null;
@@ -562,7 +555,7 @@ public final class FS extends Globals {
         if (fs_gamedirvar != null && !fs_gamedirvar.string.isEmpty()) {
             gameMod = fs_gamedirvar.string;
         }
-        fs_vfsCompat = new VfsBackedFileSystem();
+        fs_vfsCompat = new VfsBackedFileSystem(EngineVfs.shared());
         fs_vfsCompat.configure(
                 Paths.get(fs_basedir.string),
                 Globals.BASEQ2,
