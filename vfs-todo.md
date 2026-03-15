@@ -801,6 +801,7 @@ Verified status after JSON save migration:
 - Active game persistence no longer uses `QuakeFile`.
 - The deprecated `client` module is not part of the active Gradle build (`settings.gradle.kts` does not include `:client` or `:fullgame`), so it should not block decommission planning.
 - Remaining `QuakeFile` references in active modules are now mostly dead binary serializer methods plus the FS compatibility layer itself.
+- `FS`, `QuakeFile`, and `VfsBackedFileSystem` are now explicitly annotated as deprecated-for-removal in code, so the remaining migration work is visible at compile time.
 
 Exit criteria:
 - `QuakeFile` no longer participates in active server/game persistence flow
@@ -938,6 +939,7 @@ Implementation progress (2026-03-15):
   - no absolute-path direct reads in `FileExists`, `IsFromPack`, `FOpenFile`, `LoadFile`, or `LoadMappedFile`
   - no `fs_links` remap state or `link` console command
 - Kept `OpenWriteFile` and `CreatePath` only as transitional write-side helpers while `FS` still exists.
+- Marked `FS`, `QuakeFile`, and `VfsBackedFileSystem` as deprecated-for-removal, and did the same for the remaining `QuakeFile`-returning `FS` entry points (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`).
 - Verified with focused `qcommon` tests:
   - `FSCompatibilityTest`
   - `VfsBackedFileSystemTest`
