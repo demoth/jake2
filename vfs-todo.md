@@ -699,12 +699,17 @@ Implementation progress (landed commits):
   - fixed a regression where server callers still passed absolute save paths (`FS.getWriteDir() + ...`) into the new JSON stores
   - the writable VFS expects root-relative logical paths, so without normalization the files were written/read under the wrong nested location
   - added regression tests covering absolute-path `game.ssv` and `level.sav` callers, matching the live server save/load path
+- `a806b684` `refactor: store server level state as json`
+  - added Kotlin `ServerLevelJsonStore.kt` for per-level server state previously stored in `.sv2`
+  - replaced binary configstring/portal-state save-load in `SV_WriteLevelFile()` / `SV_ReadLevelFile()` with JSON over writable VFS
+  - kept the legacy `.sv2` filename so save copy/wipe flows remain unchanged
+  - added focused tests for server level-state round-trip and portal/configstring restoration
 
 Current phase status:
 - Phase A: in progress
 - Phase B: in progress
 - Phase C: complete
-- Phase D: partially complete
+- Phase D: complete
 - Phase E: complete
 - Phase F: not started
 - Phase G: not started
@@ -769,6 +774,11 @@ Phase D: Remove remaining server-side `QuakeFile` save persistence
   - latched cvars persistence
   - configstring dump/load path, if still needed in current form
 - Use JSON or other simple text formats through VFS write/read APIs.
+- Landed so far:
+  - `server_mapcmd.ssv` is JSON
+  - `server_latched_cvars.ssv` is JSON
+  - per-level `.sv2` server state (configstrings + portal state) is now JSON
+  - active server save/persistence flows no longer open `QuakeFile`
 
 Exit criteria:
 - server save/persistence flows no longer open `QuakeFile`
@@ -804,8 +814,8 @@ Exit criteria:
 ### Immediate next implementation target
 
 - Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
-- The highest-value next step is to remove the remaining server-side `QuakeFile` persistence helpers and then retire `QuakeFile` from active production code entirely.
-- After that, the remaining work is mostly compatibility-bridge cleanup: `FS` legacy surface, temp-extracting adapter paths, and `VfsBackedFileSystem`.
+- The highest-value next step is to retire `QuakeFile` from active production code entirely, now that game and server persistence paths are JSON/VFS-backed.
+- After that, the remaining work is compatibility-bridge cleanup: `FS` legacy surface, temp-extracting adapter paths, and `VfsBackedFileSystem`.
 - Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
 ## Remaining Work For Full Server+Client VFS Switch
