@@ -45,6 +45,10 @@ Build one shared VFS core in `qcommon` that:
 - Writable path target:
   - Cake write root should be `$HOME/.cake/<mod>` (savegames, screenshots, configs).
   - Legacy/server write root can remain under current policy until migrated.
+  - Current accepted mismatch:
+    - server/game save state still writes under `$HOME/.jake2/<mod>/save/...`
+    - Cake-owned client writable data uses the Cake write root
+    - this is acceptable for now because the server-side save flow has no profile concept yet
 - VFS diagnostics commands are required (planned, not immediate):
   - `fs_files`: print all resolved files in ascending order.
   - `fs_mounts`: print mounted loose roots/packages in effective priority order; include package file counts.
@@ -74,6 +78,10 @@ Implication:
 - Read path: unified shared VFS index for loose + package data.
 - Write path: simple writable-root resolver, not search-path based.
 - Cake writable root: `$HOME/.cake/<mod>`.
+- Current transitional state:
+  - server/game save files are written under `$HOME/.jake2/<mod>/save/...`
+  - Cake-specific writable output already targets `$HOME/.cake/<mod>/...`
+  - keep this mismatch documented until profile-aware server-side write policy exists
 - Writable categories under root:
   - `save/`
   - `scrnshot/`
@@ -944,6 +952,10 @@ Implementation progress (2026-03-15):
 - Removed the obsolete binary save/load helper methods from:
   - `game`: `GameEntity`, `GamePlayerInfo`, `client_persistant_t`, `client_respawn_t`, `game_locals_t`, `level_locals_t`, `GameItems`, `monsterinfo_t`, `mmove_t`, `mframe_t`
   - `qcommon`: `entity_state_t`, `player_state_t`, `pmove_state_t`
+- Documented current write-root mismatch explicitly:
+  - server/game save flow writes to `$HOME/.jake2/<mod>/save/...`
+  - Cake-owned client writable data targets `$HOME/.cake/<mod>/...`
+  - keep this split until server-side save policy learns about client profiles
 - Verified with focused `qcommon` tests:
   - `FSCompatibilityTest`
   - `VfsBackedFileSystemTest`
