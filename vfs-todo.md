@@ -690,11 +690,16 @@ Implementation progress (landed commits):
   - replaced `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` binary `QuakeFile` flow with JSON over writable VFS
   - kept `WriteLevel(...)` / `ReadLevel(...)` on binary `QuakeFile` for now; that remains the next migration slice
   - added focused tests for `GamePlayerInfo` snapshot round-trip and `game.ssv` JSON store round-trip
+- `7dbfb5d5` `refactor: store level saves as json`
+  - added Kotlin `level.sav` JSON layer (`LevelSaveJson.kt`) with grouped DTOs for `level_locals_t`, sparse in-use entities, `entity_state_t`, `monsterinfo_t`, `mmove_t`, and `mframe_t`
+  - replaced `GameExportsImpl.WriteLevel(...)` / `ReadLevel(...)` binary `QuakeFile` flow with JSON over writable VFS
+  - preserved explicit adapter IDs, edict references, client indices, item indices, and sparse entity numbering in the JSON schema
+  - added focused tests for level/entity snapshot round-trip and `level.sav` JSON store round-trip
 
 Current phase status:
 - Phase A: in progress
 - Phase B: in progress
-- Phase C: in progress
+- Phase C: complete
 - Phase D: partially complete
 - Phase E: complete
 - Phase F: not started
@@ -747,7 +752,8 @@ Phase C: Replace binary game/level save flows
 - Landed so far:
   - `WriteGame(...)` and `readGameLocals(...)` now persist `game.ssv` as JSON via writable VFS
   - legacy filename is preserved; only the on-disk format changed
-  - `WriteLevel(...)` / `ReadLevel(...)` are still binary and still use `QuakeFile`
+  - `WriteLevel(...)` and `ReadLevel(...)` now persist `level.sav` as JSON via writable VFS
+  - sparse in-use entity saves still preserve entnum identity explicitly in the JSON schema
 
 Exit criteria:
 - active save/load path for Jake2 uses JSON, not binary `QuakeFile`
@@ -794,8 +800,8 @@ Exit criteria:
 ### Immediate next implementation target
 
 - Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
-- The highest-value next step is to migrate `WriteLevel(...)` / `ReadLevel(...)` to JSON by adding level/entity snapshot DTOs plus explicit adapter/entity reference restoration for `.sav`.
-- After that, the remaining active `QuakeFile` persistence surface in `game` shrinks to compatibility and any still-unmigrated serializer helpers.
+- The highest-value next step is to remove the remaining server-side `QuakeFile` persistence helpers and then retire `QuakeFile` from active production code entirely.
+- After that, the remaining work is mostly compatibility-bridge cleanup: `FS` legacy surface, temp-extracting adapter paths, and `VfsBackedFileSystem`.
 - Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
 ## Remaining Work For Full Server+Client VFS Switch
