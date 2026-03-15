@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem;
 
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class FSCompatibilityTest {
     @BeforeAll
     public static void initFilesystemCommands() {
-        FS.InitFilesystem();
+        EngineFilesystemLifecycle.init();
     }
 
     @TempDir

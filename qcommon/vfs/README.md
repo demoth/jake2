@@ -74,7 +74,6 @@ Preferred retained FS entry points:
 - `LoadFile(...)`
 - `LoadMappedFile(...)`
 - `FileExists(...)`
-- `SetGamedir(...)`
 
 Deprecated low-value legacy APIs (old-client compatibility only):
 
@@ -88,7 +87,7 @@ Removed legacy FS API:
 
 ## Integration Points
 
-- Server/dedicated/fullgame bootstrap: `FS.InitFilesystem()` and `FS.SetGamedir(...)`.
+- Server/dedicated/fullgame bootstrap: `EngineFilesystemLifecycle.init()` and `EngineFilesystemLifecycle.setGameDir(...)`.
 - Cake: `CakeFileResolver` delegates read lookup to VFS via `CakeVfsAssetSource`.
 - Model viewer: `ModelViewerFileResolver` delegates to thin viewer VFS adapter.
 

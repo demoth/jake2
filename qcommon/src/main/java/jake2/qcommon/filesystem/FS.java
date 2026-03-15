@@ -215,23 +215,6 @@ public final class FS extends Globals {
         return EngineWriteRoot.pathString();
     }
 
-    /*
-     * ExecAutoexec
-     */
-    public static void ExecAutoexec() {
-        EngineFilesystemLifecycle.execAutoexec();
-    }
-
-    /**
-     *
-     * Sets the gamedir and path to a different directory.
-     *
-     * used when game cvar is changed
-     */
-    public static void SetGamedir(String gameName) {
-        EngineFilesystemLifecycle.setGameDir(gameName);
-    }
-
     /**
      * Legacy compatibility API used by deprecated old-client UI flows.
      * New code should use VFS snapshot/debug listings instead.
@@ -277,13 +260,6 @@ public final class FS extends Globals {
             }
         }
         return null;
-    }
-
-    /*
-     * InitFilesystem
-     */
-    public static void InitFilesystem() {
-        EngineFilesystemLifecycle.init();
     }
 
     /**

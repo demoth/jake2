@@ -23,13 +23,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 
 public class TestLoadMap {
 	public static void main(String[] args) {
 		Com.DPrintf("hello!\n");
 
-		FS.InitFilesystem();
+		EngineFilesystemLifecycle.init();
 
 		new CM().CM_LoadMap("maps/base1.bsp", true, new int[]{0});
 	}
