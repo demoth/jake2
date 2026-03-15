@@ -681,6 +681,10 @@ Implementation progress (landed commits):
   - added shared JSON DTOs for `game_locals_t`, `client_persistant_t`, and `client_respawn_t`
   - added explicit runtime <-> snapshot mapping helpers in `game`
   - added focused round-trip tests for primitive fields, inventories, and item-index restoration
+- `edc7310c` `feat: add player state save snapshots`
+  - added shared JSON DTOs for `pmove_state_t` and `player_state_t`
+  - added explicit shared runtime <-> snapshot mapping helpers in `qcommon`
+  - added focused round-trip tests for movement/player state restoration
 
 Current phase status:
 - Phase A: in progress
@@ -720,6 +724,8 @@ Phase B: Snapshot mapping layer
   - `GameSaveSnapshots` maps `game_locals_t`
   - `GameSaveSnapshots` maps `client_persistant_t` using item indices instead of object serialization
   - `GameSaveSnapshots` maps `client_respawn_t`
+  - `PlayerStateSnapshots` maps `pmove_state_t`
+  - `PlayerStateSnapshots` maps `player_state_t`
   - focused round-trip tests cover these first mappings
 
 Exit criteria:
@@ -778,7 +784,7 @@ Exit criteria:
 ### Immediate next implementation target
 
 - Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
-- The highest-value next step is to add versioned game-save root DTOs and wire `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` to JSON for the `game.ssv` scope.
+- The highest-value next step is to add `GamePlayerInfo` JSON snapshots plus a versioned `game.ssv` root DTO, then wire `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` to JSON for that scope.
 - After that, expand snapshot coverage to level locals, entities, and adapter/entity reference restoration for `.sav`.
 - Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
