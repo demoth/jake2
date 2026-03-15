@@ -142,6 +142,21 @@ public final class FS extends Globals {
         return fs_vfsCompat != null && fs_vfsCompat.exists(filename);
     }
 
+    public static boolean IsFromPack(String filename) {
+        if (filename == null || filename.isBlank()) {
+            return false;
+        }
+        if (filename.startsWith("/")) {
+            return false;
+        }
+        File linkedFile = resolveLinkedFile(filename);
+        if (linkedFile != null) {
+            return false;
+        }
+        syncVfsCaseSensitivity();
+        return fs_vfsCompat != null && fs_vfsCompat.isFromPack(filename);
+    }
+
     /**
      * FOpenFile
      * 

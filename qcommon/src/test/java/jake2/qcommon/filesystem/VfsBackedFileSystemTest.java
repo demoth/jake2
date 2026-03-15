@@ -169,6 +169,21 @@ public class VfsBackedFileSystemTest {
     }
 
     @Test
+    public void isFromPackReflectsWinningSource() throws Exception {
+        Path basedir = Files.createDirectories(temp.resolve("q2"));
+        writePak(basedir.resolve("baseq2/pak0.pak"), Map.of("maps/test.bsp", "pak".getBytes(StandardCharsets.US_ASCII)));
+        Files.createDirectories(basedir.resolve("rogue/maps"));
+        Files.write(basedir.resolve("rogue/maps/test.bsp"), "loose".getBytes(StandardCharsets.US_ASCII));
+
+        VfsBackedFileSystem fs = new VfsBackedFileSystem();
+        fs.configure(basedir, "baseq2", null, true, false);
+        assertTrue(fs.isFromPack("maps/test.bsp"));
+
+        fs.setGameMod("rogue");
+        assertFalse(fs.isFromPack("maps/test.bsp"));
+    }
+
+    @Test
     public void debugViewsExposeFilesMountsAndOverrides() throws Exception {
         Path basedir = Files.createDirectories(temp.resolve("q2"));
         Files.createDirectories(basedir.resolve("baseq2/textures"));

@@ -317,7 +317,7 @@ class SV_USER {
             client.downloadcount = client.downloadsize;
 
         // special check for maps, if it came from a pak file, don't allow download ZOID
-        if (name.startsWith("maps/") && FS.FOpenFile(name).fromPack) {
+        if (name.startsWith("maps/") && FS.IsFromPack(name)) {
             Com.DPrintf("Couldn't download " + name + " to " + client.name + "\n");
             if (client.download != null) {
                 client.download = null;

@@ -136,6 +136,15 @@ public final class VfsBackedFileSystem {
         return vfs.exists(path, VfsLookupOptions.DEFAULT);
     }
 
+    public boolean isFromPack(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+
+        VfsLookupResult lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT);
+        return lookup.found() && lookup.entry().source().fromPack();
+    }
+
     public List<String> debugResolvedFiles() {
         if (vfs instanceof DefaultVirtualFileSystem) {
             DefaultVirtualFileSystem debugVfs = (DefaultVirtualFileSystem) vfs;
