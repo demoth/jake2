@@ -812,6 +812,7 @@ Verified status after JSON save migration:
 - Remaining `QuakeFile` references in active modules are concentrated in the FS compatibility layer itself (`FS`, `VfsBackedFileSystem`, `QuakeFile`) plus compatibility-oriented adapter helpers.
 - `FS`, `QuakeFile`, and `VfsBackedFileSystem` are now explicitly annotated as deprecated-for-removal in code, so the remaining migration work is visible at compile time.
 - A shared read-side VFS owner now exists outside `FS` (`EngineVfs`), and active read callers have started moving to it.
+- A shared write-root owner now exists outside `FS` (`EngineWriteRoot`), and active server/game save paths have started moving to it.
 
 Exit criteria:
 - `QuakeFile` no longer participates in active server/game persistence flow
@@ -859,11 +860,14 @@ This means all three legacy types can be treated as decommission targets:
      - introduced shared `EngineVfs` in `qcommon.vfs`
      - migrated `SV_MAIN`, `SV_USER`, `Cmd`, and `CM` off `FS.LoadFile` / `FS.IsFromPack`
      - `FS.LoadFile`, `FS.FileExists`, and `FS.IsFromPack` now delegate to the shared `EngineVfs` instance instead of owning separate read logic
-   - The next step is to keep moving remaining active callers off `FS` so `FS` becomes write-root/compatibility only.
+   - This is now complete for active read callers in `server` and `qcommon`.
 
-4. Remove the `FS` read-side compatibility boundary.
-   - Absolute-path reads and `fs_links` should not remain on the active path.
-   - Keep only narrowly scoped write-root helpers until `FS` itself is retired.
+4. Move write-root policy out of `FS`.
+   - Landed so far:
+     - introduced shared `EngineWriteRoot` in `qcommon.vfs`
+     - migrated active server/game save paths off `FS.getWriteDir()` and `FS.CreatePath()`
+     - `FS` now reuses `EngineWriteRoot` for its remaining compatibility helpers instead of owning write-root policy itself
+   - The next step is to keep `FS` only for lifecycle/config compatibility (`InitFilesystem`, `SetGamedir`, `ExecAutoexec`) until those seams are replaced too.
 
 5. Remove `VfsBackedFileSystem`.
    - Once `FS` no longer needs to return `QuakeFile`, the bridge can be inlined away or deleted.
@@ -876,14 +880,15 @@ This means all three legacy types can be treated as decommission targets:
 
 Server-side VFS is already real, but mostly hidden behind `FS`:
 - Read path:
-  - `FS` initializes `VfsBackedFileSystem` with `serverMode=true`
-  - active server reads (`FS.LoadFile`, `FS.IsFromPack`) resolve through the common VFS
+  - `FS` still initializes/configures the shared VFS lifecycle
+  - active server reads now go through `EngineVfs`, backed by the common VFS
 - Write path:
   - active server/game save state already uses `WritableFileSystem` directly through JSON stores
+  - write-root policy now goes through `EngineWriteRoot`, preserving the current `~/.jake2/<mod>` layout
   - this includes `server_mapcmd.ssv.json`, `server_latched_cvars.ssv.json`, `game.ssv.json`, `level.sav.json`, and per-level `.sv2.json`
 
 So the server is no longer “client-only VFS plus legacy server writes”.
-The remaining issue is architectural visibility: server reads still look like `FS`, even though the underlying data source is already the shared VFS.
+The remaining issue is now mostly lifecycle/config compatibility: `FS` still owns startup/mod-change wiring and the `QuakeFile` bridge.
 
 ### Immediate next implementation target
 
@@ -962,6 +967,11 @@ Implementation progress (2026-03-15):
   - `server`: `SV_MAIN`, `SV_USER`
   - `qcommon`: `Cmd`, `CM`
 - `FS` now reuses the shared `EngineVfs` instance for `LoadFile`, `FileExists`, and `IsFromPack`, while `VfsBackedFileSystem` remains only for `QuakeFile`/mapped-file compatibility.
+- Introduced `EngineWriteRoot` as the shared non-legacy write-root owner.
+- Migrated active save/state path construction off `FS.getWriteDir()` / `FS.CreatePath()` in:
+  - `server`: `GameImportsImpl`, `SV_MAIN`, `SV_GAME`, `SV_CCMDS`
+  - `game`: `GameExportsImpl`
+- Remaining active `FS` call sites outside the compatibility layer are now down to lifecycle/config wiring in `Cvar` (`SetGamedir`, `ExecAutoexec`).
 - Documented current write-root mismatch explicitly:
   - server/game save flow writes to `$HOME/.jake2/<mod>/save/...`
   - Cake-owned client writable data targets `$HOME/.cake/<mod>/...`
