@@ -381,6 +381,10 @@ public interface VfsDataOutput {
 - Initialization and remount cost proportional to indexed files.
 - No directory scanning on normal lookup path.
 - Keep optional counters for:
+  - loose directories visited during index build
+  - loose files visited during index build
+  - package files discovered during mount scan
+  - package entries indexed
   - indexed entry count
   - mount count by layer
   - lookup hits/misses
@@ -454,6 +458,315 @@ Phase 14 progress:
   - `ListFiles`, `NextPath`, `Developer_searchpath`, `Read`.
 - VFS runtime mutation API exists and is test-covered (`mountPackage/unmount/rebuildIndex/snapshot`) but not yet used by live server/client flows.
 - `VfsBackedFileSystem` comments still reference pre-migration fallback assumptions and should be cleaned to match current behavior.
+
+## Operational Findings (2026-03-15)
+
+### 1. Temp extraction is not part of VFS init, but it still happens on package-backed reads
+
+- Core package indexing does not unpack archives during VFS init:
+  - `DefaultVirtualFileSystem.rebuildPackageMounts()` only lists direct children of `<basedir>/<mod>` and `<basedir>/baseq2`, then builds `PackReader` metadata from the package itself.
+  - `PakPackReader` reads the PAK directory table in place.
+  - `ZipPackReader` enumerates ZIP central-directory entries in place.
+- Temp extraction currently happens in adapter/compatibility layers that need a real file on disk:
+  - Cake path: `CakeVfsAssetSource.resolve(...)` materializes every `PACKAGE_ENTRY` to a temp file for libGDX `FileHandle` consumption.
+  - FS compatibility path: `VfsBackedFileSystem.openFile(...)` opens `.pak` entries by offset from the original pack, but extracts non-PAK ZIP-backed entries (`.pk2/.pk3/.pkz/.zip`) to temp files for `QuakeFile`.
+- Current cache lifetime is process-local only:
+  - Cake keeps extracted paths in `extractedPackageFiles`, clears them on reconfigure, and uses `deleteOnExit()`.
+  - FS compatibility keeps extracted ZIP-entry temps in `packagedOpenCache`, clears them on reconfigure, and uses `deleteOnExit()`.
+- Consequence:
+  - "pak/zip files are extracted into temp folder on every run" is not true for core init.
+  - It is effectively true for Cake package-backed assets, because extracted files are not persisted across process restarts.
+  - It is partially true for legacy `FS.FOpenFile(...)` compatibility reads, but only for ZIP-backed packs; `.pak` stays zero-copy at the pack-file level.
+
+### 2. Current VFS init does not scan the whole home directory
+
+- Loose-file indexing walks only mounted loose roots:
+  - `<basedir>/<gameMod>` when a mod is active
+  - `<basedir>/baseq2`
+- Package discovery is non-recursive:
+  - `listPackageFiles(...)` uses `Files.list(root)` and only inspects direct children of each mounted root.
+- The mod/base path segments are sanitized single directory names:
+  - `sanitizeSegment(...)` rejects `..`, `/`, and drive-like `:`, so mod selection cannot escape `basedir`.
+- `FS.autodetectBasedir()` does not recurse through `$HOME`:
+  - it probes a small fixed set of Steam install candidates under `user.home` and standard Windows Steam paths via `exists()`
+  - if no candidate exists, it falls back to `"."`
+- Real risk boundary:
+  - if `basedir` itself is misconfigured, VFS will still recurse through `<basedir>/baseq2` and `<basedir>/<mod>`, because loose mounts use `Files.walkFileTree(...)`
+  - there is currently no counter exposing how many directories were visited during that walk
+
+### 3. Observability gap to close
+
+- Existing diagnostics are useful but incomplete:
+  - `fs_mounts` shows per-mount indexed file counts only
+  - `VfsSnapshot` tracks total entries + mount counts by layer only
+- Missing startup metrics:
+  - directories visited per loose mount
+  - files visited per loose mount
+  - package files discovered per root
+  - package entries indexed per package
+  - per-stage timing (`rebuildLooseMounts`, package discovery, package entry enumeration, flattening)
+  - temp extraction count/bytes, kept separate from init stats so read-path cost is not confused with startup cost
+
+### 4. Follow-up work to add
+
+- Add `VfsBuildStats` / `VfsTraversalStats` to `VfsSnapshot` and keep the most recent rebuild stats in `DefaultVirtualFileSystem`.
+- Extend `fs_mounts` or add `fs_stats` to print:
+  - mounted roots
+  - directories visited
+  - files visited
+  - package files found
+  - package entries indexed
+  - rebuild duration
+- Record temp materialization stats separately for:
+  - Cake package entry extraction
+  - FS compatibility ZIP-entry extraction
+- Add a Cake-side `VfsFileHandle` adapter that wraps a logical VFS path without requiring a backing temp file on disk:
+  - implement `read()` / `readBytes()` / `exists()` / `length()` over `VirtualFileSystem`
+  - preserve path-navigation methods (`parent()` / `child()` / `sibling()`) for loaders that resolve adjacent assets
+  - use temp-file fallback only for loaders/backends that prove they require a real OS file
+- Reduce per-run temp extraction for Cake/package-backed reads:
+  - preferred: return `VfsFileHandle` from `CakeFileResolver` and keep loaders on stream/byte-array access where possible
+  - fallback: use a persistent extracted-asset cache keyed by `(pack path, entry path, pack mtime)` instead of `deleteOnExit()` temp files
+  - keep `.pak` offset-open behavior on the FS compatibility path
+
+### 5. `VfsBackedFileSystem` cleanup status
+
+- `VfsBackedFileSystem` is already contained:
+  - production usage is only behind `qcommon.filesystem.FS`
+  - the rest of the codebase calls `FS`, not `VfsBackedFileSystem` directly
+- Remaining reasons it still exists:
+  - `FS.FOpenFile(...)` / `FS.OpenReadFile(...)` still return `QuakeFile`
+  - `QuakeFile` carries legacy compatibility fields such as `fromPack`
+  - one live server policy check still depends on `FS.FOpenFile(name).fromPack`
+  - legacy absolute-path reads/writes and `fs_links` are intentionally retained outside pure VFS lookup
+  - deprecated old-client APIs (`ListFiles`, `NextPath`, `Developer_searchpath`) still hang off `FS`
+- Cleanup can be split into two scopes:
+  - small/medium scope: collapse `VfsBackedFileSystem` into thinner helpers under `FS`, keeping `FS` + `QuakeFile` compatibility surface
+  - larger scope: remove `VfsBackedFileSystem` entirely by replacing `QuakeFile`-based read paths and the remaining compatibility-only `FS` APIs
+- Concrete blockers before full removal:
+  - replace `FS.FOpenFile(...)` / `OpenReadFile(...)` call sites that expect `QuakeFile`
+  - move `fromPack` checks to VFS metadata APIs instead of `QuakeFile.fromPack`
+  - decide whether absolute-path and `fs_links` remain in `FS` permanently or move behind a smaller compatibility shim
+  - finish decommissioning deprecated old-client FS APIs if old client support is reduced further
+
+### 6. `QuakeFile` spread and replacement direction
+
+- Current spread is concentrated, not broad:
+  - `QuakeFile` appears in 20 production files total
+  - excluding `qcommon.filesystem` itself, only 17 production files still mention it
+  - module split of those 17 files:
+    - `game`: 12 files
+    - `server`: 3 files
+    - `qcommon`: 1 file (`entity_state_t`)
+    - `client`: 1 file (`Menu`)
+- No production code outside `qcommon.filesystem` constructs `new QuakeFile(...)` directly anymore.
+  - This is an important containment milestone: construction is already centralized in `FS` and `VfsBackedFileSystem`.
+- Most remaining usage is binary save/load serialization, not general asset lookup:
+  - `game` data serializers/deserializers (`GameEntity`, `GamePlayerInfo`, `level_locals_t`, `game_locals_t`, monster structs, item/adapters)
+  - server save/config persistence (`GameImportsImpl`, `SV_MAIN`, `SV_CCMDS`)
+  - one old-client menu read path
+  - one `qcommon` serializer helper (`entity_state_t`)
+- `QuakeFile` currently mixes three concerns:
+  - legacy random-access file handle shape (`RandomAccessFile`)
+  - package provenance metadata (`fromPack`, `length`)
+  - Quake-specific binary helpers (`readString/writeString`, `readVector/writeVector`, `readEdictRef/writeEdictRef`)
+- Replacement direction:
+  - treat `QuakeFile` as a legacy compatibility API, not as the long-term VFS abstraction
+  - keep it only at the `FS` boundary until serializers migrate
+  - introduce explicit VFS-backed binary I/O interfaces for game/server persistence:
+    - readable handle interface for primitive/binary reads
+    - writable handle interface for primitive/binary writes
+    - package/source metadata queried separately from the read handle
+- Cleanup priority inside that migration:
+  1. Move `fromPack` checks to VFS metadata so server policy no longer depends on `QuakeFile`.
+  2. Replace game/server save-load serializer signatures from `QuakeFile` to dedicated binary reader/writer interfaces.
+  3. Leave old-client compatibility paths on `QuakeFile` last, or retire them together with deprecated client-only FS APIs.
+
+## Recommended Cleanup Plan
+
+The proposed direction is sound, with one important adjustment:
+
+- Yes: drop legacy binary save/load compatibility.
+- Yes: remove `QuakeFile` as the long-term game/server persistence API.
+- Yes: remove `VfsBackedFileSystem` after the remaining `FS` compatibility surface is either replaced or intentionally frozen.
+- But: do not try to Jackson-dump the live runtime object graph directly.
+
+Reason:
+
+- Current save state is not a flat POJO graph.
+- `GameEntity` and related types contain entity references, adapter/function-pointer replacements, and runtime-only fields/components.
+- Adapter restore currently depends on explicit adapter IDs (`SuperAdapter` registry), not classpath-default object reconstruction.
+- Entity references are currently serialized as edict indices, which is the right shape to preserve in a JSON snapshot too.
+
+So the recommended plan is JSON saves via explicit snapshot DTOs, not direct `ObjectMapper.writeValue(liveGameState)`.
+
+### Proposed staged plan
+
+1. Define the new save policy and scope.
+   - Save format target is Jake2-only JSON.
+   - No compatibility with vanilla/binary save files.
+   - Read/write path goes through writable/readable VFS APIs, not `QuakeFile`.
+
+2. Put Jackson where the new save code actually lives.
+   - Jackson is already available in `cake/core`.
+   - It is not currently declared for `game`, `server`, or `qcommon`.
+   - Add Jackson dependency to the module that will own JSON save snapshots and mapping code.
+   - Prefer keeping Jackson out of low-level VFS core unless there is a strong reason to push it into `qcommon`.
+
+3. Introduce explicit save snapshot DTOs.
+   - `GameSaveSnapshot`
+   - `LevelSaveSnapshot`
+   - `EntitySnapshot`
+   - `ClientSnapshot`
+   - adapter identifier fields instead of serializing adapter instances
+   - entity references encoded as stable indices/IDs, not object pointers
+   - exclude runtime-only/transient structures that should be rebuilt on load
+
+4. Implement mapping layer between runtime state and snapshots.
+   - runtime -> snapshot extractor
+   - snapshot -> runtime rehydration
+   - keep this mapping code near game/server save ownership, not inside core VFS
+   - explicitly reconstruct adapter references via registry lookup by ID
+
+5. Add JSON save store on top of writable/readable VFS.
+   - replace `WriteGame/ReadGameLocals/WriteLevel/ReadLevel` binary flows with JSON file read/write
+   - use writable VFS paths instead of `QuakeFile`
+   - version the JSON schema from day one
+
+6. Migrate server policy away from `QuakeFile.fromPack`.
+   - expose `fromPack` / `sourceType` / `isProtected` through VFS metadata lookup
+   - replace the remaining `FS.FOpenFile(name).fromPack` usage with metadata query
+
+7. Decommission `QuakeFile` from production save/load code.
+   - move serializer signatures off `QuakeFile`
+   - keep `QuakeFile` only for compatibility paths still intentionally retained
+   - old-client compatibility can remain last if still needed
+
+8. Collapse/remove `VfsBackedFileSystem`.
+   - once `FS` no longer needs `QuakeFile` bridging for active code paths, fold remaining logic into `FS` or remove it entirely
+   - preserve only the intentional FS compatibility boundary if desired:
+     - absolute-path direct access
+     - `fs_links`
+     - deprecated old-client APIs, if still kept
+
+### Recommended order of attack
+
+- First target save/load migration, not `VfsBackedFileSystem` internals.
+- After JSON save/load exists, `QuakeFile` usage shrinks sharply because most of its remaining spread is serializer-related.
+- After `fromPack` metadata is exposed separately, `VfsBackedFileSystem` becomes much easier to collapse or delete.
+
+### Practical risk notes
+
+- Lowest-risk simplification:
+  - replace binary save/load with JSON snapshots
+  - do not attempt automatic Jackson serialization of live entities/components
+- Main design rule:
+  - VFS owns file access
+  - save module owns schema + mapping
+  - runtime entities remain runtime-oriented objects, not persistence-oriented DTOs
+
+### Approved execution roadmap
+
+Implementation progress (landed commits):
+- `53e4a101` `chore: add shared qcommon json save support`
+  - added Jackson dependency to `qcommon`
+  - added shared `SaveJson` mapper helper + test
+- `fdc451b1` `refactor: store server save metadata as json`
+  - migrated server-owned save metadata (`server_mapcmd.ssv`, `server_latched_cvars.ssv`) away from `QuakeFile` binary content
+  - kept legacy filenames to avoid churn in save copy/wipe flows
+- `9d8df91a` `refactor: expose pack provenance through fs metadata`
+  - added explicit FS/VFS metadata lookup for `fromPack`
+  - removed the remaining live server dependency on `FS.FOpenFile(...).fromPack`
+
+Current phase status:
+- Phase A: in progress
+- Phase B: not started
+- Phase C: not started
+- Phase D: partially complete
+- Phase E: complete
+- Phase F: not started
+- Phase G: not started
+
+Phase A: JSON save foundation
+- Add Jackson dependency to the module(s) that will own save snapshot code.
+- Recommended placement:
+  - `qcommon`: shared JSON mapper/config and snapshot DTOs used by both server and Cake
+  - `game`: game/level/entity/client snapshot DTOs + mapping
+  - `server`: server-owned save metadata and server-specific snapshot helpers
+- Add versioned JSON save root DTOs.
+
+Exit criteria:
+- save schema types exist without touching `QuakeFile`
+- module boundaries are explicit and compile cleanly
+
+Phase B: Snapshot mapping layer
+- Implement runtime -> snapshot extraction for:
+  - game locals
+  - level locals
+  - game clients/player info
+  - entities
+  - adapter IDs / item IDs / entity reference indices
+- Implement snapshot -> runtime rehydration.
+- Rebuild runtime-only fields/components explicitly after load.
+
+Exit criteria:
+- no direct Jackson serialization of live `GameEntity` / adapter graphs
+- snapshot round-trip tests cover representative save state
+
+Phase C: Replace binary game/level save flows
+- Replace `GameExportsImpl.WriteGame(...)`
+- Replace `GameExportsImpl.readGameLocals(...)`
+- Replace `GameExportsImpl.WriteLevel(...)`
+- Replace `GameExportsImpl.ReadLevel(...)`
+- Store these via VFS-backed readable/writable APIs and JSON files.
+
+Exit criteria:
+- active save/load path for Jake2 uses JSON, not binary `QuakeFile`
+- game module no longer requires `QuakeFile` for main save/load path
+
+Phase D: Remove remaining server-side `QuakeFile` save persistence
+- Replace binary save helpers in server-owned flows:
+  - map command persistence
+  - latched cvars persistence
+  - configstring dump/load path, if still needed in current form
+- Use JSON or other simple text formats through VFS write/read APIs.
+
+Exit criteria:
+- server save/persistence flows no longer open `QuakeFile`
+
+Phase E: Remove `fromPack` dependency from `QuakeFile`
+- Add VFS metadata query API reachable from `FS`
+- Replace the remaining `FS.FOpenFile(name).fromPack` server policy check with metadata lookup
+
+Exit criteria:
+- no production code depends on `QuakeFile.fromPack`
+
+Phase F: Retire `QuakeFile` from active production code
+- Migrate any remaining non-deprecated production signatures away from `QuakeFile`
+- Keep deprecated old-client compatibility only if still intentionally supported
+- Mark `QuakeFile` and `FS.FOpenFile/OpenReadFile/OpenWriteFile` as compatibility-only during transition
+
+Exit criteria:
+- `QuakeFile` no longer participates in active server/game persistence flow
+- remaining usage is compatibility-only and explicitly documented
+
+Phase G: Collapse/remove `VfsBackedFileSystem`
+- If `FS` still needs a small shim, inline the remaining logic into `FS`
+- Otherwise remove `VfsBackedFileSystem` entirely
+- Retain only explicitly chosen FS compatibility behavior:
+  - absolute-path access
+  - `fs_links`
+  - deprecated old-client APIs, if still kept
+
+Exit criteria:
+- no separate `VfsBackedFileSystem` compatibility bridge remains
+- VFS read metadata and `FS` compatibility boundary are simpler and easier to reason about
+
+### Immediate next implementation target
+
+- Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
+- The highest-value next step is game save snapshot DTOs plus mapping for `game.ssv` / level save state.
+- Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
 ## Remaining Work For Full Server+Client VFS Switch
 
