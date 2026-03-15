@@ -677,10 +677,14 @@ Implementation progress (landed commits):
 - `9d8df91a` `refactor: expose pack provenance through fs metadata`
   - added explicit FS/VFS metadata lookup for `fromPack`
   - removed the remaining live server dependency on `FS.FOpenFile(...).fromPack`
+- `6f595093` `feat: add initial game save snapshots`
+  - added shared JSON DTOs for `game_locals_t`, `client_persistant_t`, and `client_respawn_t`
+  - added explicit runtime <-> snapshot mapping helpers in `game`
+  - added focused round-trip tests for primitive fields, inventories, and item-index restoration
 
 Current phase status:
 - Phase A: in progress
-- Phase B: not started
+- Phase B: in progress
 - Phase C: not started
 - Phase D: partially complete
 - Phase E: complete
@@ -694,6 +698,10 @@ Phase A: JSON save foundation
   - `game`: game/level/entity/client snapshot DTOs + mapping
   - `server`: server-owned save metadata and server-specific snapshot helpers
 - Add versioned JSON save root DTOs.
+- Landed so far:
+  - shared `SaveJson` mapper/config lives in `qcommon`
+  - server-owned metadata JSON store is in place
+  - first shared game/client snapshot DTOs now exist in `qcommon`
 
 Exit criteria:
 - save schema types exist without touching `QuakeFile`
@@ -708,6 +716,11 @@ Phase B: Snapshot mapping layer
   - adapter IDs / item IDs / entity reference indices
 - Implement snapshot -> runtime rehydration.
 - Rebuild runtime-only fields/components explicitly after load.
+- Landed so far:
+  - `GameSaveSnapshots` maps `game_locals_t`
+  - `GameSaveSnapshots` maps `client_persistant_t` using item indices instead of object serialization
+  - `GameSaveSnapshots` maps `client_respawn_t`
+  - focused round-trip tests cover these first mappings
 
 Exit criteria:
 - no direct Jackson serialization of live `GameEntity` / adapter graphs
@@ -765,7 +778,8 @@ Exit criteria:
 ### Immediate next implementation target
 
 - Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
-- The highest-value next step is game save snapshot DTOs plus mapping for `game.ssv` / level save state.
+- The highest-value next step is to add versioned game-save root DTOs and wire `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` to JSON for the `game.ssv` scope.
+- After that, expand snapshot coverage to level locals, entities, and adapter/entity reference restoration for `.sav`.
 - Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
 ## Remaining Work For Full Server+Client VFS Switch
