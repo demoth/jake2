@@ -233,11 +233,11 @@ object GamePlayerSnapshots {
 
 class GameSaveJsonStore(private val writable: WritableFileSystem) {
     fun read(logicalPath: String): GameSaveFileSnapshot {
-        return read(logicalPath, GameSaveFileSnapshot::class.java)
+        return read(normalizePath(logicalPath), GameSaveFileSnapshot::class.java)
     }
 
     fun write(logicalPath: String, snapshot: GameSaveFileSnapshot) {
-        writeInternal(logicalPath, snapshot)
+        writeInternal(normalizePath(logicalPath), snapshot)
     }
 
     private fun <T> read(logicalPath: String, type: Class<T>): T {
@@ -260,6 +260,19 @@ class GameSaveJsonStore(private val writable: WritableFileSystem) {
         opened.value().use { handle ->
             SaveJson.write(handle.outputStream(), value)
         }
+    }
+
+    private fun normalizePath(path: String): String {
+        val candidate = Path.of(path).normalize()
+        if (!candidate.isAbsolute) {
+            return path
+        }
+
+        val root = Path.of(writable.writeRoot()).toAbsolutePath().normalize()
+        if (!candidate.startsWith(root)) {
+            throw IOException("Path is outside writable root: $path")
+        }
+        return root.relativize(candidate).toString().replace('\\', '/')
     }
 
     companion object {

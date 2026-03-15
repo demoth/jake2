@@ -696,11 +696,11 @@ object LevelSaveSnapshots {
 
 class LevelSaveJsonStore(private val writable: WritableFileSystem) {
     fun read(logicalPath: String): LevelSaveFileSnapshot {
-        return read(logicalPath, LevelSaveFileSnapshot::class.java)
+        return read(normalizePath(logicalPath), LevelSaveFileSnapshot::class.java)
     }
 
     fun write(logicalPath: String, snapshot: LevelSaveFileSnapshot) {
-        writeInternal(logicalPath, snapshot)
+        writeInternal(normalizePath(logicalPath), snapshot)
     }
 
     private fun <T> read(logicalPath: String, type: Class<T>): T {
@@ -721,6 +721,19 @@ class LevelSaveJsonStore(private val writable: WritableFileSystem) {
         opened.value().use { handle ->
             SaveJson.write(handle.outputStream(), value)
         }
+    }
+
+    private fun normalizePath(path: String): String {
+        val candidate = Path.of(path).normalize()
+        if (!candidate.isAbsolute) {
+            return path
+        }
+
+        val root = Path.of(writable.writeRoot()).toAbsolutePath().normalize()
+        if (!candidate.startsWith(root)) {
+            throw IOException("Path is outside writable root: $path")
+        }
+        return root.relativize(candidate).toString().replace('\\', '/')
     }
 
     companion object {
