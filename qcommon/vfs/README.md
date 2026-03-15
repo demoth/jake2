@@ -1,6 +1,6 @@
 # Jake2 VFS (qcommon)
 
-This module documents the unified Virtual File System used by both server-side `FS` compatibility calls and Cake-side asset resolution.
+This module documents the unified Virtual File System used by both engine/server code and Cake-side asset resolution.
 
 ## Goals
 
@@ -57,33 +57,15 @@ Writable side:
 - `jake2.qcommon.vfs.WritableFileSystem`
 - `jake2.qcommon.vfs.DefaultWritableFileSystem`
 
-## FS Compatibility Facade
+## Compatibility Bridge
 
-`jake2.qcommon.filesystem.FS` is now a compatibility facade over VFS.
+The old `FS` facade has been removed from the active build.
 
-Retained intentional compatibility boundary:
+The remaining compatibility bridge is split into:
 
-- absolute-path direct reads/writes (`/abs/path`)
-- `fs_links` remapping behavior
-
-Preferred retained FS entry points:
-
-- `FOpenFile(...)`
-- `OpenReadFile(...)`
-- `OpenWriteFile(...)`
-- `LoadFile(...)`
-- `LoadMappedFile(...)`
-- `FileExists(...)`
-
-Deprecated low-value legacy APIs (old-client compatibility only):
-
-- `ListFiles(...)`
-- `NextPath(...)`
-- `Developer_searchpath(...)`
-
-Removed legacy FS API:
-
-- `FS.Read(...)`
+- `EngineFilesystemLifecycle` for startup, gamedir changes, debug command registration, and VFS bridge lifecycle
+- `VfsBackedFileSystem` for the shrinking `QuakeFile` compatibility path
+- `QuakeFile` itself, which is still pending removal
 
 ## Integration Points
 
@@ -120,6 +102,7 @@ Read path and write path are intentionally separated: read uses layered VFS inde
 Completed:
 
 - legacy FS search-path internals removed
+- legacy `FS` facade removed from the active build
 - server/cake/model-viewer read-path unified on VFS
 - compatibility boundary tested for absolute-path + `fs_links`
 - runtime mutation commands exposed (`fs_mount`, `fs_unmount`, `fs_rebuild`)

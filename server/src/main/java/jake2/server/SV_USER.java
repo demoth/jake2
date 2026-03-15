@@ -25,7 +25,6 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.server.*;
