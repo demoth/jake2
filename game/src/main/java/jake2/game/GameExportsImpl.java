@@ -6,7 +6,6 @@ import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.FS;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.InventoryMessage;
 import jake2.qcommon.network.messages.server.LayoutMessage;
@@ -1622,23 +1621,20 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void WriteLevel(String filename) {
         try {
-
-            QuakeFile f = FS.OpenWriteFile(filename);
-
-            // write out level_locals_t
-            level.write(f);
-
-            // write out all the entities
+            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(FS.getWriteDir());
+            List<LevelEntitySnapshot> entities = new ArrayList<>();
             for (int i = 0; i < num_edicts; i++) {
                 GameEntity ent = g_edicts[i];
-                if (!ent.inuse)
+                if (!ent.inuse) {
                     continue;
-                f.writeInt(i);
-                ent.write(f);
+                }
+                entities.add(LevelSaveSnapshots.snapshot(i, ent));
             }
-            f.writeInt(-1);
-
-            f.close();
+            store.write(filename, new LevelSaveFileSnapshot(
+                    LevelSaveJsonStore.SCHEMA_VERSION,
+                    LevelSaveSnapshots.snapshot(level),
+                    entities
+            ));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1647,30 +1643,23 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void ReadLevel(String filename) {
         try {
-
-            QuakeFile f = FS.OpenReadFile(filename);
+            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(FS.getWriteDir());
+            LevelSaveFileSnapshot snapshot = store.read(filename);
 
             num_edicts = game.maxclients + 1;
 
-            // load the level locals
-            level.read(f, g_edicts);
+            LevelSaveSnapshots.apply(level, snapshot.getLevel(), g_edicts);
 
-            // load all the entities
-            while (true) {
-                int entnum = f.readInt();
-                if (entnum == -1)
-                    break;
-
+            for (LevelEntitySnapshot entitySnapshot : snapshot.getEntities()) {
+                int entnum = entitySnapshot.getEntityNumber();
                 if (entnum >= num_edicts)
                     num_edicts = entnum + 1;
 
                 GameEntity ent = g_edicts[entnum];
-                ent.read(f, g_edicts, game.clients, this);
+                LevelSaveSnapshots.apply(ent, entitySnapshot, items, g_edicts, game.clients);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
             }
-
-            Lib.fclose(f);
 
             // mark all clients as unconnected
             for (int i = 0; i < game.maxclients; i++) {
