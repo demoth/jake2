@@ -1,6 +1,5 @@
 package jake2.qcommon.filesystem;
 
-import jake2.qcommon.exec.Cmd;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,9 +11,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FSCompatibilityTest {
@@ -27,21 +27,13 @@ public class FSCompatibilityTest {
     Path temp;
 
     @Test
-    public void openWriteAndOpenReadRoundTripAbsolutePath() throws Exception {
+    public void openReadThrowsForExistingAbsolutePathOutsideVfs() throws Exception {
         File target = temp.resolve("save/current/server_mapcmd.ssv.json").toFile();
-        String absolutePath = target.getAbsolutePath();
+        Files.createDirectories(target.toPath().getParent());
+        Files.writeString(target.toPath(), "payload", StandardCharsets.US_ASCII);
 
-        try (QuakeFile out = FS.OpenWriteFile(absolutePath)) {
-            out.writeString("Autosave in base1");
-            out.writeString("base1");
-        }
-
-        assertTrue(target.exists());
-
-        try (QuakeFile in = FS.OpenReadFile(absolutePath)) {
-            assertEquals("Autosave in base1", in.readString());
-            assertEquals("base1", in.readString());
-        }
+        assertThrows(FileNotFoundException.class, () ->
+                FS.OpenReadFile(target.getAbsolutePath()));
     }
 
     @Test
@@ -65,7 +57,7 @@ public class FSCompatibilityTest {
     }
 
     @Test
-    public void loadMappedFileReadsAbsolutePath() throws Exception {
+    public void loadMappedFileDoesNotReadAbsolutePath() throws Exception {
         File target = temp.resolve("video/test.cin").toFile();
         FS.CreatePath(target.getAbsolutePath());
         byte[] payload = "cin-data".getBytes(StandardCharsets.US_ASCII);
@@ -74,51 +66,29 @@ public class FSCompatibilityTest {
         }
 
         ByteBuffer mapped = FS.LoadMappedFile(target.getAbsolutePath());
-        assertTrue(mapped != null);
-        byte[] read = new byte[mapped.remaining()];
-        mapped.get(read);
-        assertEquals("cin-data", new String(read, StandardCharsets.US_ASCII));
+        assertNull(mapped);
     }
 
     @Test
-    public void fileExistsResolvesFsLinks() throws Exception {
-        Path mountRoot = Files.createDirectories(temp.resolve("link-root"));
-        Files.createDirectories(mountRoot.resolve("maps"));
-        Files.writeString(mountRoot.resolve("maps/test.bsp"), "dummy", StandardCharsets.US_ASCII);
+    public void fileExistsDoesNotTreatAbsolutePathAsReadableGameAsset() throws Exception {
+        File target = temp.resolve("maps/test.bsp").toFile();
+        Files.createDirectories(target.toPath().getParent());
+        Files.writeString(target.toPath(), "dummy", StandardCharsets.US_ASCII);
 
-        String linkPrefix = "compat-link-" + System.nanoTime();
-        Cmd.ExecuteString("link " + linkPrefix + " " + mountRoot.toAbsolutePath());
-
-        assertTrue(FS.FileExists(linkPrefix + "/maps/test.bsp"));
+        assertFalse(FS.FileExists(target.getAbsolutePath()));
     }
 
     @Test
-    public void loadFileResolvesFsLinks() throws Exception {
-        Path mountRoot = Files.createDirectories(temp.resolve("link-root-load"));
-        Files.createDirectories(mountRoot.resolve("pics"));
-        Files.writeString(mountRoot.resolve("pics/colormap.pcx"), "pcx-payload", StandardCharsets.US_ASCII);
+    public void loadFileDoesNotReadAbsolutePath() throws Exception {
+        File target = temp.resolve("pics/colormap.pcx").toFile();
+        Files.createDirectories(target.toPath().getParent());
+        Files.writeString(target.toPath(), "pcx-payload", StandardCharsets.US_ASCII);
 
-        String linkPrefix = "compat-load-" + System.nanoTime();
-        Cmd.ExecuteString("link " + linkPrefix + " " + mountRoot.toAbsolutePath());
-
-        byte[] data = FS.LoadFile(linkPrefix + "/pics/colormap.pcx");
-        assertNotNull(data);
-        assertEquals("pcx-payload", new String(data, StandardCharsets.US_ASCII));
+        assertNull(FS.LoadFile(target.getAbsolutePath()));
     }
 
     @Test
-    public void loadMappedFileResolvesFsLinks() throws Exception {
-        Path mountRoot = Files.createDirectories(temp.resolve("link-root-mapped"));
-        Files.createDirectories(mountRoot.resolve("video"));
-        Files.writeString(mountRoot.resolve("video/intro.cin"), "mapped-link-data", StandardCharsets.US_ASCII);
-
-        String linkPrefix = "compat-mapped-" + System.nanoTime();
-        Cmd.ExecuteString("link " + linkPrefix + " " + mountRoot.toAbsolutePath());
-
-        ByteBuffer mapped = FS.LoadMappedFile(linkPrefix + "/video/intro.cin");
-        assertNotNull(mapped);
-        byte[] read = new byte[mapped.remaining()];
-        mapped.get(read);
-        assertEquals("mapped-link-data", new String(read, StandardCharsets.US_ASCII));
+    public void fileExistsDoesNotResolveUnmountedRelativePrefix() {
+        assertFalse(FS.FileExists("compat-link/maps/test.bsp"));
     }
 }

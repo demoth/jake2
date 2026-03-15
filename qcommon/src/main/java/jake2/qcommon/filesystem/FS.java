@@ -37,11 +37,8 @@ import jake2.qcommon.vfs.VfsResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -86,30 +83,6 @@ public final class FS extends Globals {
     public static cvar_t fs_gamedirvar;
     private static VfsBackedFileSystem fs_vfsCompat;
 
-    static class filelink_t {
-        final String from;
-
-        String to;
-
-        filelink_t(String from, String to) {
-            this.from = from;
-            this.to = to;
-        }
-
-        @Override
-        public String toString() {
-            return "filelink_t{" +
-                    "from='" + from + '\'' +
-                    ", to='" + to + '\'' +
-                    '}';
-        }
-    }
-
-    // Explicit FS compatibility boundary:
-    // 1) absolute-path direct access
-    // 2) legacy fs_links remap behavior
-    private static List<filelink_t> fs_links = new LinkedList<>();
-
 
     /*
      * CreatePath
@@ -131,26 +104,12 @@ public final class FS extends Globals {
         if (filename == null || filename.isBlank()) {
             return false;
         }
-        if (filename.startsWith("/")) {
-            return new File(filename).canRead();
-        }
-        File linkedFile = resolveLinkedFile(filename);
-        if (linkedFile != null) {
-            return true;
-        }
         syncVfsCaseSensitivity();
         return fs_vfsCompat != null && fs_vfsCompat.exists(filename);
     }
 
     public static boolean IsFromPack(String filename) {
         if (filename == null || filename.isBlank()) {
-            return false;
-        }
-        if (filename.startsWith("/")) {
-            return false;
-        }
-        File linkedFile = resolveLinkedFile(filename);
-        if (linkedFile != null) {
             return false;
         }
         syncVfsCaseSensitivity();
@@ -171,19 +130,6 @@ public final class FS extends Globals {
         }
 
         try {
-            // used for tools
-            // todo: unify with other code
-            if (filename.startsWith("/")) {
-                final File file = new File(filename);
-                return new QuakeFile(file, "r", false, file.length());
-            }
-
-            // check for links first
-            File linkedFile = resolveLinkedFile(filename);
-            if (linkedFile != null) {
-                return new QuakeFile(linkedFile, "r", false, linkedFile.length());
-            }
-
             syncVfsCaseSensitivity();
             if (fs_vfsCompat != null) {
                 QuakeFile vfsFile = fs_vfsCompat.openFile(filename);
@@ -237,24 +183,6 @@ public final class FS extends Globals {
         if (index != -1)
             path = path.substring(0, index);
 
-        if (path.startsWith("/")) {
-            try {
-                return Files.readAllBytes(Paths.get(path));
-            } catch (IOException e) {
-                return null;
-            }
-        }
-
-        File linkedFile = resolveLinkedFile(path);
-        if (linkedFile != null) {
-            try {
-                return Files.readAllBytes(linkedFile.toPath());
-            } catch (IOException e) {
-                Com.Error(Defines.ERR_FATAL, e.toString());
-                return null;
-            }
-        }
-
         syncVfsCaseSensitivity();
         if (fs_vfsCompat != null) {
             byte[] bytes = fs_vfsCompat.loadFile(path);
@@ -279,18 +207,6 @@ public final class FS extends Globals {
      * Used for big files like cinematics
      */
     public static ByteBuffer LoadMappedFile(String filename) {
-        File linkedFile = resolveLinkedFile(filename);
-        if (linkedFile != null) {
-            try (FileInputStream input = new FileInputStream(linkedFile);
-                 FileChannel channel = input.getChannel()) {
-                int fileLength = (int) channel.size();
-                return channel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
         syncVfsCaseSensitivity();
         if (fs_vfsCompat != null) {
             ByteBuffer mapped = fs_vfsCompat.loadMappedFile(filename);
@@ -380,41 +296,6 @@ public final class FS extends Globals {
         updateVfsCompat(gameName);
     }
 
-    /*
-     * Link_f
-     * 
-     * Creates a filelink_t
-     */
-    private static void Link_f(List<String> args) {
-
-        if (args.size() != 3) {
-            Com.Printf("USAGE: link <from> <to>\n");
-            return;
-        }
-
-        // see if the link already exists
-        String from = args.get(1);
-        String to = args.get(2);
-        for (Iterator<filelink_t> it = fs_links.iterator(); it.hasNext();) {
-            filelink_t entry = it.next();
-
-            if (entry.from.equals(from)) {
-                if (to.isEmpty()) {
-                    // delete it
-                    it.remove();
-                    return;
-                }
-                entry.to = to;
-                return;
-            }
-        }
-
-        // create a new link if the <to> is not empty
-        if (!to.isEmpty()) {
-            fs_links.add(new filelink_t(from, to));
-        }
-    }
-
     /**
      * Legacy compatibility API used by deprecated old-client UI flows.
      * New code should use VFS snapshot/debug listings instead.
@@ -501,7 +382,7 @@ public final class FS extends Globals {
     }
 
     /**
-     * Shows all current search paths and links
+     * Shows all current search paths
      */
     private static void Path_f() {
         if (fs_vfsCompat != null) {
@@ -516,13 +397,6 @@ public final class FS extends Globals {
             }
         } else {
             Com.Printf("VFS compatibility layer is not initialized.\n");
-        }
-
-        if (!fs_links.isEmpty()) {
-            Com.Printf("\nLinks:\n");
-            for (filelink_t link : fs_links) {
-                Com.Printf(link.from + " : " + link.to + '\n');
-            }
         }
     }
 
@@ -557,7 +431,6 @@ public final class FS extends Globals {
      */
     public static void InitFilesystem() {
         Cmd.AddCommand("path", (List<String> args) -> Path_f());
-        Cmd.AddCommand("link", FS::Link_f);
         Cmd.AddCommand("dir", FS::Dir_f);
         Cmd.AddCommand("ls", FS::Dir_f);
         Cmd.AddCommand("packfiles", FS::PackFiles_f);
@@ -717,21 +590,6 @@ public final class FS extends Globals {
         }
     }
 
-    private static File resolveLinkedFile(String filename) {
-        if (filename == null) {
-            return null;
-        }
-        for (filelink_t link : fs_links) {
-            if (filename.startsWith(link.from)) {
-                File file = new File(link.to + filename.substring(link.from.length()));
-                if (file.canRead()) {
-                    return file;
-                }
-            }
-        }
-        return null;
-    }
-    
     /**
      * Legacy compatibility API used by deprecated old-client menu/render paths.
      * New code should infer behavior from current game/mod state directly.
