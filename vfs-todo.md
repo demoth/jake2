@@ -685,11 +685,16 @@ Implementation progress (landed commits):
   - added shared JSON DTOs for `pmove_state_t` and `player_state_t`
   - added explicit shared runtime <-> snapshot mapping helpers in `qcommon`
   - added focused round-trip tests for movement/player state restoration
+- `e649e837` `refactor: store game locals saves as json`
+  - added Kotlin `game.ssv` JSON layer (`GameSaveJson.kt`) with grouped DTOs, `GamePlayerInfo` mapping, and VFS-backed store logic
+  - replaced `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` binary `QuakeFile` flow with JSON over writable VFS
+  - kept `WriteLevel(...)` / `ReadLevel(...)` on binary `QuakeFile` for now; that remains the next migration slice
+  - added focused tests for `GamePlayerInfo` snapshot round-trip and `game.ssv` JSON store round-trip
 
 Current phase status:
 - Phase A: in progress
 - Phase B: in progress
-- Phase C: not started
+- Phase C: in progress
 - Phase D: partially complete
 - Phase E: complete
 - Phase F: not started
@@ -726,6 +731,7 @@ Phase B: Snapshot mapping layer
   - `GameSaveSnapshots` maps `client_respawn_t`
   - `PlayerStateSnapshots` maps `pmove_state_t`
   - `PlayerStateSnapshots` maps `player_state_t`
+  - `GamePlayerSnapshots` maps full `GamePlayerInfo` state for the `game.ssv` scope
   - focused round-trip tests cover these first mappings
 
 Exit criteria:
@@ -738,6 +744,10 @@ Phase C: Replace binary game/level save flows
 - Replace `GameExportsImpl.WriteLevel(...)`
 - Replace `GameExportsImpl.ReadLevel(...)`
 - Store these via VFS-backed readable/writable APIs and JSON files.
+- Landed so far:
+  - `WriteGame(...)` and `readGameLocals(...)` now persist `game.ssv` as JSON via writable VFS
+  - legacy filename is preserved; only the on-disk format changed
+  - `WriteLevel(...)` / `ReadLevel(...)` are still binary and still use `QuakeFile`
 
 Exit criteria:
 - active save/load path for Jake2 uses JSON, not binary `QuakeFile`
@@ -784,8 +794,8 @@ Exit criteria:
 ### Immediate next implementation target
 
 - Keep the focus on Phase B + Phase C now that shared JSON support exists and part of Phase D/E has landed.
-- The highest-value next step is to add `GamePlayerInfo` JSON snapshots plus a versioned `game.ssv` root DTO, then wire `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` to JSON for that scope.
-- After that, expand snapshot coverage to level locals, entities, and adapter/entity reference restoration for `.sav`.
+- The highest-value next step is to migrate `WriteLevel(...)` / `ReadLevel(...)` to JSON by adding level/entity snapshot DTOs plus explicit adapter/entity reference restoration for `.sav`.
+- After that, the remaining active `QuakeFile` persistence surface in `game` shrinks to compatibility and any still-unmigrated serializer helpers.
 - Do not start by refactoring `VfsBackedFileSystem`; that would create churn before the serializer dependency on `QuakeFile` is removed.
 
 ## Remaining Work For Full Server+Client VFS Switch
