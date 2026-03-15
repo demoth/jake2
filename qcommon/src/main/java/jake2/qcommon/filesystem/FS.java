@@ -24,26 +24,17 @@
 package jake2.qcommon.filesystem;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.exec.Cbuf;
-import jake2.qcommon.exec.Cmd;
-import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.vfs.EngineWriteRoot;
-import jake2.qcommon.vfs.RebuildScope;
-import jake2.qcommon.vfs.VfsDebugCommands;
-import jake2.qcommon.vfs.VfsResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /*
@@ -79,18 +70,6 @@ public final class FS extends Globals {
      * ==================================================
      */
 
-    private static String fs_gamedir;
-
-    private static String fs_userdir;
-
-    private static cvar_t fs_basedir;
-
-    private static cvar_t fs_casesensitive;
-
-    public static cvar_t fs_gamedirvar;
-    private static VfsBackedFileSystem fs_vfsCompat;
-
-
     /*
      * CreatePath
      * 
@@ -104,12 +83,12 @@ public final class FS extends Globals {
     }
 
     public static boolean FileExists(String filename) {
-        syncVfsCaseSensitivity();
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
         return EngineVfs.exists(filename);
     }
 
     public static boolean IsFromPack(String filename) {
-        syncVfsCaseSensitivity();
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
         return EngineVfs.isFromPack(filename);
     }
 
@@ -128,9 +107,10 @@ public final class FS extends Globals {
         }
 
         try {
-            syncVfsCaseSensitivity();
-            if (fs_vfsCompat != null) {
-                QuakeFile vfsFile = fs_vfsCompat.openFile(filename);
+            EngineFilesystemLifecycle.syncVfsCaseSensitivity();
+            VfsBackedFileSystem compatFileSystem = EngineFilesystemLifecycle.compatFileSystem();
+            if (compatFileSystem != null) {
+                QuakeFile vfsFile = compatFileSystem.openFile(filename);
                 if (vfsFile != null) {
                     return vfsFile;
                 }
@@ -183,12 +163,12 @@ public final class FS extends Globals {
         if (index != -1)
             path = path.substring(0, index);
 
-        syncVfsCaseSensitivity();
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
         byte[] bytes = EngineVfs.loadBytes(path);
         if (bytes != null) {
             return bytes;
         }
-        if (!isVfsCaseSensitive()) {
+        if (!EngineFilesystemLifecycle.isVfsCaseSensitive()) {
             bytes = EngineVfs.loadBytes(path.toLowerCase(Locale.ROOT));
             if (bytes != null) {
                 Com.Printf("Found file by lowercase: " + path + "\n");
@@ -205,9 +185,10 @@ public final class FS extends Globals {
      * Used for big files like cinematics
      */
     public static ByteBuffer LoadMappedFile(String filename) {
-        syncVfsCaseSensitivity();
-        if (fs_vfsCompat != null) {
-            ByteBuffer mapped = fs_vfsCompat.loadMappedFile(filename);
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
+        VfsBackedFileSystem compatFileSystem = EngineFilesystemLifecycle.compatFileSystem();
+        if (compatFileSystem != null) {
+            ByteBuffer mapped = compatFileSystem.loadMappedFile(filename);
             if (mapped != null) {
                 return mapped;
             }
@@ -234,30 +215,11 @@ public final class FS extends Globals {
         return EngineWriteRoot.pathString();
     }
 
-    private static void setWriteDir(String gameName) {
-        fs_userdir = System.getProperty("user.home") + "/.jake2/" + gameName;
-        EngineWriteRoot.setRoot(Path.of(fs_userdir));
-    }
-
     /*
      * ExecAutoexec
      */
     public static void ExecAutoexec() {
-        String dir = fs_userdir;
-
-        String name;
-        if (dir != null && dir.length() > 0) {
-            name = dir + "/autoexec.cfg";
-        } else {
-            name = fs_basedir.string + '/' + Globals.BASEQ2 + "/autoexec.cfg";
-        }
-
-        int canthave = Defines.SFF_SUBDIR | Defines.SFF_HIDDEN
-                | Defines.SFF_SYSTEM;
-
-        if (Sys.FindAll(name, 0, canthave) != null) {
-            Cbuf.AddText("exec autoexec.cfg\n");
-        }
+        EngineFilesystemLifecycle.execAutoexec();
     }
 
     /**
@@ -267,31 +229,7 @@ public final class FS extends Globals {
      * used when game cvar is changed
      */
     public static void SetGamedir(String gameName) {
-
-        if (gameName.contains("..") || gameName.contains("/") || gameName.contains("\\") || gameName.contains(":")) {
-            Com.Printf("Gamedir should be a single filename, not a path\n");
-            return;
-        }
-
-        //
-        // flush all data, so it will be forced to reload
-        //
-        if ((Globals.dedicated != null) && (Globals.dedicated.value == 0.0f)) {
-            Cbuf.AddText("vid_restart");
-            Cbuf.AddText("snd_restart");
-        }
-
-        fs_gamedir = fs_basedir.string + '/' + gameName;
-
-        if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
-            Cvar.getInstance().FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
-            Cvar.getInstance().FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
-        } else {
-            Cvar.getInstance().FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
-        }
-
-        setWriteDir(gameName);
-        updateVfsCompat(gameName);
+        EngineFilesystemLifecycle.setGameDir(gameName);
     }
 
     /**
@@ -315,102 +253,19 @@ public final class FS extends Globals {
     }
 
     /**
-     * dir command as in MS-DOS - shows contents of the directory
-     * @param args wildcard, can contain a subpath also, like 'dir players/cyborg/*.*'.
-     *
-     * TODO: support dir of pak files
-     * TODO: support links
-     */
-    private static void Dir_f(List<String> args) {
-        //
-        String wildcard = "*.*";
-
-        if (args.size() >= 2) {
-            wildcard = args.get(1);
-        }
-
-        if (fs_vfsCompat != null) {
-            syncVfsCaseSensitivity();
-            List<String> matches = fs_vfsCompat.debugFilesMatching(wildcard);
-            Com.Printf("Directory of " + wildcard + '\n');
-            for (String match : matches) {
-                Com.Printf("  " + match + '\n');
-            }
-            if (matches.isEmpty()) {
-                Com.Printf("  <no matches>\n");
-            }
-            Com.Printf("\n");
-            return;
-        }
-        Com.Printf("VFS compatibility layer is not initialized.\n");
-    }
-
-    /**
-     * Lists files from a single mounted package.
-     * Usage: packfiles <packname>
-     */
-    private static void PackFiles_f(List<String> args) {
-        if (args.size() != 2) {
-            Com.Printf("USAGE: packfiles <packname>\n");
-            return;
-        }
-
-        if (fs_vfsCompat == null) {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
-            return;
-        }
-
-        syncVfsCaseSensitivity();
-        String packName = args.get(1);
-        VfsResult<List<String>> result = fs_vfsCompat.debugFilesInPack(packName);
-        if (!result.success()) {
-            Com.Printf(result.error() + "\n");
-            return;
-        }
-
-        List<String> files = result.value();
-        Com.Printf("Files in pack " + packName + "\n");
-        for (String file : files) {
-            Com.Printf("  " + file + "\n");
-        }
-        if (files.isEmpty()) {
-            Com.Printf("  <pack is empty>\n");
-        }
-        Com.Printf("Total files in pack: " + files.size() + "\n\n");
-    }
-
-    /**
-     * Shows all current search paths
-     */
-    private static void Path_f() {
-        if (fs_vfsCompat != null) {
-            syncVfsCaseSensitivity();
-            List<String> mounts = fs_vfsCompat.debugMounts();
-            if (!mounts.isEmpty()) {
-                for (String mount : mounts) {
-                    Com.Printf(mount + "\n");
-                }
-            } else {
-                Com.Printf("No VFS mounts available.\n");
-            }
-        } else {
-            Com.Printf("VFS compatibility layer is not initialized.\n");
-        }
-    }
-
-    /**
      * Legacy compatibility API used by deprecated old-client UI flows.
      * New code should use VFS mount snapshots instead.
      */
     @Deprecated(forRemoval = true)
     public static String NextPath(String prevpath) {
-        if (fs_vfsCompat == null) {
-            return prevpath == null || prevpath.length() == 0 ? fs_gamedir : null;
+        VfsBackedFileSystem compatFileSystem = EngineFilesystemLifecycle.compatFileSystem();
+        if (compatFileSystem == null) {
+            return prevpath == null || prevpath.length() == 0 ? EngineFilesystemLifecycle.currentGameDir() : null;
         }
-        syncVfsCaseSensitivity();
-        List<String> roots = fs_vfsCompat.debugLooseMountRoots();
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
+        List<String> roots = compatFileSystem.debugLooseMountRoots();
         if (roots.isEmpty()) {
-            return prevpath == null || prevpath.length() == 0 ? fs_gamedir : null;
+            return prevpath == null || prevpath.length() == 0 ? EngineFilesystemLifecycle.currentGameDir() : null;
         }
         if (prevpath == null || prevpath.length() == 0) {
             return roots.get(0);
@@ -428,164 +283,7 @@ public final class FS extends Globals {
      * InitFilesystem
      */
     public static void InitFilesystem() {
-        Cmd.AddCommand("path", (List<String> args) -> Path_f());
-        Cmd.AddCommand("dir", FS::Dir_f);
-        Cmd.AddCommand("ls", FS::Dir_f);
-        Cmd.AddCommand("packfiles", FS::PackFiles_f);
-        Cmd.AddCommand("packdir", FS::PackFiles_f);
-        VfsDebugCommands.register(new VfsDebugCommands.Provider() {
-            @Override
-            public boolean isInitialized() {
-                return fs_vfsCompat != null;
-            }
-
-            @Override
-            public List<String> resolvedFiles() {
-                syncVfsCaseSensitivity();
-                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugResolvedFiles();
-            }
-
-            @Override
-            public List<String> mounts() {
-                syncVfsCaseSensitivity();
-                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugMounts();
-            }
-
-            @Override
-            public List<String> overrides() {
-                syncVfsCaseSensitivity();
-                return fs_vfsCompat == null ? List.of() : fs_vfsCompat.debugOverrides();
-            }
-
-            @Override
-            public VfsResult<String> mountPackage(String packagePath) {
-                syncVfsCaseSensitivity();
-                if (fs_vfsCompat == null) {
-                    return VfsResult.fail("VFS compatibility layer is not initialized.");
-                }
-                return fs_vfsCompat.mountPackage(packagePath);
-            }
-
-            @Override
-            public VfsResult<Void> unmountPackage(String mountId) {
-                syncVfsCaseSensitivity();
-                if (fs_vfsCompat == null) {
-                    return VfsResult.fail("VFS compatibility layer is not initialized.");
-                }
-                return fs_vfsCompat.unmountPackage(mountId);
-            }
-
-            @Override
-            public void rebuildIndex(RebuildScope scope) {
-                syncVfsCaseSensitivity();
-                if (fs_vfsCompat == null) {
-                    return;
-                }
-                fs_vfsCompat.rebuildIndex(scope);
-            }
-        });
-
-        // by default all saves, screenshots etc go to ~/.jake2/baseq2
-        // overridden by 'game' cvar, i.e xatrix saves to go ~/.jake2/xatrix
-        setWriteDir(Globals.BASEQ2);
-
-        //
-        // basedir <path>
-        // allows the game to run from outside the data tree
-        //
-        if (new File("./baseq2").exists()) {
-            fs_basedir = Cvar.getInstance().Get("basedir", ".", CVAR_NOSET);
-        } else {
-            var autoDetectedBasedir = autodetectBasedir();
-            fs_basedir = Cvar.getInstance().Get("basedir", autoDetectedBasedir, CVAR_NOSET);
-        }
-
-        fs_gamedir = fs_basedir.string + '/' + Globals.BASEQ2;
-
-        // check for game override
-        fs_gamedirvar = Cvar.getInstance().Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
-        fs_casesensitive = Cvar.getInstance().Get("fs_casesensitive", "0", CVAR_ARCHIVE);
-
-        if (!fs_gamedirvar.string.isEmpty())
-            SetGamedir(fs_gamedirvar.string);
-
-        initVfsCompat();
-    }
-
-    private static String autodetectBasedir() {
-        // linux
-        var home = System.getProperty("user.home");
-        if (home != null && !home.isBlank()) {
-            var steamLinuxPath = Paths.get(home, ".steam", "steam", "steamapps", "common", "Quake 2").toFile();
-            if (steamLinuxPath.exists()) {
-                System.out.println("Auto-detected steam q2 installation at :" + steamLinuxPath);
-                return steamLinuxPath.getAbsolutePath();
-            }
-
-            // Mac
-            var macSteamPath = Paths.get(home, "Library", "Application Support", "Steam", "steamapps", "common", "Quake 2").toFile();
-            if (macSteamPath.exists()) {
-                System.out.println("Auto-detected steam q2 installation at :" + macSteamPath);
-                return macSteamPath.getAbsolutePath();
-            }
-        }
-
-        // windows 32
-        var windowsProgramFiles = Paths.get("c:", "Program Files (x86)", "Steam", "steamapps", "common", "Quake 2").toFile();
-        if (windowsProgramFiles.exists()) {
-            System.out.println("Auto-detected steam q2 installation at :" + windowsProgramFiles);
-            return windowsProgramFiles.getAbsolutePath();
-        }
-
-        // windows 64
-        var windowsProgramFiles64 = Paths.get("c:", "Program Files", "Steam", "steamapps", "common", "Quake 2").toFile();
-        if (windowsProgramFiles64.exists()) {
-            System.out.println("Auto-detected steam q2 installation at :" + windowsProgramFiles64);
-            return windowsProgramFiles64.getAbsolutePath();
-        }
-
-
-        return ".";
-    }
-
-    private static void initVfsCompat() {
-        String gameMod = null;
-        if (fs_gamedirvar != null && !fs_gamedirvar.string.isEmpty()) {
-            gameMod = fs_gamedirvar.string;
-        }
-        fs_vfsCompat = new VfsBackedFileSystem(EngineVfs.shared());
-        fs_vfsCompat.configure(
-                Paths.get(fs_basedir.string),
-                Globals.BASEQ2,
-                gameMod,
-                true,
-                isVfsCaseSensitive()
-        );
-    }
-
-    private static void updateVfsCompat(String gameName) {
-        if (fs_vfsCompat == null) {
-            return;
-        }
-        if (gameName == null || gameName.isEmpty() || gameName.equals(Globals.BASEQ2)) {
-            fs_vfsCompat.setGameMod(null);
-        } else {
-            fs_vfsCompat.setGameMod(gameName);
-        }
-    }
-
-    private static boolean isVfsCaseSensitive() {
-        return fs_casesensitive != null && fs_casesensitive.value != 0.0f;
-    }
-
-    private static void syncVfsCaseSensitivity() {
-        if (fs_vfsCompat == null || fs_casesensitive == null) {
-            return;
-        }
-        boolean desired = isVfsCaseSensitive();
-        if (fs_vfsCompat.isCaseSensitive() != desired) {
-            fs_vfsCompat.setCaseSensitive(desired);
-        }
+        EngineFilesystemLifecycle.init();
     }
 
     /**
@@ -594,11 +292,12 @@ public final class FS extends Globals {
      */
     @Deprecated(forRemoval = true)
     public static int Developer_searchpath() {
-        if (fs_vfsCompat == null) {
+        VfsBackedFileSystem compatFileSystem = EngineFilesystemLifecycle.compatFileSystem();
+        if (compatFileSystem == null) {
             return 0;
         }
-        syncVfsCaseSensitivity();
-        for (String root : fs_vfsCompat.debugLooseMountRoots()) {
+        EngineFilesystemLifecycle.syncVfsCaseSensitivity();
+        for (String root : compatFileSystem.debugLooseMountRoots()) {
             String normalized = root.replace('\\', '/').toLowerCase(Locale.ROOT);
             if (normalized.contains("/xatrix"))
                 return 1;

@@ -55,7 +55,7 @@ public final class VfsBackedFileSystem {
         this(new DefaultVirtualFileSystem());
     }
 
-    VfsBackedFileSystem(VirtualFileSystem vfs) {
+    public VfsBackedFileSystem(VirtualFileSystem vfs) {
         this.vfs = vfs;
     }
 

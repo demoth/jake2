@@ -6,11 +6,11 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.longjmpException;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import jake2.server.JakeServer;
 import jake2.server.SV_MAIN;
 
@@ -51,7 +51,7 @@ public class Jake2Dedicated {
             Cbuf.AddEarlySetCommands(args1, false);
             Cbuf.Execute();
 
-            FS.InitFilesystem();
+            EngineFilesystemLifecycle.init();
 
             Cbuf.reconfigure(args1, false);
 

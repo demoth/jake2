@@ -30,8 +30,8 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.ServerStates;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -252,8 +252,8 @@ public class Cvar extends Globals {
                     var.string = value;
                     var.value = Lib.atof(var.string);
                     if (var.name.equals("game")) {
-                        FS.SetGamedir(var.string);
-                        FS.ExecAutoexec();
+                        EngineFilesystemLifecycle.setGameDir(var.string);
+                        EngineFilesystemLifecycle.execAutoexec();
                     }
                 }
                 return var;
@@ -382,8 +382,8 @@ public class Cvar extends Globals {
             var.latched_string = null;
             var.value = Lib.atof(var.string);
             if (var.name.equals("game")) {
-                FS.SetGamedir(var.string);
-                FS.ExecAutoexec();
+                EngineFilesystemLifecycle.setGameDir(var.string);
+                EngineFilesystemLifecycle.execAutoexec();
             }
         }
     }
