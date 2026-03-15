@@ -24,8 +24,6 @@ package jake2.qcommon;
 
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 /** 
@@ -95,86 +93,6 @@ public class player_state_t {
 		System.arraycopy(from.stats, 0, stats, 0, Defines.MAX_STATS);
 
 		return this;
-	}
-
-	/** Reads a player_state from a file.*/
-	public void load(RandomAccessFile f) throws IOException {
-		pmove.load(f);
-
-		viewangles[0]= f.readFloat();
-		viewangles[1]= f.readFloat();
-		viewangles[2]= f.readFloat();
-
-		viewoffset[0]= f.readFloat();
-		viewoffset[1]= f.readFloat();
-		viewoffset[2]= f.readFloat();
-
-		kick_angles[0]= f.readFloat();
-		kick_angles[1]= f.readFloat();
-		kick_angles[2]= f.readFloat();
-
-		gunangles[0]= f.readFloat();
-		gunangles[1]= f.readFloat();
-		gunangles[2]= f.readFloat();
-
-		gunoffset[0]= f.readFloat();
-		gunoffset[1]= f.readFloat();
-		gunoffset[2]= f.readFloat();
-
-		gunindex= f.readInt();
-		gunframe= f.readInt();
-
-		blend[0]= f.readFloat();
-		blend[1]= f.readFloat();
-		blend[2]= f.readFloat();
-		blend[3]= f.readFloat();
-
-		fov= f.readFloat();
-
-		rdflags= f.readInt();
-
-		for (int n= 0; n < Defines.MAX_STATS; n++)
-			stats[n]= f.readShort();
-	}
-
-	/** Writes a player_state to a file.*/
-	public void write(RandomAccessFile f) throws IOException {
-		pmove.write(f);
-
-		f.writeFloat(viewangles[0]);
-		f.writeFloat(viewangles[1]);
-		f.writeFloat(viewangles[2]);
-
-		f.writeFloat(viewoffset[0]);
-		f.writeFloat(viewoffset[1]);
-		f.writeFloat(viewoffset[2]);
-
-		f.writeFloat(kick_angles[0]);
-		f.writeFloat(kick_angles[1]);
-		f.writeFloat(kick_angles[2]);
-
-		f.writeFloat(gunangles[0]);
-		f.writeFloat(gunangles[1]);
-		f.writeFloat(gunangles[2]);
-
-		f.writeFloat(gunoffset[0]);
-		f.writeFloat(gunoffset[1]);
-		f.writeFloat(gunoffset[2]);
-
-		f.writeInt(gunindex);
-		f.writeInt(gunframe);
-
-		f.writeFloat(blend[0]);
-		f.writeFloat(blend[1]);
-		f.writeFloat(blend[2]);
-		f.writeFloat(blend[3]);
-
-		f.writeFloat(fov);
-
-		f.writeInt(rdflags);
-
-		for (int n= 0; n < Defines.MAX_STATS; n++)
-			f.writeShort(stats[n]);
 	}
 
 	@Override

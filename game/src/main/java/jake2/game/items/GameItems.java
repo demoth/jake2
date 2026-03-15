@@ -30,7 +30,6 @@ import jake2.game.components.Medkit;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.csurface_t;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -1298,27 +1297,6 @@ public class GameItems {
             return; // valid
 
         SelectNextItem(ent, -1, gameExports);
-    }
-
-    /**
-     * Writes an item reference.
-     */
-    public static void writeItem(QuakeFile f, GameItem item) throws IOException {
-        if (item == null)
-            f.writeInt(-1);
-        else
-            f.writeInt(item.index);
-    }
-
-    /**
-     * Reads the item index and returns the game item.
-     */
-    public static GameItem readItem(QuakeFile f, GameExportsImpl gameExports) throws IOException {
-        int index = f.readInt();
-        if (index == -1)
-            return null;
-        else
-            return gameExports.items.get(index);
     }
 
     /**

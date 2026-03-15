@@ -24,8 +24,6 @@ package jake2.qcommon;
 
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 public class pmove_state_t {
@@ -83,55 +81,6 @@ public class pmove_state_t {
 			&& delta_angles[0] == p2.delta_angles[0]
 			&& delta_angles[1] == p2.delta_angles[1]
 			&& delta_angles[2] == p2.delta_angles[2]);
-	}
-
-	/** Reads the playermove from the file.*/
-	public void load(RandomAccessFile f) throws IOException {
-
-		pm_type = f.readInt();
-
-		origin[0] = f.readShort();
-		origin[1] = f.readShort();
-		origin[2] = f.readShort();
-
-		velocity[0] = f.readShort();
-		velocity[1] = f.readShort();
-		velocity[2] = f.readShort();
-
-		pm_flags = f.readByte();
-		pm_time = f.readByte();
-		gravity = f.readShort();
-
-		f.readShort();
-
-		delta_angles[0] = f.readShort();
-		delta_angles[1] = f.readShort();
-		delta_angles[2] = f.readShort();
-
-	}
-	
-	/** Writes the playermove to the file. */
-	public void write (RandomAccessFile f) throws IOException {
-
-		f.writeInt(pm_type);
-
-		f.writeShort(origin[0]);
-		f.writeShort(origin[1]);
-		f.writeShort(origin[2]);
-
-		f.writeShort(velocity[0]);
-		f.writeShort(velocity[1]);
-		f.writeShort(velocity[2]);
-
-		f.writeByte(pm_flags);
-		f.writeByte(pm_time);
-		f.writeShort(gravity);
-
-		f.writeShort(0);
-
-		f.writeShort(delta_angles[0]);
-		f.writeShort(delta_angles[1]);
-		f.writeShort(delta_angles[2]);
 	}
 
 	@Override

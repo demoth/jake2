@@ -24,10 +24,6 @@ package jake2.game.monsters;
 
 import jake2.game.adapters.AIAdapter;
 import jake2.game.adapters.EntThinkAdapter;
-import jake2.game.adapters.SuperAdapter;
-import jake2.qcommon.filesystem.QuakeFile;
-
-import java.io.IOException;
 
 /**
  * Represents a single time frame of a monster.
@@ -53,16 +49,4 @@ public class mframe_t {
     public float dist;
 
     public EntThinkAdapter think;
-
-    public void write(QuakeFile f) throws IOException {
-        SuperAdapter.writeAdapter(f, ai);
-        f.writeFloat(dist);
-        SuperAdapter.writeAdapter(f, think);
-    }
-
-    public void read(QuakeFile f) throws IOException {
-        ai = (AIAdapter) SuperAdapter.readAdapter(f);
-        dist = f.readFloat();
-        think = (EntThinkAdapter) SuperAdapter.readAdapter(f);
-    }
 }

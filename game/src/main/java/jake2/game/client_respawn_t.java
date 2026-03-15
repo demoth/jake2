@@ -22,10 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.filesystem.QuakeFile;
-
-import java.io.IOException;
-
 /** Client data that stays across deathmatch respawns.*/
 public class client_respawn_t
 
@@ -64,29 +60,5 @@ public class client_respawn_t
 		score = 0;
 		Math3D.VectorClear(cmd_angles);
 		spectator = false;
-	}
-
-	/** Reads a client_respawn from a file. */
-	public void read(QuakeFile f, GameExportsImpl gameExports) throws IOException
-	{
-		coop_respawn.read(f, gameExports);
-		enterframe = f.readInt();
-		score = f.readInt();
-		cmd_angles[0] = f.readFloat();
-		cmd_angles[1] = f.readFloat();
-		cmd_angles[2] = f.readFloat();
-		spectator = f.readInt() != 0;
-	}
-	
-	/** Writes a client_respawn to a file. */
-	public void write(QuakeFile f) throws IOException
-	{
-		coop_respawn.write(f);
-		f.writeInt(enterframe);
-		f.writeInt(score);
-		f.writeFloat(cmd_angles[0]);
-		f.writeFloat(cmd_angles[1]);
-		f.writeFloat(cmd_angles[2]);
-		f.writeInt(spectator?1:0);
 	}
 }

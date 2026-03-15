@@ -22,10 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Math3D;
-
-import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -63,60 +60,6 @@ public class entity_state_t {
 	public int event; // impulse events -- muzzle flashes, footsteps, etc
 	// events only go out for a single frame, they
 	// are automatically cleared each frame
-
-	/** Writes the entity state to the file. */
-	public void write(QuakeFile f) throws IOException
-	{
-		f.writeEdictRef(null); // leftover from surrounding_ent
-		f.writeVector(origin);
-		f.writeVector(angles);
-		f.writeVector(old_origin);
-	
-		f.writeInt(modelindex); 
-		
-		f.writeInt(modelindex2);
-		f.writeInt(modelindex3);
-		f.writeInt(modelindex4);
-	
-		f.writeInt(frame);	
-		f.writeInt(skinnum);
-		
-		f.writeInt(effects);
-		f.writeInt(renderfx);
-		f.writeInt(solid);
-		
-		f.writeInt(sound);
-		f.writeInt(event);
-		
-	}
-
-	/** Reads the entity state from the file. */
-	public void read(QuakeFile f, ServerEntity[] g_edicts) throws IOException
-	{
-		f.readEdictRef(g_edicts); // leftover from surrounding_ent
-		origin = f.readVector();
-		angles = f.readVector();
-		old_origin = f.readVector();
-	
-		modelindex = f.readInt(); 
-		
-		modelindex2= f.readInt();
-		modelindex3= f.readInt();
-		modelindex4= f.readInt();
-	
-		frame = f.readInt();	
-		skinnum = f.readInt();
-		
-		effects = f.readInt();
-		renderfx = f.readInt();
-		solid = f.readInt();
-		
-		sound = f.readInt();
-		event = f.readInt();
-		
-
-	}
-
 
 	public entity_state_t getClone()
 	{

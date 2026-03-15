@@ -23,10 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game.monsters;
 
 import jake2.game.adapters.EntThinkAdapter;
-import jake2.game.adapters.SuperAdapter;
-import jake2.qcommon.filesystem.QuakeFile;
-
-import java.io.IOException;
 
 /**
  * Represents a state of animation: a collection of {@link mframe_t} and an end function.
@@ -48,30 +44,4 @@ public class mmove_t {
 
     public final mframe_t[] frames;
     public final EntThinkAdapter endfunc;
-
-    public void write(QuakeFile f) throws IOException {
-        f.writeInt(firstframe);
-        f.writeInt(lastframe);
-        f.writeInt(frames.length);
-        for (mframe_t frame : frames)
-            frame.write(f);
-        SuperAdapter.writeAdapter(f, endfunc);
-    }
-
-    public static mmove_t read(QuakeFile f) throws IOException {
-
-        int firstframe = f.readInt();
-        int lastframe = f.readInt();
-
-        int len = f.readInt();
-
-        mframe_t[] frame = new mframe_t[len];
-        for (int n = 0; n < len; n++) {
-            frame[n] = new mframe_t();
-            frame[n].read(f);
-        }
-        EntThinkAdapter endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
-
-        return new mmove_t(firstframe, lastframe, frame, endfunc);
-    }
 }
