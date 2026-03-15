@@ -978,7 +978,11 @@ Implementation progress (2026-03-15):
 - Migrated active save/state path construction off `FS.getWriteDir()` / `FS.CreatePath()` in:
   - `server`: `GameImportsImpl`, `SV_MAIN`, `SV_GAME`, `SV_CCMDS`
   - `game`: `GameExportsImpl`
-- Remaining active `FS` call sites outside the compatibility layer are now down to lifecycle/config wiring in `Cvar` (`SetGamedir`, `ExecAutoexec`).
+- Introduced `EngineFilesystemLifecycle` as the shared non-legacy lifecycle/bootstrap owner for filesystem startup and mod changes.
+- Migrated the remaining active lifecycle callers off `FS`:
+  - `dedicated`: `Jake2Dedicated` now initializes filesystem lifecycle through `EngineFilesystemLifecycle`
+  - `qcommon`: `Cvar` now routes `game` cvar changes through `EngineFilesystemLifecycle`
+- `FS.InitFilesystem`, `FS.SetGamedir`, and `FS.ExecAutoexec` now delegate to `EngineFilesystemLifecycle` for compatibility only.
 - Documented current write-root mismatch explicitly:
   - server/game save flow writes to `$HOME/.jake2/<mod>/save/...`
   - Cake-owned client writable data targets `$HOME/.cake/<mod>/...`
@@ -994,16 +998,12 @@ The remaining decommission work is now narrow and explicit.
 
 ### `FS` remaining role
 
-- Active non-test `FS` call sites are down to startup and gamedir lifecycle only:
-  - `dedicated/Jake2Dedicated`: `FS.InitFilesystem()`
-  - `qcommon/exec/Cvar`: `FS.SetGamedir(...)`, `FS.ExecAutoexec()`
-- This means active content reads and save-path construction are already off `FS`.
+- Active non-test `FS` call sites for startup/mod-change lifecycle are now gone.
+- This means active content reads, save-path construction, and lifecycle/bootstrap are already off `FS`.
 - The remaining responsibilities inside `FS` are:
-  - startup/bootstrap wiring
-  - gamedir change handling
-  - autoexec discovery/queueing
   - compatibility debug commands (`path`, `dir`, `packfiles`)
   - `QuakeFile` bridge methods (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`)
+  - deprecated compatibility entry points that delegate to `EngineFilesystemLifecycle`
 
 ### `QuakeFile` remaining role
 
@@ -1031,10 +1031,9 @@ The remaining decommission work is now narrow and explicit.
 ### Concrete blockers before deletion
 
 1. Move bootstrap ownership out of `FS`.
-   - Introduce a non-legacy lifecycle/bootstrap owner for VFS startup.
-   - Migrate `Jake2Dedicated` off `FS.InitFilesystem()`.
+   - Done: `EngineFilesystemLifecycle` now owns startup/bootstrap state and VFS compatibility initialization.
 2. Move gamedir-change and autoexec behavior out of `FS`.
-   - Replace `Cvar` calls to `FS.SetGamedir(...)` / `FS.ExecAutoexec()` with a lifecycle/config owner that updates `EngineVfs`, `EngineWriteRoot`, and cvars/queued commands explicitly.
+   - Done: `Cvar` now calls `EngineFilesystemLifecycle` directly for `game` cvar changes.
 3. Remove `QuakeFile` bridge APIs.
    - Delete `FS.FOpenFile(...)`, `FS.OpenReadFile(...)`, `FS.OpenWriteFile(...)`.
    - Replace or delete `FS.LoadMappedFile(...)` compatibility usage.
@@ -1050,13 +1049,11 @@ The remaining decommission work is now narrow and explicit.
 
 ### Recommended deletion order
 
-1. Extract lifecycle/bootstrap ownership from `FS`.
-2. Migrate `Cvar` and `Jake2Dedicated` to that owner.
-3. Remove `FS` file I/O entry points and `LoadMappedFile`.
-4. Remove `SuperAdapter` `QuakeFile` helpers.
-5. Delete `VfsBackedFileSystem`.
-6. Delete `QuakeFile`.
-7. Delete or trivialize `FS`.
+1. Remove `FS` file I/O entry points and `LoadMappedFile`.
+2. Remove `SuperAdapter` `QuakeFile` helpers.
+3. Delete `VfsBackedFileSystem`.
+4. Delete `QuakeFile`.
+5. Delete or trivialize `FS`.
 
 ### End-state criteria
 
