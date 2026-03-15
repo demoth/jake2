@@ -988,6 +988,85 @@ Implementation progress (2026-03-15):
   - `VfsBackedFileSystemTest`
   - `VfsReadWriteIntegrationTest`
 
+## Decommission Review (2026-03-15)
+
+The remaining decommission work is now narrow and explicit.
+
+### `FS` remaining role
+
+- Active non-test `FS` call sites are down to startup and gamedir lifecycle only:
+  - `dedicated/Jake2Dedicated`: `FS.InitFilesystem()`
+  - `qcommon/exec/Cvar`: `FS.SetGamedir(...)`, `FS.ExecAutoexec()`
+- This means active content reads and save-path construction are already off `FS`.
+- The remaining responsibilities inside `FS` are:
+  - startup/bootstrap wiring
+  - gamedir change handling
+  - autoexec discovery/queueing
+  - compatibility debug commands (`path`, `dir`, `packfiles`)
+  - `QuakeFile` bridge methods (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`)
+
+### `QuakeFile` remaining role
+
+- `QuakeFile` no longer participates in active save persistence.
+- Remaining production references are effectively compatibility-only:
+  - `qcommon.filesystem.FS`
+  - `qcommon.filesystem.VfsBackedFileSystem`
+  - `qcommon.filesystem.QuakeFile`
+  - `game.adapters.SuperAdapter`
+- `SuperAdapter.writeAdapter/readAdapter` is now orphaned compatibility code:
+  - the JSON save path restores adapters by explicit ID fields in snapshot DTOs
+  - no active production caller uses the old `QuakeFile`-based adapter read/write helpers anymore
+- Remaining test references are only bridge coverage:
+  - `FSCompatibilityTest`
+  - `VfsBackedFileSystemTest`
+
+### `VfsBackedFileSystem` remaining role
+
+- `VfsBackedFileSystem` is no longer part of the active read architecture.
+- It now exists only to fabricate `QuakeFile` compatibility views over VFS results and to back a few compatibility/debug helpers.
+- The most important behavior still trapped there is the ZIP package temp-extraction bridge:
+  - `.pak` entries are opened by offset from the pack
+  - ZIP-backed package entries are extracted to temp files only because `QuakeFile` requires an OS file
+
+### Concrete blockers before deletion
+
+1. Move bootstrap ownership out of `FS`.
+   - Introduce a non-legacy lifecycle/bootstrap owner for VFS startup.
+   - Migrate `Jake2Dedicated` off `FS.InitFilesystem()`.
+2. Move gamedir-change and autoexec behavior out of `FS`.
+   - Replace `Cvar` calls to `FS.SetGamedir(...)` / `FS.ExecAutoexec()` with a lifecycle/config owner that updates `EngineVfs`, `EngineWriteRoot`, and cvars/queued commands explicitly.
+3. Remove `QuakeFile` bridge APIs.
+   - Delete `FS.FOpenFile(...)`, `FS.OpenReadFile(...)`, `FS.OpenWriteFile(...)`.
+   - Replace or delete `FS.LoadMappedFile(...)` compatibility usage.
+4. Remove dead `QuakeFile` helpers.
+   - Delete `SuperAdapter.writeAdapter/readAdapter` once the old binary save path is fully gone from active modules.
+5. Delete `VfsBackedFileSystem`.
+   - After no code needs `QuakeFile` views over VFS results, remove the bridge and its ZIP temp-extraction path.
+6. Delete `QuakeFile`.
+   - Once no production code or tests depend on it, remove the type entirely.
+7. Reduce or delete `FS`.
+   - Preferred end state: `FS` disappears.
+   - Acceptable temporary end state: `FS` becomes a minimal deprecated bootstrap shim with no file I/O API surface.
+
+### Recommended deletion order
+
+1. Extract lifecycle/bootstrap ownership from `FS`.
+2. Migrate `Cvar` and `Jake2Dedicated` to that owner.
+3. Remove `FS` file I/O entry points and `LoadMappedFile`.
+4. Remove `SuperAdapter` `QuakeFile` helpers.
+5. Delete `VfsBackedFileSystem`.
+6. Delete `QuakeFile`.
+7. Delete or trivialize `FS`.
+
+### End-state criteria
+
+`FS`, `QuakeFile`, and `VfsBackedFileSystem` can be considered fully decommissioned when:
+
+- all active startup/mod-change flows go through non-legacy VFS lifecycle owners
+- no active code returns or accepts `QuakeFile`
+- no ZIP package entry is materialized only to satisfy `QuakeFile`
+- the remaining tests validate `EngineVfs` / `WritableFileSystem` behavior directly instead of bridge compatibility
+
 ## Open questions
 
 - Should numbered official packs be marked as "protected" by default in Jake2?
