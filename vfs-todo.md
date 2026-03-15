@@ -1012,10 +1012,7 @@ The remaining decommission work is now narrow and explicit.
   - `qcommon.filesystem.FS`
   - `qcommon.filesystem.VfsBackedFileSystem`
   - `qcommon.filesystem.QuakeFile`
-  - `game.adapters.SuperAdapter`
-- `SuperAdapter.writeAdapter/readAdapter` is now orphaned compatibility code:
-  - the JSON save path restores adapters by explicit ID fields in snapshot DTOs
-  - no active production caller uses the old `QuakeFile`-based adapter read/write helpers anymore
+- The old `SuperAdapter.writeAdapter/readAdapter` binary helpers have now been removed.
 - Remaining test references are only bridge coverage:
   - `FSCompatibilityTest`
   - `VfsBackedFileSystemTest`
@@ -1037,23 +1034,20 @@ The remaining decommission work is now narrow and explicit.
 3. Remove `QuakeFile` bridge APIs.
    - Delete `FS.FOpenFile(...)`, `FS.OpenReadFile(...)`, `FS.OpenWriteFile(...)`.
    - Replace or delete `FS.LoadMappedFile(...)` compatibility usage.
-4. Remove dead `QuakeFile` helpers.
-   - Delete `SuperAdapter.writeAdapter/readAdapter` once the old binary save path is fully gone from active modules.
-5. Delete `VfsBackedFileSystem`.
+4. Delete `VfsBackedFileSystem`.
    - After no code needs `QuakeFile` views over VFS results, remove the bridge and its ZIP temp-extraction path.
-6. Delete `QuakeFile`.
+5. Delete `QuakeFile`.
    - Once no production code or tests depend on it, remove the type entirely.
-7. Reduce or delete `FS`.
+6. Reduce or delete `FS`.
    - Preferred end state: `FS` disappears.
    - Acceptable temporary end state: `FS` becomes a minimal deprecated bootstrap shim with no file I/O API surface.
 
 ### Recommended deletion order
 
 1. Remove `FS` file I/O entry points and `LoadMappedFile`.
-2. Remove `SuperAdapter` `QuakeFile` helpers.
-3. Delete `VfsBackedFileSystem`.
-4. Delete `QuakeFile`.
-5. Delete or trivialize `FS`.
+2. Delete `VfsBackedFileSystem`.
+3. Delete `QuakeFile`.
+4. Delete or trivialize `FS`.
 
 ### End-state criteria
 
