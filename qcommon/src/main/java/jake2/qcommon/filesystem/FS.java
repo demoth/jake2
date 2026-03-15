@@ -61,7 +61,11 @@ import java.util.*;
  * executing. This is a precacution against having a malicious server
  * instruct clients to write files over areas they shouldn't.
  *
+ *
+ * @deprecated Active code should use `VirtualFileSystem` / `WritableFileSystem`
+ * directly. `FS` remains only as a legacy compatibility facade during migration.
  */
+@Deprecated(forRemoval = true)
 public final class FS extends Globals {
 
     /*
@@ -124,6 +128,7 @@ public final class FS extends Globals {
      *
      * @return null in case of error
      */
+    @Deprecated(forRemoval = true)
     public static QuakeFile FOpenFile(String filename) {
         if (filename == null || filename.isBlank()) {
             return null;
@@ -150,6 +155,7 @@ public final class FS extends Globals {
      * This is the preferred read-path entry point for compatibility call sites that
      * historically instantiated {@link QuakeFile} directly with mode {@code "r"}.
      */
+    @Deprecated(forRemoval = true)
     public static QuakeFile OpenReadFile(String filename) throws FileNotFoundException {
         QuakeFile file = FOpenFile(filename);
         if (file == null) {
@@ -163,6 +169,7 @@ public final class FS extends Globals {
      *
      * This centralizes write-path handling while preserving legacy QuakeFile semantics.
      */
+    @Deprecated(forRemoval = true)
     public static QuakeFile OpenWriteFile(String filename) throws FileNotFoundException {
         CreatePath(filename);
         return new QuakeFile(filename, "rw");

@@ -35,8 +35,12 @@ import java.io.RandomAccessFile;
 
 /**
  * RandomAccessFile, but handles readString/WriteString specially and offers
- * other helper functions
+ * other helper functions.
+ *
+ * @deprecated Legacy compatibility type for old FS call sites. Active code should
+ * use VFS handles or explicit JSON/data snapshot APIs instead.
  */
+@Deprecated(forRemoval = true)
 public class QuakeFile extends RandomAccessFile {
 
     public final boolean fromPack;

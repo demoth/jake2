@@ -34,7 +34,11 @@ import java.util.regex.Pattern;
  *
  * This keeps migration incremental: legacy filesystem remains as fallback while
  * read-heavy calls can already use Q2PRO-style layered lookup from {@code jake2.qcommon.vfs}.
+ *
+ * @deprecated Transitional bridge from `FS` to the real VFS. Active code should
+ * depend on `VirtualFileSystem` directly instead of going through this wrapper.
  */
+@Deprecated(forRemoval = true)
 public final class VfsBackedFileSystem {
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of("pak", "pk2", "pk3", "pkz", "zip");
 
