@@ -798,6 +798,12 @@ Phase F: Retire `QuakeFile` from active production code
 - Keep deprecated old-client compatibility only if still intentionally supported
 - Mark `QuakeFile` and `FS.FOpenFile/OpenReadFile/OpenWriteFile` as compatibility-only during transition
 
+Verified status after JSON save migration:
+- Active server persistence no longer uses `QuakeFile`.
+- Active game persistence no longer uses `QuakeFile`.
+- The deprecated `client` module is not part of the active Gradle build (`settings.gradle.kts` does not include `:client` or `:fullgame`), so it should not block decommission planning.
+- Remaining `QuakeFile` references in active modules are now mostly dead binary serializer methods plus the FS compatibility layer itself.
+
 Exit criteria:
 - `QuakeFile` no longer participates in active server/game persistence flow
 - remaining usage is compatibility-only and explicitly documented
@@ -813,6 +819,60 @@ Phase G: Collapse/remove `VfsBackedFileSystem`
 Exit criteria:
 - no separate `VfsBackedFileSystem` compatibility bridge remains
 - VFS read metadata and `FS` compatibility boundary are simpler and easier to reason about
+
+### Verified decommission target
+
+The intended future stack should be:
+- `VirtualFileSystem` for read-side lookup and package/loose layering
+- `WritableFileSystem` for save/config output
+- thin module-specific adapters only where needed (`CakeFileResolver`, JSON save stores, debug commands)
+
+This means all three legacy types can be treated as decommission targets:
+- `FS`: compatibility facade to be reduced and eventually removed from active code
+- `QuakeFile`: legacy binary/file-shaped compatibility type, no longer the persistence abstraction
+- `VfsBackedFileSystem`: transitional bridge from `FS` to the real VFS, removable once `FS` is no longer needed for active code
+
+### Concrete decommission plan
+
+1. Deprecate `FS` as compatibility-only in active modules.
+   - New code should use `VirtualFileSystem` / `WritableFileSystem` directly, not `FS`.
+   - Existing active server/game callers should be migrated off `FS` where practical (`LoadFile`, `FileExists`, `CreatePath`, etc.).
+
+2. Remove dead binary serializer APIs that still mention `QuakeFile`.
+   - `game`: `GameEntity`, `GamePlayerInfo`, `client_persistant_t`, `client_respawn_t`, `game_locals_t`, `level_locals_t`, `GameItems`, `monsterinfo_t`, `mmove_t`, `mframe_t`
+   - `qcommon`: `entity_state_t`
+   - These methods are no longer needed for active save/load after the JSON migration.
+
+3. Replace remaining active `FS` read-side callers with direct VFS access.
+   - Server-side today, VFS is already used indirectly via `FS`:
+     - `SV_MAIN`: map list and map existence checks
+     - `SV_USER`: download reads and `IsFromPack`
+     - `Cmd`/`Cvar`/`CM`: common engine reads and gamedir reconfigure
+   - The next step is to inject or expose the real `VirtualFileSystem` for those read paths instead of routing through `FS`.
+
+4. Freeze or remove the `FS` compatibility boundary.
+   - Decide whether absolute-path access and `fs_links` survive as an explicitly legacy-only shim.
+   - If the target is “pure VFS”, they should not remain on the main path.
+
+5. Remove `VfsBackedFileSystem`.
+   - Once `FS` no longer needs to return `QuakeFile`, the bridge can be inlined away or deleted.
+   - This also removes the remaining ZIP temp-extraction path used only to fabricate `QuakeFile`.
+
+6. Remove `QuakeFile`.
+   - After `FS` no longer exposes it and binary serializer methods are deleted, `QuakeFile` becomes removable.
+
+### Server-side VFS status
+
+Server-side VFS is already real, but mostly hidden behind `FS`:
+- Read path:
+  - `FS` initializes `VfsBackedFileSystem` with `serverMode=true`
+  - active server reads (`FS.LoadFile`, `FS.IsFromPack`) resolve through the common VFS
+- Write path:
+  - active server/game save state already uses `WritableFileSystem` directly through JSON stores
+  - this includes `server_mapcmd.ssv.json`, `server_latched_cvars.ssv.json`, `game.ssv.json`, `level.sav.json`, and per-level `.sv2.json`
+
+So the server is no longer “client-only VFS plus legacy server writes”.
+The remaining issue is architectural visibility: server reads still look like `FS`, even though the underlying data source is already the shared VFS.
 
 ### Immediate next implementation target
 
