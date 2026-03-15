@@ -32,6 +32,7 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.vfs.EngineVfs;
+import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.vfs.RebuildScope;
 import jake2.qcommon.vfs.VfsDebugCommands;
 import jake2.qcommon.vfs.VfsResult;
@@ -41,6 +42,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -95,14 +97,10 @@ public final class FS extends Globals {
      * Creates any directories needed to store the given filename.
      */
     public static void CreatePath(String path) {
-        int index = path.lastIndexOf('/');
-        // -1 if not found and 0 means write to root
-        if (index > 0) {
-            File f = new File(path.substring(0, index));
-            if (!f.mkdirs() && !f.isDirectory()) {
-                Com.Printf("can't create path \"" + path + '"' + "\n");
-            }
+        if (path == null || path.isBlank()) {
+            return;
         }
+        EngineWriteRoot.ensureParentDirectories(Path.of(path));
     }
 
     public static boolean FileExists(String filename) {
@@ -233,12 +231,12 @@ public final class FS extends Globals {
      * this is modified to `user.home`/.jake2/`game_name`
      */
     public static String getWriteDir() {
-        return (fs_userdir != null) ? fs_userdir : Globals.BASEQ2;
+        return EngineWriteRoot.pathString();
     }
 
     private static void setWriteDir(String gameName) {
         fs_userdir = System.getProperty("user.home") + "/.jake2/" + gameName;
-        FS.CreatePath(fs_userdir + "/");
+        EngineWriteRoot.setRoot(Path.of(fs_userdir));
     }
 
     /*

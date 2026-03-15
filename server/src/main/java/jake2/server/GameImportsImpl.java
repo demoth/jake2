@@ -27,7 +27,7 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.messages.NetworkMessage;
@@ -150,7 +150,7 @@ public class GameImportsImpl implements GameImports {
         try {
 
             Com.DPrintf("SV_ReadServerFile()\n");
-            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             ServerSaveJsonStore.ServerLatchedCvarsSnapshot snapshot = store.readLatchedCvars("current");
 
             // read all CVAR_LATCH cvars
@@ -163,7 +163,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             // read game state
-            this.gameExports.readGameLocals(FS.getWriteDir() + "/save/current/game.ssv.json");
+            this.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
         }
@@ -650,7 +650,7 @@ public class GameImportsImpl implements GameImports {
         Com.DPrintf("SV_WriteLevelFile()\n");
 
         try {
-            ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(FS.getWriteDir());
+            ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
             store.writeLevelState("current", sv.name, sv.configstrings, cm.portalopen);
         }
         catch (Exception e) {
@@ -658,7 +658,7 @@ public class GameImportsImpl implements GameImports {
             e.printStackTrace();
         }
 
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav.json";
+        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
         gameExports.WriteLevel(name);
     }
 
@@ -677,7 +677,7 @@ public class GameImportsImpl implements GameImports {
         Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
         try {
-            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
 
             final String comment;
             if (autosave) {
@@ -700,7 +700,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // write game state
-        gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv.json", autosave);
+        gameExports.WriteGame(EngineWriteRoot.resolve("save/current/game.ssv.json").toString(), autosave);
     }
 
     /**

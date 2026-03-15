@@ -27,8 +27,8 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.vfs.EngineVfs;
+import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
@@ -1130,9 +1130,9 @@ public class SV_MAIN implements JakeServer {
         }
 
         // make sure the server metadata file exists
-        ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+        ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
         if (!store.hasMapCommand(saveGame)) {
-            String name = FS.getWriteDir() + "/save/" + saveGame + "/server_mapcmd.ssv.json";
+            String name = EngineWriteRoot.resolve("save/" + saveGame + "/server_mapcmd.ssv.json").toString();
             Com.Printf("No such savegame: " + name + "\n");
             return;
         }
@@ -1149,7 +1149,7 @@ public class SV_MAIN implements JakeServer {
         Com.DPrintf("SV_ReadMapCommand()\n");
 
         try {
-            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(FS.getWriteDir());
+            ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             ServerSaveJsonStore.ServerMapCommandSnapshot snapshot = store.readMapCommand("current");
             // read the comment field
             Com.DPrintf("SV_ReadMapCommand: Loading save: " + snapshot.comment() + "\n");
@@ -1203,7 +1203,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         Com.DPrintf("SV_GameMap(" + mapName + ")\n");
 
-        FS.CreatePath(FS.getWriteDir() + "/save/current/");
+        EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"));
 
         // check for clearing the current savegame
         if (mapName.charAt(0) == '*') {

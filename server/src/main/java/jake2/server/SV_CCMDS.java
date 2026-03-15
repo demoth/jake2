@@ -25,13 +25,14 @@ package jake2.server;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
+import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.server.save.ServerLevelJsonStore;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Path;
 import java.util.List;
 
 public class SV_CCMDS {
@@ -57,16 +58,16 @@ public class SV_CCMDS {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
-		String name = FS.getWriteDir() + "/save/" + savename + "/server_latched_cvars.ssv.json";
+		String name = EngineWriteRoot.resolve("save/" + savename + "/server_latched_cvars.ssv.json").toString();
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/server_mapcmd.ssv.json";
+		name = EngineWriteRoot.resolve("save/" + savename + "/server_mapcmd.ssv.json").toString();
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/game.ssv.json";
+		name = EngineWriteRoot.resolve("save/" + savename + "/game.ssv.json").toString();
 		remove(name);
 
-		name = FS.getWriteDir() + "/save/" + savename + "/*.sav.json";
+		name = EngineWriteRoot.resolve("save/" + savename).toString() + "/*.sav.json";
 
 		File f = Sys.FindFirst(name, 0, 0);
 		while (f != null) {
@@ -75,7 +76,7 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 
-		name = FS.getWriteDir() + "/save/" + savename + "/*.sv2.json";
+		name = EngineWriteRoot.resolve("save/" + savename).toString() + "/*.sv2.json";
 
 		f = Sys.FindFirst(name, 0, 0);
 
@@ -162,29 +163,29 @@ public class SV_CCMDS {
 		SV_WipeSavegame(dst);
 
 		// copy the savegame over
-		String name = FS.getWriteDir() + "/save/" + src + "/server_latched_cvars.ssv.json";
-		String name2 = FS.getWriteDir() + "/save/" + dst + "/server_latched_cvars.ssv.json";
-		FS.CreatePath(name2);
+		String name = EngineWriteRoot.resolve("save/" + src + "/server_latched_cvars.ssv.json").toString();
+		String name2 = EngineWriteRoot.resolve("save/" + dst + "/server_latched_cvars.ssv.json").toString();
+		EngineWriteRoot.ensureParentDirectories(Path.of(name2));
 		CopyFile(name, name2);
 
 		// copy the savegame over
-		name = FS.getWriteDir() + "/save/" + src + "/server_mapcmd.ssv.json";
-		name2 = FS.getWriteDir() + "/save/" + dst + "/server_mapcmd.ssv.json";
-		FS.CreatePath(name2);
+		name = EngineWriteRoot.resolve("save/" + src + "/server_mapcmd.ssv.json").toString();
+		name2 = EngineWriteRoot.resolve("save/" + dst + "/server_mapcmd.ssv.json").toString();
+		EngineWriteRoot.ensureParentDirectories(Path.of(name2));
 		CopyFile(name, name2);
 
-		name = FS.getWriteDir() + "/save/" + src + "/game.ssv.json";
-		name2 = FS.getWriteDir() + "/save/" + dst + "/game.ssv.json";
+		name = EngineWriteRoot.resolve("save/" + src + "/game.ssv.json").toString();
+		name2 = EngineWriteRoot.resolve("save/" + dst + "/game.ssv.json").toString();
 		CopyFile(name, name2);
 
-		String name1 = FS.getWriteDir() + "/save/" + src + "/";
-		name = FS.getWriteDir() + "/save/" + src + "/*.sav.json";
+		String name1 = EngineWriteRoot.resolve("save/" + src).toString() + "/";
+		name = EngineWriteRoot.resolve("save/" + src).toString() + "/*.sav.json";
 
 		File found = Sys.FindFirst(name, 0, 0);
 
 		while (found != null) {
 			name = name1 + found.getName();
-			name2 = FS.getWriteDir() + "/save/" + dst + "/" + found.getName();
+			name2 = EngineWriteRoot.resolve("save/" + dst + "/" + found.getName()).toString();
 
 			CopyFile(name, name2);
 
@@ -207,7 +208,7 @@ public class SV_CCMDS {
 		Com.DPrintf("SV_ReadLevelFile()\n");
 
 		try {
-			ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(FS.getWriteDir());
+			ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
 			store.applyLevelState(store.readLevelState("current", saveName), gameImports.sv.configstrings, gameImports.cm);
 		}
 		catch (Exception e1) {
@@ -215,7 +216,7 @@ public class SV_CCMDS {
 			e1.printStackTrace();
 		}
 
-		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sav.json";
+		String name = EngineWriteRoot.resolve("save/current/" + saveName + ".sav.json").toString();
 		gameImports.gameExports.ReadLevel(name);
 	}
 

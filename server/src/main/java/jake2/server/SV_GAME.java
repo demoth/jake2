@@ -24,11 +24,11 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.util.Math3D;
+import jake2.qcommon.vfs.EngineWriteRoot;
 
 import java.io.File;
 
@@ -286,7 +286,7 @@ public class SV_GAME {
         if (Cvar.getInstance().VariableValue("deathmatch") != 0)
             return false;
 
-        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav.json";
+        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
 
         return new File(name).exists();
 

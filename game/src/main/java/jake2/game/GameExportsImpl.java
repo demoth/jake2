@@ -5,7 +5,6 @@ import jake2.game.items.GameItems;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.InventoryMessage;
 import jake2.qcommon.network.messages.server.LayoutMessage;
@@ -13,6 +12,7 @@ import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import jake2.qcommon.vfs.EngineWriteRoot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1577,7 +1577,7 @@ public class GameExportsImpl implements GameExports {
             if (!autosave)
                 SaveClientData();
 
-            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(FS.getWriteDir());
+            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             game.autosaved = autosave;
             try {
                 List<GamePlayerSnapshot> clients = new ArrayList<>();
@@ -1601,7 +1601,7 @@ public class GameExportsImpl implements GameExports {
     public void readGameLocals(String filename) {
 
         try {
-            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(FS.getWriteDir());
+            GameSaveJsonStore store = GameSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             GameSaveFileSnapshot snapshot = store.read(filename);
             GameSaveSnapshots.apply(game, snapshot.getGame());
 
@@ -1621,7 +1621,7 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void WriteLevel(String filename) {
         try {
-            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(FS.getWriteDir());
+            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             List<LevelEntitySnapshot> entities = new ArrayList<>();
             for (int i = 0; i < num_edicts; i++) {
                 GameEntity ent = g_edicts[i];
@@ -1643,7 +1643,7 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void ReadLevel(String filename) {
         try {
-            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(FS.getWriteDir());
+            LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             LevelSaveFileSnapshot snapshot = store.read(filename);
 
             num_edicts = game.maxclients + 1;
