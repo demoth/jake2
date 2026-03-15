@@ -720,7 +720,7 @@ Current phase status:
 - Phase C: complete
 - Phase D: complete
 - Phase E: complete
-- Phase F: not started
+- Phase F: in progress
 - Phase G: not started
 
 Phase A: JSON save foundation
@@ -811,6 +811,7 @@ Verified status after JSON save migration:
 - Dead binary serializer methods that still referenced `QuakeFile` in `game`/`qcommon` have now been removed.
 - Remaining `QuakeFile` references in active modules are concentrated in the FS compatibility layer itself (`FS`, `VfsBackedFileSystem`, `QuakeFile`) plus compatibility-oriented adapter helpers.
 - `FS`, `QuakeFile`, and `VfsBackedFileSystem` are now explicitly annotated as deprecated-for-removal in code, so the remaining migration work is visible at compile time.
+- A shared read-side VFS owner now exists outside `FS` (`EngineVfs`), and active read callers have started moving to it.
 
 Exit criteria:
 - `QuakeFile` no longer participates in active server/game persistence flow
@@ -854,7 +855,11 @@ This means all three legacy types can be treated as decommission targets:
      - `SV_MAIN`: map list and map existence checks
      - `SV_USER`: download reads and `IsFromPack`
      - `Cmd`/`Cvar`/`CM`: common engine reads and gamedir reconfigure
-   - The next step is to inject or expose the real `VirtualFileSystem` for those read paths instead of routing through `FS`.
+   - Landed so far:
+     - introduced shared `EngineVfs` in `qcommon.vfs`
+     - migrated `SV_MAIN`, `SV_USER`, `Cmd`, and `CM` off `FS.LoadFile` / `FS.IsFromPack`
+     - `FS.LoadFile`, `FS.FileExists`, and `FS.IsFromPack` now delegate to the shared `EngineVfs` instance instead of owning separate read logic
+   - The next step is to keep moving remaining active callers off `FS` so `FS` becomes write-root/compatibility only.
 
 4. Remove the `FS` read-side compatibility boundary.
    - Absolute-path reads and `fs_links` should not remain on the active path.
@@ -952,6 +957,11 @@ Implementation progress (2026-03-15):
 - Removed the obsolete binary save/load helper methods from:
   - `game`: `GameEntity`, `GamePlayerInfo`, `client_persistant_t`, `client_respawn_t`, `game_locals_t`, `level_locals_t`, `GameItems`, `monsterinfo_t`, `mmove_t`, `mframe_t`
   - `qcommon`: `entity_state_t`, `player_state_t`, `pmove_state_t`
+- Introduced `EngineVfs` as the shared non-legacy read-side VFS access point.
+- Migrated active read callers off `FS.LoadFile` / `FS.IsFromPack` in:
+  - `server`: `SV_MAIN`, `SV_USER`
+  - `qcommon`: `Cmd`, `CM`
+- `FS` now reuses the shared `EngineVfs` instance for `LoadFile`, `FileExists`, and `IsFromPack`, while `VfsBackedFileSystem` remains only for `QuakeFile`/mapped-file compatibility.
 - Documented current write-root mismatch explicitly:
   - server/game save flow writes to `$HOME/.jake2/<mod>/save/...`
   - Cake-owned client writable data targets `$HOME/.cake/<mod>/...`
