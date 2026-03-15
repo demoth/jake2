@@ -813,6 +813,13 @@ Verified status after JSON save migration:
 - `FS`, `QuakeFile`, and `VfsBackedFileSystem` are now explicitly annotated as deprecated-for-removal in code, so the remaining migration work is visible at compile time.
 - A shared read-side VFS owner now exists outside `FS` (`EngineVfs`), and active read callers have started moving to it.
 - A shared write-root owner now exists outside `FS` (`EngineWriteRoot`), and active server/game save paths have started moving to it.
+- Current `QuakeFile` footprint is now:
+  - production bridge code: `qcommon.filesystem.FS`, `qcommon.filesystem.VfsBackedFileSystem`, `qcommon.filesystem.QuakeFile`
+  - test coverage for that bridge: `FSCompatibilityTest`, `VfsBackedFileSystemTest`
+  - one non-functional comment reference in `server.save.ServerSaveJsonStore`
+- This means the next trim step is straightforward:
+  - keep test coverage only as long as the compatibility bridge still exists
+  - once `FS.OpenReadFile/OpenWriteFile/FOpenFile` and `VfsBackedFileSystem.openFile(...)` are removed, those remaining test-side `QuakeFile` usages can be deleted together
 
 Exit criteria:
 - `QuakeFile` no longer participates in active server/game persistence flow
