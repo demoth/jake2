@@ -24,7 +24,6 @@ import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.qcommon.cplane_t
 import jake2.qcommon.csurface_t
-import jake2.qcommon.filesystem.QuakeFile
 
 /**
  * There are many fields in the [GameEntity] class. Some of them represent state - like 'health', 'damage' etc,
@@ -148,28 +147,6 @@ abstract class SuperAdapter {
         @JvmStatic
         fun getFromID(key: String): SuperAdapter? {
             return adapters[key]
-        }
-
-        /** Writes the Adapter-ID to the file.  */
-        @JvmStatic
-        fun writeAdapter(f: QuakeFile, a: SuperAdapter?) {
-            f.writeInt(3988)
-            if (a == null)
-                f.writeString(null)
-            else {
-                f.writeString(a.iD)
-            }
-        }
-
-        /** Reads the adapter id and returns the adapter.  */
-        @JvmStatic
-        fun readAdapter(f: QuakeFile): SuperAdapter? {
-            if (f.readInt() != 3988) {
-                // replace with log
-                // Com.DPrintf("wrong read position: readadapter 3988 \n");
-            }
-            val id = f.readString() ?: return null
-            return getFromID(id)
         }
 
         fun think(s: String): EntThinkAdapter {
