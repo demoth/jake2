@@ -672,7 +672,7 @@ Implementation progress (landed commits):
   - added Jackson dependency to `qcommon`
   - added shared `SaveJson` mapper helper + test
 - `fdc451b1` `refactor: store server save metadata as json`
-  - migrated server-owned save metadata (`server_mapcmd.ssv`, `server_latched_cvars.ssv`) away from `QuakeFile` binary content
+  - migrated server-owned save metadata (`server_mapcmd.ssv.json`, `server_latched_cvars.ssv.json`) away from `QuakeFile` binary content
   - kept legacy filenames to avoid churn in save copy/wipe flows
 - `9d8df91a` `refactor: expose pack provenance through fs metadata`
   - added explicit FS/VFS metadata lookup for `fromPack`
@@ -686,24 +686,27 @@ Implementation progress (landed commits):
   - added explicit shared runtime <-> snapshot mapping helpers in `qcommon`
   - added focused round-trip tests for movement/player state restoration
 - `e649e837` `refactor: store game locals saves as json`
-  - added Kotlin `game.ssv` JSON layer (`GameSaveJson.kt`) with grouped DTOs, `GamePlayerInfo` mapping, and VFS-backed store logic
+  - added Kotlin `game.ssv.json` JSON layer (`GameSaveJson.kt`) with grouped DTOs, `GamePlayerInfo` mapping, and VFS-backed store logic
   - replaced `GameExportsImpl.WriteGame(...)` / `readGameLocals(...)` binary `QuakeFile` flow with JSON over writable VFS
   - kept `WriteLevel(...)` / `ReadLevel(...)` on binary `QuakeFile` for now; that remains the next migration slice
-  - added focused tests for `GamePlayerInfo` snapshot round-trip and `game.ssv` JSON store round-trip
+  - added focused tests for `GamePlayerInfo` snapshot round-trip and `game.ssv.json` JSON store round-trip
 - `7dbfb5d5` `refactor: store level saves as json`
-  - added Kotlin `level.sav` JSON layer (`LevelSaveJson.kt`) with grouped DTOs for `level_locals_t`, sparse in-use entities, `entity_state_t`, `monsterinfo_t`, `mmove_t`, and `mframe_t`
+  - added Kotlin `level.sav.json` JSON layer (`LevelSaveJson.kt`) with grouped DTOs for `level_locals_t`, sparse in-use entities, `entity_state_t`, `monsterinfo_t`, `mmove_t`, and `mframe_t`
   - replaced `GameExportsImpl.WriteLevel(...)` / `ReadLevel(...)` binary `QuakeFile` flow with JSON over writable VFS
   - preserved explicit adapter IDs, edict references, client indices, item indices, and sparse entity numbering in the JSON schema
-  - added focused tests for level/entity snapshot round-trip and `level.sav` JSON store round-trip
+  - added focused tests for level/entity snapshot round-trip and `level.sav.json` JSON store round-trip
 - `c3878f02` `fix: normalize json save paths under write root`
   - fixed a regression where server callers still passed absolute save paths (`FS.getWriteDir() + ...`) into the new JSON stores
   - the writable VFS expects root-relative logical paths, so without normalization the files were written/read under the wrong nested location
-  - added regression tests covering absolute-path `game.ssv` and `level.sav` callers, matching the live server save/load path
+  - added regression tests covering absolute-path `game.ssv.json` and `level.sav.json` callers, matching the live server save/load path
 - `a806b684` `refactor: store server level state as json`
-  - added Kotlin `ServerLevelJsonStore.kt` for per-level server state previously stored in `.sv2`
+  - added Kotlin `ServerLevelJsonStore.kt` for per-level server state previously stored in `.sv2.json`
   - replaced binary configstring/portal-state save-load in `SV_WriteLevelFile()` / `SV_ReadLevelFile()` with JSON over writable VFS
-  - kept the legacy `.sv2` filename so save copy/wipe flows remain unchanged
+  - kept the `.sv2.json` filename stable so save copy/wipe flows remain unchanged
   - added focused tests for server level-state round-trip and portal/configstring restoration
+- `5a1ccb61` `refactor: use explicit json save filenames`
+  - renamed JSON save files to explicit suffixed names: `game.ssv.json`, `level.sav.json`, `*.sv2.json`, `server_mapcmd.ssv.json`, `server_latched_cvars.ssv.json`
+  - updated save-slot copy/wipe logic, previous-level detection, and focused tests to use the explicit JSON filenames consistently
 
 Current phase status:
 - Phase A: in progress
@@ -745,7 +748,7 @@ Phase B: Snapshot mapping layer
   - `GameSaveSnapshots` maps `client_respawn_t`
   - `PlayerStateSnapshots` maps `pmove_state_t`
   - `PlayerStateSnapshots` maps `player_state_t`
-  - `GamePlayerSnapshots` maps full `GamePlayerInfo` state for the `game.ssv` scope
+  - `GamePlayerSnapshots` maps full `GamePlayerInfo` state for the `game.ssv.json` scope
   - focused round-trip tests cover these first mappings
 
 Exit criteria:
@@ -759,9 +762,9 @@ Phase C: Replace binary game/level save flows
 - Replace `GameExportsImpl.ReadLevel(...)`
 - Store these via VFS-backed readable/writable APIs and JSON files.
 - Landed so far:
-  - `WriteGame(...)` and `readGameLocals(...)` now persist `game.ssv` as JSON via writable VFS
-  - legacy filename is preserved; only the on-disk format changed
-  - `WriteLevel(...)` and `ReadLevel(...)` now persist `level.sav` as JSON via writable VFS
+  - `WriteGame(...)` and `readGameLocals(...)` now persist `game.ssv.json` as JSON via writable VFS
+  - the new filename now makes the JSON format explicit (`*.json`)
+  - `WriteLevel(...)` and `ReadLevel(...)` now persist `level.sav.json` as JSON via writable VFS
   - sparse in-use entity saves still preserve entnum identity explicitly in the JSON schema
 
 Exit criteria:
@@ -775,9 +778,9 @@ Phase D: Remove remaining server-side `QuakeFile` save persistence
   - configstring dump/load path, if still needed in current form
 - Use JSON or other simple text formats through VFS write/read APIs.
 - Landed so far:
-  - `server_mapcmd.ssv` is JSON
-  - `server_latched_cvars.ssv` is JSON
-  - per-level `.sv2` server state (configstrings + portal state) is now JSON
+  - `server_mapcmd.ssv.json` is JSON
+  - `server_latched_cvars.ssv.json` is JSON
+  - per-level `.sv2.json` server state (configstrings + portal state) is now JSON
   - active server save/persistence flows no longer open `QuakeFile`
 
 Exit criteria:
