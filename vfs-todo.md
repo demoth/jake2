@@ -1016,8 +1016,9 @@ The remaining decommission work is now narrow and explicit.
 
 ### `VfsBackedFileSystem` remaining role
 
-- `VfsBackedFileSystem` is no longer part of the active read architecture.
-- It now exists only to fabricate `QuakeFile` compatibility views over VFS results and to back a few compatibility/debug helpers.
+- `VfsBackedFileSystem` is no longer part of the production path.
+- `EngineFilesystemLifecycle` now talks directly to `EngineVfs` for configuration, diagnostics, and runtime mount operations.
+- `VfsBackedFileSystem` now exists only as a shrinking `QuakeFile` compatibility test target.
 - The most important behavior still trapped there is the ZIP package temp-extraction bridge:
   - `.pak` entries are opened by offset from the pack
   - ZIP-backed package entries are extracted to temp files only because `QuakeFile` requires an OS file
@@ -1031,7 +1032,8 @@ The remaining decommission work is now narrow and explicit.
 3. Remove `QuakeFile` bridge APIs.
    - Done as part of removing `FS` from the active build.
 4. Delete `VfsBackedFileSystem`.
-   - After no code needs `QuakeFile` views over VFS results, remove the bridge and its ZIP temp-extraction path.
+   - Production no longer depends on it.
+   - Remaining work is to delete the test-only bridge and its ZIP temp-extraction path together with `QuakeFile`.
 5. Delete `QuakeFile`.
    - Once no production code or tests depend on it, remove the type entirely.
 6. Reduce or delete `FS`.
