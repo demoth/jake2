@@ -800,7 +800,8 @@ Verified status after JSON save migration:
 - Active server persistence no longer uses `QuakeFile`.
 - Active game persistence no longer uses `QuakeFile`.
 - The deprecated `client` module is not part of the active Gradle build (`settings.gradle.kts` does not include `:client` or `:fullgame`), so it should not block decommission planning.
-- Remaining `QuakeFile` references in active modules are now mostly dead binary serializer methods plus the FS compatibility layer itself.
+- Dead binary serializer methods that still referenced `QuakeFile` in `game`/`qcommon` have now been removed.
+- Remaining `QuakeFile` references in active modules are concentrated in the FS compatibility layer itself (`FS`, `VfsBackedFileSystem`, `QuakeFile`) plus compatibility-oriented adapter helpers.
 - `FS`, `QuakeFile`, and `VfsBackedFileSystem` are now explicitly annotated as deprecated-for-removal in code, so the remaining migration work is visible at compile time.
 
 Exit criteria:
@@ -940,6 +941,9 @@ Implementation progress (2026-03-15):
   - no `fs_links` remap state or `link` console command
 - Kept `OpenWriteFile` and `CreatePath` only as transitional write-side helpers while `FS` still exists.
 - Marked `FS`, `QuakeFile`, and `VfsBackedFileSystem` as deprecated-for-removal, and did the same for the remaining `QuakeFile`-returning `FS` entry points (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`).
+- Removed the obsolete binary save/load helper methods from:
+  - `game`: `GameEntity`, `GamePlayerInfo`, `client_persistant_t`, `client_respawn_t`, `game_locals_t`, `level_locals_t`, `GameItems`, `monsterinfo_t`, `mmove_t`, `mframe_t`
+  - `qcommon`: `entity_state_t`, `player_state_t`, `pmove_state_t`
 - Verified with focused `qcommon` tests:
   - `FSCompatibilityTest`
   - `VfsBackedFileSystemTest`
