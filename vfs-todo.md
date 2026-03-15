@@ -982,7 +982,7 @@ Implementation progress (2026-03-15):
 - Migrated the remaining active lifecycle callers off `FS`:
   - `dedicated`: `Jake2Dedicated` now initializes filesystem lifecycle through `EngineFilesystemLifecycle`
   - `qcommon`: `Cvar` now routes `game` cvar changes through `EngineFilesystemLifecycle`
-- `FS.InitFilesystem`, `FS.SetGamedir`, and `FS.ExecAutoexec` now delegate to `EngineFilesystemLifecycle` for compatibility only.
+- Removed `FS.InitFilesystem`, `FS.SetGamedir`, and `FS.ExecAutoexec` entirely after migrating the remaining call sites and test/bootstrap usage.
 - Documented current write-root mismatch explicitly:
   - server/game save flow writes to `$HOME/.jake2/<mod>/save/...`
   - Cake-owned client writable data targets `$HOME/.cake/<mod>/...`
@@ -1003,7 +1003,6 @@ The remaining decommission work is now narrow and explicit.
 - The remaining responsibilities inside `FS` are:
   - compatibility debug commands (`path`, `dir`, `packfiles`)
   - `QuakeFile` bridge methods (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`)
-  - deprecated compatibility entry points that delegate to `EngineFilesystemLifecycle`
 
 ### `QuakeFile` remaining role
 
