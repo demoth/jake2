@@ -695,6 +695,10 @@ Implementation progress (landed commits):
   - replaced `GameExportsImpl.WriteLevel(...)` / `ReadLevel(...)` binary `QuakeFile` flow with JSON over writable VFS
   - preserved explicit adapter IDs, edict references, client indices, item indices, and sparse entity numbering in the JSON schema
   - added focused tests for level/entity snapshot round-trip and `level.sav` JSON store round-trip
+- `c3878f02` `fix: normalize json save paths under write root`
+  - fixed a regression where server callers still passed absolute save paths (`FS.getWriteDir() + ...`) into the new JSON stores
+  - the writable VFS expects root-relative logical paths, so without normalization the files were written/read under the wrong nested location
+  - added regression tests covering absolute-path `game.ssv` and `level.sav` callers, matching the live server save/load path
 
 Current phase status:
 - Phase A: in progress
