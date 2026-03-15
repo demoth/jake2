@@ -998,11 +998,9 @@ The remaining decommission work is now narrow and explicit.
 
 ### `FS` remaining role
 
-- Active non-test `FS` call sites for startup/mod-change lifecycle are now gone.
-- This means active content reads, save-path construction, and lifecycle/bootstrap are already off `FS`.
-- The remaining responsibilities inside `FS` are:
-  - compatibility debug commands (`path`, `dir`, `packfiles`)
-  - `QuakeFile` bridge methods (`FOpenFile`, `OpenReadFile`, `OpenWriteFile`, `LoadMappedFile`)
+- `FS` has now been removed from the active build.
+- Active content reads, save-path construction, and lifecycle/bootstrap all go through non-legacy VFS owners.
+- Any remaining `FS` references are now documentation or deprecated client-only/reference code outside the active build.
 
 ### `QuakeFile` remaining role
 
@@ -1031,8 +1029,7 @@ The remaining decommission work is now narrow and explicit.
 2. Move gamedir-change and autoexec behavior out of `FS`.
    - Done: `Cvar` now calls `EngineFilesystemLifecycle` directly for `game` cvar changes.
 3. Remove `QuakeFile` bridge APIs.
-   - Delete `FS.FOpenFile(...)`, `FS.OpenReadFile(...)`, `FS.OpenWriteFile(...)`.
-   - Replace or delete `FS.LoadMappedFile(...)` compatibility usage.
+   - Done as part of removing `FS` from the active build.
 4. Delete `VfsBackedFileSystem`.
    - After no code needs `QuakeFile` views over VFS results, remove the bridge and its ZIP temp-extraction path.
 5. Delete `QuakeFile`.
@@ -1043,10 +1040,9 @@ The remaining decommission work is now narrow and explicit.
 
 ### Recommended deletion order
 
-1. Remove `FS` file I/O entry points and `LoadMappedFile`.
-2. Delete `VfsBackedFileSystem`.
-3. Delete `QuakeFile`.
-4. Delete or trivialize `FS`.
+1. Delete `VfsBackedFileSystem`.
+2. Delete `QuakeFile`.
+3. Delete or trivialize any lingering `FS` documentation/reference mentions.
 
 ### End-state criteria
 
@@ -1056,6 +1052,11 @@ The remaining decommission work is now narrow and explicit.
 - no active code returns or accepts `QuakeFile`
 - no ZIP package entry is materialized only to satisfy `QuakeFile`
 - the remaining tests validate `EngineVfs` / `WritableFileSystem` behavior directly instead of bridge compatibility
+
+Current state:
+
+- `FS` is decommissioned from the active build.
+- Remaining deletion target is now `VfsBackedFileSystem` + `QuakeFile`.
 
 ## Open questions
 
