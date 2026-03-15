@@ -193,8 +193,13 @@ class ProfileEditStage(
     }
 
     private fun syncProfileItems(profileIds: List<String>) {
-        profilesListWidget.setItems(*profileIds.toTypedArray())
-        profilesEmptyLabel.isVisible = profileIds.isEmpty()
+        suppressProfileSelectionEvents = true
+        try {
+            profilesListWidget.setItems(*profileIds.toTypedArray())
+            profilesEmptyLabel.isVisible = profileIds.isEmpty()
+        } finally {
+            suppressProfileSelectionEvents = false
+        }
     }
 
     private fun syncProfileSelection(
