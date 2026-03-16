@@ -68,7 +68,7 @@ class MainMenuStage(
                 row()
                 textButton("Multiplayer") {
                     onClick {
-                        Cbuf.AddText("connect 127.0.0.1")
+                        menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
                     }
                 }
                 row()

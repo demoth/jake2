@@ -65,6 +65,13 @@ class MenuController(
                 )
             }
 
+            is MenuIntent.OpenMultiplayerMenu -> {
+                refreshState(
+                    activeScreen = MenuScreen.MULTIPLAYER,
+                    formOverride = state.profileEditor.form,
+                )
+            }
+
             is MenuIntent.DisconnectRequested -> {
                 backend.disconnect()
                 refreshState()

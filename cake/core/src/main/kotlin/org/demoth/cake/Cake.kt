@@ -45,6 +45,7 @@ import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.MainMenuStage
+import org.demoth.cake.stages.MultiplayerMenuStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.menu.*
@@ -63,6 +64,7 @@ private enum class ClientNetworkState {
 private enum class MenuView {
     MAIN,
     PROFILE_EDIT,
+    MULTIPLAYER,
 }
 
 /**
@@ -80,6 +82,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     private lateinit var menuStage: MainMenuStage
     private lateinit var profileEditStage: ProfileEditStage
+    private lateinit var multiplayerMenuStage: MultiplayerMenuStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -186,6 +189,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuEventBus = menuEventBus,
         ) // fixme: cvar
         profileEditStage = ProfileEditStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+        )
+        multiplayerMenuStage = MultiplayerMenuStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -462,6 +469,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuVisible -> when (menuView) {
                 MenuView.MAIN -> menuStage
                 MenuView.PROFILE_EDIT -> profileEditStage
+                MenuView.MULTIPLAYER -> multiplayerMenuStage
             }
             else -> {
                 // delegate to the game screen
@@ -526,6 +534,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     MenuView.PROFILE_EDIT -> {
                         profileEditStage.act(deltaSeconds)
                         profileEditStage.draw()
+                    }
+                    MenuView.MULTIPLAYER -> {
+                        multiplayerMenuStage.act(deltaSeconds)
+                        multiplayerMenuStage.draw()
                     }
                 }
             }
@@ -640,6 +652,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun dispose() {
         menuStage.dispose()
         profileEditStage.dispose()
+        multiplayerMenuStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearProfileBackground()
@@ -1275,6 +1288,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         val targetView = when (menuEventBus.latestState().activeScreen) {
             MenuScreen.MAIN -> MenuView.MAIN
             MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
+            MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
         }
         if (targetView == menuView) return
         menuView = targetView

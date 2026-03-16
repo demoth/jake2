@@ -3,6 +3,7 @@ package org.demoth.cake.ui.menu
 enum class MenuScreen {
     MAIN,
     PROFILE_EDIT,
+    MULTIPLAYER,
 }
 
 data class MainMenuState(
@@ -23,8 +24,13 @@ data class ProfileEditorState(
     val statusMessage: String = "",
 )
 
+data class MultiplayerMenuState(
+    val statusMessage: String = "",
+)
+
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val mainMenu: MainMenuState = MainMenuState(),
     val profileEditor: ProfileEditorState = ProfileEditorState(),
+    val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
 )

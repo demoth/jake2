@@ -120,6 +120,7 @@
 - Add multiplayer menu screen/state/routing.
 - Main menu `Multiplayer` opens submenu.
 - `Host Game` and `Player Setup` disabled.
+- `Join Game` kept disabled until the actual join screen lands.
 
 ### Slice 3
 - Add join game screen/state/backend join action.
@@ -134,5 +135,10 @@
   - Approved multiplayer menu scope.
   - Analyzed current connect path and menu architecture.
   - Recorded implementation plan in this file.
+  - Added multiplayer submenu shell:
+    - main menu now routes into a dedicated multiplayer screen
+    - menu state/view routing now supports `MULTIPLAYER`
+    - `Host Game` and `Player Setup` are visible but disabled
+    - `Join Game` is temporarily disabled until the actual join screen is implemented
 - Next:
-  - Implement multiplayer submenu navigation and stage routing.
+  - Implement the actual `Join Game` screen and backend connect action.
