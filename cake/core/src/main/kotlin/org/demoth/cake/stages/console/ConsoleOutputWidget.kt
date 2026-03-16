@@ -102,25 +102,14 @@ class ConsoleOutputWidget(
 
     private fun appendWrappedLines(entry: ConsoleEntry, columns: Int) {
         val normalized = entry.text.replace("\r\n", "\n").replace('\r', '\n')
-        var lineStart = 0
+        val segments = normalized.split('\n')
+        val endExclusive = if (normalized.endsWith('\n')) segments.size - 1 else segments.size
 
-        while (lineStart <= normalized.lastIndex) {
-            val newlineIndex = normalized.indexOf('\n', lineStart).let { if (it < 0) normalized.length else it }
-            val line = normalized.substring(lineStart, newlineIndex)
-            appendWrappedVisualLines(entry.severity, line, columns)
-
-            if (newlineIndex == normalized.length) {
-                return
-            }
-
-            lineStart = newlineIndex + 1
-            if (lineStart == normalized.length) {
-                wrappedLines.add(WrappedLine("", entry.severity))
-                return
-            }
+        for (index in 0 until endExclusive) {
+            appendWrappedVisualLines(entry.severity, segments[index], columns)
         }
 
-        if (normalized.isEmpty()) {
+        if (endExclusive == 0) {
             wrappedLines.add(WrappedLine("", entry.severity))
         }
     }
