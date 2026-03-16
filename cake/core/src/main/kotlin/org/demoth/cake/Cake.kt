@@ -42,8 +42,6 @@ import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
-import org.demoth.cake.save.CakeJsonSaveStore
-import org.demoth.cake.save.CakeSaveSnapshot
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.MainMenuStage
@@ -127,7 +125,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
-    private val saveMetadataStore = CakeJsonSaveStore()
     private val gameProfileStore = CakeGameProfileStore()
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
@@ -334,24 +331,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             takeScreenshot()
         }
 
-        Cmd.AddCommand("cake_save_meta") { args ->
-            saveMetadata(args)
-        }
-
-        Cmd.AddCommand("cake_load_meta") { args ->
-            loadMetadata(args)
-        }
-
-        Cmd.AddCommand("cake_profile") {
-            printActiveGameProfile()
-        }
-
         Cmd.AddCommand("cake_profile_set") { args ->
             setActiveGameProfile(args)
-        }
-
-        Cmd.AddCommand("cake_profile_clear") {
-            clearActiveGameProfile()
         }
 
         /*
@@ -1222,16 +1203,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         syncMenuViewFromBusState()
     }
 
-    private fun printActiveGameProfile() {
-        val profile = activeGameProfile
-        Com.Printf("Cake game profile\n")
-        Com.Printf("  profile.id: ${profile?.id ?: "<unset>"}\n")
-        Com.Printf("  profile.basedir: ${profile?.basedir ?: "<unset>"}\n")
-        Com.Printf("  profile.gamemod: ${profile?.gamemod ?: "<unset>"}\n")
-        Com.Printf("  resolver.basedir: ${fileResolver.basedir ?: "<unset>"}\n")
-        Com.Printf("  resolver.gamemod: ${fileResolver.gamemod ?: "<unset>"}\n")
-    }
-
     private fun setActiveGameProfile(args: List<String>) {
         if (!isProfileSwitchAllowed()) {
             Com.Warn("Profile switching is only allowed while disconnected.\n")
@@ -1253,20 +1224,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Printf("Cake profile saved: $path\n")
         } catch (e: Exception) {
             Com.Warn("Failed to save Cake profile: ${e.message}\n")
-        }
-    }
-
-    private fun clearActiveGameProfile() {
-        if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching is only allowed while disconnected.\n")
-            return
-        }
-        applyGameProfile(null)
-        try {
-            gameProfileStore.clear()
-            Com.Printf("Cleared persisted Cake profile.\n")
-        } catch (e: Exception) {
-            Com.Warn("Failed to clear Cake profile: ${e.message}\n")
         }
     }
 
@@ -1321,74 +1278,4 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             updateInputHandlers(consoleVisible, menuVisible)
         }
     }
-
-    private fun saveMetadata(args: List<String>) {
-        if (args.size < 2) {
-            Com.Printf("usage: cake_save_meta <slot> [autosave(0|1|true|false)] [title]\n")
-            return
-        }
-        val slot = args[1]
-        var autosave = false
-        var titleStartIndex = 2
-        if (args.size > 2) {
-            val parsedAutosave = parseBooleanArg(args[2])
-            if (parsedAutosave != null) {
-                autosave = parsedAutosave
-                titleStartIndex = 3
-            }
-        }
-
-        val gameScreen = game3dScreen
-        val defaults = gameScreen?.saveMetadataDefaults()
-        val title = getArguments(args, titleStartIndex)
-            .ifBlank { defaults?.title ?: if (autosave) "Autosave" else "Savegame" }
-        val snapshot = CakeSaveSnapshot(
-            map = defaults?.mapPath ?: "unknown",
-            title = title,
-            timestampMillis = System.currentTimeMillis(),
-            autosave = autosave
-        )
-
-        try {
-            val path = saveMetadataStore.write(slot, activeProfileId(), snapshot)
-            Com.Printf("Saved Cake metadata to: $path\n")
-        } catch (e: IllegalArgumentException) {
-            Com.Warn("Invalid save metadata slot: ${e.message}\n")
-        } catch (e: Exception) {
-            Com.Warn("Failed to save Cake metadata: ${e.message}\n")
-        }
-    }
-
-    private fun loadMetadata(args: List<String>) {
-        if (args.size != 2) {
-            Com.Printf("usage: cake_load_meta <slot>\n")
-            return
-        }
-        val slot = args[1]
-        try {
-            val snapshot = saveMetadataStore.read(slot, activeProfileId())
-            if (snapshot == null) {
-                Com.Printf("No Cake metadata found for slot '$slot'.\n")
-                return
-            }
-            Com.Printf("Cake metadata [$slot]\n")
-            Com.Printf("  map: ${snapshot.map}\n")
-            Com.Printf("  title: ${snapshot.title}\n")
-            Com.Printf("  timestampMillis: ${snapshot.timestampMillis}\n")
-            Com.Printf("  autosave: ${snapshot.autosave}\n")
-        } catch (e: IllegalArgumentException) {
-            Com.Warn("Invalid metadata slot: ${e.message}\n")
-        } catch (e: Exception) {
-            Com.Warn("Failed to load Cake metadata: ${e.message}\n")
-        }
-    }
-
-    private fun parseBooleanArg(value: String): Boolean? {
-        return when (value.lowercase()) {
-            "1", "true", "yes", "on" -> true
-            "0", "false", "no", "off" -> false
-            else -> null
-        }
-    }
-
 }

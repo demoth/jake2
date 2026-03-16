@@ -54,9 +54,6 @@ Profiling workflow:
 Screenshot output:
 
 - `screenshot` command writes PNG files to `$HOME/.cake/<mod>/scrnshot/`.
-- Cake JSON save metadata (new VFS-backed store) is written to `$HOME/.cake/<mod>/save/<slot>/cake-save.json`.
-- `cake_save_meta <slot> [autosave(0|1|true|false)] [title]` writes metadata snapshot JSON.
-- `cake_load_meta <slot>` prints metadata snapshot fields for a slot.
 - Shared VFS diagnostics commands are available in Cake too:
   - `fs_files`
   - `fs_mounts`

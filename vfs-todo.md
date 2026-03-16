@@ -34,6 +34,10 @@ Recent simplification already landed:
     - it now infers simple `basedir`/`gamemod` hints from the current folder and opened file path
     - later follow-up: add profile-like configuration to the model viewer if it needs persistent startup context
 
+- Keep Cake command surface focused on production paths.
+  - removed console-only commands: `cake_save_meta`, `cake_load_meta`, `cake_profile`, `cake_profile_clear`
+  - removed the dead Cake-only save metadata store along with those command paths
+
 - Keep the current write-root mismatch documented until server-side save flow becomes profile-aware:
   - server/game save state: `$HOME/.jake2/<mod>/save/...`
   - Cake-owned client writable data: `$HOME/.cake/<mod>/...`

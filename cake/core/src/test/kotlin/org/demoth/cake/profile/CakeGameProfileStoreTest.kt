@@ -55,19 +55,6 @@ class CakeGameProfileStoreTest {
     }
 
     @Test
-    fun clearRemovesProfilesConfig() {
-        val basedir = Files.createDirectories(temp.resolve("quake2"))
-        val store = CakeGameProfileStore(
-            writableFactory = { DefaultWritableFileSystem(temp) },
-        )
-
-        store.upsertProfile(CakeGameProfile(id = "main", basedir = basedir.toString(), gamemod = "rogue"))
-        store.clear()
-
-        assertNull(store.readSelected())
-    }
-
-    @Test
     fun selectProfileSwitchesSelectedProfile() {
         val basedir = Files.createDirectories(temp.resolve("quake2"))
         val store = CakeGameProfileStore(

@@ -147,13 +147,6 @@ class CakeGameProfileStore(
         return defaultProfile.normalized()
     }
 
-    fun clear() {
-        val writablePath = writableFactory().resolveWritePath(logicalPath) ?: return
-        runCatching {
-            Files.deleteIfExists(Path.of(writablePath))
-        }
-    }
-
     private fun validateConfig(config: CakeProfilesConfig) {
         require(config.version == PROFILES_VERSION_V1) {
             "Unsupported profiles config version ${config.version}, expected $PROFILES_VERSION_V1"
