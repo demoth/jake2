@@ -8,6 +8,7 @@ plugins {
 subprojects {
   apply plugin: 'java-library'
   apply plugin: 'org.jetbrains.kotlin.jvm'
+  apply plugin: 'jacoco'
 
   group = 'org.demoth'
   version = '1.2.0'
@@ -39,5 +40,16 @@ subprojects {
 
   tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    finalizedBy(tasks.named('jacocoTestReport'))
+  }
+
+  tasks.withType(JacocoReport).configureEach {
+    dependsOn(tasks.withType(Test))
+
+    reports {
+      xml.required = true
+      html.required = true
+      csv.required = false
+    }
   }
 }

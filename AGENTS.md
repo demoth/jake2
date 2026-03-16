@@ -27,6 +27,13 @@ Other implementations are located in ../quake. You can refer to them for compari
 - `./gradlew distZip` assembles a distributable archive.
 - IDE run targets: `Jake2Dedicated.main` for the server, `Lwjgl3GameLauncher.main` for the Cake client.
 
+## Test Coverage
+- Per-module JaCoCo coverage reports are generated automatically when running a module's `test` task.
+- Example: `./gradlew :cake:core:test`
+- HTML report: `<module>/build/reports/jacoco/test/html/index.html`
+- XML report: `<module>/build/reports/jacoco/test/jacocoTestReport.xml`
+- To check actual coverage for a class, run the module test and inspect that class in the generated JaCoCo HTML report or parse the XML report.
+
 ## Coding Style & Naming Conventions
 - Follow standard Java/Kotlin conventions; 4-space indentation and default IntelliJ IDEA formatting are expected.
 - The codebase mixes legacy C-inspired naming; keep existing patterns in touched files for consistency.
