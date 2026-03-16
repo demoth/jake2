@@ -85,10 +85,11 @@ class MenuController(
                 editingExistingProfileId = null
                 draftProfileId = draft.id.trim().takeIf { it.isNotEmpty() }
                 refreshState(
+                    activeScreen = MenuScreen.PROFILE_EDIT,
                     formOverride = draft,
                     selectedProfileIdOverride = draftProfileId,
                     includeFormIdInList = draftProfileId != null,
-                    statusOverride = "Editing new profile draft",
+                    statusOverride = intent.statusMessage ?: "Editing new profile draft",
                 )
             }
 

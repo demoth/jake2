@@ -78,7 +78,7 @@ class ProfileEditStage(
 
                     createProfileButton = TextButton("Create New Profile", Scene2DSkin.defaultSkin).apply {
                         onClick {
-                            menuEventBus.postIntent(MenuIntent.CreateProfileDraft)
+                            menuEventBus.postIntent(MenuIntent.CreateProfileDraft())
                         }
                     }
                     add(createProfileButton).fillX().row()

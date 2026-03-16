@@ -1198,7 +1198,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         if (activeGameProfile != null) {
             return
         }
-        menuEventBus.postIntent(MenuIntent.CreateProfileDraft)
+        menuEventBus.postIntent(
+            MenuIntent.CreateProfileDraft(
+                "Create a profile to tell Cake where your Quake II installation is located.",
+            ),
+        )
         menuController.pumpIntents()
         syncMenuViewFromBusState()
     }
