@@ -125,6 +125,7 @@
 ### Slice 3
 - Add join game screen/state/backend join action.
 - Wire `Join` to existing `connect` command path.
+- Close the menu immediately on successful `Join`.
 
 ### Slice 4
 - Add tests.
@@ -139,6 +140,10 @@
     - main menu now routes into a dedicated multiplayer screen
     - menu state/view routing now supports `MULTIPLAYER`
     - `Host Game` and `Player Setup` are visible but disabled
-    - `Join Game` is temporarily disabled until the actual join screen is implemented
+  - Added join game flow:
+    - multiplayer menu now opens a dedicated join screen
+    - join screen captures host and port
+    - join submit validates host/port and reuses the existing `connect` path
+    - successful join closes the menu immediately
 - Next:
-  - Implement the actual `Join Game` screen and backend connect action.
+  - Add controller tests for menu transitions and join validation.

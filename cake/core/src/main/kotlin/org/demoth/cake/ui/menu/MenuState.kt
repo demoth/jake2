@@ -4,6 +4,7 @@ enum class MenuScreen {
     MAIN,
     PROFILE_EDIT,
     MULTIPLAYER,
+    JOIN_GAME,
 }
 
 data class MainMenuState(
@@ -28,9 +29,20 @@ data class MultiplayerMenuState(
     val statusMessage: String = "",
 )
 
+data class JoinGameFormState(
+    val host: String = "localhost",
+    val port: String = "27910",
+)
+
+data class JoinGameState(
+    val form: JoinGameFormState = JoinGameFormState(),
+    val statusMessage: String = "",
+)
+
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val mainMenu: MainMenuState = MainMenuState(),
     val profileEditor: ProfileEditorState = ProfileEditorState(),
     val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
+    val joinGame: JoinGameState = JoinGameState(),
 )

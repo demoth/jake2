@@ -1,5 +1,8 @@
 package org.demoth.cake.ui.menu
 
+import jake2.qcommon.Defines.PORT_SERVER
+import jake2.qcommon.network.netadr_t
+
 interface MenuBackend {
     fun activeProfileId(): String
     fun canDisconnect(): Boolean
@@ -11,6 +14,7 @@ interface MenuBackend {
     fun createProfileDraft(): ProfileFormState?
     fun autodetectBasedir(): String?
     fun saveProfile(form: ProfileFormState): String
+    fun joinServer(address: String): String
 }
 
 class MenuController(
@@ -72,6 +76,15 @@ class MenuController(
                 )
             }
 
+            is MenuIntent.OpenJoinGame -> {
+                refreshState(
+                    activeScreen = MenuScreen.JOIN_GAME,
+                    formOverride = state.profileEditor.form,
+                    joinGameFormOverride = state.joinGame.form,
+                    joinGameStatusOverride = "",
+                )
+            }
+
             is MenuIntent.DisconnectRequested -> {
                 backend.disconnect()
                 refreshState()
@@ -128,6 +141,63 @@ class MenuController(
                     statusOverride = status,
                 )
             }
+
+            is MenuIntent.JoinGameRequested -> {
+                val normalizedHost = intent.form.host.trim()
+                val normalizedPort = intent.form.port.trim()
+                if (normalizedHost.isBlank()) {
+                    refreshState(
+                        activeScreen = MenuScreen.JOIN_GAME,
+                        formOverride = state.profileEditor.form,
+                        joinGameFormOverride = intent.form.copy(host = normalizedHost, port = normalizedPort),
+                        joinGameStatusOverride = "Host name must not be blank",
+                    )
+                    return
+                }
+
+                val parsedPort = if (normalizedPort.isBlank()) {
+                    null
+                } else {
+                    normalizedPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: run {
+                        refreshState(
+                            activeScreen = MenuScreen.JOIN_GAME,
+                            formOverride = state.profileEditor.form,
+                            joinGameFormOverride = intent.form.copy(host = normalizedHost, port = normalizedPort),
+                            joinGameStatusOverride = "Port must be a number between 1 and 65535",
+                        )
+                        return
+                    }
+                }
+
+                val address = if (parsedPort == null) {
+                    normalizedHost
+                } else {
+                    "$normalizedHost:$parsedPort"
+                }
+                if (netadr_t.fromString(address, PORT_SERVER) == null) {
+                    refreshState(
+                        activeScreen = MenuScreen.JOIN_GAME,
+                        formOverride = state.profileEditor.form,
+                        joinGameFormOverride = intent.form.copy(
+                            host = normalizedHost,
+                            port = parsedPort?.toString() ?: normalizedPort,
+                        ),
+                        joinGameStatusOverride = "Invalid server address",
+                    )
+                    return
+                }
+
+                val status = backend.joinServer(address)
+                refreshState(
+                    activeScreen = MenuScreen.JOIN_GAME,
+                    formOverride = state.profileEditor.form,
+                    joinGameFormOverride = JoinGameFormState(
+                        host = normalizedHost,
+                        port = parsedPort?.toString() ?: "",
+                    ),
+                    joinGameStatusOverride = status,
+                )
+            }
         }
     }
 
@@ -137,6 +207,8 @@ class MenuController(
         selectedProfileIdOverride: String? = null,
         includeFormIdInList: Boolean = false,
         statusOverride: String? = null,
+        joinGameFormOverride: JoinGameFormState? = null,
+        joinGameStatusOverride: String? = null,
     ) {
         val form = formOverride ?: currentSelectedProfileForm()
         val selectedProfileId = selectedProfileIdOverride?.trim()?.takeIf { it.isNotEmpty() }
@@ -167,10 +239,16 @@ class MenuController(
             form = form,
             statusMessage = statusOverride ?: state.profileEditor.statusMessage,
         )
+        val joinGameState = JoinGameState(
+            form = joinGameFormOverride ?: state.joinGame.form,
+            statusMessage = joinGameStatusOverride ?: state.joinGame.statusMessage,
+        )
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             mainMenu = mainMenuState,
             profileEditor = profileEditorState,
+            multiplayer = state.multiplayer,
+            joinGame = joinGameState,
         )
         bus.postState(state)
     }

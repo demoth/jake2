@@ -44,6 +44,7 @@ import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
+import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
 import org.demoth.cake.stages.ProfileEditStage
@@ -65,6 +66,7 @@ private enum class MenuView {
     MAIN,
     PROFILE_EDIT,
     MULTIPLAYER,
+    JOIN_GAME,
 }
 
 /**
@@ -83,6 +85,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var menuStage: MainMenuStage
     private lateinit var profileEditStage: ProfileEditStage
     private lateinit var multiplayerMenuStage: MultiplayerMenuStage
+    private lateinit var joinGameStage: JoinGameStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -193,6 +196,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuEventBus = menuEventBus,
         )
         multiplayerMenuStage = MultiplayerMenuStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+        )
+        joinGameStage = JoinGameStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -470,6 +477,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 MenuView.MAIN -> menuStage
                 MenuView.PROFILE_EDIT -> profileEditStage
                 MenuView.MULTIPLAYER -> multiplayerMenuStage
+                MenuView.JOIN_GAME -> joinGameStage
             }
             else -> {
                 // delegate to the game screen
@@ -538,6 +546,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     MenuView.MULTIPLAYER -> {
                         multiplayerMenuStage.act(deltaSeconds)
                         multiplayerMenuStage.draw()
+                    }
+                    MenuView.JOIN_GAME -> {
+                        joinGameStage.act(deltaSeconds)
+                        joinGameStage.draw()
                     }
                 }
             }
@@ -653,6 +665,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         menuStage.dispose()
         profileEditStage.dispose()
         multiplayerMenuStage.dispose()
+        joinGameStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearProfileBackground()
@@ -1270,6 +1283,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         override fun saveProfile(form: ProfileFormState): String =
             saveProfileFromEditor(form.toCakeGameProfile())
+
+        override fun joinServer(address: String): String {
+            Cbuf.AddText("connect $address")
+            menuVisible = false
+            consoleVisible = false
+            return "Joining $address..."
+        }
     }
 
     private fun CakeGameProfile.toProfileFormState(): ProfileFormState = ProfileFormState(
@@ -1289,6 +1309,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             MenuScreen.MAIN -> MenuView.MAIN
             MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
             MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
+            MenuScreen.JOIN_GAME -> MenuView.JOIN_GAME
         }
         if (targetView == menuView) return
         menuView = targetView
