@@ -145,5 +145,11 @@
     - join screen captures host and port
     - join submit validates host/port and reuses the existing `connect` path
     - successful join closes the menu immediately
+  - Added controller coverage for:
+    - multiplayer/join screen transitions
+    - blank-host rejection
+    - invalid-port rejection
+    - default-port behavior
+    - validated join dispatch
 - Next:
-  - Add controller tests for menu transitions and join validation.
+  - Run targeted tests/build and fix any issues.
