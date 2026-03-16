@@ -37,6 +37,17 @@ import jake2.qcommon.util.Vargs;
 @SuppressWarnings("deprecation")
 public final class Com
 {
+    public enum ConsoleLevel {
+        INFO,
+        WARN,
+        ERROR
+    }
+
+    public interface ConsoleSink {
+        void print(ConsoleLevel level, String message);
+    }
+
+    private static ConsoleSink consoleSink;
 
     public static String debugContext = "";
     private static String _debugContext = "";
@@ -251,13 +262,14 @@ public final class Com
 
 		if (code == Defines.ERR_DISCONNECT)
 		{
+            printToConsole(ConsoleLevel.ERROR, "Error: " + msg + "\n");
 			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
 			throw new longjmpException("Error: (disconnect) " + msg);
 		}
 		else if (code == Defines.ERR_DROP)
 		{
-			Com.Printf("********************\nERROR: " + msg + "\n********************\n");
+            printToConsole(ConsoleLevel.ERROR, "********************\nERROR: " + msg + "\n********************\n");
 			Cmd.ExecuteFunction("sv_shutdown", "Server crashed: " + msg, "false");
 			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
@@ -265,6 +277,7 @@ public final class Com
 		}
 		else
 		{
+            printToConsole(ConsoleLevel.ERROR, "ERROR: " + msg + "\n");
 			Cmd.ExecuteFunction("sv_shutdown", "Server fatal crashed: " + msg, "false");
 			Cmd.ExecuteFunction("cl_shutdown");
 		}
@@ -302,6 +315,20 @@ public final class Com
 	public static void Printf(String fmt, Vargs vargs)
 	{
 		String msg= sprintf(_debugContext + fmt, vargs);
+        printToConsole(ConsoleLevel.INFO, msg);
+    }
+
+    public static void SetConsoleSink(ConsoleSink sink) {
+        consoleSink = sink;
+    }
+
+    public static void ClearConsoleSink(ConsoleSink sink) {
+        if (consoleSink == sink) {
+            consoleSink = null;
+        }
+    }
+
+    private static void printToConsole(ConsoleLevel level, String msg) {
 		if (rd_flusher != null)
 		{
 			if ((msg.length() + rd_buffer.length()) > (rd_buffersize - 1))
@@ -313,7 +340,11 @@ public final class Com
 			return;
 		}
 
-		Cmd.ExecuteFunction("console_print", msg);
+        if (consoleSink != null) {
+            consoleSink.print(level, msg);
+        } else {
+		    Cmd.ExecuteFunction("console_print", msg);
+        }
 
 		// also echo to debugging console
 		// todo: use proper logging
@@ -325,9 +356,9 @@ public final class Com
 		Printf(_debugContext + fmt + "\n");
 	}
 
-    public static void Warn(String fmt) {
+	public static void Warn(String fmt) {
         // todo: handle warnings differently
-        Printf("Warn: " + fmt + "\n");
+        printToConsole(ConsoleLevel.WARN, "Warn: " + fmt + "\n");
     }
 
 	@Deprecated

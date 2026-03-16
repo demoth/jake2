@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.utils.viewport.Viewport
+import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import ktx.actors.setKeyboardFocus
@@ -33,6 +34,8 @@ import ktx.scene2d.*
  * TODO: add last command navigation with up/down. command completion with TAB
  */
 class ConsoleStage(viewport: Viewport) : Stage(viewport) {
+    private val consoleBuffer = ConsoleBuffer()
+    private val consoleSink = Com.ConsoleSink { level, message -> appendOutput(level, message) }
 
     /** Requests keyboard focus for the input field. */
     fun focus() = consoleInput.setKeyboardFocus(true)
@@ -43,7 +46,12 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
     /** Input field where commands are typed and submitted with Enter. */
     val consoleInput: TextField
 
+    val entries: List<ConsoleEntry>
+        get() = consoleBuffer.entries()
+
     init {
+        Com.SetConsoleSink(consoleSink)
+
         actors {
             table {
                 defaults().pad(8f).growX()
@@ -65,12 +73,12 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                         consoleInput.addListener(object : InputListener() {
                             override fun keyUp(event: InputEvent, keycode: Int): Boolean {
                                 if (keycode == Input.Keys.ENTER) {
-                                    consoleOutput.appendText("${consoleInput.text}\n")
+                                    appendOutput(Com.ConsoleLevel.INFO, "${consoleInput.text}\n")
                                     try {
                                         Cbuf.AddText(consoleInput.text)
                                         Cbuf.Execute()
                                     } catch (e: Exception) {
-                                        consoleOutput.appendText("" + e.message)
+                                        appendOutput(Com.ConsoleLevel.ERROR, "" + e.message)
                                     }
                                     consoleInput.text = ""
                                     return true
@@ -86,11 +94,22 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
         }
 
         Cmd.AddCommand("clear") {
+            consoleBuffer.clear()
             consoleOutput.text = ""
         }
 
         Cmd.AddCommand("console_print") { args: List<String?> ->
-            consoleOutput.appendText("${args.first()}")
+            appendOutput(Com.ConsoleLevel.INFO, "${args.first()}")
         }
+    }
+
+    private fun appendOutput(level: Com.ConsoleLevel, text: String) {
+        consoleBuffer.append(level, text)
+        consoleOutput.appendText(text)
+    }
+
+    override fun dispose() {
+        Com.ClearConsoleSink(consoleSink)
+        super.dispose()
     }
 }
