@@ -25,11 +25,12 @@ Recent simplification already landed:
   - preferred direction: a `VfsFileHandle`-style adapter for libGDX-facing code
   - keep temp-file fallback only for loaders/backends that prove they require a real OS file
 
-- Remove Cake reliance on JVM `basedir`/`game` system properties for normal client startup.
-  - current live usages are in `Cake.buildDefaultStartupProfile()` and the standalone `CakeModelViewer`
-  - main Cake client should source installation/mod selection from the active profile store, with autodetect only as first-run bootstrap
-  - if no profile can be bootstrapped, prefer explicit profile setup/autodetect UI over falling back to `.`
-  - model viewer should take explicit constructor/CLI startup hints instead of reading global system properties
+- Remove Cake reliance on JVM `basedir`/`game` system properties for startup hints.
+  - main Cake client cleanup is complete:
+    - normal startup now uses the active profile store
+    - autodetect is only used to bootstrap the default profile on first run
+    - if no profile can be bootstrapped, Cake opens the profile editor instead of falling back to `.`
+  - remaining client-side follow-up: model viewer should take explicit/current-folder startup hints instead of reading global system properties
 
 - Keep the current write-root mismatch documented until server-side save flow becomes profile-aware:
   - server/game save state: `$HOME/.jake2/<mod>/save/...`

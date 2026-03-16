@@ -203,6 +203,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             reset()
         }
         menuController.initialize()
+        openStartupProfileEditorIfNeeded()
 
         updateInputHandlers(false, true)
 
@@ -1170,7 +1171,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             return
         }
 
-        val fallbackProfile = buildDefaultStartupProfile()
+        val fallbackProfile = autodetectedStartupProfile(autodetectSteamBasedir())
+        if (fallbackProfile == null) {
+            Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.\n")
+            applyGameProfile(null)
+            return
+        }
         val resolved = try {
             gameProfileStore.bootstrapDefault(fallbackProfile)
         } catch (e: Exception) {
@@ -1178,29 +1184,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             fallbackProfile
         }
         applyGameProfile(resolved)
-    }
-
-    private fun buildDefaultStartupProfile(): CakeGameProfile {
-        val basedir = resolveStartupBasedir()
-        val gamemod = System.getProperty("game")?.trim()?.takeIf { it.isNotEmpty() }
-        return CakeGameProfile(
-            id = CakeGameProfileStore.DEFAULT_PROFILE_ID,
-            basedir = basedir,
-            gamemod = gamemod,
-        )
-    }
-
-    private fun resolveStartupBasedir(): String {
-        val explicit = System.getProperty("basedir")?.trim()?.takeIf { it.isNotEmpty() }
-        if (explicit != null) {
-            return explicit
-        }
-        val autoDetected = autodetectSteamBasedir()
-        if (autoDetected != null) {
-            Com.Printf("Auto-detected Quake2 basedir: $autoDetected\n")
-            return autoDetected
-        }
-        return "."
     }
 
     private fun autodetectSteamBasedir(): String? {
@@ -1228,6 +1211,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
         reloadProfileBackground()
+    }
+
+    private fun openStartupProfileEditorIfNeeded() {
+        if (activeGameProfile != null) {
+            return
+        }
+        menuEventBus.postIntent(MenuIntent.CreateProfileDraft)
+        menuController.pumpIntents()
+        syncMenuViewFromBusState()
     }
 
     private fun printActiveGameProfile() {
