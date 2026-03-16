@@ -30,7 +30,9 @@ Recent simplification already landed:
     - normal startup now uses the active profile store
     - autodetect is only used to bootstrap the default profile on first run
     - if no profile can be bootstrapped, Cake opens the profile editor instead of falling back to `.`
-  - remaining client-side follow-up: model viewer should take explicit/current-folder startup hints instead of reading global system properties
+  - model viewer cleanup is complete for now:
+    - it now infers simple `basedir`/`gamemod` hints from the current folder and opened file path
+    - later follow-up: add profile-like configuration to the model viewer if it needs persistent startup context
 
 - Keep the current write-root mismatch documented until server-side save flow becomes profile-aware:
   - server/game save state: `$HOME/.jake2/<mod>/save/...`

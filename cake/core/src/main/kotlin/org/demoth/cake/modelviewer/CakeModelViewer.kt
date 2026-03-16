@@ -76,11 +76,12 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.app.exit()
             return
         }
+        val startupHints = detectModelViewerStartupHints(file.absolutePath)
 
         val fileResolver = ModelViewerFileResolver(
             openedFilePath = file.absolutePath,
-            basedir = System.getProperty("basedir"),
-            gamemod = System.getProperty("game"),
+            basedir = startupHints.basedir,
+            gamemod = startupHints.gamemod,
         )
         assetManager = AssetManager(fileResolver).apply {
             setLoader(String::class.java, TextAssetLoader(fileResolver))
