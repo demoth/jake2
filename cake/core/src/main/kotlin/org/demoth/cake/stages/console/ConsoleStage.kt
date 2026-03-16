@@ -4,13 +4,13 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.TextArea
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import ktx.actors.setKeyboardFocus
+import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.*
 
 /**
@@ -40,8 +40,8 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
     /** Requests keyboard focus for the input field. */
     fun focus() = consoleInput.setKeyboardFocus(true)
 
-    /** Output text area used by command echo and `console_print`. */
-    val consoleOutput: TextArea
+    /** Output widget used by command echo and console logging. */
+    val consoleOutput: ConsoleOutputWidget
 
     /** Input field where commands are typed and submitted with Enter. */
     val consoleInput: TextField
@@ -59,9 +59,21 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                 container {
                     it.growY()
                     stack {
-                        consoleOutput = textArea()
-                        add(consoleOutput)
                         image("console-panel")
+                        consoleOutput = ConsoleOutputWidget(consoleBuffer, Scene2DSkin.defaultSkin)
+                        consoleOutput.addListener(object : InputListener() {
+                            override fun scrolled(
+                                event: InputEvent,
+                                x: Float,
+                                y: Float,
+                                amountX: Float,
+                                amountY: Float,
+                            ): Boolean {
+                                consoleOutput.scrollLines(amountY.toInt())
+                                return true
+                            }
+                        })
+                        add(consoleOutput)
                     }
                     fill()
                 }
@@ -83,6 +95,14 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                                     consoleInput.text = ""
                                     return true
                                 }
+                                if (keycode == Input.Keys.PAGE_UP) {
+                                    consoleOutput.scrollPage(-1)
+                                    return true
+                                }
+                                if (keycode == Input.Keys.PAGE_DOWN) {
+                                    consoleOutput.scrollPage(1)
+                                    return true
+                                }
                                 return false
                             }
                         })
@@ -95,7 +115,6 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
 
         Cmd.AddCommand("clear") {
             consoleBuffer.clear()
-            consoleOutput.text = ""
         }
 
         Cmd.AddCommand("console_print") { args: List<String?> ->
@@ -105,7 +124,7 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
 
     private fun appendOutput(level: Com.ConsoleLevel, text: String) {
         consoleBuffer.append(level, text)
-        consoleOutput.appendText(text)
+        consoleOutput.invalidate()
     }
 
     override fun dispose() {
