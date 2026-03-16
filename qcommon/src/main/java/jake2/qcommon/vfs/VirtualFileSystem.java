@@ -6,13 +6,21 @@ package jake2.qcommon.vfs;
 public interface VirtualFileSystem {
     void configure(VfsConfig config);
 
-    VfsLookupResult resolve(String logicalPath, VfsLookupOptions options);
+    default VfsLookupResult resolve(String logicalPath) {
+        return resolve(logicalPath, false);
+    }
 
-    VfsResult<byte[]> loadBytes(String logicalPath, VfsLookupOptions options);
+    VfsLookupResult resolve(String logicalPath, boolean gameDataOnly);
+
+    VfsResult<byte[]> loadBytes(String logicalPath);
 
     VfsResult<VfsReadableHandle> openRead(String logicalPath, VfsOpenOptions options);
 
-    boolean exists(String logicalPath, VfsLookupOptions options);
+    default boolean exists(String logicalPath) {
+        return exists(logicalPath, false);
+    }
+
+    boolean exists(String logicalPath, boolean gameDataOnly);
 
     void setGameMod(String gameMod);
 

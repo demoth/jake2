@@ -6,7 +6,6 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
-import jake2.qcommon.vfs.VfsLookupOptions
 import jake2.qcommon.vfs.VfsSourceType
 import org.demoth.cake.assets.CakeVfsAssetSource
 import java.io.File
@@ -120,7 +119,7 @@ class ModelViewerFileResolver(
     }
 
     private fun resolveFromLocalVfs(fileName: String): FileHandle? {
-        val lookup = localVfs.resolve(fileName, VfsLookupOptions.DEFAULT)
+        val lookup = localVfs.resolve(fileName)
         if (!lookup.found || lookup.entry.source.type != VfsSourceType.DIRECTORY) {
             return null
         }

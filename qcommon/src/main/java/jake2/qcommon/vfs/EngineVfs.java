@@ -67,7 +67,7 @@ public final class EngineVfs {
             return null;
         }
         try {
-            VfsResult<byte[]> result = VFS.loadBytes(logicalPath, VfsLookupOptions.DEFAULT);
+            VfsResult<byte[]> result = VFS.loadBytes(logicalPath);
             return result.success() ? result.value() : null;
         } catch (IllegalStateException ignored) {
             return null;
@@ -79,7 +79,7 @@ public final class EngineVfs {
             return false;
         }
         try {
-            return VFS.exists(logicalPath, VfsLookupOptions.DEFAULT);
+            return VFS.exists(logicalPath);
         } catch (IllegalStateException ignored) {
             return false;
         }
@@ -167,7 +167,7 @@ public final class EngineVfs {
             return false;
         }
         try {
-            VfsLookupResult lookup = VFS.resolve(logicalPath, VfsLookupOptions.DEFAULT);
+            VfsLookupResult lookup = VFS.resolve(logicalPath);
             return lookup.found() && lookup.entry().source().fromPack();
         } catch (IllegalStateException ignored) {
             return false;

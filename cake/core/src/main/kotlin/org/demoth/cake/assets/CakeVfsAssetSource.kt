@@ -3,7 +3,6 @@ package org.demoth.cake.assets
 import com.badlogic.gdx.files.FileHandle
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
-import jake2.qcommon.vfs.VfsLookupOptions
 import jake2.qcommon.vfs.VfsSourceType
 import java.nio.file.Files
 import java.nio.file.Path
@@ -60,7 +59,7 @@ internal class CakeVfsAssetSource {
 
     @Synchronized
     fun resolve(path: String): FileHandle? {
-        val lookup = vfs.resolve(path, VfsLookupOptions.DEFAULT)
+        val lookup = vfs.resolve(path)
         if (!lookup.found) {
             return null
         }
@@ -86,7 +85,7 @@ internal class CakeVfsAssetSource {
                     return FileHandle(cached.toFile())
                 }
 
-                val bytesResult = vfs.loadBytes(path, VfsLookupOptions.DEFAULT)
+                val bytesResult = vfs.loadBytes(path)
                 if (!bytesResult.success || bytesResult.value == null) {
                     return null
                 }

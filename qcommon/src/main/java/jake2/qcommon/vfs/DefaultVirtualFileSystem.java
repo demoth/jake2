@@ -38,7 +38,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public synchronized VfsLookupResult resolve(String logicalPath, VfsLookupOptions options) {
+    public synchronized VfsLookupResult resolve(String logicalPath, boolean gameDataOnly) {
         ensureConfigured();
 
         String normalized = normalizer.normalizeOrNull(logicalPath);
@@ -51,8 +51,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             return VfsLookupResult.missing();
         }
 
-        VfsLookupOptions effective = options == null ? VfsLookupOptions.DEFAULT : options;
-        if (effective.gameDataOnly() && entry.layer() == VfsLayer.ENGINE_FALLBACK) {
+        if (gameDataOnly && entry.layer() == VfsLayer.ENGINE_FALLBACK) {
             return VfsLookupResult.missing();
         }
 
@@ -60,7 +59,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public synchronized VfsResult<byte[]> loadBytes(String logicalPath, VfsLookupOptions options) {
+    public synchronized VfsResult<byte[]> loadBytes(String logicalPath) {
         VfsResult<VfsReadableHandle> opened = openRead(logicalPath, VfsOpenOptions.DEFAULT);
         if (!opened.success()) {
             return VfsResult.fail(opened.error());
@@ -75,7 +74,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public synchronized VfsResult<VfsReadableHandle> openRead(String logicalPath, VfsOpenOptions options) {
-        VfsLookupResult lookup = resolve(logicalPath, VfsLookupOptions.DEFAULT);
+        VfsLookupResult lookup = resolve(logicalPath);
         if (!lookup.found()) {
             return VfsResult.fail("Resource not found: " + logicalPath);
         }
@@ -115,8 +114,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public synchronized boolean exists(String logicalPath, VfsLookupOptions options) {
-        return resolve(logicalPath, options).found();
+    public synchronized boolean exists(String logicalPath, boolean gameDataOnly) {
+        return resolve(logicalPath, gameDataOnly).found();
     }
 
     @Override

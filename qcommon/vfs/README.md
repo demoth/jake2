@@ -160,6 +160,7 @@ Completed:
 - model viewer integration
 - JSON save/state persistence over writable VFS APIs
 - removal of active `FS`, `QuakeFile`, and `VfsBackedFileSystem`
+- removal of the `VfsLookupOptions` wrapper in favor of simple default methods plus a plain `gameDataOnly` boolean where fallback filtering is needed
 
 ## Active Follow-Ups
 

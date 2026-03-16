@@ -6,6 +6,10 @@ The detailed VFS design and current-state documentation now lives in:
 
 This file is intentionally reduced to active follow-up items only. Historical migration details remain in git history.
 
+Recent simplification already landed:
+
+- `VfsLookupOptions` was removed; the read API now uses plain default methods and a bare `gameDataOnly` boolean only on the lookup paths that still need fallback filtering.
+
 ## Follow-Ups
 
 - Add VFS traversal/build stats to expose:
