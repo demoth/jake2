@@ -42,12 +42,12 @@ import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
-import org.demoth.cake.stages.ConsoleStage
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
 import org.demoth.cake.stages.ProfileEditStage
+import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Files

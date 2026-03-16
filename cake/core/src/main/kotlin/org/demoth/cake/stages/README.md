@@ -3,7 +3,7 @@
 ## Overview
 This package owns non-ingame Scene2D stages for shell UI:
 - main menu (`MainMenuStage`),
-- developer console (`ConsoleStage`).
+- developer console stage package (`stages.console.ConsoleStage`).
 
 It does not own:
 - gameplay runtime/HUD orchestration (`stages/ingame`),
@@ -12,14 +12,14 @@ It does not own:
 
 ## Key Types
 - `MainMenuStage` - Startup command menu (`connect`, `quit`, placeholders).
-- `ConsoleStage` - Command input and output overlay stage.
+- `stages.console.ConsoleStage` - Command input and output overlay stage.
 
 ## Data / Control Flow
 ```text
 Cake.create()
   -> Scene2DSkin.defaultSkin loaded from ui/uiskin.json
   -> MainMenuStage(viewport)
-  -> ConsoleStage(viewport)
+  -> stages.console.ConsoleStage(viewport)
 
 Cake.updateInputHandlers(...)
   -> active UI processor is menu stage OR console stage OR game screen
@@ -86,9 +86,9 @@ Newest first.
 ## How to Extend
 1. Add new menu actions by appending buttons in `MainMenuStage` and enqueueing commands through `Cbuf`.
 2. Keep menu width consistency by leaving `defaults().uniformX().fillX()` intact.
-3. Add console commands via `Cmd.AddCommand` in `ConsoleStage` (or central command registration if shared).
+3. Add console commands via `Cmd.AddCommand` in `stages.console.ConsoleStage` (or central command registration if shared).
 4. For visual changes, update skin assets first, then stage layout paddings.
 
 ## Open Questions
-- Should `ConsoleStage` own styling-only commands (`clear`, `console_print`), or should they move to a central command registration component?
+- Should `stages.console.ConsoleStage` own styling-only commands (`clear`, `console_print`), or should they move to a central command registration component?
 - Should console panel rendering be moved from ad-hoc `Stack` composition to a reusable widget to avoid repeated order/padding regressions?
