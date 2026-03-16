@@ -15,10 +15,22 @@ class ConsoleBuffer(
         private set
 
     fun append(severity: Com.ConsoleLevel, text: String) {
-        if (entries.size == maxEntries) {
-            entries.removeFirst()
+        if (text.isEmpty()) {
+            return
         }
-        entries.addLast(ConsoleEntry(severity, text))
+
+        if (entries.isNotEmpty()) {
+            val previous = entries.removeLast()
+            if (!previous.text.endsWith('\n') && previous.severity == severity) {
+                entries.addLast(previous.copy(text = previous.text + text))
+            } else {
+                entries.addLast(previous)
+                appendEntry(ConsoleEntry(severity, text))
+            }
+        } else {
+            appendEntry(ConsoleEntry(severity, text))
+        }
+
         version++
     }
 
@@ -28,6 +40,13 @@ class ConsoleBuffer(
     }
 
     fun entries(): List<ConsoleEntry> = entries.toList()
+
+    private fun appendEntry(entry: ConsoleEntry) {
+        if (entries.size == maxEntries) {
+            entries.removeFirst()
+        }
+        entries.addLast(entry)
+    }
 
     companion object {
         const val DEFAULT_MAX_ENTRIES = 2048
