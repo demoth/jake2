@@ -12,7 +12,7 @@
 - Multiplayer Menu
   - `Join Game` enabled.
   - `Host Game` visible but disabled.
-  - `Player Setup` kept visible for menu parity, but disabled until implemented.
+  - `Player Setup` enabled once the dedicated screen lands.
   - `Back` returns to the main menu.
 - Join Game
   - `Host name` field.
@@ -20,6 +20,15 @@
   - `Join` button.
   - `Back` button.
   - Inline status/error message.
+- Player Setup
+  - `Name` field -> `name`
+  - `Password` field -> `password`
+  - `Model` selector
+  - `Skin` selector
+  - `Handedness` selector -> `hand`
+  - `Save` applies staged changes and persists them through profile config
+  - `Back` discards unsaved edits
+  - No 3D preview or icon preview in this slice
 
 ## Current Findings
 - Cake already has a working manual connect command:
@@ -39,18 +48,28 @@
   - `MAIN`
   - `PROFILE_EDIT`
 - Current `MainMenuStage` still hardcodes `Multiplayer` to `connect 127.0.0.1`.
+- Player-related userinfo cvars already exist and are archived:
+  - `name`
+  - `password`
+  - `skin`
+  - `hand`
+  - `gender`
+- `skin` must stay in legacy `model/skin` format for compatibility with existing servers and clients.
 
 ## Constraints / Decisions
-- Do not add a dead `Player Setup` button yet.
-  - Keep it visible but disabled until an actual screen exists.
+- Keep `Host Game` visible but disabled until implemented.
 - Do not implement server discovery/address book in this slice.
 - Prefer backend validation before dispatching `connect`.
 - On successful `Join`, close the menu immediately and let the existing network flow continue.
 - On validation failure, stay on the join screen and show an inline message.
+- Player Setup writes only on `Save`.
+  - `Back` discards unsaved edits.
+- Player Setup should not try to reimplement legacy model preview in this slice.
+- Derive `gender` from the chosen `skin` on save for legacy compatibility.
 - Keep implementation small and local:
   - add menu state/intents first,
   - then add stages,
-  - then add backend join action.
+  - then add backend actions.
 
 ## Required Code Changes
 
@@ -84,12 +103,21 @@
 - Add `MultiplayerMenuStage`
   - `Join Game`
   - `Host Game (future)` disabled
-  - `Player Setup (future)` disabled
+  - `Player Setup`
   - `Back`
 - Add `JoinGameStage`
   - host text field
   - port text field
   - join
+  - back
+  - status label
+- Add `PlayerSetupStage`
+  - name text field
+  - password text field
+  - model selector
+  - skin selector
+  - handedness selector
+  - save
   - back
   - status label
 
@@ -104,11 +132,17 @@
   - main -> multiplayer
   - multiplayer -> join
   - join -> multiplayer
+  - multiplayer -> player setup
 - Join validation:
   - blank host rejected
   - blank port uses default port
   - invalid port rejected
   - valid host/port triggers backend connect path
+- Player setup validation:
+  - invalid name rejected
+  - invalid password rejected
+  - blank name normalizes to `unnamed`
+  - model/skin selection normalizes against discovered catalog
 
 ## Delivery Slices
 
@@ -131,6 +165,11 @@
 - Add tests.
 - Run targeted validation/build.
 
+### Slice 5
+- Add Player Setup menu screen and backend wiring.
+- Persist player-facing cvars via the profile-local config path.
+- Keep previews out of scope for now.
+
 ## Progress
 - Done:
   - Approved multiplayer menu scope.
@@ -151,5 +190,15 @@
     - invalid-port rejection
     - default-port behavior
     - validated join dispatch
+  - Added player setup flow:
+    - multiplayer menu now opens a dedicated player setup screen
+    - player setup edits `name`, `password`, `skin`, `hand`, and derived `gender`
+    - model and skin options are discovered from mounted player assets
+    - save writes through the profile-local config path
+  - Added controller coverage for:
+    - opening player setup
+    - invalid userinfo validation
+    - normalized player setup save dispatch
 - Next:
-  - Run targeted tests/build and fix any issues.
+  - Decide whether `rate` belongs in Player Setup or later Options.
+  - Add preview support only if it can stay isolated from menu-state logic.
