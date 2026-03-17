@@ -47,6 +47,7 @@ import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
+import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
@@ -68,6 +69,7 @@ private enum class MenuView {
     PROFILE_EDIT,
     MULTIPLAYER,
     JOIN_GAME,
+    PLAYER_SETUP,
 }
 
 /**
@@ -87,6 +89,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var profileEditStage: ProfileEditStage
     private lateinit var multiplayerMenuStage: MultiplayerMenuStage
     private lateinit var joinGameStage: JoinGameStage
+    private lateinit var playerSetupStage: PlayerSetupStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -126,9 +129,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             // allow the game screen to receive the input
             updateInputHandlers(consoleVisible, menuVisible)
         }
+
     // During map change, the previous screen is disposed first but its config assets are kept alive
     // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
     private var deferredConfigUnloadScreen: Game3dScreen? = null
+
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
@@ -136,6 +141,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private val profileConfigStore = CakeProfileConfigStore()
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
+    private var cachedPlayerSetupCatalog: PlayerSetupCatalog? = null
     private val menuEventBus = MenuEventBus()
     private lateinit var menuController: MenuController
 
@@ -156,6 +162,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     }
     private var backgroundColor = Color.BLACK
+
     init {
         Cmd.Init()
         Cvar.Init()
@@ -203,6 +210,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuEventBus = menuEventBus,
         )
         joinGameStage = JoinGameStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+        )
+        playerSetupStage = PlayerSetupStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -486,7 +497,9 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 MenuView.PROFILE_EDIT -> profileEditStage
                 MenuView.MULTIPLAYER -> multiplayerMenuStage
                 MenuView.JOIN_GAME -> joinGameStage
+                MenuView.PLAYER_SETUP -> playerSetupStage
             }
+
             else -> {
                 // delegate to the game screen
                 game3dScreen?.let { screen -> object : InputProcessor by screen {} }
@@ -547,17 +560,25 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                         menuStage.act()
                         menuStage.draw()
                     }
+
                     MenuView.PROFILE_EDIT -> {
                         profileEditStage.act(deltaSeconds)
                         profileEditStage.draw()
                     }
+
                     MenuView.MULTIPLAYER -> {
                         multiplayerMenuStage.act(deltaSeconds)
                         multiplayerMenuStage.draw()
                     }
+
                     MenuView.JOIN_GAME -> {
                         joinGameStage.act(deltaSeconds)
                         joinGameStage.draw()
+                    }
+
+                    MenuView.PLAYER_SETUP -> {
+                        playerSetupStage.act(deltaSeconds)
+                        playerSetupStage.draw()
                     }
                 }
             }
@@ -615,6 +636,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     netchan.transmit(null)
                 }
             }
+
             ACTIVE -> {
                 queueUserInfoUpdateIfNeeded()
                 // fixme: send only at client rate, not every client frame
@@ -647,9 +669,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     consoleStage.focus()
                 }
             }
+
             Input.Keys.F12 -> {
                 takeScreenshot()
             }
+
             Input.Keys.ESCAPE -> {
                 if (consoleVisible)
                     consoleVisible = false
@@ -663,6 +687,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     }
                 }
             }
+
             else -> return false
         }
         return true
@@ -675,6 +700,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         profileEditStage.dispose()
         multiplayerMenuStage.dispose()
         joinGameStage.dispose()
+        playerSetupStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearProfileBackground()
@@ -855,24 +881,31 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 is FrameHeaderMessage -> {
                     game3dScreen?.processServerFrameHeader(msg)
                 }
+
                 is ConfigStringMessage -> {
                     game3dScreen?.processConfigStringMessage(msg)
                 }
+
                 is SoundMessage -> {
                     game3dScreen?.processSoundMessage(msg)
                 }
+
                 is SpawnBaselineMessage -> {
                     game3dScreen?.processBaselineMessage(msg)
                 }
+
                 is WeaponSoundMessage -> {
                     game3dScreen?.processWeaponSoundMessage(msg)
                 }
+
                 is MuzzleFlash2Message -> {
                     game3dScreen?.processMuzzleFlash2Message(msg)
                 }
+
                 is TEMessage -> {
                     game3dScreen?.processTempEntityMessage(msg)
                 }
+
                 is PacketEntitiesMessage -> {
                     if (game3dScreen?.processPacketEntitiesMessage(msg) == true) {
                         if (networkState != ACTIVE) {
@@ -883,18 +916,23 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                         }
                     }
                 }
+
                 is PlayerInfoMessage -> {
                     game3dScreen?.processPlayerInfoMessage(msg)
                 }
+
                 is PrintMessage -> {
                     game3dScreen?.processPrintMessage(msg)
                 }
+
                 is PrintCenterMessage -> {
                     game3dScreen?.processPrintCenterMessage(msg)
                 }
+
                 is LayoutMessage -> {
                     game3dScreen?.processLayoutMessage(msg)
                 }
+
                 is InventoryMessage -> {
                     game3dScreen?.processInventoryMessage(msg)
                 }
@@ -989,22 +1027,29 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 challenge = args[1].toInt()
                 SendConnectPacket()
             }
+
             ConnectionlessCommand.client_connect -> {
                 if (networkState == CONNECTED) {
                     Com.Warn("Dup connect received.  Ignored.\n")
 
                 } else {
                     networkState = CONNECTED // Defines.ca_connected
-                    netchan.setup(NS_CLIENT, packet.from, packet.qport) // fixme: port isn't needed? should it be Netchan.qport?
+                    netchan.setup(
+                        NS_CLIENT,
+                        packet.from,
+                        packet.qport
+                    ) // fixme: port isn't needed? should it be Netchan.qport?
                     netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
                     Com.Println("Connected!")
                 }
             }
+
             ConnectionlessCommand.print -> {
                 if (!packet.connectionlessParameters.isNullOrEmpty()) {
                     Com.Printf(packet.connectionlessParameters)
                 }
             }
+
             else -> {
                 println("not yet implemented, no need")
             }
@@ -1016,7 +1061,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * populate default userinfo values - required for connecting to the server
      */
     private fun initUserInfoCvars() {
-        Cvar.getInstance().Get("password", "", CVAR_USERINFO)
+        Cvar.getInstance().Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO)
         Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)
@@ -1106,6 +1151,71 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             Com.Printf("Saved Cake profile config: $path\n")
         } catch (e: Exception) {
             Com.Warn("Failed to save Cake profile config for '$profileId': ${e.message}\n")
+        }
+    }
+
+    private fun playerSetupCatalog(): PlayerSetupCatalog {
+        cachedPlayerSetupCatalog?.let { return it }
+        val catalog = if (fileResolver.isVfsInitialized()) {
+            PlayerSetupCatalog.fromResolvedFiles(fileResolver.debugResolvedFiles())
+        } else {
+            PlayerSetupCatalog.fallback()
+        }
+        cachedPlayerSetupCatalog = catalog
+        return catalog
+    }
+
+    private fun currentPlayerSetupForm(): PlayerSetupFormState {
+        val name = Cvar.getInstance().VariableString("name").ifBlank { "unnamed" }
+        val password = Cvar.getInstance().VariableString("password")
+        val skinValue = Cvar.getInstance().VariableString("skin").ifBlank { "male/grunt" }
+        val split = skinValue.split('/', limit = 2)
+        val rawModel = split.firstOrNull().orEmpty().ifBlank { "male" }
+        val rawSkin = split.getOrNull(1).orEmpty().ifBlank { "grunt" }
+        val hand = Cvar.getInstance().VariableString("hand").toIntOrNull()?.coerceIn(0, 2) ?: 0
+        return playerSetupCatalog().normalize(
+            PlayerSetupFormState(
+                name = name,
+                password = password,
+                model = rawModel,
+                skin = rawSkin,
+                hand = hand,
+            ),
+        )
+    }
+
+    private fun savePlayerSetup(form: PlayerSetupFormState): String {
+        val normalized = playerSetupCatalog().normalize(
+            form.copy(
+                name = form.name.trim().ifBlank { "unnamed" },
+                password = form.password.trim(),
+            ),
+        )
+        val skinValue = "${normalized.model}/${normalized.skin}"
+        val genderValue = deriveGenderFromSkin(skinValue)
+
+        Cvar.getInstance().Set("name", normalized.name)
+        Cvar.getInstance().Set("password", normalized.password)
+        Cvar.getInstance().Set("skin", skinValue)
+        Cvar.getInstance().Set("hand", normalized.hand.toString())
+        Cvar.getInstance().Set("gender", genderValue)
+        saveActiveProfileConfig()
+        return "Saved player setup for ${normalized.name}"
+    }
+
+    private fun deriveGenderFromSkin(skinValue: String): String {
+        return when {
+            skinValue.startsWith("male", ignoreCase = true) || skinValue.startsWith(
+                "cyborg",
+                ignoreCase = true
+            ) -> "male"
+
+            skinValue.startsWith("female", ignoreCase = true) || skinValue.startsWith(
+                "crackhor",
+                ignoreCase = true
+            ) -> "female"
+
+            else -> "none"
         }
     }
 
@@ -1258,6 +1368,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
+        cachedPlayerSetupCatalog = null
         reloadProfileBackground()
     }
 
@@ -1333,6 +1444,12 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             consoleVisible = false
             return "Joining $address..."
         }
+
+        override fun playerSetupCatalog(): PlayerSetupCatalog = this@Cake.playerSetupCatalog()
+
+        override fun currentPlayerSetupForm(): PlayerSetupFormState = this@Cake.currentPlayerSetupForm()
+
+        override fun savePlayerSetup(form: PlayerSetupFormState): String = this@Cake.savePlayerSetup(form)
     }
 
     private fun CakeGameProfile.toProfileFormState(): ProfileFormState = ProfileFormState(
@@ -1353,6 +1470,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
             MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
             MenuScreen.JOIN_GAME -> MenuView.JOIN_GAME
+            MenuScreen.PLAYER_SETUP -> MenuView.PLAYER_SETUP
         }
         if (targetView == menuView) return
         menuView = targetView

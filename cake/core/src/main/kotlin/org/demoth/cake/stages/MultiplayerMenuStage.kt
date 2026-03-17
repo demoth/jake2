@@ -32,8 +32,10 @@ class MultiplayerMenuStage(
                     isDisabled = true
                 }
                 row()
-                textButton("Player Setup (future)").apply {
-                    isDisabled = true
+                textButton("Player Setup") {
+                    onClick {
+                        menuEventBus.postIntent(MenuIntent.OpenPlayerSetup)
+                    }
                 }
                 row()
                 textButton("Back") {

@@ -15,6 +15,9 @@ interface MenuBackend {
     fun autodetectBasedir(): String?
     fun saveProfile(form: ProfileFormState): String
     fun joinServer(address: String): String
+    fun playerSetupCatalog(): PlayerSetupCatalog
+    fun currentPlayerSetupForm(): PlayerSetupFormState
+    fun savePlayerSetup(form: PlayerSetupFormState): String
 }
 
 class MenuController(
@@ -82,6 +85,15 @@ class MenuController(
                     formOverride = state.profileEditor.form,
                     joinGameFormOverride = state.joinGame.form,
                     joinGameStatusOverride = "",
+                )
+            }
+
+            is MenuIntent.OpenPlayerSetup -> {
+                refreshState(
+                    activeScreen = MenuScreen.PLAYER_SETUP,
+                    formOverride = state.profileEditor.form,
+                    playerSetupFormOverride = backend.currentPlayerSetupForm(),
+                    playerSetupStatusOverride = "",
                 )
             }
 
@@ -198,6 +210,58 @@ class MenuController(
                     joinGameStatusOverride = status,
                 )
             }
+
+            is MenuIntent.UpdatePlayerSetupDraft -> {
+                refreshState(
+                    activeScreen = MenuScreen.PLAYER_SETUP,
+                    formOverride = state.profileEditor.form,
+                    playerSetupFormOverride = intent.form,
+                )
+            }
+
+            is MenuIntent.SavePlayerSetup -> {
+                val normalizedName = intent.form.name.trim().ifBlank { "unnamed" }
+                val normalizedPassword = intent.form.password.trim()
+                if (containsInvalidUserinfoChars(normalizedName)) {
+                    refreshState(
+                        activeScreen = MenuScreen.PLAYER_SETUP,
+                        formOverride = state.profileEditor.form,
+                        playerSetupFormOverride = intent.form.copy(
+                            name = normalizedName,
+                            password = normalizedPassword
+                        ),
+                        playerSetupStatusOverride = "Name must not contain \\\\ ; or \"",
+                    )
+                    return
+                }
+                if (containsInvalidUserinfoChars(normalizedPassword)) {
+                    refreshState(
+                        activeScreen = MenuScreen.PLAYER_SETUP,
+                        formOverride = state.profileEditor.form,
+                        playerSetupFormOverride = intent.form.copy(
+                            name = normalizedName,
+                            password = normalizedPassword
+                        ),
+                        playerSetupStatusOverride = "Password must not contain \\\\ ; or \"",
+                    )
+                    return
+                }
+
+                val catalog = backend.playerSetupCatalog()
+                val normalizedForm = catalog.normalize(
+                    intent.form.copy(
+                        name = normalizedName,
+                        password = normalizedPassword,
+                    ),
+                )
+                val status = backend.savePlayerSetup(normalizedForm)
+                refreshState(
+                    activeScreen = MenuScreen.PLAYER_SETUP,
+                    formOverride = state.profileEditor.form,
+                    playerSetupFormOverride = backend.currentPlayerSetupForm(),
+                    playerSetupStatusOverride = status,
+                )
+            }
         }
     }
 
@@ -209,8 +273,11 @@ class MenuController(
         statusOverride: String? = null,
         joinGameFormOverride: JoinGameFormState? = null,
         joinGameStatusOverride: String? = null,
+        playerSetupFormOverride: PlayerSetupFormState? = null,
+        playerSetupStatusOverride: String? = null,
     ) {
         val form = formOverride ?: currentSelectedProfileForm()
+        val playerSetupCatalog = backend.playerSetupCatalog()
         val selectedProfileId = selectedProfileIdOverride?.trim()?.takeIf { it.isNotEmpty() }
             ?: editingExistingProfileId
             ?: draftProfileId
@@ -243,12 +310,23 @@ class MenuController(
             form = joinGameFormOverride ?: state.joinGame.form,
             statusMessage = joinGameStatusOverride ?: state.joinGame.statusMessage,
         )
+        val normalizedPlayerSetupForm = playerSetupCatalog.normalize(
+            playerSetupFormOverride ?: state.playerSetup.form.takeIf { state.playerSetup.availableModels.isNotEmpty() }
+            ?: backend.currentPlayerSetupForm()
+        )
+        val playerSetupState = PlayerSetupState(
+            availableModels = playerSetupCatalog.models,
+            availableSkins = playerSetupCatalog.availableSkins(normalizedPlayerSetupForm.model),
+            form = normalizedPlayerSetupForm,
+            statusMessage = playerSetupStatusOverride ?: state.playerSetup.statusMessage,
+        )
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             mainMenu = mainMenuState,
             profileEditor = profileEditorState,
             multiplayer = state.multiplayer,
             joinGame = joinGameState,
+            playerSetup = playerSetupState,
         )
         bus.postState(state)
     }
@@ -259,5 +337,9 @@ class MenuController(
             backend.profileFormById(selectedId)?.let { return it }
         }
         return ProfileFormState()
+    }
+
+    private fun containsInvalidUserinfoChars(value: String): Boolean {
+        return value.contains('\\') || value.contains(';') || value.contains('"')
     }
 }

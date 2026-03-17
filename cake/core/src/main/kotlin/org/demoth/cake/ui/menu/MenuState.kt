@@ -5,6 +5,7 @@ enum class MenuScreen {
     PROFILE_EDIT,
     MULTIPLAYER,
     JOIN_GAME,
+    PLAYER_SETUP,
 }
 
 data class MainMenuState(
@@ -39,10 +40,26 @@ data class JoinGameState(
     val statusMessage: String = "",
 )
 
+data class PlayerSetupFormState(
+    val name: String = "unnamed",
+    val password: String = "",
+    val model: String = "male",
+    val skin: String = "grunt",
+    val hand: Int = 0,
+)
+
+data class PlayerSetupState(
+    val availableModels: List<String> = emptyList(),
+    val availableSkins: List<String> = emptyList(),
+    val form: PlayerSetupFormState = PlayerSetupFormState(),
+    val statusMessage: String = "",
+)
+
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val mainMenu: MainMenuState = MainMenuState(),
     val profileEditor: ProfileEditorState = ProfileEditorState(),
     val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
     val joinGame: JoinGameState = JoinGameState(),
+    val playerSetup: PlayerSetupState = PlayerSetupState(),
 )
