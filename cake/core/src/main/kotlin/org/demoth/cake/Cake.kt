@@ -42,6 +42,7 @@ import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
+import org.demoth.cake.profile.CakeProfileConfigStore
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
@@ -132,6 +133,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     // Per-mod binding persistence is not implemented yet.
     private val clientBindings = ClientBindings()
     private val gameProfileStore = CakeGameProfileStore()
+    private val profileConfigStore = CakeProfileConfigStore()
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
     private val menuEventBus = MenuEventBus()
@@ -166,6 +168,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun create() {
         initializeShaderCompatibility()
         loadStartupGameProfile()
+        loadActiveProfileConfig()
 
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
@@ -231,6 +234,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         // region COMMANDS
 
         Cmd.AddCommand("quit") {
+            saveActiveProfileConfig()
             disconnect()
             Gdx.app.exit()
         }
@@ -347,6 +351,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
         Cmd.AddCommand("cake_profile_set") { args ->
             setActiveGameProfile(args)
+        }
+
+        Cmd.AddCommand("writeconfig") {
+            saveActiveProfileConfig()
         }
 
         /*
@@ -662,6 +670,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
 
     // fixme is it called from somewhere?
     override fun dispose() {
+        saveActiveProfileConfig()
         menuStage.dispose()
         profileEditStage.dispose()
         multiplayerMenuStage.dispose()
@@ -1061,6 +1070,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun activeProfileId(): String =
         persistedSelectedProfileId() ?: activeGameProfile?.id ?: CakeGameProfileStore.DEFAULT_PROFILE_ID
 
+    private fun currentConfigProfileId(): String? =
+        persistedSelectedProfileId()?.takeIf { it.isNotBlank() }
+            ?: activeGameProfile?.id?.takeIf { it.isNotBlank() }
+
     private fun persistedSelectedProfileId(): String? = try {
         gameProfileStore.readSelectedProfileId()
     } catch (_: Exception) {
@@ -1070,6 +1083,30 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun profileWritable(): DefaultWritableFileSystem {
         val home = Path.of(System.getProperty("user.home"))
         return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
+    }
+
+    private fun loadActiveProfileConfig() {
+        val profileId = currentConfigProfileId() ?: return
+        try {
+            val configText = profileConfigStore.readConfig(profileId) ?: return
+            Cbuf.AddAndExecute(configText)
+            Com.Printf("Loaded Cake profile config for '$profileId'\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
+        }
+    }
+
+    private fun saveActiveProfileConfig() {
+        val profileId = currentConfigProfileId() ?: return
+        try {
+            val path = profileConfigStore.writeConfig(
+                profileId = profileId,
+                bindings = clientBindings.listBindings(),
+            )
+            Com.Printf("Saved Cake profile config: $path\n")
+        } catch (e: Exception) {
+            Com.Warn("Failed to save Cake profile config for '$profileId': ${e.message}\n")
+        }
     }
 
     private fun loadProfileById(profileId: String): CakeGameProfile? {
@@ -1135,8 +1172,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             return "Basedir must not be blank"
         }
         return try {
+            saveActiveProfileConfig()
             gameProfileStore.upsertProfile(normalized, select = true)
             applyGameProfile(normalized)
+            loadActiveProfileConfig()
             "Saved profile '${normalized.id}'"
         } catch (e: Exception) {
             "Failed to save profile: ${e.message}"
@@ -1158,8 +1197,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
 
         try {
+            saveActiveProfileConfig()
             gameProfileStore.selectProfile(profileId)
             applyGameProfile(selected)
+            loadActiveProfileConfig()
             Com.Printf("Active profile switched to '$profileId'\n")
         } catch (e: Exception) {
             Com.Warn("Failed to switch profile '$profileId': ${e.message}\n")
@@ -1248,9 +1289,11 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             gamemod = args.getOrNull(3),
         ).normalized()
 
+        saveActiveProfileConfig()
         applyGameProfile(profile)
         try {
             val path = gameProfileStore.upsertProfile(profile, select = true)
+            loadActiveProfileConfig()
             Com.Printf("Cake profile saved: $path\n")
         } catch (e: Exception) {
             Com.Warn("Failed to save Cake profile: ${e.message}\n")

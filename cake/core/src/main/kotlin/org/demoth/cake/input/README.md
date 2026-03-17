@@ -6,7 +6,6 @@ This package owns client input processing in Cake:
 - immediate input state and usercmd assembly.
 
 It does **not** own:
-- persistence to `config.cfg`,
 - per-mod bind profiles.
 
 ## Key Types
@@ -63,9 +62,20 @@ LibGDX InputProcessor events
 - Context: Persistence and per-mod config handling are not yet implemented in Cake.
 - Chosen Option & Rationale: Keep binds in memory for current session only.
 - Consequences: Re-launch resets to defaults; mod-specific binds remain an explicit follow-up.
-- Status: accepted
+- Status: superseded by profile-local config persistence
 - Date: unknown
 - References: thread notes on deferring persistence
+
+### Decision: Use Cake-owned profile config, not full legacy reconfigure
+- Context: Cake needed persistence for binds and archived cvars, but it does not share the old client's filesystem/bootstrap lifecycle cleanly.
+- Chosen Option & Rationale: Persist to `.cake/<profileId>/config.cfg` and load/save it from Cake lifecycle hooks instead of reviving the full legacy `default.cfg -> config.cfg -> autoexec.cfg` startup path.
+- Consequences:
+  - binds and archived cvars persist per profile,
+  - the file format remains command-script compatible (`bind`, `set`, `unbindall`),
+  - this is intentionally **not** a 1:1 reimplementation of the legacy config bootstrap.
+- Status: accepted
+- Date: 2026-03-17
+- References: thread decision around Player Setup persistence and archived cvars
 
 ## Quirks & Workarounds
 - `bind` key-name parsing uses aliases + `Input.Keys.toString` normalization.
@@ -76,7 +86,8 @@ LibGDX InputProcessor events
 ## Differences with IdTech2 (Quake2)
 - Input routing uses LibGDX `InputMultiplexer` (game/menu/console processors), not legacy `key_dest` filtering in the key event layer.
 - Decision: Cake will **not** mirror legacy key-destination filtering beyond current InputMultiplexer routing.
-- Bind storage is runtime-only in this phase (no `config.cfg` read/write yet).
+- Binds and archived cvars are stored in `.cake/<profileId>/config.cfg`.
+- Cake config persistence is intentionally profile-local and Cake-owned; it is not a full legacy config bootstrap clone.
 - Bind scope is session-global; it is not yet per-mod/profile.
 
 ## How to Extend
@@ -88,8 +99,9 @@ LibGDX InputProcessor events
    - Add `setBindingByName(...)` in `ClientBindings.installDefaultBindings()`.
 3. Add a new physical input alias:
    - Extend `keyAliases` in `ClientBindings`.
-4. Add persistence (future work):
-   - Serialize/restore `ClientBindings.listBindings()` per profile/mod.
+4. Extend persistence:
+   - Keep `.cake/<profileId>/config.cfg` backward-compatible with Cake's generated command format.
+   - If mod-specific binds are added later, layer them on top of the profile config instead of replacing it.
 
 ## Open Questions
 - Should bind sets be stored per mod (`baseq2` vs custom game dirs) once persistence is added?
