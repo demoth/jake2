@@ -85,6 +85,33 @@
   - an `Options` hub screen
   - a few focused submenus
 
+## Agreed Plan
+- Options are cvar-backed.
+  - Cvars remain the source of truth for console, config persistence, and options UI.
+- Options use a Q2Pro-style hub with submenus.
+- Initial submenu grouping is prefix-based:
+  - `s_` -> sound
+  - `vid_` -> video/display
+  - `in_` -> input
+  - `r_` -> rendering/visuals
+  - `cl_` -> generic client settings
+- Prefix alone is not enough to expose a cvar.
+  - A cvar must also opt in via an options-related cvar flag.
+- For now, grouping should stay simple:
+  - prefix selects the section
+  - alphabetical order inside a section
+  - no second explicit grouping layer yet
+- Cvars with missing or imperfect prefixes can be handled later:
+  - aliases
+  - migration
+  - manual cleanup
+- Optional description should be supported, but not required for the first slice.
+- Typed widgets are explicitly deferred to the next phase.
+  - First slice only needs cvar discovery and basic metadata groundwork.
+- `CVAR_LATCH` should be generalized for Cake-facing restart-required client settings.
+  - The same flag can represent “applies on next client restart” for Cake-owned option cvars.
+  - Implementation still needs to avoid breaking current server/game latch behavior.
+
 ## Proposed Cake v1 Shape
 - `Options`
   - `Video`
@@ -206,16 +233,16 @@
 - This should sit on top of `Cvar`, not replace `Cvar` all at once.
 
 ## Recommendation For Options Work
-- Use the options screen as the moment to start revisiting cvars, but do it incrementally.
+- Use the options screen as the moment to revisit cvars, but keep the rollout incremental.
 - First:
-  - build the `Options` hub + `Sound` + `Controls`
-  - use plain cvar persistence with direct Cake-side apply where trivial
+  - build cvar discovery support for opt-in option cvars
+  - build the `Options` hub
+  - expose `Sound` and `Controls`
 - Then:
-  - add minimal `Video`
-  - mark launcher-owned settings as `restart required`
+  - expose minimal `Video`
+  - use generalized latch semantics for restart-required settings
 - After that:
-  - introduce Cake-owned cvar registration metadata and update hooks for selected local settings
-  - avoid broad cvar redesign before there is at least one working options flow using it
+  - add typed cvar metadata for widget inference and stronger validation
 
 ## Validate: Use Cvar As The Backing Structure
 - This idea is sound.
@@ -231,36 +258,20 @@
   - avoid a second parallel registry that would drift from real cvar state
 
 ## Validate: Reuse Latched Semantics For Client Restart
-- The underlying idea is good.
+- The idea remains good.
 - Restart-required values are conceptually “latched until a later apply boundary”.
-- That matches the spirit of `latched_string`.
-
-### Important Constraint
-- The current `CVAR_LATCH` implementation in `qcommon/src/main/java/jake2/qcommon/exec/Cvar.java` is server-oriented.
-- Today it means roughly:
-  - change on next game/server reinit
-  - apply immediately when the server is dead
-- That is not the same thing as:
-  - store for next client restart
-
-### Recommendation
-- Reuse the **concept** and probably the existing `latched_string` storage.
-- Do not reuse current `CVAR_LATCH` semantics unchanged for Cake client restart behavior.
-- One of these should happen instead:
-  - add a Cake/client-specific apply policy on top of cvars
-  - or add a new client-facing latch flag distinct from the current server/game latch behavior
-
-### Practical Reading
-- “latched for next app restart” is a good model for:
-  - fullscreen
-  - resolution
-  - vsync
-  - MSAA / backbuffer config
-- It is not safe to pretend current `CVAR_LATCH` already means that.
+- That matches `latched_string`.
+- Agreed direction:
+  - reuse `CVAR_LATCH` for Cake-facing restart-required settings
+  - treat it as “next client restart” for those cvars
+- Implementation note:
+  - current `CVAR_LATCH` behavior is still server-oriented in `Cvar.java`
+  - Cake/client usage should be generalized carefully so server/game behavior keeps working
 
 ## Validate: Make Cvars More Type Safe
 - This idea is strong.
 - It is probably the most useful long-term improvement for options work.
+- It is intentionally not part of the first options PoC.
 
 ### Why It Helps
 - It makes invalid values harder to set.
@@ -268,7 +279,7 @@
 - It gives the console and config system richer validation.
 - It reduces duplicated menu code that currently hardcodes slider ranges and yes/no lists.
 
-### Useful Metadata To Add
+### Useful Metadata To Add Later
 - description/help text
 - value kind:
   - boolean
@@ -281,13 +292,9 @@
   - max
   - step
 - allowed values for enum-like cvars
-- apply policy:
-  - immediate
-  - recreate runtime
-  - restart app
 - optional on-change/update callback
 
-### What The UI Can Infer
+### What The UI Can Infer Later
 - boolean -> checkbox / toggle
 - integer or float range -> slider or spinner
 - enum -> select box
@@ -306,7 +313,8 @@
 ## Recommended Incremental Shape
 - Keep legacy `FindVar/Get/Set` behavior working.
 - Extend `cvar_t` or the registration path with optional metadata.
-- Let Cake options render only cvars that opt into UI metadata.
+- Let Cake options render only cvars that opt in through flags.
+- Let prefixes provide the first-pass section mapping.
 
 ### Good End State
 - One registry
@@ -316,12 +324,14 @@
 - Restart-required video settings can be shown honestly without fake live-apply behavior
 
 ## Example Direction
-- This is the shape your idea points toward:
-- `registerCvar(name, defaultValue, flags, description, type, allowedValues, applyPolicy, onChange?)`
+- First phase:
+  - `register/get cvar + flags + optional description`
+- Later phase:
+  - `registerCvar(name, defaultValue, flags, description, type, allowedValues, onChange?)`
 - The exact API can differ, but the direction is correct:
   - cvars remain the backing model
   - typed metadata drives validation and UI generation
-  - apply policy explains when new values take effect
+  - latch semantics explain restart-required behavior
 
 ## Immediate Next Steps
 1. Add `Options` hub screen.
