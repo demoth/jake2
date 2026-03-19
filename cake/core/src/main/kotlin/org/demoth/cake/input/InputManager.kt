@@ -53,7 +53,8 @@ class InputManager(
 ) : InputProcessor {
     private val immediateStates = IntArray(ImmediateAction.entries.size)
     private val userCommands = Array(CMD_BACKUP) { usercmd_t() }
-    private val clientSpeed: Short = 200 // todo: cvar
+    private val walkSpeed: Short = 200
+    private val runMultiplier = 2
 
     // the angle that the player spawned with
     var initialYaw: Float? = null
@@ -84,6 +85,12 @@ class InputManager(
         "0",
         CVAR_ARCHIVE or CVAR_OPTIONS,
         "Invert mouse",
+    )
+    private val alwaysRun = Cvar.getInstance().Get(
+        "cl_run",
+        "0",
+        CVAR_ARCHIVE or CVAR_OPTIONS,
+        "Always run",
     )
     private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0) // todo: verify a proper server side fix
     private var mouseWasMoved = false
@@ -122,12 +129,13 @@ class InputManager(
         }
 
         // pressing opposite movement keys cancels movement (same for all axes)
-        val forwardMove = (if (isActive(ImmediateAction.FORWARD)) clientSpeed.toInt() else 0) +
-            (if (isActive(ImmediateAction.BACK)) -clientSpeed.toInt() else 0)
-        val sideMove = (if (isActive(ImmediateAction.MOVERIGHT)) clientSpeed.toInt() else 0) +
-            (if (isActive(ImmediateAction.MOVELEFT)) -clientSpeed.toInt() else 0)
-        val upMove = (if (isActive(ImmediateAction.MOVEUP)) clientSpeed.toInt() else 0) +
-            (if (isActive(ImmediateAction.MOVEDOWN)) -clientSpeed.toInt() else 0)
+        val speedMultiplier = currentSpeedMultiplier()
+        val forwardMove = ((if (isActive(ImmediateAction.FORWARD)) walkSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.BACK)) -walkSpeed.toInt() else 0)) * speedMultiplier
+        val sideMove = ((if (isActive(ImmediateAction.MOVERIGHT)) walkSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.MOVELEFT)) -walkSpeed.toInt() else 0)) * speedMultiplier
+        val upMove = ((if (isActive(ImmediateAction.MOVEUP)) walkSpeed.toInt() else 0) +
+            (if (isActive(ImmediateAction.MOVEDOWN)) -walkSpeed.toInt() else 0)) * speedMultiplier
 
         cmd.forwardmove = forwardMove.toShort()
         cmd.sidemove = sideMove.toShort()
@@ -209,6 +217,13 @@ class InputManager(
      * Used by cinematic flow to mirror legacy "button press can skip after delay" behavior.
      */
     fun hasActiveImmediateAction(): Boolean = hasAnyActiveImmediateAction()
+
+    private fun currentSpeedMultiplier(): Int {
+        val speedHeld = isActive(ImmediateAction.SPEED)
+        val runByDefault = alwaysRun.value != 0f
+        return if (speedHeld.xor(runByDefault)) runMultiplier else 1
+    }
+
     private fun applyPendingMouseLook() {
         if (mouseWasMoved) {
             mouseWasMoved = false
@@ -397,6 +412,7 @@ class InputManager(
 }
 
 private enum class ImmediateAction(val command: String) {
+    SPEED("speed"),
     MOVEUP("moveup"),
     MOVEDOWN("movedown"),
     LEFT("left"),

@@ -217,6 +217,7 @@ class ClientBindings(
         setBindingByName("s", "+back")
         setBindingByName("a", "+moveleft")
         setBindingByName("d", "+moveright")
+        setBindingByName("shift", "+speed")
         setBindingByName("space", "+moveup")
         setBindingByName("c", "+movedown")
         setBindingByName("leftarrow", "+left")

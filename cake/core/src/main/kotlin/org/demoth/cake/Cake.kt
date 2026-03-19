@@ -1110,6 +1110,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         cvars.AddAlias("sensitivity", "in_sensitivity")
         cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
         cvars.Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse")
+        cvars.Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run")
 
         cvars.AddAlias("crosshair", "cl_crosshair")
         cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
