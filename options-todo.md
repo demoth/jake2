@@ -89,6 +89,8 @@
 - Options are cvar-backed.
   - Cvars remain the source of truth for console, config persistence, and options UI.
 - Options use a Q2Pro-style hub with submenus.
+- `userinfo` cvars are not part of `Options`.
+  - They belong to `Player Setup`, like in vanilla Quake II.
 - Initial submenu grouping is prefix-based:
   - `s_` -> sound
   - `vid_` -> video/display
@@ -102,9 +104,13 @@
   - alphabetical order inside a section
   - no second explicit grouping layer yet
 - Cvars with missing or imperfect prefixes can be handled later:
-  - aliases
+  - canonical rename + legacy alias
   - migration
   - manual cleanup
+- Options UI uses canonical prefixed names only.
+  - Legacy aliases exist for console/exec/config compatibility, not for UI display.
+- Aliases are primarily for compatibility with old script/config/console usage.
+  - New code and config writing should prefer canonical names.
 - Optional description should be supported, but not required for the first slice.
 - Typed widgets are explicitly deferred to the next phase.
   - First slice only needs cvar discovery and basic metadata groundwork.
@@ -350,6 +356,6 @@
   - added a generic options section screen driven by discovered cvars
 - Current limitations:
   - section membership is still pure prefix-based
-  - unprefixed legacy cvars like `sensitivity` and `crosshair` are tagged but not yet surfaced by the current prefix rules
+  - unprefixed legacy cvars like `sensitivity` and `crosshair` still need canonical prefixed names plus aliases
   - option editing is generic text-field based for now
   - typed widgets and stronger validation remain the next phase
