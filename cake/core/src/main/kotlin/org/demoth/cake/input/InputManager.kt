@@ -6,6 +6,8 @@ import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.BUTTON_ANY
 import jake2.qcommon.Defines.BUTTON_USE
 import jake2.qcommon.Defines.CMD_BACKUP
+import jake2.qcommon.Defines.CVAR_ARCHIVE
+import jake2.qcommon.Defines.CVAR_OPTIONS
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.PM_SPECTATOR
 import jake2.qcommon.Defines.PITCH
@@ -71,7 +73,12 @@ class InputManager(
     private var deltaX = 0f
     private var deltaY = 0f
     private var hasMouseReference = false
-    private val sensitivity = Cvar.getInstance().Get("sensitivity", "80", 0) // todo: make independent from screen size
+    private val sensitivity = Cvar.getInstance().Get(
+        "sensitivity",
+        "80",
+        CVAR_ARCHIVE or CVAR_OPTIONS,
+        "Mouse sensitivity",
+    ) // todo: make independent from screen size
     private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0) // todo: verify a proper server side fix
     private var mouseWasMoved = false
 

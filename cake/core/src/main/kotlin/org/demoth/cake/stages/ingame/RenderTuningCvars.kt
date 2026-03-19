@@ -17,15 +17,45 @@ import jake2.qcommon.exec.Cvar
 object RenderTuningCvars {
     private val cvars = Cvar.getInstance()
 
-    private val vidGamma = cvars.Get("vid_gamma", "1.2", Defines.CVAR_ARCHIVE)
+    private val vidGamma = cvars.Get(
+        "vid_gamma",
+        "1.2",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Display gamma",
+    )
     private val gl3Intensity = cvars.Get("gl3_intensity", "1.5", Defines.CVAR_ARCHIVE)
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
-    private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE)
-    private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE)
+    private val rDlights = cvars.Get(
+        "r_dlights",
+        "1",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Dynamic lights",
+    )
+    private val rParticles = cvars.Get(
+        "r_particles",
+        "${Defines.MAX_PARTICLES}",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Particle budget",
+    )
     private val rBspBatchDebug = cvars.Get("r_bsp_batch_debug", "0", Defines.CVAR_ARCHIVE)
-    private val rPostVignette = cvars.Get("r_post_vignette", "1", Defines.CVAR_ARCHIVE)
-    private val rPostVignetteStrength = cvars.Get("r_post_vignette_strength", "1.30", Defines.CVAR_ARCHIVE)
-    private val rUnderwaterWarp = cvars.Get("r_underwater_warp", "1", Defines.CVAR_ARCHIVE)
+    private val rPostVignette = cvars.Get(
+        "r_post_vignette",
+        "1",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Postprocess vignette",
+    )
+    private val rPostVignetteStrength = cvars.Get(
+        "r_post_vignette_strength",
+        "1.30",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Vignette strength",
+    )
+    private val rUnderwaterWarp = cvars.Get(
+        "r_underwater_warp",
+        "1",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Underwater warp",
+    )
 
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
