@@ -1174,7 +1174,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         val profileId = currentConfigProfileId() ?: return
         try {
             val configText = profileConfigStore.readConfig(profileId) ?: return
-            Cbuf.AddAndExecute(configText)
+            Cbuf.AddAndExecuteScript(configText)
             Com.Printf("Loaded Cake profile config for '$profileId'\n")
         } catch (e: Exception) {
             Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")

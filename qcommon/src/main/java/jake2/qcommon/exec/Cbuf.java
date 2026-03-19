@@ -60,28 +60,82 @@ public final class Cbuf {
         List<String> result = new ArrayList<>();
         String[] lines = text.split("[\\n\\r]");
         for (String line : lines) {
-            if (line.contains(";")) {
-                // split by ; unless it is in quotes
-                StringBuilder sb = new StringBuilder();
-                boolean inQuotes = false;
-                for (int i = 0; i < line.length(); i++) {
-                    char c = line.charAt(i);
-                    if (c == ';' && !inQuotes) {
-                        result.add(sb.toString());
-                        sb = new StringBuilder();
-                    } else if (c == '"') {
-                        inQuotes = !inQuotes;
-                    } else {
-                        sb.append(c);
-                    }
-                }
-                if (sb.length() > 0)
-                    result.add(sb.toString());
-            } else {
-                result.add(line);
-            }
+            appendSplitCommands(line, result);
         }
         return result;
+    }
+
+    /**
+     * Split script/config text by new line or unquoted semicolon after stripping
+     * {@code //} comments outside quoted strings.
+     * <p>
+     * This mirrors how Quake-derived engines treat exec'd config files: comment
+     * text should not survive long enough to be reinterpreted as commands just
+     * because a comment line contains a semicolon.
+     */
+    static List<String> splitScriptCommandLine(String text) {
+        List<String> result = new ArrayList<>();
+        String[] lines = text.split("[\\n\\r]");
+        for (String line : lines) {
+            String strippedLine = stripLineComment(line).trim();
+            // Drop comment-only lines here so script headers do not leave empty
+            // buffer entries behind after comment removal.
+            if (strippedLine.isEmpty()) {
+                continue;
+            }
+            appendSplitCommands(strippedLine, result);
+        }
+        return result;
+    }
+
+    /**
+     * Keep the generic command-buffer splitter unchanged for interactive/runtime
+     * commands. Script parsing uses {@link #splitScriptCommandLine(String)} so
+     * config files can drop comments before semicolon splitting.
+     */
+    private static void appendSplitCommands(String line, List<String> result) {
+        if (line.contains(";")) {
+            // split by ; unless it is in quotes
+            StringBuilder sb = new StringBuilder();
+            boolean inQuotes = false;
+            for (int i = 0; i < line.length(); i++) {
+                char c = line.charAt(i);
+                if (c == ';' && !inQuotes) {
+                    result.add(sb.toString());
+                    sb = new StringBuilder();
+                } else if (c == '"') {
+                    inQuotes = !inQuotes;
+                } else {
+                    sb.append(c);
+                }
+            }
+            if (sb.length() > 0)
+                result.add(sb.toString());
+        } else {
+            result.add(line);
+        }
+    }
+
+    /**
+     * Strip line comments only when they are outside quoted strings so config
+     * text like {@code bind x "say //not a comment"} remains intact.
+     */
+    private static String stripLineComment(String line) {
+        StringBuilder result = new StringBuilder(line.length());
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+                result.append(c);
+                continue;
+            }
+            if (!inQuotes && c == '/' && i + 1 < line.length() && line.charAt(i + 1) == '/') {
+                break;
+            }
+            result.append(c);
+        }
+        return result.toString();
     }
 
     /**
@@ -178,6 +232,16 @@ public final class Cbuf {
 
     public static void AddAndExecute(String text) {
         buffer.addAll(splitCommandLine(text));
+        Execute();
+    }
+
+    /**
+     * Execute script/config text with comment stripping before semicolon
+     * splitting. This is intentionally narrower than {@link #AddAndExecute(String)}
+     * so interactive command input keeps its historical behavior.
+     */
+    public static void AddAndExecuteScript(String text) {
+        buffer.addAll(splitScriptCommandLine(text));
         Execute();
     }
 
