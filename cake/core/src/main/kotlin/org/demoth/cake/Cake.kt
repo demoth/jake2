@@ -47,6 +47,8 @@ import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
+import org.demoth.cake.stages.OptionsMenuStage
+import org.demoth.cake.stages.OptionsSectionStage
 import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.console.ConsoleStage
@@ -70,6 +72,8 @@ private enum class MenuView {
     MULTIPLAYER,
     JOIN_GAME,
     PLAYER_SETUP,
+    OPTIONS,
+    OPTIONS_SECTION,
 }
 
 /**
@@ -90,6 +94,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var multiplayerMenuStage: MultiplayerMenuStage
     private lateinit var joinGameStage: JoinGameStage
     private lateinit var playerSetupStage: PlayerSetupStage
+    private lateinit var optionsMenuStage: OptionsMenuStage
+    private lateinit var optionsSectionStage: OptionsSectionStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -214,6 +220,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             menuEventBus = menuEventBus,
         )
         playerSetupStage = PlayerSetupStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+        )
+        optionsMenuStage = OptionsMenuStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+        )
+        optionsSectionStage = OptionsSectionStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -498,6 +512,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                 MenuView.MULTIPLAYER -> multiplayerMenuStage
                 MenuView.JOIN_GAME -> joinGameStage
                 MenuView.PLAYER_SETUP -> playerSetupStage
+                MenuView.OPTIONS -> optionsMenuStage
+                MenuView.OPTIONS_SECTION -> optionsSectionStage
             }
 
             else -> {
@@ -579,6 +595,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
                     MenuView.PLAYER_SETUP -> {
                         playerSetupStage.act(deltaSeconds)
                         playerSetupStage.draw()
+                    }
+                    MenuView.OPTIONS -> {
+                        optionsMenuStage.act(deltaSeconds)
+                        optionsMenuStage.draw()
+                    }
+                    MenuView.OPTIONS_SECTION -> {
+                        optionsSectionStage.act(deltaSeconds)
+                        optionsSectionStage.draw()
                     }
                 }
             }
@@ -701,6 +725,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         multiplayerMenuStage.dispose()
         joinGameStage.dispose()
         playerSetupStage.dispose()
+        optionsMenuStage.dispose()
+        optionsSectionStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearProfileBackground()
@@ -1203,6 +1229,51 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         return "Saved player setup for ${normalized.name}"
     }
 
+    private fun optionSections(): List<OptionsSectionSummary> {
+        val cvars = Cvar.getInstance()
+        return DEFAULT_OPTIONS_SECTIONS.map { section ->
+            OptionsSectionSummary(
+                title = section.title,
+                prefix = section.prefix,
+                optionCount = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS).size,
+            )
+        }
+    }
+
+    private fun optionEntries(prefix: String): List<OptionEntryState> {
+        return Cvar.getInstance().listByPrefixAndFlags(prefix, CVAR_OPTIONS).map { cvar ->
+            OptionEntryState(
+                name = cvar.name,
+                description = cvar.description.orEmpty(),
+                value = cvar.string.orEmpty(),
+                latchedValue = cvar.latched_string,
+            )
+        }
+    }
+
+    private fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String {
+        val cvars = Cvar.getInstance()
+        var updatedCount = 0
+        var latchedCount = 0
+        values.forEach { update ->
+            val cvar = cvars.FindVar(update.name) ?: return@forEach
+            if (!update.name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
+                return@forEach
+            }
+            cvars.Set(update.name, update.value)
+            updatedCount++
+            if (!cvar.latched_string.isNullOrBlank()) {
+                latchedCount++
+            }
+        }
+        saveActiveProfileConfig()
+        return if (latchedCount > 0) {
+            "Saved $updatedCount option(s). $latchedCount pending restart."
+        } else {
+            "Saved $updatedCount option(s)."
+        }
+    }
+
     private fun deriveGenderFromSkin(skinValue: String): String {
         return when {
             skinValue.startsWith("male", ignoreCase = true) || skinValue.startsWith(
@@ -1450,6 +1521,13 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         override fun currentPlayerSetupForm(): PlayerSetupFormState = this@Cake.currentPlayerSetupForm()
 
         override fun savePlayerSetup(form: PlayerSetupFormState): String = this@Cake.savePlayerSetup(form)
+
+        override fun optionSections(): List<OptionsSectionSummary> = this@Cake.optionSections()
+
+        override fun optionEntries(prefix: String): List<OptionEntryState> = this@Cake.optionEntries(prefix)
+
+        override fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String =
+            this@Cake.saveOptionEntries(prefix, values)
     }
 
     private fun CakeGameProfile.toProfileFormState(): ProfileFormState = ProfileFormState(
@@ -1471,6 +1549,8 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
             MenuScreen.JOIN_GAME -> MenuView.JOIN_GAME
             MenuScreen.PLAYER_SETUP -> MenuView.PLAYER_SETUP
+            MenuScreen.OPTIONS -> MenuView.OPTIONS
+            MenuScreen.OPTIONS_SECTION -> MenuView.OPTIONS_SECTION
         }
         if (targetView == menuView) return
         menuView = targetView

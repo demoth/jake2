@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
-import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import ktx.actors.onClick
 import ktx.scene2d.actors
@@ -74,7 +73,7 @@ class MainMenuStage(
                 row()
                 textButton("Options") {
                     onClick {
-                        Com.Println("console_print Options menu is not implemented yet.")
+                        menuEventBus.postIntent(MenuIntent.OpenOptions)
                     }
                 }
                 row()

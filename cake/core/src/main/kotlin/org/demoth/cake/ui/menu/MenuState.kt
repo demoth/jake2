@@ -6,6 +6,8 @@ enum class MenuScreen {
     MULTIPLAYER,
     JOIN_GAME,
     PLAYER_SETUP,
+    OPTIONS,
+    OPTIONS_SECTION,
 }
 
 data class MainMenuState(
@@ -55,6 +57,35 @@ data class PlayerSetupState(
     val statusMessage: String = "",
 )
 
+data class OptionsSectionSummary(
+    val title: String,
+    val prefix: String,
+    val optionCount: Int = 0,
+)
+
+data class OptionEntryState(
+    val name: String,
+    val description: String = "",
+    val value: String = "",
+    val latchedValue: String? = null,
+)
+
+data class OptionEditValue(
+    val name: String,
+    val value: String,
+)
+
+data class OptionsHubState(
+    val sections: List<OptionsSectionSummary> = emptyList(),
+)
+
+data class OptionsSectionState(
+    val title: String = "",
+    val prefix: String = "",
+    val entries: List<OptionEntryState> = emptyList(),
+    val statusMessage: String = "",
+)
+
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val mainMenu: MainMenuState = MainMenuState(),
@@ -62,4 +93,6 @@ data class MenuStateSnapshot(
     val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
     val joinGame: JoinGameState = JoinGameState(),
     val playerSetup: PlayerSetupState = PlayerSetupState(),
+    val optionsHub: OptionsHubState = OptionsHubState(),
+    val optionsSection: OptionsSectionState = OptionsSectionState(),
 )

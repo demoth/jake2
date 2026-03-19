@@ -18,6 +18,9 @@ interface MenuBackend {
     fun playerSetupCatalog(): PlayerSetupCatalog
     fun currentPlayerSetupForm(): PlayerSetupFormState
     fun savePlayerSetup(form: PlayerSetupFormState): String
+    fun optionSections(): List<OptionsSectionSummary>
+    fun optionEntries(prefix: String): List<OptionEntryState>
+    fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String
 }
 
 class MenuController(
@@ -94,6 +97,23 @@ class MenuController(
                     formOverride = state.profileEditor.form,
                     playerSetupFormOverride = backend.currentPlayerSetupForm(),
                     playerSetupStatusOverride = "",
+                )
+            }
+
+            is MenuIntent.OpenOptions -> {
+                refreshState(
+                    activeScreen = MenuScreen.OPTIONS,
+                    formOverride = state.profileEditor.form,
+                    optionsSectionStatusOverride = "",
+                )
+            }
+
+            is MenuIntent.OpenOptionsSection -> {
+                refreshState(
+                    activeScreen = MenuScreen.OPTIONS_SECTION,
+                    formOverride = state.profileEditor.form,
+                    optionsSectionPrefixOverride = intent.prefix,
+                    optionsSectionStatusOverride = "",
                 )
             }
 
@@ -262,6 +282,16 @@ class MenuController(
                     playerSetupStatusOverride = status,
                 )
             }
+
+            is MenuIntent.SaveOptionsSection -> {
+                val status = backend.saveOptionEntries(intent.prefix, intent.values)
+                refreshState(
+                    activeScreen = MenuScreen.OPTIONS_SECTION,
+                    formOverride = state.profileEditor.form,
+                    optionsSectionPrefixOverride = intent.prefix,
+                    optionsSectionStatusOverride = status,
+                )
+            }
         }
     }
 
@@ -275,9 +305,12 @@ class MenuController(
         joinGameStatusOverride: String? = null,
         playerSetupFormOverride: PlayerSetupFormState? = null,
         playerSetupStatusOverride: String? = null,
+        optionsSectionPrefixOverride: String? = null,
+        optionsSectionStatusOverride: String? = null,
     ) {
         val form = formOverride ?: currentSelectedProfileForm()
         val playerSetupCatalog = backend.playerSetupCatalog()
+        val optionSections = backend.optionSections()
         val selectedProfileId = selectedProfileIdOverride?.trim()?.takeIf { it.isNotEmpty() }
             ?: editingExistingProfileId
             ?: draftProfileId
@@ -320,6 +353,18 @@ class MenuController(
             form = normalizedPlayerSetupForm,
             statusMessage = playerSetupStatusOverride ?: state.playerSetup.statusMessage,
         )
+        val optionsHubState = OptionsHubState(
+            sections = optionSections,
+        )
+        val optionsSectionPrefix = optionsSectionPrefixOverride
+            ?: state.optionsSection.prefix.takeIf { it.isNotBlank() }
+        val selectedOptionsSection = optionSections.firstOrNull { it.prefix == optionsSectionPrefix }
+        val optionsSectionState = OptionsSectionState(
+            title = selectedOptionsSection?.title.orEmpty(),
+            prefix = selectedOptionsSection?.prefix.orEmpty(),
+            entries = selectedOptionsSection?.let { backend.optionEntries(it.prefix) }.orEmpty(),
+            statusMessage = optionsSectionStatusOverride ?: state.optionsSection.statusMessage,
+        )
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             mainMenu = mainMenuState,
@@ -327,6 +372,8 @@ class MenuController(
             multiplayer = state.multiplayer,
             joinGame = joinGameState,
             playerSetup = playerSetupState,
+            optionsHub = optionsHubState,
+            optionsSection = optionsSectionState,
         )
         bus.postState(state)
     }

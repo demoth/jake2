@@ -52,6 +52,59 @@ class MenuControllerTest {
     }
 
     @Test
+    fun openOptionsSwitchesActiveScreen() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenOptions)
+        controller.pumpIntents()
+
+        val state = bus.latestState()
+        assertEquals(MenuScreen.OPTIONS, state.activeScreen)
+        assertEquals(listOf("Sound", "Rendering", "Client"), state.optionsHub.sections.map { it.title })
+    }
+
+    @Test
+    fun openOptionsSectionLoadsEntries() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenOptionsSection("cl_"))
+        controller.pumpIntents()
+
+        val state = bus.latestState()
+        assertEquals(MenuScreen.OPTIONS_SECTION, state.activeScreen)
+        assertEquals("Client", state.optionsSection.title)
+        assertEquals(listOf("cl_showfps"), state.optionsSection.entries.map { it.name })
+    }
+
+    @Test
+    fun saveOptionsSectionDelegatesToBackend() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.postIntent(
+            MenuIntent.SaveOptionsSection(
+                prefix = "cl_",
+                values = listOf(OptionEditValue(name = "cl_showfps", value = "2")),
+            ),
+        )
+        controller.pumpIntents()
+
+        assertEquals(listOf(OptionEditValue(name = "cl_showfps", value = "2")), backend.savedOptionsValues)
+        val state = bus.latestState()
+        assertEquals(MenuScreen.OPTIONS_SECTION, state.activeScreen)
+        assertEquals("Saved options", state.optionsSection.statusMessage)
+        assertEquals("2", state.optionsSection.entries.single().value)
+    }
+
+    @Test
     fun joinGameRejectsBlankHost() {
         val backend = FakeMenuBackend()
         val bus = MenuEventBus()
@@ -214,6 +267,7 @@ class MenuControllerTest {
     private class FakeMenuBackend : MenuBackend {
         val joinedAddresses = mutableListOf<String>()
         val savedPlayerSetupForms = mutableListOf<PlayerSetupFormState>()
+        val savedOptionsValues = mutableListOf<OptionEditValue>()
         var currentPlayerSetupForm: PlayerSetupFormState = PlayerSetupFormState(
             name = "Player",
             model = "male",
@@ -224,6 +278,23 @@ class MenuControllerTest {
             skinsByModel = mapOf(
                 "female" to listOf("athena"),
                 "male" to listOf("grunt"),
+            ),
+        )
+        private val optionValues = linkedMapOf(
+            "cl_showfps" to OptionEntryState(
+                name = "cl_showfps",
+                description = "FPS overlay mode",
+                value = "0",
+            ),
+            "r_particles" to OptionEntryState(
+                name = "r_particles",
+                description = "Particle budget",
+                value = "4096",
+            ),
+            "s_volume" to OptionEntryState(
+                name = "s_volume",
+                description = "Effects volume",
+                value = "0.7",
             ),
         )
 
@@ -265,6 +336,34 @@ class MenuControllerTest {
             savedPlayerSetupForms.add(normalized)
             currentPlayerSetupForm = normalized
             return "Saved player setup"
+        }
+
+        override fun optionSections(): List<OptionsSectionSummary> = DEFAULT_OPTIONS_SECTIONS.mapNotNull { section ->
+            val count = optionValues.values.count { it.name.startsWith(section.prefix) }
+            if (count == 0) {
+                null
+            } else {
+                OptionsSectionSummary(
+                    title = section.title,
+                    prefix = section.prefix,
+                    optionCount = count,
+                )
+            }
+        }
+
+        override fun optionEntries(prefix: String): List<OptionEntryState> {
+            return optionValues.values.filter { it.name.startsWith(prefix) }
+        }
+
+        override fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String {
+            savedOptionsValues.clear()
+            savedOptionsValues.addAll(values)
+            values.forEach { update ->
+                if (update.name.startsWith(prefix)) {
+                    optionValues[update.name] = optionValues.getValue(update.name).copy(value = update.value)
+                }
+            }
+            return "Saved options"
         }
     }
 }
