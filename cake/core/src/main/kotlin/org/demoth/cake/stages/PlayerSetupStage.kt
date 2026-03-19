@@ -46,15 +46,15 @@ class PlayerSetupStage(
                 pad(12f)
                 defaults().top().left().pad(12f)
 
-                add(Label("Player Setup", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Player Setup", Scene2DSkin.defaultSkin)).colspan(2).left().row()
 
-                add(Label("Name", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Name", Scene2DSkin.defaultSkin)).minWidth(180f).left()
                 nameField = TextField("", Scene2DSkin.defaultSkin).apply {
                     onChange { publishDraft() }
                 }
                 add(nameField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
-                add(Label("Password", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Password", Scene2DSkin.defaultSkin)).minWidth(180f).left()
                 passwordField = TextField("", Scene2DSkin.defaultSkin).apply {
                     isPasswordMode = true
                     setPasswordCharacter('*')
@@ -62,19 +62,19 @@ class PlayerSetupStage(
                 }
                 add(passwordField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
-                add(Label("Model", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Model", Scene2DSkin.defaultSkin)).minWidth(180f).left()
                 modelSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
                     onChange { publishDraft() }
                 }
                 add(modelSelect).minWidth(240f).fillX().row()
 
-                add(Label("Skin", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Skin", Scene2DSkin.defaultSkin)).minWidth(180f).left()
                 skinSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
                     onChange { publishDraft() }
                 }
                 add(skinSelect).minWidth(240f).fillX().row()
 
-                add(Label("Handedness", Scene2DSkin.defaultSkin)).left().row()
+                add(Label("Handedness", Scene2DSkin.defaultSkin)).minWidth(180f).left()
                 handSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
                     setItems(*HAND_LABELS)
                     onChange { publishDraft() }
@@ -98,12 +98,12 @@ class PlayerSetupStage(
                     }
                     add(backButton)
                 }
-                add(buttons).left().row()
+                add(buttons).colspan(2).left().row()
 
                 statusLabel = Label("", Scene2DSkin.defaultSkin).apply {
                     setWrap(true)
                 }
-                add(statusLabel).growX().fillX().row()
+                add(statusLabel).colspan(2).growX().fillX().row()
             }
         }
 
