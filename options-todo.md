@@ -127,6 +127,46 @@
   - `Screen`
   - `Effects`
 
+## Usable Cake Milestone Scope
+- The release should keep `Options` intentionally small and behavior-backed.
+- Every option shown for this milestone should satisfy all of these:
+  - persists between runs
+  - has real runtime behavior in Cake today
+  - belongs to local client settings, not `userinfo`
+  - does not depend on an unfinished launcher/restart workflow
+
+### Essential Release Set
+- `s_volume`
+- `in_sensitivity`
+- `in_invert_mouse`
+- `cl_run`
+- `cl_crosshair`
+- `cl_showfps`
+
+### Good Additions For This Release
+- `vid_gamma`
+- `r_dlights`
+- `r_particles`
+- `r_post_vignette`
+- `r_post_vignette_strength`
+- `r_underwater_warp`
+
+### Do Not Block Release On These
+- `lookspring`
+- `lookstrafe`
+- `freelook`
+- crosshair scale / alpha / pulse
+- HUD scale / HUD alpha
+- fullscreen / resolution / vsync
+
+### Explicitly Out Of Release Scope
+- OGG/music settings
+- sound backend / sound quality selectors
+- download options
+- joystick options
+- third-person options
+- interface font / console theme customization
+
 ## First Fields Worth Shipping
 
 ### Video
@@ -362,6 +402,8 @@
   - moved option-cvar registration into Cake startup so the options menu sees canonical entries immediately
   - added a live `Sound` option backed by `s_volume`
   - added a live `Controls` option backed by `in_invert_mouse`
+  - added a live `Controls` option backed by `cl_run`
+  - added Quake-style `+speed` handling so `cl_run` is a real default movement mode, not just a dead toggle
 - Current limitations:
   - section membership is still pure prefix-based
   - option editing is generic text-field based for now
