@@ -217,6 +217,112 @@
   - introduce Cake-owned cvar registration metadata and update hooks for selected local settings
   - avoid broad cvar redesign before there is at least one working options flow using it
 
+## Validate: Use Cvar As The Backing Structure
+- This idea is sound.
+- There is no strong reason to invent a separate persistent `Option` model just to drive the UI.
+- `Cvar` is already the shared source of truth for:
+  - current value
+  - persistence through `CVAR_ARCHIVE`
+  - command/console interoperability
+  - userinfo/serverinfo propagation
+- Recommendation:
+  - keep `Cvar` / `cvar_t` as the backing data structure
+  - extend it with optional metadata needed by Cake options UI
+  - avoid a second parallel registry that would drift from real cvar state
+
+## Validate: Reuse Latched Semantics For Client Restart
+- The underlying idea is good.
+- Restart-required values are conceptually “latched until a later apply boundary”.
+- That matches the spirit of `latched_string`.
+
+### Important Constraint
+- The current `CVAR_LATCH` implementation in `qcommon/src/main/java/jake2/qcommon/exec/Cvar.java` is server-oriented.
+- Today it means roughly:
+  - change on next game/server reinit
+  - apply immediately when the server is dead
+- That is not the same thing as:
+  - store for next client restart
+
+### Recommendation
+- Reuse the **concept** and probably the existing `latched_string` storage.
+- Do not reuse current `CVAR_LATCH` semantics unchanged for Cake client restart behavior.
+- One of these should happen instead:
+  - add a Cake/client-specific apply policy on top of cvars
+  - or add a new client-facing latch flag distinct from the current server/game latch behavior
+
+### Practical Reading
+- “latched for next app restart” is a good model for:
+  - fullscreen
+  - resolution
+  - vsync
+  - MSAA / backbuffer config
+- It is not safe to pretend current `CVAR_LATCH` already means that.
+
+## Validate: Make Cvars More Type Safe
+- This idea is strong.
+- It is probably the most useful long-term improvement for options work.
+
+### Why It Helps
+- It makes invalid values harder to set.
+- It lets the UI infer controls automatically.
+- It gives the console and config system richer validation.
+- It reduces duplicated menu code that currently hardcodes slider ranges and yes/no lists.
+
+### Useful Metadata To Add
+- description/help text
+- value kind:
+  - boolean
+  - integer
+  - float
+  - enum
+  - string
+- numeric constraints:
+  - min
+  - max
+  - step
+- allowed values for enum-like cvars
+- apply policy:
+  - immediate
+  - recreate runtime
+  - restart app
+- optional on-change/update callback
+
+### What The UI Can Infer
+- boolean -> checkbox / toggle
+- integer or float range -> slider or spinner
+- enum -> select box
+- constrained string -> select box or validated text field
+- unconstrained string -> text field
+
+### Important Constraint
+- Do not try to retrofit every legacy cvar in one pass.
+- Some cvars are:
+  - free-form
+  - engine internal
+  - command-adjacent
+  - not suitable for normal options UI
+- So metadata should be optional, not mandatory for all cvars.
+
+## Recommended Incremental Shape
+- Keep legacy `FindVar/Get/Set` behavior working.
+- Extend `cvar_t` or the registration path with optional metadata.
+- Let Cake options render only cvars that opt into UI metadata.
+
+### Good End State
+- One registry
+- One source of truth
+- Console and UI both operate on the same cvars
+- UI widgets can be generated mostly from cvar metadata
+- Restart-required video settings can be shown honestly without fake live-apply behavior
+
+## Example Direction
+- This is the shape your idea points toward:
+- `registerCvar(name, defaultValue, flags, description, type, allowedValues, applyPolicy, onChange?)`
+- The exact API can differ, but the direction is correct:
+  - cvars remain the backing model
+  - typed metadata drives validation and UI generation
+  - apply policy explains when new values take effect
+
 ## Immediate Next Steps
 1. Add `Options` hub screen.
 2. Add `Sound` submenu with runtime-safe settings.
