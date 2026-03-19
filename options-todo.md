@@ -340,3 +340,16 @@
 4. Decide the persisted schema/source of truth for launcher-owned video settings.
 5. Add `Video` submenu with `restart required` labeling first.
 6. Revisit cvar registration for a small set of Cake-local settings after the menu flow exists.
+
+## Progress
+- Done:
+  - added `CVAR_OPTIONS` and optional cvar description metadata
+  - added sorted cvar discovery by `prefix + flag`
+  - tagged an initial set of real Cake cvars for options discovery
+  - replaced the dead main-menu `Options` button with a real options hub
+  - added a generic options section screen driven by discovered cvars
+- Current limitations:
+  - section membership is still pure prefix-based
+  - unprefixed legacy cvars like `sensitivity` and `crosshair` are tagged but not yet surfaced by the current prefix rules
+  - option editing is generic text-field based for now
+  - typed widgets and stronger validation remain the next phase
