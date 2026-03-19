@@ -360,6 +360,8 @@
     - `crosshair` -> `cl_crosshair`
   - kept legacy names as aliases so old configs/scripts still resolve
   - moved option-cvar registration into Cake startup so the options menu sees canonical entries immediately
+  - added a live `Sound` option backed by `s_volume`
+  - added a live `Controls` option backed by `in_invert_mouse`
 - Current limitations:
   - section membership is still pure prefix-based
   - option editing is generic text-field based for now
