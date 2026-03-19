@@ -72,10 +72,6 @@ class MainMenuStage(
                     }
                 }
                 row()
-                textButton("Host Game (future)").apply {
-                    isDisabled = true
-                }
-                row()
                 textButton("Options") {
                     onClick {
                         Com.Println("console_print Options menu is not implemented yet.")

@@ -22,14 +22,14 @@ class MultiplayerMenuStage(
 
                 label("Multiplayer")
                 row()
+                textButton("Host Game (future)").apply {
+                    isDisabled = true
+                }
+                row()
                 textButton("Join Game") {
                     onClick {
                         menuEventBus.postIntent(MenuIntent.OpenJoinGame)
                     }
-                }
-                row()
-                textButton("Host Game (future)").apply {
-                    isDisabled = true
                 }
                 row()
                 textButton("Player Setup") {
