@@ -79,6 +79,12 @@ class InputManager(
         CVAR_ARCHIVE or CVAR_OPTIONS,
         "Mouse sensitivity",
     ) // todo: make independent from screen size
+    private val invertMouse = Cvar.getInstance().Get(
+        "in_invert_mouse",
+        "0",
+        CVAR_ARCHIVE or CVAR_OPTIONS,
+        "Invert mouse",
+    )
     private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0) // todo: verify a proper server side fix
     private var mouseWasMoved = false
 
@@ -208,8 +214,8 @@ class InputManager(
             mouseWasMoved = false
 
             localYaw = wrapSignedAngle(localYaw - deltaX)
-            // todo: invert mouse cvar
-            localPitch = clampPitch(localPitch + deltaY)
+            val pitchDelta = if (invertMouse.value != 0f) -deltaY else deltaY
+            localPitch = clampPitch(localPitch + pitchDelta)
         }
     }
 

@@ -3,6 +3,7 @@ package org.demoth.cake.audio
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
+import jake2.qcommon.exec.Cvar
 import kotlin.math.ceil
 
 /**
@@ -66,6 +67,12 @@ class FireAndForgetCakeAudioSystem(
     // Active loops keyed by entity index because protocol loop field has no independent channel id.
     private val activeEntityLoops = mutableMapOf<Int, ActiveLoopPlayback>()
     private val knownSounds = mutableSetOf<Sound>()
+    private val effectsVolume = Cvar.getInstance().Get(
+        "s_volume",
+        "0.7",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
+        "Effects volume",
+    )
 
     /**
      * Updates listener orientation/position and respatializes currently active channels/loops.
@@ -208,7 +215,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateSpatial(request: SoundPlaybackRequest, origin: Vector3?): SpatialParams {
-        val baseVolume = request.baseVolume.coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.value).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
@@ -229,7 +236,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateLoopSpatial(request: EntityLoopSoundRequest): SpatialParams {
-        val baseVolume = request.baseVolume.coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.value).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
