@@ -340,12 +340,12 @@
   - latch semantics explain restart-required behavior
 
 ## Immediate Next Steps
-1. Add `Options` hub screen.
-2. Add `Sound` submenu with runtime-safe settings.
-3. Add `Controls` submenu with runtime-safe settings.
-4. Decide the persisted schema/source of truth for launcher-owned video settings.
-5. Add `Video` submenu with `restart required` labeling first.
-6. Revisit cvar registration for a small set of Cake-local settings after the menu flow exists.
+1. Continue migrating safe local option cvars to canonical prefixed names plus legacy aliases.
+2. Keep registering option cvars during Cake startup before profile config load.
+3. Add the first genuinely useful `Sound` section entries.
+4. Add more `Controls` entries that are runtime-safe.
+5. Decide the persisted schema/source of truth for launcher-owned video settings.
+6. Add `Video` submenu entries with `restart required` labeling first.
 
 ## Progress
 - Done:
@@ -354,8 +354,15 @@
   - tagged an initial set of real Cake cvars for options discovery
   - replaced the dead main-menu `Options` button with a real options hub
   - added a generic options section screen driven by discovered cvars
+  - added cvar alias support for legacy console/exec/config compatibility
+  - switched the first safe local cvars to canonical prefixed names:
+    - `sensitivity` -> `in_sensitivity`
+    - `crosshair` -> `cl_crosshair`
+  - kept legacy names as aliases so old configs/scripts still resolve
+  - moved option-cvar registration into Cake startup so the options menu sees canonical entries immediately
 - Current limitations:
   - section membership is still pure prefix-based
-  - unprefixed legacy cvars like `sensitivity` and `crosshair` still need canonical prefixed names plus aliases
   - option editing is generic text-field based for now
+  - only a small subset of cvars is currently migrated/opted in
+  - launcher-owned video settings still do not have a proper restart/apply flow
   - typed widgets and stronger validation remain the next phase
