@@ -74,7 +74,7 @@ class InputManager(
     private var deltaY = 0f
     private var hasMouseReference = false
     private val sensitivity = Cvar.getInstance().Get(
-        "sensitivity",
+        "in_sensitivity",
         "80",
         CVAR_ARCHIVE or CVAR_OPTIONS,
         "Mouse sensitivity",

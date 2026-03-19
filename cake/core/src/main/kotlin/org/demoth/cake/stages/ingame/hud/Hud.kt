@@ -40,7 +40,7 @@ internal data class LayoutClientInfo(
 )
 
 /**
- * Maps legacy `crosshair` cvar values to Quake2 crosshair picture names (`ch1..ch3`).
+ * Maps Cake `cl_crosshair` values to Quake2 crosshair picture names (`ch1..ch3`).
  *
  * Legacy counterpart:
  * `client/SCR.TouchPics` and `client/SCR.DrawCrosshair`.
@@ -368,7 +368,7 @@ internal class Hud(
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
     private val crosshairCvar = Cvar.getInstance().Get(
-        "crosshair",
+        "cl_crosshair",
         "1",
         Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
         "Crosshair preset",

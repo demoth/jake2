@@ -57,6 +57,8 @@ object RenderTuningCvars {
         "Underwater warp",
     )
 
+    fun register() = Unit
+
     /**
      * Shader exponent used in `pow(color, gammaExponent)`.
      *

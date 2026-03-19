@@ -53,6 +53,7 @@ import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
+import org.demoth.cake.stages.ingame.RenderTuningCvars
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Files
 import java.nio.file.Path
@@ -1099,11 +1100,21 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun initClientCvars() {
+        val cvars = Cvar.getInstance()
         // todo: cleanup after hot development phase
-        Cvar.getInstance().Get("rcon_password", "asdf", 0)
-        Cvar.getInstance().Get("rcon_address", "127.0.0.1", 0)
+        cvars.Get("rcon_password", "asdf", 0)
+        cvars.Get("rcon_address", "127.0.0.1", 0)
         // Legacy remote player weapon model toggle (`modelindex2 == 255` branch).
-        Cvar.getInstance().Get("cl_vwep", "1", CVAR_ARCHIVE)
+        cvars.Get("cl_vwep", "1", CVAR_ARCHIVE)
+
+        cvars.AddAlias("sensitivity", "in_sensitivity")
+        cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
+
+        cvars.AddAlias("crosshair", "cl_crosshair")
+        cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
+        cvars.Get("cl_showfps", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
+
+        RenderTuningCvars.register()
     }
 
     private fun takeScreenshot() {
