@@ -61,9 +61,11 @@ public class Cvar extends Globals {
 
     // should be thread safe implementation if we are talking multithreading
     private final Map<String, cvar_t> cvarMap;
+    private final Map<String, String> cvarAliases;
 
     public Cvar() {
         this.cvarMap = new HashMap<>();
+        this.cvarAliases = new HashMap<>();
     }
 
     public cvar_t Get(String var_name, String defaultValue, int flags) {
@@ -71,16 +73,17 @@ public class Cvar extends Globals {
     }
 
     public cvar_t Get(String var_name, String defaultValue, int flags, String description) {
+        String canonicalName = resolveCanonicalName(var_name);
         cvar_t var;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
-            if (invalidInfoString(var_name)) {
-                Com.Printf("invalid info cvar name:'" + var_name + "'\n");
+            if (invalidInfoString(canonicalName)) {
+                Com.Printf("invalid info cvar name:'" + canonicalName + "'\n");
                 return null;
             }
         }
 
-        var = Cvar.getInstance().FindVar(var_name);
+        var = Cvar.getInstance().FindVar(canonicalName);
         if (var != null) {
             var.flags |= flags;
             if (var.description == null && description != null && !description.isBlank()) {
@@ -99,14 +102,14 @@ public class Cvar extends Globals {
             }
         }
         var = new cvar_t();
-        var.name = var_name;
+        var.name = canonicalName;
         var.string = defaultValue;
         var.description = description;
         var.modified = true;
         var.value = Lib.atof(var.string);
         var.flags = flags;
 
-        cvarMap.put(var_name, var);
+        cvarMap.put(canonicalName, var);
 
         return var;
     }
@@ -179,18 +182,43 @@ public class Cvar extends Globals {
     }
 
     public cvar_t FindVar(String var_name) {
-        return cvarMap.get(var_name);
+        return cvarMap.get(resolveCanonicalName(var_name));
+    }
+
+    public void AddAlias(String alias, String canonicalName) {
+        if (alias == null || canonicalName == null) {
+            return;
+        }
+
+        String trimmedAlias = alias.trim();
+        String trimmedCanonicalName = canonicalName.trim();
+        if (trimmedAlias.isEmpty() || trimmedCanonicalName.isEmpty()) {
+            return;
+        }
+
+        String resolvedCanonicalName = resolveCanonicalName(trimmedCanonicalName);
+        if (trimmedAlias.equals(resolvedCanonicalName)) {
+            return;
+        }
+
+        cvar_t existing = cvarMap.get(trimmedAlias);
+        if (existing != null && !existing.name.equals(resolvedCanonicalName)) {
+            throw new IllegalArgumentException("Cannot alias existing cvar '" + trimmedAlias + "'");
+        }
+
+        cvarAliases.put(trimmedAlias, resolvedCanonicalName);
     }
 
     /**
      * Creates a variable if not found and sets their value, the parsed float value and their flags.
      */
     public cvar_t FullSet(String var_name, String value, int flags) {
+        String canonicalName = resolveCanonicalName(var_name);
         cvar_t var;
 
-        var = FindVar(var_name);
+        var = FindVar(canonicalName);
         if (null == var) { // create it
-            return Get(var_name, value, flags);
+            return Get(canonicalName, value, flags);
         }
 
         var.modified = true;
@@ -224,11 +252,12 @@ public class Cvar extends Globals {
      * override the variables write protection. 
      */
     cvar_t Set2(String var_name, String value, boolean force) {
+        String canonicalName = resolveCanonicalName(var_name);
 
-        cvar_t var = FindVar(var_name);
+        cvar_t var = FindVar(canonicalName);
         if (var == null) { 
         	// create it
-            return Get(var_name, value, 0);
+            return Get(canonicalName, value, 0);
         }
 
         if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
@@ -240,7 +269,7 @@ public class Cvar extends Globals {
 
         if (!force) {
             if ((var.flags & CVAR_NOSET) != 0) {
-                Com.Printf(var_name + " is write protected.\n");
+                Com.Printf(canonicalName + " is write protected.\n");
                 return var;
             }
 
@@ -255,7 +284,7 @@ public class Cvar extends Globals {
                 }
 
                 if (Globals.server_state != ServerStates.SS_DEAD) {
-                    Com.Printf(var_name + " will be changed for next game.\n");
+                    Com.Printf(canonicalName + " will be changed for next game.\n");
                     var.latched_string = value;
                 } else {
                     var.string = value;
@@ -447,6 +476,10 @@ public class Cvar extends Globals {
             if (cvarName.startsWith(prefix))
                 vars.add(cvarName);
         }
+        for (String alias : cvarAliases.keySet()) {
+            if (alias.startsWith(prefix))
+                vars.add(alias);
+        }
 
         return vars;
     }
@@ -467,10 +500,26 @@ public class Cvar extends Globals {
         return INFO_DISALLOWED_CHARS.matcher(s).find();
     }
 
+    private String resolveCanonicalName(String var_name) {
+        if (var_name == null) {
+            return null;
+        }
+
+        String resolved = var_name;
+        while (true) {
+            String canonical = cvarAliases.get(resolved);
+            if (canonical == null || canonical.equals(resolved)) {
+                return resolved;
+            }
+            resolved = canonical;
+        }
+    }
+
     /**
      * Clear all cvars
      */
     public void clear() {
         cvarMap.clear();
+        cvarAliases.clear();
     }
 }

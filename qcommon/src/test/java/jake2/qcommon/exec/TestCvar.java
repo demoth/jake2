@@ -173,4 +173,41 @@ public class TestCvar {
 
 		assertEquals(List.of("s_music", "s_volume"), sound.stream().map(var -> var.name).toList());
 	}
+
+	@Test
+	public void testAliasResolvesToCanonicalCvar() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.AddAlias("sensitivity", "in_sensitivity");
+
+		cvar_t sensitivity = cvar.Set("sensitivity", "4");
+
+		assertEquals("in_sensitivity", sensitivity.name);
+		assertEquals("4", cvar.VariableString("in_sensitivity"));
+		assertEquals("4", cvar.VariableString("sensitivity"));
+	}
+
+	@Test
+	public void testCanonicalGetBackfillsFlagsAfterAliasSet() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.AddAlias("crosshair", "cl_crosshair");
+		cvar.Set("crosshair", "2");
+
+		cvar_t crosshair = cvar.Get("cl_crosshair", "1", CVAR_OPTIONS, "Crosshair style");
+
+		assertEquals("cl_crosshair", crosshair.name);
+		assertEquals("2", crosshair.string);
+		assertEquals("Crosshair style", crosshair.description);
+		assertEquals(CVAR_OPTIONS, crosshair.flags & CVAR_OPTIONS);
+	}
+
+	@Test
+	public void testCompleteVariableIncludesAliases() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("in_sensitivity", "3", CVAR_OPTIONS);
+		cvar.AddAlias("sensitivity", "in_sensitivity");
+
+		List<String> completions = cvar.CompleteVariable("s");
+
+		assertEquals(List.of("sensitivity"), completions);
+	}
 }
