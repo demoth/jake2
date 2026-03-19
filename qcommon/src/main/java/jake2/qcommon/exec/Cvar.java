@@ -36,6 +36,7 @@ import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,10 @@ public class Cvar extends Globals {
     }
 
     public cvar_t Get(String var_name, String defaultValue, int flags) {
+        return Get(var_name, defaultValue, flags, null);
+    }
+
+    public cvar_t Get(String var_name, String defaultValue, int flags, String description) {
         cvar_t var;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
@@ -78,6 +83,9 @@ public class Cvar extends Globals {
         var = Cvar.getInstance().FindVar(var_name);
         if (var != null) {
             var.flags |= flags;
+            if (var.description == null && description != null && !description.isBlank()) {
+                var.description = description;
+            }
             return var;
         }
 
@@ -93,6 +101,7 @@ public class Cvar extends Globals {
         var = new cvar_t();
         var.name = var_name;
         var.string = defaultValue;
+        var.description = description;
         var.modified = true;
         var.value = Lib.atof(var.string);
         var.flags = flags;
@@ -440,6 +449,15 @@ public class Cvar extends Globals {
         }
 
         return vars;
+    }
+
+    public List<cvar_t> listByPrefixAndFlags(String prefix, int flags) {
+        String normalizedPrefix = prefix == null ? "" : prefix;
+        return cvarMap.values().stream()
+                .filter(var -> normalizedPrefix.isEmpty() || var.name.startsWith(normalizedPrefix))
+                .filter(var -> (var.flags & flags) == flags)
+                .sorted(Comparator.comparing(var -> var.name))
+                .collect(Collectors.toList());
     }
 
     /**

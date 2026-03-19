@@ -104,6 +104,7 @@ public class Defines {
 	// but can be set from the command line
 	// todo rename to CVAR_DEFERRED
 	public final static int CVAR_LATCH = 16; // save changes until server restart 
+	public final static int CVAR_OPTIONS = 32; // expose in options UI when grouped/handled by client
 
 	// lower bits are stronger, and will eat weaker brushes completely
 	public final static int CONTENTS_SOLID = 1; // an eye is never valid in a solid 

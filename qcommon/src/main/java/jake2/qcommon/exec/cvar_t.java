@@ -31,6 +31,7 @@ package jake2.qcommon.exec;
 public final class cvar_t {
     public String name;
     public String string;
+    public String description;
     // allow changes, but for the next game
     // see jake2.server.SV_INIT.SV_InitGame()
     // todo rename to deferred_value
@@ -46,6 +47,8 @@ public final class cvar_t {
             sb.append("name='").append(name).append('\'');
         if (string != null)
             sb.append(", string='").append(string).append('\'');
+        if (description != null)
+            sb.append(", description='").append(description).append('\'');
         if (latched_string != null)
         	sb.append(", latched_string='").append(latched_string).append('\'');
         if (flags != 0)

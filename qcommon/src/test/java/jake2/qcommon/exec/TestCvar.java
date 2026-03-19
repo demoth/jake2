@@ -29,8 +29,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static jake2.qcommon.Defines.CVAR_OPTIONS;
 import static jake2.qcommon.Defines.CVAR_USERINFO;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCvar {
@@ -63,7 +68,7 @@ public class TestCvar {
 	public void testGetDefaultNull() {
 		Cvar.getInstance().Set("rene2", "is cool.");
 
-		Assertions.assertNull(Cvar.getInstance().Get("hello2", null, 0));
+		assertNull(Cvar.getInstance().Get("hello2", null, 0));
 	}
 
 	@Test
@@ -137,5 +142,35 @@ public class TestCvar {
 
 		String empty = Info.Info_ValueForKey(userinfo, "password");
 		assertTrue(empty.isEmpty());
+	}
+
+	@Test
+	public void testGetStoresDescription() {
+		cvar_t sensitivity = Cvar.getInstance().Get("sensitivity", "3", CVAR_OPTIONS, "Mouse speed");
+
+		assertEquals("Mouse speed", sensitivity.description);
+	}
+
+	@Test
+	public void testGetBackfillsDescriptionForExistingCvar() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("crosshair", "1", CVAR_OPTIONS);
+
+		cvar_t crosshair = cvar.Get("crosshair", "1", CVAR_OPTIONS, "Crosshair style");
+
+		assertEquals("Crosshair style", crosshair.description);
+	}
+
+	@Test
+	public void testListByPrefixAndFlagsFiltersAndSorts() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("s_volume", "0.7", CVAR_OPTIONS);
+		cvar.Get("s_music", "0.5", CVAR_OPTIONS);
+		cvar.Get("s_hidden", "0", 0);
+		cvar.Get("vid_gamma", "1.2", CVAR_OPTIONS);
+
+		List<cvar_t> sound = cvar.listByPrefixAndFlags("s_", CVAR_OPTIONS);
+
+		assertEquals(List.of("s_music", "s_volume"), sound.stream().map(var -> var.name).toList());
 	}
 }
