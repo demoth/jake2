@@ -67,12 +67,7 @@ class FireAndForgetCakeAudioSystem(
     // Active loops keyed by entity index because protocol loop field has no independent channel id.
     private val activeEntityLoops = mutableMapOf<Int, ActiveLoopPlayback>()
     private val knownSounds = mutableSetOf<Sound>()
-    private val effectsVolume = Cvar.getInstance().Get(
-        "s_volume",
-        "0.7",
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Effects volume",
-    )
+    private val effectsVolume = Cvar.getInstance().Get("s_volume", "0.7", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Effects volume")
 
     /**
      * Updates listener orientation/position and respatializes currently active channels/loops.
