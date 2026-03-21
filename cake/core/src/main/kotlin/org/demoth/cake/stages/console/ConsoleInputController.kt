@@ -48,10 +48,6 @@ class ConsoleInputController(
         }
     }
 
-    override fun keyTyped(event: InputEvent, character: Char): Boolean {
-        // swallow event if the tab was pressed so that text field won't insert \t
-        return character == '\t'
-    }
 
     private fun submitCurrentInput() {
         val command = input.text
@@ -78,7 +74,7 @@ class ConsoleInputController(
         val raw = input.text
         val prefixOffset = if (raw.startsWith("/") || raw.startsWith("\\")) 1 else 0
         val token = raw.substring(prefixOffset)
-        if (token.isBlank() || token.contains(' ')) {
+        if (token.isBlank() || token.any(Char::isWhitespace)) {
             return
         }
 

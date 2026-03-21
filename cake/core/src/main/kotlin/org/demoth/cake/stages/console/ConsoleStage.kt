@@ -89,6 +89,8 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
                     stack {
                         image("console-panel")
                         consoleInput = textField()
+                        // Reject tabs at the widget level so completion never leaves a literal tab in the buffer.
+                        consoleInput.setTextFieldFilter { _, character -> character != '\t' }
                         consoleInput.setFocusTraversal(false)
                         consoleInput.addListener(inputController)
                         add(consoleInput)
