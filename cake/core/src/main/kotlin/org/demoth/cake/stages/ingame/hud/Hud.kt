@@ -368,12 +368,7 @@ internal class Hud(
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
     private val crosshairCvar = Cvar.getInstance().Get("cl_crosshair", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Crosshair preset")
-    private val clShowFpsCvar = Cvar.getInstance().Get(
-        "cl_showfps",
-        "0",
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "FPS overlay mode",
-    )
+    private val clShowFpsCvar = Cvar.getInstance().Get("cl_showfps", "0", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "FPS overlay mode")
     private var crosshairPic: String? = null
     private var crosshairTexture: Texture? = null
     private val fpsFrameTimesMicros = LongArray(FPS_SAMPLE_WINDOW)
