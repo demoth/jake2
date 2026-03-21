@@ -29,6 +29,8 @@ class ClientEntityManager : Disposable {
     companion object {
         private const val POWERSCREEN_MODEL_PATH = "models/items/armor/effect/tris.md2"
         private const val LEGACY_POWERSCREEN_ALPHA = 0.30f
+        private const val SHELL_RENDERFX_MASK = Defines.RF_SHELL_RED or Defines.RF_SHELL_GREEN or
+            Defines.RF_SHELL_BLUE or Defines.RF_SHELL_DOUBLE or Defines.RF_SHELL_HALF_DAM
     }
 
     val frames: Array<ClientFrame> = Array(Defines.UPDATE_BACKUP) { ClientFrame() }
@@ -432,7 +434,13 @@ class ClientEntityManager : Disposable {
 
         // update the gun animation
         viewGun?.let { gun ->
-            gun.resolvedRenderFx = Defines.RF_MINLIGHT or Defines.RF_DEPTHHACK or Defines.RF_WEAPONMODEL
+            // viewGun should inherit player's own EF_SHELL effect
+            val localPlayerShellRenderFx = clientEntities.getOrNull(gameConfig.playerConfiguration.playerIndex + 1)
+                ?.takeIf { it.serverframe == currentFrame.serverframe }
+                ?.resolvedRenderFx
+                ?.and(SHELL_RENDERFX_MASK)
+                ?: 0
+            gun.resolvedRenderFx = Defines.RF_MINLIGHT or Defines.RF_DEPTHHACK or Defines.RF_WEAPONMODEL or localPlayerShellRenderFx
             gun.alpha = 1f
             if (rDrawEntities?.value != 0f && clGun?.value != 0f) {
                 visibleEntities += gun
