@@ -1124,7 +1124,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")
         Cvar.getInstance().Get("rate", "25000", CVAR_USERINFO or CVAR_ARCHIVE, "Network rate in bytes per second")
         Cvar.getInstance().Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE, "Server message level")
-        Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness")
         Cvar.getInstance().Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE)
     }
