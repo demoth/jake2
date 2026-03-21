@@ -211,6 +211,71 @@
 - Q2Pro: strong data-driven menu definitions (`q2pro.menu`) and flexible menu scripting.
 - KMQuake2: practical options category split and useful join compatibility controls.
 
+## Video Mode Bootstrap (2026-03-21)
+- Goal:
+  - Make `vid_*` cvars actually control launcher-owned window settings for the next app start.
+  - Keep this phase restart-based; no live window recreation is required yet.
+- Decision:
+  - Do not move full VFS/libGDX asset initialization before `Cake()`.
+  - Move only a small startup bootstrap earlier:
+    - `Cmd.Init()`
+    - `Cvar.Init()`
+    - register aliases
+    - register `vid_*` cvars with defaults
+    - resolve active Cake profile
+    - read and execute `.cake/<profileId>/config.cfg`
+  - The launcher then reads `vid_*` from `Cvar` and builds `Lwjgl3ApplicationConfiguration` before creating `Cake()`.
+- Initial `vid_*` scope:
+  - `vid_fullscreen`
+  - `vid_width`
+  - `vid_height`
+  - `vid_vsync`
+- Follow-up implementation notes:
+  - Pass a small startup context into `Cake` so profile/config startup work is not duplicated.
+  - `CVAR_LATCH` is acceptable for restart-required client settings, but current persistence must be adjusted:
+    - when `latched_string` exists, profile config save should persist that pending value
+    - next launch should use that pending value during early bootstrap
+  - Full game-data VFS can remain Cake-owned and initialized later through `CakeFileResolver`.
+- Progress:
+  - Added shared Cake startup bootstrap for:
+    - command/cvar initialization
+    - common Cake cvar registration
+    - selected-profile resolution
+    - profile config execution before launcher window creation
+  - Added first real video mode cvars:
+    - `vid_fullscreen`
+    - `vid_width`
+    - `vid_height`
+    - `vid_vsync`
+  - Updated the LWJGL3 launcher to read bootstrapped `vid_*` values before constructing `Cake()`.
+  - Updated archive persistence so restart-latched `vid_*` values are written using their pending value.
+  - Added regression coverage for:
+    - idle `vid_*` latch behavior
+    - archive write preferring `latched_string`
+
+## Video Apply Paths (future)
+- Phase-1 path:
+  - Save `vid_*` changes in Options.
+  - Mark them as pending restart.
+  - Apply them on the next app launch through the early startup bootstrap.
+- Future no-restart path candidates:
+  - In-process live switch:
+    - attempt runtime `Gdx.graphics` mode changes directly
+    - likely viable for fullscreen/windowed switch, size changes, vsync
+    - requires explicit success/failure handling and rollback to prior mode on failure
+  - Controlled app restart through launcher:
+    - Cake requests restart after saving pending `vid_*`
+    - launcher catches a typed restart signal/exception
+    - launcher creates a new `Lwjgl3ApplicationConfiguration` from current cvars and restarts Cake
+    - if restart originated from Options, launcher can pass a resume target so Cake returns to the same menu section
+  - Confirmation/rollback flow:
+    - after applying a new video mode, show a timed confirmation dialog
+    - if user confirms, keep the new mode
+    - if user cancels or timeout expires, restore the previous mode/settings and return to a known-safe menu state
+- Open questions:
+  - none for the phase-1 restart-based implementation
+  - future no-restart apply will need a concrete launcher-to-Cake restart contract and a UI confirmation flow
+
 ## Definition of Done (this track)
 - New user can start Cake and join a remote server without editing files.
 - Autodetect/setup handles missing content gracefully.
