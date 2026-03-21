@@ -47,7 +47,7 @@ class ClientEntityManager : Disposable {
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
     var lerpAcc: Float = 0f // interpolation accumulator // (0, serverFrame)
     val rDrawSky = Cvar.getInstance().Get("r_drawsky", "1", 0, "Draw the sky layer")
-    private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0)
+    private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0, "Draw beam effects")
     private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0)
     private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0)
     private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
