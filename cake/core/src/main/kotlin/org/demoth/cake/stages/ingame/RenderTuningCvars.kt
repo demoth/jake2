@@ -18,7 +18,7 @@ object RenderTuningCvars {
     private val cvars = Cvar.getInstance()
 
     private val vidGamma = cvars.Get("vid_gamma", "1.2", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Display gamma")
-    private val gl3Intensity = cvars.Get("gl3_intensity", "1.5", Defines.CVAR_ARCHIVE)
+    private val gl3Intensity = cvars.Get("gl3_intensity", "1.5", Defines.CVAR_ARCHIVE, "Lightmap intensity scale")
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE)
     private val rDlights = cvars.Get(
         "r_dlights",
