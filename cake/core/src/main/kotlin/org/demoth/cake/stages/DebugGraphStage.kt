@@ -76,6 +76,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 id = MetricId.SHADER_SWITCHES,
                 name = "r_debug_shaderswitches",
                 color = Color(0.9f, 0.35f, 1f, 0.7f),
+                description = "Show shader switch count graph",
                 collectValue = { profiler -> profiler.shaderSwitches },
             ),
         )
