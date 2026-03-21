@@ -69,6 +69,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 id = MetricId.VERTEX_COUNT,
                 name = "r_debug_vertexcount",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
+                description = "Show submitted vertex count graph",
                 collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) },
             ),
             MetricDefinition(
