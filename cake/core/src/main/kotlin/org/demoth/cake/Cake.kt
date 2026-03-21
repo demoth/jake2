@@ -1126,7 +1126,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         Cvar.getInstance().Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE, "Server message level")
         Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness")
         Cvar.getInstance().Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE, "Player field of view")
-        Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
     }
 
     private fun initClientCvars() {
