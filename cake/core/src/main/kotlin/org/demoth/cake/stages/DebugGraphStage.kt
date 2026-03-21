@@ -25,6 +25,7 @@ data class MetricDefinition(
     val id: MetricId,
     val name: String,
     val color: Color,
+    val description: String? = null,
     val collectValue: (GLProfiler) -> Int,
 )
 
@@ -47,6 +48,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 id = MetricId.CALLS,
                 name = "r_debug_calls",
                 color = Color(1f, 0.85f, 0.2f, 0.7f),
+                description = "Show GL call count graph",
                 collectValue = { profiler -> profiler.calls },
             ),
             MetricDefinition(
@@ -92,7 +94,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     init {
         metricDefinitions.forEach { definition ->
             val metricId = definition.id
-            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "0", 0)
+            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "0", 0, definition.description)
             metricSeries[metricId] = MetricSeries()
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
