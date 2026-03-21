@@ -50,7 +50,7 @@ class ClientEntityManager : Disposable {
     private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0, "Draw beam effects")
     private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0, "Draw sprite entities")
     private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0, "Draw model entities")
-    private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
+    private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0, "Draw the view weapon model")
     private val clVwep = Cvar.getInstance().Get("cl_vwep", "1", Defines.CVAR_ARCHIVE, "Draw other players' weapon models")
 
     // model instances to be drawn - updated on every server frame
