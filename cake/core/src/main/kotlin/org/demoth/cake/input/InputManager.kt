@@ -77,7 +77,7 @@ class InputManager(
     private val sensitivity = Cvar.getInstance().Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity") // todo: make independent from screen size
     private val invertMouse = Cvar.getInstance().Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis")
     private val alwaysRun = Cvar.getInstance().Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
-    private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0) // todo: verify a proper server side fix
+    private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0, "Light level sent with move commands") // todo: verify a proper server side fix
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
