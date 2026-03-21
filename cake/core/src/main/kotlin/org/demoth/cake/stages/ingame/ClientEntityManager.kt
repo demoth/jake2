@@ -69,7 +69,7 @@ class ClientEntityManager : Disposable {
     var skyEntity: ClientEntity? = null
 
     // debug related
-    private val rDebug = Cvar.getInstance().Get("r_debug", "0", 0)
+    private val rDebug = Cvar.getInstance().Get("r_debug", "0", 0, "Show debug origin marker")
     private var debugWorldOrigin: ClientEntity? = null
 
     var surpressCount = 0
