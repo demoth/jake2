@@ -688,9 +688,14 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     override fun keyUp(keycode: Int): Boolean {
         when (keycode) {
             Input.Keys.F1 -> {
-                menuVisible = false
-                consoleVisible = !consoleVisible
                 if (consoleVisible) {
+                    consoleVisible = false
+                    if (game3dScreen == null) {
+                        menuVisible = true
+                    }
+                } else {
+                    menuVisible = false
+                    consoleVisible = true
                     consoleStage.focus()
                 }
             }
