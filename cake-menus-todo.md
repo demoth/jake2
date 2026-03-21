@@ -240,6 +240,7 @@
   - Added shared Cake startup bootstrap for:
     - command/cvar initialization
     - common Cake cvar registration
+    - early `ClientBindings` creation so `bind` / `unbindall` are available during config execution
     - selected-profile resolution
     - profile config execution before launcher window creation
   - Added first real video mode cvars:
