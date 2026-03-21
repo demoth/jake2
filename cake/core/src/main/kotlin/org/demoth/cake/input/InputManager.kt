@@ -75,12 +75,7 @@ class InputManager(
     private var deltaY = 0f
     private var hasMouseReference = false
     private val sensitivity = Cvar.getInstance().Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity") // todo: make independent from screen size
-    private val invertMouse = Cvar.getInstance().Get(
-        "in_invert_mouse",
-        "0",
-        CVAR_ARCHIVE or CVAR_OPTIONS,
-        "Invert mouse",
-    )
+    private val invertMouse = Cvar.getInstance().Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis")
     private val alwaysRun = Cvar.getInstance().Get(
         "cl_run",
         "0",
