@@ -24,12 +24,7 @@ object RenderTuningCvars {
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Particle budget")
     private val rBspBatchDebug = cvars.Get("r_bsp_batch_debug", "0", Defines.CVAR_ARCHIVE, "Log BSP batch renderer stats")
     private val rPostVignette = cvars.Get("r_post_vignette", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Postprocess vignette")
-    private val rPostVignetteStrength = cvars.Get(
-        "r_post_vignette_strength",
-        "1.30",
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Vignette strength",
-    )
+    private val rPostVignetteStrength = cvars.Get("r_post_vignette_strength", "1.30", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Vignette strength")
     private val rUnderwaterWarp = cvars.Get(
         "r_underwater_warp",
         "1",
