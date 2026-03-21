@@ -53,9 +53,7 @@ import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
-import org.demoth.cake.stages.ingame.RenderTuningCvars
 import org.demoth.cake.ui.menu.*
-import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -81,7 +79,9 @@ private enum class MenuView {
  * Entrypoint for the client application
  *
  */
-class Cake : KtxApplicationAdapter, KtxInputAdapter {
+class Cake(
+    private val startupContext: CakeStartupContext? = null,
+) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
@@ -174,18 +174,18 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private var backgroundColor = Color.BLACK
 
     init {
-        Cmd.Init()
-        Cvar.Init()
+        CakeStartupBootstrap.ensureInitialized()
         Cbuf.AddText("set thinclient 1")
-        initUserInfoCvars()
-        initClientCvars()
         Netchan.Netchan_Init()
     }
 
     override fun create() {
         initializeShaderCompatibility()
-        loadStartupGameProfile()
-        loadActiveProfileConfig()
+        if (startupContext != null) {
+            applyGameProfile(startupContext.activeProfile)
+        } else {
+            loadStartupGameProfile()
+        }
 
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
@@ -1114,42 +1114,6 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
-    /**
-     * populate default userinfo values - required for connecting to the server
-     */
-    private fun initUserInfoCvars() {
-        Cvar.getInstance().Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
-        Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO, "Request spectator mode")
-        Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
-        Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")
-        Cvar.getInstance().Get("rate", "25000", CVAR_USERINFO or CVAR_ARCHIVE, "Network rate in bytes per second")
-        Cvar.getInstance().Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE, "Server message level")
-        Cvar.getInstance().Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness")
-        Cvar.getInstance().Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE, "Player field of view")
-        Cvar.getInstance().Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
-    }
-
-    private fun initClientCvars() {
-        val cvars = Cvar.getInstance()
-        // todo: cleanup after hot development phase
-        cvars.Get("rcon_password", "asdf", 0, "Remote console password")
-        cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
-        // Legacy remote player weapon model toggle (`modelindex2 == 255` branch).
-        cvars.Get("cl_vwep", "1", CVAR_ARCHIVE, "Draw other players' weapon models")
-
-        cvars.AddAlias("sensitivity", "in_sensitivity")
-        cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
-        cvars.Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis")
-        cvars.Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
-
-        cvars.AddAlias("crosshair", "cl_crosshair")
-        cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
-        cvars.Get("cl_showfps", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
-        cvars.Get("s_volume", "0.7", CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
-
-        RenderTuningCvars.register()
-    }
-
     private fun takeScreenshot() {
         val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
         val flippedPixmap = Pixmap(pixmap.width, pixmap.height, pixmap.format)
@@ -1205,6 +1169,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         try {
             val configText = profileConfigStore.readConfig(profileId) ?: return
             Cbuf.AddAndExecuteScript(configText)
+            Cvar.getInstance().updateLatchedVars()
             Com.Printf("Loaded Cake profile config for '$profileId'\n")
         } catch (e: Exception) {
             Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
@@ -1433,50 +1398,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     }
 
     private fun loadStartupGameProfile() {
-        val persistedProfile = try {
-            gameProfileStore.readSelected()
-        } catch (e: Exception) {
-            Com.Warn("Failed to read persisted Cake game profile: ${e.message}\n")
-            null
-        }
-        if (persistedProfile != null) {
-            applyGameProfile(persistedProfile)
-            return
-        }
-
-        val fallbackProfile = autodetectedStartupProfile(autodetectSteamBasedir())
-        if (fallbackProfile == null) {
-            Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.\n")
-            applyGameProfile(null)
-            return
-        }
-        val resolved = try {
-            gameProfileStore.bootstrapDefault(fallbackProfile)
-        } catch (e: Exception) {
-            Com.Warn("Failed to bootstrap default Cake profile: ${e.message}\n")
-            fallbackProfile
-        }
-        applyGameProfile(resolved)
+        applyGameProfile(CakeStartupBootstrap.bootstrap().activeProfile)
     }
 
-    private fun autodetectSteamBasedir(): String? {
-        val home = System.getProperty("user.home")?.takeIf { it.isNotBlank() }
-        val candidates = mutableListOf<Path>()
-        if (home != null) {
-            candidates.add(Path.of(home, ".steam", "steam", "steamapps", "common", "Quake 2"))
-            candidates.add(Path.of(home, "Library", "Application Support", "Steam", "steamapps", "common", "Quake 2"))
-        }
-
-        candidates.add(Path.of("c:", "Program Files (x86)", "Steam", "steamapps", "common", "Quake 2"))
-        candidates.add(Path.of("c:", "Program Files", "Steam", "steamapps", "common", "Quake 2"))
-
-        return candidates.firstOrNull { isUsableQ2Basedir(it) }?.toAbsolutePath()?.normalize()?.toString()
-    }
-
-    private fun isUsableQ2Basedir(path: Path): Boolean {
-        if (!Files.isDirectory(path)) return false
-        return Files.isDirectory(path.resolve("baseq2"))
-    }
+    private fun autodetectSteamBasedir(): String? = CakeStartupBootstrap.autodetectSteamBasedir()
 
     private fun applyGameProfile(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
