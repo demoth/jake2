@@ -24,7 +24,7 @@ class CakeFileResolver(
     caseSensitive: Boolean = false,
 ) : FileHandleResolver {
 
-    private val fsDebugLoaders = Cvar.getInstance().Get("fs_debug_loaders", "0", Defines.CVAR_ARCHIVE)
+    private val fsDebugLoaders = Cvar.getInstance().Get("fs_debug_loaders", "0", Defines.CVAR_ARCHIVE, "Log asset loader fallback decisions")
     private val vfsAssetSource = CakeVfsAssetSource()
     private val warnedMissing = LinkedHashSet<Pair<String, ResourceKind>>()
 
