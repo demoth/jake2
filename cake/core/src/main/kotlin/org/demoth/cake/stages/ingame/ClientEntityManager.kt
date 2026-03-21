@@ -49,7 +49,7 @@ class ClientEntityManager : Disposable {
     val rDrawSky = Cvar.getInstance().Get("r_drawsky", "1", 0, "Draw the sky layer")
     private val rDrawBeams = Cvar.getInstance().Get("r_drawbeams", "1", 0, "Draw beam effects")
     private val rDrawSprites = Cvar.getInstance().Get("r_drawsprites", "1", 0, "Draw sprite entities")
-    private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0)
+    private val rDrawEntities = Cvar.getInstance().Get("r_drawentities", "1", 0, "Draw model entities")
     private val clGun = Cvar.getInstance().Get("cl_gun", "1", 0)
     private val clVwep = Cvar.getInstance().Get("cl_vwep", "1", Defines.CVAR_ARCHIVE, "Draw other players' weapon models")
 
