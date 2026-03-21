@@ -1118,7 +1118,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
      * populate default userinfo values - required for connecting to the server
      */
     private fun initUserInfoCvars() {
-        Cvar.getInstance().Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
         Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO)
         Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)
