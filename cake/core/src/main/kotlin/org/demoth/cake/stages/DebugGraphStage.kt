@@ -55,6 +55,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 id = MetricId.DRAW_CALLS,
                 name = "r_debug_drawcalls",
                 color = Color(0.2f, 1f, 0.2f, 0.7f),
+                description = "Show draw call count graph",
                 collectValue = { profiler -> profiler.drawCalls },
             ),
             MetricDefinition(
