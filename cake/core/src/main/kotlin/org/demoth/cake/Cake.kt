@@ -1135,7 +1135,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         cvars.Get("rcon_password", "asdf", 0, "Remote console password")
         cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
         // Legacy remote player weapon model toggle (`modelindex2 == 255` branch).
-        cvars.Get("cl_vwep", "1", CVAR_ARCHIVE)
+        cvars.Get("cl_vwep", "1", CVAR_ARCHIVE, "Draw other players' weapon models")
 
         cvars.AddAlias("sensitivity", "in_sensitivity")
         cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
