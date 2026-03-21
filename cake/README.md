@@ -8,7 +8,7 @@ Cake is the new Jake2 client implementation built on libGDX with the LWJGL3 desk
 
 Main game client logic: rendering, audio, input, HUD, networking integration, and gameplay screen flow.
 
-### `lwjgl3`
+### `cake-lwjgl3`
 
 Desktop platform launcher/wrapper for `core`.
 
@@ -21,11 +21,11 @@ Standalone desktop tooling for engine asset generation workflows.
 From repository root:
 
 - `./gradlew run` - runs the default desktop client launcher.
-- `./gradlew :cake:lwjgl3:run` - runs the LWJGL3 launcher directly.
+- `./gradlew :cake:cake-lwjgl3:run` - runs the LWJGL3 launcher directly.
 
 Main desktop entrypoint:
 
-- [`Lwjgl3GameLauncher.kt`](lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
+- [`Lwjgl3GameLauncher.kt`](cake-lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
 ## BSP World Renderer
 
