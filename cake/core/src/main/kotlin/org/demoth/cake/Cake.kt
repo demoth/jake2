@@ -38,7 +38,6 @@ import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.*
-import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
@@ -146,7 +145,8 @@ class Cake(
 
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
-    private val clientBindings = ClientBindings()
+    private val startup = startupContext ?: CakeStartupBootstrap.bootstrap()
+    private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
     private var activeGameProfile: CakeGameProfile? = null
@@ -181,11 +181,7 @@ class Cake(
 
     override fun create() {
         initializeShaderCompatibility()
-        if (startupContext != null) {
-            applyGameProfile(startupContext.activeProfile)
-        } else {
-            loadStartupGameProfile()
-        }
+        applyGameProfile(startup.activeProfile)
 
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
@@ -1395,10 +1391,6 @@ class Cake(
         } catch (e: Exception) {
             Com.Warn("Failed to switch profile '$profileId': ${e.message}\n")
         }
-    }
-
-    private fun loadStartupGameProfile() {
-        applyGameProfile(CakeStartupBootstrap.bootstrap().activeProfile)
     }
 
     private fun autodetectSteamBasedir(): String? = CakeStartupBootstrap.autodetectSteamBasedir()

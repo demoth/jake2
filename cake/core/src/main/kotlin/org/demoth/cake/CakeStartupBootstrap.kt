@@ -4,6 +4,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
+import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfileConfigStore
@@ -47,6 +48,7 @@ data class CakeVideoModeSettings(
 data class CakeStartupContext(
     val activeProfile: CakeGameProfile?,
     val videoMode: CakeVideoModeSettings,
+    val clientBindings: ClientBindings,
 )
 
 object CakeStartupBootstrap {
@@ -66,6 +68,7 @@ object CakeStartupBootstrap {
         profileConfigStore: CakeProfileConfigStore = CakeProfileConfigStore(),
     ): CakeStartupContext {
         ensureInitialized()
+        val clientBindings = ClientBindings()
         val activeProfile = resolveStartupProfile(gameProfileStore)
         if (activeProfile != null) {
             loadProfileConfig(activeProfile.id, profileConfigStore)
@@ -73,6 +76,7 @@ object CakeStartupBootstrap {
         return CakeStartupContext(
             activeProfile = activeProfile,
             videoMode = CakeVideoModeSettings.fromCvars(),
+            clientBindings = clientBindings,
         )
     }
 

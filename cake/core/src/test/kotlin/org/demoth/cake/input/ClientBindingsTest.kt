@@ -36,6 +36,19 @@ class ClientBindingsTest {
     }
 
     @Test
+    fun configStyleBindCommandsCanReplaceDefaults() {
+        val bindings = ClientBindings(executeImmediate = {}, queueCommand = {})
+
+        assertEquals("+forward", bindings.getBindingByName("w"))
+
+        Cmd.ExecuteString("unbindall")
+        Cmd.ExecuteString("bind x use shotgun")
+
+        assertNull(bindings.getBindingByName("w"))
+        assertEquals("use shotgun", bindings.getBindingByName("x"))
+    }
+
+    @Test
     fun plusCommandsFireOnPressAndReleaseWithoutAutoRepeat() {
         val immediate = mutableListOf<String>()
         val queued = mutableListOf<String>()
