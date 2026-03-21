@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -19,8 +18,12 @@ import org.demoth.cake.ui.menu.PlayerSetupState
 
 class PlayerSetupStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = MenuIntent.OpenMultiplayerMenu,
+) {
     private companion object {
         private val HAND_LABELS = arrayOf("Right hand", "Left hand", "Center")
     }
@@ -91,12 +94,7 @@ class PlayerSetupStage(
                     }
                     add(saveButton)
 
-                    val backButton = TextButton("Back", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
-                        }
-                    }
-                    add(backButton)
+                    add(createBackButton())
                 }
                 add(buttons).colspan(2).left().row()
 

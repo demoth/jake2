@@ -1,7 +1,6 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.Touchable
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -33,8 +32,12 @@ import org.demoth.cake.ui.menu.MenuIntent
  */
 class MainMenuStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = null,
+) {
     private var currentProfileLabel: Label
     private var switchProfileButton: TextButton
     private var disconnectButton: TextButton

@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
@@ -16,8 +15,12 @@ import org.demoth.cake.ui.menu.MenuIntent
 
 class JoinGameStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = MenuIntent.OpenMultiplayerMenu,
+) {
     private var hostField: TextField
     private var portField: TextField
     private var statusLabel: Label
@@ -58,12 +61,7 @@ class JoinGameStage(
                     }
                     add(joinButton)
 
-                    val backButton = TextButton("Back", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
-                        }
-                    }
-                    add(backButton)
+                    add(createBackButton())
                 }
                 add(buttonsRow).left().row()
 

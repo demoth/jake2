@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onChange
@@ -16,8 +15,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
 
 class ProfileEditStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = MenuIntent.OpenMainMenu,
+) {
     companion object {
         private const val DEBUG_LAYOUT: Boolean = false
         private const val FORM_FIELD_MIN_WIDTH: Float = 320f
@@ -83,12 +86,7 @@ class ProfileEditStage(
                     }
                     add(createProfileButton).fillX().row()
 
-                    val backButton = TextButton("Back", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.OpenMainMenu)
-                        }
-                    }
-                    add(backButton).fillX().row()
+                    add(createBackButton()).fillX().row()
                 }
 
                 val rightPane = Table(Scene2DSkin.defaultSkin).apply {

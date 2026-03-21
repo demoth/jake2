@@ -1,7 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onClick
 import ktx.scene2d.actors
@@ -15,8 +13,12 @@ import org.demoth.cake.ui.menu.OptionsSectionSummary
 
 class OptionsMenuStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = MenuIntent.OpenMainMenu,
+) {
     private var renderedSections: List<OptionsSectionSummary> = emptyList()
 
     init {
@@ -52,11 +54,7 @@ class OptionsMenuStage(
                     row()
                 }
 
-                textButton("Back") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
-                    }
-                }
+                add(createBackButton())
             }
         }
         renderedSections = state.sections

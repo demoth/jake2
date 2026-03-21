@@ -700,17 +700,15 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             }
 
             Input.Keys.ESCAPE -> {
-                if (consoleVisible)
-                    consoleVisible = false
-                else {
-                    menuVisible = !menuVisible
-                    if (menuVisible) {
-                        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
-                        menuController.pumpIntents()
-                        syncMenuViewFromBusState()
-                        updateInputHandlers(consoleVisible, menuVisible)
-                    }
+                if (!consoleVisible && !menuVisible && game3dScreen != null) {
+                    menuVisible = true
+                    menuEventBus.postIntent(MenuIntent.OpenMainMenu)
+                    menuController.pumpIntents()
+                    syncMenuViewFromBusState()
+                    updateInputHandlers(consoleVisible, menuVisible)
+                    return true
                 }
+                return false
             }
 
             else -> return false

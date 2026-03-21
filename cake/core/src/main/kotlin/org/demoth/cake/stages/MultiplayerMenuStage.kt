@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onClick
 import ktx.scene2d.actors
@@ -12,8 +11,12 @@ import org.demoth.cake.ui.menu.MenuIntent
 
 class MultiplayerMenuStage(
     viewport: Viewport,
-    private val menuEventBus: MenuEventBus,
-) : Stage(viewport) {
+    menuEventBus: MenuEventBus,
+) : BackNavigableMenuStage(
+    viewport = viewport,
+    menuEventBus = menuEventBus,
+    parentIntent = MenuIntent.OpenMainMenu,
+) {
     init {
         actors {
             table {
@@ -38,11 +41,7 @@ class MultiplayerMenuStage(
                     }
                 }
                 row()
-                textButton("Back") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenMainMenu)
-                    }
-                }
+                add(createBackButton())
             }
         }
     }
