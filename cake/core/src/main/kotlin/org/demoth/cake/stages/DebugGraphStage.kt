@@ -62,6 +62,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 id = MetricId.TEXTURE_BINDINGS,
                 name = "r_debug_texturebindings",
                 color = Color(1f, 0.45f, 0.2f, 0.7f),
+                description = "Show texture binding count graph",
                 collectValue = { profiler -> profiler.textureBindings },
             ),
             MetricDefinition(
