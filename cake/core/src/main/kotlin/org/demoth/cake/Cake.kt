@@ -1133,7 +1133,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         val cvars = Cvar.getInstance()
         // todo: cleanup after hot development phase
         cvars.Get("rcon_password", "asdf", 0, "Remote console password")
-        cvars.Get("rcon_address", "127.0.0.1", 0)
+        cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
         // Legacy remote player weapon model toggle (`modelindex2 == 255` branch).
         cvars.Get("cl_vwep", "1", CVAR_ARCHIVE)
 
