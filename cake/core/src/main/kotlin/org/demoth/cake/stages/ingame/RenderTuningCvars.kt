@@ -23,12 +23,7 @@ object RenderTuningCvars {
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Dynamic lights")
     private val rParticles = cvars.Get("r_particles", "${Defines.MAX_PARTICLES}", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Particle budget")
     private val rBspBatchDebug = cvars.Get("r_bsp_batch_debug", "0", Defines.CVAR_ARCHIVE, "Log BSP batch renderer stats")
-    private val rPostVignette = cvars.Get(
-        "r_post_vignette",
-        "1",
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Postprocess vignette",
-    )
+    private val rPostVignette = cvars.Get("r_post_vignette", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Postprocess vignette")
     private val rPostVignetteStrength = cvars.Get(
         "r_post_vignette_strength",
         "1.30",
