@@ -10,6 +10,7 @@ import ktx.scene2d.actors
 import ktx.scene2d.label
 import ktx.scene2d.table
 import ktx.scene2d.textButton
+import org.demoth.cake.BuildVersion
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -86,7 +87,7 @@ class MainMenuStage(
                     }
                 }
             }
-            label("version: 1.2.0")
+            label("version: ${BuildVersion.displayVersion}")
         }
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)

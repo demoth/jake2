@@ -1,3 +1,5 @@
+apply plugin: 'com.gorylenko.gradle-git-properties'
+
 dependencies {
   api libs.gdxControllersCore
   api libs.gdxFreetype
@@ -32,4 +34,13 @@ if (enableGraalNative == 'true') {
   dependencies {
     implementation libs.gdxSvmhelperAnnotations
   }
+}
+
+gitProperties {
+  keys = ['git.build.version', 'git.commit.id.abbrev', 'git.dirty']
+  failOnNoGitDirectory = false
+}
+
+tasks.named('processResources') {
+  dependsOn tasks.named('generateGitProperties')
 }
