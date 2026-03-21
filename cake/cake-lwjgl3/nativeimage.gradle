@@ -1,6 +1,37 @@
+import groovy.json.JsonOutput
+
 dependencies {
   implementation libs.gdxSvmhelperBackendLwjgl3
   implementation libs.gdxSvmhelperExtensionFreetype
+}
+
+def cakeAssetsDir = rootProject.file('assets')
+def cakeAssetsResourceConfigFile = layout.buildDirectory.file("native/generated/cakeAssets/resource-config.json")
+
+tasks.register('generateCakeAssetsResourceConfig') {
+  inputs.files(fileTree(cakeAssetsDir) {
+    exclude '.DS_Store', '**/.DS_Store'
+  })
+  outputs.file(cakeAssetsResourceConfigFile)
+
+  doLast {
+    def outputFile = cakeAssetsResourceConfigFile.get().asFile
+    def includes = fileTree(cakeAssetsDir) {
+      exclude '.DS_Store', '**/.DS_Store'
+    }.files.toList().sort { a, b -> a.path <=> b.path }.collect { file ->
+      def relativePath = cakeAssetsDir.toPath().relativize(file.toPath()).toString().replace(File.separatorChar, '/' as char)
+      [pattern: "\\Q${relativePath}\\E"]
+    }
+
+    outputFile.parentFile.mkdirs()
+    outputFile.text = JsonOutput.prettyPrint(JsonOutput.toJson([
+      resources: [
+        includes: includes,
+        excludes: []
+      ],
+      bundles: []
+    ]))
+  }
 }
 
 graalvmNative {
@@ -15,14 +46,22 @@ graalvmNative {
         '.*(gdx-svmhelper-backend-lwjgl3|cake-).*\\.jar',
         'META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties'
       )
-      // Cake and its desktop dependencies load bundled assets and natives from classpath resources.
-      // Keep all non-class resources in the native image instead of maintaining per-file allowlists.
-      buildArgs.add('-H:IncludeResources=.*')
+      // Keep desktop native libraries from dependency jars plus the generated config for Cake-owned assets.
+      buildArgs.add(
+        '-H:IncludeResources=' +
+          '(libgdx.*|gdx.*\\.dll|libgdx-freetype.*|gdx-freetype.*\\.dll|' +
+          '(linux|macos|windows)/.*/org/lwjgl/.*|META-INF/(linux|macos|windows)/.*/org/lwjgl/.*)'
+      )
+      buildArgs.add("-H:ResourceConfigurationFiles=${cakeAssetsResourceConfigFile.get().asFile.absolutePath}")
       buildArgs.add("-march=compatibility")
       jvmArgs.addAll("-Dfile.encoding=UTF8")
       sharedLibrary = false
     }
   }
+}
+
+tasks.named('nativeCompile') {
+  dependsOn 'generateCakeAssetsResourceConfig'
 }
 
 run {
