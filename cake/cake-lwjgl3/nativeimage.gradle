@@ -15,14 +15,9 @@ graalvmNative {
         '.*(gdx-svmhelper-backend-lwjgl3|cake-).*\\.jar',
         'META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties'
       )
-      // libGDX loads desktop natives via SharedLibraryLoader from classpath resources.
-      // Native Image does not keep these jar entries unless we include them explicitly.
-      buildArgs.add(
-        '-H:IncludeResources=' +
-          '(libgdx.*|gdx.*\\.dll|libgdx-freetype.*|gdx-freetype.*\\.dll|' +
-          '(linux|macos|windows)/.*/org/lwjgl/.*|META-INF/(linux|macos|windows)/.*/org/lwjgl/.*|' +
-          'ui/.*|shaders/.*|q2palette\\.bin|_missing\\..*|triangloid\\.png)'
-      )
+      // Cake and its desktop dependencies load bundled assets and natives from classpath resources.
+      // Keep all non-class resources in the native image instead of maintaining per-file allowlists.
+      buildArgs.add('-H:IncludeResources=.*')
       buildArgs.add("-march=compatibility")
       jvmArgs.addAll("-Dfile.encoding=UTF8")
       sharedLibrary = false
