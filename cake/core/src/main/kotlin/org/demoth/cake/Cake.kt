@@ -86,8 +86,10 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
-        private val SCREENSHOT_TIMESTAMP_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
+        private val SCREENSHOT_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
+        // Cross-layout console toggle fallbacks.
+        // `GRAVE` covers the common physical key; some macOS/international layouts report printable chars instead.
+        private val CONSOLE_TOGGLE_CHARS = setOf('`', '§')
     }
 
     private lateinit var menuStage: MainMenuStage
@@ -101,6 +103,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
     private var glProfilerActive: Boolean = false
+    private var physicalConsoleToggleKeyDown: Boolean = false
     private lateinit var viewport: StretchViewport
     private var profileBackgroundBatch: SpriteBatch? = null
     private var profileBackgroundTexture: Texture? = null
@@ -681,23 +684,23 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
         }
     }
 
+    override fun keyDown(keycode: Int): Boolean {
+        if (keycode == Input.Keys.GRAVE) {
+            physicalConsoleToggleKeyDown = true
+        }
+        return false
+    }
+
     /**
      * Global input handling: Control Console and Menu
      * Hardwired controls.
      */
     override fun keyUp(keycode: Int): Boolean {
         when (keycode) {
-            Input.Keys.F1 -> {
-                if (consoleVisible) {
-                    consoleVisible = false
-                    if (game3dScreen == null) {
-                        menuVisible = true
-                    }
-                } else {
-                    menuVisible = false
-                    consoleVisible = true
-                    consoleStage.focus()
-                }
+            Input.Keys.GRAVE -> {
+                physicalConsoleToggleKeyDown = false
+                toggleConsoleVisibility()
+                return true
             }
 
             Input.Keys.F12 -> {
@@ -719,6 +722,30 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
             else -> return false
         }
         return true
+    }
+
+    override fun keyTyped(character: Char): Boolean {
+        if (character in CONSOLE_TOGGLE_CHARS) {
+            if (physicalConsoleToggleKeyDown) {
+                return true
+            }
+            toggleConsoleVisibility()
+            return true
+        }
+        return false
+    }
+
+    private fun toggleConsoleVisibility() {
+        if (consoleVisible) {
+            consoleVisible = false
+            if (game3dScreen == null) {
+                menuVisible = true
+            }
+        } else {
+            menuVisible = false
+            consoleVisible = true
+            consoleStage.focus()
+        }
     }
 
     // fixme is it called from somewhere?
