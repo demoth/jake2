@@ -106,10 +106,16 @@ class ConsoleInputController(
             Com.ConsoleLevel.INFO,
             buildString {
                 append("\nMatches:\n")
-                append(matches.joinToString(" "))
+                // Include current cvar values so ambiguous completions are easier to disambiguate.
+                append(matches.joinToString(" ") { formatMatch(it) })
                 append('\n')
             },
         )
+    }
+
+    private fun formatMatch(name: String): String {
+        val cvar = Cvar.getInstance().FindVar(name) ?: return name
+        return "$name (${cvar.string})"
     }
 
     private fun navigateHistory(direction: Int) {
