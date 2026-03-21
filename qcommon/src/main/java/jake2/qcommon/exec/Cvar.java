@@ -283,8 +283,12 @@ public class Cvar extends Globals {
                         return var;
                 }
 
-                if (Globals.server_state != ServerStates.SS_DEAD) {
-                    Com.Printf(canonicalName + " will be changed for next game.\n");
+                if (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart(var)) {
+                    if (requiresAppRestart(var)) {
+                        Com.Printf(canonicalName + " will be changed after restart.\n");
+                    } else {
+                        Com.Printf(canonicalName + " will be changed for next game.\n");
+                    }
                     var.latched_string = value;
                 } else {
                     var.string = value;
@@ -318,6 +322,10 @@ public class Cvar extends Globals {
         }
 
         return var;
+    }
+
+    private boolean requiresAppRestart(cvar_t var) {
+        return var != null && var.name != null && var.name.startsWith("vid_");
     }
 
 
@@ -454,7 +462,8 @@ public class Cvar extends Globals {
         }
         for (cvar_t var : cvarMap.values()) {
             if ((var.flags & CVAR_ARCHIVE) != 0) {
-                buffer = "set " + var.name + " \"" + var.string + "\"\n";
+                String persistedValue = (var.latched_string != null && !var.latched_string.isEmpty()) ? var.latched_string : var.string;
+                buffer = "set " + var.name + " \"" + persistedValue + "\"\n";
                 try {
                     f.writeBytes(buffer);
                 } catch (IOException e) {

@@ -29,8 +29,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+import static jake2.qcommon.Defines.CVAR_ARCHIVE;
+import static jake2.qcommon.Defines.CVAR_LATCH;
 import static jake2.qcommon.Defines.CVAR_OPTIONS;
 import static jake2.qcommon.Defines.CVAR_USERINFO;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -209,5 +214,37 @@ public class TestCvar {
 		List<String> completions = cvar.CompleteVariable("s");
 
 		assertEquals(List.of("sensitivity"), completions);
+	}
+
+	@Test
+	public void testVideoCvarLatchesWhileServerIsDead() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.Get("vid_width", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+
+		cvar_t vidWidth = cvar.Set("vid_width", "1280");
+
+		assertEquals("1024", vidWidth.string);
+		assertEquals("1280", vidWidth.latched_string);
+		cvar.updateLatchedVars();
+		assertEquals("1280", vidWidth.string);
+		assertNull(vidWidth.latched_string);
+	}
+
+	@Test
+	public void testWriteArchiveVariablesPrefersLatchedValue() throws IOException {
+		Cvar cvar = Cvar.getInstance();
+		cvar_t vidWidth = cvar.Get("vid_width", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+		vidWidth.latched_string = "1280";
+
+		Path file = Files.createTempFile("cvar-archive", ".cfg");
+		try {
+			cvar.writeArchiveVariables(file.toString());
+
+			String configText = Files.readString(file);
+			assertTrue(configText.contains("set vid_width \"1280\""));
+			assertFalse(configText.contains("set vid_width \"1024\""));
+		} finally {
+			Files.deleteIfExists(file);
+		}
 	}
 }
