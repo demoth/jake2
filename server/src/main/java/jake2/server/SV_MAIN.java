@@ -1359,6 +1359,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         // set serverinfo variable
         Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+        Com.Println("mapname: " + gameImports.sv.name);
 
         if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
