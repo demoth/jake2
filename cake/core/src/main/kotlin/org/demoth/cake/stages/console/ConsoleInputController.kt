@@ -48,6 +48,11 @@ class ConsoleInputController(
         }
     }
 
+    override fun keyTyped(event: InputEvent, character: Char): Boolean {
+        // swallow event if the tab was pressed so that text field won't insert \t
+        return character == '\t'
+    }
+
     private fun submitCurrentInput() {
         val command = input.text
         appendOutput(Com.ConsoleLevel.INFO, "$command\n")
