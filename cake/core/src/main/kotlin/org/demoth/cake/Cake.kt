@@ -1120,7 +1120,7 @@ class Cake : KtxApplicationAdapter, KtxInputAdapter {
     private fun initUserInfoCvars() {
         Cvar.getInstance().Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
         Cvar.getInstance().Get("spectator", "0", CVAR_USERINFO, "Request spectator mode")
-        Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE)
+        Cvar.getInstance().Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
         Cvar.getInstance().Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("rate", "25000", CVAR_USERINFO or CVAR_ARCHIVE)
         Cvar.getInstance().Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE)
