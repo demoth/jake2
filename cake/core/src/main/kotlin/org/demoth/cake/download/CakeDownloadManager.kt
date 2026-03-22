@@ -80,6 +80,11 @@ class CakeDownloadManager(
         return request
     }
 
+    fun clear() {
+        pending.clear()
+        queuedKeys.clear()
+    }
+
     fun pendingCount(): Int = pending.size
 
     private fun isEnabled(cvarName: String): Boolean {

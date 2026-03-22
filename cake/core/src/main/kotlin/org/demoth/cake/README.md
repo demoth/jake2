@@ -99,6 +99,11 @@ Newest first.
 - References: thread migration work.
 
 ## Quirks & Workarounds
+- Quirk: downloaded loose files are resolved before installed game-data roots.
+  - Why: Cake stores autodownloaded content in a global cache instead of writing into the original Quake2 install.
+  - How to work with it: `CakeFileResolver` checks the per-mod download cache first, then falls back to installed mod/base content and bundled assets.
+  - Removal plan: if Cake later gains a richer VFS layer for cache mounts, keep the same precedence but move it behind the VFS adapter instead of direct resolver probing.
+
 - Quirk: `Cake` owns one optional profile background outside `Game3dScreen`.
   - Why: it must render before gameplay screen creation and survive disconnected profile switches.
   - How to work with it: reload only through `applyGameProfile(...)`; do not add separate startup/profile-switch background paths.

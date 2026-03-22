@@ -38,6 +38,11 @@ import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.*
+import org.demoth.cake.download.CakeDownloadManager
+import org.demoth.cake.download.CakeDownloadQueueResult
+import org.demoth.cake.download.CakeDownloadRejectReason
+import org.demoth.cake.download.CakeDownloadTransfer
+import org.demoth.cake.download.CakeDownloadTransferResult
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
@@ -149,6 +154,9 @@ class Cake(
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
+    private val downloadManager = CakeDownloadManager()
+    private val downloadTransfer = CakeDownloadTransfer()
+    private var pendingPrecacheSpawnCount: Int? = null
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
     private var cachedPlayerSetupCatalog: PlayerSetupCatalog? = null
@@ -412,15 +420,22 @@ class Cake(
                 return@AddCommand
             }
             val precache_spawncount = it[1].toInt()
-            // no udp downloads anymore!!
 
             val activeScreen = game3dScreen
             if (activeScreen == null) {
                 Com.Warn("precache called without an active game screen")
                 return@AddCommand
             }
-            activeScreen.precache()
+            try {
+                activeScreen.precache()
+            } catch (error: MissingResourceException) {
+                if (beginMissingResourceDownload(error, precache_spawncount)) {
+                    return@AddCommand
+                }
+                throw error
+            }
             releaseDeferredConfigUnload()
+            pendingPrecacheSpawnCount = null
 
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
@@ -445,6 +460,81 @@ class Cake(
         NET.Config(false)
         networkState = DISCONNECTED
         challenge = 0
+        resetDownloadState()
+    }
+
+    private fun beginMissingResourceDownload(error: MissingResourceException, spawnCount: Int): Boolean {
+        pendingPrecacheSpawnCount = spawnCount
+        return when (val result = downloadManager.enqueue(error.path, fileResolver.gamemod)) {
+            is CakeDownloadQueueResult.Enqueued -> {
+                startQueuedDownloadIfIdle()
+                true
+            }
+
+            is CakeDownloadQueueResult.Rejected -> {
+                when (result.reason) {
+                    CakeDownloadRejectReason.ALREADY_QUEUED -> true
+                    CakeDownloadRejectReason.DOWNLOADS_DISABLED,
+                    CakeDownloadRejectReason.CATEGORY_DISABLED -> {
+                        Com.Warn("Autodownload disabled for missing resource '${error.path}'\n")
+                        false
+                    }
+
+                    CakeDownloadRejectReason.INVALID_PATH -> {
+                        Com.Warn("Refusing to autodownload invalid path '${error.path}'\n")
+                        false
+                    }
+
+                    CakeDownloadRejectReason.UNSUPPORTED_CATEGORY -> {
+                        Com.Warn("No Cake autodownload support yet for '${error.path}'\n")
+                        false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startQueuedDownloadIfIdle(): Boolean {
+        if (downloadTransfer.activeRequest() != null) {
+            return false
+        }
+        val request = downloadManager.pollPending() ?: return false
+        val offset = downloadTransfer.begin(request)
+        if (offset > 0L) {
+            Com.Printf("Resuming ${request.logicalPath}\n")
+            netchan.reliablePending.add(StringCmdMessage("${StringCmdMessage.DOWNLOAD} ${request.logicalPath} $offset"))
+        } else {
+            Com.Printf("Downloading ${request.logicalPath}\n")
+            netchan.reliablePending.add(StringCmdMessage("${StringCmdMessage.DOWNLOAD} ${request.logicalPath}"))
+        }
+        return true
+    }
+
+    private fun processDownloadMessage(message: DownloadMessage) {
+        if (downloadTransfer.activeRequest() == null) {
+            Com.Warn("Received download data without an active request\n")
+            return
+        }
+
+        when (val result = downloadTransfer.handle(message)) {
+            is CakeDownloadTransferResult.Continue -> {
+                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD))
+            }
+
+            is CakeDownloadTransferResult.Completed -> {
+                Com.Printf("Downloaded ${result.request.logicalPath}\n")
+                if (!startQueuedDownloadIfIdle()) {
+                    pendingPrecacheSpawnCount?.let { spawnCount ->
+                        Cbuf.AddText("${StringCmdMessage.PRECACHE} $spawnCount\n")
+                    }
+                }
+            }
+
+            is CakeDownloadTransferResult.MissingOnServer -> {
+                Com.Warn("Server does not have ${result.request.logicalPath}\n")
+                dropToConsole()
+            }
+        }
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
@@ -955,6 +1045,10 @@ class Cake(
                     game3dScreen?.processConfigStringMessage(msg)
                 }
 
+                is DownloadMessage -> {
+                    processDownloadMessage(msg)
+                }
+
                 is SoundMessage -> {
                     game3dScreen?.processSoundMessage(msg)
                 }
@@ -1017,6 +1111,7 @@ class Cake(
      * for reconnect-based map changes (e.g. `rcon map`).
      */
     private fun resetClientStateForServerData() {
+        resetDownloadState()
         game3dScreen?.stopAudio()
         // If serverdata arrives while a screen is still active, stage transition first.
         if (game3dScreen != null) {
@@ -1026,6 +1121,12 @@ class Cake(
             game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
             debugGraphStage.resetMetrics()
         }
+    }
+
+    private fun resetDownloadState() {
+        downloadManager.clear()
+        downloadTransfer.reset()
+        pendingPrecacheSpawnCount = null
     }
 
     /**

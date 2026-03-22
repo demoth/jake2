@@ -242,6 +242,16 @@
     - category classification
     - strict path validation
     - temp-path derivation
+  - added UDP transfer state with:
+    - resume offset detection
+    - chunk append
+    - temp-to-final rename
+  - wired Cake precache to:
+    - pause on missing required assets
+    - start/resume UDP downloads
+    - retry `precache` after completion
+  - made downloaded loose files immediately visible to `CakeFileResolver`
 - Next:
-  - hook the manager into Cake networking and precache flow
-  - wire temp/resume/final file writes around `svc_download`
+  - extend coverage beyond required missing assets discovered during precache
+  - improve UX/progress messaging during active downloads
+  - decide whether optional/tolerable missing sounds should also participate in autodownload

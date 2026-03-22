@@ -24,6 +24,10 @@ class CakeDownloadTransfer {
 
     fun activeRequest(): CakeDownloadRequest? = activeRequest
 
+    fun reset() {
+        activeRequest = null
+    }
+
     fun handle(message: DownloadMessage): CakeDownloadTransferResult {
         val request = requireNotNull(activeRequest) { "No active download request" }
 

@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
+import org.demoth.cake.download.CakeDownloadCache
 import java.util.Locale
 
 
@@ -22,6 +23,7 @@ class CakeFileResolver(
     basedir: String? = null,
     gamemod: String? = null,
     caseSensitive: Boolean = false,
+    private val downloadCache: CakeDownloadCache = CakeDownloadCache(),
 ) : FileHandleResolver {
 
     private val fsDebugLoaders = Cvar.getInstance().Get("fs_debug_loaders", "0", Defines.CVAR_ARCHIVE, "Log asset loader fallback decisions")
@@ -102,6 +104,7 @@ class CakeFileResolver(
     }
 
     internal fun tryResolve(fileName: String): FileHandle? {
+        resolveDownloadedLoose(fileName)?.let { return it }
         val vfsResolved = vfsAssetSource.resolve(fileName)
         if (vfsResolved != null) {
             return vfsResolved
@@ -160,6 +163,15 @@ class CakeFileResolver(
             }
         }
         return null
+    }
+
+    private fun resolveDownloadedLoose(fileName: String): FileHandle? {
+        val root = downloadCache.resolveRoot(gamemod)
+        val candidate = root.resolve(fileName).toFile()
+        if (!candidate.exists() || !candidate.canRead()) {
+            return null
+        }
+        return FileHandle(candidate)
     }
 
     private fun warnMissingOnce(path: String, resourceKind: ResourceKind, detail: String) {

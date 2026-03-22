@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import jake2.qcommon.exec.Cvar
+import org.demoth.cake.download.CakeDownloadCache
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -153,6 +154,24 @@ class CakeFileResolverTest {
         val modResolved = resolver.resolve("config.cfg")
         assertNotNull(modResolved)
         assertEquals("rogue", String(modResolved!!.readBytes(), StandardCharsets.US_ASCII))
+    }
+
+    @Test
+    fun downloadedLooseFileOverridesInstalledContent() {
+        setFsDebugLoaders("0")
+        val basedir = temp.resolve("install").toString()
+        createFile("install/baseq2/config.cfg", "installed".toByteArray(StandardCharsets.US_ASCII))
+        createFile("downloads/baseq2/config.cfg", "downloaded".toByteArray(StandardCharsets.US_ASCII))
+        val resolver = CakeFileResolver(
+            basedir = basedir,
+            gamemod = null,
+            downloadCache = CakeDownloadCache(temp.resolve("downloads")),
+        )
+
+        val resolved = resolver.resolve("config.cfg")
+
+        assertNotNull(resolved)
+        assertEquals("downloaded", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
     }
 
     @Test
