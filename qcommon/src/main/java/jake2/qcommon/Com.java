@@ -30,6 +30,8 @@ import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.PrintfFormat;
 import jake2.qcommon.util.Vargs;
 
+import java.util.Locale;
+
 /**
  * Common print related functions including redirection
  *
@@ -62,6 +64,43 @@ public final class Com
 		else
 			DPrintf(fmt, vargs);
 	}
+
+    /**
+     * Render control bytes in a log-friendly form so protocol/debug output remains readable.
+     */
+    public static String makePrintable(String text) {
+        if (text == null) {
+            return "null";
+        }
+
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            switch (ch) {
+                case '\n':
+                    result.append("\\n");
+                    break;
+                case '\r':
+                    result.append("\\r");
+                    break;
+                case '\t':
+                    result.append("\\t");
+                    break;
+                default:
+                    if (ch >= 0x20 && ch <= 0x7E) {
+                        result.append(ch);
+                    } else if (ch <= 0xFF) {
+                        result.append("\\x")
+                            .append(String.format(Locale.ROOT, "%02X", (int) ch));
+                    } else {
+                        result.append("\\u")
+                            .append(String.format(Locale.ROOT, "%04X", (int) ch));
+                    }
+                    break;
+            }
+        }
+        return result.toString();
+    }
 
 	public interface RD_Flusher {
 		void rd_flush(StringBuilder buffer);
