@@ -157,6 +157,7 @@ class Cake(
     private val downloadManager = CakeDownloadManager()
     private val downloadTransfer = CakeDownloadTransfer()
     private var pendingPrecacheSpawnCount: Int? = null
+    private var lastDownloadProgressPercent: Int = -1
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
     private var cachedPlayerSetupCatalog: PlayerSetupCatalog? = null
@@ -501,6 +502,7 @@ class Cake(
         }
         val request = downloadManager.pollPending() ?: return false
         val offset = downloadTransfer.begin(request)
+        lastDownloadProgressPercent = -1
         if (offset > 0L) {
             Com.Printf("Resuming ${request.logicalPath}\n")
             netchan.reliablePending.add(StringCmdMessage("${StringCmdMessage.DOWNLOAD} ${request.logicalPath} $offset"))
@@ -519,10 +521,12 @@ class Cake(
 
         when (val result = downloadTransfer.handle(message)) {
             is CakeDownloadTransferResult.Continue -> {
+                maybeLogDownloadProgress(result.request.logicalPath, result.percent)
                 netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD))
             }
 
             is CakeDownloadTransferResult.Completed -> {
+                maybeLogDownloadProgress(result.request.logicalPath, 100)
                 Com.Printf("Downloaded ${result.request.logicalPath}\n")
                 if (!startQueuedDownloadIfIdle()) {
                     pendingPrecacheSpawnCount?.let { spawnCount ->
@@ -536,6 +540,17 @@ class Cake(
                 dropToConsole()
             }
         }
+    }
+
+    private fun maybeLogDownloadProgress(logicalPath: String, percent: Int) {
+        if (percent <= lastDownloadProgressPercent) {
+            return
+        }
+        val crossedBucket = lastDownloadProgressPercent < 0 || percent / 5 > lastDownloadProgressPercent / 5
+        if (crossedBucket || percent == 100) {
+            Com.Printf("Downloading ${logicalPath}... ${percent}%\n")
+        }
+        lastDownloadProgressPercent = percent
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
@@ -1128,6 +1143,7 @@ class Cake(
         downloadManager.clear()
         downloadTransfer.reset()
         pendingPrecacheSpawnCount = null
+        lastDownloadProgressPercent = -1
     }
 
     /**
