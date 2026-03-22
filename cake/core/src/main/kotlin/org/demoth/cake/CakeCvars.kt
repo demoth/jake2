@@ -40,6 +40,7 @@ object CakeCvars {
         cvars.Get("rcon_password", "asdf", 0, "Remote console password")
         cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
         cvars.Get("cl_vwep", "1", CVAR_ARCHIVE, "Draw other players' weapon models")
+        cvars.Get("cl_debug_stufftext", "0", CVAR_ARCHIVE, "Log raw server stufftext commands")
 
         cvars.AddAlias("sensitivity", "in_sensitivity")
         cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")

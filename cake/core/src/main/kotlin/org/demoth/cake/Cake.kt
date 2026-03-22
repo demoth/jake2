@@ -172,6 +172,7 @@ class Cake(
 
     }
     private var backgroundColor = Color.BLACK
+    private val clDebugStufftext = Cvar.getInstance().Get("cl_debug_stufftext", "0", 0, "Log raw server stufftext commands")
 
     init {
         CakeStartupBootstrap.ensureInitialized()
@@ -296,12 +297,17 @@ class Cake(
         }
 
         Cmd.AddCommand("connect", "Connect to a remote server") {
-            Com.Printf("Connecting to ${it[1]}...\n")
+            val server = sanitizeConnectTarget(it)
+            if (server == null) {
+                Com.Printf("usage: connect <server>\n")
+                return@AddCommand
+            }
+            Com.Printf("Connecting to $server...\n")
             // first disconnect
             disconnect()
 
             NET.Config(true) // allow remote
-            servername = it[1]
+            servername = server
             networkState = CONNECTING
             reconnectTimeout = 0f
             // picked up later in the CheckForResend() // fixme: why not connect immediately?
@@ -864,7 +870,7 @@ class Cake(
             // packet from server
             //
             if (!networkPacket.from.compareIp(netchan.remote_address)) {
-                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connectifffffffffon\n")
+                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
                 continue
             }
 
@@ -907,7 +913,16 @@ class Cake(
                 }
 
                 is StuffTextMessage -> {
-                    Cbuf.AddText(msg.text)
+                    if (clDebugStufftext.value != 0f) {
+                        Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
+                    }
+                    val filtered = filterServerStuffText(msg.text)
+                    filtered.rejectedCommands.forEach {
+                        Com.Warn("Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
+                    }
+                    if (filtered.acceptedCommands.isNotEmpty()) {
+                        Cbuf.AddText(filtered.acceptedCommands.joinToString(separator = "\n", postfix = "\n"))
+                    }
                 }
 
                 is ServerDataMessage -> {
