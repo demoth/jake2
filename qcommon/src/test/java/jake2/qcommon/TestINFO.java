@@ -1,33 +1,53 @@
-/*
-Copyright (C) 1997-2001 Id Software, Inc.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-
-// Created on 29.12.2003 by RST.
-
 package jake2.qcommon;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestINFO {
 
-	public static void main(String args[]) {
-		String test = "\\key1\\value 1\\key 2 \\value2\\key3\\ v a l u e 3\\key4\\val ue 4";
-		Info.Print(test);
-		test = Info.Info_RemoveKey(test, "key1");
-		Info.Print(test);
-	}
+    @Test
+    public void testValueForKeyReturnsValue() {
+        String info = "\\name\\player\\skin\\male/grunt";
+
+        assertEquals("player", Info.Info_ValueForKey(info, "name"));
+        assertEquals("male/grunt", Info.Info_ValueForKey(info, "skin"));
+        assertEquals("", Info.Info_ValueForKey(info, "missing"));
+    }
+
+    @Test
+    public void testRemoveKeyRemovesOnlyRequestedEntry() {
+        String info = "\\key1\\value1\\key2\\value2\\key3\\value3";
+
+        assertEquals("\\key2\\value2\\key3\\value3", Info.Info_RemoveKey(info, "key1"));
+        assertEquals("\\key1\\value1\\key3\\value3", Info.Info_RemoveKey(info, "key2"));
+        assertEquals(info, Info.Info_RemoveKey(info, "missing"));
+    }
+
+    @Test
+    public void testSetValueForKeyAppendsAndReplaces() {
+        String info = "\\name\\player";
+
+        assertEquals("\\name\\player\\skin\\male/grunt", Info.Info_SetValueForKey(info, "skin", "male/grunt"));
+        assertEquals("\\name\\player\\skin\\female/athena", Info.Info_SetValueForKey("\\skin\\male/grunt\\name\\player", "skin", "female/athena"));
+    }
+
+    @Test
+    public void testSetValueForKeyRejectsInvalidInputs() {
+        String info = "\\name\\player";
+
+        assertEquals(info, Info.Info_SetValueForKey(info, "bad;key", "value"));
+        assertEquals(info, Info.Info_SetValueForKey(info, "bad\\key", "value"));
+        assertEquals(info, Info.Info_SetValueForKey(info, "key", "bad\"value"));
+        assertEquals(info, Info.Info_SetValueForKey(info, "key", ""));
+    }
+
+    @Test
+    public void testValidateRejectsReservedCharacters() {
+        assertTrue(Info.Info_Validate("\\name\\player"));
+        assertFalse(Info.Info_Validate("\\name\\bad;value"));
+        assertFalse(Info.Info_Validate("\\name\\bad\"value"));
+    }
 }
