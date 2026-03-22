@@ -154,7 +154,7 @@ class InputManager(
 
         // deliver the message
         return MoveMessage(
-            false, // todo
+            !currentFrame.valid,
             currentFrame.serverframe,
             oldestCmd,
             oldCmd,

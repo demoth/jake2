@@ -6,6 +6,9 @@ import jake2.qcommon.usercmd_t;
 
 public class MoveMessage extends ClientMessage {
     private int checksumIndex;
+    // When set, write an invalid lastReceivedFrame marker so the server sends the next world
+    // snapshot as a full frame instead of delta-compressing against a client frame we could not
+    // reconstruct locally.
     private boolean noCompress;
     public int lastReceivedFrame;
     public usercmd_t oldestCmd;
@@ -229,4 +232,3 @@ public class MoveMessage extends ClientMessage {
         return 2 + result;
     }
 }
-

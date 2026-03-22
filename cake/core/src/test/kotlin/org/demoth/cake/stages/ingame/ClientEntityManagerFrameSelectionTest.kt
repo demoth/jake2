@@ -3,7 +3,9 @@ package org.demoth.cake.stages.ingame
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.PlayerInfoMessage
+import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.player_state_t
+import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -34,9 +36,11 @@ class ClientEntityManagerFrameSelectionTest {
     ) {
         manager.processServerFrameHeader(FrameHeaderMessage(frameNumber, lastFrame, 0, 0, byteArrayOf()))
         manager.processPlayerInfoMessage(
-            PlayerInfoMessage(
-                playerState(previousGunFrame),
-                playerState(currentGunFrame),
+            roundTrip(
+                PlayerInfoMessage(
+                    playerState(previousGunFrame),
+                    playerState(currentGunFrame),
+                ),
             ),
         )
         assertTrue(manager.processPacketEntitiesMessage(PacketEntitiesMessage()))
@@ -47,5 +51,15 @@ class ClientEntityManagerFrameSelectionTest {
             gunindex = 1
             this.gunframe = gunFrame
         }
+    }
+
+    // The runtime receives parsed network messages, not freshly constructed DTOs. Round-tripping
+    // here forces PlayerInfoMessage to compute/write its delta flags first so the test exercises
+    // the same decoded shape that processPlayerInfoMessage sees in production.
+    private fun roundTrip(message: PlayerInfoMessage): PlayerInfoMessage {
+        val buffer = sizebuf_t()
+        buffer.init(ByteArray(256), 256)
+        message.writeTo(buffer)
+        return ServerMessage.parseFromBuffer(buffer) as PlayerInfoMessage
     }
 }

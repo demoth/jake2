@@ -40,8 +40,11 @@ class ClientEntityManager : Disposable {
     private val cl_parse_entities = Array(Defines.MAX_PARSE_ENTITIES) { entity_state_t() }
     private val clientEntities = Array(Defines.MAX_EDICTS) { ClientEntity("") }
 
-    var previousFrame: ClientFrame? =
-        ClientFrame() // the frame that we will delta from (for PlayerInfo & PacketEntities)
+    var previousFrame: ClientFrame? = null // immediate prior valid server frame for render interpolation
+        private set
+
+    private var deltaSourceFrame: ClientFrame? = null // frame used to reconstruct deltas from server packets
+
     val currentFrame = ClientFrame() // latest frame information received from the server
 
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
@@ -130,8 +133,8 @@ class ClientEntityManager : Disposable {
         currentFrame.parse_entities = parse_entities
         currentFrame.num_entities = 0
 
-        // Determine if we have a valid previous frame to delta from
-        val oldFrame = previousFrame?.takeIf { it.valid && it.num_entities > 0 }
+        // Determine if we have a valid frame to delta from
+        val oldFrame = deltaSourceFrame?.takeIf { it.valid && it.num_entities > 0 }
 
         val mask = Defines.MAX_PARSE_ENTITIES - 1
 
@@ -720,7 +723,8 @@ class ClientEntityManager : Disposable {
                 currentFrame.valid = true  // valid delta parse
             }
         }
-        previousFrame = deltaFrame
+        deltaSourceFrame = deltaFrame
+        previousFrame = findImmediatePreviousFrame()
 
         // determine delta frame:
         // clamp time
@@ -734,7 +738,7 @@ class ClientEntityManager : Disposable {
         val currentPlayerState = currentFrame.playerstate
 
         // clear to old value before delta parsing
-        val deltaFrame = previousFrame
+        val deltaFrame = deltaSourceFrame
         if (deltaFrame == null) {
             currentPlayerState.clear()
         } else {
@@ -796,5 +800,18 @@ class ClientEntityManager : Disposable {
     override fun dispose() {
         if (debugWorldOrigin != null)
             debugWorldOrigin!!.modelInstance.model.dispose()
+    }
+
+    // Rendering/interpolation needs the immediately preceding server snapshot when we have it
+    // locally, not the packet's delta source. Under packet loss/high RTT the server may delta
+    // frame N from an older acknowledged frame, but view/gun interpolation in the legacy clients
+    // still lerps against frame N-1 if that frame was received and validated.
+    private fun findImmediatePreviousFrame(): ClientFrame? {
+        val frameNumber = currentFrame.serverframe - 1
+        if (frameNumber < 0) {
+            return null
+        }
+        return frames[frameNumber and Defines.UPDATE_MASK]
+            .takeIf { it.valid && it.serverframe == frameNumber }
     }
 }
