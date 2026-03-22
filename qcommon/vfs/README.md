@@ -100,6 +100,14 @@ Current module usage:
 - model viewer: thin VFS adapter over the same shared semantics
 - save/config/state writes: `DefaultWritableFileSystem` plus JSON stores
 
+Cake-specific startup notes:
+
+- normal Cake startup no longer depends on JVM `basedir` / `game` system properties
+- the active profile store provides startup context for the main client
+- Steam autodetect is only used to bootstrap a default profile on first run
+- if no usable profile can be resolved, Cake opens profile editing instead of falling back to `.`
+- the model viewer still derives lightweight `basedir` / `gamemod` hints from the opened path and current folder
+
 ## Diagnostics
 
 Available commands:
@@ -161,6 +169,7 @@ Completed:
 - JSON save/state persistence over writable VFS APIs
 - removal of active `FS`, `QuakeFile`, and `VfsBackedFileSystem`
 - removal of the `VfsLookupOptions` wrapper in favor of simple default methods plus a plain `gameDataOnly` boolean where fallback filtering is needed
+- removal of Cake-only save metadata commands and the dead save metadata store
 
 ## Active Follow-Ups
 
