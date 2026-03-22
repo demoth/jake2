@@ -231,3 +231,12 @@
 4. Reuse the existing UDP protocol messages in Cake networking.
 5. Integrate downloads into the current precache flow.
 6. Add VFS/content refresh after completion.
+
+## Progress
+- Done:
+  - documented the phase-1 design and reference review
+  - registered the classic `allow_download*` client cvars in Cake startup
+  - added a dedicated global download cache helper with per-mod roots
+- Next:
+  - extract the Cake-side download manager skeleton
+  - implement strict path validation and queue ownership

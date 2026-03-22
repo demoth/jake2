@@ -11,6 +11,7 @@ object CakeCvars {
     fun registerAll() {
         registerUserInfo()
         registerClient()
+        registerDownloads()
         registerVideoMode()
     }
 
@@ -53,5 +54,14 @@ object CakeCvars {
         cvars.Get("s_volume", "0.7", CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
 
         RenderTuningCvars.register()
+    }
+
+    private fun registerDownloads() {
+        val cvars = Cvar.getInstance()
+        cvars.Get("allow_download", "1", CVAR_ARCHIVE, "Allow downloading missing game content from servers")
+        cvars.Get("allow_download_maps", "1", CVAR_ARCHIVE, "Allow downloading missing maps from servers")
+        cvars.Get("allow_download_models", "1", CVAR_ARCHIVE, "Allow downloading missing models from servers")
+        cvars.Get("allow_download_sounds", "1", CVAR_ARCHIVE, "Allow downloading missing sounds from servers")
+        cvars.Get("allow_download_players", "0", CVAR_ARCHIVE, "Allow downloading missing player models and skins from servers")
     }
 }
