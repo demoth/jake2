@@ -74,6 +74,16 @@ SoundMessage
 - Entity-event sounds are triggered after a valid packet-entity reconstruction.
 - Cinematic control path (`playernum == -1`) must keep normal client message processing alive and may emit `nextserver <spawncount>` on guarded user skip input.
 
+## Runtime Controls
+- `vid_gamma` - shared brightness control for world/MD2 lighting.
+- `gl3_intensity` - legacy-style brightness multiplier for lit geometry.
+- `gl3_overbrightbits` - legacy-style overbright control (`0` disables extra boost).
+- `r_dlights` - toggles dynamic-light contribution.
+- `r_particles` - global particle budget (`0` disables particles).
+- `r_bsp_batch_debug` - throttled batching/cinematic diagnostics.
+- `r_post_vignette` / `r_post_vignette_strength` - postprocess blend control for `player_state_t.blend`.
+- `r_underwater_warp` - toggles postprocess underwater screen warping.
+
 ## MD2 Shell Highlight (Fresnel Rim)
 - Purpose: provide a clear shell-like visual emphasis for MD2 entities without introducing an extra shell mesh/render pass.
 - Current approach: single-pass Fresnel rim highlight in MD2 shader (`assets/shaders/md2.vert`, `assets/shaders/md2.frag`).
