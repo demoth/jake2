@@ -428,8 +428,9 @@ class Cake(
             }
             try {
                 activeScreen.precache()
-            } catch (error: MissingResourceException) {
-                if (beginMissingResourceDownload(error, precache_spawncount)) {
+            } catch (error: RuntimeException) {
+                val missingResource = findMissingResourceFailure(error)
+                if (missingResource != null && beginMissingResourceDownload(missingResource, precache_spawncount)) {
                     return@AddCommand
                 }
                 throw error
