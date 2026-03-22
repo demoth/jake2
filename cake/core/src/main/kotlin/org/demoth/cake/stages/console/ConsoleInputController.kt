@@ -116,6 +116,16 @@ class ConsoleInputController(
     }
 
     private fun formatMatch(name: String): String {
+        val command = Cmd.FindCommand(name)
+        if (command != null) {
+            val description = command.description
+            return if (description.isNullOrBlank()) {
+                name
+            } else {
+                "$name - $description"
+            }
+        }
+
         val cvar = Cvar.getInstance().FindVar(name) ?: return name
         return buildString {
             append(name)

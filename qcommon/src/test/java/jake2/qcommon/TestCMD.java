@@ -104,6 +104,16 @@ public class TestCMD {
     }
 
     @Test
+    public void testCommandDescriptionMetadata() {
+        Cmd.AddCommand("described_cmd", "Command description", (List<String> args) -> {
+        });
+
+        Cmd.cmd_function_t command = Cmd.FindCommand("described_cmd");
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals("Command description", command.description);
+    }
+
+    @Test
     public void testGetArguments() {
         List<String> args = Arrays.asList("echo", "hello", "world");
         assertEquals("hello world", getArguments(args));

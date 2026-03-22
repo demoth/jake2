@@ -41,7 +41,11 @@ public final class Cmd {
     private final static Command List_f = (List<String> args) -> {
 
         for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
-            Com.Printf(cmd.name + '\n');
+            if (cmd.description != null && !cmd.description.isBlank()) {
+                Com.Printf(cmd.name + " - " + cmd.description + '\n');
+            } else {
+                Com.Printf(cmd.name + '\n');
+            }
         }
 
         Com.Printf(Cmd.cmd_functions.size() + " commands\n");
@@ -230,10 +234,18 @@ public final class Cmd {
     }
 
     public static void AddCommand(String cmd_name, Command function) {
-        AddCommand(cmd_name, false, function);
+        AddCommand(cmd_name, false, null, function);
+    }
+
+    public static void AddCommand(String cmd_name, String description, Command function) {
+        AddCommand(cmd_name, false, description, function);
     }
 
     public static void AddCommand(String cmd_name, boolean replace, Command function) {
+        AddCommand(cmd_name, replace, null, function);
+    }
+
+    public static void AddCommand(String cmd_name, boolean replace, String description, Command function) {
         // fail if the command is a variable name
         if ((Cvar.getInstance().VariableString(cmd_name)).length() > 0) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
@@ -246,7 +258,7 @@ public final class Cmd {
             return;
         }
 
-        cmd_functions.put(cmd_name, new cmd_function_t(cmd_name, function));
+        cmd_functions.put(cmd_name, new cmd_function_t(cmd_name, function, description));
     }
 
     /**
@@ -345,6 +357,10 @@ public final class Cmd {
         return cmds;
     }
 
+    public static cmd_function_t FindCommand(String name) {
+        return cmd_functions.get(name);
+    }
+
     public static void ExecuteFunction(String name, String... args) {
         if (cmd_functions.containsKey(name)) {
             cmd_functions.get(name).function.execute(Arrays.asList(args));
@@ -392,16 +408,19 @@ public final class Cmd {
     public static final class cmd_function_t {
         public String name;
         public Command function;
+        public String description;
 
-        public cmd_function_t(String name, Command function) {
+        public cmd_function_t(String name, Command function, String description) {
             this.name = name;
             this.function = function;
+            this.description = description;
         }
 
         @Override
         public String toString() {
             return "cmd_function_t{" +
                     "name='" + name + '\'' +
+                    ", description='" + description + '\'' +
                     '}';
         }
     }
