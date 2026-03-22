@@ -258,7 +258,7 @@ class Cake(
 
         // region COMMANDS
 
-        Cmd.AddCommand("quit") {
+        Cmd.AddCommand("quit", "Exit Cake") {
             saveActiveProfileConfig()
             disconnect()
             Gdx.app.exit()
@@ -269,7 +269,7 @@ class Cake(
          *
          * Just sent as a hint to the client that they should drop to full console.
          */
-        Cmd.AddCommand("changing") {
+        Cmd.AddCommand("changing", "(internal) Enter map-change transition state") {
             networkState = CONNECTED
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
@@ -278,9 +278,8 @@ class Cake(
             beginMapTransitionRetainingConfigAssets()
         }
 
-        // like a connect but more lightweight
-        // fixme: not same as svc_reconnect?
-        Cmd.AddCommand("reconnect") {
+        // Important: like a svc_reconnect but more lightweight
+        Cmd.AddCommand("reconnect", "Reconnect to the current server") {
             Com.Printf("Reconnecting..\n")
 
             if (networkState == CONNECTED) { // set on "changing" command
@@ -296,7 +295,7 @@ class Cake(
 
         }
 
-        Cmd.AddCommand("connect") {
+        Cmd.AddCommand("connect", "Connect to a remote server") {
             Com.Printf("Connecting to ${it[1]}...\n")
             // first disconnect
             disconnect()
@@ -313,7 +312,7 @@ class Cake(
          *
          * Send the rest of the command line over as an unconnected command.
          */
-        Cmd.AddCommand("rcon") { args ->
+        Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
             val rconPassword = Cvar.getInstance().VariableString("rcon_password")
             if (rconPassword.isEmpty()) {
                 Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
@@ -350,14 +349,14 @@ class Cake(
             Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
         }
 
-        Cmd.AddCommand("disconnect") { disconnect() }
+        Cmd.AddCommand("disconnect", "Disconnect from the current server") { disconnect() }
 
-        Cmd.AddCommand("userinfo") {
+        Cmd.AddCommand("userinfo", "Print the current userinfo string") {
             val userInfo = Cvar.getInstance().Userinfo()
             Com.Println("Userinfo: $userInfo")
         }
 
-        Cmd.AddCommand("jvm_info") {
+        Cmd.AddCommand("jvm_info", "Print JVM version and memory information") {
             Com.Println("Version: ${Runtime.version()}")
             val rt = Runtime.getRuntime()
             Com.Println("Free: ${rt.freeMemory() / 1024 / 1024} MB")
@@ -366,19 +365,19 @@ class Cake(
             Com.Println("Max: ${rt.maxMemory() / 1024 / 1024} MB")
         }
 
-        Cmd.AddCommand("print_cbuf") {
+        Cmd.AddCommand("print_cbuf", "Print current command buffer contents") {
             Com.Println(Cbuf.contents())
         }
 
-        Cmd.AddCommand("screenshot") {
+        Cmd.AddCommand("screenshot", "Save a screenshot to the active profile") {
             takeScreenshot()
         }
 
-        Cmd.AddCommand("cake_profile_set") { args ->
+        Cmd.AddCommand("cake_profile_set", "Switch the active Cake game profile") { args ->
             setActiveGameProfile(args)
         }
 
-        Cmd.AddCommand("writeconfig") {
+        Cmd.AddCommand("writeconfig", "Write profile-local config and bindings") {
             saveActiveProfileConfig()
         }
 
@@ -389,7 +388,7 @@ class Cake(
          *
          * see jake2.server.SV_MAIN#SV_ExecuteUserCommand(jake2.server.client_t, java.lang.String)
          */
-        Cmd.AddCommand("cmd") {
+        Cmd.AddCommand("cmd", "(internal) Forward a command to the connected server") {
             if (networkState != CONNECTED && networkState != ACTIVE) {
                 Com.Warn("Cannot cmd '${it}', not connected")
             } else {
@@ -400,7 +399,7 @@ class Cake(
             }
         }
 
-        Cmd.AddCommand("precache") {
+        Cmd.AddCommand("precache", "(internal) Finish client precache for the active map") {
             if (networkState == ACTIVE) {
                 // tothink: do we ignore it or restart the map?
                 Com.Warn("precache - during the game!\n") // todo: warning

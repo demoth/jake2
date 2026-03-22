@@ -343,7 +343,7 @@ class ClientBindings(
     }
 
     private fun registerBindingCommands() {
-        Cmd.AddCommand("bind", true) { args ->
+        Cmd.AddCommand("bind", true, "Bind a key to a command") { args ->
             if (args.size < 2) {
                 Com.Printf("bind <key> [command] : attach a command to a key\n")
                 return@AddCommand
@@ -370,7 +370,7 @@ class ClientBindings(
             setBinding(keyCode, command)
         }
 
-        Cmd.AddCommand("unbind", true) { args ->
+        Cmd.AddCommand("unbind", true, "Remove a key binding") { args ->
             if (args.size != 2) {
                 Com.Printf("unbind <key> : remove commands from a key\n")
                 return@AddCommand
@@ -385,11 +385,11 @@ class ClientBindings(
             setBinding(keyCode, null)
         }
 
-        Cmd.AddCommand("unbindall", true) {
+        Cmd.AddCommand("unbindall", true, "Clear all key bindings") {
             clearBindings()
         }
 
-        Cmd.AddCommand("bindlist", true) {
+        Cmd.AddCommand("bindlist", true, "List current key bindings") {
             for ((key, binding) in listBindings()) {
                 Com.Printf("$key \"$binding\"\n")
             }

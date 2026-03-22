@@ -165,10 +165,10 @@ class InputManager(
 
     private fun registerImmediateActionCommands() {
         for (action in ImmediateAction.entries) {
-            Cmd.AddCommand("+${action.command}", true) {
+            Cmd.AddCommand("+${action.command}", true, "(internal) Start '${action.command}' input state") {
                 pressAction(action)
             }
-            Cmd.AddCommand("-${action.command}", true) {
+            Cmd.AddCommand("-${action.command}", true, "(internal) Stop '${action.command}' input state") {
                 releaseAction(action)
             }
         }

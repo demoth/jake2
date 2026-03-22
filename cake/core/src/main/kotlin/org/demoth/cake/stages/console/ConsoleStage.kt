@@ -100,11 +100,11 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
             }
         }
 
-        Cmd.AddCommand("clear") {
+        Cmd.AddCommand("clear", "Clear console output") {
             consoleBuffer.clear()
         }
 
-        Cmd.AddCommand("console_print") { args: List<String?> ->
+        Cmd.AddCommand("console_print", "(internal) Append text to the console output") { args: List<String?> ->
             appendOutput(Com.ConsoleLevel.INFO, "${args.first()}")
         }
     }

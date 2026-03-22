@@ -123,10 +123,10 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         }
         resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
 
-        Cmd.AddCommand("r_debug_hideall") {
+        Cmd.AddCommand("r_debug_hideall", "(internal) Disable all debug graph metrics") {
             metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "0") }
         }
-        Cmd.AddCommand("r_debug_showall") {
+        Cmd.AddCommand("r_debug_showall", "(internal) Enable all debug graph metrics") {
             metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "1") }
         }
     }

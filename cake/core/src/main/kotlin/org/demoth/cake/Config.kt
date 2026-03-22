@@ -60,14 +60,14 @@ class GameConfiguration(
     }
 
     init {
-        Cmd.AddCommand("print_configs", true) {
+        Cmd.AddCommand("print_configs", true, "Print loaded server configstrings") {
             configStrings.forEachIndexed { i, c ->
                 if (c != null) {
                     Com.Printf("ConfigString[$i] = ${c.value}, loaded = ${c.resource != null}\n")
                 }
             }
         }
-        Cmd.AddCommand("print_asset_errors", true) {
+        Cmd.AddCommand("print_asset_errors", true, "Print failed asset loads for the current configuration") {
             if (failedAssets.isEmpty()) {
                 Com.Printf("No failed assets\n")
                 return@AddCommand
