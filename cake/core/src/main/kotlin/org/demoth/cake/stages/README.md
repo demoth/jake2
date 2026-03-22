@@ -20,6 +20,7 @@ It does not own:
 - `OptionsMenuStage` - hub for cvar-backed options sections.
 - `OptionsSectionStage` - generic cvar table for one options prefix/section.
 - `stages.console.ConsoleStage` - Command input and output overlay stage.
+  - Detailed console package behavior is documented in `stages/console/README.md`.
 
 ## Data / Control Flow
 ```text
@@ -62,12 +63,12 @@ Options section edit path
 Console Enter key
   -> Cbuf.AddText(input)
   -> Cbuf.Execute()
-  -> append output line to TextArea
+  -> append output to ConsoleBuffer / ConsoleOutputWidget
 ```
 
 ## Invariants
 - Stages are app-owned singletons for a running `Cake` instance.
-- Console submission path is Enter-key only.
+- Console execution is Enter-key driven, but the console also owns completion/history/scroll keys through `ConsoleInputController`.
 - Menu navigation state lives in `org.demoth.cake.ui.menu`, not inside individual stage widgets.
 - Multiplayer and options flows are routed through dedicated screens instead of ad-hoc button commands.
 - `Player Setup` writes on `Save` only; `Back` discards staged edits.
@@ -144,5 +145,4 @@ Newest first.
 ## Open Questions
 - Should `rate` join the current `Player Setup` screen or remain outside the initial userinfo flow?
 - If player preview returns later, can it stay isolated from menu-state logic and asset discovery concerns?
-- Should `stages.console.ConsoleStage` own styling-only commands (`clear`, `console_print`), or should they move to a central command registration component?
-- Should console panel rendering be moved from ad-hoc `Stack` composition to a reusable widget to avoid repeated order/padding regressions?
+- Console-specific follow-ups now live in `stages/console/README.md`.
