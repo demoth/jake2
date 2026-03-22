@@ -549,10 +549,12 @@ class Cake(
                 renderProfileBackground()
             }
 
-            CheckForResend(deltaSeconds)
+            // Match the legacy client ordering: process incoming packets and any stuffed commands first,
+            // then react in the same frame by sending reliable/new packets or a reconnect challenge.
             CL_ReadPackets()
             Cbuf.Execute()
             sendUpdates()
+            CheckForResend(deltaSeconds)
 
             if (game3dScreen != null) {
                 // Keep prediction state aligned with netchan before render-time replay.
