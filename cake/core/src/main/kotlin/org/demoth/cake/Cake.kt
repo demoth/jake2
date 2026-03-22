@@ -79,7 +79,7 @@ private enum class MenuView {
  *
  */
 class Cake(
-    private val startupContext: CakeStartupContext? = null,
+    startupContext: CakeStartupContext? = null,
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f

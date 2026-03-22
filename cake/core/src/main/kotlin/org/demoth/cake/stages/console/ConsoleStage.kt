@@ -1,6 +1,5 @@
 package org.demoth.cake.stages.console
 
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -10,7 +9,6 @@ import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import ktx.actors.setKeyboardFocus
-import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.*
 
 /**

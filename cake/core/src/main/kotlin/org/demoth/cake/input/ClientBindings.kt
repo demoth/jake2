@@ -137,23 +137,21 @@ class ClientBindings(
      * Dispatches a wheel event to `MWHEELUP` / `MWHEELDOWN` pseudo-keys.
      *
      * Wheel binds do not have a held state. They are always treated as transient events.
-     */
+    */
     fun handleScroll(amountX: Float, amountY: Float): Boolean {
-        var handled = false
-
-        if (amountY < 0f) {
-            handled = dispatchWheel(MWHEELUP) || handled
-        } else if (amountY > 0f) {
-            handled = dispatchWheel(MWHEELDOWN) || handled
+        val handledY = when {
+            amountY < 0f -> dispatchWheel(MWHEELUP)
+            amountY > 0f -> dispatchWheel(MWHEELDOWN)
+            else -> false
         }
 
-        if (amountX < 0f) {
-            handled = dispatchWheel(MWHEELUP) || handled
-        } else if (amountX > 0f) {
-            handled = dispatchWheel(MWHEELDOWN) || handled
+        val handledX = when {
+            amountX < 0f -> dispatchWheel(MWHEELUP)
+            amountX > 0f -> dispatchWheel(MWHEELDOWN)
+            else -> false
         }
 
-        return handled
+        return handledY || handledX
     }
 
     /** Assigns a bind by key name. Returns `false` if key name is unknown. */
