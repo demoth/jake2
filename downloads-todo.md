@@ -237,6 +237,11 @@
   - documented the phase-1 design and reference review
   - registered the classic `allow_download*` client cvars in Cake startup
   - added a dedicated global download cache helper with per-mod roots
+  - added a Cake-side download manager skeleton with:
+    - queue ownership
+    - category classification
+    - strict path validation
+    - temp-path derivation
 - Next:
-  - extract the Cake-side download manager skeleton
-  - implement strict path validation and queue ownership
+  - hook the manager into Cake networking and precache flow
+  - wire temp/resume/final file writes around `svc_download`
