@@ -1,32 +1,11 @@
 # Sound TODO (Cake vs Yamagi/Quetoo)
 
-Date: 2026-02-27
+Stable architecture and current runtime behavior now live in:
 
-## Purpose
+- `sound/README.md`
+- `cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/README.md`
 
-Track remaining gaps between Cake audio and reference Quake II behavior:
-
-- Yamagi (`../quake/quake2/yquake2`)
-- Quetoo (`../quake/quake2/quetoo`)
-
-## Implemented so far
-
-- Centralized audio facade:
-  - `cake/core/src/main/kotlin/org/demoth/cake/audio/CakeAudioSystem.kt`
-  - `cake/core/src/main/kotlin/org/demoth/cake/audio/FireAndForgetCakeAudioSystem.kt`
-- Unified one-shot playback request model with:
-  - `entityIndex`, `channel`, `timeOffsetSeconds`, `origin`, `attenuation`, `baseVolume`
-- `SoundMessage.timeOffset` delayed scheduling support.
-- Explicit channel override baseline for `CHAN_* != CHAN_AUTO` via `(entity, channel)` keys.
-- Per-frame listener-based respatialization for tracked active channels.
-- Non-spatial exceptions for:
-  - `ATTN_NONE`
-  - local player entity sounds
-- Looped entity sound baseline (`entity_state.sound`):
-  - per-frame sync start/update/stop
-  - static-style attenuation and respatialization
-- Transition lifecycle cleanup:
-  - stop audio on disconnect / serverdata reset / map transition
+This file is intentionally reduced to active parity and diagnostics follow-ups only.
 
 ## Pending (current priority)
 
@@ -55,18 +34,6 @@ TODO:
 - Add regression checks for moving-source one-shot behavior.
 
 ### 3) Entity event coverage completion
-
-Status:
-
-- Implemented:
-  - footsteps + fall variants
-  - item respawn (`EV_ITEM_RESPAWN`) sound + particles
-  - player teleport (`EV_PLAYER_TELEPORT`) sound + particles
-
-References:
-
-- Cake: `Game3dScreen.playEntityEventSounds`
-- Yamagi/legacy: `client/src/main/java/jake2/client/CL_fx.java` (`EV_ITEM_RESPAWN`, `EV_PLAYER_TELEPORT`)
 
 TODO:
 

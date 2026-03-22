@@ -43,6 +43,7 @@ Per render frame:
 
 - Explicit channels (`CHAN_* != CHAN_AUTO`) are keyed by `(entity, channel)` and override previous active voice on the same key.
 - `CHAN_AUTO` currently behaves as fire-and-forget (no override key).
+- `SoundMessage.timeOffset` is honored for delayed one-shot scheduling.
 
 ### 5) Non-spatial exceptions
 
@@ -61,6 +62,16 @@ Loops are synchronized from replicated `entity_state.sound` each frame:
 - missing in frame -> stop loop
 
 Current attenuation baseline uses static-style falloff (`ATTN_STATIC`) with per-frame respatialization.
+
+### 7) Entity-event coverage
+
+Current event-sound coverage includes:
+
+- footsteps and fall variants
+- `EV_ITEM_RESPAWN`
+- `EV_PLAYER_TELEPORT`
+
+Item respawn and player teleport also trigger their paired visual effect paths from the ingame runtime.
 
 ## Current producers
 
@@ -83,4 +94,5 @@ This prevents lingering sounds across reconnect/map changes.
 
 - No strict full parity yet for all channel-pressure/voice-stealing edge cases.
 - `CHAN_AUTO` one-shots are not persistently tracked after playback starts.
+- `EV_OTHER_TELEPORT` still needs an explicit parity decision.
 - Music/streaming, environmental filters, and doppler are deferred for future work.

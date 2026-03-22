@@ -113,15 +113,15 @@ Newest first.
 - References: this thread; legacy `LWJGLSoundImpl.RegisterSexedSound`.
 
 ### Decision: Handle fall/footstep via entity events in ingame runtime
-- Decision: Implement `EV_FOOTSTEP`, `EV_FALLSHORT`, `EV_FALL`, `EV_FALLFAR` in `Game3dScreen.playEntityEventSounds`.
-- Context: Fall/footstep are emitted as entity events, not only as `SoundMessage`.
+- Decision: Handle gameplay-significant entity-event sounds in `Game3dScreen.playEntityEventSounds`.
+- Context: Fall/footstep, item respawn, and teleport feedback are emitted as entity events, not only as `SoundMessage`.
 - Options Considered:
 1. Keep only `SoundMessage` path.
 2. Add dedicated entity-event sound dispatch after packet entity reconstruction.
 - Chosen Option & Rationale: Option 2, matching old `CL_fx.EntityEvent` behavior.
-- Consequences: Event-sound coverage is currently scoped to footstep/fall events.
+- Consequences: `EV_OTHER_TELEPORT` remains an explicit follow-up instead of being guessed into the current mapping.
 - Status: accepted.
-- Definition of Done: Fall and footstep sounds are audible without relying on `SoundMessage`.
+- Definition of Done: footsteps, fall variants, item respawn, and player teleport feedback are audible without relying on `SoundMessage`.
 - References: this thread; legacy `client/CL_fx.EntityEvent`.
 
 ### Decision: Remove `cl_footsteps` parity gating for now
@@ -154,5 +154,5 @@ Newest first.
 4. Add tests or manual parity checks for both `SoundMessage` and entity-event paths.
 
 ## Open Questions
-- Should remaining legacy entity-event sounds (`EV_ITEM_RESPAWN`, `EV_PLAYER_TELEPORT`) be added in this package or delegated to effects?
+- Should `EV_OTHER_TELEPORT` map to an explicit entity-event sound path in Cake runtime?
 - Should variation-sound resolution move into a reusable helper shared with other runtime systems?
