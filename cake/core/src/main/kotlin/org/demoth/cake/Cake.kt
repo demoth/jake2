@@ -24,6 +24,7 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
+import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.UserInfoMessage
@@ -156,6 +157,7 @@ class Cake(
     private val profileConfigStore = CakeProfileConfigStore()
     private val downloadManager = CakeDownloadManager()
     private val downloadTransfer = CakeDownloadTransfer()
+    private val networkDebugSampler = NetworkDebugSampler()
     private var pendingPrecacheSpawnCount: Int? = null
     private var lastDownloadProgressPercent: Int = -1
     private var activeGameProfile: CakeGameProfile? = null
@@ -456,7 +458,7 @@ class Cake(
         clearTransitionBackdrop()
 
         // send a disconnect message to the server
-        netchan.transmit(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+        transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
 
         // reset network state
         NET.Config(false)
@@ -551,6 +553,11 @@ class Cake(
             Com.Printf("Downloading ${logicalPath}... ${percent}%\n")
         }
         lastDownloadProgressPercent = percent
+    }
+
+    private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
+        netchan.transmit(unreliable)
+        networkDebugSampler.recordOutbound(netchan.last_sent_size, Globals.curtime)
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
@@ -725,11 +732,15 @@ class Cake(
                 consoleStage.draw()
             }
 
-            if (glProfilerActive) {
-                debugGraphStage.collectMetrics(glProfiler)
+            if (debugGraphStage.hasEnabledMetrics()) {
+                val profiler = if (glProfilerActive) glProfiler else null
+                val networkSnapshot = networkDebugSampler.snapshot(Globals.curtime, netchan.smoothed_ping_ms)
+                debugGraphStage.collectMetrics(profiler, networkSnapshot)
                 debugGraphStage.act(deltaSeconds)
                 debugGraphStage.draw()
-                glProfiler.reset()
+                if (glProfilerActive) {
+                    glProfiler.reset()
+                }
             }
         } catch (error: RuntimeException) {
             val missingResource = findMissingResourceFailure(error)
@@ -743,7 +754,7 @@ class Cake(
 
     @Suppress("GDXKotlinProfilingCode")
     private fun updateGlProfilerState() {
-        val shouldEnableProfiler = debugGraphStage.hasEnabledMetrics()
+        val shouldEnableProfiler = debugGraphStage.hasEnabledGlMetrics()
         if (shouldEnableProfiler == glProfilerActive) {
             return
         }
@@ -752,7 +763,6 @@ class Cake(
             glProfiler.reset()
         } else {
             glProfiler.disable()
-            debugGraphStage.resetMetrics()
         }
         glProfilerActive = shouldEnableProfiler
     }
@@ -770,7 +780,7 @@ class Cake(
             CONNECTED -> {
                 if (netchan.reliablePending.isNotEmpty() || Globals.curtime - netchan.last_sent > CONNECTED_KEEPALIVE_TIMEOUT_MS) {
                     // send pending reliable messages (e.g. "new") immediately
-                    netchan.transmit(null)
+                    transmitAndRecord(null)
                 }
             }
 
@@ -778,7 +788,7 @@ class Cake(
                 queueUserInfoUpdateIfNeeded()
                 // fixme: send only at client rate, not every client frame
                 game3dScreen?.gatherInput(netchan.outgoing_sequence)?.let {
-                    netchan.transmit(listOf(it))
+                    transmitAndRecord(listOf(it))
                 }
             }
         }
@@ -983,6 +993,7 @@ class Cake(
             }
 
             if (netchan.accept(networkPacket)) {
+                networkDebugSampler.recordInbound(netchan.last_received_size, Globals.curtime)
                 parseServerMessage(networkPacket.parseBodyFromServer())
             } //else wasn't accepted for some reason
 
@@ -1062,6 +1073,9 @@ class Cake(
                 }
 
                 is DownloadMessage -> {
+                    msg.data?.size?.takeIf { it > 0 }?.let { bytes ->
+                        networkDebugSampler.recordDownload(bytes, Globals.curtime)
+                    }
                     processDownloadMessage(msg)
                 }
 
@@ -1142,6 +1156,7 @@ class Cake(
     private fun resetDownloadState() {
         downloadManager.clear()
         downloadTransfer.reset()
+        networkDebugSampler.clear()
         pendingPrecacheSpawnCount = null
         lastDownloadProgressPercent = -1
     }

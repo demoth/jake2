@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import ktx.scene2d.Scene2DSkin
+import org.demoth.cake.NetworkDebugSnapshot
 import java.util.EnumMap
 import kotlin.math.max
 
@@ -19,6 +20,10 @@ enum class MetricId {
     TEXTURE_BINDINGS,
     VERTEX_COUNT,
     SHADER_SWITCHES,
+    NET_IN_BYTES_PER_SEC,
+    NET_OUT_BYTES_PER_SEC,
+    NET_PING_MS,
+    NET_DOWNLOAD_KB_PER_SEC,
 }
 
 data class MetricDefinition(
@@ -26,7 +31,8 @@ data class MetricDefinition(
     val name: String,
     val color: Color,
     val description: String? = null,
-    val collectValue: (GLProfiler) -> Int,
+    val requiresGlProfiler: Boolean = false,
+    val collectValue: (GLProfiler?, NetworkDebugSnapshot) -> Int,
 )
 
 /**
@@ -49,35 +55,68 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 name = "r_debug_calls",
                 color = Color(1f, 0.85f, 0.2f, 0.7f),
                 description = "Show GL call count graph",
-                collectValue = { profiler -> profiler.calls },
+                requiresGlProfiler = true,
+                collectValue = { profiler, _ -> profiler?.calls ?: 0 },
             ),
             MetricDefinition(
                 id = MetricId.DRAW_CALLS,
                 name = "r_debug_drawcalls",
                 color = Color(0.2f, 1f, 0.2f, 0.7f),
                 description = "Show draw call count graph",
-                collectValue = { profiler -> profiler.drawCalls },
+                requiresGlProfiler = true,
+                collectValue = { profiler, _ -> profiler?.drawCalls ?: 0 },
             ),
             MetricDefinition(
                 id = MetricId.TEXTURE_BINDINGS,
                 name = "r_debug_texturebindings",
                 color = Color(1f, 0.45f, 0.2f, 0.7f),
                 description = "Show texture binding count graph",
-                collectValue = { profiler -> profiler.textureBindings },
+                requiresGlProfiler = true,
+                collectValue = { profiler, _ -> profiler?.textureBindings ?: 0 },
             ),
             MetricDefinition(
                 id = MetricId.VERTEX_COUNT,
                 name = "r_debug_vertexcount",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
                 description = "Show submitted vertex count graph",
-                collectValue = { profiler -> profiler.vertexCount.total.toInt().coerceAtLeast(0) },
+                requiresGlProfiler = true,
+                collectValue = { profiler, _ -> profiler?.vertexCount?.total?.toInt()?.coerceAtLeast(0) ?: 0 },
             ),
             MetricDefinition(
                 id = MetricId.SHADER_SWITCHES,
                 name = "r_debug_shaderswitches",
                 color = Color(0.9f, 0.35f, 1f, 0.7f),
                 description = "Show shader switch count graph",
-                collectValue = { profiler -> profiler.shaderSwitches },
+                requiresGlProfiler = true,
+                collectValue = { profiler, _ -> profiler?.shaderSwitches ?: 0 },
+            ),
+            MetricDefinition(
+                id = MetricId.NET_IN_BYTES_PER_SEC,
+                name = "net_debug_in_bytes_per_sec",
+                color = Color(0.3f, 0.95f, 0.95f, 0.7f),
+                description = "Show inbound network throughput graph",
+                collectValue = { _, network -> network.inBytesPerSec },
+            ),
+            MetricDefinition(
+                id = MetricId.NET_OUT_BYTES_PER_SEC,
+                name = "net_debug_out_bytes_per_sec",
+                color = Color(0.95f, 0.65f, 0.3f, 0.7f),
+                description = "Show outbound network throughput graph",
+                collectValue = { _, network -> network.outBytesPerSec },
+            ),
+            MetricDefinition(
+                id = MetricId.NET_PING_MS,
+                name = "net_debug_ping_ms",
+                color = Color(0.95f, 0.3f, 0.55f, 0.7f),
+                description = "Show smoothed network ping graph",
+                collectValue = { _, network -> network.pingMs },
+            ),
+            MetricDefinition(
+                id = MetricId.NET_DOWNLOAD_KB_PER_SEC,
+                name = "net_debug_download_kb_per_sec",
+                color = Color(0.65f, 0.95f, 0.3f, 0.7f),
+                description = "Show active download throughput graph",
+                collectValue = { _, network -> network.downloadKilobytesPerSec },
             ),
         )
     }
@@ -123,18 +162,24 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         }
         resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
 
-        Cmd.AddCommand("r_debug_hideall", "(internal) Disable all debug graph metrics") {
-            metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "0") }
+        Cmd.AddCommand("r_debug_hideall", "(internal) Disable all render debug graph metrics") {
+            graphicsMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "0") }
         }
-        Cmd.AddCommand("r_debug_showall", "(internal) Enable all debug graph metrics") {
-            metricDefinitions.forEach { Cvar.getInstance().Set(it.name, "1") }
+        Cmd.AddCommand("r_debug_showall", "(internal) Enable all render debug graph metrics") {
+            graphicsMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "1") }
+        }
+        Cmd.AddCommand("net_debug_hideall", "(internal) Disable all network debug graph metrics") {
+            networkMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "0") }
+        }
+        Cmd.AddCommand("net_debug_showall", "(internal) Enable all network debug graph metrics") {
+            networkMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "1") }
         }
     }
 
-    fun collectMetrics(profiler: GLProfiler) {
+    fun collectMetrics(profiler: GLProfiler?, network: NetworkDebugSnapshot = NetworkDebugSnapshot()) {
         metricDefinitions.forEach { definition ->
             if (isMetricEnabled(definition.id)) {
-                pushMetric(definition.id, definition.collectValue(profiler))
+                pushMetric(definition.id, definition.collectValue(profiler, network))
             } else {
                 clearMetricHistory(definition.id)
             }
@@ -148,6 +193,9 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
     fun hasEnabledMetrics(): Boolean =
         metricDefinitions.any { definition -> isMetricEnabled(definition.id) }
+
+    fun hasEnabledGlMetrics(): Boolean =
+        graphicsMetricDefinitions().any { definition -> isMetricEnabled(definition.id) }
 
     override fun draw() {
         if (metricDefinitions.none { isMetricEnabled(it.id) }) {
@@ -334,4 +382,10 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         metricCurrentValueLabels.values.forEach { it.isVisible = false }
         metricNameLabels.values.forEach { it.isVisible = false }
     }
+
+    private fun graphicsMetricDefinitions(): List<MetricDefinition> =
+        metricDefinitions.filter { it.requiresGlProfiler }
+
+    private fun networkMetricDefinitions(): List<MetricDefinition> =
+        metricDefinitions.filterNot { it.requiresGlProfiler }
 }
