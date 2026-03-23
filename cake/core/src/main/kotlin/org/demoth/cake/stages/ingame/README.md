@@ -75,6 +75,7 @@ SoundMessage
 - Cinematic control path (`playernum == -1`) must keep normal client message processing alive and may emit `nextserver <spawncount>` on guarded user skip input.
 
 ## Runtime Controls
+- `cl_maxfps` - fixed client command/update cadence (not render FPS in Cake).
 - `vid_gamma` - shared brightness control for world/MD2 lighting.
 - `gl3_intensity` - legacy-style brightness multiplier for lit geometry.
 - `gl3_overbrightbits` - legacy-style overbright control (`0` disables extra boost).
@@ -97,6 +98,19 @@ SoundMessage
 
 ## Decision Log
 Newest first.
+
+### Decision: Always decouple client command cadence from render cadence
+- Decision: Cake runs local input/view updates every LibGDX frame, but finalizes usercmds and sends packets on a fixed cadence controlled by `cl_maxfps`.
+- Context: sending one move packet per render frame made outbound traffic scale with modern GPU/frame rates and diverged from Q2Pro-style client timing.
+- Options Considered:
+1. Keep render-driven sends and just add a send throttle inside `sendUpdates`.
+2. Add both synchronous and async code paths behind a `cl_async` switch.
+3. Adopt one always-decoupled scheduler and reuse `cl_maxfps` as the command/update cadence knob.
+- Chosen Option & Rationale: Option 3. It matches the intended modern architecture, avoids carrying an inactive sync path, and preserves some legacy config familiarity by keeping `cl_maxfps`.
+- Consequences: in Cake, `cl_maxfps` no longer means render FPS; it controls the fixed client command/update cadence. Render continues at LibGDX frame rate.
+- Status: accepted.
+- Definition of Done: `render()` no longer sends one move packet per frame; `InputManager` splits per-frame local input updates from fixed-cadence command construction.
+- References: thread section about Q2Pro-style client send cadence.
 
 ### Decision: Resolve player sounds via `PlayerVariation` abstraction
 - Decision: Use `PlayerVariation` (`model`, `skin`, sounds) as the conceptual unit.

@@ -10,14 +10,6 @@ This file is intentionally reduced to active rendering follow-ups only.
 
 ## Active Follow-Ups
 
-- Replace render-frame-driven client sends with an always-decoupled command/update cadence.
-  - Chosen direction: adopt the Q2Pro-style split concept, but keep Cake single-threaded for now.
-  - `render()` keeps running every LibGDX frame.
-  - local input/view updates run every LibGDX frame.
-  - usercmd finalization and packet send run on a fixed cadence controlled by `cl_maxfps`.
-  - We explicitly do not keep a dormant synchronous/`cl_async 0` path for Cake.
-  - `cl_maxfps` stays for legacy config familiarity, but in Cake it means client command/update cadence, not render FPS.
-
 - Optional non-legacy enhancement: smooth lightstyle interpolation between 100 ms ticks.
   - Keep legacy-discrete behavior as the baseline.
   - If implemented, make it a deliberate opt-in rather than the default.
