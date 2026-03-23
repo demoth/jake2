@@ -90,6 +90,9 @@ class Cake(
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
+        private const val MIN_CLIENT_COMMAND_HZ = 10f
+        private const val MAX_CLIENT_COMMAND_HZ = 125f
+        private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
         private val SCREENSHOT_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
         // Cross-layout console toggle fallbacks.
@@ -158,6 +161,7 @@ class Cake(
     private val downloadManager = CakeDownloadManager()
     private val downloadTransfer = CakeDownloadTransfer()
     private val networkDebugSampler = NetworkDebugSampler()
+    private var clientCommandExtraMs = 0f
     private var pendingPrecacheSpawnCount: Int? = null
     private var lastDownloadProgressPercent: Int = -1
     private var activeGameProfile: CakeGameProfile? = null
@@ -184,6 +188,7 @@ class Cake(
     }
     private var backgroundColor = Color.BLACK
     private val clDebugStufftext = Cvar.getInstance().Get("cl_debug_stufftext", "0", 0, "Log raw server stufftext commands")
+    private val clMaxfps = Cvar.getInstance().Get("cl_maxfps", "62", 0)
 
     init {
         CakeStartupBootstrap.ensureInitialized()
@@ -464,6 +469,7 @@ class Cake(
         NET.Config(false)
         networkState = DISCONNECTED
         challenge = 0
+        clientCommandExtraMs = 0f
         resetDownloadState()
     }
 
@@ -666,7 +672,8 @@ class Cake(
             // then react in the same frame by sending reliable/new packets or a reconnect challenge.
             CL_ReadPackets()
             Cbuf.Execute()
-            sendUpdates()
+            game3dScreen?.updateLocalInput(deltaSeconds)
+            runClientCommandSteps(deltaSeconds)
             CheckForResend(deltaSeconds)
 
             if (game3dScreen != null) {
@@ -786,14 +793,41 @@ class Cake(
 
             ACTIVE -> {
                 queueUserInfoUpdateIfNeeded()
-                // fixme: send only at client rate, not every client frame
-                game3dScreen?.gatherInput(netchan.outgoing_sequence)?.let {
+                game3dScreen?.buildMoveMessage(netchan.outgoing_sequence, currentClientCommandMsec())?.let {
                     transmitAndRecord(listOf(it))
                 }
             }
         }
 
     }
+
+    private fun runClientCommandSteps(deltaSeconds: Float) {
+        if (networkState != CONNECTED && networkState != ACTIVE) {
+            clientCommandExtraMs = 0f
+            return
+        }
+
+        clientCommandExtraMs += deltaSeconds * 1000f
+        val stepMs = currentClientCommandStepMs()
+        if (clientCommandExtraMs > stepMs * MAX_CLIENT_COMMAND_CATCHUP_STEPS) {
+            clientCommandExtraMs = stepMs
+        }
+
+        var steps = 0
+        while (clientCommandExtraMs >= stepMs && steps < MAX_CLIENT_COMMAND_CATCHUP_STEPS) {
+            sendUpdates()
+            clientCommandExtraMs -= stepMs
+            steps++
+        }
+    }
+
+    private fun currentClientCommandStepMs(): Float {
+        val hz = clMaxfps.value.coerceIn(MIN_CLIENT_COMMAND_HZ, MAX_CLIENT_COMMAND_HZ)
+        return 1000f / hz
+    }
+
+    private fun currentClientCommandMsec(): Int =
+        currentClientCommandStepMs().toInt().coerceAtLeast(1)
 
     @Suppress("DEPRECATION")
     private fun queueUserInfoUpdateIfNeeded() {
