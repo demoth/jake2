@@ -39,7 +39,8 @@ import kotlin.math.abs
  *
  * Timing assumptions:
  * - Runs on the LibGDX main thread.
- * - [gatherInput] is called from the network send path; it must remain allocation-light.
+ * - [updateLocalInput] runs once per render/main frame.
+ * - [buildMoveMessage] runs from the fixed network send path; it must remain allocation-light.
  *
  * Invariants:
  * - Immediate controls (`+forward`, `+attack`, etc.) are represented as action counters.
@@ -90,10 +91,26 @@ class InputManager(
         registerImmediateActionCommands()
     }
 
-    // called at server rate
-    fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
-        val nowNanos = nowNanosProvider()
+    fun updateLocalInput(deltaTime: Float, currentFrame: ClientFrame) {
         syncViewAnglesWithServer(currentFrame)
+
+        // update camera direction right on the client side and sent to the server
+        if (isActive(ImmediateAction.LEFT) || isActive(ImmediateAction.RIGHT)) {
+            var delta = deltaTime * cameraKeyboardRotationSpeed
+            if (isActive(ImmediateAction.RIGHT)) {
+                delta *= -1
+            }
+            localYaw += delta
+        }
+
+        // Apply pending mouse input before encoding command angles, so the sent move
+        // and rendered camera use the same orientation this frame.
+        applyPendingMouseLook()
+    }
+
+    // called at fixed client command cadence
+    fun buildMoveMessage(outgoingSequence: Int, currentFrame: ClientFrame, commandMsec: Int): MoveMessage {
+        val nowNanos = nowNanosProvider()
 
         // assemble the inputs and commands, then transmit them
         val cmdIndex: Int = outgoingSequence and (userCommands.size - 1)
@@ -126,26 +143,13 @@ class InputManager(
         cmd.sidemove = sideMove.toShort()
         cmd.upmove = upMove.toShort()
 
-        // update camera direction right on the client side and sent to the server
-        if (isActive(ImmediateAction.LEFT) || isActive(ImmediateAction.RIGHT)) {
-            var delta = deltaTime * cameraKeyboardRotationSpeed
-            if (isActive(ImmediateAction.RIGHT)) {
-                delta *= -1
-            }
-            localYaw += delta
-        }
-
-        // Apply pending mouse input before encoding command angles, so the sent move
-        // and rendered camera use the same orientation this frame.
-        applyPendingMouseLook()
-
         // set the angles
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
         cmd.lightlevel = lightLevel.value.coerceIn(0f, 255f).toInt().toByte()
 
-        cmd.msec = computeCommandMsec(nowNanos).toByte()
+        cmd.msec = normalizeCommandMsec(commandMsec).toByte()
         commandSequence[cmdIndex] = outgoingSequence
         commandTimestampNanos[cmdIndex] = nowNanos
 
@@ -161,6 +165,12 @@ class InputManager(
             userCommands[cmdIndex],
             outgoingSequence
         )
+    }
+
+    @Deprecated("Use updateLocalInput + buildMoveMessage")
+    fun gatherInput(outgoingSequence: Int, deltaTime: Float, currentFrame: ClientFrame): MoveMessage {
+        updateLocalInput(deltaTime, currentFrame)
+        return buildMoveMessage(outgoingSequence, currentFrame, computeCommandMsec(nowNanosProvider()))
     }
 
     private fun registerImmediateActionCommands() {
@@ -267,6 +277,7 @@ class InputManager(
     fun clearInputState() {
         bindings.releaseAllActiveButtons()
         immediateStates.fill(0)
+        lastCommandBuildNanos = null
         resetMouseLookReference()
     }
 
@@ -278,6 +289,10 @@ class InputManager(
         }
 
         val elapsedMs = ((nowNanos - previous) / 1_000_000L).toInt()
+        return normalizeCommandMsec(elapsedMs)
+    }
+
+    private fun normalizeCommandMsec(elapsedMs: Int): Int {
         // CL_input.FinishMove
         return if (elapsedMs > 250) {
             100 // time was unreasonable

@@ -790,6 +790,15 @@ class Game3dScreen(
         return ((char.code - 'a'.code).toFloat() / ('m'.code - 'a'.code)).coerceAtLeast(0f)
     }
 
+    fun updateLocalInput(deltaTime: Float) {
+        inputManager.updateLocalInput(deltaTime, entityManager.currentFrame)
+    }
+
+    fun buildMoveMessage(outgoingSequence: Int, commandMsec: Int): MoveMessage {
+        return inputManager.buildMoveMessage(outgoingSequence, entityManager.currentFrame, commandMsec)
+    }
+
+    @Deprecated("Use updateLocalInput + buildMoveMessage")
     fun gatherInput(outgoingSequence: Int): MoveMessage {
         return inputManager.gatherInput(outgoingSequence, deltaTime, entityManager.currentFrame)
     }
