@@ -74,6 +74,7 @@ Console Enter key
 - `Player Setup` writes on `Save` only; `Back` discards staged edits.
 - `Join Game` validates before dispatching `connect`.
 - Options screens only expose opted-in canonical cvar names; player identity cvars stay in `Player Setup`.
+- Debug graphs are split by domain: `r_debug_*` for GL/render metrics and `net_debug_*` for client network metrics.
 - Stage visuals depend on skin resource names; renaming in `uiskin.json` requires stage updates.
 
 ## Decision Log
