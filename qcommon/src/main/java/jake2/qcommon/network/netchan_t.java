@@ -31,6 +31,8 @@ import jake2.qcommon.sizebuf_t;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class netchan_t {
 
@@ -64,6 +66,14 @@ public class netchan_t {
     public int outgoing_sequence;
 
     public int last_reliable_sequence; // sequence number of last send
+
+    public int last_received_size;
+
+    public int last_sent_size;
+
+    public int smoothed_ping_ms;
+
+    private final Map<Integer, Integer> sendTimesBySequence = new HashMap<>();
 
     /**
      * Reliable staging areas, appended during the frame update.
@@ -123,6 +133,17 @@ public class netchan_t {
         incoming_sequence = packet.sequence;
         incoming_acknowledged = packet.sequenceAck;
         incoming_reliable_acknowledged = reliable_ack;
+        last_received_size = packet.buffer.cursize;
+        Integer sentAt = sendTimesBySequence.remove(packet.sequenceAck);
+        if (sentAt != null) {
+            int measuredPing = Math.max(0, Globals.curtime - sentAt);
+            if (smoothed_ping_ms == 0) {
+                smoothed_ping_ms = measuredPing;
+            } else {
+                smoothed_ping_ms = (smoothed_ping_ms * 3 + measuredPing) / 4;
+            }
+            sendTimesBySequence.entrySet().removeIf(entry -> entry.getKey() < packet.sequenceAck - 32);
+        }
         if (containsReliable) {
             reliable_received_flag ^= 1;
         }
@@ -202,6 +223,9 @@ public class netchan_t {
             }
         }
 
+        last_sent_size = packet.cursize;
+        sendTimesBySequence.put(outgoing_sequence - 1, last_sent);
+
         // send the datagram
         NET.SendPacket(sock, packet.cursize, packet.data, remote_address);
 
@@ -238,8 +262,10 @@ public class netchan_t {
         sock = dropped = last_received = last_sent = 0;
         remote_address = new netadr_t();
         qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = reliable_received_flag = outgoing_sequence = reliable_sent_flag = last_reliable_sequence = 0;
+        last_received_size = last_sent_size = smoothed_ping_ms = 0;
         reliablePending.clear();
         reliableUnacknowledged.clear();
+        sendTimesBySequence.clear();
     }
 
 }
