@@ -53,6 +53,7 @@ graalvmNative {
           '(linux|macos|windows)/.*/org/lwjgl/.*|META-INF/(linux|macos|windows)/.*/org/lwjgl/.*)'
       )
       buildArgs.add("-H:ResourceConfigurationFiles=${cakeAssetsResourceConfigFile.get().asFile.absolutePath}")
+      buildArgs.add("--initialize-at-build-time=kotlin.DeprecationLevel")
       buildArgs.add("-march=compatibility")
       jvmArgs.addAll("-Dfile.encoding=UTF8")
       sharedLibrary = false

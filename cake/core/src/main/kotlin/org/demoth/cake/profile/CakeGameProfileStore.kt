@@ -1,11 +1,11 @@
 package org.demoth.cake.profile
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import jake2.qcommon.vfs.DefaultWritableFileSystem
 import jake2.qcommon.vfs.VfsOpenOptions
 import jake2.qcommon.vfs.VfsWriteOptions
 import jake2.qcommon.vfs.WritableFileSystem
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -15,6 +15,7 @@ import java.nio.file.Path
 private const val PROFILES_VERSION_V1: Int = 1
 private const val PROFILE_ID_DEFAULT: String = "default"
 
+@Serializable
 data class CakeGameProfile(val id: String, val basedir: String, val gamemod: String? = null) {
     fun normalized(): CakeGameProfile = CakeGameProfile(
         id = id.trim(),
@@ -23,6 +24,7 @@ data class CakeGameProfile(val id: String, val basedir: String, val gamemod: Str
     )
 }
 
+@Serializable
 data class CakeProfilesConfig(
     val version: Int = PROFILES_VERSION_V1,
     val selectedProfileId: String = PROFILE_ID_DEFAULT,
@@ -40,7 +42,12 @@ class CakeGameProfileStore(
         val home = Path.of(System.getProperty("user.home"))
         DefaultWritableFileSystem(home.resolve(".cake"))
     },
-    private val mapper: ObjectMapper = ObjectMapper(),
+    private val json: Json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        encodeDefaults = true
+        explicitNulls = false
+    },
 ) {
     private val logicalPath = "profiles.json"
 
@@ -191,61 +198,13 @@ class CakeGameProfileStore(
     }
 
     private fun readConfig(input: InputStream): CakeProfilesConfig {
-        val root = mapper.readTree(input)
-        val profilesNode = root.path("profiles")
-        require(profilesNode.isArray) { "profiles must be an array" }
-
-        val profiles = profilesNode.map { profileNode ->
-            CakeGameProfile(
-                id = profileNode.requiredText("id"),
-                basedir = profileNode.requiredText("basedir"),
-                gamemod = profileNode.optionalText("gamemod"),
-            )
-        }
-
-        return CakeProfilesConfig(
-            version = root.optionalInt("version") ?: PROFILES_VERSION_V1,
-            selectedProfileId = root.optionalText("selectedProfileId") ?: PROFILE_ID_DEFAULT,
-            profiles = profiles,
-        )
+        return json.decodeFromString<CakeProfilesConfig>(input.readBytes().decodeToString())
     }
 
     private fun writeConfig(output: OutputStream, config: CakeProfilesConfig) {
-        val root = mapper.createObjectNode().apply {
-            put("version", config.version)
-            put("selectedProfileId", config.selectedProfileId)
-            putArray("profiles").apply {
-                config.profiles.forEach { profile ->
-                    addObject().apply {
-                        put("id", profile.id)
-                        put("basedir", profile.basedir)
-                        if (profile.gamemod != null) {
-                            put("gamemod", profile.gamemod)
-                        } else {
-                            putNull("gamemod")
-                        }
-                    }
-                }
-            }
-        }
-        mapper.writeValue(output, root)
+        output.write(json.encodeToString(config).encodeToByteArray())
+        output.write('\n'.code)
     }
-
-    private fun JsonNode.requiredText(fieldName: String): String =
-        this[fieldName]?.takeIf { it.isTextual }?.asText()
-            ?: throw IllegalArgumentException("$fieldName must be a string")
-
-    private fun JsonNode.optionalText(fieldName: String): String? =
-        this[fieldName]?.takeUnless { it.isNull }?.let { node ->
-            require(node.isTextual) { "$fieldName must be a string when present" }
-            node.asText()
-        }
-
-    private fun JsonNode.optionalInt(fieldName: String): Int? =
-        this[fieldName]?.takeUnless { it.isNull }?.let { node ->
-            require(node.canConvertToInt()) { "$fieldName must be an integer when present" }
-            node.intValue()
-        }
 
     companion object {
         const val DEFAULT_PROFILE_ID: String = PROFILE_ID_DEFAULT

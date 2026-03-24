@@ -5,8 +5,9 @@ logbackClassic = "1.4.14"
 gdx = "1.12.1"
 gdxControllers = "2.2.3"
 ktx = "1.12.1-rc1"
-kotlinStdlib = "2.0.21"
+kotlinStdlib = "2.2.0"
 kotlinxCoroutines = "1.6.4"
+kotlinxSerialization = "1.9.0"
 jackson = "2.18.2"
 graalHelper = "2.0.1"
 
@@ -47,6 +48,7 @@ ktxScene2d = { module = "io.github.libktx:ktx-scene2d", version.ref = "ktx" }
 # Kotlin
 kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # Jackson
 jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
