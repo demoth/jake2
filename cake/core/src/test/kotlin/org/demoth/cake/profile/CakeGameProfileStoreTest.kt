@@ -96,6 +96,38 @@ class CakeGameProfileStoreTest {
     }
 
     @Test
+    fun readSelectedIgnoresUnknownJsonFields() {
+        val basedir = Files.createDirectories(temp.resolve("quake2"))
+        val store = CakeGameProfileStore(
+            writableFactory = { DefaultWritableFileSystem(temp) },
+        )
+
+        Files.writeString(
+            temp.resolve("profiles.json"),
+            """
+            {
+              "version": 1,
+              "selectedProfileId": "Alpha",
+              "futureField": {"enabled": true},
+              "profiles": [
+                {
+                  "id":"Alpha",
+                  "basedir":"${basedir.toString().replace("\\", "\\\\")}",
+                  "gamemod":"rogue",
+                  "profileColor":"green"
+                }
+              ]
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(
+            CakeGameProfile(id = "Alpha", basedir = basedir.toString(), gamemod = "rogue"),
+            store.readSelected(),
+        )
+    }
+
+    @Test
     fun rejectsInvalidProfileValues() {
         val basedir = Files.createDirectories(temp.resolve("quake2"))
         val store = CakeGameProfileStore(
