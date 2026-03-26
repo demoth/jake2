@@ -4,6 +4,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import org.demoth.cake.Cake
+import org.demoth.cake.CakeHdpiMode
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.CakeStartupContext
 import org.demoth.cake.CakeVideoModeSettings
@@ -38,7 +39,7 @@ object Lwjgl3GameLauncher {
             useVsync(videoMode.vsync)
             setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
             setResizable(false)
-            setHdpiMode(HdpiMode.Pixels)
+            setHdpiMode(videoMode.hdpiMode.toLwjgl3HdpiMode())
             if (videoMode.fullscreen) {
                 setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
             } else {
@@ -48,4 +49,11 @@ object Lwjgl3GameLauncher {
         }
     }
 
+}
+
+private fun CakeHdpiMode.toLwjgl3HdpiMode(): HdpiMode {
+    return when (this) {
+        CakeHdpiMode.PIXELS -> HdpiMode.Pixels
+        CakeHdpiMode.LOGICAL -> HdpiMode.Logical
+    }
 }

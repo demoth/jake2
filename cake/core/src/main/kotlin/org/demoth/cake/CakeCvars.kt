@@ -18,6 +18,7 @@ object CakeCvars {
     fun registerVideoMode() {
         val cvars = Cvar.getInstance()
         cvars.Get("vid_fullscreen", "0", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Fullscreen mode")
+        cvars.Get("vid_hidpi", "Pixels", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "HiDPI mode (Pixels, Logical)")
         cvars.Get("vid_width", "1024", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Windowed mode width")
         cvars.Get("vid_height", "768", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Windowed mode height")
         cvars.Get("vid_vsync", "1", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Vertical sync")

@@ -11,8 +11,21 @@ import org.demoth.cake.profile.CakeProfileConfigStore
 import java.nio.file.Files
 import java.nio.file.Path
 
+enum class CakeHdpiMode(val cvarValue: String) {
+    PIXELS("Pixels"),
+    LOGICAL("Logical");
+
+    companion object {
+        fun fromCvar(value: String?): CakeHdpiMode {
+            val normalized = value?.trim().orEmpty()
+            return entries.firstOrNull { it.cvarValue.equals(normalized, ignoreCase = true) } ?: PIXELS
+        }
+    }
+}
+
 data class CakeVideoModeSettings(
     val fullscreen: Boolean,
+    val hdpiMode: CakeHdpiMode,
     val width: Int,
     val height: Int,
     val vsync: Boolean,
@@ -24,6 +37,7 @@ data class CakeVideoModeSettings(
         fun fromCvars(cvars: Cvar = Cvar.getInstance()): CakeVideoModeSettings {
             return CakeVideoModeSettings(
                 fullscreen = parseBoolean(cvars.VariableString("vid_fullscreen")),
+                hdpiMode = CakeHdpiMode.fromCvar(cvars.VariableString("vid_hidpi")),
                 width = parseDimension(cvars.VariableString("vid_width"), DEFAULT_WIDTH),
                 height = parseDimension(cvars.VariableString("vid_height"), DEFAULT_HEIGHT),
                 vsync = parseBoolean(cvars.VariableString("vid_vsync"), defaultValue = true),
