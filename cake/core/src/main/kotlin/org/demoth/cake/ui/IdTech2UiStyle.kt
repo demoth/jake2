@@ -10,8 +10,8 @@ import jake2.qcommon.Com
 import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
 private const val CONCHARS_PATH = "pics/conchars.pcx"
-private const val MENU_IN_SOUND_PATH = "misc/menu1.wav"
-private const val MENU_OUT_SOUND_PATH = "misc/menu3.wav"
+private const val MENU_IN_SOUND_PATH = "sound/misc/menu1.wav"
+private const val MENU_OUT_SOUND_PATH = "sound/misc/menu3.wav"
 private const val HUD_NUM_STYLES = 2
 private const val HUD_NUM_FRAMES = 11
 private const val HUD_NUM_MINUS = 10
