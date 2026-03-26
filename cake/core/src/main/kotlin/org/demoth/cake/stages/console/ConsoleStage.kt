@@ -47,7 +47,10 @@ class ConsoleStage(
     }
 
     /** Requests keyboard focus for the input field. */
-    fun focus() = consoleInput.setKeyboardFocus(true)
+    fun focus() {
+        consoleInput.setKeyboardFocus(true)
+        setScrollFocus(consoleOutput)
+    }
 
     /** Output widget used by command echo and console logging. */
     val consoleOutput: ConsoleOutputWidget
@@ -105,6 +108,8 @@ class ConsoleStage(
                 }
             }
         }
+
+        setScrollFocus(consoleOutput)
 
         Cmd.AddCommand("clear", "Clear console output") {
             consoleBuffer.clear()
