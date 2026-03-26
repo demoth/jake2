@@ -380,6 +380,7 @@ class MenuController(
             entries = selectedOptionsSection?.let { backend.optionEntries(it.prefix) }.orEmpty(),
             statusMessage = optionsSectionStatusOverride ?: state.optionsSection.statusMessage,
         )
+        val previousScreen = state.activeScreen
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             mainMenu = mainMenuState,
@@ -391,6 +392,25 @@ class MenuController(
             optionsSection = optionsSectionState,
         )
         bus.postState(state)
+        postNavigationSound(previousScreen, activeScreen)
+    }
+
+    private fun postNavigationSound(previousScreen: MenuScreen, nextScreen: MenuScreen) {
+        if (previousScreen == nextScreen) return
+        val previousDepth = screenDepth(previousScreen)
+        val nextDepth = screenDepth(nextScreen)
+        when {
+            nextDepth > previousDepth -> bus.postSignal(MenuSignal.PlayUiSound(MenuUiSoundEffect.ENTER_SUBMENU))
+            nextDepth < previousDepth -> bus.postSignal(MenuSignal.PlayUiSound(MenuUiSoundEffect.EXIT_SUBMENU))
+        }
+    }
+
+    private fun screenDepth(screen: MenuScreen): Int {
+        return when (screen) {
+            MenuScreen.MAIN -> 0
+            MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS -> 1
+            MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION -> 2
+        }
     }
 
     private fun currentSelectedProfileForm(): ProfileFormState {

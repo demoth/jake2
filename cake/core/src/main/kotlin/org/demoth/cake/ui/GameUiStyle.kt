@@ -1,5 +1,6 @@
 package org.demoth.cake.ui
 
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -11,9 +12,14 @@ data class MenuWidgetStyles(
     val button: TextButton.TextButtonStyle,
 )
 
+data class MenuSoundStyles(
+    val enterSubmenu: Sound? = null,
+    val exitSubmenu: Sound? = null,
+)
+
 /**
  * Runtime content style resources bound to the currently active game/mod.
- * This wraps HUD rendering primitives plus menu widget styles derived from the same content context.
+ * This wraps HUD rendering primitives plus menu widget/audio styles derived from the same content context.
  *
  * Ownership:
  * created by `GameUiStyleFactory` and owned/disposed by `Cake`.
@@ -40,12 +46,21 @@ interface GameUiStyle : Disposable {
      * Menu label/button styles shared by content-styled menus.
      */
     val menuWidgets: MenuWidgetStyles
+
+    /**
+     * Menu enter/exit sounds shared by content-styled menus.
+     */
+    val menuSounds: MenuSoundStyles
 }
 
 /**
  * Engine default style backed by the existing Scene2D skin.
  */
-class EngineUiStyle(private val skin: Skin) : GameUiStyle {
+class EngineUiStyle(
+    private val skin: Skin,
+    override val menuSounds: MenuSoundStyles = MenuSoundStyles(),
+    private val onDispose: () -> Unit = {},
+) : GameUiStyle {
     override val hudFont: BitmapFont
         get() = skin.getFont("default")
     override val hudNumberFont: HudNumberFont = EngineHudNumberFont { hudFont }
@@ -53,6 +68,7 @@ class EngineUiStyle(private val skin: Skin) : GameUiStyle {
 
     override fun dispose() {
         hudNumberFont.dispose()
+        onDispose()
         // Skin owns the default font.
     }
 }

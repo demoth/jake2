@@ -7,6 +7,7 @@ Owned here:
 - Building HUD font from `pics/conchars.pcx` (`ConcharsFontLoader`).
 - Loading numeric HUD glyph pictures (`num_*`, `anum_*`) and exposing them as `HudNumberFont`.
 - Deriving content-styled menu label/button styles from the active HUD font.
+- Loading optional content-driven menu enter/exit sounds (`misc/menu1.wav`, `misc/menu3.wav`).
 - Selecting style implementation in `GameUiStyleFactory`.
 
 Not owned here:
@@ -20,6 +21,7 @@ Not owned here:
 - `IdTech2UiStyle` - IdTech2 style aggregate (`conchars` font + number font).
 - `GameUiStyleFactory` - Style selection and per-instance asset acquisition.
 - `MenuWidgetStyles` - Shared menu label/button styles exposed by `GameUiStyle`.
+- `MenuSoundStyles` - Shared menu enter/exit sounds exposed by `GameUiStyle`.
 - `ConcharsFontLoader` - Converts 16x16 conchars atlas into `BitmapFont` glyph set.
 - `IdTech2HudNumberFont` - Draws number fields with `num_*` / `anum_*` textures.
 
@@ -33,15 +35,19 @@ ServerDataMessage
   -> Hud(spriteBatch, style, dataProvider)
 
 Render frame
+  -> MenuController posts StateUpdated / PlayUiSound signals
+  -> Cake drains menu signals once per frame
   -> Hud.executeLayout(...)
   -> style.hudFont for text
   -> style.hudNumberFont for hnum/anum/rnum/num
   -> MainMenuStage / MultiplayerMenuStage / OptionsMenuStage use style.menuWidgets for label/button rendering
+  -> style.menuSounds handles submenu enter/exit audio
 ```
 
 ## Invariants
 - Style swap happens at `ServerDataMessage` handling time, but ownership lives at `Cake` scope.
 - Menu stage rebuilding is the supported Scene2D style-switch path; widgets are not restyled in place.
+- Menu navigation sounds are emitted from `MenuController` based on menu-depth changes, not from stage-local button callbacks.
 - Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and is released by `Cake`.
 - Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.
 - Alternate text color/style is represented by legacy high-bit glyph toggle (`char ^ 0x80`), not by tinting.

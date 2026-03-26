@@ -657,6 +657,7 @@ class Cake(
             updateGlProfilerState()
             menuController.pumpIntents()
             menuController.refreshExternalState()
+            drainMenuSignals()
             syncMenuViewFromBusState()
             assetManager.update() // todo: 1000/fps millis
             val deltaSeconds = Gdx.graphics.deltaTime
@@ -947,6 +948,25 @@ class Cake(
         currentGameUiStyle?.dispose()
         currentGameUiStyle = null
         currentGameUiStyleKey = null
+    }
+
+    private fun drainMenuSignals(maxItems: Int = MenuEventBus.DEFAULT_DRAIN_LIMIT) {
+        menuEventBus.drainSignals(maxItems) { signal ->
+            when (signal) {
+                is MenuSignal.PlayUiSound -> playMenuUiSound(signal.effect)
+                is MenuSignal.StateUpdated -> Unit
+                is MenuSignal.StatusMessage -> Unit
+            }
+        }
+    }
+
+    private fun playMenuUiSound(effect: MenuUiSoundEffect) {
+        val menuSounds = currentGameUiStyle?.menuSounds ?: return
+        val sound = when (effect) {
+            MenuUiSoundEffect.ENTER_SUBMENU -> menuSounds.enterSubmenu
+            MenuUiSoundEffect.EXIT_SUBMENU -> menuSounds.exitSubmenu
+        }
+        sound?.play()
     }
 
     private fun rebuildContentStyledMenuStages(style: GameUiStyle) {

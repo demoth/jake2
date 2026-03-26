@@ -36,6 +36,56 @@ class MenuControllerTest {
     }
 
     @Test
+    fun openingSubmenuEmitsEnterSoundSignal() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.drainSignals { }
+        bus.postIntent(MenuIntent.OpenMultiplayerMenu)
+        controller.pumpIntents()
+
+        assertEquals(listOf(MenuUiSoundEffect.ENTER_SUBMENU), drainedSoundEffects(bus))
+    }
+
+    @Test
+    fun returningToParentMenuEmitsExitSoundSignal() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.drainSignals { }
+        bus.postIntent(MenuIntent.OpenMultiplayerMenu)
+        controller.pumpIntents()
+        bus.drainSignals { }
+
+        bus.postIntent(MenuIntent.OpenMainMenu)
+        controller.pumpIntents()
+
+        assertEquals(listOf(MenuUiSoundEffect.EXIT_SUBMENU), drainedSoundEffects(bus))
+    }
+
+    @Test
+    fun lateralNavigationDoesNotEmitMenuDepthSound() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.drainSignals { }
+        bus.postIntent(MenuIntent.OpenMultiplayerMenu)
+        controller.pumpIntents()
+        bus.drainSignals { }
+
+        bus.postIntent(MenuIntent.OpenOptions)
+        controller.pumpIntents()
+
+        assertTrue(drainedSoundEffects(bus).isEmpty())
+    }
+
+    @Test
     fun selectProfileLoadsFormButDoesNotApplyIt() {
         val backend = FakeMenuBackend().apply {
             profiles["rogue"] = ProfileFormState(
@@ -427,5 +477,15 @@ class MenuControllerTest {
             }
             return "Saved options"
         }
+    }
+
+    private fun drainedSoundEffects(bus: MenuEventBus): List<MenuUiSoundEffect> {
+        val effects = mutableListOf<MenuUiSoundEffect>()
+        bus.drainSignals { signal ->
+            if (signal is MenuSignal.PlayUiSound) {
+                effects += signal.effect
+            }
+        }
+        return effects
     }
 }
