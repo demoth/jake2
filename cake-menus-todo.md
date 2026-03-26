@@ -205,7 +205,8 @@
   - HUD style ownership is moved from `Game3dScreen` to `Cake`,
   - runtime style reuse is keyed by effective resolver context so identical reconnects do not recreate the same HUD style.
   - `MainMenuStage` now consumes the shared content style and is rebuilt when the effective style changes.
-  - broader menu-stage theming is still pending; for now this slice is intentionally limited to the main menu.
+  - `MultiplayerMenuStage` and `OptionsMenuStage` now use the shared content style as well, including styled `Back` buttons.
+  - broader menu-stage theming is still pending; stateful/editor-like stages are intentionally left on engine styling for now.
 
 ## Menu Messaging Refactor (2026-03-09)
 - Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:

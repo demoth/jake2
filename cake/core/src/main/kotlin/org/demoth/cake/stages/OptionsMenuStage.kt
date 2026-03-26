@@ -1,11 +1,11 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onClick
-import ktx.scene2d.actors
-import ktx.scene2d.label
-import ktx.scene2d.table
-import ktx.scene2d.textButton
+import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.OptionsHubState
@@ -14,6 +14,7 @@ import org.demoth.cake.ui.menu.OptionsSectionSummary
 class OptionsMenuStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
+    private val style: GameUiStyle,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -36,27 +37,29 @@ class OptionsMenuStage(
             return
         }
         clear()
-        actors {
-            table {
-                defaults().pad(16f).uniformX().fillX()
-                setFillParent(true)
+        val labelStyle = style.menuWidgets.label
+        val buttonStyle = style.menuWidgets.button
+        val container = Table().apply {
+            defaults().pad(16f).uniformX().fillX()
+            setFillParent(true)
 
-                label("Options")
-                row()
+            add(Label("Options", labelStyle))
+            row()
 
-                state.sections.forEach { section ->
-                    val button = textButton("${section.title} (${section.optionCount})") {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.OpenOptionsSection(section.prefix))
-                        }
+            state.sections.forEach { section ->
+                val button = TextButton("${section.title} (${section.optionCount})", buttonStyle).apply {
+                    onClick {
+                        menuEventBus.postIntent(MenuIntent.OpenOptionsSection(section.prefix))
                     }
-                    button.isDisabled = section.optionCount == 0
-                    row()
                 }
-
-                add(createBackButton())
+                button.isDisabled = section.optionCount == 0
+                add(button)
+                row()
             }
+
+            add(createBackButton(style = buttonStyle))
         }
+        addActor(container)
         renderedSections = state.sections
     }
 }

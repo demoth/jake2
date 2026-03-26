@@ -226,12 +226,8 @@ class Cake(
             backend = createMenuBackend(),
             bus = menuEventBus,
         )
-        rebuildMainMenuStage(resolveCurrentGameUiStyle())
+        rebuildContentStyledMenuStages(resolveCurrentGameUiStyle())
         profileEditStage = ProfileEditStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
-        multiplayerMenuStage = MultiplayerMenuStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -240,10 +236,6 @@ class Cake(
             menuEventBus = menuEventBus,
         )
         playerSetupStage = PlayerSetupStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
-        optionsMenuStage = OptionsMenuStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
         )
@@ -957,7 +949,7 @@ class Cake(
         currentGameUiStyleKey = null
     }
 
-    private fun rebuildMainMenuStage(style: GameUiStyle) {
+    private fun rebuildContentStyledMenuStages(style: GameUiStyle) {
         if (::menuStage.isInitialized) {
             menuStage.dispose()
         }
@@ -966,7 +958,23 @@ class Cake(
             menuEventBus = menuEventBus,
             style = style,
         )
-        if (menuVisible && menuView == MenuView.MAIN) {
+        if (::multiplayerMenuStage.isInitialized) {
+            multiplayerMenuStage.dispose()
+        }
+        multiplayerMenuStage = MultiplayerMenuStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (::optionsMenuStage.isInitialized) {
+            optionsMenuStage.dispose()
+        }
+        optionsMenuStage = OptionsMenuStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (menuVisible && menuView in setOf(MenuView.MAIN, MenuView.MULTIPLAYER, MenuView.OPTIONS)) {
             updateInputHandlers(consoleVisible, menuVisible)
         }
     }
@@ -984,7 +992,7 @@ class Cake(
         currentGameUiStyle = created
         currentGameUiStyleKey = key
         if (::menuStage.isInitialized) {
-            rebuildMainMenuStage(created)
+            rebuildContentStyledMenuStages(created)
         }
         return created
     }

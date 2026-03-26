@@ -22,7 +22,17 @@ abstract class BackNavigableMenuStage(
     }
 
     protected fun createBackButton(label: String = "Back"): TextButton {
-        return TextButton(label, Scene2DSkin.defaultSkin).apply {
+        return createBackButton(
+            label = label,
+            style = Scene2DSkin.defaultSkin.get(TextButton.TextButtonStyle::class.java),
+        )
+    }
+
+    protected fun createBackButton(
+        label: String = "Back",
+        style: TextButton.TextButtonStyle,
+    ): TextButton {
+        return TextButton(label, style).apply {
             onClick { navigateBack() }
         }
     }

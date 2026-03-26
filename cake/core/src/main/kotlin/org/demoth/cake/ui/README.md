@@ -36,7 +36,7 @@ Render frame
   -> Hud.executeLayout(...)
   -> style.hudFont for text
   -> style.hudNumberFont for hnum/anum/rnum/num
-  -> MainMenuStage uses style.menuWidgets for label/button rendering
+  -> MainMenuStage / MultiplayerMenuStage / OptionsMenuStage use style.menuWidgets for label/button rendering
 ```
 
 ## Invariants
