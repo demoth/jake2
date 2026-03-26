@@ -3,14 +3,11 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onChange
-import ktx.actors.onClick
 import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.actors
-import ktx.scene2d.table
+import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.PlayerSetupFormState
@@ -19,6 +16,7 @@ import org.demoth.cake.ui.menu.PlayerSetupState
 class PlayerSetupStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
+    style: GameUiStyle,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -42,68 +40,64 @@ class PlayerSetupStage(
     private var renderedStatusMessage: String = ""
 
     init {
-        actors {
-            table {
-                setFillParent(true)
-                align(com.badlogic.gdx.utils.Align.topLeft)
-                pad(12f)
-                defaults().top().left().pad(12f)
+        val labelStyle = style.menuWidgets.label
+        val buttonStyle = style.menuWidgets.button
+        val root = Table().apply {
+            setFillParent(true)
+            align(com.badlogic.gdx.utils.Align.topLeft)
+            pad(12f)
+            defaults().top().left().pad(12f)
 
-                add(Label("Player Setup", Scene2DSkin.defaultSkin)).colspan(2).left().row()
+            add(Label("Player Setup", labelStyle)).colspan(2).left().row()
 
-                add(Label("Name", Scene2DSkin.defaultSkin)).minWidth(180f).left()
-                nameField = TextField("", Scene2DSkin.defaultSkin).apply {
-                    onChange { publishDraft() }
-                }
-                add(nameField).minWidth(320f).prefWidth(640f).growX().fillX().row()
-
-                add(Label("Password", Scene2DSkin.defaultSkin)).minWidth(180f).left()
-                passwordField = TextField("", Scene2DSkin.defaultSkin).apply {
-                    isPasswordMode = true
-                    setPasswordCharacter('*')
-                    onChange { publishDraft() }
-                }
-                add(passwordField).minWidth(320f).prefWidth(640f).growX().fillX().row()
-
-                add(Label("Model", Scene2DSkin.defaultSkin)).minWidth(180f).left()
-                modelSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
-                    onChange { publishDraft() }
-                }
-                add(modelSelect).minWidth(240f).fillX().row()
-
-                add(Label("Skin", Scene2DSkin.defaultSkin)).minWidth(180f).left()
-                skinSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
-                    onChange { publishDraft() }
-                }
-                add(skinSelect).minWidth(240f).fillX().row()
-
-                add(Label("Handedness", Scene2DSkin.defaultSkin)).minWidth(180f).left()
-                handSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
-                    setItems(*HAND_LABELS)
-                    onChange { publishDraft() }
-                }
-                add(handSelect).minWidth(240f).fillX().row()
-
-                val buttons = Table(Scene2DSkin.defaultSkin).apply {
-                    defaults().padRight(12f).left()
-
-                    val saveButton = TextButton("Save", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.SavePlayerSetup(currentForm()))
-                        }
-                    }
-                    add(saveButton)
-
-                    add(createBackButton())
-                }
-                add(buttons).colspan(2).left().row()
-
-                statusLabel = Label("", Scene2DSkin.defaultSkin).apply {
-                    setWrap(true)
-                }
-                add(statusLabel).colspan(2).growX().fillX().row()
+            add(Label("Name", labelStyle)).minWidth(180f).left()
+            nameField = TextField("", Scene2DSkin.defaultSkin).apply {
+                onChange { publishDraft() }
             }
+            add(nameField).minWidth(320f).prefWidth(640f).growX().fillX().row()
+
+            add(Label("Password", labelStyle)).minWidth(180f).left()
+            passwordField = TextField("", Scene2DSkin.defaultSkin).apply {
+                isPasswordMode = true
+                setPasswordCharacter('*')
+                onChange { publishDraft() }
+            }
+            add(passwordField).minWidth(320f).prefWidth(640f).growX().fillX().row()
+
+            add(Label("Model", labelStyle)).minWidth(180f).left()
+            modelSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+                onChange { publishDraft() }
+            }
+            add(modelSelect).minWidth(240f).fillX().row()
+
+            add(Label("Skin", labelStyle)).minWidth(180f).left()
+            skinSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+                onChange { publishDraft() }
+            }
+            add(skinSelect).minWidth(240f).fillX().row()
+
+            add(Label("Handedness", labelStyle)).minWidth(180f).left()
+            handSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+                setItems(*HAND_LABELS)
+                onChange { publishDraft() }
+            }
+            add(handSelect).minWidth(240f).fillX().row()
+
+            val buttons = Table(Scene2DSkin.defaultSkin).apply {
+                defaults().padRight(12f).left()
+                add(createMenuButton("Save", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.SavePlayerSetup(currentForm()))
+                })
+                add(createBackButton(style = buttonStyle))
+            }
+            add(buttons).colspan(2).left().row()
+
+            statusLabel = Label("", labelStyle).apply {
+                setWrap(true)
+            }
+            add(statusLabel).colspan(2).growX().fillX().row()
         }
+        addActor(root)
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().playerSetup, force = true)

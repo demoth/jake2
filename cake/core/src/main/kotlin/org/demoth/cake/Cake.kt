@@ -228,22 +228,6 @@ class Cake(
             bus = menuEventBus,
         )
         rebuildContentStyledMenuStages(resolveCurrentGameUiStyle())
-        profileEditStage = ProfileEditStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
-        joinGameStage = JoinGameStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
-        playerSetupStage = PlayerSetupStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
-        optionsSectionStage = OptionsSectionStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        )
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(
@@ -996,7 +980,49 @@ class Cake(
             menuEventBus = menuEventBus,
             style = style,
         )
-        if (menuVisible && menuView in setOf(MenuView.MAIN, MenuView.MULTIPLAYER, MenuView.OPTIONS)) {
+        if (::joinGameStage.isInitialized) {
+            joinGameStage.dispose()
+        }
+        joinGameStage = JoinGameStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (::playerSetupStage.isInitialized) {
+            playerSetupStage.dispose()
+        }
+        playerSetupStage = PlayerSetupStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (::profileEditStage.isInitialized) {
+            profileEditStage.dispose()
+        }
+        profileEditStage = ProfileEditStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (::optionsSectionStage.isInitialized) {
+            optionsSectionStage.dispose()
+        }
+        optionsSectionStage = OptionsSectionStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (
+            menuVisible && menuView in setOf(
+                MenuView.MAIN,
+                MenuView.PROFILE_EDIT,
+                MenuView.MULTIPLAYER,
+                MenuView.JOIN_GAME,
+                MenuView.PLAYER_SETUP,
+                MenuView.OPTIONS,
+                MenuView.OPTIONS_SECTION,
+            )
+        ) {
             updateInputHandlers(consoleVisible, menuVisible)
         }
     }

@@ -40,7 +40,7 @@ Render frame
   -> Hud.executeLayout(...)
   -> style.hudFont for text
   -> style.hudNumberFont for hnum/anum/rnum/num
-  -> MainMenuStage / MultiplayerMenuStage / OptionsMenuStage use style.menuWidgets for label/button rendering
+  -> Content-facing menu stages use style.menuWidgets for label/button rendering
   -> style.menuSounds handles submenu enter/hover/exit audio
 ```
 

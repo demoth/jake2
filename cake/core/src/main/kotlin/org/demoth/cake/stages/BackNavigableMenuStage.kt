@@ -2,6 +2,7 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -26,6 +27,9 @@ abstract class BackNavigableMenuStage(
     private val parentIntent: MenuIntent?,
 ) : Stage(viewport) {
     private val menuInteractionResets = mutableListOf<() -> Unit>()
+
+    private fun Actor?.isWithin(actor: Actor): Boolean =
+        this == actor || this?.isDescendantOf(actor) == true
 
     protected fun createHubMenuTable(): Table {
         return Table().apply {
@@ -61,6 +65,9 @@ abstract class BackNavigableMenuStage(
             }
             addListener(object : InputListener() {
                 override fun enter(event: InputEvent?, x: Float, y: Float, pointer: Int, fromActor: com.badlogic.gdx.scenes.scene2d.Actor?) {
+                    if (fromActor.isWithin(this@apply)) {
+                        return
+                    }
                     if (!hovered && !isDisabled) {
                         hovered = true
                         buttonStyle.fontColor = hoverFontColor.cpy()
@@ -69,6 +76,9 @@ abstract class BackNavigableMenuStage(
                 }
 
                 override fun exit(event: InputEvent?, x: Float, y: Float, pointer: Int, toActor: com.badlogic.gdx.scenes.scene2d.Actor?) {
+                    if (toActor.isWithin(this@apply)) {
+                        return
+                    }
                     hovered = false
                     resetHoverState()
                 }

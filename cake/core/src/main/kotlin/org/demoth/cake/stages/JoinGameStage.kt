@@ -1,13 +1,13 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onClick
 import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.actors
-import ktx.scene2d.table
+import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.JoinGameFormState
 import org.demoth.cake.ui.menu.JoinGameState
 import org.demoth.cake.ui.menu.MenuEventBus
@@ -16,6 +16,7 @@ import org.demoth.cake.ui.menu.MenuIntent
 class JoinGameStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
+    style: GameUiStyle,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -28,49 +29,48 @@ class JoinGameStage(
     private var renderedStatusMessage: String = ""
 
     init {
-        actors {
-            table {
-                setFillParent(true)
-                align(com.badlogic.gdx.utils.Align.topLeft)
-                pad(12f)
-                defaults().top().left().pad(12f)
+        val labelStyle = style.menuWidgets.label
+        val buttonStyle = style.menuWidgets.button
+        val root = Table().apply {
+            setFillParent(true)
+            align(com.badlogic.gdx.utils.Align.topLeft)
+            pad(12f)
+            defaults().top().left().pad(12f)
 
-                add(Label("Join Game", Scene2DSkin.defaultSkin)).left().row()
+            add(Label("Join Game", labelStyle)).left().row()
 
-                add(Label("Host name", Scene2DSkin.defaultSkin)).left().row()
-                hostField = TextField("", Scene2DSkin.defaultSkin)
-                add(hostField).minWidth(320f).prefWidth(640f).growX().fillX().row()
+            add(Label("Host name", labelStyle)).left().row()
+            hostField = TextField("", Scene2DSkin.defaultSkin)
+            add(hostField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
-                add(Label("Port", Scene2DSkin.defaultSkin)).left().row()
-                portField = TextField("", Scene2DSkin.defaultSkin)
-                add(portField).width(180f).left().row()
+            add(Label("Port", labelStyle)).left().row()
+            portField = TextField("", Scene2DSkin.defaultSkin)
+            add(portField).width(180f).left().row()
 
-                val buttonsRow = com.badlogic.gdx.scenes.scene2d.ui.Table(Scene2DSkin.defaultSkin).apply {
-                    defaults().padRight(12f).left()
-                    val joinButton = TextButton("Join", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(
-                                MenuIntent.JoinGameRequested(
-                                    JoinGameFormState(
-                                        host = hostField.text,
-                                        port = portField.text,
-                                    ),
+            val buttonsRow = Table(Scene2DSkin.defaultSkin).apply {
+                defaults().padRight(12f).left()
+                add(
+                    createMenuButton("Join", buttonStyle) {
+                        menuEventBus.postIntent(
+                            MenuIntent.JoinGameRequested(
+                                JoinGameFormState(
+                                    host = hostField.text,
+                                    port = portField.text,
                                 ),
-                            )
-                        }
-                    }
-                    add(joinButton)
-
-                    add(createBackButton())
-                }
-                add(buttonsRow).left().row()
-
-                statusLabel = Label("", Scene2DSkin.defaultSkin).apply {
-                    setWrap(true)
-                }
-                add(statusLabel).growX().fillX().row()
+                            ),
+                        )
+                    },
+                )
+                add(createBackButton(style = buttonStyle))
             }
+            add(buttonsRow).left().row()
+
+            statusLabel = Label("", labelStyle).apply {
+                setWrap(true)
+            }
+            add(statusLabel).growX().fillX().row()
         }
+        addActor(root)
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().joinGame, force = true)

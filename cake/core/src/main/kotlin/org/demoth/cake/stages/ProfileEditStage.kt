@@ -5,8 +5,7 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onChange
 import ktx.actors.onClick
 import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.actors
-import ktx.scene2d.table
+import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.ProfileEditorState
@@ -16,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
 class ProfileEditStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
+    style: GameUiStyle,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -45,111 +45,104 @@ class ProfileEditStage(
     private var renderedStatusMessage: String = ""
 
     init {
-        actors {
-            table {
-                setFillParent(true)
+        val labelStyle = style.menuWidgets.label
+        val buttonStyle = style.menuWidgets.button
+        val root = Table().apply {
+            setFillParent(true)
+            align(com.badlogic.gdx.utils.Align.topLeft)
+            pad(12f)
+            defaults().top().left().pad(12f)
+
+            val leftPane = Table(Scene2DSkin.defaultSkin).apply {
                 align(com.badlogic.gdx.utils.Align.topLeft)
-                pad(12f)
-                defaults().top().left().pad(12f)
+                defaults().pad(8f).fillX()
+                add(Label("Profiles", labelStyle)).left().row()
 
-                val leftPane = Table(Scene2DSkin.defaultSkin).apply {
-                    align(com.badlogic.gdx.utils.Align.topLeft)
-                    defaults().pad(8f).fillX()
-                    add(Label("Profiles", Scene2DSkin.defaultSkin)).left().row()
-
-                    profilesListWidget = Scene2dList<String>(Scene2DSkin.defaultSkin).apply {
-                        onChange {
-                            if (suppressProfileSelectionEvents) return@onChange
-                            selected?.let { menuEventBus.postIntent(MenuIntent.SelectProfile(it)) }
-                        }
+                profilesListWidget = Scene2dList<String>(Scene2DSkin.defaultSkin).apply {
+                    onChange {
+                        if (suppressProfileSelectionEvents) return@onChange
+                        selected?.let { menuEventBus.postIntent(MenuIntent.SelectProfile(it)) }
                     }
-                    val profilesScrollPane = ScrollPane(profilesListWidget, Scene2DSkin.defaultSkin, "list").apply {
-                        setFadeScrollBars(false)
-                        setScrollingDisabled(true, false)
-                    }
-                    add(profilesScrollPane)
-                        .minWidth(180f)
-                        .prefWidth(220f)
-                        .maxHeight(420f)
-                        .growY()
-                        .fillY()
-                        .row()
-
-                    profilesEmptyLabel = Label("No profiles", Scene2DSkin.defaultSkin).apply {
-                        isVisible = false
-                    }
-                    add(profilesEmptyLabel).left().row()
-
-                    applyProfileButton = TextButton("Apply Selected Profile", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.ApplySelectedProfile)
-                        }
-                    }
-                    add(applyProfileButton).fillX().row()
-
-                    createProfileButton = TextButton("Create New Profile", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.CreateProfileDraft())
-                        }
-                    }
-                    add(createProfileButton).fillX().row()
-
-                    add(createBackButton()).fillX().row()
                 }
-
-                val rightPane = Table(Scene2DSkin.defaultSkin).apply {
-                    align(com.badlogic.gdx.utils.Align.topLeft)
-                    defaults().pad(8f).left()
-                    add(Label("Profile Editor", Scene2DSkin.defaultSkin)).left().row()
-
-                    add(Label("Profile ID", Scene2DSkin.defaultSkin)).left().row()
-                    profileIdField = TextField("", Scene2DSkin.defaultSkin)
-                    add(profileIdField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
-
-                    add(Label("Basedir", Scene2DSkin.defaultSkin)).left().row()
-                    basedirField = TextField("", Scene2DSkin.defaultSkin)
-                    add(basedirField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
-
-                    autodetectButton = TextButton("Autodetect", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(MenuIntent.AutodetectBasedirRequested)
-                        }
-                    }
-                    add(autodetectButton).left().row()
-
-                    add(Label("Gamemod (optional)", Scene2DSkin.defaultSkin)).left().row()
-                    gamemodField = TextField("", Scene2DSkin.defaultSkin)
-                    add(gamemodField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
-
-                    saveButton = TextButton("Save", Scene2DSkin.defaultSkin).apply {
-                        onClick {
-                            menuEventBus.postIntent(
-                                MenuIntent.SaveProfile(
-                                    ProfileFormState(
-                                        id = profileIdField.text,
-                                        basedir = basedirField.text,
-                                        gamemod = gamemodField.text,
-                                    ),
-                                ),
-                            )
-                        }
-                    }
-                    add(saveButton).left().row()
-
-                    statusLabel = Label("", Scene2DSkin.defaultSkin).apply {
-                        setWrap(true)
-                    }
-                    add(statusLabel).growX().fillX().row()
+                val profilesScrollPane = ScrollPane(profilesListWidget, Scene2DSkin.defaultSkin, "list").apply {
+                    setFadeScrollBars(false)
+                    setScrollingDisabled(true, false)
                 }
+                add(profilesScrollPane)
+                    .minWidth(180f)
+                    .prefWidth(220f)
+                    .maxHeight(420f)
+                    .growY()
+                    .fillY()
+                    .row()
 
-                add(leftPane).top().left().padRight(20f)
-                add(rightPane).top().left().expandX().fillX()
-
-                if (DEBUG_LAYOUT) {
-                    debugAll()
+                profilesEmptyLabel = Label("No profiles", labelStyle).apply {
+                    isVisible = false
                 }
+                add(profilesEmptyLabel).left().row()
+
+                applyProfileButton = createMenuButton("Apply Selected Profile", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.ApplySelectedProfile)
+                }
+                add(applyProfileButton).fillX().row()
+
+                createProfileButton = createMenuButton("Create New Profile", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.CreateProfileDraft())
+                }
+                add(createProfileButton).fillX().row()
+
+                add(createBackButton(style = buttonStyle)).fillX().row()
+            }
+
+            val rightPane = Table(Scene2DSkin.defaultSkin).apply {
+                align(com.badlogic.gdx.utils.Align.topLeft)
+                defaults().pad(8f).left()
+                add(Label("Profile Editor", labelStyle)).left().row()
+
+                add(Label("Profile ID", labelStyle)).left().row()
+                profileIdField = TextField("", Scene2DSkin.defaultSkin)
+                add(profileIdField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
+
+                add(Label("Basedir", labelStyle)).left().row()
+                basedirField = TextField("", Scene2DSkin.defaultSkin)
+                add(basedirField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
+
+                autodetectButton = createMenuButton("Autodetect", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.AutodetectBasedirRequested)
+                }
+                add(autodetectButton).left().row()
+
+                add(Label("Gamemod (optional)", labelStyle)).left().row()
+                gamemodField = TextField("", Scene2DSkin.defaultSkin)
+                add(gamemodField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
+
+                saveButton = createMenuButton("Save", buttonStyle) {
+                    menuEventBus.postIntent(
+                        MenuIntent.SaveProfile(
+                            ProfileFormState(
+                                id = profileIdField.text,
+                                basedir = basedirField.text,
+                                gamemod = gamemodField.text,
+                            ),
+                        ),
+                    )
+                }
+                add(saveButton).left().row()
+
+                statusLabel = Label("", labelStyle).apply {
+                    setWrap(true)
+                }
+                add(statusLabel).growX().fillX().row()
+            }
+
+            add(leftPane).top().left().padRight(20f)
+            add(rightPane).top().left().expandX().fillX()
+
+            if (DEBUG_LAYOUT) {
+                debugAll()
             }
         }
+        addActor(root)
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().profileEditor, force = true)
     }

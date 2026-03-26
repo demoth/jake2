@@ -206,11 +206,16 @@
   - runtime style reuse is keyed by effective resolver context so identical reconnects do not recreate the same HUD style.
   - `MainMenuStage` now consumes the shared content style and is rebuilt when the effective style changes.
   - `MultiplayerMenuStage` and `OptionsMenuStage` now use the shared content style as well, including styled `Back` buttons.
+  - `JoinGameStage`, `PlayerSetupStage`, `ProfileEditStage`, and `OptionsSectionStage` now use the shared content style for labels/buttons; engine widget chrome remains for complex inputs.
   - content-styled buttons now use conchars-based box chrome instead of only swapping the font.
   - styled hub menus now use shared button padding/min width and tighter row spacing to better fit the conchars button chrome.
   - submenu enter/exit sounds now come from the shared content style and are triggered by controller-owned menu-depth transitions.
   - button hover now uses green text plus `menu2.wav`, and hover state is reset on click/menu transitions.
-  - broader menu-stage theming is still pending; stateful/editor-like stages are intentionally left on engine styling for now.
+  - Missing game-styled widget chrome is tracked explicitly:
+    - `TextField`: still engine-styled in `JoinGameStage`, `PlayerSetupStage`, `ProfileEditStage`, `OptionsSectionStage`
+    - `SelectBox`: still engine-styled in `PlayerSetupStage`
+    - `List`: still engine-styled in `ProfileEditStage`
+    - `ScrollPane`: still engine-styled in `ProfileEditStage`
 
 ## Menu Messaging Refactor (2026-03-09)
 - Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:
