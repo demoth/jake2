@@ -47,53 +47,42 @@ class MainMenuStage(
     init {
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
-        val container = Table().apply {
-            defaults().pad(16f).uniformX().fillX()
-            setFillParent(true)
+        val container = createHubMenuTable().apply {
+            defaults().pad(8f).uniformX().fillX().minWidth(260f)
 
             currentProfileLabel = Label("", labelStyle)
-            add(currentProfileLabel)
+            add(currentProfileLabel).padBottom(12f)
             row()
 
-            switchProfileButton = TextButton("Switch profile", buttonStyle).apply {
-                onClick {
+            switchProfileButton = createMenuButton("Switch profile", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
-                }
             }
             add(switchProfileButton)
             row()
 
-            disconnectButton = TextButton("Disconnect", buttonStyle).apply {
-                onClick {
+            disconnectButton = createMenuButton("Disconnect", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.DisconnectRequested)
-                }
             }
             add(disconnectButton)
             row()
 
-            add(TextButton("Singleplayer (future)", buttonStyle).apply {
+            add(createMenuButton("Singleplayer (future)", buttonStyle).apply {
                 isDisabled = true
             })
             row()
 
-            add(TextButton("Multiplayer", buttonStyle).apply {
-                onClick {
+            add(createMenuButton("Multiplayer", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
-                }
             })
             row()
 
-            add(TextButton("Options", buttonStyle).apply {
-                onClick {
+            add(createMenuButton("Options", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenOptions)
-                }
             })
             row()
 
-            add(TextButton("Exit", buttonStyle).apply {
-                onClick {
+            add(createMenuButton("Exit", buttonStyle) {
                     Cbuf.AddText("quit")
-                }
             })
         }
         addActor(container)

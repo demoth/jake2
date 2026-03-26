@@ -207,6 +207,7 @@
   - `MainMenuStage` now consumes the shared content style and is rebuilt when the effective style changes.
   - `MultiplayerMenuStage` and `OptionsMenuStage` now use the shared content style as well, including styled `Back` buttons.
   - content-styled buttons now use conchars-based box chrome instead of only swapping the font.
+  - styled hub menus now use shared button padding/min width and tighter row spacing to better fit the conchars button chrome.
   - submenu enter/exit sounds now come from the shared content style and are triggered by controller-owned menu-depth transitions.
   - broader menu-stage theming is still pending; stateful/editor-like stages are intentionally left on engine styling for now.
 

@@ -1,10 +1,7 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
-import ktx.actors.onClick
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
@@ -39,18 +36,15 @@ class OptionsMenuStage(
         clear()
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
-        val container = Table().apply {
-            defaults().pad(16f).uniformX().fillX()
-            setFillParent(true)
+        val container = createHubMenuTable().apply {
+            defaults().pad(8f).uniformX().fillX().minWidth(260f)
 
-            add(Label("Options", labelStyle))
+            add(Label("Options", labelStyle)).padBottom(12f)
             row()
 
             state.sections.forEach { section ->
-                val button = TextButton("${section.title} (${section.optionCount})", buttonStyle).apply {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenOptionsSection(section.prefix))
-                    }
+                val button = createMenuButton("${section.title} (${section.optionCount})", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenOptionsSection(section.prefix))
                 }
                 button.isDisabled = section.optionCount == 0
                 add(button)
