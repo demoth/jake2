@@ -5,12 +5,15 @@ import jake2.qcommon.exec.Cmd;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Shared registration for VFS diagnostics commands.
  *
  * Commands:
  * - {@code fs_files}
+ * - {@code fs_find <regex>}
  * - {@code fs_mounts}
  * - {@code fs_overrides}
  * - {@code fs_mount <packagePath>}
@@ -45,6 +48,7 @@ public final class VfsDebugCommands {
     public static void register(Provider provider) {
         Objects.requireNonNull(provider, "provider");
         Cmd.AddCommand("fs_files", true, args -> printResolvedFiles(provider));
+        Cmd.AddCommand("fs_find", true, "List indexed VFS files whose path matches a regex", args -> findResolvedFiles(provider, args));
         Cmd.AddCommand("fs_mounts", true, args -> printMounts(provider));
         Cmd.AddCommand("fs_overrides", true, args -> printOverrides(provider));
         Cmd.AddCommand("fs_mount", true, args -> mountPackage(provider, args));
@@ -66,6 +70,39 @@ public final class VfsDebugCommands {
             Com.Printf(file + "\n");
         }
         Com.Printf("Total resolved files: " + files.size() + "\n");
+    }
+
+    private static void findResolvedFiles(Provider provider, List<String> args) {
+        if (!provider.isInitialized()) {
+            Com.Printf("VFS debug provider is not initialized.\n");
+            return;
+        }
+        if (args.size() < 2) {
+            Com.Printf("Usage: fs_find <regex>\n");
+            return;
+        }
+
+        String regex = Cmd.getArguments(args);
+        final Pattern pattern;
+        try {
+            pattern = Pattern.compile(regex);
+        } catch (PatternSyntaxException e) {
+            Com.Printf("Invalid regex for fs_find: " + e.getDescription() + "\n");
+            return;
+        }
+
+        List<String> matches = provider.resolvedFiles().stream()
+                .filter(file -> pattern.matcher(file).find())
+                .toList();
+        if (matches.isEmpty()) {
+            Com.Printf("No VFS files matched regex: " + regex + "\n");
+            return;
+        }
+
+        for (String match : matches) {
+            Com.Printf(match + "\n");
+        }
+        Com.Printf("Total matched files: " + matches.size() + "\n");
     }
 
     private static void printMounts(Provider provider) {
