@@ -20,7 +20,6 @@ This file is intentionally reduced to active follow-up items only.
 
 - advanced command-specific completion
 - map/file/demo completion
-- persistent command history
 - perfect pixel-precise text selection
 - reworking the whole command system
 - replacing Scene2D

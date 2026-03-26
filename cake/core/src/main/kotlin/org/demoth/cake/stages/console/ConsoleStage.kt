@@ -30,7 +30,10 @@ import ktx.scene2d.*
  *   (`console-panel`).
  * - `Stack` child order is visual-order sensitive (last child is drawn on top).
  */
-class ConsoleStage(viewport: Viewport) : Stage(viewport) {
+class ConsoleStage(
+    viewport: Viewport,
+    persistHistory: (List<String>) -> Unit = {},
+) : Stage(viewport) {
     private val consoleBuffer = ConsoleBuffer()
     private val consoleSink = Com.ConsoleSink { level, message -> appendOutput(level, message) }
     private val inputController by lazy {
@@ -39,6 +42,7 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
             output = consoleOutput,
             appendOutput = ::appendOutput,
             submitCommand = ::submitCommand,
+            persistHistory = persistHistory,
         )
     }
 
@@ -53,6 +57,10 @@ class ConsoleStage(viewport: Viewport) : Stage(viewport) {
 
     val entries: List<ConsoleEntry>
         get() = consoleBuffer.entries()
+
+    fun replaceCommandHistory(commands: List<String>) {
+        inputController.replaceHistory(commands)
+    }
 
     init {
         Com.SetConsoleSink(consoleSink)

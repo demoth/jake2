@@ -13,11 +13,9 @@ class ConsoleInputController(
     private val output: ConsoleOutputWidget,
     private val appendOutput: (Com.ConsoleLevel, String) -> Unit,
     private val submitCommand: (String) -> Unit,
+    private val history: ConsoleCommandHistory = ConsoleCommandHistory(),
+    private val persistHistory: (List<String>) -> Unit = {},
 ) : InputListener() {
-    private val history = ArrayDeque<String>(MAX_HISTORY_SIZE)
-    private var historyCursor = 0
-    private var draftInput = ""
-
     override fun keyDown(event: InputEvent, keycode: Int): Boolean {
         return when (keycode) {
             Input.Keys.ENTER -> {
@@ -53,21 +51,11 @@ class ConsoleInputController(
         val command = input.text
         appendOutput(Com.ConsoleLevel.INFO, "$command\n")
         submitCommand(command)
-        recordHistory(command)
+        if (history.recordSubmitted(command)) {
+            persistHistory(history.entries())
+        }
         input.text = ""
         input.cursorPosition = 0
-        historyCursor = history.size
-        draftInput = ""
-    }
-
-    private fun recordHistory(command: String) {
-        if (command.isBlank()) {
-            return
-        }
-        if (history.size == MAX_HISTORY_SIZE) {
-            history.removeFirst()
-        }
-        history.addLast(command)
     }
 
     private fun completeCurrentInput() {
@@ -140,21 +128,13 @@ class ConsoleInputController(
     }
 
     private fun navigateHistory(direction: Int) {
-        if (history.isEmpty()) {
-            return
-        }
-
-        if (historyCursor == history.size) {
-            draftInput = input.text
-        }
-
-        historyCursor = (historyCursor + direction).coerceIn(0, history.size)
-        if (historyCursor == history.size) {
-            input.text = draftInput
-        } else {
-            input.text = history.elementAt(historyCursor)
-        }
+        val nextText = history.navigate(direction, input.text) ?: return
+        input.text = nextText
         input.cursorPosition = input.text.length
+    }
+
+    fun replaceHistory(commands: List<String>) {
+        history.replaceEntries(commands)
     }
 
     private fun longestCommonPrefix(matches: List<String>): String {
@@ -173,7 +153,4 @@ class ConsoleInputController(
         return prefix
     }
 
-    companion object {
-        private const val MAX_HISTORY_SIZE = 64
-    }
 }

@@ -28,6 +28,7 @@ It does not own:
 ## Key Types
 
 - `ConsoleStage` - overlay stage composition and engine-console sink wiring.
+- `ConsoleCommandHistory` - UI-agnostic bounded submitted-command history with draft restore.
 - `ConsoleBuffer` - bounded logical entry buffer with severity-tagged entries.
 - `ConsoleOutputWidget` - custom Scene2D widget that wraps, clips, colors, and scrolls visible console rows.
 - `ConsoleInputController` - console-specific keyboard behavior layered on top of `TextField`.
@@ -56,7 +57,7 @@ Console input key handling
 - Output rendering is clipped to widget bounds and only draws visible rows.
 - Input focus stays on the `TextField`; output is not part of focus traversal.
 - Completion scope is intentionally small: commands and cvars only.
-- History is session-local and stores submitted commands only.
+- History is profile-local, stores submitted commands only, and restores on the next launch.
 
 ## Current Behavior
 
@@ -66,6 +67,8 @@ Console input key handling
 - Output scrolling is line-based, not `ScrollPane`-based.
 - Mouse wheel scrolling is attached directly to `ConsoleOutputWidget`.
 - `clear` clears the logical scrollback buffer.
+- Submitted commands persist to `.cake/<profileId>/console-history.txt`, capped to the latest 500 entries.
+- Commands whose first character is a space are executed but not recorded in history.
 
 ## Open Follow-Ups
 

@@ -69,6 +69,7 @@ Console Enter key
 ## Invariants
 - Stages are app-owned singletons for a running `Cake` instance.
 - Console execution is Enter-key driven, but the console also owns completion/history/scroll keys through `ConsoleInputController`.
+- Console command history persists per Cake profile under `.cake/<profileId>/console-history.txt`.
 - Menu navigation state lives in `org.demoth.cake.ui.menu`, not inside individual stage widgets.
 - Multiplayer and options flows are routed through dedicated screens instead of ad-hoc button commands.
 - `Player Setup` writes on `Save` only; `Back` discards staged edits.

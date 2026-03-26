@@ -45,6 +45,7 @@ import org.demoth.cake.download.CakeDownloadRejectReason
 import org.demoth.cake.download.CakeDownloadTransfer
 import org.demoth.cake.download.CakeDownloadTransferResult
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.profile.CakeConsoleHistoryStore
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfileConfigStore
@@ -158,6 +159,7 @@ class Cake(
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
+    private val consoleHistoryStore = CakeConsoleHistoryStore()
     private val downloadManager = CakeDownloadManager()
     private val downloadTransfer = CakeDownloadTransfer()
     private val networkDebugSampler = NetworkDebugSampler()
@@ -250,7 +252,11 @@ class Cake(
         )
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
-        consoleStage = ConsoleStage(viewport)
+        consoleStage = ConsoleStage(
+            viewport = viewport,
+            persistHistory = ::saveActiveConsoleHistory,
+        )
+        reloadActiveConsoleHistory()
         debugGraphStage = DebugGraphStage(viewport)
         profileBackgroundBatch = SpriteBatch()
         transitionBackdropBatch = SpriteBatch()
@@ -1368,6 +1374,32 @@ class Cake(
         }
     }
 
+    private fun loadActiveConsoleHistory(): List<String> {
+        val profileId = activeProfileId()
+        return try {
+            consoleHistoryStore.readHistory(profileId)
+        } catch (e: Exception) {
+            Com.Warn("Failed to load console history for '$profileId': ${e.message}\n")
+            emptyList()
+        }
+    }
+
+    private fun saveActiveConsoleHistory(commands: List<String>) {
+        val profileId = activeProfileId()
+        try {
+            consoleHistoryStore.writeHistory(profileId, commands)
+        } catch (e: Exception) {
+            Com.Warn("Failed to save console history for '$profileId': ${e.message}\n")
+        }
+    }
+
+    private fun reloadActiveConsoleHistory() {
+        if (!this::consoleStage.isInitialized) {
+            return
+        }
+        consoleStage.replaceCommandHistory(loadActiveConsoleHistory())
+    }
+
     private fun playerSetupCatalog(): PlayerSetupCatalog {
         cachedPlayerSetupCatalog?.let { return it }
         val catalog = if (fileResolver.isVfsInitialized()) {
@@ -1585,6 +1617,7 @@ class Cake(
         fileResolver.gamemod = normalized?.gamemod
         cachedPlayerSetupCatalog = null
         reloadProfileBackground()
+        reloadActiveConsoleHistory()
     }
 
     private fun openStartupProfileEditorIfNeeded() {
