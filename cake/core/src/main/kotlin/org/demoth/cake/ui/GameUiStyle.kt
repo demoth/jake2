@@ -17,8 +17,11 @@ data class MenuWidgetStyles(
     val button: TextButton.TextButtonStyle,
 )
 
+private val MENU_HOVER_TEXT_COLOR = Color(0.35f, 0.95f, 0.35f, 1f)
+
 data class MenuSoundStyles(
     val enterSubmenu: Sound? = null,
+    val hoverButton: Sound? = null,
     val exitSubmenu: Sound? = null,
 )
 
@@ -100,6 +103,7 @@ internal fun createMenuWidgetStyles(
         label = Label.LabelStyle(baseLabelStyle).also { it.font = font },
         button = TextButton.TextButtonStyle(baseButtonStyle).also { style ->
             style.font = font
+            style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
             if (contentButtonDrawable != null) {
                 style.up = contentButtonDrawable
                 style.over = contentButtonDrawable

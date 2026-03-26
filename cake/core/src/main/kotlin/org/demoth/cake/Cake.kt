@@ -57,6 +57,7 @@ import org.demoth.cake.stages.OptionsMenuStage
 import org.demoth.cake.stages.OptionsSectionStage
 import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
+import org.demoth.cake.stages.BackNavigableMenuStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.GameUiStyle
@@ -964,6 +965,7 @@ class Cake(
         val menuSounds = currentGameUiStyle?.menuSounds ?: return
         val sound = when (effect) {
             MenuUiSoundEffect.ENTER_SUBMENU -> menuSounds.enterSubmenu
+            MenuUiSoundEffect.HOVER_BUTTON -> menuSounds.hoverButton
             MenuUiSoundEffect.EXIT_SUBMENU -> menuSounds.exitSubmenu
         }
         sound?.play()
@@ -1798,9 +1800,23 @@ class Cake(
             MenuScreen.OPTIONS_SECTION -> MenuView.OPTIONS_SECTION
         }
         if (targetView == menuView) return
+        currentMenuStage(menuView)?.resetMenuInteractionState()
         menuView = targetView
+        currentMenuStage(menuView)?.resetMenuInteractionState()
         if (menuVisible) {
             updateInputHandlers(consoleVisible, menuVisible)
+        }
+    }
+
+    private fun currentMenuStage(view: MenuView): BackNavigableMenuStage? {
+        return when (view) {
+            MenuView.MAIN -> menuStage
+            MenuView.PROFILE_EDIT -> profileEditStage
+            MenuView.MULTIPLAYER -> multiplayerMenuStage
+            MenuView.JOIN_GAME -> joinGameStage
+            MenuView.PLAYER_SETUP -> playerSetupStage
+            MenuView.OPTIONS -> optionsMenuStage
+            MenuView.OPTIONS_SECTION -> optionsSectionStage
         }
     }
 }

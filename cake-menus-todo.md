@@ -209,6 +209,7 @@
   - content-styled buttons now use conchars-based box chrome instead of only swapping the font.
   - styled hub menus now use shared button padding/min width and tighter row spacing to better fit the conchars button chrome.
   - submenu enter/exit sounds now come from the shared content style and are triggered by controller-owned menu-depth transitions.
+  - button hover now uses green text plus `menu2.wav`, and hover state is reset on click/menu transitions.
   - broader menu-stage theming is still pending; stateful/editor-like stages are intentionally left on engine styling for now.
 
 ## Menu Messaging Refactor (2026-03-09)
