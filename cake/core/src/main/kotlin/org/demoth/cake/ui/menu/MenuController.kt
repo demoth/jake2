@@ -10,7 +10,7 @@ interface MenuBackend {
     fun listProfileIds(): List<String>
     fun selectedProfileId(): String?
     fun profileFormById(profileId: String): ProfileFormState?
-    fun selectProfile(profileId: String): ProfileFormState?
+    fun applyProfile(profileId: String): String
     fun createProfileDraft(): ProfileFormState?
     fun autodetectBasedir(): String?
     fun saveProfile(form: ProfileFormState): String
@@ -123,12 +123,23 @@ class MenuController(
             }
 
             is MenuIntent.SelectProfile -> {
-                val selected = backend.selectProfile(intent.profileId) ?: return
+                val selected = backend.profileFormById(intent.profileId) ?: return
                 editingExistingProfileId = selected.id
                 draftProfileId = null
                 refreshState(
                     formOverride = selected,
-                    statusOverride = "Selected profile: ${selected.id}",
+                    selectedProfileIdOverride = selected.id,
+                    statusOverride = "Loaded profile '${selected.id}'",
+                )
+            }
+
+            is MenuIntent.ApplySelectedProfile -> {
+                val selectedId = editingExistingProfileId?.trim()?.takeIf { it.isNotEmpty() } ?: return
+                val status = backend.applyProfile(selectedId)
+                refreshState(
+                    formOverride = backend.profileFormById(selectedId) ?: state.profileEditor.form,
+                    selectedProfileIdOverride = selectedId,
+                    statusOverride = status,
                 )
             }
 
@@ -315,6 +326,7 @@ class MenuController(
             ?: editingExistingProfileId
             ?: draftProfileId
             ?: backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
+        val appliedProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
         val mainMenuState = MainMenuState(
             activeProfileId = backend.activeProfileId(),
             canDisconnect = backend.canDisconnect(),
@@ -336,6 +348,9 @@ class MenuController(
         val profileEditorState = ProfileEditorState(
             availableProfileIds = availableProfileIds.sorted(),
             selectedProfileId = selectedProfileId,
+            canApplySelectedProfile = draftProfileId == null &&
+                selectedProfileId != null &&
+                selectedProfileId != appliedProfileId,
             form = form,
             statusMessage = statusOverride ?: state.profileEditor.statusMessage,
         )

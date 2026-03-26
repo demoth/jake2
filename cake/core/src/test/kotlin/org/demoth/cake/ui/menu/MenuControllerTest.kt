@@ -36,6 +36,53 @@ class MenuControllerTest {
     }
 
     @Test
+    fun selectProfileLoadsFormButDoesNotApplyIt() {
+        val backend = FakeMenuBackend().apply {
+            profiles["rogue"] = ProfileFormState(
+                id = "rogue",
+                basedir = "/games/quake2",
+                gamemod = "rogue",
+            )
+        }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.postIntent(MenuIntent.SelectProfile("rogue"))
+        controller.pumpIntents()
+
+        val state = bus.latestState()
+        assertEquals("default", backend.selectedProfileId())
+        assertEquals("rogue", state.profileEditor.selectedProfileId)
+        assertEquals("rogue", state.profileEditor.form.id)
+        assertTrue(state.profileEditor.canApplySelectedProfile)
+    }
+
+    @Test
+    fun applySelectedProfileDelegatesToBackend() {
+        val backend = FakeMenuBackend().apply {
+            profiles["rogue"] = ProfileFormState(
+                id = "rogue",
+                basedir = "/games/quake2",
+                gamemod = "rogue",
+            )
+        }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+
+        controller.initialize()
+        bus.postIntent(MenuIntent.SelectProfile("rogue"))
+        bus.postIntent(MenuIntent.ApplySelectedProfile)
+        controller.pumpIntents()
+
+        val state = bus.latestState()
+        assertEquals("rogue", backend.selectedProfileId())
+        assertEquals("rogue", state.mainMenu.activeProfileId)
+        assertEquals("Applied profile 'rogue'", state.profileEditor.statusMessage)
+        assertTrue(!state.profileEditor.canApplySelectedProfile)
+    }
+
+    @Test
     fun openJoinGameSwitchesActiveScreen() {
         val backend = FakeMenuBackend()
         val bus = MenuEventBus()
@@ -268,6 +315,14 @@ class MenuControllerTest {
         val joinedAddresses = mutableListOf<String>()
         val savedPlayerSetupForms = mutableListOf<PlayerSetupFormState>()
         val savedOptionsValues = mutableListOf<OptionEditValue>()
+        val profiles = linkedMapOf(
+            "default" to ProfileFormState(
+                id = "default",
+                basedir = "/games/quake2",
+                gamemod = "",
+            ),
+        )
+        private var selectedProfileId: String? = "default"
         var currentPlayerSetupForm: PlayerSetupFormState = PlayerSetupFormState(
             name = "Player",
             model = "male",
@@ -298,19 +353,22 @@ class MenuControllerTest {
             ),
         )
 
-        override fun activeProfileId(): String = ""
+        override fun activeProfileId(): String = selectedProfileId.orEmpty()
 
         override fun canDisconnect(): Boolean = false
 
         override fun disconnect() = Unit
 
-        override fun listProfileIds(): List<String> = emptyList()
+        override fun listProfileIds(): List<String> = profiles.keys.toList()
 
-        override fun selectedProfileId(): String? = null
+        override fun selectedProfileId(): String? = selectedProfileId
 
-        override fun profileFormById(profileId: String): ProfileFormState? = null
+        override fun profileFormById(profileId: String): ProfileFormState? = profiles[profileId]
 
-        override fun selectProfile(profileId: String): ProfileFormState? = null
+        override fun applyProfile(profileId: String): String {
+            selectedProfileId = profileId
+            return "Applied profile '$profileId'"
+        }
 
         override fun createProfileDraft(): ProfileFormState = ProfileFormState(
             id = "newprofile",
@@ -320,7 +378,11 @@ class MenuControllerTest {
 
         override fun autodetectBasedir(): String? = null
 
-        override fun saveProfile(form: ProfileFormState): String = ""
+        override fun saveProfile(form: ProfileFormState): String {
+            profiles[form.id] = form
+            selectedProfileId = form.id
+            return "Saved profile '${form.id}'"
+        }
 
         override fun joinServer(address: String): String {
             joinedAddresses.add(address)

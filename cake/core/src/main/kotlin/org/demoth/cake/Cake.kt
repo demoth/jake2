@@ -1530,11 +1530,6 @@ class Cake(
 
     private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED
 
-    private fun selectProfileForEditor(profileId: String): CakeGameProfile? {
-        selectProfileForMenu(profileId)
-        return activeGameProfile?.takeIf { it.id == profileId }
-    }
-
     private fun createNewProfileDraft(): CakeGameProfile {
         val base = activeGameProfile?.basedir ?: autodetectSteamBasedir().orEmpty()
         val draftId = nextDraftProfileId()
@@ -1584,27 +1579,29 @@ class Cake(
     }
 
     // when switching profiles, we expect no active game, therefore, no loaded game resources
-    private fun selectProfileForMenu(profileId: String) {
+    private fun applySelectedProfileForMenu(profileId: String): String {
         if (!isProfileSwitchAllowed()) {
             Com.Warn("Profile switching is only allowed while disconnected.\n")
-            return
+            return "Disconnect first to switch profiles"
         }
         val selected = try {
-            val config = gameProfileStore.readConfig() ?: return
-            config.profiles.firstOrNull { it.id == profileId } ?: return
+            val config = gameProfileStore.readConfig() ?: return "No profiles config found"
+            config.profiles.firstOrNull { it.id == profileId } ?: return "Unknown profile '$profileId'"
         } catch (e: Exception) {
             Com.Warn("Failed to load profiles config: ${e.message}\n")
-            return
+            return "Failed to load profiles config: ${e.message}"
         }
 
-        try {
+        return try {
             saveActiveProfileConfig()
             gameProfileStore.selectProfile(profileId)
             applyGameProfile(selected)
             loadActiveProfileConfig()
             Com.Printf("Active profile switched to '$profileId'\n")
+            "Applied profile '$profileId'"
         } catch (e: Exception) {
             Com.Warn("Failed to switch profile '$profileId': ${e.message}\n")
+            "Failed to switch profile '$profileId': ${e.message}"
         }
     }
 
@@ -1675,8 +1672,8 @@ class Cake(
         override fun profileFormById(profileId: String): ProfileFormState? =
             loadProfileById(profileId)?.toProfileFormState()
 
-        override fun selectProfile(profileId: String): ProfileFormState? =
-            selectProfileForEditor(profileId)?.toProfileFormState()
+        override fun applyProfile(profileId: String): String =
+            applySelectedProfileForMenu(profileId)
 
         override fun createProfileDraft(): ProfileFormState =
             createNewProfileDraft().toProfileFormState()

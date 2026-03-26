@@ -178,7 +178,6 @@
 - Verify/keep: profile `basedir` seeds VFS via `applyGameProfile` (`fileResolver.basedir` -> `CakeVfsAssetSource.configure`).
 
 ## Profile Edit Refinements (2026-03-07)
-- Keep current behavior: selecting a profile in the left list applies it immediately (no deferred apply on `Back`).
 - Layout adjustments:
   - left panel should be packed/minimal width (no fixed wide column),
   - right panel should consume remaining horizontal space.
@@ -186,6 +185,21 @@
 - Keep right-side form simple and stacked (`label` then `textfield` rows).
 - Implement explicit checked/toggled state for the selected profile button in the list.
 - `Autodetect` should be a no-op when detection fails (do not overwrite fields).
+
+## Runtime Content Style Refactor (2026-03-26)
+- Pull HUD style ownership out of `Game3dScreen` and up into `Cake`.
+  - `Game3dScreen` should receive a ready-to-use HUD/content style and should not need to know `gameName`.
+- Keep runtime content-style switching semantics:
+  - effective style follows selected profile while disconnected,
+  - effective style can switch to server-provided mod context while connected,
+  - but style objects should be recreated only when the effective style key actually changes.
+- Menu stages will switch style by being rebuilt, not by attempting in-place Scene2D skin mutation.
+  - this is acceptable because current menu state is controller-owned and purely local widget state is not valuable enough to preserve.
+- Console remains explicitly on engine-owned styling and is out of scope for content-style switching.
+- Profile editor behavior change:
+  - selecting a profile in the list only loads it into the editor,
+  - applying/switching the active profile is now a separate explicit action,
+  - this avoids background/style churn on every list click.
 
 ## Menu Messaging Refactor (2026-03-09)
 - Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:

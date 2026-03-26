@@ -11,6 +11,7 @@ sealed interface MenuIntent {
     data class OpenOptionsSection(val prefix: String) : MenuIntent
     data object DisconnectRequested : MenuIntent
     data class SelectProfile(val profileId: String) : MenuIntent
+    data object ApplySelectedProfile : MenuIntent
     data class CreateProfileDraft(val statusMessage: String? = null) : MenuIntent
     data object AutodetectBasedirRequested : MenuIntent
     data class SaveProfile(val form: ProfileFormState) : MenuIntent

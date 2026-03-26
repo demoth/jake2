@@ -24,6 +24,7 @@ data class ProfileFormState(
 data class ProfileEditorState(
     val availableProfileIds: List<String> = emptyList(),
     val selectedProfileId: String? = null,
+    val canApplySelectedProfile: Boolean = false,
     val form: ProfileFormState = ProfileFormState(),
     val statusMessage: String = "",
 )

@@ -30,6 +30,7 @@ class ProfileEditStage(
     private var profilesListWidget: Scene2dList<String>
     private var profilesEmptyLabel: Label
     private var createProfileButton: TextButton
+    private var applyProfileButton: TextButton
     private var profileIdField: TextField
     private var basedirField: TextField
     private var gamemodField: TextField
@@ -78,6 +79,13 @@ class ProfileEditStage(
                         isVisible = false
                     }
                     add(profilesEmptyLabel).left().row()
+
+                    applyProfileButton = TextButton("Apply Selected Profile", Scene2DSkin.defaultSkin).apply {
+                        onClick {
+                            menuEventBus.postIntent(MenuIntent.ApplySelectedProfile)
+                        }
+                    }
+                    add(applyProfileButton).fillX().row()
 
                     createProfileButton = TextButton("Create New Profile", Scene2DSkin.defaultSkin).apply {
                         onClick {
@@ -183,6 +191,7 @@ class ProfileEditStage(
         if (force || state.statusMessage != renderedStatusMessage) {
             statusLabel.setText(state.statusMessage)
         }
+        applyProfileButton.isDisabled = !state.canApplySelectedProfile
 
         renderedProfileIds = normalizedIds
         renderedSelectedProfileId = normalizedSelectedId
