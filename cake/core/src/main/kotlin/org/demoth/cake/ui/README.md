@@ -6,7 +6,7 @@ This package owns shared content style resources (`GameUiStyle`) used by runtime
 Owned here:
 - Building HUD font from `pics/conchars.pcx` (`ConcharsFontLoader`).
 - Loading numeric HUD glyph pictures (`num_*`, `anum_*`) and exposing them as `HudNumberFont`.
-- Deriving content-styled menu label/button styles from the active HUD font.
+- Deriving content-styled menu label/button styles from the active HUD font and conchars box glyphs.
 - Loading optional content-driven menu enter/exit sounds (`misc/menu1.wav`, `misc/menu3.wav`).
 - Selecting style implementation in `GameUiStyleFactory`.
 
@@ -47,6 +47,7 @@ Render frame
 ## Invariants
 - Style swap happens at `ServerDataMessage` handling time, but ownership lives at `Cake` scope.
 - Menu stage rebuilding is the supported Scene2D style-switch path; widgets are not restyled in place.
+- IdTech2 button chrome reuses the legacy menu box glyphs `1..9` from `pics/conchars.pcx`.
 - Menu navigation sounds are emitted from `MenuController` based on menu-depth changes, not from stage-local button callbacks.
 - Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and is released by `Cake`.
 - Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.

@@ -109,7 +109,7 @@ object GameUiStyleFactory {
             IdTech2UiStyle(
                 hudFont = hudFont,
                 hudNumberFont = hudNumberFont,
-                menuWidgets = createMenuWidgetStyles(skin, hudFont),
+                menuWidgets = createMenuWidgetStyles(skin, hudFont, concharsTexture),
                 menuSounds = menuSounds,
                 onDispose = { unloadAssets(assetManager, hudAssetPaths + menuSoundPaths) },
             )

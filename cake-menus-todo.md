@@ -206,6 +206,7 @@
   - runtime style reuse is keyed by effective resolver context so identical reconnects do not recreate the same HUD style.
   - `MainMenuStage` now consumes the shared content style and is rebuilt when the effective style changes.
   - `MultiplayerMenuStage` and `OptionsMenuStage` now use the shared content style as well, including styled `Back` buttons.
+  - content-styled buttons now use conchars-based box chrome instead of only swapping the font.
   - submenu enter/exit sounds now come from the shared content style and are triggered by controller-owned menu-depth transitions.
   - broader menu-stage theming is still pending; stateful/editor-like stages are intentionally left on engine styling for now.
 
