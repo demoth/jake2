@@ -8,4 +8,4 @@ script = ""
 [[actions]]
 name = "Run"
 icon = "run"
-command = "./gradlew run"
+command = "./gradlew :cake:cake-lwjgl3:run --rerun-tasks"
