@@ -9,8 +9,13 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Array
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -46,10 +51,47 @@ class GameUiStyleFactoryTest {
             Array<TextureRegion>().apply { add(TextureRegion()) },
             false,
         )
+        val emptyDrawable = TextureRegionDrawable(TextureRegion())
         return Skin().apply {
             add("default", font, BitmapFont::class.java)
             add("default", Label.LabelStyle(font, Color.WHITE))
             add("default", TextButton.TextButtonStyle().also { it.font = font })
+            add(
+                "default",
+                TextField.TextFieldStyle().also {
+                    it.font = font
+                    it.messageFont = font
+                    it.cursor = emptyDrawable
+                    it.selection = emptyDrawable
+                },
+            )
+            add(
+                "default",
+                ScrollPane.ScrollPaneStyle().also {
+                    it.background = emptyDrawable
+                    it.vScroll = emptyDrawable
+                    it.vScrollKnob = emptyDrawable
+                },
+            )
+            add(
+                "default",
+                Scene2dList.ListStyle().also {
+                    it.font = font
+                    it.fontColorSelected = Color.WHITE
+                    it.fontColorUnselected = Color.WHITE
+                    it.selection = emptyDrawable
+                },
+            )
+            add(
+                "default",
+                SelectBox.SelectBoxStyle().also {
+                    it.font = font
+                    it.fontColor = Color.WHITE
+                    it.listStyle = get(Scene2dList.ListStyle::class.java)
+                    it.scrollStyle = get(ScrollPane.ScrollPaneStyle::class.java)
+                    it.background = emptyDrawable
+                },
+            )
         }
     }
 

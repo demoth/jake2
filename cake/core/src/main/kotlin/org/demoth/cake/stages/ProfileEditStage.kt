@@ -47,6 +47,9 @@ class ProfileEditStage(
     init {
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
+        val textFieldStyle = style.menuWidgets.textField
+        val listStyle = style.menuWidgets.list
+        val scrollPaneStyle = style.menuWidgets.scrollPane
         val root = Table().apply {
             setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
@@ -58,13 +61,13 @@ class ProfileEditStage(
                 defaults().pad(8f).fillX()
                 add(Label("Profiles", labelStyle)).left().row()
 
-                profilesListWidget = Scene2dList<String>(Scene2DSkin.defaultSkin).apply {
+                profilesListWidget = Scene2dList<String>(listStyle).apply {
                     onChange {
                         if (suppressProfileSelectionEvents) return@onChange
                         selected?.let { menuEventBus.postIntent(MenuIntent.SelectProfile(it)) }
                     }
                 }
-                val profilesScrollPane = ScrollPane(profilesListWidget, Scene2DSkin.defaultSkin, "list").apply {
+                val profilesScrollPane = ScrollPane(profilesListWidget, scrollPaneStyle).apply {
                     setFadeScrollBars(false)
                     setScrollingDisabled(true, false)
                 }
@@ -100,11 +103,11 @@ class ProfileEditStage(
                 add(Label("Profile Editor", labelStyle)).left().row()
 
                 add(Label("Profile ID", labelStyle)).left().row()
-                profileIdField = TextField("", Scene2DSkin.defaultSkin)
+                profileIdField = TextField("", textFieldStyle)
                 add(profileIdField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                 add(Label("Basedir", labelStyle)).left().row()
-                basedirField = TextField("", Scene2DSkin.defaultSkin)
+                basedirField = TextField("", textFieldStyle)
                 add(basedirField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                 autodetectButton = createMenuButton("Autodetect", buttonStyle) {
@@ -113,7 +116,7 @@ class ProfileEditStage(
                 add(autodetectButton).left().row()
 
                 add(Label("Gamemod (optional)", labelStyle)).left().row()
-                gamemodField = TextField("", Scene2DSkin.defaultSkin)
+                gamemodField = TextField("", textFieldStyle)
                 add(gamemodField).minWidth(FORM_FIELD_MIN_WIDTH).prefWidth(FORM_FIELD_PREF_WIDTH).growX().fillX().row()
 
                 saveButton = createMenuButton("Save", buttonStyle) {

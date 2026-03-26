@@ -42,6 +42,8 @@ class PlayerSetupStage(
     init {
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
+        val textFieldStyle = style.menuWidgets.textField
+        val selectBoxStyle = style.menuWidgets.selectBox
         val root = Table().apply {
             setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
@@ -51,13 +53,13 @@ class PlayerSetupStage(
             add(Label("Player Setup", labelStyle)).colspan(2).left().row()
 
             add(Label("Name", labelStyle)).minWidth(180f).left()
-            nameField = TextField("", Scene2DSkin.defaultSkin).apply {
+            nameField = TextField("", textFieldStyle).apply {
                 onChange { publishDraft() }
             }
             add(nameField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
             add(Label("Password", labelStyle)).minWidth(180f).left()
-            passwordField = TextField("", Scene2DSkin.defaultSkin).apply {
+            passwordField = TextField("", textFieldStyle).apply {
                 isPasswordMode = true
                 setPasswordCharacter('*')
                 onChange { publishDraft() }
@@ -65,19 +67,19 @@ class PlayerSetupStage(
             add(passwordField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
             add(Label("Model", labelStyle)).minWidth(180f).left()
-            modelSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+            modelSelect = SelectBox<String>(selectBoxStyle).apply {
                 onChange { publishDraft() }
             }
             add(modelSelect).minWidth(240f).fillX().row()
 
             add(Label("Skin", labelStyle)).minWidth(180f).left()
-            skinSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+            skinSelect = SelectBox<String>(selectBoxStyle).apply {
                 onChange { publishDraft() }
             }
             add(skinSelect).minWidth(240f).fillX().row()
 
             add(Label("Handedness", labelStyle)).minWidth(180f).left()
-            handSelect = SelectBox<String>(Scene2DSkin.defaultSkin).apply {
+            handSelect = SelectBox<String>(selectBoxStyle).apply {
                 setItems(*HAND_LABELS)
                 onChange { publishDraft() }
             }

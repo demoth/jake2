@@ -206,16 +206,15 @@
   - runtime style reuse is keyed by effective resolver context so identical reconnects do not recreate the same HUD style.
   - `MainMenuStage` now consumes the shared content style and is rebuilt when the effective style changes.
   - `MultiplayerMenuStage` and `OptionsMenuStage` now use the shared content style as well, including styled `Back` buttons.
-  - `JoinGameStage`, `PlayerSetupStage`, `ProfileEditStage`, and `OptionsSectionStage` now use the shared content style for labels/buttons; engine widget chrome remains for complex inputs.
+  - `JoinGameStage`, `PlayerSetupStage`, `ProfileEditStage`, and `OptionsSectionStage` now use the shared content style for labels/buttons/text fields; engine widget chrome remains for the more complex inputs.
+  - `PlayerSetupStage` select boxes now use the shared content style for the closed box and popup list/scrollpane, reusing conchars borders and content font without a dedicated dropdown arrow yet.
+  - `ProfileEditStage` profile list and scroll pane now use the shared content style, so the remaining editor widget chrome is no longer split between engine and game style.
   - content-styled buttons now use conchars-based box chrome instead of only swapping the font.
   - styled hub menus now use shared button padding/min width and tighter row spacing to better fit the conchars button chrome.
   - submenu enter/exit sounds now come from the shared content style and are triggered by controller-owned menu-depth transitions.
   - button hover now uses green text plus `menu2.wav`, and hover state is reset on click/menu transitions.
   - Missing game-styled widget chrome is tracked explicitly:
-    - `TextField`: still engine-styled in `JoinGameStage`, `PlayerSetupStage`, `ProfileEditStage`, `OptionsSectionStage`
-    - `SelectBox`: still engine-styled in `PlayerSetupStage`
-    - `List`: still engine-styled in `ProfileEditStage`
-    - `ScrollPane`: still engine-styled in `ProfileEditStage`
+    - none for the currently styled menu screens; future gaps are expected to come from newly introduced widget types rather than the existing menu set.
 
 ## Menu Messaging Refactor (2026-03-09)
 - Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:

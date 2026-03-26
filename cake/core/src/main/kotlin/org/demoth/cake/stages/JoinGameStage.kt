@@ -31,6 +31,7 @@ class JoinGameStage(
     init {
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
+        val textFieldStyle = style.menuWidgets.textField
         val root = Table().apply {
             setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
@@ -40,11 +41,11 @@ class JoinGameStage(
             add(Label("Join Game", labelStyle)).left().row()
 
             add(Label("Host name", labelStyle)).left().row()
-            hostField = TextField("", Scene2DSkin.defaultSkin)
+            hostField = TextField("", textFieldStyle)
             add(hostField).minWidth(320f).prefWidth(640f).growX().fillX().row()
 
             add(Label("Port", labelStyle)).left().row()
-            portField = TextField("", Scene2DSkin.defaultSkin)
+            portField = TextField("", textFieldStyle)
             add(portField).width(180f).left().row()
 
             val buttonsRow = Table(Scene2DSkin.defaultSkin).apply {

@@ -25,6 +25,7 @@ class OptionsSectionStage(
     private val fieldsByName = linkedMapOf<String, TextField>()
     private val labelStyle = style.menuWidgets.label
     private val buttonStyle = style.menuWidgets.button
+    private val textFieldStyle = style.menuWidgets.textField
 
     init {
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
@@ -55,7 +56,7 @@ class OptionsSectionStage(
 
             state.entries.forEach { entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
-                val field = TextField(entry.value, Scene2DSkin.defaultSkin)
+                val field = TextField(entry.value, textFieldStyle)
                 fieldsByName[entry.name] = field
                 add(field).minWidth(220f).prefWidth(280f).fillX()
 
