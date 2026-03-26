@@ -10,7 +10,7 @@ Owned here:
 
 Not owned here:
 - HUD layout parsing and draw command execution (`../stages/ingame/hud`).
-- Server message routing/timing (`../stages/ingame/Game3dScreen.kt`, `../Cake.kt`).
+- Style lifetime and serverdata-driven swap decisions (`../Cake.kt`).
 - Configstring/gameplay resource ownership (`../Config.kt`).
 
 ## Key Types
@@ -24,8 +24,9 @@ Not owned here:
 ## Data / Control Flow
 ```text
 ServerDataMessage
-  -> Game3dScreen.processServerDataMessage
-  -> GameUiStyleFactory.create(gameName, assetManager, defaultSkin)
+  -> Cake resolves/reuses shared GameUiStyle for current resolver context
+  -> Game3dScreen.setHudStyle(style)
+  -> Game3dScreen.processServerDataMessage(msg)
   -> Hud(spriteBatch, style, dataProvider)
 
 Render frame
@@ -35,8 +36,8 @@ Render frame
 ```
 
 ## Invariants
-- Style swap happens at `ServerDataMessage` handling time.
-- Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and releases them in `dispose()`.
+- Style swap happens at `ServerDataMessage` handling time, but ownership lives at `Cake` scope.
+- Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and is released by `Cake`.
 - Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.
 - Alternate text color/style is represented by legacy high-bit glyph toggle (`char ^ 0x80`), not by tinting.
 

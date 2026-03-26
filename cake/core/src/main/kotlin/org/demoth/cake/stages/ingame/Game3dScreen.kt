@@ -28,7 +28,6 @@ import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
-import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
@@ -38,7 +37,7 @@ import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
-import org.demoth.cake.ui.GameUiStyleFactory
+import org.demoth.cake.ui.GameUiStyle
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -124,7 +123,6 @@ class Game3dScreen(
     private val environment = Environment()
 
     // game state
-    private var gameName: String = ""
     private var spawnCount = 0
 
     private val beamRenderer = BeamRenderer(assetManager)
@@ -147,6 +145,7 @@ class Game3dScreen(
 
     // Initialized on ServerDataMessage, then reused for this screen lifetime.
     private var hud: Hud? = null
+    private var hudStyle: GameUiStyle? = null
 
 
     // interpolation factor between two server frames, between 0 and 1
@@ -989,7 +988,6 @@ class Game3dScreen(
      * CL_ParseServerData
      */
     override fun processServerDataMessage(msg: ServerDataMessage) {
-        gameName = msg.gameName.ifBlank { "baseq2" }
         levelString = msg.levelString
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
@@ -1005,11 +1003,10 @@ class Game3dScreen(
             cinematicController.end()
         }
 
-        // ServerDataMessage is the authoritative game/mod style switch point.
-        // Cake recreates Game3dScreen for each fresh serverdata sequence, so one HUD per screen is expected.
-        hud?.dispose() // defensive: avoid leaking style resources if serverdata is unexpectedly repeated.
-        val gameUiStyle = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
-        hud = Hud(spriteBatch, gameUiStyle, GameConfigLayoutDataProvider(gameConfig))
+        // Cake owns the shared HUD style and injects it before serverdata handling.
+        val resolvedHudStyle = requireNotNull(hudStyle) { "HUD style must be set before serverdata is processed" }
+        hud?.dispose()
+        hud = Hud(spriteBatch, resolvedHudStyle, GameConfigLayoutDataProvider(gameConfig))
     }
 
     /**
@@ -1031,6 +1028,10 @@ class Game3dScreen(
             spawnCount = spawnCount,
             hasImmediateAction = inputManager.hasActiveImmediateAction(),
         )
+    }
+
+    fun setHudStyle(style: GameUiStyle) {
+        hudStyle = style
     }
 
     override fun processConfigStringMessage(msg: ConfigStringMessage) {

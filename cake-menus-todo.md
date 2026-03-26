@@ -200,6 +200,10 @@
   - selecting a profile in the list only loads it into the editor,
   - applying/switching the active profile is now a separate explicit action,
   - this avoids background/style churn on every list click.
+- Progress:
+  - explicit profile apply is implemented,
+  - HUD style ownership is moved from `Game3dScreen` to `Cake`,
+  - runtime style reuse is keyed by effective resolver context so identical reconnects do not recreate the same HUD style.
 
 ## Menu Messaging Refactor (2026-03-09)
 - Introduced a typed menu messaging layer to decouple stages from `Cake` callback wiring:

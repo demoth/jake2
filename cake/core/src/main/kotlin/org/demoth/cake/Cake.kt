@@ -59,6 +59,8 @@ import org.demoth.cake.stages.PlayerSetupStage
 import org.demoth.cake.stages.ProfileEditStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
+import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -171,6 +173,8 @@ class Cake(
     private var cachedPlayerSetupCatalog: PlayerSetupCatalog? = null
     private val menuEventBus = MenuEventBus()
     private lateinit var menuController: MenuController
+    private var currentGameUiStyle: GameUiStyle? = null
+    private var currentGameUiStyleKey: Pair<String?, String?>? = null
 
     private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
@@ -919,6 +923,7 @@ class Cake(
         optionsSectionStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
+        clearCurrentGameUiStyle()
         clearProfileBackground()
         profileBackgroundBatch?.dispose()
         profileBackgroundBatch = null
@@ -947,6 +952,27 @@ class Cake(
         }
         game3dScreen = null
         return screen
+    }
+
+    private fun clearCurrentGameUiStyle() {
+        currentGameUiStyle?.dispose()
+        currentGameUiStyle = null
+        currentGameUiStyleKey = null
+    }
+
+    private fun resolveCurrentGameUiStyle(): GameUiStyle {
+        val key = fileResolver.basedir to fileResolver.gamemod
+        val cached = currentGameUiStyle
+        if (cached != null && currentGameUiStyleKey == key) {
+            return cached
+        }
+
+        currentGameUiStyle?.dispose()
+        val gameName = fileResolver.gamemod ?: "baseq2"
+        val created = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
+        currentGameUiStyle = created
+        currentGameUiStyleKey = key
+        return created
     }
 
     /**
@@ -1092,10 +1118,8 @@ class Cake(
                     resetClientStateForServerData()
                     netchan.reliablePending.clear()
 
-                    if (!msg.gameName.isNullOrBlank()) {
-                        fileResolver.gamemod = msg.gameName
-                    }
-
+                    fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
+                    game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
                     game3dScreen?.processServerDataMessage(msg)
                     // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
@@ -1189,6 +1213,7 @@ class Cake(
         }
         if (game3dScreen == null) {
             game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
+            game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
             debugGraphStage.resetMetrics()
         }
     }
@@ -1612,6 +1637,7 @@ class Cake(
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
+        clearCurrentGameUiStyle()
         cachedPlayerSetupCatalog = null
         reloadProfileBackground()
         reloadActiveConsoleHistory()

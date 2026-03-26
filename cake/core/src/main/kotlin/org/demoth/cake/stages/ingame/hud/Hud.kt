@@ -725,6 +725,6 @@ internal class Hud(
     }
 
     override fun dispose() {
-        style.dispose()
+        // HUD borrows the shared style; lifetime is managed by Cake.
     }
 }
