@@ -2,6 +2,7 @@ package org.demoth.cake.ui.menu
 
 enum class MenuUiSoundEffect {
     ENTER_SUBMENU,
+    HOVER_BUTTON,
     EXIT_SUBMENU,
 }
 

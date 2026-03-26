@@ -11,6 +11,7 @@ import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
 private const val CONCHARS_PATH = "pics/conchars.pcx"
 private const val MENU_IN_SOUND_PATH = "sound/misc/menu1.wav"
+private const val MENU_MOVE_SOUND_PATH = "sound/misc/menu2.wav"
 private const val MENU_OUT_SOUND_PATH = "sound/misc/menu3.wav"
 private const val HUD_NUM_STYLES = 2
 private const val HUD_NUM_FRAMES = 11
@@ -136,6 +137,7 @@ object GameUiStyleFactory {
     private fun loadMenuSounds(assetManager: AssetManager, acquiredPaths: MutableList<String>): MenuSoundStyles {
         return MenuSoundStyles(
             enterSubmenu = loadSoundIfPresent(assetManager, MENU_IN_SOUND_PATH, acquiredPaths),
+            hoverButton = loadSoundIfPresent(assetManager, MENU_MOVE_SOUND_PATH, acquiredPaths),
             exitSubmenu = loadSoundIfPresent(assetManager, MENU_OUT_SOUND_PATH, acquiredPaths),
         )
     }
