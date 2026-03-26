@@ -1,11 +1,12 @@
 # IdTech2 UI Style
 
 ## Overview
-This package owns game-specific HUD style resources (`GameUiStyle`) used by runtime HUD rendering.
+This package owns shared content style resources (`GameUiStyle`) used by runtime HUD rendering and content-styled menus.
 
 Owned here:
 - Building HUD font from `pics/conchars.pcx` (`ConcharsFontLoader`).
 - Loading numeric HUD glyph pictures (`num_*`, `anum_*`) and exposing them as `HudNumberFont`.
+- Deriving content-styled menu label/button styles from the active HUD font.
 - Selecting style implementation in `GameUiStyleFactory`.
 
 Not owned here:
@@ -18,6 +19,7 @@ Not owned here:
 - `EngineUiStyle` - Fallback style backed by Scene2D default skin.
 - `IdTech2UiStyle` - IdTech2 style aggregate (`conchars` font + number font).
 - `GameUiStyleFactory` - Style selection and per-instance asset acquisition.
+- `MenuWidgetStyles` - Shared menu label/button styles exposed by `GameUiStyle`.
 - `ConcharsFontLoader` - Converts 16x16 conchars atlas into `BitmapFont` glyph set.
 - `IdTech2HudNumberFont` - Draws number fields with `num_*` / `anum_*` textures.
 
@@ -25,6 +27,7 @@ Not owned here:
 ```text
 ServerDataMessage
   -> Cake resolves/reuses shared GameUiStyle for current resolver context
+  -> Cake rebuilds content-styled menu stages when the style instance changes
   -> Game3dScreen.setHudStyle(style)
   -> Game3dScreen.processServerDataMessage(msg)
   -> Hud(spriteBatch, style, dataProvider)
@@ -33,10 +36,12 @@ Render frame
   -> Hud.executeLayout(...)
   -> style.hudFont for text
   -> style.hudNumberFont for hnum/anum/rnum/num
+  -> MainMenuStage uses style.menuWidgets for label/button rendering
 ```
 
 ## Invariants
 - Style swap happens at `ServerDataMessage` handling time, but ownership lives at `Cake` scope.
+- Menu stage rebuilding is the supported Scene2D style-switch path; widgets are not restyled in place.
 - Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and is released by `Cake`.
 - Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.
 - Alternate text color/style is represented by legacy high-bit glyph toggle (`char ^ 0x80`), not by tinting.

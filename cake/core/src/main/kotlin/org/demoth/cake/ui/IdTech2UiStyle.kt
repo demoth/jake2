@@ -59,6 +59,7 @@ class IdTech2HudNumberFont(
 class IdTech2UiStyle(
     override val hudFont: BitmapFont,
     override val hudNumberFont: HudNumberFont,
+    override val menuWidgets: MenuWidgetStyles,
     private val onDispose: () -> Unit,
 ) : GameUiStyle {
     override fun dispose() {
@@ -70,10 +71,11 @@ class IdTech2UiStyle(
 
 object GameUiStyleFactory {
     /**
-     * Build game-specific HUD style resources.
+     * Build shared content style resources for the current resolver context.
      *
      * Quirk:
-     * styles are recreated when serverdata changes, so each style instance must
+     * styles are shared by HUD and menus, and are recreated only when the effective content key changes,
+     * so each style instance must
      * acquire and release its own AssetManager references.
      *
      * Legacy counterpart:
@@ -101,6 +103,7 @@ object GameUiStyleFactory {
             IdTech2UiStyle(
                 hudFont = hudFont,
                 hudNumberFont = hudNumberFont,
+                menuWidgets = createMenuWidgetStyles(skin, hudFont),
                 onDispose = { unloadTextures(assetManager, acquiredPaths) },
             )
         } catch (e: Exception) {

@@ -2,15 +2,13 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cbuf
 import ktx.actors.onClick
-import ktx.scene2d.actors
-import ktx.scene2d.label
-import ktx.scene2d.table
-import ktx.scene2d.textButton
 import org.demoth.cake.BuildVersion
+import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -22,7 +20,7 @@ import org.demoth.cake.ui.menu.MenuIntent
  * - In future will allow selecting concrete game configurations to run (q1/q2 etc)
  *
  * Ownership/Lifecycle:
- * - Created by [org.demoth.cake.Cake] once at startup.
+ * - Created by [org.demoth.cake.Cake] and rebuilt when the shared content style changes.
  * - Drawn/acted while menu visibility is enabled by `Cake` input routing.
  * - Disposed by `Cake.dispose()`.
  *
@@ -34,6 +32,7 @@ import org.demoth.cake.ui.menu.MenuIntent
 class MainMenuStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
+    style: GameUiStyle,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -46,49 +45,59 @@ class MainMenuStage(
     private var lastCanDisconnectState: Boolean = false
 
     init {
-        actors {
-            table {
-                defaults().pad(16f).uniformX().fillX()
-                setFillParent(true)
+        val labelStyle = style.menuWidgets.label
+        val buttonStyle = style.menuWidgets.button
+        val container = Table().apply {
+            defaults().pad(16f).uniformX().fillX()
+            setFillParent(true)
 
-                currentProfileLabel = label("")
-                row()
-                switchProfileButton = textButton("Switch profile") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
-                    }
-                }
-                row()
-                disconnectButton = textButton("Disconnect") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.DisconnectRequested)
-                    }
-                }
-                row()
-                textButton("Singleplayer (future)").apply {
-                    isDisabled = true
-                }
-                row()
-                textButton("Multiplayer") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
-                    }
-                }
-                row()
-                textButton("Options") {
-                    onClick {
-                        menuEventBus.postIntent(MenuIntent.OpenOptions)
-                    }
-                }
-                row()
-                textButton("Exit") {
-                    onClick {
-                        Cbuf.AddText("quit")
-                    }
+            currentProfileLabel = Label("", labelStyle)
+            add(currentProfileLabel)
+            row()
+
+            switchProfileButton = TextButton("Switch profile", buttonStyle).apply {
+                onClick {
+                    menuEventBus.postIntent(MenuIntent.OpenProfileEditor)
                 }
             }
-            label("version: ${BuildVersion.displayVersion}")
+            add(switchProfileButton)
+            row()
+
+            disconnectButton = TextButton("Disconnect", buttonStyle).apply {
+                onClick {
+                    menuEventBus.postIntent(MenuIntent.DisconnectRequested)
+                }
+            }
+            add(disconnectButton)
+            row()
+
+            add(TextButton("Singleplayer (future)", buttonStyle).apply {
+                isDisabled = true
+            })
+            row()
+
+            add(TextButton("Multiplayer", buttonStyle).apply {
+                onClick {
+                    menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
+                }
+            })
+            row()
+
+            add(TextButton("Options", buttonStyle).apply {
+                onClick {
+                    menuEventBus.postIntent(MenuIntent.OpenOptions)
+                }
+            })
+            row()
+
+            add(TextButton("Exit", buttonStyle).apply {
+                onClick {
+                    Cbuf.AddText("quit")
+                }
+            })
         }
+        addActor(container)
+        addActor(Label("version: ${BuildVersion.displayVersion}", labelStyle))
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         refreshProfileHeader("<unset>")

@@ -226,10 +226,7 @@ class Cake(
             backend = createMenuBackend(),
             bus = menuEventBus,
         )
-        menuStage = MainMenuStage(
-            viewport = viewport,
-            menuEventBus = menuEventBus,
-        ) // fixme: cvar
+        rebuildMainMenuStage(resolveCurrentGameUiStyle())
         profileEditStage = ProfileEditStage(
             viewport = viewport,
             menuEventBus = menuEventBus,
@@ -960,6 +957,20 @@ class Cake(
         currentGameUiStyleKey = null
     }
 
+    private fun rebuildMainMenuStage(style: GameUiStyle) {
+        if (::menuStage.isInitialized) {
+            menuStage.dispose()
+        }
+        menuStage = MainMenuStage(
+            viewport = viewport,
+            menuEventBus = menuEventBus,
+            style = style,
+        )
+        if (menuVisible && menuView == MenuView.MAIN) {
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
+    }
+
     private fun resolveCurrentGameUiStyle(): GameUiStyle {
         val key = fileResolver.basedir to fileResolver.gamemod
         val cached = currentGameUiStyle
@@ -972,6 +983,9 @@ class Cake(
         val created = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         currentGameUiStyle = created
         currentGameUiStyleKey = key
+        if (::menuStage.isInitialized) {
+            rebuildMainMenuStage(created)
+        }
         return created
     }
 
@@ -1641,6 +1655,9 @@ class Cake(
         cachedPlayerSetupCatalog = null
         reloadProfileBackground()
         reloadActiveConsoleHistory()
+        if (::menuStage.isInitialized) {
+            resolveCurrentGameUiStyle()
+        }
     }
 
     private fun openStartupProfileEditorIfNeeded() {
