@@ -55,6 +55,20 @@ class WavPcm8To16ConverterTest {
         assertNull(converted)
     }
 
+    @Test
+    fun readsPcmWavDuration() {
+        val wav16 = createPcmWav(
+            bitsPerSample = 16,
+            channels = 1,
+            sampleRate = 1000,
+            pcmData = ByteArray(400)
+        )
+
+        val durationMs = WavPcm8To16Converter.readDurationMs(wav16)
+
+        assertEquals(200, durationMs)
+    }
+
     private fun createPcmWav(
         bitsPerSample: Int,
         channels: Int,

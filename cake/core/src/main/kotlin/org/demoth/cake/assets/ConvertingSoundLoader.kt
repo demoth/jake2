@@ -9,8 +9,10 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Array
+import org.demoth.cake.audio.SoundDurationRegistry
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import kotlin.math.ceil
 
 /**
  * Sound loader that transparently converts PCM 8-bit WAV files to PCM 16-bit WAV.
@@ -33,15 +35,12 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
         parameter: Parameters?
     ) {
         cache = null
-        val convertedTemp = maybeConvert8BitWav(file)
+        val sourceBytes = file.readBytes()
+        val durationMs = WavPcm8To16Converter.readDurationMs(sourceBytes)
+        val convertedTemp = maybeConvert8BitWav(file, sourceBytes)
         val source = convertedTemp ?: file
         cache = try {
-            val loaded = Gdx.audio.newSound(source)
-            if (convertedTemp != null) {
-                TempFileBackedSound(loaded, convertedTemp)
-            } else {
-                loaded
-            }
+            RegisteredSound(Gdx.audio.newSound(source), durationMs, convertedTemp)
         } catch (e: Throwable) {
             if (convertedTemp != null && convertedTemp.exists()) {
                 convertedTemp.delete()
@@ -61,11 +60,12 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
             return it
         }
 
-        val convertedTemp = maybeConvert8BitWav(file)
+        val sourceBytes = file.readBytes()
+        val durationMs = WavPcm8To16Converter.readDurationMs(sourceBytes)
+        val convertedTemp = maybeConvert8BitWav(file, sourceBytes)
         val source = convertedTemp ?: file
         return try {
-            val loaded = Gdx.audio.newSound(source)
-            if (convertedTemp != null) TempFileBackedSound(loaded, convertedTemp) else loaded
+            RegisteredSound(Gdx.audio.newSound(source), durationMs, convertedTemp)
         } catch (e: Throwable) {
             if (convertedTemp != null && convertedTemp.exists()) {
                 convertedTemp.delete()
@@ -80,11 +80,11 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
         parameter: Parameters?
     ): Array<AssetDescriptor<*>>? = null
 
-    private fun maybeConvert8BitWav(file: FileHandle): FileHandle? {
+    private fun maybeConvert8BitWav(file: FileHandle, sourceBytes: ByteArray): FileHandle? {
         if (!file.extension().equals("wav", ignoreCase = true)) {
             return null
         }
-        val converted = WavPcm8To16Converter.convertIfNeeded(file.readBytes()) ?: return null
+        val converted = WavPcm8To16Converter.convertIfNeeded(sourceBytes) ?: return null
         val tempPath = Files.createTempFile("jake2-snd-", ".wav")
         tempPath.toFile().deleteOnExit()
         val tempHandle = FileHandle(tempPath.toFile())
@@ -92,14 +92,23 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
         return tempHandle
     }
 
-    private class TempFileBackedSound(
+    private class RegisteredSound(
         private val delegate: Sound,
-        private val tempFile: FileHandle
+        durationMs: Int?,
+        private val tempFile: FileHandle?
     ) : Sound by delegate {
+        init {
+            SoundDurationRegistry.register(this, durationMs)
+        }
+
         override fun dispose() {
-            delegate.dispose()
-            if (tempFile.exists()) {
-                tempFile.delete()
+            try {
+                delegate.dispose()
+            } finally {
+                SoundDurationRegistry.unregister(this)
+                if (tempFile != null && tempFile.exists()) {
+                    tempFile.delete()
+                }
             }
         }
     }
@@ -134,6 +143,23 @@ internal object WavPcm8To16Converter {
             convertedPcm[out++] = ((signed16 ushr 8) and 0xFF).toByte()
         }
         return buildPcm16Wav(convertedPcm, meta.channels, meta.sampleRate)
+    }
+
+    fun readDurationMs(wavBytes: ByteArray): Int? {
+        val meta = parse(wavBytes) ?: return null
+        val bytesPerSample = meta.bitsPerSample / 8
+        if (meta.formatTag != 1 || bytesPerSample <= 0 || meta.channels <= 0 || meta.sampleRate <= 0) {
+            return null
+        }
+        val frameSize = meta.channels * bytesPerSample
+        if (frameSize <= 0) {
+            return null
+        }
+        val frames = meta.dataLength / frameSize
+        if (frames <= 0) {
+            return 0
+        }
+        return ceil(frames * 1000.0 / meta.sampleRate.toDouble()).toInt()
     }
 
     private fun parse(bytes: ByteArray): WavMeta? {
