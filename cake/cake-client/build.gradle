@@ -1,0 +1,94 @@
+plugins {
+  id 'application'
+  id 'org.beryx.runtime' version "$beryxRuntimePluginVersion"
+  id 'org.graalvm.buildtools.native' version "$graalNativeBuildToolsVersion" apply false
+}
+
+sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+def desktopAppName = 'cake-client'
+def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
+application {
+  mainClass.set(mainClassName)
+}
+dependencies {
+  implementation libs.gdxControllersDesktop
+  implementation libs.gdxBackendLwjgl3
+  implementation(libs.gdxFreetypePlatform) {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
+  implementation(libs.gdxPlatform) {
+    artifact {
+      classifier = 'natives-desktop'
+    }
+  }
+  implementation project(':cake:core')
+}
+
+def jarName = "${desktopAppName}-${version}.jar"
+def os = System.properties['os.name'].toLowerCase()
+def iconsDir = project.file('icons')
+
+run {
+  workingDir = rootProject.file('assets').path
+  setIgnoreExitValue(true)
+
+  if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
+}
+
+jar {
+  archiveFileName.set(jarName)
+  destinationDirectory = file("${project.layout.buildDirectory.asFile.get().absolutePath}/lib")
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  dependsOn configurations.runtimeClasspath
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+  exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
+  dependencies {
+    exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
+  }
+  manifest {
+    attributes 'Main-Class': mainClassName
+  }
+  doLast {
+    file(archiveFile).setExecutable(true, false)
+  }
+}
+
+if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+  tasks.jpackageImage.doNotTrackState("This task both reads from and writes to the build folder.")
+  runtime {
+    options.set(['--strip-debug',
+           '--compress', '2',
+           '--no-header-files',
+           '--no-man-pages',
+           '--strip-native-commands',
+           '--vm', 'server'])
+    modules.set([
+        'jdk.unsupported'
+    ])
+    distDir.set(file(project.layout.buildDirectory))
+    jpackage {
+      imageName = desktopAppName
+      skipInstaller = true
+      jpackageHome = javaHome.getOrElse("")
+      mainJar = jarName
+      if (os.contains('win')) {
+        imageOptions = ["--icon", new File(iconsDir, 'logo.ico').absolutePath]
+      } else if (os.contains('nix') || os.contains('nux') || os.contains('bsd')) {
+        imageOptions = ["--icon", new File(iconsDir, 'logo.png').absolutePath]
+      } else if (os.contains('mac')) {
+        imageOptions = ["--icon", new File(iconsDir, 'logo.icns').absolutePath]
+      }
+    }
+  }
+}
+
+tasks.register('dist') {
+  dependsOn 'jar'
+}
+
+if(enableGraalNative == 'true') {
+  apply plugin: 'org.graalvm.buildtools.native'
+  apply from: file("nativeimage.gradle")
+}

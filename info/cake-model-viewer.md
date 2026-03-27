@@ -10,12 +10,12 @@ It is part of the `cake` module and has its own LWJGL3 entrypoint.
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher.main` and pass a file path as the program argument.
 
 ### How to build
-Build the Cake desktop app with `./gradlew :cake:lwjgl3:build`.
+Build the model viewer desktop app with `./gradlew :cake:cake-modelviewer:build`.
 
 ### Native build
 Alternatively, you can build a native (so you have easier time to associate with the files in OS)
-`./gradlew :cake:lwjgl3:nativeBuild` (requires GraalVM JDK 17)
-You will find the executable in `cake/lwjgl3/build/native/nativeCompile`
+`./gradlew :cake:cake-modelviewer:nativeBuild`
+You will find the executable in `cake/cake-modelviewer/build/native/nativeCompile`
 
 ## List of features
  - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .md2 file)

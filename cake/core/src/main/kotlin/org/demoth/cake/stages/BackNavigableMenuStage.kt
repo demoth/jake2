@@ -18,6 +18,7 @@ import org.demoth.cake.ui.menu.MenuUiSoundEffect
 
 private const val HUB_MENU_ROW_PADDING = 8f
 private const val HUB_MENU_BUTTON_MIN_WIDTH = 260f
+private const val MENU_BUTTON_MIN_WIDTH = 180f
 private const val HUB_MENU_BUTTON_VERTICAL_PADDING = 16f
 
 // Common class for menus which have a parent menu (for a "back" button and ESC behavior)
@@ -58,6 +59,7 @@ abstract class BackNavigableMenuStage(
                 HUB_MENU_BUTTON_VERTICAL_PADDING,
                 0f,
             )
+            labelCell.minWidth(MENU_BUTTON_MIN_WIDTH)
             resetHoverState()
             menuInteractionResets += {
                 hovered = false

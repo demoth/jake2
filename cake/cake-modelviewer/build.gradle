@@ -5,7 +5,8 @@ plugins {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
+def desktopAppName = 'cake-modelviewer'
+def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher'
 application {
   mainClass.set(mainClassName)
 }
@@ -25,8 +26,9 @@ dependencies {
   implementation project(':cake:core')
 }
 
-def jarName = "${appName}-${version}.jar"
+def jarName = "${desktopAppName}-${version}.jar"
 def os = System.properties['os.name'].toLowerCase()
+def iconsDir = project.file('icons')
 
 run {
   workingDir = rootProject.file('assets').path
@@ -36,24 +38,18 @@ run {
 }
 
 jar {
-// sets the name of the .jar file this produces to the name of the game or app.
   archiveFileName.set(jarName)
-// using 'lib' instead of the default 'libs' appears to be needed by jpackageimage.
   destinationDirectory = file("${project.layout.buildDirectory.asFile.get().absolutePath}/lib")
-// the duplicatesStrategy matters starting in Gradle 7.0; this setting works.
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   dependsOn configurations.runtimeClasspath
   from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-// these "exclude" lines remove some unnecessary duplicate files in the output JAR.
   exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
   dependencies {
     exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
   }
-// setting the manifest makes the JAR runnable.
   manifest {
     attributes 'Main-Class': mainClassName
   }
-// this last step may help on some OSes that need extra instruction to make runnable JARs.
   doLast {
     file(archiveFile).setExecutable(true, false)
   }
@@ -68,34 +64,26 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
            '--no-man-pages',
            '--strip-native-commands',
            '--vm', 'server'])
-// you could very easily need more modules than this one.
-// use the cake-lwjgl3:suggestModules task to see which modules may be needed.
     modules.set([
         'jdk.unsupported'
     ])
     distDir.set(file(project.layout.buildDirectory))
     jpackage {
-      imageName = appName
-// you can set this to false if you want to build an installer, or keep it as true to build just an app.
+      imageName = desktopAppName
       skipInstaller = true
-// this may need to be set to a different path if your JAVA_HOME points to a low JDK version.
       jpackageHome = javaHome.getOrElse("")
       mainJar = jarName
       if (os.contains('win')) {
-        imageOptions = ["--icon", "icons/logo.ico"]
+        imageOptions = ["--icon", new File(iconsDir, 'logo.ico').absolutePath]
       } else if (os.contains('nix') || os.contains('nux') || os.contains('bsd')) {
-        imageOptions = ["--icon", "icons/logo.png"]
+        imageOptions = ["--icon", new File(iconsDir, 'logo.png').absolutePath]
       } else if (os.contains('mac')) {
-// If you are making a jpackage image on macOS, the below line should work thanks to StartupHelper.
-        imageOptions = ["--icon", "icons/logo.icns"]
-// If the above line doesn't produce a runnable executable, you can try using the below line instead of the above one.
-//        imageOptions = ["--icon", "icons/logo.icns", "--java-options", "\"-XstartOnFirstThread\""]
+        imageOptions = ["--icon", new File(iconsDir, 'logo.icns').absolutePath]
       }
     }
   }
 }
 
-// Equivalent to the jar task; here for compatibility with gdx-setup.
 tasks.register('dist') {
   dependsOn 'jar'
 }

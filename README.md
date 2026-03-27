@@ -47,8 +47,9 @@ Installation and running
 
 build from source:
 - `./gradlew build` - to build (and run tests) from source. Building and testing does not require quake2 game files.
-- `./gradlew run` - to run cake client (running the game requires quake2 game files)
-- `./gradlew :cake:cake-lwjgl3:distZip` - to build the desktop Java distribution
+- `./gradlew :cake:cake-client:run` - to run the Cake client (running the game requires quake2 game files)
+- `./gradlew :cake:cake-client:distZip` - to build the desktop Java distribution
+- `./gradlew :cake:cake-modelviewer:distZip` - to build the model viewer desktop Java distribution
 
 If you run jake from an IDE:
   1. to run the server run `Jake2Dedicated.main` with the desired args (`+set coop 1 +map base1`)

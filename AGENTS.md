@@ -23,8 +23,9 @@ Other implementations are located in ../quake. You can refer to them for compari
 ## Build, Test, and Development Commands
 - `./gradlew build` builds all enabled modules and runs tests.
 - `./gradlew test` runs the unit test suites only.
-- `./gradlew run` launches the Cake client (see `cake/README.md`).
-- `./gradlew distZip` assembles a distributable archive.
+- `./gradlew :cake:cake-client:run` launches the Cake client (see `cake/README.md`).
+- `./gradlew :cake:cake-client:distZip` assembles the Cake client distributable archive.
+- `./gradlew :cake:cake-modelviewer:run --args="/absolute/path/to/file.md2"` launches the Cake model viewer.
 - IDE run targets: `Jake2Dedicated.main` for the server, `Lwjgl3GameLauncher.main` for the Cake client.
 
 ## Test Coverage

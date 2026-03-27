@@ -5,6 +5,7 @@ dependencies {
   implementation libs.gdxSvmhelperExtensionFreetype
 }
 
+def desktopAppName = 'cake-modelviewer'
 def cakeAssetsDir = rootProject.file('assets')
 def cakeAssetsResourceConfigFile = layout.buildDirectory.file("native/generated/cakeAssets/resource-config.json")
 
@@ -37,8 +38,8 @@ tasks.register('generateCakeAssetsResourceConfig') {
 graalvmNative {
   binaries {
     main {
-      imageName = appName
-      mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3GameLauncher')
+      imageName = desktopAppName
+      mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher')
       requiredVersion = '23.0'
       buildArgs.add("-H:+UnlockExperimentalVMOptions")
       buildArgs.addAll(
@@ -46,7 +47,6 @@ graalvmNative {
         '.*(gdx-svmhelper-backend-lwjgl3|cake-).*\\.jar',
         'META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties'
       )
-      // Keep desktop native libraries from dependency jars plus the generated config for Cake-owned assets.
       buildArgs.add(
         '-H:IncludeResources=' +
           '(libgdx.*|gdx.*\\.dll|libgdx-freetype.*|gdx-freetype.*\\.dll|' +
