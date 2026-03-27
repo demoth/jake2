@@ -8,7 +8,7 @@
 ## Current Cake State
 - `Options` in `cake/core/src/main/kotlin/org/demoth/cake/stages/MainMenuStage.kt` is still a stub.
 - Cake already has profile-local config persistence for archived cvars and key bindings.
-- The desktop launcher owns initial window creation in `cake/lwjgl3/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt`.
+- The desktop launcher owns initial window creation in `cake/cake-client/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt`.
 - Current launcher video behavior is hardcoded at startup:
   - `useVsync(true)`
   - `setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)`
