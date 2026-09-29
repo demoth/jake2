@@ -31,6 +31,7 @@ def os = System.properties['os.name'].toLowerCase()
 def iconsDir = project.file('icons')
 
 run {
+  outputs.upToDateWhen { false }
   workingDir = rootProject.file('assets').path
   setIgnoreExitValue(true)
 
