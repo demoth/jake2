@@ -19,7 +19,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Model Viewer 1.2.0")
+    setTitle("Cake Model Viewer 1.2.1")
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
     useVsync(true)
     //// Limits FPS to the refresh rate of the currently active monitor.

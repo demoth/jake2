@@ -24,7 +24,7 @@ object Lwjgl3GameLauncher {
 
     private fun getDefaultConfiguration(videoMode: CakeVideoModeSettings): Lwjgl3ApplicationConfiguration {
         return Lwjgl3ApplicationConfiguration().apply {
-            setTitle("Cake Engine v1.2.0")
+            setTitle("Cake Engine v1.2.1")
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
             setBackBufferConfig(
                 /* r = */ 8,
