@@ -55,12 +55,18 @@ the JVM when needed. ZIPs require Java; bundled-runtime images and native
 executables use the separate Beryx and Graal tasks.
 
 Configuration cache is enabled for ordinary builds, JVM distributions, and run
-tasks. The current Beryx runtime plugin requires `--no-configuration-cache` for
+tasks. Beryx 2.0.1 still requires `--no-configuration-cache` for
 `runtime`, `runtimeZip`, `jpackageImage`, and `jpackage`, for example:
 
 ```sh
+./gradlew :cake:cake-client:runtimeZip --no-configuration-cache
 ./gradlew :cake:cake-client:jpackageImage --no-configuration-cache
 ```
+
+`runtimeZip` writes `build/image.zip`; `jpackageImage` writes an application
+under `build/jpackage/`. Use the corresponding model-viewer tasks for that app.
+These outputs bundle the project Java toolchain and target the build machine's
+OS and architecture. Installers remain disabled.
 
 ## Native executables
 
