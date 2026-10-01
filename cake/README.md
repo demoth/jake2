@@ -62,6 +62,19 @@ tasks. The current Beryx runtime plugin requires `--no-configuration-cache` for
 ./gradlew :cake:cake-client:jpackageImage --no-configuration-cache
 ```
 
+## Native executables
+
+Graal support is opt-in. Enable the native plugin and helpers when building an
+experimental native executable:
+
+```sh
+./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
+./gradlew -PenableGraalNative=true :cake:cake-modelviewer:nativeCompile
+```
+
+These tasks require GraalVM with Native Image; the current configuration requires
+version 23.0 or newer. Ordinary JVM builds and ZIPs omit the Graal helpers.
+
 ## BSP World Renderer
 
 Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).

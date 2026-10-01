@@ -66,7 +66,7 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
   }
 }
 
-if(enableGraalNative == 'true') {
+if (providers.gradleProperty('enableGraalNative').getOrElse('false').toBoolean()) {
   apply plugin: 'org.graalvm.buildtools.native'
   apply from: file("nativeimage.gradle")
 }
