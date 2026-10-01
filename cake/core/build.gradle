@@ -8,17 +8,13 @@ dependencies {
 //  api "com.badlogicgames.gdx:scene2d.ui:<version>"
   api libs.ktxActors
   api libs.ktxApp
-  api libs.ktxAssetsAsync
   api libs.ktxAssets
-  api libs.ktxAsync
   api libs.ktxCollections
-  api libs.ktxFreetypeAsync
   api libs.ktxFreetype
   api libs.ktxGraphics
   api libs.ktxLog
   api libs.ktxScene2d
   api libs.kotlinStdlib
-  api libs.kotlinxCoroutinesCore
   implementation libs.kotlinxSerializationJson
 
   implementation(project(":qcommon"))
@@ -30,7 +26,7 @@ dependencies {
   }
 }
 
-if (enableGraalNative == 'true') {
+if (providers.gradleProperty('enableGraalNative').getOrElse('false').toBoolean()) {
   dependencies {
     implementation libs.gdxSvmhelperAnnotations
   }
@@ -39,8 +35,4 @@ if (enableGraalNative == 'true') {
 gitProperties {
   keys = ['git.build.version', 'git.commit.id.abbrev', 'git.dirty']
   failOnNoGitDirectory = false
-}
-
-tasks.named('processResources') {
-  dependsOn tasks.named('generateGitProperties')
 }

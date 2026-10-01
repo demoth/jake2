@@ -31,6 +31,58 @@ Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](cake-client/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
+## JVM distributions
+
+Build portable ZIPs with Java 25:
+
+```sh
+./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip
+```
+
+Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
+and `lib/` application/dependency JARs. Extract the entire ZIP and run
+`bin/cake-client` or `bin/cake-modelviewer` (the `.bat` script on Windows).
+Pass an asset path to the model viewer; Quake 2 game data remains external.
+
+For a local installation, use `:cake:cake-client:installDist` or
+`:cake:cake-modelviewer:installDist`; scripts are under the corresponding
+`build/install/<application>/bin/` directory. JARs under `build/libs/` are normal
+project JARs and need the distribution classpath. Use `distZip` instead of the
+former custom `dist` task; standalone fat JARs are no longer produced.
+
+The existing launcher helper supplies macOS first-thread startup by restarting
+the JVM when needed. ZIPs require Java; bundled-runtime images and native
+executables use the separate Beryx and Graal tasks.
+
+Configuration cache is enabled for ordinary builds, JVM distributions, and run
+tasks. Beryx 2.0.1 still requires `--no-configuration-cache` for
+`runtime`, `runtimeZip`, `jpackageImage`, and `jpackage`, for example:
+
+```sh
+./gradlew :cake:cake-client:runtimeZip --no-configuration-cache
+./gradlew :cake:cake-client:jpackageImage --no-configuration-cache
+```
+
+`runtimeZip` writes `build/image.zip`; `jpackageImage` writes an application
+under `build/jpackage/`. Use the corresponding model-viewer tasks for that app.
+These outputs bundle the project Java toolchain and target the build machine's
+OS and architecture. Installers remain disabled.
+
+## Native executables
+
+Graal support is opt-in. Enable the native plugin and helpers when building an
+experimental native executable:
+
+```sh
+./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
+./gradlew -PenableGraalNative=true :cake:cake-modelviewer:nativeCompile
+```
+
+These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
+that installation; Gradle can continue running on the regular project JDK.
+Native resources are detected from the runtime classpath, including repository
+assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
+
 ## BSP World Renderer
 
 Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).

@@ -1,0 +1,31 @@
+dependencies {
+  implementation rootProject.libs.gdxSvmhelperBackendLwjgl3
+  implementation rootProject.libs.gdxSvmhelperExtensionFreetype
+}
+
+def desktopAppName = project.name
+def launcherMainClass = application.mainClass
+graalvmNative {
+  binaries {
+    main {
+      imageName = desktopAppName
+      mainClass.set(launcherMainClass)
+      requiredVersion = '25.0'
+      buildArgs.add('--enable-native-access=ALL-UNNAMED')
+      buildArgs.add("-H:+UnlockExperimentalVMOptions")
+      buildArgs.addAll(
+        '--exclude-config',
+        '.*(gdx-svmhelper-backend-lwjgl3|cake-).*\\.jar',
+        'META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties'
+      )
+      resources.autodetection {
+        enabled = true
+        restrictToProjectDependencies = false
+      }
+      buildArgs.add("--initialize-at-build-time=kotlin.DeprecationLevel")
+      buildArgs.add("-march=compatibility")
+      jvmArgs.addAll("-Dfile.encoding=UTF8")
+      sharedLibrary = false
+    }
+  }
+}

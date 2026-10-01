@@ -43,7 +43,7 @@ Other implementations are located in ../quake. You can refer to them for compari
 - Do not delete existing comments if they are not addressed in the change.
 
 ## Testing Guidelines
-- Primary test framework is JUnit 4 (see root `build.gradle`); Kotlin tests live alongside Java tests.
+- Primary test framework is JUnit 5 (Jupiter; see root `build.gradle`); Kotlin tests live alongside Java tests.
 - Run all tests with `./gradlew test` or target a module with `./gradlew :qcommon:test`.
 - Test classes should be in the same package as the module they verify.
 - Keep tests deterministic and colocated with the module they verify.
@@ -55,4 +55,4 @@ Other implementations are located in ../quake. You can refer to them for compari
 
 ## Configuration Tips
 - Jake2 requires original Quake2 data files. If auto-detection fails, pass a base dir: `+set basedir "/path/to/Quake 2"`.
-- JDK 21 is recommended (11 and 17 also work)
+- JDK 25 is required to build; JVM distributions require Java 25 or newer.

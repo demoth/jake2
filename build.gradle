@@ -1,10 +1,7 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 plugins {
-  id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply false
-  id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinVersion" apply false
-  id 'com.gorylenko.gradle-git-properties' version '2.5.7' apply false
+  alias(libs.plugins.kotlinJvm) apply false
+  alias(libs.plugins.kotlinSerialization) apply false
+  alias(libs.plugins.gitProperties) apply false
 }
 
 subprojects {
@@ -13,35 +10,25 @@ subprojects {
   apply plugin: 'jacoco'
 
   group = 'org.demoth'
-  version = '1.2.0'
+  version = '1.2.1'
   ext.appName = 'cake'
 
-  java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-    toolchain {
-      languageVersion = JavaLanguageVersion.of(21)
-    }
-  }
-
-  tasks.withType(JavaCompile).configureEach {
-    options.incremental = true
-    options.release = 21
-  }
-
-  tasks.withType(KotlinJvmCompile).configureEach {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+  kotlin {
+    jvmToolchain(25)
   }
 
   dependencies {
-    testImplementation(libs.junitJupiterApi)
-    testImplementation(libs.junitJupiterParams)
-    testRuntimeOnly(libs.junitPlatformLauncher)
-    testRuntimeOnly(libs.junitJupiterEngine)
+    implementation(platform(rootProject.libs.kotlinBom))
+    testImplementation(rootProject.libs.junitJupiterApi)
+    testImplementation(rootProject.libs.junitJupiterParams)
+    testRuntimeOnly(rootProject.libs.junitPlatformLauncher)
+    testRuntimeOnly(rootProject.libs.junitJupiterEngine)
   }
 
   tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    // Explicitly allow libGDX/LWJGL to load native libraries without Java 25 warnings.
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
     finalizedBy(tasks.named('jacocoTestReport'))
   }
 

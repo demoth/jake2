@@ -1,0 +1,28 @@
+{
+  "reflection": [
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Wav$Sound",
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Wav$Music",
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Ogg$Sound",
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Ogg$Music",
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Mp3$Sound",
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.backends.lwjgl3.audio.Mp3$Music",
+      "allPublicConstructors": true
+    }
+  ]
+}

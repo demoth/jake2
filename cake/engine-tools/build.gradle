@@ -4,6 +4,7 @@ plugins {
 
 application {
   mainClass = 'org.demoth.cake.enginetools.BitmapFontGeneratorTool'
+  applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
 }
 
 dependencies {

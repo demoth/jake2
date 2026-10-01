@@ -8,7 +8,7 @@ import org.demoth.cake.modelviewer.CakeModelViewer
 object Lwjgl3ModelViewerLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
-        if (startNewJvmIfRequired()) return  // This handles macOS support and helps on Windows.
+        if (startNewJvmIfRequired(args)) return  // This handles macOS support and helps on Windows.
 
         createApplication(args)
     }
@@ -19,7 +19,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Model Viewer 1.2.0")
+    setTitle("Cake Model Viewer 1.2.1")
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
     useVsync(true)
     //// Limits FPS to the refresh rate of the currently active monitor.

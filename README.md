@@ -17,7 +17,7 @@ Currently, Jake2 supports most platforms supported by Java.
 
 Requirements:
 
- * jdk version 21 recommended (11 and 17 also work)
+ * JDK 25 is required to build; JVM distributions require Java 25 or newer.
 
 Documentation & Info
 --------------------
