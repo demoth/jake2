@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 plugins {
   alias(libs.plugins.kotlinJvm) apply false
   alias(libs.plugins.kotlinSerialization) apply false
@@ -16,28 +13,15 @@ subprojects {
   version = '1.2.0'
   ext.appName = 'cake'
 
-  java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-    toolchain {
-      languageVersion = JavaLanguageVersion.of(21)
-    }
-  }
-
-  tasks.withType(JavaCompile).configureEach {
-    options.incremental = true
-    options.release = 21
-  }
-
-  tasks.withType(KotlinJvmCompile).configureEach {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+  kotlin {
+    jvmToolchain(21)
   }
 
   dependencies {
-    testImplementation(libs.junitJupiterApi)
-    testImplementation(libs.junitJupiterParams)
-    testRuntimeOnly(libs.junitPlatformLauncher)
-    testRuntimeOnly(libs.junitJupiterEngine)
+    testImplementation(rootProject.libs.junitJupiterApi)
+    testImplementation(rootProject.libs.junitJupiterParams)
+    testRuntimeOnly(rootProject.libs.junitPlatformLauncher)
+    testRuntimeOnly(rootProject.libs.junitJupiterEngine)
   }
 
   tasks.withType(Test).configureEach {
