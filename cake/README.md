@@ -33,7 +33,7 @@ Main desktop entrypoint:
 
 ## JVM distributions
 
-Build portable ZIPs with Java 21:
+Build portable ZIPs with Java 25:
 
 ```sh
 ./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip

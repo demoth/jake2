@@ -14,7 +14,7 @@ subprojects {
   ext.appName = 'cake'
 
   kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
   }
 
   dependencies {
@@ -27,6 +27,8 @@ subprojects {
 
   tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    // Explicitly allow libGDX/LWJGL to load native libraries without Java 25 warnings.
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
     finalizedBy(tasks.named('jacocoTestReport'))
   }
 

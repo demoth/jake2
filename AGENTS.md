@@ -55,4 +55,4 @@ Other implementations are located in ../quake. You can refer to them for compari
 
 ## Configuration Tips
 - Jake2 requires original Quake2 data files. If auto-detection fails, pass a base dir: `+set basedir "/path/to/Quake 2"`.
-- JDK 21 is required to build; JVM distributions require Java 21 or newer.
+- JDK 25 is required to build; JVM distributions require Java 25 or newer.

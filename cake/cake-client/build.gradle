@@ -8,6 +8,7 @@ sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3GameLauncher'
 application {
   mainClass.set(mainClassName)
+  applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
 }
 dependencies {
   implementation libs.gdxControllersDesktop
