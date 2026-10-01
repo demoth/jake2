@@ -38,24 +38,6 @@ run {
   if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
 }
 
-jar {
-  archiveFileName.set(jarName)
-  destinationDirectory = file("${project.layout.buildDirectory.asFile.get().absolutePath}/lib")
-  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  dependsOn configurations.runtimeClasspath
-  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-  exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
-  dependencies {
-    exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
-  }
-  manifest {
-    attributes 'Main-Class': mainClassName
-  }
-  doLast {
-    file(archiveFile).setExecutable(true, false)
-  }
-}
-
 if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
   tasks.jpackageImage.doNotTrackState("This task both reads from and writes to the build folder.")
   runtime {
@@ -68,7 +50,6 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
     modules.set([
         'jdk.unsupported'
     ])
-    distDir.set(file(project.layout.buildDirectory))
     jpackage {
       imageName = desktopAppName
       skipInstaller = true
@@ -83,10 +64,6 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
       }
     }
   }
-}
-
-tasks.register('dist') {
-  dependsOn 'jar'
 }
 
 if(enableGraalNative == 'true') {

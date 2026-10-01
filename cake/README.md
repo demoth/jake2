@@ -31,6 +31,29 @@ Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](cake-client/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
+## JVM distributions
+
+Build portable ZIPs with Java 21:
+
+```sh
+./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip
+```
+
+Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
+and `lib/` application/dependency JARs. Extract the entire ZIP and run
+`bin/cake-client` or `bin/cake-modelviewer` (the `.bat` script on Windows).
+Pass an asset path to the model viewer; Quake 2 game data remains external.
+
+For a local installation, use `:cake:cake-client:installDist` or
+`:cake:cake-modelviewer:installDist`; scripts are under the corresponding
+`build/install/<application>/bin/` directory. JARs under `build/libs/` are normal
+project JARs and need the distribution classpath. Use `distZip` instead of the
+former custom `dist` task; standalone fat JARs are no longer produced.
+
+The existing launcher helper supplies macOS first-thread startup by restarting
+the JVM when needed. ZIPs require Java; bundled-runtime images and native
+executables use the separate Beryx and Graal tasks.
+
 ## BSP World Renderer
 
 Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).
