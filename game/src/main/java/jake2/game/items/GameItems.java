@@ -1310,7 +1310,7 @@ public class GameItems {
             final CSVFormat format = CSVFormat.DEFAULT.builder()
                     .setHeader()
                     .setSkipHeaderRecord(true)
-                    .setTrim(true).build();
+                    .setTrim(true).get();
             CSVParser source = CSVParser.parse(in, StandardCharsets.UTF_8, format);
             AtomicInteger index = new AtomicInteger();
 

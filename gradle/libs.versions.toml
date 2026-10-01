@@ -1,7 +1,7 @@
 [versions]
 junit5 = "5.10.5"
-commonsCsv = "1.9.0"
-logbackClassic = "1.4.14"
+commonsCsv = "1.14.1"
+logbackClassic = "1.6.5"
 gdx = "1.12.1"
 gdxControllers = "2.2.3"
 ktx = "1.12.1-rc1"
@@ -11,7 +11,7 @@ beryxRuntime = "1.13.0"
 gitProperties = "2.5.7"
 kotlinxCoroutines = "1.6.4"
 kotlinxSerialization = "1.9.0"
-jackson = "2.18.2"
+jackson = "2.18.6"
 graalHelper = "2.0.1"
 
 [libraries]
