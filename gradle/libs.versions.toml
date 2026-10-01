@@ -5,7 +5,10 @@ logbackClassic = "1.4.14"
 gdx = "1.12.1"
 gdxControllers = "2.2.3"
 ktx = "1.12.1-rc1"
-kotlinStdlib = "2.2.0"
+kotlin = "2.2.0"
+graalNativeBuildTools = "0.9.28"
+beryxRuntime = "1.13.0"
+gitProperties = "2.5.7"
 kotlinxCoroutines = "1.6.4"
 kotlinxSerialization = "1.9.0"
 jackson = "2.18.2"
@@ -46,7 +49,7 @@ ktxLog = { module = "io.github.libktx:ktx-log", version.ref = "ktx" }
 ktxScene2d = { module = "io.github.libktx:ktx-scene2d", version.ref = "ktx" }
 
 # Kotlin
-kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
@@ -57,3 +60,10 @@ jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-ko
 # Other
 commonsCsv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+gitProperties = { id = "com.gorylenko.gradle-git-properties", version.ref = "gitProperties" }
+beryxRuntime = { id = "org.beryx.runtime", version.ref = "beryxRuntime" }
+graalNativeBuildTools = { id = "org.graalvm.buildtools.native", version.ref = "graalNativeBuildTools" }

@@ -1,7 +1,7 @@
 plugins {
   id 'application'
-  id 'org.beryx.runtime' version "$beryxRuntimePluginVersion"
-  id 'org.graalvm.buildtools.native' version "$graalNativeBuildToolsVersion" apply false
+  alias(libs.plugins.beryxRuntime)
+  alias(libs.plugins.graalNativeBuildTools) apply false
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
