@@ -40,7 +40,3 @@ gitProperties {
   keys = ['git.build.version', 'git.commit.id.abbrev', 'git.dirty']
   failOnNoGitDirectory = false
 }
-
-tasks.named('processResources') {
-  dependsOn tasks.named('generateGitProperties')
-}
