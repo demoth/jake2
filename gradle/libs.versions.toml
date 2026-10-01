@@ -5,7 +5,7 @@ logbackClassic = "1.6.5"
 gdx = "1.12.1"
 gdxControllers = "2.2.3"
 ktx = "1.12.1-rc1"
-kotlin = "2.2.0"
+kotlin = "2.4.20"
 graalNativeBuildTools = "0.9.28"
 beryxRuntime = "1.13.0"
 gitProperties = "4.0.1"
@@ -49,6 +49,7 @@ ktxLog = { module = "io.github.libktx:ktx-log", version.ref = "ktx" }
 ktxScene2d = { module = "io.github.libktx:ktx-scene2d", version.ref = "ktx" }
 
 # Kotlin
+kotlinBom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }

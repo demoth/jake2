@@ -18,6 +18,7 @@ subprojects {
   }
 
   dependencies {
+    implementation(platform(rootProject.libs.kotlinBom))
     testImplementation(rootProject.libs.junitJupiterApi)
     testImplementation(rootProject.libs.junitJupiterParams)
     testRuntimeOnly(rootProject.libs.junitPlatformLauncher)
