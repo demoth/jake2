@@ -31,7 +31,6 @@ def iconsDir = project.file('icons')
 run {
   outputs.upToDateWhen { false }
   workingDir = rootProject.file('assets').path
-  setIgnoreExitValue(true)
 
   if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
 }
