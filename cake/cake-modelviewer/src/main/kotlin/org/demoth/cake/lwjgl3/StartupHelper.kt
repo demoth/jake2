@@ -28,7 +28,7 @@ import java.util.*
 
 private const val JVM_RESTARTED_ARG = "jvmIsRestarted"
 
-fun startNewJvmIfRequired(redirectOutput: Boolean = true): Boolean {
+fun startNewJvmIfRequired(args: Array<String>, redirectOutput: Boolean = true): Boolean {
     val osName = System.getProperty("os.name").lowercase(Locale.getDefault())
     if (!osName.contains("mac")) {
         if (osName.contains("windows")) {
@@ -62,7 +62,6 @@ fun startNewJvmIfRequired(redirectOutput: Boolean = true): Boolean {
     }
 
     // Restart the JVM with -XstartOnFirstThread
-    val jvmArgs = arrayListOf<String>()
     val separator = FileSystems.getDefault().separator
     val javaExecPath = "${System.getProperty("java.home")}$separator/bin$separator/java"
 
@@ -71,14 +70,6 @@ fun startNewJvmIfRequired(redirectOutput: Boolean = true): Boolean {
         return false
     }
 
-    jvmArgs.run {
-        add(javaExecPath)
-        add("-XstartOnFirstThread")
-        add("-D$JVM_RESTARTED_ARG=true")
-        addAll(ManagementFactory.getRuntimeMXBean().inputArguments)
-        add("-cp")
-        add(System.getProperty("java.class.path"))
-    }
     var mainClass = System.getenv("JAVA_MAIN_CLASS_$pid")
     if (mainClass == null) {
         val trace = Thread.currentThread().stackTrace
@@ -89,7 +80,13 @@ fun startNewJvmIfRequired(redirectOutput: Boolean = true): Boolean {
             return false
         }
     }
-    jvmArgs.add(mainClass)
+    val jvmArgs = buildRestartCommand(
+        javaExecPath,
+        ManagementFactory.getRuntimeMXBean().inputArguments,
+        System.getProperty("java.class.path"),
+        mainClass,
+        args
+    )
 
     try {
         if (!redirectOutput) {
@@ -113,4 +110,21 @@ fun startNewJvmIfRequired(redirectOutput: Boolean = true): Boolean {
     }
 
     return true
+}
+
+internal fun buildRestartCommand(
+    javaExecPath: String,
+    inputArguments: List<String>,
+    classpath: String,
+    mainClass: String,
+    args: Array<String>
+): List<String> = buildList {
+    add(javaExecPath)
+    add("-XstartOnFirstThread")
+    add("-D$JVM_RESTARTED_ARG=true")
+    addAll(inputArguments)
+    add("-cp")
+    add(classpath)
+    add(mainClass)
+    addAll(args)
 }

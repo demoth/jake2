@@ -8,7 +8,7 @@ import org.demoth.cake.modelviewer.CakeModelViewer
 object Lwjgl3ModelViewerLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
-        if (startNewJvmIfRequired()) return  // This handles macOS support and helps on Windows.
+        if (startNewJvmIfRequired(args)) return  // This handles macOS support and helps on Windows.
 
         createApplication(args)
     }
