@@ -54,6 +54,14 @@ The existing launcher helper supplies macOS first-thread startup by restarting
 the JVM when needed. ZIPs require Java; bundled-runtime images and native
 executables use the separate Beryx and Graal tasks.
 
+Configuration cache is enabled for ordinary builds, JVM distributions, and run
+tasks. The current Beryx runtime plugin requires `--no-configuration-cache` for
+`runtime`, `runtimeZip`, `jpackageImage`, and `jpackage`, for example:
+
+```sh
+./gradlew :cake:cake-client:jpackageImage --no-configuration-cache
+```
+
 ## BSP World Renderer
 
 Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).

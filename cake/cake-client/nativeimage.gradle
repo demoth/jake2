@@ -9,17 +9,17 @@ def desktopAppName = 'cake-client'
 def cakeAssetsDir = rootProject.file('assets')
 def cakeAssetsResourceConfigFile = layout.buildDirectory.file("native/generated/cakeAssets/resource-config.json")
 
+def cakeAssetFiles = fileTree(cakeAssetsDir) {
+  exclude '.DS_Store', '**/.DS_Store'
+}
+
 tasks.register('generateCakeAssetsResourceConfig') {
-  inputs.files(fileTree(cakeAssetsDir) {
-    exclude '.DS_Store', '**/.DS_Store'
-  })
+  inputs.files(cakeAssetFiles)
   outputs.file(cakeAssetsResourceConfigFile)
 
   doLast {
     def outputFile = cakeAssetsResourceConfigFile.get().asFile
-    def includes = fileTree(cakeAssetsDir) {
-      exclude '.DS_Store', '**/.DS_Store'
-    }.files.toList().sort { a, b -> a.path <=> b.path }.collect { file ->
+    def includes = cakeAssetFiles.files.toList().sort { a, b -> a.path <=> b.path }.collect { file ->
       def relativePath = cakeAssetsDir.toPath().relativize(file.toPath()).toString().replace(File.separatorChar, '/' as char)
       [pattern: "\\Q${relativePath}\\E"]
     }
