@@ -1,14 +1,15 @@
 dependencies {
-  implementation libs.gdxSvmhelperBackendLwjgl3
-  implementation libs.gdxSvmhelperExtensionFreetype
+  implementation rootProject.libs.gdxSvmhelperBackendLwjgl3
+  implementation rootProject.libs.gdxSvmhelperExtensionFreetype
 }
 
-def desktopAppName = 'cake-client'
+def desktopAppName = project.name
+def launcherMainClass = application.mainClass
 graalvmNative {
   binaries {
     main {
       imageName = desktopAppName
-      mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3GameLauncher')
+      mainClass.set(launcherMainClass)
       requiredVersion = '25.0'
       buildArgs.add('--enable-native-access=ALL-UNNAMED')
       buildArgs.add("-H:+UnlockExperimentalVMOptions")

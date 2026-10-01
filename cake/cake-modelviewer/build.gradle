@@ -4,60 +4,8 @@ plugins {
   alias(libs.plugins.graalNativeBuildTools) apply false
 }
 
-sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-def mainClassName = 'org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher'
 application {
-  mainClass.set(mainClassName)
-  applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
-}
-dependencies {
-  implementation libs.gdxControllersDesktop
-  implementation libs.gdxBackendLwjgl3
-  implementation(libs.gdxFreetypePlatform) {
-    artifact {
-      classifier = 'natives-desktop'
-    }
-  }
-  implementation(libs.gdxPlatform) {
-    artifact {
-      classifier = 'natives-desktop'
-    }
-  }
-  implementation project(':cake:core')
+  mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher')
 }
 
-def os = System.properties['os.name'].toLowerCase()
-def iconsDir = project.file('icons')
-
-run {
-  outputs.upToDateWhen { false }
-  workingDir = rootProject.file('assets').path
-
-  if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
-}
-
-runtime {
-  options.set(['--strip-debug', '--compress', 'zip-6', '--no-header-files', '--no-man-pages'])
-  modules.set(['jdk.unsupported'])
-  additive = true
-  jpackage {
-    skipInstaller = true
-    if (os.contains('win')) {
-      imageOptions = ['--icon', new File(iconsDir, 'logo.ico').absolutePath]
-    } else if (os.contains('nix') || os.contains('nux') || os.contains('bsd')) {
-      imageOptions = ['--icon', new File(iconsDir, 'logo.png').absolutePath]
-    } else if (os.contains('mac')) {
-      imageOptions = ['--icon', new File(iconsDir, 'logo.icns').absolutePath]
-    }
-  }
-}
-
-tasks.named('jpackageImage') {
-  // Beryx runtime and jpackageImage share the generated runtime directory.
-  mustRunAfter('runtime')
-}
-
-if (providers.gradleProperty('enableGraalNative').getOrElse('false').toBoolean()) {
-  apply plugin: 'org.graalvm.buildtools.native'
-  apply from: file("nativeimage.gradle")
-}
+apply from: rootProject.file('cake/desktop.gradle')
