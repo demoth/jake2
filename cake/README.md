@@ -78,8 +78,10 @@ experimental native executable:
 ./gradlew -PenableGraalNative=true :cake:cake-modelviewer:nativeCompile
 ```
 
-These tasks require GraalVM with Native Image; the current configuration requires
-version 23.0 or newer. Ordinary JVM builds and ZIPs omit the Graal helpers.
+These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
+that installation; Gradle can continue running on the regular project JDK.
+Native resources are detected from the runtime classpath, including repository
+assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
 
 ## BSP World Renderer
 
