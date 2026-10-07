@@ -1,150 +1,50 @@
 # UI Stages
 
-## Overview
-This package owns non-ingame Scene2D stages for shell UI:
-- main menu and menu sub-screens,
-- developer console stage package (`stages.console.ConsoleStage`).
+## Responsibilities
 
-It does not own:
-- gameplay runtime/HUD orchestration (`stages/ingame`),
-- skin asset definitions (`assets/ui/uiskin.json`, `assets/ui/uiskin.atlas`),
-- global input mode toggling (`org.demoth.cake.Cake`),
-- menu state reduction and backend actions (`org.demoth.cake.ui.menu`).
+This package contains Scene2D menu screens. Navigation, validation, and backend
+requests belong to `ui.menu`; `Cake` owns stages and routes input between the active
+menu, console, and game screen. Content styles come from [the UI package](../ui/README.md).
+The developer console has [its own documentation](console/README.md).
 
-## Key Types
-- `MainMenuStage` - Root shell menu for startup/profile/options entry points.
-- `ProfileEditStage` - profile selection, creation, autodetect, and editing flow.
-- `MultiplayerMenuStage` - multiplayer hub with `Join Game`, disabled `Host Game`, `Player Setup`, and `Back`.
-- `JoinGameStage` - manual remote connect form (`host`, `port`, validation feedback).
-- `PlayerSetupStage` - staged player-facing userinfo edits (`name`, `password`, `model`, `skin`, `hand`).
-- `OptionsMenuStage` - hub for cvar-backed options sections.
-- `OptionsSectionStage` - generic cvar table for one options prefix/section.
-- `stages.console.ConsoleStage` - Command input and output overlay stage.
-  - Detailed console package behavior is documented in `stages/console/README.md`.
+| Screen | Purpose |
+|---|---|
+| `MainMenuStage` | Main navigation and profile/options entry points |
+| `ProfileEditStage` | Profile selection, creation, autodetection, and editing |
+| `MultiplayerMenuStage` | Join Game, disabled Host Game, and Player Setup |
+| `JoinGameStage` | Manual server address entry and validation feedback |
+| `PlayerSetupStage` | Player name, password, model, skin, and handedness |
+| `OptionsMenuStage` | Available client option sections |
+| `OptionsSectionStage` | Editable values for one section of opted-in cvars |
 
-## Data / Control Flow
+## Menu Flow
+
 ```text
-Cake.create()
-  -> Scene2DSkin.defaultSkin loaded from ui/uiskin.json
-  -> menu controller / event bus initialized
-  -> MainMenuStage(viewport)
-  -> ProfileEditStage(viewport)
-  -> MultiplayerMenuStage(viewport)
-  -> JoinGameStage(viewport)
-  -> PlayerSetupStage(viewport)
-  -> OptionsMenuStage(viewport)
-  -> OptionsSectionStage(viewport)
-  -> stages.console.ConsoleStage(viewport)
-
-Cake.updateInputHandlers(...)
-  -> active UI processor is menu stage OR console stage OR game screen
-
-Menu stage interaction
-  -> MenuIntent posted to MenuEventBus
-  -> MenuController reduces state / calls backend
-  -> Cake swaps active MenuView and syncs stage widgets from MenuStateSnapshot
-
-Join Game save path
-  -> JoinGameStage submits host/port
-  -> MenuController validates and dispatches backend join request
-  -> Cake reuses existing connect path and closes the menu on success
-
-Player Setup save path
-  -> PlayerSetupStage stages edits locally
-  -> MenuController validates and normalizes `model/skin`
-  -> Cake writes userinfo cvars and derived `gender`
-  -> profile-local config persists through archived cvars
-
-Options section edit path
-  -> OptionsSectionStage edits opted-in cvars directly
-  -> `CVAR_LATCH` settings show pending restart state
-  -> profile-local config persists canonical cvar names and binds
-
-Console Enter key
-  -> Cbuf.AddText(input)
-  -> Cbuf.Execute()
-  -> append output to ConsoleBuffer / ConsoleOutputWidget
+Stage interaction
+  -> MenuIntent -> MenuEventBus
+  -> MenuController validates, updates state, and calls MenuBackend
+  -> Cake implements backend actions
+  -> MenuStateSnapshot synchronises widgets and selects the active MenuView
 ```
 
-## Invariants
-- Stages are app-owned singletons for a running `Cake` instance.
-- Console execution is Enter-key driven, but the console also owns completion/history/scroll keys through `ConsoleInputController`.
-- Console command history persists per Cake profile under `.cake/<profileId>/console-history.txt`.
-- Menu navigation state lives in `org.demoth.cake.ui.menu`, not inside individual stage widgets.
-- Multiplayer and options flows are routed through dedicated screens instead of ad-hoc button commands.
-- `Player Setup` writes on `Save` only; `Back` discards staged edits.
-- `Join Game` validates before dispatching `connect`.
-- Options screens only expose opted-in canonical cvar names; player identity cvars stay in `Player Setup`.
-- Debug graphs are split by domain: `r_debug_*` for GL/render metrics and `net_debug_*` for client network metrics.
-- Stage visuals depend on skin resource names; renaming in `uiskin.json` requires stage updates.
+Menu stages present state and collect edits; navigation state lives in `ui.menu`.
+`Cake` owns their lifetime and rebuilds content-styled stages when the shared style
+changes. They must not be treated as permanent instances across style changes.
 
-## Decision Log
-Newest first.
+- Join Game validates host/port before using Cake's existing connection path.
+- Player Setup writes on Save; Back discards staged edits. The backend writes
+  userinfo cvars, including derived gender, and saves profile configuration.
+- Options collect edits and submit `SaveOptionsSection` on Apply through the
+  controller/backend. Only opted-in canonical cvars are exposed; player identity
+  stays in Player Setup. Latched values are shown as pending restart values.
+- The controller emits submenu enter/exit sounds according to navigation depth.
+  Shared button helpers handle hover feedback; Cake plays the sound signals.
 
-### Decision: shell UI uses dedicated menu screens behind a shared controller
-- Context: profile setup, multiplayer, player setup, and options outgrew a single main-menu command list.
-- Options considered:
-1. Keep direct button handlers in each stage with no shared state model.
-2. Route non-console shell UI through `MenuIntent` / `MenuController` / `MenuStateSnapshot`.
-- Chosen Option & Rationale: Option 2 keeps stage code mostly dumb, centralizes validation/navigation, and makes new submenus cheap to add.
-- Consequences: `Cake` owns more menu stage instances and must sync them against the current snapshot.
-- Status: accepted.
-- Definition of Done: main menu, profile edit, multiplayer, join game, player setup, and options all route through the shared menu controller.
-- References: multiplayer menu and options implementation threads.
+## Presentation
 
-### Decision: Main menu buttons use table-level uniform sizing
-- Context: varying text labels produced uneven button widths.
-- Options considered:
-1. Per-button fixed width values.
-2. Table defaults with `uniformX().fillX()`.
-- Chosen Option & Rationale: Option 2, less brittle and content-driven.
-- Consequences: all menu entries in the same column share the widest computed width.
-- Status: accepted.
-- Definition of Done: `Single player`, `Multiplayer`, `Settings`, and `Exit` render with the same width.
-- References: thread section about "make buttons on the MainMenuStage same width".
+Stages use the engine Scene2D skin and shared content styles. Skin resource names
+are part of their integration: renaming a drawable or style requires updating its
+consumers. Layout padding and drawable nine-patch padding both affect spacing.
 
-### Decision: Console frame rendering uses skin drawable (`console-panel`) with `Stack`
-- Context: console needed chamfer panel framing without switching to custom widget code.
-- Options considered:
-1. Table background assignment.
-2. `Stack` with drawable image + content actor.
-- Chosen Option & Rationale: Option 2 for explicit layering control in Scene2D.
-- Consequences: actor add order in `Stack` is now behavior-critical.
-- Status: tentative.
-- Definition of Done: panel border does not overlap text content and panel remains visible for both output/input blocks.
-- References: thread section about console panel inset and border overlap.
-
-### Decision: Console command execution remains direct (`Cbuf.AddText` + `Cbuf.Execute`)
-- Context: console is intended as a thin UI bridge to existing command pipeline.
-- Options considered:
-1. Buffered async command dispatch.
-2. Immediate execution in key listener.
-- Chosen Option & Rationale: Option 2 preserves current engine command semantics.
-- Consequences: command exceptions are caught and appended to output text.
-- Status: accepted.
-- Definition of Done: pressing Enter executes one command and clears input.
-- References: thread section around console styling changes (behavior preserved).
-
-## Quirks & Workarounds
-- `Stack` draw order is back-to-front by add order; last added child is drawn on top.
-- Why: Scene2D `Stack` rendering model.
-- How to work with it: add background image before text controls when you want chrome behind text.
-- Removal plan: introduce a dedicated `ConsolePanel` widget that encodes layer order.
-
-- Console spacing can appear as "margins" even when stage padding is small.
-- Why: panel texture + nine-patch split/pad + widget internals all contribute.
-- How to work with it: tune content table padding and the underlying skin atlas split/pad together.
-- Removal plan: standardize console panel drawable with explicit split/pad values and document it in `assets/ui/README.md`.
-
-## How to Extend
-1. Add new shell screens by extending `org.demoth.cake.ui.menu` first: screen enum, snapshot state, intents, controller/backend handling.
-2. Add or extend the corresponding stage only after the state flow exists.
-3. Keep menu width consistency by leaving `defaults().uniformX().fillX()` intact where used.
-4. Keep player-facing userinfo editing in `PlayerSetupStage`; keep local client cvars in options sections.
-5. Add console commands via `Cmd.AddCommand` in `stages.console.ConsoleStage` (or central command registration if shared).
-6. For visual changes, update skin assets first, then stage layout paddings.
-
-## Open Questions
-- Should `rate` join the current `Player Setup` screen or remain outside the initial userinfo flow?
-- If player preview returns later, can it stay isolated from menu-state logic and asset discovery concerns?
-- Console-specific follow-ups now live in `stages/console/README.md`.
+The separate `DebugGraphStage` displays runtime diagnostics: `r_debug_*` controls
+render/GL metrics and `net_debug_*` controls client network metrics.
