@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.config
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound

@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import jake2.qcommon.Defines
 import jake2.qcommon.player_state_t
 import ktx.graphics.use
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.stages.ingame.hud.Hud
 
 /**

@@ -8,7 +8,7 @@ import jake2.qcommon.network.messages.server.SoundMessage
 import jake2.qcommon.network.messages.server.WeaponSoundMessage
 import jake2.qcommon.util.Lib
 import jake2.qcommon.util.Math3D
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.EntityLoopSoundRequest
 import org.demoth.cake.audio.SoundPlaybackRequest

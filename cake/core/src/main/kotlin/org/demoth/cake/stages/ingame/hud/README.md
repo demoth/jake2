@@ -12,7 +12,7 @@ Owned here:
 
 Not owned here:
 - Server message dispatch (`org.demoth.cake.Cake`, `Game3dScreen`).
-- Configstring storage and asset ownership (`org.demoth.cake.GameConfiguration`).
+- Configstring storage and asset ownership (`org.demoth.cake.config.GameConfiguration`).
 - Style resource loading (`org.demoth.cake.ui`).
 
 ## Key Types

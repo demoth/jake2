@@ -16,7 +16,7 @@ import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.assets.Md2Asset
 import org.demoth.cake.assets.Md2CustomData
 import org.demoth.cake.createModelInstance

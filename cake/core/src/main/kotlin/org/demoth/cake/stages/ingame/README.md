@@ -9,7 +9,7 @@ This package owns gameplay-time client runtime orchestration:
 It does not own:
 - effect-specific TE/muzzle logic (`stages/ingame/effects`),
 - HUD script parser/runtime internals (`stages/ingame/hud`),
-- configstring storage and asset ownership (`org.demoth.cake.GameConfiguration`).
+- configstring storage and asset ownership (`org.demoth.cake.config.GameConfiguration`).
 
 ## Key Types
 - `Game3dScreen` - main ingame runtime entry point and server-message dispatcher.

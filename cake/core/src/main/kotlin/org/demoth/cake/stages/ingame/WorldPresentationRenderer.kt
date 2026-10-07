@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import org.demoth.cake.ClientEntity
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import jake2.qcommon.Defines
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.ListenerState

@@ -29,6 +29,7 @@ import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.FireAndForgetCakeAudioSystem

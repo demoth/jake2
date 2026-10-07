@@ -9,7 +9,7 @@ lookups. `Config` pairs a raw configstring value with an optional loaded resourc
 
 Frame/entity reconstruction belongs to `ClientEntityManager`; rendering is
 orchestrated by `Game3dScreen` and its presentation components. HUD layout execution
-belongs to [the HUD package](stages/ingame/hud/README.md).
+belongs to [the HUD package](../stages/ingame/hud/README.md).
 
 ## Configuration Flow
 
@@ -58,18 +58,4 @@ that path return `null` until the failure records are cleared during unload.
 Callers must therefore handle absent optional resources.
 
 Resolver policies, download-cache precedence, and synthetic player model/skin keys
-are described in [the assets package](assets/README.md).
-
-## Application Behaviour
-
-A missing-resource failure that reaches `Cake.render()` is recovered by
-disconnecting, disposing the game screen, and showing the console. This includes
-missing-resource exceptions wrapped in another runtime exception; unrelated runtime
-exceptions are rethrown. Best-effort acquisition failures handled locally do not
-trigger this recovery.
-
-`Cake` also owns the optional `pics/conback.pcx` background outside the game screen,
-so it can be shown before gameplay. Applying a profile reloads it through
-`applyGameProfile(...)`; it is drawn while there is no game screen. An absent
-background is silently skipped, and a background loading failure is logged without
-terminating the application.
+are described in [the assets package](../assets/README.md).

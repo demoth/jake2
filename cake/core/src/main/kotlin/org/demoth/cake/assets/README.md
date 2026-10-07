@@ -3,7 +3,7 @@
 ## Overview
 This package owns runtime asset resolving/loading for the Cake client (maps, models, textures, sounds) and shader-specific model data.
 
-It does **not** own gameplay selection rules (for example which player model/skin to pick from `CS_PLAYERSKINS`) - that logic lives in `org.demoth.cake.GameConfiguration`.
+It does **not** own gameplay selection rules (for example which player model/skin to pick from `CS_PLAYERSKINS`) - that logic lives in `org.demoth.cake.config.GameConfiguration`.
 
 ## Key Types
 - `CakeFileResolver` - thin resolver that delegates game-data lookup to qcommon VFS layers and keeps classpath/internal fallbacks, including synthetic player MD2 variant keys.

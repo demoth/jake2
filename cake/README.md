@@ -146,10 +146,25 @@ In-game screen (per-level lifecycle) responsible for:
 - frame-level input consumption,
 - server message processing for active gameplay.
 
+## Application Behaviour
+
+A missing-resource failure that reaches `Cake.render()` is recovered by
+disconnecting, disposing the game screen, and showing the console. This includes
+missing-resource exceptions wrapped in another runtime exception; unrelated runtime
+exceptions are rethrown. Best-effort acquisition failures handled locally do not
+trigger this recovery.
+
+`Cake` also owns the optional `pics/conback.pcx` background outside the game screen,
+so it can be shown before gameplay. Applying a profile reloads it through
+`applyGameProfile(...)`; it is drawn while there is no game screen. An absent
+background is silently skipped, and a background loading failure is logged without
+terminating the application.
+
 ## Module Docs
 
 Detailed docs for specific Cake subsystems:
 
+- [`configuration`](core/src/main/kotlin/org/demoth/cake/config/README.md)
 - [`assets`](core/src/main/kotlin/org/demoth/cake/assets/README.md)
 - [`input`](core/src/main/kotlin/org/demoth/cake/input/README.md)
 - [`ui`](core/src/main/kotlin/org/demoth/cake/ui/README.md)
