@@ -3,7 +3,7 @@
 ## Overview
 This package owns runtime asset resolving/loading for the Cake client (maps, models, textures, sounds) and shader-specific model data.
 
-It does **not** own gameplay selection rules (for example which player model/skin to pick from `CS_PLAYERSKINS`) - that logic lives in `org.demoth.cake.config.GameConfiguration`.
+It does **not** own gameplay selection rules (for example which player model/skin to pick from `CS_PLAYERSKINS`) - that logic lives in `PlayerConfiguration` in [the configuration package](../config/README.md).
 
 ## Key Types
 - `CakeFileResolver` - thin resolver that delegates game-data lookup to qcommon VFS layers and keeps classpath/internal fallbacks, including synthetic player MD2 variant keys.
@@ -16,29 +16,92 @@ It does **not** own gameplay selection rules (for example which player model/ski
 - `BspWorldBatchData` - chunked world BSP geometry + per-surface batch keys/ranges for Q2PRO-style world batching.
 - `BspLoader`, `Sp2Loader`, texture/sound loaders - format-specific loaders used by `AssetManager`.
 
-## Data / Control Flow
-`GameConfiguration.getPlayerModel(skinnum, renderFx)`
--> resolve legacy model/skin fallback from `CS_PLAYERSKINS`
--> compose synthetic MD2 key: `<skinPath>|<modelPath>`
--> `AssetManager.load(Md2Asset)`
--> `CakeFileResolver.resolve(...)` resolves only trailing `<modelPath>`
--> `Md2Loader.getDependencies(...)` extracts `<skinPath>` from key and loads texture dependency
--> `Md2Loader.load(...)` builds MD2 model/material and returns `Md2Asset`
--> `ClientEntityManager` assigns model for `modelindex == 255` and sets `skinIndex = 0`.
+## Resolving Assets
 
-Legacy counterparts:
-- `client/CL_parse.LoadClientinfo` (model/skin fallback)
-- `client/CL_ents.AddPacketEntities` (`modelindex == 255`, `skinnum & 0xFF`)
-- `client/CL_ents.AddPacketEntities` linked weapon pass (`modelindex2 == 255`, `skinnum >> 8`, `cl_weaponmodels[]`)
+`CakeFileResolver` checks the per-mod download cache, shared VFS game-data layers,
+then bundled resources. `CakeVfsAssetSource` adapts VFS entries to libGDX file
+handles, materialising packaged assets as temporary files when needed. Shared VFS
+layering is documented in [the VFS guide](../../../../../../../../../qcommon/vfs/README.md).
 
-## Invariants
-- Player MD2 variant key format is exactly: `<skinPath>|<modelPath>`.
-- Variant key must end with `.md2` (`<modelPath>` suffix) so standard MD2 loader mapping applies.
-- `CakeFileResolver` ignores the `<skinPath>|` prefix for file lookup.
-- `Md2Loader` gives synthetic key skin prefix priority over embedded MD2 skins.
-- For player entities (`modelindex == 255`), runtime shader `skinIndex` is forced to `0` because only one skin texture is loaded for that variant.
-- Runtime shader sources are loaded from `assets/shaders` (`md2.vert`, `md2.frag`, `bsp_lightmap.vert/.frag`, `bsp_world_batch.vert/.frag`).
-- Runtime shader text is loaded through `AssetManager` (`TextAssetLoader`), so shader source resolution follows `CakeFileResolver` VFS mod/base lookup order.
+`resolve(...)` applies missing-resource policy after looking up the requested path:
+
+- Missing PCX, WAL, MD2, and SP2 assets throw `MissingResourceException` by default.
+  With `fs_debug_loaders` enabled, their bundled `_missing.*` replacements are used.
+- Missing sounds are tolerated and return `null`, with a warning.
+- BSP is recognised but has no fallback; missing BSP assets still throw.
+- Unsupported kinds have no resolver fallback, and this policy does not recover
+  malformed content.
+
+Fallback content retains the originally requested `AssetManager` key, so ownership
+and unloading still refer to the requested asset rather than the replacement path.
+Warnings are emitted once per normalised path/resource kind for the lifetime of the resolver.
+Use `CakeFileResolver.tryResolve(...)` or `FileHandleResolver.tryResolveRaw(...)`
+for existence probes and candidate selection, without substituting missing assets.
+
+## MD2 Loading and Skins
+
+`Md2Loader` decodes model geometry, selects skin dependencies, and returns an
+`Md2Asset` containing a libGDX `Model`, frame count, and ordered skin textures.
+Skin selection follows this order:
+
+1. A synthetic key's skin prefix takes precedence and selects exactly one skin.
+2. Otherwise, embedded MD2 skin paths are used when `loadEmbeddedSkins` is enabled.
+3. If no paths are selected, `useDefaultSkinIfMissing` permits a generated white
+   1-by-1 skin; otherwise loading fails.
+
+The model viewer enables the white default. This option covers absent skin paths,
+not general failure to load a referenced skin file.
+
+`Md2Asset` disposes its model. The model owns generated position/normal textures
+and the optional white skin; dependency skin textures are managed by `AssetManager`.
+
+## Player Variant Keys
+
+Player model assets use `<skinPath>|<modelPath>` as their cache key, for example
+`players/male/grunt.pcx|players/male/tris.md2`. Different skins of the same model
+therefore have distinct asset entries. The key ends in `.md2` so normal loader
+registration applies.
+
+```text
+PlayerConfiguration.getPlayerModel(skinnum, renderFx)
+  -> resolve model/skin from CS_PLAYERSKINS, legacy fallbacks, and disguise flags
+  -> loadPlayerModelAsset(): build <skinPath>|<modelPath>
+  -> CakeFileResolver: look up only the trailing model path
+  -> Md2Loader: load the prefixed skin as a dependency
+  -> ClientEntityManager: player entity uses skinIndex = 0
+```
+
+The resolver and loader must agree on the separator: the resolver strips the prefix
+for file lookup, while the loader uses it to override embedded skins. Player variants
+load one skin, hence index zero; non-player models can select among embedded skins
+using replicated `skinnum`.
+
+Legacy references are `CL_parse.LoadClientinfo` for player fallbacks and
+`CL_ents.AddPacketEntities` for player selection (`modelindex == 255`,
+`skinnum & 0xFF`) and linked weapons (`modelindex2 == 255`, `skinnum >> 8`).
+
+## GPU Vertex Animation
+
+MD2 remains frame-based animation. At load time, `buildVertexData` decodes positions
+and normal indices for all frames. `Md2Loader` uploads separate floating-point
+position and normal vertex-animation textures (VATs), indexed by vertex and frame.
+The static mesh stores VAT indices and texture coordinates rather than per-frame
+CPU-updated positions.
+
+`Md2Shader` samples two position frames and interpolates them on the GPU using
+per-entity frame state. Directional lighting uses the current-frame normal rather
+than interpolated normals, with a yaw-dependent shade vector and legacy-style
+shading response. Both animation textures are bound through custom material
+attributes, which must be registered before material construction.
+
+Triangle strip/fan decoding normalises MD2 winding for conventional backface culling
+(`GL_BACK`, counter-clockwise front faces); the loader does not add a model-specific
+`GL_FRONT` override.
+
+Runtime shader text is loaded through `AssetManager` and `TextAssetLoader`, using
+`CakeFileResolver` for mod/base lookup and bundled fallback. Bundled sources live in
+`assets/shaders`, including `md2.vert/.frag`, `bsp_lightmap.vert/.frag`, and
+`bsp_world_batch.vert/.frag`.
 
 ## Terminology Alignment (Quake2 vs libGDX)
 - Quake2 BSP **model 0** (worldspawn geometry) maps to precomputed batch chunks in `BspWorldBatchData`.
@@ -61,91 +124,6 @@ For inline brush models specifically:
 - Inline animation frame source is entity-local (`ClientEntity.resolvedFrame`), not global time.
 
 ## Decision Log
-
-### Decision: Keep missing-resource policy inside `CakeFileResolver`
-- **Context:** missing client assets previously produced inconsistent behavior: nullable resolver probes, generic Kotlin NPEs in loaders, and ad hoc recovery in app code.
-- **Options Considered:**
-  - Keep `resolve(...)` as a pure nullable lookup and implement strict/fallback behavior at call sites
-  - Add a separate Cake-side wrapper around resolver calls
-  - Make `CakeFileResolver.resolve(...)` own missing-resource policy directly
-- **Chosen Option & Rationale:** Make `CakeFileResolver.resolve(...)` own the policy. This keeps supported asset kinds on one code path and avoids scattering strict/fallback decisions across `GameConfiguration`, loaders, and `Cake`.
-- **Consequences:** `resolve(...)` is no longer a pure existence probe for supported kinds. Code that wants raw lookup semantics must use `CakeFileResolver.tryResolve(...)` (or `tryResolveRaw(...)` through `FileHandleResolver` helpers). Missing-resource handling is now keyed by `ResourceKind`, `fs_debug_loaders`, and resolver-local warn-once bookkeeping.
-- **Status:** accepted
-- **Definition of Done:** missing `pcx`/`wal`/`md2`/`sp2` are resolved through one strict/fallback policy path; `sound/*` remains tolerable missing; no supported kind relies on generic null-to-NPE flow.
-- **References:** thread decisions around “get rid of `Com.Error` in cake module”, `MissingResourceException`, `fs_debug_loaders`, and “focus on resolver first”.
-
-### Decision: Preserve original logical asset keys when fallback content is served
-- **Context:** fallback assets (`_missing.pcx`, `_missing.wal`, `_missing.md2`, `_missing.sp2`) are engine-owned stand-ins, but gameplay ownership/refcounting still needs to remain tied to the originally requested asset path.
-- **Options Considered:**
-  - Rewrite asset requests to fallback paths before loading
-  - Keep the original asset key and let the resolver return fallback file handles behind that key
-- **Chosen Option & Rationale:** Keep the original logical key. This keeps `AssetManager` ownership, config-scoped unloads, and caller-visible paths stable while still allowing fallback content to render.
-- **Consequences:** diagnostics must distinguish between “requested path” and “physical fallback file”; background/raw existence probes must not use policy-aware `resolve(...)` by accident.
-- **Status:** accepted
-- **Definition of Done:** a request for `models/foo/tris.md2` can be satisfied from `_missing.md2`, while the owned/refcounted asset path remains `models/foo/tris.md2`.
-- **References:** thread decision “missing resource can will be loaded with a fallback once” and agreement to preserve original keys.
-
-### Decision: Encode player model variants as `<skinPath>|<modelPath>` asset keys
-- **Context:** AssetManager caches by asset path. Multiple players can share model path but require different skins.
-- **Options Considered:**
-  - Query-style key (`model?skin=...`)
-  - Prefix-style key (`skin|model`)
-  - Separate per-instance material mutation only
-- **Chosen Option & Rationale:** `skin|model`. Keeps `.md2` suffix for existing loader registration, avoids model path duplication, and keeps key readable.
-- **Consequences:** Resolver and MD2 loader must parse synthetic keys consistently.
-- **Status:** accepted
-- **Definition of Done:** Two players using same model with different skins render distinct skins while sharing standard MD2 loader registration.
-
-### Decision: Derive skin dependency from synthetic key inside `Md2Loader`
-- **Context:** After switching to `skin|model`, passing external skin as loader parameter became redundant.
-- **Options Considered:**
-  - Keep explicit `externalSkinPath` parameter
-  - Parse from key in loader
-- **Chosen Option & Rationale:** Parse from key in loader. Single source of truth and less parameter plumbing.
-- **Consequences:** Loader behavior now depends on stable key format contract.
-- **Status:** accepted
-- **Definition of Done:** Player model load path in `GameConfiguration` uses `tryAcquireAsset<Md2Asset>(variantKey)` with no external skin parameter.
-
-### Decision: Keep model-viewer-specific fallback mode in `Md2Loader.Parameters`
-- **Context:** Viewer often opens standalone MD2 without valid skin dependencies.
-- **Options Considered:**
-  - Keep embedded skin loading only
-  - Keep embedded skin loading + fallback to default skin when missing
-- **Chosen Option & Rationale:** Keep embedded skin loading enabled and enable fallback (`useDefaultSkinIfMissing`) for assets with no embedded skins (common for player models).
-- **Consequences:** Loader has one extra mode branch; gameplay path remains unaffected.
-- **Status:** accepted
-- **Definition of Done:** Model viewer renders MD2 with embedded skins when present, and still renders MD2 with no embedded skins using default fallback texture.
-
-### Decision: Mirror legacy player fallback/disguise behavior in `GameConfiguration`
-- **Context:** Cake previously used hardcoded `male/grunt`, breaking multiplayer correctness.
-- **Options Considered:**
-  - Keep default hardcoded model
-  - Implement legacy fallback order and disguise handling
-- **Chosen Option & Rationale:** Implement legacy-compatible fallback/disguise flow to match old client semantics.
-- **Consequences:** More lookup logic, but predictable behavior and compatibility.
-- **Status:** accepted
-- **Definition of Done:** In multiplayer, remote player names/icons/models match selected model+skin and update when `CS_PLAYERSKINS` changes.
-
-### Decision: Normalize MD2 triangle winding at decode time and keep conventional OpenGL backface culling
-- **Context:** Legacy alias-model path effectively relied on `GL_FRONT` culling. In Cake's shader pipeline this caused confusion and mixed behavior when culling policy was handled at runtime per material.
-- **Options Considered:**
-  - Keep legacy-style runtime culling override (`GL_FRONT`) for MD2 materials
-  - Normalize winding in MD2 decode and keep conventional OpenGL culling (`GL_BACK`, CCW front faces)
-- **Chosen Option & Rationale:** Normalize winding during `buildVertexData(...)` and remove per-model cull overrides. This keeps culling policy simple and predictable across model pipelines.
-- **Consequences:** `qcommon` MD2 decode output is now Cake-oriented rather than a raw mirror of legacy immediate-mode winding.
-- **Status:** accepted
-- **Definition of Done:** MD2 entities render with correct outward faces using default backface culling, with no MD2-specific `GL_FRONT` cull attribute in `Md2Loader`.
-
-### Decision: Carry MD2 per-frame normals through a dedicated normal VAT
-- **Context:** MD2 lighting tint alone could not reproduce alias directional response and left models visually flatter than legacy/Yamagi.
-- **Options Considered:**
-  - Keep tint-only MD2 lighting
-  - Decode normals and compute directional term on CPU per vertex every frame
-  - Decode normals once and upload a second VAT texture consumed in shader
-- **Chosen Option & Rationale:** Resolve `lightnormalindex` via `Globals.bytedirs` at decode time and upload a normal VAT (`AnimationNormalTextureAttribute`). Shader applies legacy-style shadedots response using current-frame normals and yaw-derived shade vector. This keeps runtime work on GPU while preserving vanilla alias look.
-- **Consequences:** MD2 materials now bind two VAT textures (position + normal) and incur one extra texture fetch path in shader.
-- **Status:** accepted
-- **Definition of Done:** MD2 vertex data includes `vertexNormals`; runtime binds normal VAT; fragment shading visibly reacts to entity yaw and normal orientation.
 
 ### Decision: Keep explicit world surface/leaf runtime records in `BspMapAsset`
 - **Context:** Grouping world BSP faces by texture into coarse model parts made PVS/areabits, lightmaps, and transparent/animated surface passes difficult to implement incrementally.
@@ -238,26 +216,6 @@ For inline brush models specifically:
 - **Definition of Done:** Muzzle/explosion/`EF_*` dynamic lights visibly affect world and inline lightmapped faces in gameplay.
 
 ## Quirks & Workarounds
-- **What:** `CakeFileResolver.resolve(...)` is policy-aware for supported missing-resource kinds.
-  - **Why:** strict/fallback behavior is centralized in the resolver instead of being repeated across callers.
-  - **How to work with it:** use `CakeFileResolver.tryResolve(...)` or `FileHandleResolver.tryResolveRaw(...)` when code is selecting candidates or probing optional assets.
-  - **Removal plan:** none currently; this is the intended boundary for missing-resource policy.
-
-- **What:** `fs_debug_loaders` only affects supported fallback kinds (`pcx`, `wal`, `md2`, `sp2`).
-  - **Why:** the current stability track is intentionally small; sounds remain tolerable missing and cinematics/malformed assets are out of scope.
-  - **How to work with it:** do not assume `fs_debug_loaders=1` provides a fallback for every asset class; unsupported kinds still need explicit policy before joining this path.
-  - **Removal plan:** extend kind coverage only when the next asset class has a clear fallback contract.
-
-- **What:** Synthetic variant key uses `|` separator.
-  - **Why:** Needed to carry both skin and model in one AssetManager key while preserving `.md2` suffix.
-  - **How to work with it:** Always build keys via `GameConfiguration.playerModelVariantAssetPath(...)`; do not handcraft elsewhere.
-  - **Removal plan:** Remove if/when per-instance material management replaces path-key variation.
-
-- **What:** Player entities force shader `skinIndex = 0`.
-  - **Why:** Player MD2 variants are loaded with exactly one skin texture.
-  - **How to work with it:** Non-player MD2 can still use replicated `skinnum` for multi-skin models.
-  - **Removal plan:** Revisit when player path switches to geometry-shared + per-instance material swapping.
-
 - **What:** Custom BSP lightmap texture attributes require explicit registration.
   - **Why:** libGDX `TextureAttribute` validates type against static `Mask`; unregistered custom aliases throw `Invalid type specified`.
   - **How to work with it:** Keep `BspLightmapTexture*Attribute.init()` calls before creating BSP materials in `BspLoader.load(...)`.
@@ -315,14 +273,3 @@ For inline brush models specifically:
   - **Difference:** Cake keeps VAT-based model animation and shader pipeline, but MD2 lighting response is constrained to legacy-style quantized shadedots (no smooth Lambert fallback).
   - **How to work with it:** Treat this path as parity-first baseline; compare against vanilla/Yamagi behavior before introducing stylistic lighting changes.
   - **Removal plan:** Revisit only after parity sign-off.
-
-## How to Extend
-1. If adding another synthetic key format, update both:
-   - `CakeFileResolver.resolve(...)` key-to-path mapping
-   - `Md2Loader.resolveDependencySkinPaths(...)` key-to-skin mapping
-2. Keep `.md2` as trailing segment for MD2 variants unless loader registration strategy changes.
-3. For new player visual rules, update `GameConfiguration.getPlayerModel(...)` and document legacy parity impact.
-4. For viewer-only behavior, prefer `Md2Loader.Parameters` flags over game-path conditionals.
-
-## Open Question
-- Should synthetic key parsing be centralized in a single helper shared by resolver and loader to prevent format drift?
