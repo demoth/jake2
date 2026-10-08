@@ -1,171 +1,101 @@
 # Client Effects Runtime
 
-## Overview
-This package owns transient client-side visual/audio effects produced by server effect messages.
+## Responsibilities and Entry Points
 
-Owned here:
-- `MuzzleFlash2Message` behavior (sound + local model/smoke + dynamic light).
-- `WeaponSoundMessage` special burst helper for `MZ_LOGIN`/`MZ_LOGOUT`/`MZ_RESPAWN` particle effect parity.
-- `TEMessage` subclass behavior decoded by `qcommon`.
-- Effect-local asset precache/unload for models, sprites, and sounds not guaranteed by configstrings.
-- Runtime lifetime/update/render of temporary visual effects.
-- Temp-effect dynamic light spawning and transient particle bursts.
+`ClientEffectsSystem` owns temporary visual effects and dispatches their positional
+sounds and dynamic lights. It reads replicated poses from `ClientEntityManager`;
+effect instances are kept separately from server entity state.
 
-Not owned here:
-- Replicated entity state reconstruction/interpolation (`ClientEntityManager`).
-- Core world/entity drawing (`Game3dScreen`).
-- Player weapon muzzleflash (`WeaponSoundMessage` / `MZ_*`) dynamic lights (owned by `Game3dScreen`).
-- Continuous replicated entity `EF_*` lights (owned by `ReplicatedEntityEffectCollector.collectDynamicLights`).
+- `Game3dScreen` forwards typed `TEMessage` subclasses and `MuzzleFlash2Message`
+  (monster muzzle flashes) to this system.
+- `MuzzleFlash2Profiles` maps `MZ2_*` values to sounds, smoke/flash behaviour, and
+  dynamic-light defaults. Muzzle positions use entity pose and
+  `M_Flash.monster_flash_offset`.
+- `IngameSoundMessageHandler` calls particle helpers for respawn/teleport events
+  and player login/logout/respawn bursts. Player `WeaponSoundMessage` sounds and
+  muzzle lights remain in that handler.
+- `ReplicatedEntityEffectCollector` requests interpolated projectile trails here,
+  while collecting continuous entity `EF_*` lights itself.
 
-## Key Types
-- `ClientEffectsSystem` - entry point for TE/muzzle effect dispatch.
-- `ClientTransientEffect` - lifecycle contract for active transient effects.
-- `AnimatedModelEffect` - timed MD2 model effect.
-- `AnimatedSpriteEffect` - timed `.sp2` billboard effect.
-- `LineBeamEffect` - timed procedural beam placeholder.
-- `EffectParticleSystem` - transient particle runtime for impact/explosion bursts.
-- `EffectAssetCatalog` - effect-owned preloaded models/sprites/sounds.
-- `MuzzleFlash2Profiles` - grouped behavior mapping for `MZ2_*`, including per-profile dynamic light defaults.
+[Ingame orchestration](../README.md) owns frame ordering, core world/entity drawing,
+and audio playback through `CakeAudioSystem`. Effects spawn transient lights into
+`DynamicLightSystem`; their contribution follows `r_dlights`.
 
-## Data / Control Flow
+## Update and Draw Flow
+
 ```text
-Cake.parseServerMessage
-  -> Game3dScreen.processWeaponSoundMessage / processMuzzleFlash2Message / processTempEntityMessage
-  -> ClientEffectsSystem handlers
-  -> spawn ClientTransientEffect(s) + particles + transient dlights + positional sounds
-  -> Game3dScreen.render loop: effectsSystem.update -> effectsSystem.renderParticles -> effectsSystem.render
+Server effect messages / entity-event and trail callbacks
+  -> ClientEffectsSystem: dispatch effect family
+  -> spawn model/sprite/beam instances, particles, lights, and sound requests
+
+WorldPresentationRenderer frame
+  -> effectsSystem.update(): simulate particles, advance/expire effect instances
+  -> collect replicated trails and lights
+  -> draw world and entities, then translucent world
+  -> effectsSystem.renderParticles(): dedicated particle pass
+  -> effectsSystem.render(): transient models/sprites/beams through ModelBatch
 ```
 
-Legacy counterparts:
-- `client/CL_fx.ParseMuzzleFlash2`
-- `client/CL_fx.LogoutEffect`
-- `client/CL_tent.ParseTEnt`
-- `../yquake2/src/client/cl_effects.c`
+`ClientTransientEffect.update(nowMs, deltaSeconds)` returns false when an instance
+expires; the system removes and disposes it in that update loop. Update and render
+run on the render thread. `AnimatedModelEffect` and `AnimatedSpriteEffect` provide
+timed animation; `ExplosionMd2Effect` and `ExplosionSpriteEffect` apply legacy
+explosion frame, skin, and alpha rules. Model effects reuse the
+[MD2 pipeline](../../../assets/md2/README.md); sprite effects use `Sp2Renderer`.
 
-## Invariants
-- `ClientEntityManager` remains source-of-truth for replicated entity pose; effects only read it.
-- All transient effects are owned/disposed by `ClientEffectsSystem`.
-- `precache()` must be called before gameplay effect dispatch.
-- Effect assets loaded by this package are unloaded by this package only.
-- Positional attenuation for both server `SoundMessage` and effects uses `SpatialSoundAttenuation`.
-- Dynamic-light output obeys runtime toggle (`r_dlights`).
-- Particle runtime obeys `r_particles` live-budget cvar (`0` disables; positive values cap live particles with no hard upper clamp) and drops overflow emits.
-- Point-impact TE particle families (`TE_BLOOD`, `TE_GUNSHOT`, spark/screen/shield/shotgun/electric/heatbeam variants) use legacy palette index ranges.
-- Explosion-family particle branches (`TE_EXPLOSION*`, rocket/grenade/plasma/plain explosion temp entities) use legacy explosion palette range (`0xE0..0xE7`).
-- `TE_BLUEHYPERBLASTER` uses the legacy blaster palette range (`0xE0..0xE7`) like `CL_BlasterParticles`.
-- `TE_SPLASH` uses the legacy splash palette table mapping (`{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`).
-- `TE_RAILTRAIL` uses legacy palette ranges for both particle groups (`0x74..0x7B` spiral and `0x00..0x0F` core).
-- Impact palette emission does not carry per-effect fallback color branches (legacy parity: palette index driven); only a single internal safety fallback exists if palette data is unavailable.
-- Particle brightness follows legacy-style path: gamma correction is applied, while particle intensity/overbright scaling is not.
-- Particle shader sources are loaded from `assets/shaders` (`particle_point.vert/.frag`, `particle_billboard.vert/.frag`).
-- Particle shader text is loaded via `AssetManager` (`TextAssetLoader`) to keep resolver/mod override behavior consistent with other assets.
+## Particle Simulation and Rendering
 
-## Decision Log
-Newest first.
+`EffectParticleSystem` stores particle positions, velocities, colour, size, alpha
+ramps, and lifetimes in parallel arrays. Updates integrate velocity/gravity and
+remove expired particles by swapping in the last live entry.
 
-### Decision: Use a dedicated particle renderer pass and skip temporary batching fixes
-- Context: per-particle `ModelBatch` submissions caused extreme draw-call growth in high-count effects (rail, explosions).
-- Options considered:
-1. Temporary stopgaps (`one material per effect instance`, ad-hoc cap-first strategy).
-2. Move directly to a dedicated dynamic-VBO particle renderer.
-- Chosen Option & Rationale: Option 2. It directly solves draw-call scaling and keeps architecture aligned with future sprite particles.
-- Consequences:
-  - particle rendering is split from model/sprite effects (`renderParticles` vs `render`),
-  - simulation and rendering responsibilities are separated (`EffectParticleSystem` vs `ParticleRenderer`),
-  - no dependency on per-particle `ModelInstance`/`Material` state.
-- Status: accepted.
-- References: commits `c1c3c3bc`, `24bcc6a1`, `bc3d1ec6`.
-- Definition of Done: particle draw submissions scale with bucket count, not with live particle count.
+`r_particles` supplies the live emission budget: zero or negative values disable
+emission and drawing, while positive values limit new spawns to the remaining
+budget. Overflow emits are dropped; there is no hard upper clamp. Lowering the
+budget does not immediately remove existing particles; they continue to age out.
 
-### Decision: Tune particle visuals for vanilla-like sharpness and distance behavior
-- Context: initial dedicated renderer produced oversized and overly smoothed particles with weak distance attenuation.
-- Options considered:
-1. Keep soft edge fade and constant point size.
-2. Use distance-attenuated point sizing with sharp circular cutout.
-- Chosen Option & Rationale: Option 2 for closer Quake/Yamagi visual behavior and gameplay readability.
-- Consequences:
-  - point shader uses camera-distance size attenuation,
-  - extra edge smoothing was removed; only circular cutout remains,
-  - particle buckets are submitted unsorted (legacy-style path).
-- Status: accepted.
-- References: commit `34285409`, `../yquake2/src/client/refresh/gl3/gl3_main.c`, `../yquake2/src/client/refresh/gl3/gl3_shaders.c`.
-- Definition of Done: particles become smaller with distance and no longer look over-smoothed.
+`ParticleRenderer` uploads dynamic mesh data rather than creating a `ModelInstance`
+per particle. It submits up to four unsorted buckets: alpha/additive point sprites,
+then alpha/additive billboards, with one draw per nonempty bucket. Depth testing is
+on and depth writes are off during this pass.
 
-### Decision: Keep external particle format support out of current scope
-- Context: future sprite-particle support is desired, but immediate priority is parity/performance of runtime rendering.
-- Options considered:
-1. Implement external editor/import format now.
-2. Keep runtime format internal for now; defer external support.
-- Chosen Option & Rationale: Option 2 to avoid expanding scope before core runtime/parity goals stabilize.
-- Consequences:
-  - renderer/runtime interfaces remain format-agnostic,
-  - sprite backend stays ready for atlas integration without committing to external tooling yet.
-- Status: accepted.
-- Definition of Done: subsystem remains extensible, but no external particle format is required for current development.
+Gameplay emitters use point sprites with distance-dependent size and a sharp
+circular cutout. The billboard backend exists but has no sprite-atlas/frame sampling
+integration. Particle colour receives gamma correction without the geometry
+intensity/overbright multipliers. Shader sources are
+`assets/shaders/particle_point.vert/.frag` and `particle_billboard.vert/.frag`,
+loaded through `AssetManager` and the [shared resolver](../../../assets/README.md).
 
-### Decision: Add local transient particle runtime for TE impact/explosion feedback
-- Context: many legacy TE branches depended on particles, but Cake had no particle output.
-- Options considered:
-1. Keep model/sprite-only placeholders.
-2. Add a lightweight particle bridge now.
-- Chosen Option & Rationale: Option 2. Introduce `EffectParticleSystem` for immediate gameplay readability.
-- Consequences: visuals are approximate versus full legacy palette particle renderer.
-- Status: accepted.
-- References: `client/CL_tent.java`, `client/CL_fx.java`, `../yquake2/src/client/cl_effects.c`.
-- Definition of Done: gunshot/spark/splash/explosion TE paths emit visible transient particles when `r_particles>0`.
+## Visual Behaviour and Current Limits
 
-### Decision: Spawn transient dynamic lights from effect message handlers
-- Context: muzzle/explosion effects should light nearby geometry/models in real time.
-- Options considered:
-1. Handle dynamic lights only from replicated `EF_*` entity flags.
-2. Also spawn dynamic lights directly from TE/muzzle handlers.
-- Chosen Option & Rationale: Option 2 to match legacy timing and event ownership.
-- Consequences: dynamic-light source logic is split between this package (message-driven) and `Game3dScreen` (`EF_*` continuous).
-- Status: accepted.
-- References: `client/CL_fx.java`, `client/CL_tent.java`, `../yquake2/src/client/cl_lights.c`.
-- Definition of Done: muzzle flashes and TE explosions produce visible transient lights with expected color/radius families.
+Particle families select colours from `q2palette.bin`. Useful compatibility anchors:
 
-### Decision: Use `.sp2` sprite effect for `TE_BFG_EXPLOSION`
-- Context: legacy temp-entity BFG explosion uses `sprites/s_bfg2.sp2`, while Cake used MD2 placeholder.
-- Options considered:
-1. Keep MD2 placeholder.
-2. Add dedicated `.sp2` effect path.
-- Chosen Option & Rationale: Option 2 for legacy visual parity and consistent sprite pipeline reuse.
-- Consequences: effect runtime now depends on camera-facing sprite renderer and `.sp2` effect asset catalog support.
-- Status: accepted.
-- References: commit `532590f7`, `client/CL_tent.java` `TE_BFG_EXPLOSION`.
-- Definition of Done: `TE_BFG_EXPLOSION` renders from `sprites/s_bfg2.sp2` with translucent alpha behavior.
+- Point impacts use the corresponding legacy blood/spark/shotgun palette ranges.
+- Explosion-family and blue-hyperblaster particles use `0xE0..0xE7`.
+- Splash types select from `{0x00,0xE0,0xB0,0x50,0xD0,0xE0,0xE8}`.
+- Rail trails use spiral particles (`0x74..0x7B`) and core particles (`0x00..0x0F`).
 
-### Decision: Keep effects out of `ClientEntityManager`
-- Context: explosion models and temp effects could be hosted in entity manager, but that mixes replicated state and transient VFX ownership.
-- Options considered:
-1. Extend `ClientEntityManager` to own effect entities.
-2. Keep `ClientEntityManager` read-only for server state and add dedicated effects subsystem.
-- Chosen Option & Rationale: Option 2. It preserves clean boundaries and reduces hacks around server-state lifecycle.
-- Consequences: effects require read accessors (`getEntitySoundOrigin`, `getEntityAngles`) but no mutation hooks.
-- Status: accepted.
-- References: commits `b24eaeeb`, `7eded747`.
-- Definition of Done: no effect instance is stored in `ClientEntityManager` and effect handlers delegate to `ClientEffectsSystem`.
+Fallback colours keep effects visible when palette data is unavailable.
+`TE_BFG_EXPLOSION` uses the translucent `sprites/s_bfg2.sp2` explosion path;
+`TE_BFG_LASER` remains a procedural `LineBeamEffect` approximation. Parasite/medic
+and grapple beams use repeated segment models. Visual parity varies by effect
+family; unsupported styles inside recognised TE message classes can fall through
+silently, while unhandled message classes produce a warning.
 
-## Quirks & Workarounds
-- `TE_BFG_LASER` and rail trail still use `LineBeamEffect` placeholders.
-- Why: canonical beam/particle parity path is still incomplete.
-- How to work with it: treat these visuals as readability-first approximations.
-- Removal plan: replace with dedicated beam/particle implementation once parity path lands.
+Legacy references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
+`CL_tent.ParseTEnt`, and `../yquake2/src/client/cl_effects.c`.
 
-- Particle pass uses a dedicated shader/VBO path with point-sprite and billboard backends.
-- Point sprites currently drive gameplay effects; billboard backend is maintained for sprite-particle extension.
-- Particle buckets are submitted unsorted.
-- Why: avoid per-particle ModelBatch submissions and keep draw-call count bounded.
-- How to work with it: tune burst count/speed/alpha and world-space size ranges in emitters.
-- Removal plan: wire billboard backend to atlas/frame sampling once sprite-particle content is introduced.
+## Assets and Lifetime
 
-## How to Extend
-1. Add asset paths in `EffectAssetCatalog` for new effect-owned resources.
-2. Add/update behavior mapping in `MuzzleFlash2Profiles` for `MZ2_*` additions.
-3. Add/update TE subtype branches in `ClientEffectsSystem`.
-4. Prefer extending `EffectParticleSystem` for particle-heavy effects instead of spawning many model effects.
-5. Keep replicated state ownership in `ClientEntityManager`; effects should read but not mutate it.
+Call `precache()` before gameplay effect dispatch. `EffectAssetCatalog` preloads
+listed MD2 models, SP2 sprites, and sounds that configstrings may not supply.
+Files absent from raw resolver lookup are skipped; catalog lookups return null for
+unloaded assets. Present files still pass through the normal loaders.
 
-## Open Questions
-- Which effect families should migrate to billboard sprite mode first once atlas sampling is introduced?
+The catalog records paths visited during precache, reuses already loaded assets,
+and unloads its tracked paths during disposal. This tracking is separate from
+configuration asset ownership.
+
+`ClientEffectsSystem.dispose()` disposes remaining transient instances, particle
+meshes/shaders, its sprite renderer, and the asset catalog. Shared model/sprite
+assets belong to the catalog/`AssetManager`, rather than each effect instance.
