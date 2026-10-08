@@ -1,4 +1,4 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.bsp
 
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.Bsp

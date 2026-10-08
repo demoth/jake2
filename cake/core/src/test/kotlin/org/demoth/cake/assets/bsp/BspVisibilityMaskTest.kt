@@ -1,9 +1,5 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
-import org.demoth.cake.assets.BspWorldLeafRecord
-import org.demoth.cake.assets.BspWorldRenderData
-import org.demoth.cake.assets.BspWorldSurfaceRecord
-import org.demoth.cake.assets.BspWorldTextureInfoRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

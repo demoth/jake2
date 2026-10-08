@@ -1,4 +1,4 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -10,9 +10,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.model.NodePart
 import jake2.qcommon.Defines
-import org.demoth.cake.assets.BspInlineModelRenderData
-import org.demoth.cake.assets.BspLightStyleContributionRecord
-import org.demoth.cake.assets.BspLightmapTextureAttribute
 import java.util.IdentityHashMap
 import kotlin.math.floor
 

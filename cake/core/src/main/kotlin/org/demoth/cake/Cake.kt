@@ -1,5 +1,7 @@
 package org.demoth.cake
 
+import org.demoth.cake.assets.bsp.BspLoader
+import org.demoth.cake.assets.bsp.BspMapAsset
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound

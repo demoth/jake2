@@ -1,5 +1,11 @@
 package org.demoth.cake.stages.ingame
 
+import org.demoth.cake.assets.bsp.BspEntityLightSampler
+import org.demoth.cake.assets.bsp.BspInlineSurfaceMaterialController
+import org.demoth.cake.assets.bsp.BspInlineTextureAnimationController
+import org.demoth.cake.assets.bsp.BspLightmapShader
+import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
+import org.demoth.cake.assets.bsp.BspWorldVisibilityMaskTracker
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
@@ -185,7 +191,7 @@ class Game3dScreen(
 
         bspLightmapShader = BspLightmapShader(assetManager).apply { init() }
         val md2Shader = initializeMd2Shader(assetManager)
-        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
+        modelBatch = ModelBatch(CakeShaderProvider(md2Shader, bspLightmapShader))
         postProcessShader = createPostProcessShader()
     }
 

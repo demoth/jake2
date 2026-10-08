@@ -1,9 +1,8 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
+import org.demoth.cake.stages.ingame.DynamicLightSystem
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.CM
-import org.demoth.cake.assets.BspLightStyleContributionRecord
-import org.demoth.cake.assets.BspWorldRenderData
 
 /**
  * Approximate world-light sampling for alias/sprite entities.

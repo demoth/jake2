@@ -19,7 +19,7 @@ AssetManager request (model path or <skinPath>|<modelPath>)
 
 `Md2Asset` contains the model, frame count, and ordered skin textures. The model
 viewer and transient model effects use the same loader/shader pipeline as gameplay
-entities. The shared `Md2ShaderProvider` dispatches MD2, BSP, and default shaders;
+entities. The shared `CakeShaderProvider` dispatches MD2, BSP, and default shaders;
 its cross-pipeline routing remains outside this package.
 
 ## Skin Dependencies and Player Variants

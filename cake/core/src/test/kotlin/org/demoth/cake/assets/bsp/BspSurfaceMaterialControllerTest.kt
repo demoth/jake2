@@ -1,8 +1,6 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
 import jake2.qcommon.Defines
-import org.demoth.cake.assets.BspInlineModelPartRecord
-import org.demoth.cake.assets.BspInlineModelRenderData
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue

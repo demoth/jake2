@@ -1,4 +1,4 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.bsp
 
 /**
  * Precomputed world BSP geometry + draw-command metadata for batched rendering.

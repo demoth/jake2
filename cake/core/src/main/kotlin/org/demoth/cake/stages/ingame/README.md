@@ -55,6 +55,7 @@ FrameHeader + PacketEntities + PlayerInfo
   -> WorldPresentationRenderer.render
 
 World BSP surfaces are rendered by `BspWorldBatchRenderer` with dedicated opaque/warp/translucent passes.
+Loading, visibility, and brush shading are documented in the [BSP pipeline](../../assets/bsp/README.md).
 Visibility is driven by `BspWorldVisibilityMaskTracker` (PVS + areabits) and fed directly into the batched renderer.
 
 SoundMessage

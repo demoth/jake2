@@ -1,5 +1,6 @@
 package org.demoth.cake.stages.ingame
 
+import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
@@ -12,7 +13,7 @@ import jake2.qcommon.Defines
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.ListenerState
 import org.demoth.cake.assets.BeamRenderer
-import org.demoth.cake.assets.BspLightmapShader
+import org.demoth.cake.assets.bsp.BspLightmapShader
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem

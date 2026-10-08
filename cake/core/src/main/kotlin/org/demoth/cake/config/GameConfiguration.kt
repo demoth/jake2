@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
-import org.demoth.cake.assets.BspMapAsset
+import org.demoth.cake.assets.bsp.BspMapAsset
 import org.demoth.cake.assets.MissingResourceException
 import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.SkyLoader
