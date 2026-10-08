@@ -39,6 +39,27 @@ variation. Generic sound loading skips them; `PlayerConfiguration` preloads know
 variations and resolves them at playback through
 `GameConfiguration.getSound(soundIndex, entityIndex)`.
 
+## Player Sound Resolution
+
+`PlayerConfiguration` derives player model/skin identity from `CS_PLAYERSKINS`.
+Sound lookup maps server player entity indices `1..MAX_CLIENTS` to zero-based
+client slots; non-player or unavailable variations use the `male/grunt` default.
+Non-default variation names come from server configuration.
+
+For a variation-dependent sound, the first existing candidate wins:
+
+1. `players/<model>/<sound>`.
+2. `sound/player/<model>/<sound>`.
+3. The same two paths for the default model, if the requested model differs.
+4. `sound/player/<sound>`, then `player/<sound>`.
+
+The generic paths matter for content such as `fall1.wav` and `fall2.wav`, which can
+live outside variation folders. Path results, including misses, are cached by
+lowercased model name and sound name; skin does not affect sound selection.
+Keep candidate order deterministic when changing compatibility behaviour.
+Actual playback and entity-event dispatch belong to the
+[ingame runtime](../stages/ingame/README.md#sound-dispatch).
+
 ## Asset Ownership
 
 Each `GameConfiguration` contributes one `AssetManager` reference for each asset
