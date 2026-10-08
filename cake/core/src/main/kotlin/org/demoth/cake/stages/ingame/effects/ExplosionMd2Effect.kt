@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.applyModelOpacity
-import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.Sp2Renderer
 import kotlin.math.floor

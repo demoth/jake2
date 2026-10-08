@@ -1,14 +1,14 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.md2
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Attribute
 import com.badlogic.gdx.graphics.g3d.Attributes
 import com.badlogic.gdx.graphics.g3d.Renderable
-import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
+import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 
 /**

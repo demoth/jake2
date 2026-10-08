@@ -22,12 +22,12 @@ import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.BspLoader
 import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2CustomData
+import org.demoth.cake.assets.md2.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
-import org.demoth.cake.assets.Md2Shader
+import org.demoth.cake.assets.md2.Md2Shader
 import org.demoth.cake.assets.Md2ShaderProvider
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded

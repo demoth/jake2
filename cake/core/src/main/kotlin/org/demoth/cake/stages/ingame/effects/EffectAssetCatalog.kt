@@ -3,7 +3,7 @@ package org.demoth.cake.stages.ingame.effects
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.utils.Disposable
-import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.tryResolveRaw
 

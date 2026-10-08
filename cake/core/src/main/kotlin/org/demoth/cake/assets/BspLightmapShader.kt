@@ -18,6 +18,9 @@ import org.demoth.cake.bspLightmapVertexShader
 import org.demoth.cake.stages.ingame.DynamicLightSystem
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 import org.demoth.cake.stages.ingame.SceneDynamicLight
+import org.demoth.cake.assets.md2.AnimationNormalTextureAttribute
+import org.demoth.cake.assets.md2.AnimationTextureAttribute
+import org.demoth.cake.assets.md2.Md2CustomData
 
 /**
  * Lightmap texture for BSP brush surfaces.

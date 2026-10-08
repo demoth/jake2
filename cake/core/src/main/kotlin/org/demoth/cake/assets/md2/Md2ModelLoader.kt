@@ -1,4 +1,4 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.md2
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetDescriptor
@@ -14,8 +14,8 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureData
 import com.badlogic.gdx.graphics.VertexAttribute
-import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.VertexAttribute.TexCoords
+import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
@@ -31,6 +31,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.jvm.java
+import org.demoth.cake.assets.CakeTextureData
+import org.demoth.cake.assets.MissingResourceException
+import org.demoth.cake.assets.ResourceKind
 
 /**
  * Loaded MD2 asset bundle.
@@ -238,28 +241,6 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         }
         return Texture(CakeTextureData(pixmap))
     }
-}
-
-/**
- * Get an asset ensuring it's loaded. Blocking operation.
- */
-inline fun <reified T> AssetManager.getLoaded(path: String): T {
-    if (!isLoaded(path, T::class.java)) {
-        load(path, T::class.java)
-        finishLoadingAsset<T>(path)
-    }
-    return get(path, T::class.java)
-}
-
-/**
- * Get an asset ensuring it's loaded. Blocking operation.
- */
-inline fun <reified T> AssetManager.getLoaded(path: String, parameter: AssetLoaderParameters<T>): T {
-    if (!isLoaded(path, T::class.java)) {
-        load(path, T::class.java, parameter)
-        finishLoadingAsset<T>(path)
-    }
-    return get(path, T::class.java)
 }
 
 // Helper class to create TextureData from a vertex position data buffer

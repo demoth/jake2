@@ -66,6 +66,8 @@ import org.demoth.cake.ui.menu.*
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2Loader
 
 private enum class ClientNetworkState {
     DISCONNECTED,

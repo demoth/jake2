@@ -41,6 +41,7 @@ import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyle
 import kotlin.math.abs
 import kotlin.math.sin
+import org.demoth.cake.assets.md2.Md2CustomData
 
 /**
  * Represents the 3d screen where the game is actually happening.

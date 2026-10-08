@@ -38,70 +38,15 @@ Warnings are emitted once per normalised path/resource kind for the lifetime of 
 Use `CakeFileResolver.tryResolve(...)` or `FileHandleResolver.tryResolveRaw(...)`
 for existence probes and candidate selection, without substituting missing assets.
 
-## MD2 Loading and Skins
-
-`Md2Loader` decodes model geometry, selects skin dependencies, and returns an
-`Md2Asset` containing a libGDX `Model`, frame count, and ordered skin textures.
-Skin selection follows this order:
-
-1. A synthetic key's skin prefix takes precedence and selects exactly one skin.
-2. Otherwise, embedded MD2 skin paths are used when `loadEmbeddedSkins` is enabled.
-3. If no paths are selected, `useDefaultSkinIfMissing` permits a generated white
-   1-by-1 skin; otherwise loading fails.
-
-The model viewer enables the white default. This option covers absent skin paths,
-not general failure to load a referenced skin file.
-
-`Md2Asset` disposes its model. The model owns generated position/normal textures
-and the optional white skin; dependency skin textures are managed by `AssetManager`.
-
-## Player Variant Keys
-
-Player model assets use `<skinPath>|<modelPath>` as their cache key, for example
-`players/male/grunt.pcx|players/male/tris.md2`. Different skins of the same model
-therefore have distinct asset entries. The key ends in `.md2` so normal loader
-registration applies.
-
-```text
-PlayerConfiguration.getPlayerModel(skinnum, renderFx)
-  -> resolve model/skin from CS_PLAYERSKINS, legacy fallbacks, and disguise flags
-  -> loadPlayerModelAsset(): build <skinPath>|<modelPath>
-  -> CakeFileResolver: look up only the trailing model path
-  -> Md2Loader: load the prefixed skin as a dependency
-  -> ClientEntityManager: player entity uses skinIndex = 0
-```
-
-The resolver and loader must agree on the separator: the resolver strips the prefix
-for file lookup, while the loader uses it to override embedded skins. Player variants
-load one skin, hence index zero; non-player models can select among embedded skins
-using replicated `skinnum`.
-
-Legacy references are `CL_parse.LoadClientinfo` for player fallbacks and
-`CL_ents.AddPacketEntities` for player selection (`modelindex == 255`,
-`skinnum & 0xFF`) and linked weapons (`modelindex2 == 255`, `skinnum >> 8`).
-
-## GPU Vertex Animation
-
-MD2 remains frame-based animation. At load time, `buildVertexData` decodes positions
-and normal indices for all frames. `Md2Loader` uploads separate floating-point
-position and normal vertex-animation textures (VATs), indexed by vertex and frame.
-The static mesh stores VAT indices and texture coordinates rather than per-frame
-CPU-updated positions.
-
-`Md2Shader` samples two position frames and interpolates them on the GPU using
-per-entity frame state. Directional lighting uses the current-frame normal rather
-than interpolated normals, with a yaw-dependent shade vector and legacy-style
-shading response. Both animation textures are bound through custom material
-attributes, which must be registered before material construction.
-
-Triangle strip/fan decoding normalises MD2 winding for conventional backface culling
-(`GL_BACK`, counter-clockwise front faces); the loader does not add a model-specific
-`GL_FRONT` override.
-
 Runtime shader text is loaded through `AssetManager` and `TextAssetLoader`, using
 `CakeFileResolver` for mod/base lookup and bundled fallback. Bundled sources live in
 `assets/shaders`, including `md2.vert/.frag`, `bsp_lightmap.vert/.frag`, and
 `bsp_world_batch.vert/.frag`.
+
+## Rendering Pipelines
+
+- [MD2: loading, skins, GPU animation, and lifetime](md2/README.md).
+- BSP loading and rendering are described below; a dedicated package/guide is the next slice.
 
 ## Terminology Alignment (Quake2 vs libGDX)
 - Quake2 BSP **model 0** (worldspawn geometry) maps to precomputed batch chunks in `BspWorldBatchData`.

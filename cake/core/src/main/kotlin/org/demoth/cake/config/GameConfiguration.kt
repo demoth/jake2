@@ -11,7 +11,7 @@ import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.BspMapAsset
 import org.demoth.cake.assets.MissingResourceException
-import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.tryResolveRaw

@@ -17,8 +17,8 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.config.GameConfiguration
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.modelviewer.createOriginArrows
 import kotlin.math.abs
