@@ -880,6 +880,11 @@ class Cake(
             }
 
             Input.Keys.ESCAPE -> {
+                if (!consoleVisible && menuVisible && menuView == MenuView.MAIN && game3dScreen != null) {
+                    menuVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
+                    return true
+                }
                 if (!consoleVisible && !menuVisible && game3dScreen != null) {
                     menuVisible = true
                     menuEventBus.postIntent(MenuIntent.OpenMainMenu)
