@@ -62,9 +62,9 @@ rejects a package-backed winner; it does not search for a lower-priority loose c
 ## Indexing and Package Reads
 
 Index construction recursively visits loose files under the configured base/mod
-roots and any enabled fallback roots (does not follow symbolic links). 
-Package discovery considers direct children of the base/mod roots (a symlink to a supported package can be mounted). 
-It does not search the whole home directory; 
+roots and any enabled fallback roots (does not follow symbolic links).
+Package discovery considers direct children of the base/mod roots (a symlink to a supported package can be mounted).
+It does not search the whole home directory;
 Steam detection probes a fixed set of installation candidates separately from indexing.
 
 Core indexing does not extract packages: PAK readers inspect header/directory data,
@@ -121,4 +121,5 @@ Current default locations:
 Downloads use `baseq2` when no mod is selected. Client profile ids and mod names are
 separate concepts; server save paths remain mod-based and are not profile-aware.
 
-Saving and loading client bindings and archived cvars is described in the input guide (cake/core/src/main/kotlin/org/demoth/cake/input/README.md)
+Saving and loading client bindings and archived cvars is described in the
+[input guide](../../cake/core/src/main/kotlin/org/demoth/cake/input/README.md).
