@@ -57,6 +57,8 @@ object CakeCvars {
         cvars.AddAlias("crosshair", "cl_crosshair")
         cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
         cvars.Get("cl_showfps", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
+        cvars.Get("cl_ui_size", "720", CVAR_ARCHIVE or CVAR_OPTIONS,
+            "Virtual game UI reference height (minimum 640); lower values enlarge menus and HUD; applies immediately")
         cvars.Get("s_volume", "0.7", CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
         cvars.Get("cl_maxfps", "62", CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update cadence")
 

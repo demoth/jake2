@@ -33,6 +33,12 @@ instructions use IdTech2 top-left pixels; `LayoutCoordinateMapper` converts them
 to libGDX coordinates at draw time. Invalid stat/client indices are guarded, and
 unparseable numeric tokens default to zero.
 
+The HUD batch uses the [shared UI viewport](../../README.md#presentation) projection
+and virtual dimensions, so layouts, inventory, crosshair and timed text scale with
+menus. The 320×240 centered layout region remains part of layout command semantics;
+it is not a separate rendering viewport. The scene framebuffer retains its physical
+pixel dimensions.
+
 ## Text and Overlays
 
 - Notify text displays up to four recent lines, each expiring after 3000 ms.

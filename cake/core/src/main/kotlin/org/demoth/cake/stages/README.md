@@ -42,10 +42,15 @@ changes. They must not be treated as permanent instances across style changes.
 
 ## Presentation
 
-Menus share a 1280×720 `FitViewport`, scaled uniformly and centered in the window.
-Form screens use `addCenteredForm` to retain their preferred size within that canvas,
-with vertical scrolling when necessary. The backdrop, console and debug overlay use
-the full window independently of the menu viewport.
+Menus and game overlays share a `UiViewport` (`ExtendViewport`).
+Its default 4:3 reference area is 960×720; other window aspect ratios extend the
+available coordinates while keeping the same scale on both axes. The archived cvar
+`cl_ui_size` changes the reference height live (minimum 640); the reference
+width is derived as height × 4/3. Lower values make game UI larger.
+Form screens use `addCenteredForm` to retain their preferred size within the centered
+reference area, with vertical scrolling when necessary. HUD elements can use the full
+extended area. The engine console and debug graphs use an unscaled `ScreenViewport`,
+independent of `cl_ui_size`. The world and backdrops continue to fill the window.
 
 Stages use the engine Scene2D skin and shared content styles. Skin resource names
 are part of their integration: renaming a drawable or style requires updating its

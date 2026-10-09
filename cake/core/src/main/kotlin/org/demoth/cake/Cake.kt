@@ -15,7 +15,6 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
-import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
@@ -65,6 +64,7 @@ import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
+import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -123,7 +123,7 @@ class Cake(
     private var glProfilerActive: Boolean = false
     private var physicalConsoleToggleKeyDown: Boolean = false
     private lateinit var viewport: ScreenViewport
-    private lateinit var menuViewport: FitViewport
+    private lateinit var uiViewport: UiViewport
     private var profileBackgroundBatch: SpriteBatch? = null
     private var profileBackgroundTexture: Texture? = null
     private var transitionBackdropBatch: SpriteBatch? = null
@@ -228,9 +228,10 @@ class Cake(
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
-        // Menus share a fitted reference canvas; console and diagnostics follow window coordinates.
-        menuViewport = FitViewport(1280f, 720f)
-        menuViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+        // Game UI shares one reference scale; engine overlays and backdrops use window coordinates.
+        uiViewport = UiViewport()
+        uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)
+        uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         menuController = MenuController(
@@ -662,7 +663,7 @@ class Cake(
 
     override fun resize(width: Int, height: Int) {
         if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
-        menuViewport.update(width, height, true)
+        uiViewport.update(width, height, true)
         viewport.update(width, height, true)
         game3dScreen?.resize(width, height)
         profileBackgroundBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
@@ -701,6 +702,9 @@ class Cake(
             CheckForResend(deltaSeconds)
 
             if (!drawable) return
+            if (uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)) {
+                uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+            }
             viewport.apply()
 
             if (game3dScreen != null) {
@@ -725,7 +729,7 @@ class Cake(
             }
 
             if (menuVisible) {
-                menuViewport.apply()
+                uiViewport.apply()
                 when (menuView) {
                     MenuView.MAIN -> {
                         menuStage.act()
@@ -762,7 +766,7 @@ class Cake(
                 }
             }
 
-            // Restore the full-window viewport after drawing the fitted menu canvas.
+            // Engine console and diagnostics stay in unscaled window coordinates.
             viewport.apply()
             if (consoleVisible) {
                 consoleStage.act()
@@ -1010,7 +1014,7 @@ class Cake(
             menuStage.dispose()
         }
         menuStage = MainMenuStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1018,7 +1022,7 @@ class Cake(
             multiplayerMenuStage.dispose()
         }
         multiplayerMenuStage = MultiplayerMenuStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1026,7 +1030,7 @@ class Cake(
             optionsMenuStage.dispose()
         }
         optionsMenuStage = OptionsMenuStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1034,7 +1038,7 @@ class Cake(
             joinGameStage.dispose()
         }
         joinGameStage = JoinGameStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1042,7 +1046,7 @@ class Cake(
             playerSetupStage.dispose()
         }
         playerSetupStage = PlayerSetupStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1050,7 +1054,7 @@ class Cake(
             profileEditStage.dispose()
         }
         profileEditStage = ProfileEditStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1058,7 +1062,7 @@ class Cake(
             optionsSectionStage.dispose()
         }
         optionsSectionStage = OptionsSectionStage(
-            viewport = menuViewport,
+            viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1332,7 +1336,7 @@ class Cake(
             beginMapTransitionRetainingConfigAssets()
         }
         if (game3dScreen == null) {
-            game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings), startup.videoMode)
+            game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings), uiViewport, startup.videoMode)
             game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
             debugGraphStage.resetMetrics()
         }

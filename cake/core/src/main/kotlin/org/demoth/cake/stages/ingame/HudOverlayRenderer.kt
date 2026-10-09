@@ -6,6 +6,7 @@ import jake2.qcommon.player_state_t
 import ktx.graphics.use
 import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.stages.ingame.hud.Hud
+import org.demoth.cake.ui.UiViewport
 
 /**
  * Draws in-game HUD overlays for both world and cinematic presentation modes.
@@ -18,6 +19,7 @@ import org.demoth.cake.stages.ingame.hud.Hud
 internal class HudOverlayRenderer(
     private val spriteBatch: SpriteBatch,
     private val gameConfig: GameConfiguration,
+    private val uiViewport: UiViewport,
 ) {
 
     data class GameplayHudState(
@@ -30,10 +32,13 @@ internal class HudOverlayRenderer(
     fun render(
         hud: Hud?,
         delta: Float,
-        screenWidth: Int,
-        screenHeight: Int,
         gameplayHudState: GameplayHudState?,
     ) {
+        // The viewport covers the full target, including when drawing into the physical-pixel scene FBO.
+        // Only change the batch projection here; framebuffer binding owns the GL viewport.
+        spriteBatch.projectionMatrix = uiViewport.camera.combined
+        val screenWidth = uiViewport.worldWidth.toInt()
+        val screenHeight = uiViewport.worldHeight.toInt()
         spriteBatch.use {
             hud?.update(delta, screenWidth, screenHeight)
 

@@ -263,8 +263,6 @@ internal class WorldPresentationRenderer {
         context.hudOverlayRenderer.render(
             hud = context.hud,
             delta = context.delta,
-            screenWidth = Gdx.graphics.width,
-            screenHeight = Gdx.graphics.height,
             gameplayHudState = HudOverlayRenderer.GameplayHudState(
                 serverFrame = currentFrame.serverframe,
                 playerState = currentFrame.playerstate,

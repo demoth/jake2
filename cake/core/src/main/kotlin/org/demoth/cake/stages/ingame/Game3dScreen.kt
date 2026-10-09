@@ -44,6 +44,7 @@ import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.UiViewport
 import kotlin.math.abs
 import kotlin.math.sin
 import org.demoth.cake.assets.md2.Md2CustomData
@@ -56,6 +57,7 @@ import org.demoth.cake.assets.md2.Md2CustomData
 class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager,
+    private val uiViewport: UiViewport,
     private val videoSettings: CakeVideoModeSettings = CakeVideoModeSettings.fromCvars(),
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     data class SaveMetadataDefaults(
@@ -106,7 +108,7 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
     private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
     private val worldPresentationRenderer = WorldPresentationRenderer()
-    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig) }
+    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig, uiViewport) }
 
     private val entityManager = ClientEntityManager()
     private val effectsSystem = ClientEffectsSystem(
@@ -427,6 +429,9 @@ class Game3dScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl.glDepthRangef(0f, 1f)
 
+        spriteBatch.projectionMatrix.setToOrtho2D(
+            0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(),
+        )
         cinematicController.render(
             currentTimeMs = Globals.curtime,
             spriteBatch = spriteBatch,
@@ -446,8 +451,6 @@ class Game3dScreen(
         hudOverlayRenderer.render(
             hud = hud,
             delta = delta,
-            screenWidth = Gdx.graphics.width,
-            screenHeight = Gdx.graphics.height,
             gameplayHudState = null,
         )
         audioSystem.endFrame()
