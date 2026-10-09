@@ -333,8 +333,6 @@ class Game3dScreen(
         inputManager.resetMouseLookReference()
     }
 
-    fun videoBufferInfo(): String = sceneFrameBuffer?.description ?: "not allocated (direct rendering)"
-
     override fun render(delta: Float) {
         if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) return
         // A screen can be created after the application's last resize callback.

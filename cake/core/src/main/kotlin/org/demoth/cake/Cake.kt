@@ -270,19 +270,6 @@ class Cake(
 
         // region COMMANDS
 
-        Cmd.AddCommand("vid_info", "Print requested, active and pending video settings") {
-            val graphics = Gdx.graphics
-            Com.Printf("Requested at startup: ${startup.videoMode}\n")
-            Com.Printf("${videoPlatform?.describe() ?: "Desktop display diagnostics unavailable"}\n")
-            Com.Printf("OS window: ${videoPlatform?.windowSize()}; coordinates: ${graphics.width}x${graphics.height}; framebuffer: ${graphics.backBufferWidth}x${graphics.backBufferHeight}\n")
-            Com.Printf("Window buffer requested: ${graphics.bufferFormat}\n")
-            Com.Printf("Window buffer actual: ${describeWindowBuffer()}\n")
-            Com.Printf("Scene buffer: ${game3dScreen?.videoBufferInfo() ?: "not allocated"}\n")
-            Cvar.getInstance().listByPrefixAndFlags("vid_", CVAR_ARCHIVE).forEach {
-                Com.Printf("${it.name} = ${it.string}${it.latched_string?.let { pending -> " (pending restart: $pending)" } ?: ""}\n")
-            }
-        }
-
         Cmd.AddCommand("quit", "Exit Cake") {
             saveActiveProfileConfig()
             disconnect()
