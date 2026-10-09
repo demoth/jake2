@@ -1,6 +1,5 @@
 package org.demoth.cake.stages
 
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -28,10 +27,7 @@ class OptionsSectionStage(
     private val buttonStyle = style.menuWidgets.button
     private val textFieldStyle = style.menuWidgets.textField
     private val selectBoxStyle = style.menuWidgets.selectBox
-    private val scrollPaneStyle = ScrollPane.ScrollPaneStyle(style.menuWidgets.scrollPane).apply {
-        // The full-screen options scroller should leave the menu/game backdrop visible.
-        background = null
-    }
+    private val scrollPaneStyle = style.menuWidgets.scrollPane
 
     init {
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
@@ -115,16 +111,7 @@ class OptionsSectionStage(
                 setWrap(true)
             }).colspan(3).growX().fillX().row()
         }
-        val scroll = ScrollPane(root, scrollPaneStyle).apply {
-            setScrollingDisabled(true, false)
-            setFadeScrollBars(false)
-            setFlickScroll(false)
-        }
-        addActor(Table().apply {
-            setFillParent(true)
-            add(scroll).grow()
-        })
-        setScrollFocus(scroll)
+        addCenteredForm(root, scrollPaneStyle)
         renderedState = state
     }
 

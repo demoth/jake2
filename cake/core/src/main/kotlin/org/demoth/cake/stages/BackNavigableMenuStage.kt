@@ -7,6 +7,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
+import com.badlogic.gdx.scenes.scene2d.ui.Value
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onClick
@@ -37,6 +39,25 @@ abstract class BackNavigableMenuStage(
             defaults().pad(HUB_MENU_ROW_PADDING).uniformX().fillX().minWidth(HUB_MENU_BUTTON_MIN_WIDTH)
             setFillParent(true)
         }
+    }
+
+    /** Center a form at its preferred size, fitting and scrolling within the menu canvas. */
+    protected fun addCenteredForm(content: Table, style: ScrollPane.ScrollPaneStyle) {
+        val scrollStyle = ScrollPane.ScrollPaneStyle(style).apply {
+            // Keep the game/menu backdrop visible through the form.
+            background = null
+        }
+        val scroll = ScrollPane(content, scrollStyle).apply {
+            setScrollingDisabled(true, false)
+            setFadeScrollBars(false)
+            setFlickScroll(false)
+        }
+        addActor(Table().apply {
+            setFillParent(true)
+            pad(16f)
+            add(scroll).grow().maxWidth(Value.prefWidth).maxHeight(Value.prefHeight)
+        })
+        setScrollFocus(scroll)
     }
 
     protected fun createMenuButton(

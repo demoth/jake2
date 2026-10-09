@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
+import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
@@ -122,6 +123,7 @@ class Cake(
     private var glProfilerActive: Boolean = false
     private var physicalConsoleToggleKeyDown: Boolean = false
     private lateinit var viewport: ScreenViewport
+    private lateinit var menuViewport: FitViewport
     private var profileBackgroundBatch: SpriteBatch? = null
     private var profileBackgroundTexture: Texture? = null
     private var transitionBackdropBatch: SpriteBatch? = null
@@ -226,7 +228,9 @@ class Cake(
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
-        // UI coordinates follow the selected Pixels/Logical units without stretching on resize.
+        // Menus share a fitted reference canvas; console and diagnostics follow window coordinates.
+        menuViewport = FitViewport(1280f, 720f)
+        menuViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         menuController = MenuController(
@@ -658,6 +662,7 @@ class Cake(
 
     override fun resize(width: Int, height: Int) {
         if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
+        menuViewport.update(width, height, true)
         viewport.update(width, height, true)
         game3dScreen?.resize(width, height)
         profileBackgroundBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
@@ -679,7 +684,10 @@ class Cake(
             Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
             game3dScreen?.deltaTime = deltaSeconds
             val drawable = Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0
-            if (drawable) ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
+            if (drawable) {
+                viewport.apply()
+                ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
+            }
             if (drawable && game3dScreen == null) {
                 renderProfileBackground()
             }
@@ -717,6 +725,7 @@ class Cake(
             }
 
             if (menuVisible) {
+                menuViewport.apply()
                 when (menuView) {
                     MenuView.MAIN -> {
                         menuStage.act()
@@ -753,6 +762,8 @@ class Cake(
                 }
             }
 
+            // Restore the full-window viewport after drawing the fitted menu canvas.
+            viewport.apply()
             if (consoleVisible) {
                 consoleStage.act()
                 consoleStage.draw()
@@ -999,7 +1010,7 @@ class Cake(
             menuStage.dispose()
         }
         menuStage = MainMenuStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1007,7 +1018,7 @@ class Cake(
             multiplayerMenuStage.dispose()
         }
         multiplayerMenuStage = MultiplayerMenuStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1015,7 +1026,7 @@ class Cake(
             optionsMenuStage.dispose()
         }
         optionsMenuStage = OptionsMenuStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1023,7 +1034,7 @@ class Cake(
             joinGameStage.dispose()
         }
         joinGameStage = JoinGameStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1031,7 +1042,7 @@ class Cake(
             playerSetupStage.dispose()
         }
         playerSetupStage = PlayerSetupStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1039,7 +1050,7 @@ class Cake(
             profileEditStage.dispose()
         }
         profileEditStage = ProfileEditStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )
@@ -1047,7 +1058,7 @@ class Cake(
             optionsSectionStage.dispose()
         }
         optionsSectionStage = OptionsSectionStage(
-            viewport = viewport,
+            viewport = menuViewport,
             menuEventBus = menuEventBus,
             style = style,
         )

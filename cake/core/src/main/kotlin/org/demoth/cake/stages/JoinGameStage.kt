@@ -33,7 +33,6 @@ class JoinGameStage(
         val buttonStyle = style.menuWidgets.button
         val textFieldStyle = style.menuWidgets.textField
         val root = Table().apply {
-            setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
             pad(12f)
             defaults().top().left().pad(12f)
@@ -71,7 +70,7 @@ class JoinGameStage(
             }
             add(statusLabel).growX().fillX().row()
         }
-        addActor(root)
+        addCenteredForm(root, style.menuWidgets.scrollPane)
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().joinGame, force = true)

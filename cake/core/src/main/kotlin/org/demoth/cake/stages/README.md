@@ -42,6 +42,11 @@ changes. They must not be treated as permanent instances across style changes.
 
 ## Presentation
 
+Menus share a 1280×720 `FitViewport`, scaled uniformly and centered in the window.
+Form screens use `addCenteredForm` to retain their preferred size within that canvas,
+with vertical scrolling when necessary. The backdrop, console and debug overlay use
+the full window independently of the menu viewport.
+
 Stages use the engine Scene2D skin and shared content styles. Skin resource names
 are part of their integration: renaming a drawable or style requires updating its
 consumers. Layout padding and drawable nine-patch padding both affect spacing.

@@ -211,7 +211,5 @@ private fun concharsGlyph(
     texture: Texture,
     glyphIndex: Int,
 ): TextureRegion {
-    val cells = ConcharsFontLoader.mapCells(texture.width, texture.height).associateBy { it.index }
-    val cell = requireNotNull(cells[glyphIndex]) { "Missing conchars glyph $glyphIndex" }
-    return TextureRegion(texture, cell.x, cell.y, cell.width, cell.height)
+    return ConcharsFontLoader.glyphRegion(texture, glyphIndex)
 }
