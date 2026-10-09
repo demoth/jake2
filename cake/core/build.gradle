@@ -19,6 +19,7 @@ dependencies {
 
   implementation(project(":qcommon"))
   testImplementation libs.gdxBackendHeadless
+  testImplementation libs.gdxBackendLwjgl3
   testRuntimeOnly(libs.gdxPlatform) {
     artifact {
       classifier = 'natives-desktop'

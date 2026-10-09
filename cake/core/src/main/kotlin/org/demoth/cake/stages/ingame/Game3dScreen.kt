@@ -20,7 +20,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.GdxRuntimeException
@@ -57,6 +56,7 @@ import org.demoth.cake.assets.md2.Md2CustomData
 class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager,
+    private val videoSettings: CakeVideoModeSettings = CakeVideoModeSettings.fromCvars(),
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     data class SaveMetadataDefaults(
         val mapPath: String?,
@@ -163,7 +163,8 @@ class Game3dScreen(
     private val skyRotationAxis = Vector3()
     private val postProcessBatch = SpriteBatch()
     private val postProcessShader: ShaderProgram
-    private var sceneFrameBuffer: FrameBuffer? = null
+    private var sceneFrameBuffer: SceneFrameBuffer? = null
+    private var attemptedBufferSize: Pair<Int, Int>? = null
     private var sceneFrameRegion: TextureRegion? = null
 
     /**
@@ -258,21 +259,23 @@ class Game3dScreen(
      * `Game3dScreen` frame (world/entities/particles/HUD) before compositing to backbuffer.
      */
     private fun ensureSceneFrameBuffer() {
-        val width = Gdx.graphics.width.coerceAtLeast(1)
-        val height = Gdx.graphics.height.coerceAtLeast(1)
+        val width = Gdx.graphics.backBufferWidth
+        val height = Gdx.graphics.backBufferHeight
+        if (width <= 0 || height <= 0) return
         val current = sceneFrameBuffer
-        if (current != null && current.width == width && current.height == height) {
+        if (attemptedBufferSize == (width to height)) {
             return
         }
 
+        attemptedBufferSize = width to height
         current?.dispose()
         sceneFrameBuffer = null
         sceneFrameRegion = null
 
         try {
-            val recreated = FrameBuffer(Pixmap.Format.RGBA8888, width, height, true)
+            val recreated = SceneFrameBuffer.create(width, height, videoSettings.depthBits, videoSettings.samples)
             sceneFrameBuffer = recreated
-            sceneFrameRegion = TextureRegion(recreated.colorBufferTexture).apply {
+            sceneFrameRegion = TextureRegion(recreated.resolved.colorBufferTexture).apply {
                 // LibGDX FBO color textures are upside-down in screen space.
                 flip(false, true)
             }
@@ -284,6 +287,7 @@ class Game3dScreen(
     }
 
     private fun presentSceneFrame() {
+        sceneFrameBuffer?.resolve()
         val region = sceneFrameRegion ?: return
         val width = Gdx.graphics.width.toFloat()
         val height = Gdx.graphics.height.toFloat()
@@ -318,7 +322,23 @@ class Game3dScreen(
         return shader
     }
 
+    override fun resize(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) return
+        camera.viewportWidth = width.toFloat()
+        camera.viewportHeight = height.toFloat()
+        camera.update()
+        spriteBatch.projectionMatrix.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
+        inputManager.resetMouseLookReference()
+    }
+
+    fun videoBufferInfo(): String = sceneFrameBuffer?.description ?: "not allocated (direct rendering)"
+
     override fun render(delta: Float) {
+        if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) return
+        // A screen can be created after the application's last resize callback.
+        if (camera.viewportWidth != Gdx.graphics.width.toFloat() || camera.viewportHeight != Gdx.graphics.height.toFloat()) {
+            resize(Gdx.graphics.width, Gdx.graphics.height)
+        }
         presentationRuntime.render(delta)
     }
 
@@ -338,7 +358,7 @@ class Game3dScreen(
      * Caller owns and must dispose the returned pixmap.
      */
     fun captureScenePixmapForTransition(): Pixmap? {
-        val frameBuffer = sceneFrameBuffer ?: return null
+        val frameBuffer = sceneFrameBuffer?.resolved ?: return null
         frameBuffer.begin()
         return try {
             Pixmap.createFromFrameBuffer(0, 0, frameBuffer.width, frameBuffer.height)
@@ -359,7 +379,7 @@ class Game3dScreen(
             WorldPresentationRenderer.FrameContext(
                 delta = delta,
                 currentTimeMs = Globals.curtime,
-                sceneFrameBuffer = sceneFrameBuffer,
+                sceneFrameBuffer = sceneFrameBuffer?.renderTarget,
                 camera = camera,
                 modelBatch = modelBatch,
                 entityManager = entityManager,

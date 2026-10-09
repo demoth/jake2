@@ -87,6 +87,7 @@ assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal hel
 
 ## Subsystem Guides
 
+- [Desktop video configuration](cake-client/README.md)
 - [Configuration and asset ownership](core/src/main/kotlin/org/demoth/cake/config/README.md)
 - [Asset resolution and loading](core/src/main/kotlin/org/demoth/cake/assets/README.md)
 - [MD2 loading and rendering](core/src/main/kotlin/org/demoth/cake/assets/md2/README.md)

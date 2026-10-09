@@ -15,7 +15,7 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
-import com.badlogic.gdx.utils.viewport.StretchViewport
+import com.badlogic.gdx.utils.viewport.ScreenViewport
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
@@ -94,6 +94,7 @@ private enum class MenuView {
  */
 class Cake(
     startupContext: CakeStartupContext? = null,
+    private val videoPlatform: CakeVideoPlatform? = null,
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
@@ -120,7 +121,7 @@ class Cake(
     private lateinit var glProfiler: GLProfiler
     private var glProfilerActive: Boolean = false
     private var physicalConsoleToggleKeyDown: Boolean = false
-    private lateinit var viewport: StretchViewport
+    private lateinit var viewport: ScreenViewport
     private var profileBackgroundBatch: SpriteBatch? = null
     private var profileBackgroundTexture: Texture? = null
     private var transitionBackdropBatch: SpriteBatch? = null
@@ -225,8 +226,9 @@ class Cake(
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
-        // doesn't really stretch because we don't yet allow the window to freely resize
-        viewport = StretchViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        // UI coordinates follow the selected Pixels/Logical units without stretching on resize.
+        viewport = ScreenViewport()
+        viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         menuController = MenuController(
             backend = createMenuBackend(),
             bus = menuEventBus,
@@ -262,6 +264,19 @@ class Cake(
         })
 
         // region COMMANDS
+
+        Cmd.AddCommand("vid_info", "Print requested, active and pending video settings") {
+            val graphics = Gdx.graphics
+            Com.Printf("Requested at startup: ${startup.videoMode}\n")
+            Com.Printf("${videoPlatform?.describe() ?: "Desktop display diagnostics unavailable"}\n")
+            Com.Printf("OS window: ${videoPlatform?.windowSize()}; coordinates: ${graphics.width}x${graphics.height}; framebuffer: ${graphics.backBufferWidth}x${graphics.backBufferHeight}\n")
+            Com.Printf("Window buffer requested: ${graphics.bufferFormat}\n")
+            Com.Printf("Window buffer actual: ${describeWindowBuffer()}\n")
+            Com.Printf("Scene buffer: ${game3dScreen?.videoBufferInfo() ?: "not allocated"}\n")
+            Cvar.getInstance().listByPrefixAndFlags("vid_", CVAR_ARCHIVE).forEach {
+                Com.Printf("${it.name} = ${it.string}${it.latched_string?.let { pending -> " (pending restart: $pending)" } ?: ""}\n")
+            }
+        }
 
         Cmd.AddCommand("quit", "Exit Cake") {
             saveActiveProfileConfig()
@@ -641,6 +656,17 @@ class Cake(
         )
     }
 
+    override fun resize(width: Int, height: Int) {
+        if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
+        viewport.update(width, height, true)
+        game3dScreen?.resize(width, height)
+        profileBackgroundBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
+        transitionBackdropBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
+        videoPlatform?.windowSize()?.let { (windowWidth, windowHeight) ->
+            rememberWindowedSize(windowWidth, windowHeight, Gdx.graphics.isFullscreen)
+        }
+    }
+
     override fun render() {
         try {
             updateGlProfilerState()
@@ -652,8 +678,9 @@ class Cake(
             val deltaSeconds = Gdx.graphics.deltaTime
             Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
             game3dScreen?.deltaTime = deltaSeconds
-            ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
-            if (game3dScreen == null) {
+            val drawable = Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0
+            if (drawable) ScreenUtils.clear(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1f, true)
+            if (drawable && game3dScreen == null) {
                 renderProfileBackground()
             }
 
@@ -664,6 +691,9 @@ class Cake(
             game3dScreen?.updateLocalInput(deltaSeconds)
             runClientCommandSteps(deltaSeconds)
             CheckForResend(deltaSeconds)
+
+            if (!drawable) return
+            viewport.apply()
 
             if (game3dScreen != null) {
                 // Keep prediction state aligned with netchan before render-time replay.
@@ -1286,7 +1316,7 @@ class Cake(
             beginMapTransitionRetainingConfigAssets()
         }
         if (game3dScreen == null) {
-            game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings))
+            game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings), startup.videoMode)
             game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
             debugGraphStage.resetMetrics()
         }
@@ -1399,7 +1429,11 @@ class Cake(
     }
 
     private fun takeScreenshot() {
-        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
+        if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) {
+            Com.Warn("Screenshot unavailable while the framebuffer is zero-sized\n")
+            return
+        }
+        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         val flippedPixmap = Pixmap(pixmap.width, pixmap.height, pixmap.format)
         try {
             for (y in 0 until pixmap.height) {
@@ -1566,6 +1600,7 @@ class Cake(
                 description = cvar.description.orEmpty(),
                 value = cvar.string.orEmpty(),
                 latchedValue = cvar.latched_string,
+                choices = videoOptionChoices(cvar.name),
             )
         }
     }
