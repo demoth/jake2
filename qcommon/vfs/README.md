@@ -1,191 +1,124 @@
 # Jake2 VFS
 
-This package contains the active virtual filesystem used by engine, server, Cake, and the model viewer.
+The shared filesystem implementation lives in
+[`jake2.qcommon.vfs`](../src/main/java/jake2/qcommon/vfs). It indexes loose files and
+packages for reads and provides a separate, explicitly rooted API for writes.
+The server and client use separate instances of this
+shared VFS implementation, with the same lookup semantics.
 
-## Overview
+## Owners and Integration
 
-The current VFS design is:
+- `DefaultVirtualFileSystem` implements `VirtualFileSystem`: configuration, indexed
+  lookup, stream/byte reads, package mounts, and rebuilds.
+- **Server:** `EngineVfs` owns the read instance. `EngineFilesystemLifecycle`
+  configures it at startup, handles game-directory changes, sets `EngineWriteRoot`,
+  and registers diagnostics and runtime commands.
+- **Client:** `CakeVfsAssetSource` owns a `DefaultVirtualFileSystem`, adapted to
+  libGDX file handles. `CakeFileResolver` adds download-cache precedence and bundled
+  fallbacks; see [Cake asset loading](../../cake/core/src/main/kotlin/org/demoth/cake/assets/README.md).
+  The model viewer uses the same resolver with startup hints derived from the opened
+  file and current directory.
+- `DefaultWritableFileSystem` implements `WritableFileSystem` for a caller-selected
+  root. `EngineWriteRoot` supplies the server's writable instance.
 
-- one shared read-side index in `qcommon`
-- one explicit write-root policy, separate from read lookup
-- thin adapters in higher-level modules
-- no active `FS`, `QuakeFile`, or `VfsBackedFileSystem` layer in the build
+The client gets its startup game location from the selected profile.
+Steam detection bootstraps a default profile on first run; if no usable profile is
+available, the client opens profile editing. The main client does not use JVM `basedir` /
+`game` system properties as its startup configuration.
 
-Primary owners:
+## Read Lookup and Precedence
 
-- `DefaultVirtualFileSystem`: core read-side implementation
-- `EngineVfs`: shared engine-facing read-side owner
-- `DefaultWritableFileSystem`: writable-root implementation
-- `EngineWriteRoot`: engine-facing write-root policy
-- `EngineFilesystemLifecycle`: startup, gamedir changes, and debug command registration
+Logical paths, such as `maps/base1.bsp`, resolve in this order:
 
-## Read Path
+1. Mod loose files: `<basedir>/<mod>`.
+2. Mod packages.
+3. Base loose files: `<basedir>/baseq2`.
+4. Base packages.
+5. Optional fallback roots (`ENGINE_FALLBACK`), enabled only in client mode.
 
-The read index resolves winners in this order:
+Optional fallback roots are supplied through `VfsConfig.extraRoots`; the client
+handles bundled fallbacks in its resolver. `resolve(path, true)` and
+`exists(path, true)` exclude the optional fallback layer.
 
-1. mod loose files
-2. mod packages
-3. base loose files
-4. base packages
-5. engine fallback, client-only
+Supported package extensions in server and client configurations are `.pak`, `.pk2`,
+`.pk3`, `.pkz`, and `.zip`. PAK uses its own reader; the others use ZIP containers.
+Automatically discovered packages in each layer are ordered by numbered `pakNN`
+first (ascending number), then other names alphabetically, case-insensitive.
+The first matching entry wins: `pak0` takes precedence over `pak1` within that
+layer. A runtime mount is inserted ahead of existing packages in its layer;
+loose-file precedence still applies.
 
-Supported package formats:
+`VfsPathNormalizer` converts backslashes, removes empty/`.` segments, collapses
+`..` segments, and rejects paths that escape above the logical root. Matching is
+case-insensitive by default. The server exposes strict matching through
+`fs_casesensitive`; the client’s `CakeFileResolver` accepts a `caseSensitive` setting, defaulting
+to false.
 
-- `.pak`
-- `.pk2`
-- `.pk3`
-- `.pkz`
-- `.zip`
+After indexing, normalised paths resolve through a flattened winner map.
+`resolve()` returns source metadata, `openRead()` opens a handle, and `loadBytes()`
+reads the whole resource. Close read handles after use. `VfsOpenOptions.realFilesOnly`
+rejects a package-backed winner; it does not search for a lower-priority loose copy.
 
-Package ordering inside a layer is deterministic:
+## Indexing and Package Reads
 
-- numbered `pakNN` first, ascending
-- then non-numbered pack names, alphabetical and case-insensitive
+Index construction recursively visits loose files under the configured base/mod
+roots and any enabled fallback roots (does not follow symbolic links). 
+Package discovery considers direct children of the base/mod roots (a symlink to a supported package can be mounted). 
+It does not search the whole home directory; 
+Steam detection probes a fixed set of installation candidates separately from indexing.
 
-Lookup is O(1) after index build through the flattened winner map in `DefaultVirtualFileSystem`.
+Core indexing does not extract packages: PAK readers inspect header/directory data,
+and ZIP readers enumerate the central directory. Package contents are read on
+request through streams.
 
-Default path matching is case-insensitive. Strict mode is available through `fs_casesensitive`.
+The client materialises requested package entries as temporary files for libGDX loaders.
+It caches them by package path, logical path, and package modification time;
+reconfiguration clears the cache and deletes those files. Temporary files are also
+registered for deletion at JVM exit. Loose files are returned directly.
 
-## Runtime Lifecycle
+## Diagnostics and Runtime Changes
 
-`EngineFilesystemLifecycle` owns startup and mod-change wiring:
+These lookup diagnostics are available through both server and client providers:
 
-- resolves `basedir`
-- initializes `EngineVfs`
-- sets the engine write root
-- handles `game` cvar changes
-- registers VFS debug/runtime commands
+- `fs_files`: list indexed winner paths.
+- `fs_find <regex>`: filter winner paths by regular expression.
+- `fs_mounts`: show mounted roots/packages and indexed file counts.
+- `fs_overrides`: show paths with competing sources.
 
-Runtime mutation is supported through:
+The server provider also supports:
 
-- `fs_mount <packagePath>`
-- `fs_unmount <mountId>`
-- `fs_rebuild [full|mod|base|pack]`
+- `fs_mount <packagePath>`: mount a package and return its mount id.
+- `fs_unmount <mountId>`: remove a package mount by id.
+- `fs_rebuild [full|mod|base|pack]`: rebuild the index.
 
-The API surface behind that is the shared `VirtualFileSystem` contract:
+The client registers the shared command names but its provider does not implement
+mount/unmount/rebuild operations. Use its lookup diagnostics to inspect asset
+resolution; these commands do not mutate the client's asset index. In particular,
+`fs_rebuild` can print completion while its client provider performs no rebuild.
 
-- `configure(...)`
-- `resolve(...)`
-- `openRead(...)`
-- `loadBytes(...)`
-- `exists(...)`
-- `setGameMod(...)`
-- `mountPackage(...)`
-- `unmount(...)`
-- `rebuildIndex(...)`
+`configure()` and `setGameMod()` rebuild the core index. All requested rebuild
+scopes currently perform a full rebuild, rediscovering packages from configured
+roots. Runtime mount/unmount changes are therefore not persistent across rebuilds.
+Traversal counts and rebuild timings are not exposed by the current diagnostics.
 
-## Write Path
+## Writes and Persistent Data
 
-Read lookup and write policy are intentionally separate.
+Writes target one explicit root; read lookup precedence does not choose the write
+location. `DefaultWritableFileSystem` creates parent directories and supports
+truncate, append, or create-new writes. It rejects paths containing `..` and checks
+that the normalised destination stays beneath the root. `openReadReal()` reads
+from that same writable root without consulting package layers.
 
-Writable implementations:
+Current default locations:
 
-- `WritableFileSystem`
-- `DefaultWritableFileSystem`
+| Data | Location |
+| --- | --- |
+| Client profile registry | `$HOME/.cake/profiles.json` |
+| Client profile config and console history | `$HOME/.cake/<profileId>/...` |
+| Client downloaded game assets | `$HOME/.cake/downloads/<mod>/...` |
+| Server/game saves | `$HOME/.jake2/<mod>/save/...` |
 
-Current roots:
+Downloads use `baseq2` when no mod is selected. Client profile ids and mod names are
+separate concepts; server save paths remain mod-based and are not profile-aware.
 
-- Cake-owned client writable data: `$HOME/.cake/<mod>/...`
-- server/game save state: `$HOME/.jake2/<mod>/save/...`
-
-That mismatch is currently intentional. Server-side save flow does not yet know about Cake profiles, so server/game state remains under `.jake2` for now.
-
-## Integration Points
-
-Current module usage:
-
-- dedicated/server bootstrap: `EngineFilesystemLifecycle`
-- engine/server reads: `EngineVfs`
-- Cake asset resolution: `CakeVfsAssetSource` and `CakeFileResolver`
-- model viewer: thin VFS adapter over the same shared semantics
-- save/config/state writes: `DefaultWritableFileSystem` plus JSON stores
-
-Cake-specific startup notes:
-
-- normal Cake startup no longer depends on JVM `basedir` / `game` system properties
-- the active profile store provides startup context for the main client
-- Steam autodetect is only used to bootstrap a default profile on first run
-- if no usable profile can be resolved, Cake opens profile editing instead of falling back to `.`
-- the model viewer still derives lightweight `basedir` / `gamemod` hints from the opened path and current folder
-
-## Diagnostics
-
-Available commands:
-
-- `fs_files`: print resolved winner paths
-- `fs_mounts`: print mounted roots/packages in effective order
-- `fs_overrides`: print override collisions
-- `fs_mount`: runtime package mount
-- `fs_unmount`: runtime package unmount
-- `fs_rebuild`: rebuild the index
-
-## Operational Notes
-
-### Package extraction
-
-Core VFS init does not extract pack contents.
-
-At mount/index time:
-
-- `.pak` mounts read the header and directory table in place
-- ZIP-based mounts enumerate the central directory in place
-
-Current extraction behavior is adapter-side:
-
-- Cake still materializes package-backed assets to temp files in `CakeVfsAssetSource` because libGDX currently receives file-oriented handles there
-- there is no longer an `FS`/`QuakeFile` compatibility extraction path in the active build
-
-Implication:
-
-- package files are not extracted on every run during VFS init
-- repeated temp extraction concern is still valid on the Cake side
-
-### Scan scope
-
-Current VFS init does not scan the whole home directory.
-
-What it does:
-
-- recursively indexes loose files only under `<basedir>/baseq2` and optional `<basedir>/<mod>`
-- discovers packages only from direct children of those roots
-- probes a small fixed set of Steam install candidates when autodetecting `basedir`
-
-What it does not do:
-
-- recurse through `$HOME`
-- scan arbitrary directories outside the configured base/mod roots
-
-The main remaining observability gap is that directory-visit counts and rebuild timings are not exposed yet.
-
-## Current Status
-
-Completed:
-
-- shared package-aware VFS in `qcommon`
-- deterministic loose/package precedence
-- runtime remount/rebuild support
-- Cake integration on the read path
-- model viewer integration
-- JSON save/state persistence over writable VFS APIs
-- removal of active `FS`, `QuakeFile`, and `VfsBackedFileSystem`
-- removal of the `VfsLookupOptions` wrapper in favor of simple default methods plus a plain `gameDataOnly` boolean where fallback filtering is needed
-- removal of Cake-only save metadata commands and the dead save metadata store
-
-## Active Follow-Ups
-
-The architecture cleanup is complete. The remaining work is operational and client-facing:
-
-1. Add VFS traversal/build stats.
-   - directories visited
-   - files visited
-   - package files found
-   - package entries indexed
-   - rebuild timings
-
-2. Add a richer diagnostics view, likely `fs_stats`.
-
-3. Replace Cake temp extraction with a proper VFS-backed `FileHandle`-like adapter where possible.
-
-4. Revisit write-root policy once server-side save flow becomes profile-aware.
-
-5. Hook runtime package lifecycle into download/mod-change flows instead of relying only on manual commands.
+Saving and loading client bindings and archived cvars is described in the input guide (cake/core/src/main/kotlin/org/demoth/cake/input/README.md)
