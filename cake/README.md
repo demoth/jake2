@@ -16,11 +16,13 @@ Desktop platform launcher/wrapper for `core`.
 
 Standalone desktop launcher for the Cake model viewer.
 
-### `engine-tools`
+### [`engine-tools`](engine-tools/README.md)
 
 Standalone desktop tooling for engine asset generation workflows.
 
-## Running
+## Building and running
+
+### Running
 
 From repository root:
 
@@ -31,7 +33,7 @@ Main desktop entrypoint:
 
 - [`Lwjgl3GameLauncher.kt`](cake-client/src/main/kotlin/org/demoth/cake/lwjgl3/Lwjgl3GameLauncher.kt)
 
-## JVM distributions
+### JVM distributions
 
 Build portable ZIPs with Java 25:
 
@@ -68,7 +70,7 @@ under `build/jpackage/`. Use the corresponding model-viewer tasks for that app.
 These outputs bundle the project Java toolchain and target the build machine's
 OS and architecture. Installers remain disabled.
 
-## Native executables
+### Native executables
 
 Graal support is opt-in. Enable the native plugin and helpers when building an
 experimental native executable:
@@ -83,90 +85,17 @@ that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
 
-## BSP World Renderer
+## Subsystem Guides
 
-Cake now uses a dedicated Q2PRO-inspired world BSP batch renderer by default (no legacy per-face world `ModelBatch` path).
-
-Runtime diagnostics:
-
-- `r_bsp_batch_debug` (default `0`) - prints throttled world/entity/sprite/beam/particle submission stats.
-
-Q2PRO references for the target path:
-
-- `q2pro/src/refresh/world.c` (`GL_DrawWorld`, `GL_WorldNode_r`)
-- `q2pro/src/refresh/tess.c` (`GL_AddSolidFace`, `GL_DrawSolidFaces`, `GL_Flush3D`)
-
-Profiling workflow:
-
-1. Enable debug graphs:
-   - `set r_debug_drawcalls 1`
-   - `set r_debug_texturebindings 1`
-2. Enable `r_bsp_batch_debug 1` and capture representative maps/views.
-3. Enable gameplay fps overlay (Yamagi-style):
-   - `set cl_showfps 1` (avg fps)
-   - `set cl_showfps 2` (min/max/avg fps)
-   - `set cl_showfps 3` (adds frame-time line)
-
-Screenshot output:
-
-- `screenshot` command writes PNG files to `$HOME/.cake/<mod>/scrnshot/`.
-- Shared VFS diagnostics commands are available in Cake too:
-  - `fs_files`
-  - `fs_mounts`
-  - `fs_overrides`
-
-### Bitmap Font Tool
-
-Generate a libGDX bitmap font (`.fnt` + `.png`) from a TTF:
-
-- `./gradlew :cake:engine-tools:run --args="--ttf /absolute/path/MyFont.ttf --out /absolute/output/dir --name font --size 21"`
-
-Notes:
-
-- Uses libGDX default glyph set: `FreeTypeFontGenerator.DEFAULT_CHARS`.
-- Output is intended for manual copy into engine assets.
-
-## Client Overview
-
-### [`Cake.kt`](core/src/main/kotlin/org/demoth/cake/Cake.kt)
-
-App-level client entrypoint and lifecycle owner:
-
-- initializes commands/cvars/network state,
-- initializes and owns shared asset/input systems,
-- switches between menu/console/game contexts,
-- creates and disposes game screens.
-
-### [`Game3dScreen.kt`](core/src/main/kotlin/org/demoth/cake/stages/ingame/Game3dScreen.kt)
-
-In-game screen (per-level lifecycle) responsible for:
-
-- world/entity/effects rendering,
-- HUD integration,
-- frame-level input consumption,
-- server message processing for active gameplay.
-
-## Application Behaviour
-
-A missing-resource failure that reaches `Cake.render()` is recovered by
-disconnecting, disposing the game screen, and showing the console. This includes
-missing-resource exceptions wrapped in another runtime exception; unrelated runtime
-exceptions are rethrown. Best-effort acquisition failures handled locally do not
-trigger this recovery.
-
-`Cake` also owns the optional `pics/conback.pcx` background outside the game screen,
-so it can be shown before gameplay. Applying a profile reloads it through
-`applyGameProfile(...)`; it is drawn while there is no game screen. An absent
-background is silently skipped, and a background loading failure is logged without
-terminating the application.
-
-## Module Docs
-
-Detailed docs for specific Cake subsystems:
-
-- [`configuration`](core/src/main/kotlin/org/demoth/cake/config/README.md)
-- [`assets`](core/src/main/kotlin/org/demoth/cake/assets/README.md)
-- [`input`](core/src/main/kotlin/org/demoth/cake/input/README.md)
-- [`ui`](core/src/main/kotlin/org/demoth/cake/ui/README.md)
-- [`stages/ingame/hud`](core/src/main/kotlin/org/demoth/cake/stages/ingame/hud/README.md)
-- [`stages/ingame/effects`](core/src/main/kotlin/org/demoth/cake/stages/ingame/effects/README.md)
+- [Configuration and asset ownership](core/src/main/kotlin/org/demoth/cake/config/README.md)
+- [Asset resolution and loading](core/src/main/kotlin/org/demoth/cake/assets/README.md)
+- [MD2 loading and rendering](core/src/main/kotlin/org/demoth/cake/assets/md2/README.md)
+- [BSP loading and rendering](core/src/main/kotlin/org/demoth/cake/assets/bsp/README.md)
+- [Input, bindings, and configuration persistence](core/src/main/kotlin/org/demoth/cake/input/README.md)
+- [UI styles and menu architecture](core/src/main/kotlin/org/demoth/cake/ui/README.md)
+- [Menu screens](core/src/main/kotlin/org/demoth/cake/stages/README.md)
+- [Console](core/src/main/kotlin/org/demoth/cake/stages/console/README.md)
+- [Ingame runtime](core/src/main/kotlin/org/demoth/cake/stages/ingame/README.md)
+- [HUD layouts](core/src/main/kotlin/org/demoth/cake/stages/ingame/hud/README.md)
+- [Effects and particles](core/src/main/kotlin/org/demoth/cake/stages/ingame/effects/README.md)
+- [Shared virtual filesystem](../qcommon/vfs/README.md)

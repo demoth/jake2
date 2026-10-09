@@ -40,6 +40,20 @@ Runtime shader text is loaded through `AssetManager` and `TextAssetLoader`, usin
 `assets/shaders`, including `md2.vert/.frag`, `bsp_lightmap.vert/.frag`, and
 `bsp_world_batch.vert/.frag`.
 
+## Application Integration
+
+A missing-resource failure that reaches `Cake.render()` is recovered by
+disconnecting, disposing the game screen, and showing the console. This includes
+missing-resource exceptions wrapped in another runtime exception; unrelated runtime
+exceptions are rethrown. Best-effort acquisition failures handled locally do not
+trigger this recovery.
+
+`Cake` also owns the optional `pics/conback.pcx` background outside the game screen,
+so it can be shown before gameplay. Applying a profile reloads it through
+`applyGameProfile(...)`; it is drawn while there is no game screen. An absent
+background is silently skipped, and a background loading failure is logged without
+terminating the application.
+
 ## Rendering Pipelines
 
 - [MD2: loading, skins, GPU animation, and lifetime](md2/README.md).

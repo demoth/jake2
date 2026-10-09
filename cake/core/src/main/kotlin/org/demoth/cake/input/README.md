@@ -73,6 +73,3 @@ instead of the legacy client's `key_dest` filtering.
 Key names are normalised through aliases and `Input.Keys.toString`; examples include
 `w`, `ctrl`, `mouse1`, `mwheelup`, `enter`, `[`, and `]`. Binding commands use replace
 semantics when registered so recreated owners do not leave captured state behind.
-
-Debug toggle commands still exist (`toggle_skybox`, `toggle_level`, `toggle_entities`)
-but are intentionally unbound by default.
