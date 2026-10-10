@@ -1,36 +1,49 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Defines.CVAR_ARCHIVE
 import jake2.qcommon.Defines.CVAR_LATCH
+import jake2.qcommon.Defines.CVAR_NOSET
 import jake2.qcommon.Defines.CVAR_OPTIONS
 import jake2.qcommon.Defines.CVAR_USERINFO
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarTypes
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 
 object CakeCvars {
     fun registerAll() {
-        registerUserInfo()
-        registerClient()
-        registerDownloads()
-        registerVideoMode()
+        val registry = Cvar.getInstance()
+        registerUserInfo(registry)
+        registerClient(registry)
+        registerDownloads(registry)
+        registerVideoMode(registry)
     }
 
-    fun registerVideoMode() {
-        val cvars = Cvar.getInstance()
+    fun registerVideoMode(cvars: Cvar) {
         val flags = CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH
         cvars.Get("vid_fullscreen", "0", flags, "Fullscreen: 0 windowed, 1 fullscreen (restart required)")
-        cvars.Get("vid_hidpi", "Pixels", flags, "Coordinate units: Pixels or Logical; differs when OS window and framebuffer sizes differ (restart required)")
+        cvars.register(
+            "vid_hidpi", CvarTypes.enumeration<HdpiMode>(), HdpiMode.Pixels, CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH,
+            "Coordinate units: Pixels or Logical; differs when OS window and framebuffer sizes differ (restart required)"
+        )
         cvars.Get("vid_windowed_width", "1024", flags, "Windowed width in OS window coordinates (restart required)")
         cvars.Get("vid_windowed_height", "768", flags, "Windowed height in OS window coordinates (restart required)")
-        cvars.Get("vid_fullscreen_mode", "desktop", flags, "Fullscreen mode: desktop or WIDTHxHEIGHT@HZ; see vid_fullscreen_modes (restart required)")
-        cvars.Get("vid_fullscreen_modes", "", jake2.qcommon.Defines.CVAR_NOSET, "Supported primary-monitor modes; populated by the desktop launcher")
+        cvars.register(
+            "vid_fullscreen_modes", CvarTypes.STRING, "", CVAR_NOSET,
+            "Supported primary-monitor modes; populated by the desktop launcher",
+        )
+        cvars.register(
+            "vid_fullscreen_mode",
+            CvarTypes.StringType("desktop|[1-9][0-9]*x[1-9][0-9]*@[1-9][0-9]*"),
+            "desktop", flags,
+            "Fullscreen mode: desktop or WIDTHxHEIGHT@HZ; see vid_fullscreen_modes (restart required)",
+        )
         cvars.Get("vid_depthbits", "24", flags, "Requested scene/window depth bits: 16, 24, 32 (restart required)")
         cvars.Get("vid_samples", "4", flags, "Requested scene/window MSAA samples: 0, 2, 4, 8 (restart required)")
         cvars.Get("vid_vsync", "1", flags, "Vertical sync (restart required)")
     }
 
-    private fun registerUserInfo() {
-        val cvars = Cvar.getInstance()
+    private fun registerUserInfo(cvars: Cvar) {
         cvars.Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
         cvars.Get("spectator", "0", CVAR_USERINFO, "Request spectator mode")
         cvars.Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
@@ -42,17 +55,13 @@ object CakeCvars {
         cvars.Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
     }
 
-    private fun registerClient() {
-        val cvars = Cvar.getInstance()
+    private fun registerClient(cvars: Cvar) {
         cvars.Get("rcon_password", "asdf", 0, "Remote console password")
         cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
         cvars.Get("cl_vwep", "1", CVAR_ARCHIVE, "Draw other players' weapon models")
         cvars.Get("cl_debug_stufftext", "0", CVAR_ARCHIVE, "Log raw server stufftext commands")
 
-        cvars.AddAlias("sensitivity", "in_sensitivity")
-        cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
-        cvars.Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis")
-        cvars.Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
+        registerInput(cvars)
 
         cvars.AddAlias("crosshair", "cl_crosshair")
         cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
@@ -65,8 +74,17 @@ object CakeCvars {
         RenderTuningCvars.register()
     }
 
-    private fun registerDownloads() {
-        val cvars = Cvar.getInstance()
+    fun registerInput(cvars: Cvar = Cvar.getInstance()) {
+        cvars.AddAlias("sensitivity", "in_sensitivity")
+        cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
+        cvars.register(
+            "in_invert_mouse", CvarTypes.BOOLEAN, false,
+            CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis",
+        )
+        cvars.Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
+    }
+
+    private fun registerDownloads(cvars: Cvar) {
         cvars.Get("allow_download", "1", CVAR_ARCHIVE, "Allow downloading missing game content from servers")
         cvars.Get("allow_download_maps", "1", CVAR_ARCHIVE, "Allow downloading missing maps from servers")
         cvars.Get("allow_download_models", "1", CVAR_ARCHIVE, "Allow downloading missing models from servers")

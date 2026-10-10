@@ -30,6 +30,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.vfs.EngineVfs;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -63,7 +64,7 @@ public final class Cmd {
             return;
         }
         Com.Printf("execing " + args.get(1) + "\n");
-        Cbuf.InsertText(new String(f));
+        Cbuf.InsertText(new String(f, StandardCharsets.UTF_8));
 
     };
 

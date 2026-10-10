@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame
 
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarTypes
 
 /**
  * Shared rendering tuning cvars for Cake's modern shader path.
@@ -17,7 +18,10 @@ import jake2.qcommon.exec.Cvar
 object RenderTuningCvars {
     private val cvars = Cvar.getInstance()
 
-    private val vidGamma = cvars.Get("vid_gamma", "1.2", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Display gamma")
+    private val vidGamma = cvars.register(
+        "vid_gamma", CvarTypes.FloatType(min = 0.01f), 1.2f,
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Display gamma",
+    )
     private val gl3Intensity = cvars.Get("gl3_intensity", "1.5", Defines.CVAR_ARCHIVE, "Lightmap intensity scale")
     private val gl3OverbrightBits = cvars.Get("gl3_overbrightbits", "1.3", Defines.CVAR_ARCHIVE, "Overbright intensity scale")
     private val rDlights = cvars.Get("r_dlights", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Dynamic lights")
@@ -27,6 +31,7 @@ object RenderTuningCvars {
     private val rPostVignetteStrength = cvars.Get("r_post_vignette_strength", "1.30", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Vignette strength")
     private val rUnderwaterWarp = cvars.Get("r_underwater_warp", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Underwater warp")
 
+    /** Triggers object initialization to register shared rendering cvars during startup. */
     fun register() = Unit
 
     /**
@@ -35,8 +40,7 @@ object RenderTuningCvars {
      * Legacy GL3 stores this as `1.0 / vid_gamma`.
      */
     fun gammaExponent(): Float {
-        val gamma = vidGamma.value.coerceAtLeast(0.01f)
-        return 1f / gamma
+        return 1f / vidGamma.asFloat()
     }
 
     fun intensity(): Float = gl3Intensity.value.coerceAtLeast(0f)

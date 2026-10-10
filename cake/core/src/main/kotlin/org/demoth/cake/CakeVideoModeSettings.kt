@@ -3,6 +3,7 @@ package org.demoth.cake
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarType
 
 data class CakeVideoModeSettings(
     val fullscreen: Boolean,
@@ -20,21 +21,18 @@ data class CakeVideoModeSettings(
         val DEPTH_BITS_OPTIONS = listOf(16, 24, 32)
         val SAMPLES_OPTIONS = listOf(0, 2, 4, 8)
 
+        /** Snapshot active settings after video cvars have been registered at startup. */
         fun fromCvars(cvars: Cvar = Cvar.getInstance()): CakeVideoModeSettings {
             return CakeVideoModeSettings(
                 fullscreen = parseBoolean(cvars.VariableString("vid_fullscreen")),
-                hdpiMode = parseHdpiMode(cvars.VariableString("vid_hidpi")),
+                hdpiMode = cvars.FindVar("vid_hidpi").asEnum(HdpiMode::class.java),
                 width = parseDimension(cvars.VariableString("vid_windowed_width"), DEFAULT_WIDTH),
                 height = parseDimension(cvars.VariableString("vid_windowed_height"), DEFAULT_HEIGHT),
                 vsync = parseBoolean(cvars.VariableString("vid_vsync"), defaultValue = true),
-                fullscreenMode = cvars.VariableString("vid_fullscreen_mode").trim().ifEmpty { "desktop" },
+                fullscreenMode = cvars.FindVar("vid_fullscreen_mode").asString(),
                 depthBits = parseChoice(cvars, "vid_depthbits", DEPTH_BITS_OPTIONS, 24),
                 samples = parseChoice(cvars, "vid_samples", SAMPLES_OPTIONS, 4),
             )
-        }
-
-        private fun parseHdpiMode(value: String): HdpiMode {
-            return HdpiMode.entries.firstOrNull { it.name.equals(value.trim(), ignoreCase = true) } ?: HdpiMode.Pixels
         }
 
         private fun parseChoice(cvars: Cvar, name: String, choices: List<Int>, default: Int): Int {
@@ -63,14 +61,22 @@ data class CakeVideoModeSettings(
 }
 
 /** Choices for the existing cvar-driven options screen; empty means a free-form value. */
-fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<String> = when (name) {
-    "vid_fullscreen", "vid_vsync" -> listOf("0", "1")
-    "vid_hidpi" -> HdpiMode.entries.map { it.name }
-    "vid_depthbits" -> CakeVideoModeSettings.DEPTH_BITS_OPTIONS.map { it.toString() }
-    "vid_samples" -> CakeVideoModeSettings.SAMPLES_OPTIONS.map { it.toString() }
-    "vid_fullscreen_mode" -> (listOf("desktop") + cvars.VariableString("vid_fullscreen_modes")
-        .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
-    else -> emptyList()
+fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<String> {
+    // These are hardware suggestions; saved mode IDs remain valid when absent from this monitor.
+    if (name == "vid_fullscreen_mode") {
+        return (listOf("desktop") + cvars.VariableString("vid_fullscreen_modes")
+            .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
+    }
+    val type = cvars.definition(name)?.type
+    if (type != null) {
+        return if (type.kind == CvarType.Kind.BOOLEAN) listOf("0", "1") else type.choices.map { if (it is Enum<*>) it.name else it.toString() }
+    }
+    return when (name) {
+        "vid_fullscreen", "vid_vsync" -> listOf("0", "1")
+        "vid_depthbits" -> CakeVideoModeSettings.DEPTH_BITS_OPTIONS.map { it.toString() }
+        "vid_samples" -> CakeVideoModeSettings.SAMPLES_OPTIONS.map { it.toString() }
+        else -> emptyList()
+    }
 }
 
 /** Stable persisted identifier, independent of display-mode enumeration order. */
@@ -102,8 +108,8 @@ fun rememberWindowedSize(width: Int, height: Int, fullscreen: Boolean, cvars: Cv
     }
 }
 
-fun publishFullscreenModes(modes: List<CakeDisplayMode>) {
-    Cvar.getInstance().ForceSet("vid_fullscreen_modes", modes.distinct().sortedWith(
+fun publishFullscreenModes(modes: List<CakeDisplayMode>, cvars: Cvar = Cvar.getInstance()) {
+    cvars.forceSetResult("vid_fullscreen_modes", modes.distinct().sortedWith(
         compareBy<CakeDisplayMode> { it.width }.thenBy { it.height }.thenBy { it.refreshRate }
     ).joinToString(" ") { it.id })
 }

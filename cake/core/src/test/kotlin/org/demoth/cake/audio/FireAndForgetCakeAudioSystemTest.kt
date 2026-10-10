@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks voice admission/replacement with fake sounds, including the typed voice-budget definition. */
 class FireAndForgetCakeAudioSystemTest {
 
     private var nowMs = 0
@@ -18,7 +19,6 @@ class FireAndForgetCakeAudioSystemTest {
 
     @BeforeEach
     fun setUp() {
-        Cvar.getInstance().Set("s_maxvoices", "32")
         Cvar.getInstance().Set("s_volume", "1")
     }
 
@@ -32,6 +32,10 @@ class FireAndForgetCakeAudioSystemTest {
     fun gameplayOneShotStealsAmbientLoopWhenPoolIsFull() {
         Cvar.getInstance().Set("s_maxvoices", "1")
         val system = createSystem()
+        // Invalid edits must retain the live one-voice budget, rather than truncate or clamp.
+        for (invalid in listOf("2.5", "0", "129", "NaN")) {
+            assertFalse(Cvar.getInstance().setResult("s_maxvoices", invalid).accepted, invalid)
+        }
         val ambientLoop = registerFakeSound(durationMs = 3000)
         val weaponShot = registerFakeSound(durationMs = 200)
 

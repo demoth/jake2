@@ -105,6 +105,7 @@ public final class Cbuf {
                     sb = new StringBuilder();
                 } else if (c == '"') {
                     inQuotes = !inQuotes;
+                    sb.append(c); // Tokenization still needs quotes around values containing spaces/macros.
                 } else {
                     sb.append(c);
                 }

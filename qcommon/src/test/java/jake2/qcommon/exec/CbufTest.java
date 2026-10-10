@@ -8,6 +8,7 @@ import static jake2.qcommon.exec.Cbuf.splitCommandLine;
 import static jake2.qcommon.exec.Cbuf.splitScriptCommandLine;
 import static org.junit.jupiter.api.Assertions.*;
 
+/** Checks command/script boundaries while preserving quoted values for subsequent tokenization. */
 public class CbufTest {
     @Test
     public void testSplit() {
@@ -16,7 +17,7 @@ public class CbufTest {
 
     @Test
     public void testSplitInQuotes() {
-        assertEquals(Arrays.asList("test", "hello;world"), splitCommandLine("test;\"hello;world\""));
+        assertEquals(Arrays.asList("test", "\"hello;world\""), splitCommandLine("test;\"hello;world\""));
     }
 
     @Test

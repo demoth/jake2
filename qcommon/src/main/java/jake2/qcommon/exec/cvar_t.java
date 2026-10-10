@@ -25,8 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon.exec;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * cvar_t implements the struct cvar_t of the C version
+ * One variable, optionally constrained by a definition. The registry coordinates all API writes.
+ * TODO: Encapsulate legacy value fields after the scoped writer migration; direct writes bypass validation and leave typed caches stale.
  */
 public final class cvar_t {
     public String name;
@@ -39,6 +43,90 @@ public final class cvar_t {
     public int flags = 0;
     public boolean modified = false;
     public float value = 0.0f;
+
+    private CvarSpec<?> definition;
+    // cached values
+    private Boolean cachedBoolean, pendingBoolean;
+    private Integer cachedInt, pendingInt;
+    private Float cachedFloat, pendingFloat;
+    private String cachedString, pendingString;
+    private Enum<?> cachedEnum, pendingEnum;
+
+    public @Nullable CvarSpec<?> getDefinition() {
+        return definition;
+    }
+
+    void attachDefinition(CvarSpec<?> definition) {
+        this.definition = definition;
+    }
+
+    public @NotNull String getRawString() {
+        return string;
+    }
+
+    public @Nullable String getRawPendingString() {
+        return latched_string;
+    }
+
+    /** Registry-only commits keep the legacy token/mirror and nullable caches coherent. */
+    void commitActive(CvarValue resolved) {
+        string = resolved.getToken();
+        value = resolved.getLegacyFloat();
+        cachedBoolean = resolved.getBooleanValue();
+        cachedInt = resolved.getIntValue();
+        cachedFloat = resolved.getFloatValue();
+        cachedString = resolved.getStringValue();
+        cachedEnum = resolved.getEnumValue();
+    }
+
+    void commitPending(@Nullable CvarValue resolved) {
+        latched_string = resolved == null ? null : resolved.getToken();
+        pendingBoolean = resolved == null ? null : resolved.getBooleanValue();
+        pendingInt = resolved == null ? null : resolved.getIntValue();
+        pendingFloat = resolved == null ? null : resolved.getFloatValue();
+        pendingString = resolved == null ? null : resolved.getStringValue();
+        pendingEnum = resolved == null ? null : resolved.getEnumValue();
+    }
+
+    private IllegalStateException wrongType(String expected) {
+        return new IllegalStateException("Cvar " + name + " does not declare " + expected);
+    }
+
+    public boolean asBoolean() {
+        if (cachedBoolean == null) throw wrongType("Boolean");
+        return cachedBoolean;
+    }
+
+    public int asInt() {
+        if (cachedInt == null) throw wrongType("Integer");
+        return cachedInt;
+    }
+
+    public float asFloat() {
+        if (cachedFloat == null) throw wrongType("Float");
+        return cachedFloat;
+    }
+
+    public @NotNull String asString() {
+        if (cachedString == null) throw wrongType("String");
+        return cachedString;
+    }
+
+    public <E extends Enum<E>> E asEnum(Class<E> enumClass) {
+        if (cachedEnum == null || cachedEnum.getDeclaringClass() != enumClass)
+            throw wrongType(enumClass.getSimpleName());
+        return enumClass.cast(cachedEnum);
+    }
+
+    // Check the active type: a null pending slot means no change, rather than a wrong-type read.
+    public @Nullable Boolean getPendingBooleanValue() { asBoolean(); return pendingBoolean; }
+    public @Nullable Integer getPendingIntValue() { asInt(); return pendingInt; }
+    public @Nullable Float getPendingFloatValue() { asFloat(); return pendingFloat; }
+    public @Nullable String getPendingStringValue() { asString(); return pendingString; }
+    public <E extends Enum<E>> @Nullable E getPendingEnumValue(Class<E> enumClass) {
+        asEnum(enumClass);
+        return pendingEnum == null ? null : enumClass.cast(pendingEnum);
+    }
 
     @Override
     public String toString() {

@@ -4,6 +4,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarTypes
 import kotlin.math.ceil
 
 /**
@@ -81,11 +82,10 @@ class FireAndForgetCakeAudioSystem(
         Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
         "Effects volume"
     )
-    private val maxVoices = Cvar.getInstance().Get(
-        "s_maxvoices",
-        "32",
+    private val maxVoices = Cvar.getInstance().register(
+        "s_maxvoices", CvarTypes.IntegerType(1, 128), 32,
         Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Maximum simultaneous Cake gameplay voices"
+        "Maximum simultaneous Cake gameplay voices",
     )
 
     /**
@@ -206,7 +206,7 @@ class FireAndForgetCakeAudioSystem(
 
         if (replaced != null) {
             stopVoice(replaced)
-        } else if (activeVoices.size >= configuredMaxVoices()) {
+        } else if (activeVoices.size >= maxVoices.asInt()) {
             val candidate = pickReplacementCandidate(request.entityIndex, now) ?: return
             stopVoice(candidate)
         }
@@ -252,7 +252,7 @@ class FireAndForgetCakeAudioSystem(
 
         // Keep already-running loops stable under saturation. One-shots are still allowed
         // to steal loop voices, but loop sync itself should not churn ambience every frame.
-        if (activeVoices.size >= configuredMaxVoices()) {
+        if (activeVoices.size >= maxVoices.asInt()) {
             return null
         }
 
@@ -399,10 +399,6 @@ class FireAndForgetCakeAudioSystem(
 
     private fun computeLoopEndTimeMs(sound: Sound, now: Int): Int {
         return now + (SoundDurationRegistry.durationMs(sound) ?: UNKNOWN_DURATION_MS)
-    }
-
-    private fun configuredMaxVoices(): Int {
-        return maxVoices.value.toInt().coerceIn(1, 128)
     }
 
     private fun normalizedChannel(channel: Int): Int {

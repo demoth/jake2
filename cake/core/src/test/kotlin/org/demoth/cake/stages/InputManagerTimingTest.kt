@@ -5,14 +5,21 @@ import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.CakeCvars
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.input.InputManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InputManagerTimingTest {
+    @BeforeEach
+    fun registerInputCvars() {
+        CakeCvars.registerInput()
+    }
+
 
     @Test
     fun commandMsecUsesElapsedTimeAndClamp() {

@@ -83,9 +83,18 @@ public class Cvar extends Globals {
             }
         }
 
-        var = Cvar.getInstance().FindVar(canonicalName);
+        var = FindVar(canonicalName);
         if (var != null) {
-            var.flags |= flags;
+            if (var.getDefinition() != null) {
+                try {
+                    validateTypedState(var, var.flags | flags);
+                } catch (IllegalArgumentException e) {
+                    Com.Printf("Cannot add flags to typed cvar " + canonicalName + ": " + e.getMessage() + "\n");
+                    return var;
+                }
+            }
+            if (var.getDefinition() != null) updateTypedFlags(var, var.flags | flags);
+            else var.flags |= flags;
             if (var.description == null && description != null && !description.isBlank()) {
                 var.description = description;
             }
@@ -121,7 +130,15 @@ public class Cvar extends Globals {
     public cvar_t GetForceFlags(String var_name, String defaultValue, int flags) {
         cvar_t result = Get(var_name, defaultValue, flags);
         if (result != null) {
-            result.flags = flags;
+            if (result.getDefinition() != null) {
+                try { validateTypedState(result, flags); }
+                catch (IllegalArgumentException e) {
+                    Com.Printf("Cannot change flags for typed cvar " + result.name + ": " + e.getMessage() + "\n");
+                    return result;
+                }
+            }
+            if (result.getDefinition() != null) updateTypedFlags(result, flags);
+            else result.flags = flags;
         }
         return result;
     }
@@ -221,6 +238,11 @@ public class Cvar extends Globals {
             return Get(canonicalName, value, flags);
         }
 
+        if (var.getDefinition() != null) {
+            report(typedWrite(var, value, flags, true));
+            return var;
+        }
+
         var.modified = true;
 
         if ((var.flags & CVAR_USERINFO) != 0)
@@ -258,6 +280,11 @@ public class Cvar extends Globals {
         if (var == null) { 
         	// create it
             return Get(canonicalName, value, 0);
+        }
+
+        if (var.getDefinition() != null) {
+            report(typedWrite(var, value, var.flags, force));
+            return var;
         }
 
         if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
@@ -340,6 +367,10 @@ public class Cvar extends Globals {
     }
 
     public void SetValue(String var_name, float value) {
+        if (definition(var_name) != null) {
+            Set(var_name, Float.toString(value));
+            return;
+        }
         if (value == (int)value) {
             Set(var_name, "" + (int)value);
         } else {
@@ -422,6 +453,10 @@ public class Cvar extends Globals {
      */
     public void updateLatchedVars() {
         for (cvar_t var : cvarMap.values()) {
+            if (var.getDefinition() != null) {
+                if (var.latched_string != null) report(typedWrite(var, var.latched_string, var.flags, true));
+                continue;
+            }
             if (var.latched_string == null || var.latched_string.length() == 0)
                 continue;
             var.string = var.latched_string;
@@ -462,10 +497,10 @@ public class Cvar extends Globals {
         }
         for (cvar_t var : cvarMap.values()) {
             if ((var.flags & CVAR_ARCHIVE) != 0) {
-                String persistedValue = (var.latched_string != null && !var.latched_string.isEmpty()) ? var.latched_string : var.string;
+                String persistedValue = (var.latched_string != null && (var.getDefinition() != null || !var.latched_string.isEmpty())) ? var.latched_string : var.string;
                 buffer = "set " + var.name + " \"" + persistedValue + "\"\n";
                 try {
-                    f.writeBytes(buffer);
+                    f.write(buffer.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 } catch (IOException e) {
                     Com.Printf("Could not write cvar " + var + " to " + path);
                 }
@@ -524,9 +559,180 @@ public class Cvar extends Globals {
         }
     }
 
+    /** Registers a local contract without requiring callers to construct a spec. */
+    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue, int flags, String description) {
+        return register(new CvarSpec<>(name, type, defaultValue, flags, description));
+    }
+
+    /** Registers a contract with flags when no description is needed. */
+    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue, int flags) {
+        return register(name, type, defaultValue, flags, null);
+    }
+
+    /** Registers a contract with no flags or description. */
+    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue) {
+        return register(name, type, defaultValue, 0, null);
+    }
+
     /**
-     * Clear all cvars
+     * Attaches a subsystem's contract and initializes caches while preserving entry identity
+     * and valid values loaded before registration.
      */
+    public cvar_t register(CvarSpec<?> spec) {
+        String name = spec.getName();
+        if (!name.equals(resolveCanonicalName(name)))
+            throw new IllegalArgumentException("Define the canonical cvar name, not an alias: " + name);
+        CvarSpec<?> previous = definition(name);
+        if (previous != null) {
+            if (!previous.equals(spec)) throw new IllegalArgumentException("Conflicting cvar definition: " + name);
+            return FindVar(name);
+        }
+        cvar_t var = FindVar(name);
+        int flags = spec.getFlags() | (var == null ? 0 : var.flags);
+        CvarValue active = normalize(spec, spec.getDefaultString(), flags);
+        CvarValue pending = null;
+        if (var != null) {
+            try { active = normalize(spec, var.string, flags); }
+            catch (IllegalArgumentException e) {
+                Com.Printf("Invalid earlier value for " + name + "; using declared default. " + e.getMessage() + "\n");
+            }
+            if (var.latched_string != null) {
+                try { pending = normalize(spec, var.latched_string, flags); }
+                catch (IllegalArgumentException e) {
+                    Com.Printf("Invalid earlier pending value for " + name + "; discarding pending change. " + e.getMessage() + "\n");
+                }
+            }
+        } else {
+            var = new cvar_t();
+            var.name = name;
+            cvarMap.put(name, var);
+        }
+        boolean changed = !active.getToken().equals(var.string);
+        var.attachDefinition(spec);
+        updateTypedFlags(var, flags);
+        var.description = spec.getDescription();
+        var.commitActive(active);
+        var.commitPending(pending != null && !active.getToken().equals(pending.getToken()) ? pending : null);
+        if (changed) {
+            var.modified = true;
+            if ((flags & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
+        }
+        return var;
+    }
+
+    /**
+     * Exposes the owning contract for consumers such as option editors, resolving aliases.
+     * Returns null for unconstrained entries or unknown names.
+     */
+    public CvarSpec<?> definition(String name) {
+        cvar_t var = FindVar(name);
+        return var == null ? null : var.getDefinition();
+    }
+
+    /** Lets callers distinguish acceptance, rejection and delayed application without console parsing. */
+    public CvarSetResult setResult(String name, String value) { return setResult(name, value, false); }
+    /** Supports immediate lifecycle updates while retaining validation for constrained entries. */
+    public CvarSetResult forceSetResult(String name, String value) { return setResult(name, value, true); }
+
+    /** Unifies constrained and legacy write paths behind the same result-bearing API. */
+    private CvarSetResult setResult(String name, String value, boolean force) {
+        cvar_t var = FindVar(name);
+        if (var != null && definition(name) != null) return typedWrite(var, value, var.flags, force);
+        if (value == null) return rejected("Missing value for " + name);
+        if (var != null && !force && (var.flags & CVAR_NOSET) != 0) return rejected(name + " is write protected");
+        if (var != null && (var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && invalidInfoString(value))
+            return rejected("Invalid info cvar value for " + name);
+        String oldValue = var == null ? null : var.string;
+        String oldPending = var == null ? null : var.latched_string;
+        var = Set2(name, value, force);
+        if (var == null) return rejected("Could not create cvar " + name);
+        if (java.util.Objects.equals(oldValue, var.string) && java.util.Objects.equals(oldPending, var.latched_string))
+            return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
+        return new CvarSetResult(var.latched_string == null ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.QUEUED, null);
+    }
+
+    /** Keeps rejection feedback consistent across write paths. */
+    private static CvarSetResult rejected(String diagnostic) {
+        return new CvarSetResult(CvarSetResult.Status.REJECTED, diagnostic);
+    }
+
+    /** Preserves console feedback for legacy setters that do not return structured diagnostics. */
+    private static void report(CvarSetResult result) {
+        if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
+    }
+
+    /** Prepares the canonical token and typed caches, checking type and transport limits before commit. */
+    private static <T> CvarValue normalize(CvarSpec<T> spec, String text, int flags) {
+        if (text == null) throw new IllegalArgumentException("missing value");
+        CvarType.Resolved<T> resolved = spec.getType().resolve(text);
+        String token = resolved.getToken();
+        if ((flags & CVAR_ARCHIVE) != 0 && (token.indexOf('"') >= 0 || token.indexOf('\n') >= 0
+                || token.indexOf('\r') >= 0 || token.indexOf('\0') >= 0
+                || token.length() + spec.getName().length() + 7 >= Defines.MAX_STRING_CHARS))
+            throw new IllegalArgumentException("value cannot round-trip through config command quoting");
+        if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && (invalidInfoString(spec.getName()) || invalidInfoString(token)))
+            throw new IllegalArgumentException("invalid info string characters");
+        return new CvarValue(token, resolved.getValue());
+    }
+
+    /** Ensures flag changes also update modified state and userinfo notifications. */
+    private static void updateTypedFlags(cvar_t var, int flags) {
+        if (var.flags == flags) return;
+        var.modified = true;
+        if (((var.flags ^ flags) & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
+        var.flags = flags;
+    }
+
+    /** Prevents flag changes from making existing active or pending values invalid. */
+    private void validateTypedState(cvar_t var, int flags) {
+        CvarSpec<?> spec = var.getDefinition();
+        normalize(spec, var.string, flags);
+        if (var.latched_string != null) normalize(spec, var.latched_string, flags);
+    }
+
+    /**
+     * Shares validation, latch handling and cache commits across writes to constrained entries.
+     * Force bypasses protection and delay, but still requires valid values.
+     */
+    private CvarSetResult typedWrite(cvar_t var, String text, int flags, boolean force) {
+        CvarValue resolved;
+        try {
+            CvarSpec<?> spec = var.getDefinition();
+            resolved = normalize(spec, text, flags);
+        }
+        catch (IllegalArgumentException e) { return rejected("Invalid value for " + var.name + ": " + e.getMessage()); }
+        String token = resolved.getToken();
+        if (!force && (var.flags & CVAR_NOSET) != 0) return rejected(var.name + " is write protected");
+        if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart(var))) {
+            if (token.equals(var.latched_string)) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
+            if (token.equals(var.string)) {
+                boolean cancelled = var.latched_string != null;
+                var.commitPending(null);
+                return new CvarSetResult(cancelled ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
+            }
+            var.commitPending(resolved);
+            String timing = requiresAppRestart(var) ? "after restart" : "for next game";
+            return new CvarSetResult(CvarSetResult.Status.QUEUED, var.name + " will be changed " + timing + ".");
+        }
+        boolean valueChanged = !token.equals(var.string);
+        boolean flagsChanged = flags != var.flags;
+        boolean hadPending = var.latched_string != null;
+        int oldFlags = var.flags;
+        var.commitActive(resolved);
+        var.flags = flags;
+        var.commitPending(null);
+        if (valueChanged || flagsChanged) {
+            var.modified = true;
+            if (((oldFlags | flags) & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
+        }
+        if (valueChanged && var.name.equals("game")) {
+            EngineFilesystemLifecycle.setGameDir(token);
+            EngineFilesystemLifecycle.execAutoexec();
+        }
+        return new CvarSetResult(valueChanged || flagsChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
+    }
+
+    /** Clears entries and aliases for tests; discard acquired entries and their consumers before reuse. */
     public void clear() {
         cvarMap.clear();
         cvarAliases.clear();

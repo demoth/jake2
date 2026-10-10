@@ -1616,23 +1616,29 @@ class Cake(
         val cvars = Cvar.getInstance()
         var updatedCount = 0
         var latchedCount = 0
+        val errors = mutableListOf<String>()
         values.forEach { update ->
             val cvar = cvars.FindVar(update.name) ?: return@forEach
             if (!update.name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
                 return@forEach
             }
-            cvars.Set(update.name, update.value)
+            val result = cvars.setResult(cvar.name, update.value)
+            if (!result.accepted) {
+                errors += result.diagnostic ?: "Rejected ${update.name}"
+                return@forEach
+            }
             updatedCount++
-            if (!cvar.latched_string.isNullOrBlank()) {
+            if (cvar.rawPendingString != null) {
                 latchedCount++
             }
         }
         saveActiveProfileConfig()
-        return if (latchedCount > 0) {
+        val summary = if (latchedCount > 0) {
             "Saved $updatedCount option(s). $latchedCount pending restart."
         } else {
             "Saved $updatedCount option(s)."
         }
+        return (listOf(summary) + errors).joinToString("\n")
     }
 
     private fun deriveGenderFromSkin(skinValue: String): String {
