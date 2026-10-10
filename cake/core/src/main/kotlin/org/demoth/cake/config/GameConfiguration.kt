@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.config
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
@@ -9,9 +9,9 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.exec.Cmd
-import org.demoth.cake.assets.BspMapAsset
+import org.demoth.cake.assets.bsp.BspMapAsset
 import org.demoth.cake.assets.MissingResourceException
-import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.tryResolveRaw

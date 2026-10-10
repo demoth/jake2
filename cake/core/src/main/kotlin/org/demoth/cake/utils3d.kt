@@ -12,11 +12,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.math.MathUtils.degRad
 import com.badlogic.gdx.math.Vector3
-import org.demoth.cake.assets.AnimationTextureAttribute
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
-import org.demoth.cake.assets.Md2Shader
+import org.demoth.cake.assets.md2.AnimationTextureAttribute
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2CustomData
+import org.demoth.cake.assets.md2.Md2Loader
+import org.demoth.cake.assets.md2.Md2Shader
 import org.demoth.cake.assets.getLoaded
 import kotlin.math.cos
 import kotlin.math.sin

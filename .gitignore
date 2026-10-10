@@ -8,3 +8,8 @@ assets/assets.txt
 cake/lwjgl3/src/main/resources/META-INF/native-image/cake/resource-config.json
 **/out/*
 .kotlin/
+
+.codex
+.junie
+.claude
+AGENTS.md

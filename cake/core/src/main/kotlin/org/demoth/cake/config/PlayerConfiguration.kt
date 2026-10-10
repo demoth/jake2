@@ -1,4 +1,4 @@
-package org.demoth.cake
+package org.demoth.cake.config
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
@@ -14,7 +14,7 @@ import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.Defines.MAX_MODELS
 import jake2.qcommon.Defines.MAX_SOUNDS
 import jake2.qcommon.Defines.RF_USE_DISGUISE
-import org.demoth.cake.assets.Md2Asset
+import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.tryResolveRaw
 
 /**

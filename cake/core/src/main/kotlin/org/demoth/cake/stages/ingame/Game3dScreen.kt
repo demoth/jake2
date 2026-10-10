@@ -1,5 +1,11 @@
 package org.demoth.cake.stages.ingame
 
+import org.demoth.cake.assets.bsp.BspEntityLightSampler
+import org.demoth.cake.assets.bsp.BspInlineSurfaceMaterialController
+import org.demoth.cake.assets.bsp.BspInlineTextureAnimationController
+import org.demoth.cake.assets.bsp.BspLightmapShader
+import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
+import org.demoth.cake.assets.bsp.BspWorldVisibilityMaskTracker
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.assets.AssetManager
@@ -14,7 +20,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.GdxRuntimeException
@@ -29,6 +34,7 @@ import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.assets.*
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.FireAndForgetCakeAudioSystem
@@ -38,8 +44,10 @@ import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
 import org.demoth.cake.stages.ingame.hud.GameConfigLayoutDataProvider
 import org.demoth.cake.stages.ingame.hud.Hud
 import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.UiViewport
 import kotlin.math.abs
 import kotlin.math.sin
+import org.demoth.cake.assets.md2.Md2CustomData
 
 /**
  * Represents the 3d screen where the game is actually happening.
@@ -49,6 +57,8 @@ import kotlin.math.sin
 class Game3dScreen(
     private val assetManager: AssetManager,
     private val inputManager: InputManager,
+    private val uiViewport: UiViewport,
+    private val videoSettings: CakeVideoModeSettings = CakeVideoModeSettings.fromCvars(),
 ) : KtxScreen, ServerMessageProcessor, InputProcessor by inputManager {
     data class SaveMetadataDefaults(
         val mapPath: String?,
@@ -98,7 +108,7 @@ class Game3dScreen(
     private val gameConfig = GameConfiguration(assetManager)
     private val cinematicController = CinematicPresentationController(assetManager, gameConfig)
     private val worldPresentationRenderer = WorldPresentationRenderer()
-    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig) }
+    private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig, uiViewport) }
 
     private val entityManager = ClientEntityManager()
     private val effectsSystem = ClientEffectsSystem(
@@ -155,7 +165,8 @@ class Game3dScreen(
     private val skyRotationAxis = Vector3()
     private val postProcessBatch = SpriteBatch()
     private val postProcessShader: ShaderProgram
-    private var sceneFrameBuffer: FrameBuffer? = null
+    private var sceneFrameBuffer: SceneFrameBuffer? = null
+    private var attemptedBufferSize: Pair<Int, Int>? = null
     private var sceneFrameRegion: TextureRegion? = null
 
     /**
@@ -183,7 +194,7 @@ class Game3dScreen(
 
         bspLightmapShader = BspLightmapShader(assetManager).apply { init() }
         val md2Shader = initializeMd2Shader(assetManager)
-        modelBatch = ModelBatch(Md2ShaderProvider(md2Shader, bspLightmapShader))
+        modelBatch = ModelBatch(CakeShaderProvider(md2Shader, bspLightmapShader))
         postProcessShader = createPostProcessShader()
     }
 
@@ -250,21 +261,23 @@ class Game3dScreen(
      * `Game3dScreen` frame (world/entities/particles/HUD) before compositing to backbuffer.
      */
     private fun ensureSceneFrameBuffer() {
-        val width = Gdx.graphics.width.coerceAtLeast(1)
-        val height = Gdx.graphics.height.coerceAtLeast(1)
+        val width = Gdx.graphics.backBufferWidth
+        val height = Gdx.graphics.backBufferHeight
+        if (width <= 0 || height <= 0) return
         val current = sceneFrameBuffer
-        if (current != null && current.width == width && current.height == height) {
+        if (attemptedBufferSize == (width to height)) {
             return
         }
 
+        attemptedBufferSize = width to height
         current?.dispose()
         sceneFrameBuffer = null
         sceneFrameRegion = null
 
         try {
-            val recreated = FrameBuffer(Pixmap.Format.RGBA8888, width, height, true)
+            val recreated = SceneFrameBuffer.create(width, height, videoSettings.depthBits, videoSettings.samples)
             sceneFrameBuffer = recreated
-            sceneFrameRegion = TextureRegion(recreated.colorBufferTexture).apply {
+            sceneFrameRegion = TextureRegion(recreated.resolved.colorBufferTexture).apply {
                 // LibGDX FBO color textures are upside-down in screen space.
                 flip(false, true)
             }
@@ -276,6 +289,7 @@ class Game3dScreen(
     }
 
     private fun presentSceneFrame() {
+        sceneFrameBuffer?.resolve()
         val region = sceneFrameRegion ?: return
         val width = Gdx.graphics.width.toFloat()
         val height = Gdx.graphics.height.toFloat()
@@ -310,7 +324,21 @@ class Game3dScreen(
         return shader
     }
 
+    override fun resize(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) return
+        camera.viewportWidth = width.toFloat()
+        camera.viewportHeight = height.toFloat()
+        camera.update()
+        spriteBatch.projectionMatrix.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
+        inputManager.resetMouseLookReference()
+    }
+
     override fun render(delta: Float) {
+        if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) return
+        // A screen can be created after the application's last resize callback.
+        if (camera.viewportWidth != Gdx.graphics.width.toFloat() || camera.viewportHeight != Gdx.graphics.height.toFloat()) {
+            resize(Gdx.graphics.width, Gdx.graphics.height)
+        }
         presentationRuntime.render(delta)
     }
 
@@ -330,7 +358,7 @@ class Game3dScreen(
      * Caller owns and must dispose the returned pixmap.
      */
     fun captureScenePixmapForTransition(): Pixmap? {
-        val frameBuffer = sceneFrameBuffer ?: return null
+        val frameBuffer = sceneFrameBuffer?.resolved ?: return null
         frameBuffer.begin()
         return try {
             Pixmap.createFromFrameBuffer(0, 0, frameBuffer.width, frameBuffer.height)
@@ -351,7 +379,7 @@ class Game3dScreen(
             WorldPresentationRenderer.FrameContext(
                 delta = delta,
                 currentTimeMs = Globals.curtime,
-                sceneFrameBuffer = sceneFrameBuffer,
+                sceneFrameBuffer = sceneFrameBuffer?.renderTarget,
                 camera = camera,
                 modelBatch = modelBatch,
                 entityManager = entityManager,
@@ -399,6 +427,9 @@ class Game3dScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl.glDepthRangef(0f, 1f)
 
+        spriteBatch.projectionMatrix.setToOrtho2D(
+            0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(),
+        )
         cinematicController.render(
             currentTimeMs = Globals.curtime,
             spriteBatch = spriteBatch,
@@ -418,8 +449,6 @@ class Game3dScreen(
         hudOverlayRenderer.render(
             hud = hud,
             delta = delta,
-            screenWidth = Gdx.graphics.width,
-            screenHeight = Gdx.graphics.height,
             gameplayHudState = null,
         )
         audioSystem.endFrame()

@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector3
 import org.demoth.cake.applyModelOpacity
-import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.md2.Md2CustomData
 import kotlin.math.floor
 
 /**

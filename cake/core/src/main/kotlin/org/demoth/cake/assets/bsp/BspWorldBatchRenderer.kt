@@ -1,5 +1,8 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
+import org.demoth.cake.stages.ingame.DynamicLightSystem
+import org.demoth.cake.stages.ingame.RenderTuningCvars
+import org.demoth.cake.stages.ingame.SceneDynamicLight
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
@@ -14,11 +17,6 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Defines
 import org.demoth.cake.bspWorldBatchFragmentShader
 import org.demoth.cake.bspWorldBatchVertexShader
-import org.demoth.cake.assets.BspLightmapAtlasPageTextures
-import org.demoth.cake.assets.BspWorldBatchData
-import org.demoth.cake.assets.BspWorldBatchSurface
-import org.demoth.cake.assets.BspWorldRenderData
-import org.demoth.cake.assets.BspWorldSurfacePass
 import org.demoth.cake.assets.getLoaded
 
 private const val BATCH_LIGHT_STYLE_SLOTS = 4
@@ -43,7 +41,7 @@ data class BspWorldBatchRenderStats(
 )
 
 /**
- * Dedicated world BSP renderer for the in-progress Q2PRO-style batching path.
+ * Dedicated world BSP renderer using Q2PRO-style batching.
  * Draws world surfaces in explicit opaque and translucent passes.
  *
  * Q2PRO references:
@@ -504,7 +502,7 @@ class BspWorldBatchRenderer(
         return selectTextureAnimationTexInfo(chain, currentTimeMs) ?: textureInfoIndex
     }
 
-    private fun packLightStyleSignature(surface: org.demoth.cake.assets.BspWorldSurfaceRecord): Long {
+    private fun packLightStyleSignature(surface: org.demoth.cake.assets.bsp.BspWorldSurfaceRecord): Long {
         var signature = (surface.primaryLightStyleIndex ?: 255).toLong() and 0xFF
         repeat(4) { slot ->
             val style = surface.lightMapStyles.getOrNull(slot)?.toInt()?.and(0xFF) ?: 255

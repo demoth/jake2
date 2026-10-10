@@ -87,6 +87,33 @@ object ConcharsFontLoader {
 
         val regions = Array<TextureRegion>(1)
         regions.add(pageRegion)
-        return BitmapFont(data, regions, false)
+        return BitmapFont(data, regions, false).also {
+            // BitmapFont initializes UVs in its constructor. Inset them afterwards to keep samples
+            // inside each cell at fractional canvas scales; the atlas has no gutters between glyphs.
+            for (cell in cells) {
+                val glyph = data.getGlyph(cell.index.toChar())
+                glyph.u += 0.5f / texture.width
+                glyph.u2 -= 0.5f / texture.width
+                // BitmapFont stores V coordinates in reverse order for its non-flipped font data.
+                glyph.v -= 0.5f / texture.height
+                glyph.v2 += 0.5f / texture.height
+            }
+        }
+    }
+
+    fun glyphRegion(texture: Texture, glyphIndex: Int): TextureRegion {
+        val cell = mapCells(texture.width, texture.height)[glyphIndex]
+        return object : TextureRegion(texture, cell.x, cell.y, cell.width, cell.height) {
+            init {
+                u += 0.5f / texture.width
+                u2 -= 0.5f / texture.width
+                v += 0.5f / texture.height
+                v2 -= 0.5f / texture.height
+            }
+
+            // Insets protect sampling only; nine-patches and drawables retain the original size.
+            override fun getRegionWidth(): Int = cell.width
+            override fun getRegionHeight(): Int = cell.height
+        }
     }
 }

@@ -1,8 +1,7 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.CM
-import org.demoth.cake.assets.BspWorldRenderData
 
 /**
  * Batch-mode world visibility tracker that computes only a surface visibility mask.

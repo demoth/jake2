@@ -325,8 +325,8 @@ class InputManager(
             deltaY = 0f
             mouseWasMoved = false
         } else {
-            deltaX = sensitivity.value * (screenX - previousX) / Gdx.graphics.width
-            deltaY = sensitivity.value * (screenY - previousY) / Gdx.graphics.height
+            deltaX = sensitivity.value * (screenX - previousX) / Gdx.graphics.width.coerceAtLeast(1)
+            deltaY = sensitivity.value * (screenY - previousY) / Gdx.graphics.height.coerceAtLeast(1)
             previousX = screenX.toFloat()
             previousY = screenY.toFloat()
             mouseWasMoved = true

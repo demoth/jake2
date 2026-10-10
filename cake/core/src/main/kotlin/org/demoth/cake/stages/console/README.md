@@ -1,77 +1,52 @@
-# Console Stage Package
+# Developer Console
 
-## Overview
+## Responsibilities
 
-This package owns the Cake developer console overlay.
+The console uses Scene2D for stage layout, skin integration, and single-line input.
+It owns scrollback rendering, completion, command history, and scrolling. Engine
+command semantics remain in `Cbuf`, `Cmd`, and `Cvar`; `Cake` controls console
+visibility and input routing.
 
-It keeps Scene2D for:
+- `ConsoleStage` connects the engine console sink, widgets, and command execution.
+- `ConsoleBuffer` stores bounded logical entries with severity, independently of
+  display width and wrapping.
+- `ConsoleOutputWidget` wraps, clips, colours, and draws only visible rows; it owns
+  output scroll position.
+- `ConsoleInputController` handles submission, completion, and history navigation.
+- `ConsoleCommandHistory` stores bounded submitted history and restores the draft
+  input when navigating back from history.
 
-- stage lifecycle
-- layout and skin integration
-- one-line command input
-
-It owns custom console-specific behavior for:
-
-- bounded line-based scrollback
-- severity-aware output rendering
-- visible-row-only drawing
-- command history
-- command/cvar prefix completion
-- output scrolling
-
-It does not own:
-
-- engine command execution semantics (`Cbuf`, `Cmd`, `Cvar`)
-- global console visibility/input-mode routing (`org.demoth.cake.Cake`)
-- shell menu state (`org.demoth.cake.ui.menu`)
-
-## Key Types
-
-- `ConsoleStage` - overlay stage composition and engine-console sink wiring.
-- `ConsoleCommandHistory` - UI-agnostic bounded submitted-command history with draft restore.
-- `ConsoleBuffer` - bounded logical entry buffer with severity-tagged entries.
-- `ConsoleOutputWidget` - custom Scene2D widget that wraps, clips, colors, and scrolls visible console rows.
-- `ConsoleInputController` - console-specific keyboard behavior layered on top of `TextField`.
-
-## Data / Control Flow
+## Output and Commands
 
 ```text
 Com.Printf / Com.Warn / Com.Error
-  -> Com.ConsoleSink
-  -> ConsoleStage.appendOutput(...)
-  -> ConsoleBuffer.append(...)
-  -> ConsoleOutputWidget redraws visible wrapped rows
+  -> Com.ConsoleSink -> ConsoleStage.appendOutput -> ConsoleBuffer
+  -> ConsoleOutputWidget: wrap and draw visible rows
 
-Console input key handling
-  -> ConsoleInputController
-  -> Enter: echo + Cbuf.AddText/Cbuf.Execute
+Input -> ConsoleInputController
+  -> Enter: echo and execute through Cbuf.AddText / Cbuf.Execute
   -> Tab: command/cvar prefix completion
-  -> Up/Down: history navigation with draft restore
-  -> PageUp/PageDown / wheel: output scrolling
+  -> Up/Down: command history
+  -> PageUp/PageDown: output scrolling
 ```
 
-## Invariants
+Command exceptions are caught and displayed in the console. Severity maps to skin
+colours; consecutive same-severity appends coalesce until a newline boundary.
+`clear` clears scrollback. Mouse-wheel scrolling is attached to the output widget;
+scrolling is line-based, without a `ScrollPane`.
 
-- `ConsoleBuffer` stores logical entries, not view-specific wrapped rows.
-- `ConsoleOutputWidget` owns wrapping and `topLine`; the buffer does not know about pixel offsets or width.
-- Output rendering is clipped to widget bounds and only draws visible rows.
-- Input focus stays on the `TextField`; output is not part of focus traversal.
-- Completion scope is intentionally small: commands and cvars only.
-- History is profile-local, stores submitted commands only, and restores on the next launch.
+Completion covers command and cvar names. Multiple matches extend the longest
+common prefix and print the candidate list. Input focus stays on the text field;
+output is excluded from focus traversal.
 
-## Current Behavior
+## History and Presentation
 
-- Severity colors map from `Com.ConsoleLevel` to skin colors.
-- Consecutive same-severity appends coalesce until a newline boundary.
-- Multiple completion matches extend to the longest common prefix and print a readable candidate list.
-- Output scrolling is line-based, not `ScrollPane`-based.
-- Mouse wheel scrolling is attached directly to `ConsoleOutputWidget`.
-- `clear` clears the logical scrollback buffer.
-- Submitted commands persist to `.cake/<profileId>/console-history.txt`, capped to the latest 500 entries.
-- Commands whose first character is a space are executed but not recorded in history.
+Submitted commands persist to `$HOME/.cake/<profileId>/console-history.txt`, capped
+to the latest 500 entries and restored on subsequent launches. Commands starting
+with a space execute without being recorded. Profile history storage is wired by
+`Cake`.
 
-## Open Follow-Ups
-
-- Add optional output text selection/copy only if it does not complicate wrapping/scrolling excessively.
-- Decide whether styling-only commands such as `console_print` should remain stage-owned or move to a more central console registration point.
-- Decide whether the current `Stack`-based panel chrome should become a reusable console-specific widget.
+Output and input panels use the `console-panel` drawable behind their content in
+Scene2D stacks. Children draw in insertion order, so the background must be added
+first. Panel texture, nine-patch split/pad values, and widget padding all contribute
+to the visible spacing.

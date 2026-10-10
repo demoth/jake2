@@ -1,5 +1,8 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.bsp
 
+import org.demoth.cake.assets.CakeFileResolver
+import org.demoth.cake.assets.CakeShaderProvider
+import org.demoth.cake.assets.getLoaded
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.GL20
@@ -75,7 +78,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  * This is intentionally unlit (idTech2 style): output = diffuse * sum(lightmapStyleSlot[i] * styleWeight[i]).
  * Runtime transparency still follows material blending/depth attributes.
  * Final color is post-adjusted by shared render controls (`vid_gamma`, `gl3_intensity`, `gl3_overbrightbits`).
- * Dynamic lights are applied additively per-fragment (up to 8 strongest per frame).
+ * Dynamic lights are applied additively per-fragment (up to 8 lights per frame, supplied in descending radius order).
  *
  * Invariants:
  * - lightmap texture attributes 0..3 map to style slots 0..3.
@@ -91,7 +94,7 @@ class BspLightmapTexture3Attribute(texture: com.badlogic.gdx.graphics.Texture) :
  *
  * Ownership/lifecycle:
  * - created and initialized in [org.demoth.cake.stages.ingame.Game3dScreen],
- * - selected via [Md2ShaderProvider] for BSP world surfaces,
+ * - selected via [CakeShaderProvider] for lightmapped inline brush surfaces,
  * - disposed by shader provider during screen teardown.
  */
 class BspLightmapShader(
@@ -256,32 +259,4 @@ class BspLightmapShader(
     }
 
     private fun loadShaderSource(path: String): String = assetManager.getLoaded(path)
-}
-
-/**
- * Shared shader provider for MD2 VAT and BSP lightmapped brush surfaces.
- */
-class Md2ShaderProvider(
-    private val md2Shader: Shader,
-    private val bspLightmapShader: Shader? = null,
-) : com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider() {
-    override fun getShader(renderable: Renderable): Shader {
-        if (bspLightmapShader != null && bspLightmapShader.canRender(renderable)) {
-            return bspLightmapShader
-        }
-        return if (renderable.userData is Md2CustomData &&
-            renderable.material.has(AnimationTextureAttribute.Type) &&
-            renderable.material.has(AnimationNormalTextureAttribute.Type)
-        ) {
-            md2Shader
-        } else {
-            super.getShader(renderable)
-        }
-    }
-
-    override fun dispose() {
-        super.dispose()
-        md2Shader.dispose()
-        bspLightmapShader?.dispose()
-    }
 }

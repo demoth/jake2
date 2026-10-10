@@ -22,7 +22,7 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.ClientEntity
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.SoundPlaybackRequest
-import org.demoth.cake.assets.Md2CustomData
+import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager

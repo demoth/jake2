@@ -54,7 +54,7 @@ class ConsoleOutputWidget(
 
         clipBounds.set(x, y, width, height)
         stage ?: return
-        ScissorStack.calculateScissors(stage.camera, batch.transformMatrix, clipBounds, scissors)
+        stage.viewport.calculateScissors(batch.transformMatrix, clipBounds, scissors)
         if (!ScissorStack.pushScissors(scissors)) {
             return
         }

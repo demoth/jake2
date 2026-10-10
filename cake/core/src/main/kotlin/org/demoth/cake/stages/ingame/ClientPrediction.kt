@@ -8,7 +8,7 @@ import jake2.qcommon.ServerPlayerInfo
 import jake2.qcommon.pmove_t
 import jake2.qcommon.trace_t
 import org.demoth.cake.ClientFrame
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.input.InputManager
 import kotlin.math.abs
 

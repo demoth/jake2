@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
@@ -9,7 +10,6 @@ import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.OptionEditValue
-import org.demoth.cake.ui.menu.OptionEntryState
 import org.demoth.cake.ui.menu.OptionsSectionState
 
 class OptionsSectionStage(
@@ -22,10 +22,12 @@ class OptionsSectionStage(
     parentIntent = MenuIntent.OpenOptions,
 ) {
     private var renderedState: OptionsSectionState = OptionsSectionState()
-    private val fieldsByName = linkedMapOf<String, TextField>()
+    private val valuesByName = linkedMapOf<String, () -> String>()
     private val labelStyle = style.menuWidgets.label
     private val buttonStyle = style.menuWidgets.button
     private val textFieldStyle = style.menuWidgets.textField
+    private val selectBoxStyle = style.menuWidgets.selectBox
+    private val scrollPaneStyle = style.menuWidgets.scrollPane
 
     init {
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
@@ -42,9 +44,8 @@ class OptionsSectionStage(
             return
         }
         clear()
-        fieldsByName.clear()
+        valuesByName.clear()
         val root = Table().apply {
-            setFillParent(true)
             top().left().pad(12f)
             defaults().top().left().pad(12f)
 
@@ -56,9 +57,21 @@ class OptionsSectionStage(
 
             state.entries.forEach { entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
-                val field = TextField(entry.value, textFieldStyle)
-                fieldsByName[entry.name] = field
-                add(field).minWidth(220f).prefWidth(280f).fillX()
+                val value = entry.latchedValue ?: entry.value
+                val editor = if (entry.choices.isEmpty()) {
+                    TextField(value, textFieldStyle).also { field ->
+                        valuesByName[entry.name] = { field.text }
+                    }
+                } else {
+                    SelectBox<String>(selectBoxStyle).apply {
+                        // Preserve a saved or pending value even if this monitor no longer offers it.
+                        setItems(*(entry.choices + value).distinct().toTypedArray())
+                        selected = value
+                        setMaxListCount(10)
+                        valuesByName[entry.name] = { selected }
+                    }
+                }
+                add(editor).minWidth(220f).prefWidth(280f).fillX()
 
                 val descriptionText = buildString {
                     if (entry.description.isNotBlank()) {
@@ -98,13 +111,13 @@ class OptionsSectionStage(
                 setWrap(true)
             }).colspan(3).growX().fillX().row()
         }
-        addActor(root)
+        addCenteredForm(root, scrollPaneStyle)
         renderedState = state
     }
 
     private fun currentValues(): List<OptionEditValue> {
-        return fieldsByName.entries.map { (name, field) ->
-            OptionEditValue(name = name, value = field.text)
+        return valuesByName.entries.map { (name, value) ->
+            OptionEditValue(name = name, value = value())
         }
     }
 }

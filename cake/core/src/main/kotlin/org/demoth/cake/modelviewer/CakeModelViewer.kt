@@ -20,15 +20,15 @@ import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
-import org.demoth.cake.assets.BspLoader
-import org.demoth.cake.assets.BspMapAsset
-import org.demoth.cake.assets.Md2Asset
-import org.demoth.cake.assets.Md2CustomData
-import org.demoth.cake.assets.Md2Loader
+import org.demoth.cake.assets.bsp.BspLoader
+import org.demoth.cake.assets.bsp.BspMapAsset
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2CustomData
+import org.demoth.cake.assets.md2.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
-import org.demoth.cake.assets.Md2Shader
-import org.demoth.cake.assets.Md2ShaderProvider
+import org.demoth.cake.assets.md2.Md2Shader
+import org.demoth.cake.assets.CakeShaderProvider
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
@@ -127,7 +127,7 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
                 md2Shader.init()
 
                 modelBatch.dispose()
-                modelBatch = ModelBatch(Md2ShaderProvider(md2Shader))
+                modelBatch = ModelBatch(CakeShaderProvider(md2Shader))
 
                 instances.add(md2Instance!!)
                 addOwnedInstance(createOriginArrows(GRID_SIZE))

@@ -51,7 +51,6 @@ class ProfileEditStage(
         val listStyle = style.menuWidgets.list
         val scrollPaneStyle = style.menuWidgets.scrollPane
         val root = Table().apply {
-            setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
             pad(12f)
             defaults().top().left().pad(12f)
@@ -145,7 +144,7 @@ class ProfileEditStage(
                 debugAll()
             }
         }
-        addActor(root)
+        addCenteredForm(root, style.menuWidgets.scrollPane)
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().profileEditor, force = true)
     }

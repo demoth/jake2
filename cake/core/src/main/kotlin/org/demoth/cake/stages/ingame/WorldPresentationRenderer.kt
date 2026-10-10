@@ -1,5 +1,6 @@
 package org.demoth.cake.stages.ingame
 
+import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
@@ -7,12 +8,12 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import org.demoth.cake.ClientEntity
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import jake2.qcommon.Defines
 import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.ListenerState
 import org.demoth.cake.assets.BeamRenderer
-import org.demoth.cake.assets.BspLightmapShader
+import org.demoth.cake.assets.bsp.BspLightmapShader
 import org.demoth.cake.assets.Sp2Renderer
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.stages.ingame.effects.ClientEffectsSystem
@@ -262,8 +263,6 @@ internal class WorldPresentationRenderer {
         context.hudOverlayRenderer.render(
             hud = context.hud,
             delta = context.delta,
-            screenWidth = Gdx.graphics.width,
-            screenHeight = Gdx.graphics.height,
             gameplayHudState = HudOverlayRenderer.GameplayHudState(
                 serverFrame = currentFrame.serverframe,
                 playerState = currentFrame.playerstate,

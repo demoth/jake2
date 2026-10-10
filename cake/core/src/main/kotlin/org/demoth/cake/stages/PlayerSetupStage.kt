@@ -45,7 +45,6 @@ class PlayerSetupStage(
         val textFieldStyle = style.menuWidgets.textField
         val selectBoxStyle = style.menuWidgets.selectBox
         val root = Table().apply {
-            setFillParent(true)
             align(com.badlogic.gdx.utils.Align.topLeft)
             pad(12f)
             defaults().top().left().pad(12f)
@@ -99,7 +98,7 @@ class PlayerSetupStage(
             }
             add(statusLabel).colspan(2).growX().fillX().row()
         }
-        addActor(root)
+        addCenteredForm(root, style.menuWidgets.scrollPane)
 
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
         applyState(menuEventBus.latestState().playerSetup, force = true)

@@ -1,123 +1,51 @@
-# IdTech2 UI Style
+# Content UI Styles
 
-## Overview
-This package owns shared content style resources (`GameUiStyle`) used by runtime HUD rendering and content-styled menus.
+## Responsibilities
 
-Owned here:
-- Building HUD font from `pics/conchars.pcx` (`ConcharsFontLoader`).
-- Loading numeric HUD glyph pictures (`num_*`, `anum_*`) and exposing them as `HudNumberFont`.
-- Deriving content-styled menu label/button styles from the active HUD font and conchars box glyphs.
-- Loading optional content-driven menu enter/hover/exit sounds (`misc/menu1.wav`, `misc/menu2.wav`, `misc/menu3.wav`).
-- Selecting style implementation in `GameUiStyleFactory`.
+`GameUiStyle` supplies shared HUD fonts, numeric glyphs, menu widget styles, and
+optional menu sounds. `GameUiStyleFactory` selects and loads the implementation:
+`IdTech2UiStyle` uses game content, while `EngineUiStyle` uses the default Scene2D
+skin as fallback.
 
-Not owned here:
-- HUD layout parsing and draw command execution (`../stages/ingame/hud`).
-- Style lifetime and serverdata-driven swap decisions (`../Cake.kt`).
-- Configstring/gameplay resource ownership (`../Config.kt`).
+[Menu stages](../stages/README.md) consume these styles; [the HUD](../stages/ingame/hud/README.md)
+parses layouts and draws overlays. `Cake` owns shared style lifetime. Configstring
+resources belong to [game configuration](../config/README.md).
 
-## Key Types
-- `GameUiStyle` - Runtime style contract consumed by HUD.
-- `EngineUiStyle` - Fallback style backed by Scene2D default skin.
-- `IdTech2UiStyle` - IdTech2 style aggregate (`conchars` font + number font).
-- `GameUiStyleFactory` - Style selection and per-instance asset acquisition.
-- `MenuWidgetStyles` - Shared menu label/button styles exposed by `GameUiStyle`.
-- `MenuSoundStyles` - Shared menu enter/exit sounds exposed by `GameUiStyle`.
-- `ConcharsFontLoader` - Converts 16x16 conchars atlas into `BitmapFont` glyph set.
-- `IdTech2HudNumberFont` - Draws number fields with `num_*` / `anum_*` textures.
+## Selection and Lifetime
 
-## Data / Control Flow
-```text
-ServerDataMessage
-  -> Cake resolves/reuses shared GameUiStyle for current resolver context
-  -> Cake rebuilds content-styled menu stages when the style instance changes
-  -> Game3dScreen.setHudStyle(style)
-  -> Game3dScreen.processServerDataMessage(msg)
-  -> Hud(spriteBatch, style, dataProvider)
+The factory attempts IdTech2 HUD assets through mod/base lookup for every game/mod,
+rather than gating by game name. This lets content-only mods inherit base-game
+fonts and numeric glyphs. If style creation fails, acquired HUD assets are released
+and the factory returns `EngineUiStyle`. Menu sounds are optional.
 
-Render frame
-  -> MenuController posts StateUpdated / PlayUiSound signals
-  -> Cake drains menu signals once per frame
-  -> Hud.executeLayout(...)
-  -> style.hudFont for text
-  -> style.hudNumberFont for hnum/anum/rnum/num
-  -> Content-facing menu stages use style.menuWidgets for label/button/text field/select box/list/scroll pane rendering
-  -> style.menuSounds handles submenu enter/hover/exit audio
-```
+`Cake` caches the shared style for the current base-directory/mod resolver context.
+Startup, profile changes, and serverdata handling can resolve that style. When it
+changes, content-styled menu stages are rebuilt rather than restyled in place;
+the game screen receives the shared style for HUD rendering.
 
-## Invariants
-- Style swap happens at `ServerDataMessage` handling time, but ownership lives at `Cake` scope.
-- Menu stage rebuilding is the supported Scene2D style-switch path; widgets are not restyled in place.
-- IdTech2 button chrome reuses the legacy menu box glyphs `1..9` from `pics/conchars.pcx`.
-- Menu enter/exit sounds are emitted from `MenuController` based on menu-depth changes.
-- Button hover sound and hover text color are emitted/applied from the shared stage button helper on pointer enter, and reset on click/menu-view changes.
-- Each `IdTech2UiStyle` instance acquires its own `AssetManager` refs and is released by `Cake`.
-- Conchars atlas mapping is always `16 x 16`; cell size is derived from real texture dimensions.
-- Alternate text color/style is represented by legacy high-bit glyph toggle (`char ^ 0x80`), not by tinting.
+Each style owns its acquired `AssetManager` references and releases them when
+`Cake` disposes it. Reusing an already-loaded texture still requires an ownership
+reference, so disposing one owner does not unload another owner's assets.
 
-## Decision Log
-Newest first.
+## Fonts and Glyphs
 
-### Decision: Attempt IdTech2 HUD style for every game/mod, then fallback
-- Context: map/content-only mods often keep baseq2 HUD assets and should inherit them automatically.
-- Options considered:
-1. Keep explicit IdTech2 game-name gate.
-2. Always try IdTech2 HUD assets via resolver mod/base layering and fallback only on missing assets.
-- Chosen Option & Rationale: Option 2 avoids false fallback to engine skin for unknown-but-IdTech2-compatible mods.
-- Consequences: unknown mods can still use IdTech2 HUD immediately when `pics/conchars.pcx` and number glyphs are available via mod or baseq2.
-- Status: accepted.
-- References: thread issue where map-only mods resolved to engine skin despite baseq2-compatible assets.
-- Definition of Done: style creation first attempts `pics/conchars.pcx` + `num_*`/`anum_*`, then falls back to `EngineUiStyle` only if that load path fails.
+- `ConcharsFontLoader` builds a `BitmapFont` from `pics/conchars.pcx`. The atlas has
+  a fixed 16-by-16 glyph grid; cell dimensions come from the actual texture size,
+  supporting both 128-by-128 and 256-by-256 atlases.
+- Transparency comes from PCX decoding; the font loader does not post-process alpha.
+- Alternate HUD text uses the glyph high-bit toggle (`char ^ 0x80`), preserving
+  mod-defined alternate glyphs and colours rather than applying a tint.
+- `HudNumberFont`, implemented by `IdTech2HudNumberFont`, draws dedicated `num_*`
+  and `anum_*` picture glyphs for layout number commands, including alternate/red
+  fields. These are separate from the conchars font.
 
-### Decision: Acquire/release style textures per style instance
-- Context: style ownership must follow HUD/screen lifecycle without unloading assets still in use by another owner.
-- Options considered:
-1. Reuse existing loaded textures without ref increment.
-2. Always load/finalize for this style instance and unload on dispose.
-- Chosen Option & Rationale: Option 2 gives deterministic refcount behavior during transitions.
-- Consequences: additional explicit acquisition bookkeeping in factory.
-- Status: accepted.
-- References: thread regression around style reload lifecycle.
-- Definition of Done: disposing `IdTech2UiStyle` unloads only paths acquired by that style instance.
+## Menus and Sounds
 
-### Decision: Build conchars font from raw atlas dimensions (not fixed pixel width)
-- Context: real conchars assets may be `128x128` (8px cell) or `256x256` (16px cell).
-- Options considered:
-1. Require fixed `256x256` atlas.
-2. Derive cell size from texture dimensions with fixed 16x16 grid.
-- Chosen Option & Rationale: Option 2 matches legacy 256-glyph indexing while supporting variant atlas sizes.
-- Consequences: glyph metrics scale with atlas cell size.
-- Status: accepted.
-- References: thread issue `Unexpected conchars width: 128, expected: 256`.
-- Definition of Done: both `128x128` and `256x256` conchars atlases render all 256 glyphs.
+`MenuWidgetStyles` provides content-styled labels, buttons, text fields, select
+boxes, lists, and scroll panes. IdTech2 button borders reuse conchars box glyphs
+1 through 9.
 
-### Decision: Keep HUD number style separate from conchars font
-- Context: IdTech2 HUD numbers use dedicated picture glyphs and include red blink style.
-- Options considered:
-1. Draw numbers with generic bitmap font.
-2. Load `num_*` and `anum_*` pictures and use dedicated renderer.
-- Chosen Option & Rationale: Option 2 matches legacy `DrawField` output and blinking color branches.
-- Consequences: extra asset set and renderer path for numbers.
-- Status: accepted.
-- References: thread request for health/ammo custom number style in former `LayoutExecutor.drawNumber` path.
-- Definition of Done: `hnum`, `anum`, `rnum`, and `num` branches render with picture glyphs, including alt/red style.
-
-## Quirks & Workarounds
-- Unknown/non-idtech2 games may still trigger IdTech2 style attempt first.
-- Why: content compatibility is determined by actual asset presence, not name gate.
-- How to work with it: if IdTech2 HUD assets are unavailable, factory falls back to `EngineUiStyle` automatically.
-- Removal plan: replace with registry-driven mapping when game-install configuration exists.
-
-- Conchars transparency depends on decoded texture data from Cake PCX pipeline.
-- Why: font loader builds glyph metrics only and does not post-process alpha.
-- How to work with it: keep PCX decoder behavior compatible with IdTech2 transparent palette handling.
-- Removal plan: none currently; this is expected responsibility split.
-
-## How to Extend
-1. Add a new `GameUiStyle` implementation for a new engine/game family.
-2. Keep number rendering isolated behind `HudNumberFont`.
-3. Wire style selection in `GameUiStyleFactory.create`.
-4. Ensure style-owned assets are acquired/released per style instance.
-5. Add tests for atlas mapping and number renderer behavior.
-
-## Open Questions
-- Should style selection move to a data-driven game registry once game installation metadata exists?
+`MenuSoundStyles` provides optional sounds from `misc/menu1.wav`, `misc/menu2.wav`,
+and `misc/menu3.wav`. The menu controller emits enter/exit signals for navigation
+depth changes. Shared stage button helpers trigger hover sound and text-colour
+feedback, resetting it on click or menu-view changes. Cake plays queued signals.

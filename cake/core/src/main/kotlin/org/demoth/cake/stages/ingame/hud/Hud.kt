@@ -12,7 +12,7 @@ import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.player_state_t
 import jake2.qcommon.exec.Cvar
-import org.demoth.cake.GameConfiguration
+import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 import java.util.Locale
 

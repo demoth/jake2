@@ -1,4 +1,4 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets.bsp
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Texture
@@ -6,8 +6,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.model.Node
 import com.badlogic.gdx.graphics.g3d.model.NodePart
-import org.demoth.cake.assets.BspInlineModelRenderData
-import org.demoth.cake.assets.BspWorldTextureInfoRecord
 import java.util.IdentityHashMap
 
 private const val WORLD_TEXTURE_ANIMATION_FRAME_MS = 500

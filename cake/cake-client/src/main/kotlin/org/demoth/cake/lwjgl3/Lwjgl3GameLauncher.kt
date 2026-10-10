@@ -1,13 +1,19 @@
 package org.demoth.cake.lwjgl3
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.badlogic.gdx.graphics.glutils.HdpiMode
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics
 import org.demoth.cake.Cake
-import org.demoth.cake.CakeHdpiMode
+import org.demoth.cake.CakeDisplayMode
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.CakeStartupContext
 import org.demoth.cake.CakeVideoModeSettings
+import org.demoth.cake.CakeVideoPlatform
+import org.demoth.cake.publishFullscreenModes
+import org.demoth.cake.resolveFullscreenMode
+import org.lwjgl.glfw.GLFW
 
 /** Launches the desktop (LWJGL3) application. */
 object Lwjgl3GameLauncher {
@@ -19,10 +25,18 @@ object Lwjgl3GameLauncher {
     }
 
     private fun createApplication(startupContext: CakeStartupContext): Lwjgl3Application {
-        return Lwjgl3Application(Cake(startupContext), getDefaultConfiguration(startupContext.videoMode))
+        return Lwjgl3Application(Cake(startupContext, Lwjgl3VideoPlatform()), getDefaultConfiguration(startupContext.videoMode))
     }
 
     private fun getDefaultConfiguration(videoMode: CakeVideoModeSettings): Lwjgl3ApplicationConfiguration {
+        val desktop = Lwjgl3ApplicationConfiguration.getDisplayMode()
+        val modes = Lwjgl3ApplicationConfiguration.getDisplayModes().toList()
+        publishFullscreenModes(modes.map { it.toCakeMode() })
+        val selected = if (videoMode.fullscreen) {
+            resolveFullscreenMode(videoMode.fullscreenMode, desktop.toCakeMode(), modes.map { it.toCakeMode() })
+        } else desktop.toCakeMode()
+        val displayMode = modes.firstOrNull { it.toCakeMode() == selected && it.bitsPerPixel == desktop.bitsPerPixel }
+            ?: modes.firstOrNull { it.toCakeMode() == selected } ?: desktop
         return Lwjgl3ApplicationConfiguration().apply {
             setTitle("Cake Engine v1.2.1")
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
@@ -31,17 +45,17 @@ object Lwjgl3GameLauncher {
                 /* g = */ 8,
                 /* b = */ 8,
                 /* a = */ 8,
-                /* depth = */ 24,
+                /* depth = */ videoMode.depthBits,
                 /* stencil = */ 0,
-                /* samples = */ 4 // anti-aliasing
+                /* samples = */ videoMode.samples // Scene MSAA is configured separately for postprocessing.
             )
 
             useVsync(videoMode.vsync)
-            setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate)
-            setResizable(false)
-            setHdpiMode(videoMode.hdpiMode.toLwjgl3HdpiMode())
+            setForegroundFPS(displayMode.refreshRate)
+            setResizable(true)
+            setHdpiMode(videoMode.hdpiMode)
             if (videoMode.fullscreen) {
-                setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
+                setFullscreenMode(displayMode)
             } else {
                 setWindowedMode(videoMode.width, videoMode.height)
             }
@@ -51,9 +65,20 @@ object Lwjgl3GameLauncher {
 
 }
 
-private fun CakeHdpiMode.toLwjgl3HdpiMode(): HdpiMode {
-    return when (this) {
-        CakeHdpiMode.PIXELS -> HdpiMode.Pixels
-        CakeHdpiMode.LOGICAL -> HdpiMode.Logical
+
+private fun Graphics.DisplayMode.toCakeMode() = CakeDisplayMode(width, height, refreshRate)
+
+private class Lwjgl3VideoPlatform : CakeVideoPlatform {
+    override fun windowSize(): Pair<Int, Int> {
+        val width = IntArray(1)
+        val height = IntArray(1)
+        GLFW.glfwGetWindowSize((Gdx.graphics as Lwjgl3Graphics).window.windowHandle, width, height)
+        return width[0] to height[0]
+    }
+
+    override fun describe(): String {
+        val mode = Gdx.graphics.displayMode
+        val windowMode = if (Gdx.graphics.isFullscreen) "fullscreen" else "windowed"
+        return "Active display: ${Gdx.graphics.monitor.name}, ${mode.toCakeMode().id}, $windowMode"
     }
 }

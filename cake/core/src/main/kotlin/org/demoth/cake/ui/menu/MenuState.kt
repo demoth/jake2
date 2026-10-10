@@ -69,6 +69,7 @@ data class OptionEntryState(
     val description: String = "",
     val value: String = "",
     val latchedValue: String? = null,
+    val choices: List<String> = emptyList(),
 )
 
 data class OptionEditValue(

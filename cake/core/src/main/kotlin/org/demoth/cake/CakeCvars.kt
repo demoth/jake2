@@ -17,11 +17,16 @@ object CakeCvars {
 
     fun registerVideoMode() {
         val cvars = Cvar.getInstance()
-        cvars.Get("vid_fullscreen", "0", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Fullscreen mode")
-        cvars.Get("vid_hidpi", "Pixels", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "HiDPI mode (Pixels, Logical)")
-        cvars.Get("vid_width", "1024", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Windowed mode width")
-        cvars.Get("vid_height", "768", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Windowed mode height")
-        cvars.Get("vid_vsync", "1", CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH, "Vertical sync")
+        val flags = CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH
+        cvars.Get("vid_fullscreen", "0", flags, "Fullscreen: 0 windowed, 1 fullscreen (restart required)")
+        cvars.Get("vid_hidpi", "Pixels", flags, "Coordinate units: Pixels or Logical; differs when OS window and framebuffer sizes differ (restart required)")
+        cvars.Get("vid_windowed_width", "1024", flags, "Windowed width in OS window coordinates (restart required)")
+        cvars.Get("vid_windowed_height", "768", flags, "Windowed height in OS window coordinates (restart required)")
+        cvars.Get("vid_fullscreen_mode", "desktop", flags, "Fullscreen mode: desktop or WIDTHxHEIGHT@HZ; see vid_fullscreen_modes (restart required)")
+        cvars.Get("vid_fullscreen_modes", "", jake2.qcommon.Defines.CVAR_NOSET, "Supported primary-monitor modes; populated by the desktop launcher")
+        cvars.Get("vid_depthbits", "24", flags, "Requested scene/window depth bits: 16, 24, 32 (restart required)")
+        cvars.Get("vid_samples", "4", flags, "Requested scene/window MSAA samples: 0, 2, 4, 8 (restart required)")
+        cvars.Get("vid_vsync", "1", flags, "Vertical sync (restart required)")
     }
 
     private fun registerUserInfo() {
@@ -52,6 +57,8 @@ object CakeCvars {
         cvars.AddAlias("crosshair", "cl_crosshair")
         cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
         cvars.Get("cl_showfps", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
+        cvars.Get("cl_ui_size", "720", CVAR_ARCHIVE or CVAR_OPTIONS,
+            "Virtual game UI reference height (minimum 640); lower values enlarge menus and HUD; applies immediately")
         cvars.Get("s_volume", "0.7", CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
         cvars.Get("cl_maxfps", "62", CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update cadence")
 

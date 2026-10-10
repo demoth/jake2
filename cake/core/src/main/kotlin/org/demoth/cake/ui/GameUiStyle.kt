@@ -101,8 +101,6 @@ private const val BOX_RIGHT = 6
 private const val BOX_BOTTOM_LEFT = 7
 private const val BOX_BOTTOM = 8
 private const val BOX_BOTTOM_RIGHT = 9
-private const val SCROLL_TRACK_MIDDLE = 129
-private const val SCROLL_KNOB = 131
 
 internal fun createMenuWidgetStyles(
     skin: Skin,
@@ -117,8 +115,12 @@ internal fun createMenuWidgetStyles(
     val baseScrollPaneStyle = skin.get(ScrollPane.ScrollPaneStyle::class.java)
     val contentButtonDrawable = concharsTexture?.let { createConcharsButtonDrawable(it) }
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, BOX_FILL, MENU_SELECTION_COLOR) }
-    val contentScrollTrackDrawable = concharsTexture?.let { createConcharsGlyphDrawable(it, SCROLL_TRACK_MIDDLE) }
-    val contentScrollKnobDrawable = concharsTexture?.let { createConcharsGlyphDrawable(it, SCROLL_KNOB) }
+    // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
+    // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
+    val contentScrollKnobDrawable = contentButtonDrawable?.let {
+        NinePatchDrawable(NinePatch(it.patch).apply { scale(0.5f, 0.5f) })
+    }
+    val contentScrollTrackDrawable = contentScrollKnobDrawable?.tint(Color(0.45f, 0.45f, 0.45f, 1f))
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
         if (contentButtonDrawable != null) {
             style.background = contentButtonDrawable
@@ -209,7 +211,5 @@ private fun concharsGlyph(
     texture: Texture,
     glyphIndex: Int,
 ): TextureRegion {
-    val cells = ConcharsFontLoader.mapCells(texture.width, texture.height).associateBy { it.index }
-    val cell = requireNotNull(cells[glyphIndex]) { "Missing conchars glyph $glyphIndex" }
-    return TextureRegion(texture, cell.x, cell.y, cell.width, cell.height)
+    return ConcharsFontLoader.glyphRegion(texture, glyphIndex)
 }

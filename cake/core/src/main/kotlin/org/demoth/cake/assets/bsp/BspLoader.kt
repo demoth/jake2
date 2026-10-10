@@ -1,5 +1,6 @@
-package org.demoth.cake.assets
+package org.demoth.cake.assets.bsp
 
+import org.demoth.cake.assets.WalLoader
 import com.badlogic.gdx.assets.AssetDescriptor
 import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager
@@ -81,8 +82,8 @@ data class BspLightmapAtlasFacePlacement(
  * Runtime world representation for the BSP world model (model 0).
  *
  * This representation is intentionally independent from current draw policy:
- * it keeps stable per-face records and leaf->surface mapping required by upcoming
- * PVS/areabits, transparency passes, animated texinfo chains, and lightmap work.
+ * it keeps stable per-face records and leaf->surface mapping used by
+ * PVS/areabits, transparency passes, animated texinfo chains, and lightmaps.
  * [textureInfos] contains BSP texinfo metadata needed to resolve animation chains
  * even when intermediate chain frames have no directly referenced world faces.
  */
@@ -231,8 +232,8 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
     /**
      * Synchronously parses BSP bytes and builds render/runtime structures.
      *
-     * Returned [BspMapAsset] owns only generated [Model] instances.
-     * Textures are external dependencies managed by [AssetManager].
+     * Returned [BspMapAsset] owns generated [Model] instances and lightmap atlas textures.
+     * WAL textures are external dependencies managed by [AssetManager].
      */
     override fun load(
         manager: AssetManager,
