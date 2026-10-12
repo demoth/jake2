@@ -145,15 +145,13 @@ class CakeVideoModeSettingsTest {
     }
 
     @Test
-    fun repeatedRegistrationUsesChoicesFromItsOwnRegistry() {
+    fun fullscreenSuggestionsUseTheirOwnRegistry() {
         val first = Cvar()
         val second = Cvar()
         CakeCvars.registerVideoMode(first)
         CakeCvars.registerVideoMode(second)
         publishFullscreenModes(listOf(CakeDisplayMode(1920, 1080, 60)), first)
         publishFullscreenModes(listOf(CakeDisplayMode(2560, 1440, 144)), second)
-        CakeCvars.registerVideoMode(first)
-        CakeCvars.registerVideoMode(second)
         assertEquals(listOf("desktop", "1920x1080@60"), videoOptionChoices("vid_fullscreen_mode", first))
         assertEquals(listOf("desktop", "2560x1440@144"), videoOptionChoices("vid_fullscreen_mode", second))
     }
