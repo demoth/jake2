@@ -113,7 +113,7 @@ object CakeCvars {
         cvars.register("fs_debug_loaders", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Log asset loader fallback decisions")
     }
 
-    private fun registerEntities(cvars: Cvar) {
+    internal fun registerEntities(cvars: Cvar = Cvar.getInstance()) {
         cvars.register("r_drawsky", CvarTypes.BOOLEAN, true, 0, "Draw the sky layer")
         cvars.register("r_drawbeams", CvarTypes.BOOLEAN, true, 0, "Draw beam effects")
         cvars.register("r_drawsprites", CvarTypes.BOOLEAN, true, 0, "Draw sprite entities")

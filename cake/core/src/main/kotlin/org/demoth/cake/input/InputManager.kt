@@ -13,6 +13,7 @@ import jake2.qcommon.Defines.ROLL
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
@@ -73,10 +74,10 @@ class InputManager(
     private var deltaX = 0f
     private var deltaY = 0f
     private var hasMouseReference = false
-    private val sensitivity = Cvar.getInstance().FindVar("in_sensitivity") // todo: make independent from screen size
-    private val invertMouse = Cvar.getInstance().FindVar("in_invert_mouse")
-    private val alwaysRun = Cvar.getInstance().FindVar("cl_run")
-    private val lightLevel = Cvar.getInstance().FindVar("r_lightlevel") // todo: verify a proper server side fix
+    private val sensitivity = Cvar.getInstance().find<Float>("in_sensitivity") // todo: make independent from screen size
+    private val invertMouse = Cvar.getInstance().find<Boolean>("in_invert_mouse")
+    private val alwaysRun = Cvar.getInstance().find<Boolean>("cl_run")
+    private val lightLevel = Cvar.getInstance().find<Int>("r_lightlevel") // todo: verify a proper server side fix
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
@@ -145,7 +146,7 @@ class InputManager(
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
-        cmd.lightlevel = lightLevel.asInt().toByte()
+        cmd.lightlevel = lightLevel.typedValue.toByte()
 
         cmd.msec = normalizeCommandMsec(commandMsec).toByte()
         commandSequence[cmdIndex] = outgoingSequence
@@ -213,7 +214,7 @@ class InputManager(
 
     private fun currentSpeedMultiplier(): Int {
         val speedHeld = isActive(ImmediateAction.SPEED)
-        val runByDefault = alwaysRun.asBoolean()
+        val runByDefault = alwaysRun.typedValue
         return if (speedHeld.xor(runByDefault)) runMultiplier else 1
     }
 
@@ -222,7 +223,7 @@ class InputManager(
             mouseWasMoved = false
 
             localYaw = wrapSignedAngle(localYaw - deltaX)
-            val pitchDelta = if (invertMouse.asBoolean()) -deltaY else deltaY
+            val pitchDelta = if (invertMouse.typedValue) -deltaY else deltaY
             localPitch = clampPitch(localPitch + pitchDelta)
         }
     }
@@ -323,8 +324,8 @@ class InputManager(
             deltaY = 0f
             mouseWasMoved = false
         } else {
-            deltaX = sensitivity.asFloat() * (screenX - previousX) / Gdx.graphics.width.coerceAtLeast(1)
-            deltaY = sensitivity.asFloat() * (screenY - previousY) / Gdx.graphics.height.coerceAtLeast(1)
+            deltaX = sensitivity.typedValue * (screenX - previousX) / Gdx.graphics.width.coerceAtLeast(1)
+            deltaY = sensitivity.typedValue * (screenY - previousY) / Gdx.graphics.height.coerceAtLeast(1)
             previousX = screenX.toFloat()
             previousY = screenY.toFloat()
             mouseWasMoved = true

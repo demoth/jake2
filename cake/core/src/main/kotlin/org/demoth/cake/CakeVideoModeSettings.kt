@@ -3,6 +3,7 @@ package org.demoth.cake
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.exec.CvarType
 
 data class CakeVideoModeSettings(
@@ -19,14 +20,14 @@ data class CakeVideoModeSettings(
         /** Snapshot active settings after video cvars have been registered at startup. */
         fun fromCvars(cvars: Cvar = Cvar.getInstance()): CakeVideoModeSettings {
             return CakeVideoModeSettings(
-                fullscreen = cvars.FindVar("vid_fullscreen").asBoolean(),
-                hdpiMode = cvars.FindVar("vid_hidpi").asEnum(HdpiMode::class.java),
-                width = cvars.FindVar("vid_windowed_width").asInt(),
-                height = cvars.FindVar("vid_windowed_height").asInt(),
-                vsync = cvars.FindVar("vid_vsync").asBoolean(),
-                fullscreenMode = cvars.FindVar("vid_fullscreen_mode").asString(),
-                depthBits = cvars.FindVar("vid_depthbits").asInt(),
-                samples = cvars.FindVar("vid_samples").asInt(),
+                fullscreen = cvars.find<Boolean>("vid_fullscreen").typedValue,
+                hdpiMode = cvars.find<HdpiMode>("vid_hidpi").typedValue,
+                width = cvars.find<Int>("vid_windowed_width").typedValue,
+                height = cvars.find<Int>("vid_windowed_height").typedValue,
+                vsync = cvars.find<Boolean>("vid_vsync").typedValue,
+                fullscreenMode = cvars.find<String>("vid_fullscreen_mode").typedValue,
+                depthBits = cvars.find<Int>("vid_depthbits").typedValue,
+                samples = cvars.find<Int>("vid_samples").typedValue,
             )
         }
     }
@@ -36,7 +37,7 @@ data class CakeVideoModeSettings(
 fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<String> {
     // These are hardware suggestions; saved mode IDs remain valid when absent from this monitor.
     if (name == "vid_fullscreen_mode") {
-        return (listOf("desktop") + cvars.FindVar("vid_fullscreen_modes").asString()
+        return (listOf("desktop") + cvars.find<String>("vid_fullscreen_modes").typedValue
             .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
     }
     val type = cvars.definition(name)?.type

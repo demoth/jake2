@@ -6,6 +6,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import org.demoth.cake.download.CakeDownloadCache
 import java.util.Locale
 
@@ -25,7 +26,7 @@ class CakeFileResolver(
     private val downloadCache: CakeDownloadCache = CakeDownloadCache(),
 ) : FileHandleResolver {
 
-    private val fsDebugLoaders = Cvar.getInstance().FindVar("fs_debug_loaders")
+    private val fsDebugLoaders = Cvar.getInstance().find<Boolean>("fs_debug_loaders")
     private val vfsAssetSource = CakeVfsAssetSource()
     private val warnedMissing = LinkedHashSet<Pair<String, ResourceKind>>()
 
@@ -92,7 +93,7 @@ class CakeFileResolver(
             return null
         }
 
-        if (fsDebugLoaders.asBoolean()) {
+        if (fsDebugLoaders.typedValue) {
             val fallbackPath = resourceKind.fallbackAssetPath
                 ?: throw MissingResourceException(path, resourceKind, "resolver")
             warnMissingOnce(path, resourceKind, "using fallback '$fallbackPath'")

@@ -8,12 +8,15 @@ import jake2.qcommon.player_state_t
 import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.Test
 
+/** Checks frame selection from parsed messages; registers only entity cvars before consumer construction. */
 class ClientEntityManagerFrameSelectionTest {
 
     @Test
     fun previousFrameTracksImmediatePriorServerFrameForInterpolation() {
+        CakeCvars.registerEntities()
         val manager = ClientEntityManager()
         try {
             processFrame(manager, frameNumber = 1, lastFrame = 0, previousGunFrame = 0, currentGunFrame = 10)

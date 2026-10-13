@@ -23,6 +23,7 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -202,8 +203,9 @@ class Cake(
 
     }
     private var backgroundColor = Color.BLACK
-    private val clDebugStufftext = Cvar.getInstance().FindVar("cl_debug_stufftext")
-    private val clMaxfps = Cvar.getInstance().FindVar("cl_maxfps")
+    private val clDebugStufftext = Cvar.getInstance().find<Boolean>("cl_debug_stufftext")
+    private val clMaxfps = Cvar.getInstance().find<Float>("cl_maxfps")
+    private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
     init {
         Cbuf.AddText("set thinclient 1")
@@ -230,7 +232,7 @@ class Cake(
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // Game UI shares one reference scale; engine overlays and backdrops use window coordinates.
         uiViewport = UiViewport()
-        uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").asFloat())
+        uiViewport.setReferenceHeight(uiSize.typedValue)
         uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
@@ -330,7 +332,7 @@ class Cake(
          * Send the rest of the command line over as an unconnected command.
          */
         Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
-            val rconPassword = Cvar.getInstance().FindVar("rcon_password").asString()
+            val rconPassword = Cvar.getInstance().find<String>("rcon_password").typedValue
             if (rconPassword.isEmpty()) {
                 Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
                 return@AddCommand
@@ -352,7 +354,7 @@ class Cake(
             val to = if (networkState == CONNECTED || networkState == ACTIVE) {
                 netchan.remote_address
             } else {
-                val rconAddress = Cvar.getInstance().FindVar("rcon_address").asString()
+                val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
                     Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
                     return@AddCommand
@@ -689,7 +691,7 @@ class Cake(
             CheckForResend(deltaSeconds)
 
             if (!drawable) return
-            if (uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").asFloat())) {
+            if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
                 uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
             }
             viewport.apply()
@@ -843,7 +845,7 @@ class Cake(
     }
 
     private fun currentClientCommandStepMs(): Float {
-        val hz = clMaxfps.asFloat()
+        val hz = clMaxfps.typedValue
         return 1000f / hz
     }
 
@@ -1209,7 +1211,7 @@ class Cake(
                 }
 
                 is StuffTextMessage -> {
-                    if (clDebugStufftext.asBoolean()) {
+                    if (clDebugStufftext.typedValue) {
                         Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
                     }
                     val filtered = filterServerStuffText(msg.text)
@@ -1552,13 +1554,13 @@ class Cake(
     }
 
     private fun currentPlayerSetupForm(): PlayerSetupFormState {
-        val name = Cvar.getInstance().FindVar("name").asString().ifBlank { "unnamed" }
-        val password = Cvar.getInstance().FindVar("password").asString()
-        val skinValue = Cvar.getInstance().FindVar("skin").asString().ifBlank { "male/grunt" }
+        val name = Cvar.getInstance().find<String>("name").typedValue.ifBlank { "unnamed" }
+        val password = Cvar.getInstance().find<String>("password").typedValue
+        val skinValue = Cvar.getInstance().find<String>("skin").typedValue.ifBlank { "male/grunt" }
         val split = skinValue.split('/', limit = 2)
         val rawModel = split.firstOrNull().orEmpty().ifBlank { "male" }
         val rawSkin = split.getOrNull(1).orEmpty().ifBlank { "grunt" }
-        val hand = Cvar.getInstance().FindVar("hand").asInt()
+        val hand = Cvar.getInstance().find<Int>("hand").typedValue
         return playerSetupCatalog().normalize(
             PlayerSetupFormState(
                 name = name,

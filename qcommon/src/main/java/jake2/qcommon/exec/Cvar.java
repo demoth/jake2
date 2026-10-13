@@ -198,7 +198,7 @@ public class Cvar extends Globals {
         return (var == null) ? "" : var.string;
     }
 
-    public cvar_t FindVar(String var_name) {
+    public cvar_t<?> FindVar(String var_name) {
         return cvarMap.get(resolveCanonicalName(var_name));
     }
 
@@ -559,18 +559,37 @@ public class Cvar extends Globals {
         }
     }
 
+    /** Acquires an existing typed entry; missing, untyped and mismatched declarations fail here. */
+    @SuppressWarnings("unchecked")
+    public <T> cvar_t<T> find(String name, Class<T> expectedType) {
+        cvar_t<?> var = FindVar(name);
+        if (var == null) throw new IllegalArgumentException("Unknown cvar: " + name);
+        CvarSpec<?> spec = var.getDefinition();
+        if (spec == null) throw new IllegalArgumentException("Cvar " + name + " has no type declaration");
+        Object defaultValue = spec.getDefaultValue();
+        Class<?> declaredType = defaultValue instanceof Enum<?>
+                ? ((Enum<?>) defaultValue).getDeclaringClass() : defaultValue.getClass();
+        Class<?> expected = expectedType == boolean.class ? Boolean.class
+                : expectedType == int.class ? Integer.class
+                : expectedType == float.class ? Float.class : expectedType;
+        if (declaredType != expected)
+            throw new IllegalArgumentException("Cvar " + name + " declares " + declaredType.getSimpleName()
+                    + ", requested " + expected.getSimpleName());
+        return (cvar_t<T>) var;
+    }
+
     /** Registers a local contract without requiring callers to construct a spec. */
-    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue, int flags, String description) {
+    public <T> cvar_t<T> register(String name, CvarType<T> type, T defaultValue, int flags, String description) {
         return register(new CvarSpec<>(name, type, defaultValue, flags, description));
     }
 
     /** Registers a contract with flags when no description is needed. */
-    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue, int flags) {
+    public <T> cvar_t<T> register(String name, CvarType<T> type, T defaultValue, int flags) {
         return register(name, type, defaultValue, flags, null);
     }
 
     /** Registers a contract with no flags or description. */
-    public <T> cvar_t register(String name, CvarType<T> type, T defaultValue) {
+    public <T> cvar_t<T> register(String name, CvarType<T> type, T defaultValue) {
         return register(name, type, defaultValue, 0, null);
     }
 
@@ -578,16 +597,17 @@ public class Cvar extends Globals {
      * Attaches a subsystem's contract and initializes caches while preserving entry identity
      * and valid values loaded before registration.
      */
-    public cvar_t register(CvarSpec<?> spec) {
+    @SuppressWarnings("unchecked")
+    public <T> cvar_t<T> register(CvarSpec<T> spec) {
         String name = spec.getName();
         if (!name.equals(resolveCanonicalName(name)))
             throw new IllegalArgumentException("Define the canonical cvar name, not an alias: " + name);
         CvarSpec<?> previous = definition(name);
         if (previous != null) {
             if (!previous.equals(spec)) throw new IllegalArgumentException("Conflicting cvar definition: " + name);
-            return FindVar(name);
+            return (cvar_t<T>) FindVar(name);
         }
-        cvar_t var = FindVar(name);
+        cvar_t<T> var = (cvar_t<T>) FindVar(name);
         int flags = spec.getFlags() | (var == null ? 0 : var.flags);
         CvarValue active = normalize(spec, spec.getDefaultString(), flags);
         CvarValue pending = null;
@@ -603,7 +623,7 @@ public class Cvar extends Globals {
                 }
             }
         } else {
-            var = new cvar_t();
+            var = new cvar_t<>();
             var.name = name;
             cvarMap.put(name, var);
         }

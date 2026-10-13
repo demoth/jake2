@@ -1,6 +1,7 @@
 package org.demoth.cake.download
 
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import java.nio.file.Path
 
 enum class CakeDownloadCategory(val cvarName: String) {
@@ -88,7 +89,7 @@ class CakeDownloadManager(
     fun pendingCount(): Int = pending.size
 
     private fun isEnabled(cvarName: String): Boolean {
-        return cvars.FindVar(cvarName).asBoolean()
+        return cvars.find<Boolean>(cvarName).typedValue
     }
 
     companion object {

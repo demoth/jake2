@@ -4,6 +4,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import kotlin.math.ceil
 
 /**
@@ -75,8 +76,8 @@ class FireAndForgetCakeAudioSystem(
     private val pending = mutableListOf<PendingPlayback>()
     private val activeVoices = mutableListOf<ActiveVoice>()
     private val knownSounds = mutableSetOf<Sound>()
-    private val effectsVolume = Cvar.getInstance().FindVar("s_volume")
-    private val maxVoices = Cvar.getInstance().FindVar("s_maxvoices")
+    private val effectsVolume = Cvar.getInstance().find<Float>("s_volume")
+    private val maxVoices = Cvar.getInstance().find<Int>("s_maxvoices")
 
     /**
      * Updates listener orientation/position and respatializes currently active channels/loops.
@@ -196,7 +197,7 @@ class FireAndForgetCakeAudioSystem(
 
         if (replaced != null) {
             stopVoice(replaced)
-        } else if (activeVoices.size >= maxVoices.asInt()) {
+        } else if (activeVoices.size >= maxVoices.typedValue) {
             val candidate = pickReplacementCandidate(request.entityIndex, now) ?: return
             stopVoice(candidate)
         }
@@ -242,7 +243,7 @@ class FireAndForgetCakeAudioSystem(
 
         // Keep already-running loops stable under saturation. One-shots are still allowed
         // to steal loop voices, but loop sync itself should not churn ambience every frame.
-        if (activeVoices.size >= maxVoices.asInt()) {
+        if (activeVoices.size >= maxVoices.typedValue) {
             return null
         }
 
@@ -329,7 +330,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateSpatial(request: SoundPlaybackRequest, origin: Vector3?): SpatialParams {
-        val baseVolume = (request.baseVolume * effectsVolume.asFloat()).coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.typedValue).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
@@ -350,7 +351,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateLoopSpatial(request: EntityLoopSoundRequest): SpatialParams {
-        val baseVolume = (request.baseVolume * effectsVolume.asFloat()).coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.typedValue).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }

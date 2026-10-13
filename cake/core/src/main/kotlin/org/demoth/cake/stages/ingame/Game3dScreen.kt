@@ -30,7 +30,6 @@ import jake2.qcommon.Globals
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.util.Math3D
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import org.demoth.cake.*
@@ -302,8 +301,8 @@ class Game3dScreen(
         postProcessBatch.shader = postProcessShader
         postProcessBatch.use {
             postProcessShader.setUniform4fv("u_blendColor", blend, 0, 4)
-            postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.postVignetteEnabled()) 1f else 0f)
-            postProcessShader.setUniformf("u_vignetteStrength", RenderTuningCvars.postVignetteStrength())
+            postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.rPostVignette.typedValue) 1f else 0f)
+            postProcessShader.setUniformf("u_vignetteStrength", RenderTuningCvars.rPostVignetteStrength.typedValue)
             postProcessShader.setUniformf("u_underwaterEnabled", if (underwaterPostEnabled) 1f else 0f)
             postProcessShader.setUniformf("u_timeSeconds", Globals.curtime * 0.001f)
             it.draw(region, 0f, 0f, width, height)

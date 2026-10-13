@@ -34,13 +34,46 @@ class TypedCvarInteropTest {
         val cvars = Cvar()
         // Video cvars queue changes even without a running server.
         val text = cvars.register("vid_text", CvarTypes.STRING, "old", CVAR_LATCH)
-        assertNull(text.pendingStringValue)
+        assertNull(text.pendingValue)
         val result = cvars.setResult(text.name, "")
         assertEquals(CvarSetResult.Status.QUEUED, result.status)
-        assertEquals("", text.pendingStringValue)
+        assertEquals("", text.pendingValue)
         assertEquals("", text.rawPendingString)
         assertEquals("old", text.rawString)
     }
+
+    @Test
+    fun `checked lookup preserves identity and rejects mismatched undeclared or missing entries`() {
+        val cvars = Cvar()
+        val raw = cvars.Get("toggle", "true", 0)
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("toggle") }
+        val declared: cvar_t<Boolean> = cvars.register("toggle", CvarTypes.BOOLEAN, false)
+        assertSame(raw, declared)
+        val found = cvars.find<Boolean>("toggle")
+        assertSame(declared, found)
+        val value: Boolean = found.typedValue
+        assertTrue(value)
+        cvars.AddAlias("alias", "toggle")
+        assertSame(found, cvars.find<Boolean>("alias"))
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Int>("toggle") }
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Any>("toggle") }
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("missing") }
+        val unknown: cvar_t<*> = cvars.FindVar("toggle")
+        assertEquals("1", unknown.rawString)
+    }
+
+    @Test
+    fun `checked lookup uses choice native types and exact enum classes`() {
+        val cvars = Cvar()
+        val choice = cvars.register("samples", CvarTypes.ChoiceType(listOf(0, 4)), 4)
+        assertSame(choice, cvars.find<Int>("samples"))
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Float>("samples") }
+        val mode = cvars.register("mode", CvarTypes.enumeration<Mode>(), Mode.Pixels)
+        assertSame(mode, cvars.find<Mode>("mode"))
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<OtherMode>("mode") }
+    }
+
+    private enum class OtherMode { Pixels }
 
     private enum class Mode {
         Pixels, Logical;

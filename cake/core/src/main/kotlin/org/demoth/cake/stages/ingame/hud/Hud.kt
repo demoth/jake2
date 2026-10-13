@@ -12,6 +12,7 @@ import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.player_state_t
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 import java.util.Locale
@@ -362,8 +363,8 @@ internal class Hud(
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
-    private val crosshairCvar = Cvar.getInstance().FindVar("cl_crosshair")
-    private val clShowFpsCvar = Cvar.getInstance().FindVar("cl_showfps")
+    private val crosshairCvar = Cvar.getInstance().find<Int>("cl_crosshair")
+    private val clShowFpsCvar = Cvar.getInstance().find<Int>("cl_showfps")
     private var crosshairPic: String? = null
     private var crosshairTexture: Texture? = null
     private val fpsFrameTimesMicros = LongArray(FPS_SAMPLE_WINDOW)
@@ -500,7 +501,7 @@ internal class Hud(
     }
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
-        val nextCrosshairPic = resolveCrosshairPicName(crosshairCvar.asInt())
+        val nextCrosshairPic = resolveCrosshairPicName(crosshairCvar.typedValue)
         if (nextCrosshairPic == null) {
             crosshairPic = null
             crosshairTexture = null
@@ -608,7 +609,7 @@ internal class Hud(
      * - `3`: adds a second line with max/min/avg frame time in milliseconds
      */
     private fun drawFpsCounter(screenWidth: Int, screenHeight: Int) {
-        val showFpsMode = clShowFpsCvar.asInt()
+        val showFpsMode = clShowFpsCvar.typedValue
         if (showFpsMode < 1) {
             return
         }

@@ -29,26 +29,26 @@ class CachedCvarTest {
         val types = listOf(booleanType, intType, floatType, stringType, enumType)
         val initialCalls = types.map { it.calls }
         assertTrue(initialCalls.all { it > 0 })
+        assertSame(integer, registry.find<Int>("integer"))
         repeat(2) {
-            assertFalse(boolean.asBoolean())
-            assertEquals(0, integer.asInt())
-            assertEquals(0f, float.asFloat())
-            assertEquals("", string.asString())
-            assertEquals(Mode.Pixels, enum.asEnum(Mode::class.java))
-            assertNull(boolean.pendingBooleanValue)
-            assertNull(integer.pendingIntValue)
-            assertNull(float.pendingFloatValue)
-            assertNull(string.pendingStringValue)
-            assertNull(enum.getPendingEnumValue(Mode::class.java))
+            assertFalse(boolean.typedValue)
+            assertEquals(0, integer.typedValue)
+            assertEquals(0f, float.typedValue)
+            assertEquals("", string.typedValue)
+            assertEquals(Mode.Pixels, enum.typedValue)
+            assertNull(boolean.pendingValue)
+            assertNull(integer.pendingValue)
+            assertNull(float.pendingValue)
+            assertNull(string.pendingValue)
+            assertNull(enum.pendingValue)
             assertEquals("0", integer.rawString)
             assertNull(integer.rawPendingString)
             assertNotNull(integer.definition)
         }
         assertThrows(IllegalStateException::class.java) { integer.asBoolean() }
-        assertThrows(IllegalStateException::class.java) { boolean.pendingStringValue }
         assertEquals(initialCalls, types.map { it.calls })
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(integer.name, "16777217").status)
-        assertEquals(16_777_217, integer.asInt())
+        assertEquals(16_777_217, integer.typedValue)
         assertTrue(intType.calls > initialCalls[1])
     }
 
@@ -60,14 +60,14 @@ class CachedCvarTest {
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(variable.name, "new").status)
         val before = type.calls
         repeat(2) {
-            assertEquals("new", variable.asString())
-            assertNull(variable.pendingStringValue)
+            assertEquals("new", variable.typedValue)
+            assertNull(variable.pendingValue)
         }
         assertEquals(before, type.calls)
         variable.modified = false
         assertEquals(CvarSetResult.Status.REJECTED, registry.setResult(variable.name, "rejected").status)
         assertTrue(type.calls > before)
-        assertEquals("new", variable.asString())
+        assertEquals("new", variable.typedValue)
         assertEquals("new", variable.rawString)
         assertFalse(variable.modified)
     }
@@ -80,18 +80,18 @@ class CachedCvarTest {
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(variable.name, "second").status)
         val beforeReads = type.calls
         repeat(2) {
-            assertEquals("first", variable.asString())
-            assertEquals("second", variable.pendingStringValue)
+            assertEquals("first", variable.typedValue)
+            assertEquals("second", variable.pendingValue)
         }
         assertEquals(beforeReads, type.calls)
         variable.modified = false
         assertEquals(CvarSetResult.Status.REJECTED, registry.setResult(variable.name, "missing").status)
-        assertEquals("first", variable.asString())
-        assertEquals("second", variable.pendingStringValue)
+        assertEquals("first", variable.typedValue)
+        assertEquals("second", variable.pendingValue)
         assertFalse(variable.modified)
         registry.updateLatchedVars()
-        assertEquals("second", variable.asString())
-        assertNull(variable.pendingStringValue)
+        assertEquals("second", variable.typedValue)
+        assertNull(variable.pendingValue)
         assertNull(variable.rawPendingString)
         assertTrue(variable.modified)
     }
@@ -105,21 +105,21 @@ class CachedCvarTest {
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(boolean.name, "false").status)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(float.name, "0.0").status)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(mode.name, Mode.Logical.name).status)
-        assertTrue(boolean.asBoolean())
-        assertEquals(1f, float.asFloat())
-        assertEquals(Mode.Pixels, mode.asEnum(Mode::class.java))
-        assertEquals(false, boolean.pendingBooleanValue)
-        assertEquals(0f, float.pendingFloatValue)
-        assertEquals(Mode.Logical, mode.getPendingEnumValue(Mode::class.java))
+        assertTrue(boolean.typedValue)
+        assertEquals(1f, float.typedValue)
+        assertEquals(Mode.Pixels, mode.typedValue)
+        assertEquals(false, boolean.pendingValue)
+        assertEquals(0f, float.pendingValue)
+        assertEquals(Mode.Logical, mode.pendingValue)
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(mode.name, Mode.Pixels.name).status)
-        assertNull(mode.getPendingEnumValue(Mode::class.java))
+        assertNull(mode.pendingValue)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(mode.name, Mode.Logical.name).status)
         registry.updateLatchedVars()
-        assertFalse(boolean.asBoolean())
-        assertEquals(0f, float.asFloat())
-        assertEquals(Mode.Logical, mode.asEnum(Mode::class.java))
-        assertNull(boolean.pendingBooleanValue)
-        assertNull(float.pendingFloatValue)
-        assertNull(mode.getPendingEnumValue(Mode::class.java))
+        assertFalse(boolean.typedValue)
+        assertEquals(0f, float.typedValue)
+        assertEquals(Mode.Logical, mode.typedValue)
+        assertNull(boolean.pendingValue)
+        assertNull(float.pendingValue)
+        assertNull(mode.pendingValue)
     }
 }

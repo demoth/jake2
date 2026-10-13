@@ -32,16 +32,15 @@ data class CvarSetResult(
 }
 
 /** Resolved mutation payload. Typed slots are populated once, then copied into the existing entry. */
-internal class CvarValue(val token: String, value: Any) {
-    val booleanValue: Boolean? = value as? Boolean
-    val intValue: Int? = value as? Int
-    val floatValue: Float? = value as? Float
-    val stringValue: String? = value as? String
-    val enumValue: Enum<*>? = value as? Enum<*>
+internal class CvarValue(val token: String, val value: Any) {
     val legacyFloat: Float = jake2.qcommon.util.Lib.atof(token)
 
     init {
-        require(booleanValue != null || intValue != null || floatValue != null ||
-            stringValue != null || enumValue != null) { "unsupported cvar value type" }
+        require(value is Boolean || value is Int || value is Float || value is String || value is Enum<*>) {
+            "unsupported cvar value type"
+        }
     }
 }
+
+/** Acquires a required native reference, checking the declared type once at lookup. */
+inline fun <reified T : Any> Cvar.find(name: String): cvar_t<T> = find(name, T::class.javaObjectType)

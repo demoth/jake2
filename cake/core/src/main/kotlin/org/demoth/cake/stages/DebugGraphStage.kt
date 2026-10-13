@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.NetworkDebugSnapshot
 import java.util.EnumMap
@@ -128,7 +129,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     )
 
     private val shapeRenderer = ShapeRenderer()
-    private val metricEnabledCvars = EnumMap<MetricId, jake2.qcommon.exec.cvar_t>(MetricId::class.java)
+    private val metricEnabledCvars = EnumMap<MetricId, jake2.qcommon.exec.cvar_t<Boolean>>(MetricId::class.java)
     private val metricSeries = EnumMap<MetricId, MetricSeries>(MetricId::class.java)
     private val metricMaxValueLabels = EnumMap<MetricId, Label>(MetricId::class.java)
     private val metricCurrentValueLabels = EnumMap<MetricId, Label>(MetricId::class.java)
@@ -137,7 +138,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     init {
         metricDefinitions.forEach { definition ->
             val metricId = definition.id
-            metricEnabledCvars[metricId] = Cvar.getInstance().FindVar(definition.name)
+            metricEnabledCvars[metricId] = Cvar.getInstance().find<Boolean>(definition.name)
             metricSeries[metricId] = MetricSeries()
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
@@ -375,7 +376,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     }
 
     private fun isMetricEnabled(metricId: MetricId): Boolean =
-        metricEnabledCvars.getValue(metricId).asBoolean()
+        metricEnabledCvars.getValue(metricId).typedValue
 
     private fun hideAllMetricLabels() {
         metricMaxValueLabels.values.forEach { it.isVisible = false }

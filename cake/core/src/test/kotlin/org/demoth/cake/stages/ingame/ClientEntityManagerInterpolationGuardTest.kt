@@ -8,12 +8,15 @@ import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import org.demoth.cake.ClientEntity
 import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.Test
 
+/** Checks teleport interpolation guards with the normal entity cvar prerequisites. */
 class ClientEntityManagerInterpolationGuardTest {
 
     @Test
     fun teleportEventUsesNoLerpReappearedPath() {
+        CakeCvars.registerEntities()
         val manager = ClientEntityManager()
         try {
             val entityNumber = 7

@@ -37,6 +37,19 @@ class TypedCvarTest {
         return new CvarSpec<>(name, type, value, flags, "Test setting");
     }
 
+    @Test
+    void javaLookupAcceptsPrimitiveAndWrapperTokensWithoutChangingLegacyAccess() {
+        cvar_t<Integer> registered = registry.register("number", CvarTypes.INTEGER, 7);
+        cvar_t<Integer> found = registry.find("number", int.class);
+        assertSame(registered, found);
+        assertSame(found, registry.find("number", Integer.class));
+        int nativeValue = found.getTypedValue();
+        assertEquals(7, nativeValue);
+        assertEquals(7f, registry.FindVar("number").value);
+        assertSame(registry.register("toggle", CvarTypes.BOOLEAN, false), registry.find("toggle", boolean.class));
+        assertSame(registry.register("scale", CvarTypes.FLOAT, 1f), registry.find("scale", float.class));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"2", "-1", "1.0", "yes", "NaN", "", "truthy"})
     void booleansRejectNumericTruthinessAndUnknownWords(String text) {
@@ -153,11 +166,11 @@ class TypedCvarTest {
         assertSame(entry, variable);
         assertSame(entry, registry.FindVar("number"));
         assertEquals(7, variable.asInt());
-        assertNull(variable.getPendingIntValue());
+        assertNull(variable.getPendingValue());
         registry.Set("valid", " +0009 ").latched_string = " +0010 ";
         var valid = registry.register(spec("valid", CvarTypes.INTEGER, 7, CVAR_LATCH));
         assertEquals(9, valid.asInt());
-        assertEquals(10, valid.getPendingIntValue());
+        assertEquals(10, valid.getPendingValue());
         assertEquals("9", registry.VariableString("valid"));
         assertEquals("10", registry.FindVar("valid").latched_string);
     }
@@ -204,14 +217,14 @@ class TypedCvarTest {
             write.run();
             // Check each path before another write can mask a partial mutation.
             assertEquals(1, variable.asInt());
-            assertEquals(2, variable.getPendingIntValue());
+            assertEquals(2, variable.getPendingValue());
             assertEquals(CVAR_LATCH | CVAR_USERINFO, entry.flags);
             assertFalse(entry.modified);
             assertFalse(Globals.userinfo_modified);
         }
         registry.updateLatchedVars();
         assertEquals(2, variable.asInt());
-        assertNull(variable.getPendingIntValue());
+        assertNull(variable.getPendingValue());
         assertTrue(entry.modified);
         assertTrue(Globals.userinfo_modified);
     }
@@ -234,12 +247,12 @@ class TypedCvarTest {
         assertEquals(QUEUED, registry.setResult("vid_toggle", "true").getStatus());
         assertEquals(UNCHANGED, registry.setResult("vid_toggle", "1").getStatus());
         assertEquals(APPLIED, registry.setResult(variable.name, "false").getStatus());
-        assertNull(variable.getPendingBooleanValue());
+        assertNull(variable.getPendingValue());
         assertEquals(UNCHANGED, registry.setResult(variable.name, "false").getStatus());
         assertEquals(QUEUED, registry.setResult(variable.name, "true").getStatus());
         assertEquals(APPLIED, registry.forceSetResult("vid_toggle", "false").getStatus());
         assertFalse(variable.asBoolean());
-        assertNull(variable.getPendingBooleanValue());
+        assertNull(variable.getPendingValue());
     }
 
     @Test
@@ -293,7 +306,7 @@ class TypedCvarTest {
         registry.setResult(pending.name, "unsafe;pending");
         registry.Get("vid_name", "ignored", CVAR_USERINFO);
         assertEquals(CVAR_LATCH, registry.FindVar("vid_name").flags);
-        assertEquals("unsafe;pending", pending.getPendingStringValue());
+        assertEquals("unsafe;pending", pending.getPendingValue());
     }
 
     @Test
@@ -333,7 +346,7 @@ class TypedCvarTest {
         var path = Files.createTempFile("typed-cvars", ".cfg");
         try {
             assertEquals(QUEUED, singleton.setResult(text.name, "").getStatus());
-            assertEquals("", text.getPendingStringValue());
+            assertEquals("", text.getPendingValue());
             singleton.setResult(number.name, "16777217");
             var unicode = singleton.register(spec("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE));
             singleton.setResult(unicode.name, "Grüße; C:\\quake");
@@ -352,7 +365,7 @@ class TypedCvarTest {
             Cbuf.AddAndExecuteScript(script);
             singleton.updateLatchedVars();
             assertEquals("", text.asString());
-            assertNull(text.getPendingStringValue());
+            assertNull(text.getPendingValue());
             assertEquals(16777217, number.asInt());
             assertEquals("Grüße; C:\\quake", unicode.asString());
             assertEquals("Jäger 日本語", singleton.VariableString("raw_name"));
@@ -397,7 +410,6 @@ class TypedCvarTest {
         assertThrows(IllegalStateException.class, number::asBoolean);
         assertThrows(IllegalStateException.class, number::asFloat);
         assertThrows(IllegalStateException.class, number::asString);
-        assertThrows(IllegalStateException.class, number::getPendingBooleanValue);
         assertThrows(IllegalStateException.class, () -> mode.asEnum(OtherMode.class));
         assertFalse(toggle.asBoolean());
         assertEquals(0, number.asInt());

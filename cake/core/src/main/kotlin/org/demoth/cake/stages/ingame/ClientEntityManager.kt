@@ -8,6 +8,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
@@ -49,12 +50,12 @@ class ClientEntityManager : Disposable {
 
     var time: Int = 0 // this is the time value that the client is rendering at.  always <= cls.realtime
     var lerpAcc: Float = 0f // interpolation accumulator // (0, serverFrame)
-    val rDrawSky = Cvar.getInstance().FindVar("r_drawsky")
-    private val rDrawBeams = Cvar.getInstance().FindVar("r_drawbeams")
-    private val rDrawSprites = Cvar.getInstance().FindVar("r_drawsprites")
-    private val rDrawEntities = Cvar.getInstance().FindVar("r_drawentities")
-    private val clGun = Cvar.getInstance().FindVar("cl_gun")
-    private val clVwep = Cvar.getInstance().FindVar("cl_vwep")
+    val rDrawSky = Cvar.getInstance().find<Boolean>("r_drawsky")
+    private val rDrawBeams = Cvar.getInstance().find<Boolean>("r_drawbeams")
+    private val rDrawSprites = Cvar.getInstance().find<Boolean>("r_drawsprites")
+    private val rDrawEntities = Cvar.getInstance().find<Boolean>("r_drawentities")
+    private val clGun = Cvar.getInstance().find<Boolean>("cl_gun")
+    private val clVwep = Cvar.getInstance().find<Boolean>("cl_vwep")
 
     // model instances to be drawn - updated on every server frame
     var visibleEntities = mutableListOf<ClientEntity>()
@@ -72,7 +73,7 @@ class ClientEntityManager : Disposable {
     var skyEntity: ClientEntity? = null
 
     // debug related
-    private val rDebug = Cvar.getInstance().FindVar("r_debug")
+    private val rDebug = Cvar.getInstance().find<Boolean>("r_debug")
     private var debugWorldOrigin: ClientEntity? = null
 
     var surpressCount = 0
@@ -312,7 +313,7 @@ class ClientEntityManager : Disposable {
         visibleSprites.clear()
         visibleBeams.clear()
         linkedEntityPoolSize = 0
-        if (rDebug.asBoolean()) {
+        if (rDebug.typedValue) {
             if (debugWorldOrigin == null) {
                 debugWorldOrigin = ClientEntity("origin").apply {
                     modelInstance = createOriginArrows(16f)
@@ -345,7 +346,7 @@ class ClientEntityManager : Disposable {
             // network visibility behavior compatible with the original protocol.
             if ((newState.renderfx and Defines.RF_BEAM) != 0) {
                 entity.modelInstance = null
-                if (rDrawBeams.asBoolean()) {
+                if (rDrawBeams.typedValue) {
                     visibleBeams += entity
                 }
                 continue
@@ -388,7 +389,7 @@ class ClientEntityManager : Disposable {
             // render it if the model was successfully loaded
             if (newState.index != gameConfig.playerConfiguration.playerIndex + 1) { // do not render our own model
                 if (entity.modelInstance != null) {
-                    if (rDrawEntities.asBoolean()) {
+                    if (rDrawEntities.typedValue) {
                         (entity.modelInstance.userData as? Md2CustomData)?.let { userData ->
                             userData.frame1 = entity.prev.frame
                             userData.frame2 = resolvedFrame
@@ -397,7 +398,7 @@ class ClientEntityManager : Disposable {
                         }
                         visibleEntities += entity
                     }
-                } else if (entity.spriteAsset != null && rDrawSprites.asBoolean()) {
+                } else if (entity.spriteAsset != null && rDrawSprites.typedValue) {
                     visibleSprites += entity
                 }
                 appendLinkedModelPasses(
@@ -445,7 +446,7 @@ class ClientEntityManager : Disposable {
                 ?: 0
             gun.resolvedRenderFx = Defines.RF_MINLIGHT or Defines.RF_DEPTHHACK or Defines.RF_WEAPONMODEL or localPlayerShellRenderFx
             gun.alpha = 1f
-            if (rDrawEntities.asBoolean() && clGun.asBoolean()) {
+            if (rDrawEntities.typedValue && clGun.typedValue) {
                 visibleEntities += gun
             }
             (gun.modelInstance.userData as? Md2CustomData)?.let { userData ->
@@ -490,7 +491,7 @@ class ClientEntityManager : Disposable {
         if ((ownerState.effects and Defines.EF_POWERSCREEN) == 0) {
             return
         }
-        if (!rDrawEntities.asBoolean()) {
+        if (!rDrawEntities.typedValue) {
             return
         }
 
@@ -556,7 +557,7 @@ class ClientEntityManager : Disposable {
             // `modelindex2 == 255` means per-player linked weapon model in legacy protocol.
             gameConfig.playerConfiguration.getPlayerWeaponModel(
                 skinnum = ownerState.skinnum,
-                vwepEnabled = clVwep.asBoolean(),
+                vwepEnabled = clVwep.typedValue,
             )
         } else {
             gameConfig.getModel(linkedModelIndex)
@@ -594,7 +595,7 @@ class ClientEntityManager : Disposable {
         }
 
         if (linkedEntity.modelInstance != null) {
-            if (!rDrawEntities.asBoolean()) {
+            if (!rDrawEntities.typedValue) {
                 return
             }
             (linkedEntity.modelInstance.userData as? Md2CustomData)?.let { userData ->
@@ -604,7 +605,7 @@ class ClientEntityManager : Disposable {
                 userData.skinIndex = 0
             }
             visibleEntities += linkedEntity
-        } else if (linkedEntity.spriteAsset != null && rDrawSprites.asBoolean()) {
+        } else if (linkedEntity.spriteAsset != null && rDrawSprites.typedValue) {
             visibleSprites += linkedEntity
         }
     }
