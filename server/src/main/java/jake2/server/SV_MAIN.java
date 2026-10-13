@@ -1022,8 +1022,8 @@ public class SV_MAIN implements JakeServer {
 
 
         Cvar cvars = Cvar.getInstance();
-        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_LATCH);
-        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_LATCH);
+        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("dmflags", CvarTypes.INTEGER, Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
         cvars.register("fraglimit", new CvarTypes.IntegerType(0, null), 0, Defines.CVAR_SERVERINFO);
         cvars.register("timelimit", new CvarTypes.FloatType(0f, null), 0f, Defines.CVAR_SERVERINFO);
@@ -1041,6 +1041,7 @@ public class SV_MAIN implements JakeServer {
         sv_timedemo = cvars.register("timedemo", CvarTypes.BOOLEAN, false, 0);
         sv_enforcetime = cvars.register("sv_enforcetime", CvarTypes.BOOLEAN, false, 0);
 
+        // come from MainCommon
         allow_download = cvars.find("allow_download", Boolean.class);
         allow_download_players = cvars.find("allow_download_players", Boolean.class);
         allow_download_models = cvars.find("allow_download_models", Boolean.class);
@@ -1059,10 +1060,6 @@ public class SV_MAIN implements JakeServer {
      *
      * A brand new game has been started.
      */
-    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo) {
-        return createGameInstance(changeMapInfo, null);
-    }
-
     GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo, previous);
         gameImports.gameExports = createGameModInstance(gameImports);
@@ -1071,36 +1068,43 @@ public class SV_MAIN implements JakeServer {
         return gameImports;
     }
 
+    /**
+     * @return if the game is multiplayer or not
+     */
     private boolean initializeServerCvars() {
-        // get any latched variable changes (maxclients, etc)
-        Cvar.getInstance().updateLatchedVars();
+        Cvar cvars = Cvar.getInstance();
+        cvar_t<Boolean> coop = cvars.find("coop", Boolean.class);
+        cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
+        cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
 
-        if (Cvar.getInstance().find("coop", Boolean.class).getTypedValue() && Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()) {
+        // get any latched variable changes (maxclients, etc)
+        cvars.updateLatchedVars();
+
+        if (coop.getTypedValue() && deathmatch.getTypedValue()) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
-            Cvar.getInstance().FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            coop.forceSet(false);
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
         if (Globals.dedicated.getTypedValue()) {
-            if (!Cvar.getInstance().find("coop", Boolean.class).getTypedValue())
-                Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            if (!coop.getTypedValue())
+                deathmatch.forceSet(true);
         }
 
 
         // set max clients based on game mode
-        final cvar_t<Integer> maxclients = Cvar.getInstance().find("maxclients", Integer.class);
 
-        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()) {
+        if (deathmatch.getTypedValue()) {
             if (maxclients.getTypedValue() <= 1)
-                Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        } else if (Cvar.getInstance().find("coop", Boolean.class).getTypedValue()) {
+                maxclients.forceSet(8);
+        } else if (coop.getTypedValue()) {
             if (maxclients.getTypedValue() <= 1 || maxclients.getTypedValue() > 4)
-                Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+                maxclients.forceSet(4);
 
         } else {
             // non-deathmatch, non-coop is one player
-            Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            maxclients.forceSet(1);
         }
         return maxclients.getTypedValue() > 1;
     }
@@ -1305,7 +1309,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         gameImports = createGameInstance(changeMapInfo, gameImports);
 
-        Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
+        Cvar.getInstance().find("nextserver", String.class).set("gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
 
@@ -1367,7 +1371,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
 
         // set serverinfo variable
-        Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+        Cvar.getInstance().find("mapname", String.class).forceSet(gameImports.sv.name);
         Com.Println("mapname: " + gameImports.sv.name);
 
         if (changeMapInfo.state == ServerStates.SS_GAME)

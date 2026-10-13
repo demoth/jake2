@@ -370,7 +370,7 @@ class SV_USER {
             Cbuf.AddText(v);
             Cbuf.AddText("\n");
         }
-        Cvar.getInstance().Set("nextserver", "");
+        Cvar.getInstance().find("nextserver", String.class).set("");
     }
 
     /*
