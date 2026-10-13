@@ -8,6 +8,7 @@ import org.demoth.cake.modelviewer.ModelViewerFileResolver
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -20,6 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
+/** Checks Cake/model-viewer resolution parity; asset cvars initialize the Cake resolver only. */
 class ResolverParityIntegrationTest {
 
     @TempDir
@@ -132,6 +134,7 @@ class ResolverParityIntegrationTest {
         @BeforeAll
         @JvmStatic
         fun setupGdx() {
+            CakeCvars.registerAssets()
             if (Gdx.app == null) {
                 app = HeadlessApplication(EmptyListener(), HeadlessApplicationConfiguration())
             }

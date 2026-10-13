@@ -16,46 +16,18 @@ data class CakeVideoModeSettings(
     val samples: Int = 4,
 ) {
     companion object {
-        private const val DEFAULT_WIDTH = 1024
-        private const val DEFAULT_HEIGHT = 768
-        val DEPTH_BITS_OPTIONS = listOf(16, 24, 32)
-        val SAMPLES_OPTIONS = listOf(0, 2, 4, 8)
-
         /** Snapshot active settings after video cvars have been registered at startup. */
         fun fromCvars(cvars: Cvar = Cvar.getInstance()): CakeVideoModeSettings {
             return CakeVideoModeSettings(
-                fullscreen = parseBoolean(cvars.VariableString("vid_fullscreen")),
+                fullscreen = cvars.FindVar("vid_fullscreen").asBoolean(),
                 hdpiMode = cvars.FindVar("vid_hidpi").asEnum(HdpiMode::class.java),
-                width = parseDimension(cvars.VariableString("vid_windowed_width"), DEFAULT_WIDTH),
-                height = parseDimension(cvars.VariableString("vid_windowed_height"), DEFAULT_HEIGHT),
-                vsync = parseBoolean(cvars.VariableString("vid_vsync"), defaultValue = true),
+                width = cvars.FindVar("vid_windowed_width").asInt(),
+                height = cvars.FindVar("vid_windowed_height").asInt(),
+                vsync = cvars.FindVar("vid_vsync").asBoolean(),
                 fullscreenMode = cvars.FindVar("vid_fullscreen_mode").asString(),
-                depthBits = parseChoice(cvars, "vid_depthbits", DEPTH_BITS_OPTIONS, 24),
-                samples = parseChoice(cvars, "vid_samples", SAMPLES_OPTIONS, 4),
+                depthBits = cvars.FindVar("vid_depthbits").asInt(),
+                samples = cvars.FindVar("vid_samples").asInt(),
             )
-        }
-
-        private fun parseChoice(cvars: Cvar, name: String, choices: List<Int>, default: Int): Int {
-            val raw = cvars.VariableString(name)
-            val value = raw.trim().toIntOrNull()
-            if (value in choices) return value!!
-            if (raw.isNotEmpty()) Com.Warn("Invalid $name '$raw'; using $default\n")
-            return default
-        }
-
-        private fun parseBoolean(value: String, defaultValue: Boolean = false): Boolean {
-            val normalized = value.trim()
-            return when {
-                normalized.equals("1") || normalized.equals("true", ignoreCase = true) || normalized.equals("yes", ignoreCase = true) -> true
-                normalized.equals("0") || normalized.equals("false", ignoreCase = true) || normalized.equals("no", ignoreCase = true) -> false
-                else -> defaultValue
-            }
-        }
-
-        private fun parseDimension(value: String, defaultValue: Int): Int {
-            val parsed = value.trim().toIntOrNull()?.takeIf { it > 0 }
-            if (parsed == null && value.isNotBlank()) Com.Warn("Invalid window dimension '$value'; using $defaultValue\n")
-            return parsed ?: defaultValue
         }
     }
 }
@@ -64,19 +36,14 @@ data class CakeVideoModeSettings(
 fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<String> {
     // These are hardware suggestions; saved mode IDs remain valid when absent from this monitor.
     if (name == "vid_fullscreen_mode") {
-        return (listOf("desktop") + cvars.VariableString("vid_fullscreen_modes")
+        return (listOf("desktop") + cvars.FindVar("vid_fullscreen_modes").asString()
             .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
     }
     val type = cvars.definition(name)?.type
     if (type != null) {
         return if (type.kind == CvarType.Kind.BOOLEAN) listOf("0", "1") else type.choices.map { if (it is Enum<*>) it.name else it.toString() }
     }
-    return when (name) {
-        "vid_fullscreen", "vid_vsync" -> listOf("0", "1")
-        "vid_depthbits" -> CakeVideoModeSettings.DEPTH_BITS_OPTIONS.map { it.toString() }
-        "vid_samples" -> CakeVideoModeSettings.SAMPLES_OPTIONS.map { it.toString() }
-        else -> emptyList()
-    }
+    return emptyList()
 }
 
 /** Stable persisted identifier, independent of display-mode enumeration order. */
@@ -102,9 +69,9 @@ fun rememberWindowedSize(width: Int, height: Int, fullscreen: Boolean, cvars: Cv
     if (fullscreen || width <= 0 || height <= 0) return
     for ((name, value) in listOf("vid_windowed_width" to width, "vid_windowed_height" to height)) {
         val variable = cvars.FindVar(name) ?: continue
-        val pending = variable.latched_string
+        val pending = variable.rawPendingString
         cvars.ForceSet(name, value.toString())
-        variable.latched_string = pending
+        if (pending != null) cvars.Set(name, pending)
     }
 }
 

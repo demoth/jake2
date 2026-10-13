@@ -15,11 +15,11 @@ import java.util.EnumMap
 import kotlin.math.max
 
 enum class MetricId {
-    CALLS,
-    DRAW_CALLS,
-    TEXTURE_BINDINGS,
-    VERTEX_COUNT,
-    SHADER_SWITCHES,
+    R_CALLS,
+    R_DRAW_CALLS,
+    R_TEXTURE_BINDINGS,
+    R_VERTEX_COUNT,
+    R_SHADER_SWITCHES,
     NET_IN_BYTES_PER_SEC,
     NET_OUT_BYTES_PER_SEC,
     NET_PING_MS,
@@ -28,7 +28,7 @@ enum class MetricId {
 
 data class MetricDefinition(
     val id: MetricId,
-    val name: String,
+    val name: String, // used as cvar name
     val color: Color,
     val description: String? = null,
     val requiresGlProfiler: Boolean = false,
@@ -51,7 +51,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
 
         val metricDefinitions: List<MetricDefinition> = listOf(
             MetricDefinition(
-                id = MetricId.CALLS,
+                id = MetricId.R_CALLS,
                 name = "r_debug_calls",
                 color = Color(1f, 0.85f, 0.2f, 0.7f),
                 description = "Show GL call count graph",
@@ -59,7 +59,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 collectValue = { profiler, _ -> profiler?.calls ?: 0 },
             ),
             MetricDefinition(
-                id = MetricId.DRAW_CALLS,
+                id = MetricId.R_DRAW_CALLS,
                 name = "r_debug_drawcalls",
                 color = Color(0.2f, 1f, 0.2f, 0.7f),
                 description = "Show draw call count graph",
@@ -67,7 +67,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 collectValue = { profiler, _ -> profiler?.drawCalls ?: 0 },
             ),
             MetricDefinition(
-                id = MetricId.TEXTURE_BINDINGS,
+                id = MetricId.R_TEXTURE_BINDINGS,
                 name = "r_debug_texturebindings",
                 color = Color(1f, 0.45f, 0.2f, 0.7f),
                 description = "Show texture binding count graph",
@@ -75,7 +75,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 collectValue = { profiler, _ -> profiler?.textureBindings ?: 0 },
             ),
             MetricDefinition(
-                id = MetricId.VERTEX_COUNT,
+                id = MetricId.R_VERTEX_COUNT,
                 name = "r_debug_vertexcount",
                 color = Color(0.2f, 0.7f, 1f, 0.7f),
                 description = "Show submitted vertex count graph",
@@ -83,7 +83,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
                 collectValue = { profiler, _ -> profiler?.vertexCount?.total?.toInt()?.coerceAtLeast(0) ?: 0 },
             ),
             MetricDefinition(
-                id = MetricId.SHADER_SWITCHES,
+                id = MetricId.R_SHADER_SWITCHES,
                 name = "r_debug_shaderswitches",
                 color = Color(0.9f, 0.35f, 1f, 0.7f),
                 description = "Show shader switch count graph",
@@ -137,7 +137,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     init {
         metricDefinitions.forEach { definition ->
             val metricId = definition.id
-            metricEnabledCvars[metricId] = Cvar.getInstance().Get(definition.name, "0", 0, definition.description)
+            metricEnabledCvars[metricId] = Cvar.getInstance().FindVar(definition.name)
             metricSeries[metricId] = MetricSeries()
             val label = Label("", Scene2DSkin.defaultSkin).apply {
                 isVisible = false
@@ -375,7 +375,7 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
     }
 
     private fun isMetricEnabled(metricId: MetricId): Boolean =
-        metricEnabledCvars.getValue(metricId).value != 0f
+        metricEnabledCvars.getValue(metricId).asBoolean()
 
     private fun hideAllMetricLabels() {
         metricMaxValueLabels.values.forEach { it.isVisible = false }

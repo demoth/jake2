@@ -4,7 +4,6 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.exec.CvarTypes
 import kotlin.math.ceil
 
 /**
@@ -76,17 +75,8 @@ class FireAndForgetCakeAudioSystem(
     private val pending = mutableListOf<PendingPlayback>()
     private val activeVoices = mutableListOf<ActiveVoice>()
     private val knownSounds = mutableSetOf<Sound>()
-    private val effectsVolume = Cvar.getInstance().Get(
-        "s_volume",
-        "0.7",
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Effects volume"
-    )
-    private val maxVoices = Cvar.getInstance().register(
-        "s_maxvoices", CvarTypes.IntegerType(1, 128), 32,
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS,
-        "Maximum simultaneous Cake gameplay voices",
-    )
+    private val effectsVolume = Cvar.getInstance().FindVar("s_volume")
+    private val maxVoices = Cvar.getInstance().FindVar("s_maxvoices")
 
     /**
      * Updates listener orientation/position and respatializes currently active channels/loops.
@@ -339,7 +329,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateSpatial(request: SoundPlaybackRequest, origin: Vector3?): SpatialParams {
-        val baseVolume = (request.baseVolume * effectsVolume.value).coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.asFloat()).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }
@@ -360,7 +350,7 @@ class FireAndForgetCakeAudioSystem(
     }
 
     private fun calculateLoopSpatial(request: EntityLoopSoundRequest): SpatialParams {
-        val baseVolume = (request.baseVolume * effectsVolume.value).coerceIn(0f, 1f)
+        val baseVolume = (request.baseVolume * effectsVolume.asFloat()).coerceIn(0f, 1f)
         if (baseVolume <= 0f) {
             return SpatialParams(volume = 0f, pan = 0f)
         }

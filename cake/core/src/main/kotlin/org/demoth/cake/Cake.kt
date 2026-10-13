@@ -100,8 +100,6 @@ class Cake(
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
-        private const val MIN_CLIENT_COMMAND_HZ = 10f
-        private const val MAX_CLIENT_COMMAND_HZ = 125f
         private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
         private val SCREENSHOT_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
@@ -165,7 +163,10 @@ class Cake(
 
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
-    private val startup = startupContext ?: CakeStartupBootstrap.bootstrap()
+    private val startup = run {
+        CakeStartupBootstrap.ensureInitialized()
+        startupContext ?: CakeStartupBootstrap.bootstrap()
+    }
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
@@ -201,11 +202,10 @@ class Cake(
 
     }
     private var backgroundColor = Color.BLACK
-    private val clDebugStufftext = Cvar.getInstance().Get("cl_debug_stufftext", "0", 0, "Log raw server stufftext commands")
-    private val clMaxfps = Cvar.getInstance().Get("cl_maxfps", "62", 0)
+    private val clDebugStufftext = Cvar.getInstance().FindVar("cl_debug_stufftext")
+    private val clMaxfps = Cvar.getInstance().FindVar("cl_maxfps")
 
     init {
-        CakeStartupBootstrap.ensureInitialized()
         Cbuf.AddText("set thinclient 1")
         Netchan.Netchan_Init()
     }
@@ -230,7 +230,7 @@ class Cake(
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // Game UI shares one reference scale; engine overlays and backdrops use window coordinates.
         uiViewport = UiViewport()
-        uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)
+        uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").asFloat())
         uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
@@ -330,7 +330,7 @@ class Cake(
          * Send the rest of the command line over as an unconnected command.
          */
         Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
-            val rconPassword = Cvar.getInstance().VariableString("rcon_password")
+            val rconPassword = Cvar.getInstance().FindVar("rcon_password").asString()
             if (rconPassword.isEmpty()) {
                 Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
                 return@AddCommand
@@ -352,7 +352,7 @@ class Cake(
             val to = if (networkState == CONNECTED || networkState == ACTIVE) {
                 netchan.remote_address
             } else {
-                val rconAddress = Cvar.getInstance().VariableString("rcon_address")
+                val rconAddress = Cvar.getInstance().FindVar("rcon_address").asString()
                 if (rconAddress.isEmpty()) {
                     Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
                     return@AddCommand
@@ -689,7 +689,7 @@ class Cake(
             CheckForResend(deltaSeconds)
 
             if (!drawable) return
-            if (uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)) {
+            if (uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").asFloat())) {
                 uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
             }
             viewport.apply()
@@ -843,7 +843,7 @@ class Cake(
     }
 
     private fun currentClientCommandStepMs(): Float {
-        val hz = clMaxfps.value.coerceIn(MIN_CLIENT_COMMAND_HZ, MAX_CLIENT_COMMAND_HZ)
+        val hz = clMaxfps.asFloat()
         return 1000f / hz
     }
 
@@ -1209,7 +1209,7 @@ class Cake(
                 }
 
                 is StuffTextMessage -> {
-                    if (clDebugStufftext.value != 0f) {
+                    if (clDebugStufftext.asBoolean()) {
                         Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
                     }
                     val filtered = filterServerStuffText(msg.text)
@@ -1552,13 +1552,13 @@ class Cake(
     }
 
     private fun currentPlayerSetupForm(): PlayerSetupFormState {
-        val name = Cvar.getInstance().VariableString("name").ifBlank { "unnamed" }
-        val password = Cvar.getInstance().VariableString("password")
-        val skinValue = Cvar.getInstance().VariableString("skin").ifBlank { "male/grunt" }
+        val name = Cvar.getInstance().FindVar("name").asString().ifBlank { "unnamed" }
+        val password = Cvar.getInstance().FindVar("password").asString()
+        val skinValue = Cvar.getInstance().FindVar("skin").asString().ifBlank { "male/grunt" }
         val split = skinValue.split('/', limit = 2)
         val rawModel = split.firstOrNull().orEmpty().ifBlank { "male" }
         val rawSkin = split.getOrNull(1).orEmpty().ifBlank { "grunt" }
-        val hand = Cvar.getInstance().VariableString("hand").toIntOrNull()?.coerceIn(0, 2) ?: 0
+        val hand = Cvar.getInstance().FindVar("hand").asInt()
         return playerSetupCatalog().normalize(
             PlayerSetupFormState(
                 name = name,
@@ -1605,8 +1605,8 @@ class Cake(
             OptionEntryState(
                 name = cvar.name,
                 description = cvar.description.orEmpty(),
-                value = cvar.string.orEmpty(),
-                latchedValue = cvar.latched_string,
+                value = cvar.rawString,
+                latchedValue = cvar.rawPendingString,
                 choices = videoOptionChoices(cvar.name),
             )
         }

@@ -16,12 +16,12 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks bindings through generated commands; registers input definitions without bootstrapping Cake. */
 class InputManagerBindingsIntegrationTest {
     @BeforeEach
     fun registerInputCvars() {
         CakeCvars.registerInput()
     }
-
 
     @Test
     fun rebindedImmediateControlAffectsGeneratedUserCommand() {

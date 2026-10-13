@@ -14,12 +14,12 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks command timing and history using a fake clock and the normal input cvar definitions. */
 class InputManagerTimingTest {
     @BeforeEach
     fun registerInputCvars() {
         CakeCvars.registerInput()
     }
-
 
     @Test
     fun commandMsecUsesElapsedTimeAndClamp() {

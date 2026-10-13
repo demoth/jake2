@@ -7,11 +7,12 @@ import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
+/** Checks download admission and queueing with an isolated registry containing only download settings. */
 class CakeDownloadManagerTest {
+    private val cvars = Cvar().also(CakeCvars::registerDownloads)
+
     private fun newManager(): CakeDownloadManager {
-        Cvar.Init()
-        CakeCvars.registerAll()
-        return CakeDownloadManager(cache = CakeDownloadCache(Path.of("/tmp/cake-downloads")))
+        return CakeDownloadManager(cache = CakeDownloadCache(Path.of("/tmp/cake-downloads")), cvars = cvars)
     }
 
     @Test
@@ -54,9 +55,9 @@ class CakeDownloadManagerTest {
     @Test
     fun `rejects category disabled by cvar`() {
         val manager = newManager()
-        Cvar.getInstance().Set("allow_download_players", "0")
+        cvars.Set("allow_download_maps", "0")
 
-        val result = manager.enqueue("players/male/tris.md2", null)
+        val result = manager.enqueue("maps/base1.bsp", null)
 
         assertEquals(
             CakeDownloadQueueResult.Rejected(CakeDownloadRejectReason.CATEGORY_DISABLED),

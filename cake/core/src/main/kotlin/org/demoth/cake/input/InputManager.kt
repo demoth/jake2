@@ -6,8 +6,6 @@ import jake2.qcommon.Defines.BUTTON_ATTACK
 import jake2.qcommon.Defines.BUTTON_ANY
 import jake2.qcommon.Defines.BUTTON_USE
 import jake2.qcommon.Defines.CMD_BACKUP
-import jake2.qcommon.Defines.CVAR_ARCHIVE
-import jake2.qcommon.Defines.CVAR_OPTIONS
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.PM_SPECTATOR
 import jake2.qcommon.Defines.PITCH
@@ -75,10 +73,10 @@ class InputManager(
     private var deltaX = 0f
     private var deltaY = 0f
     private var hasMouseReference = false
-    private val sensitivity = Cvar.getInstance().Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity") // todo: make independent from screen size
+    private val sensitivity = Cvar.getInstance().FindVar("in_sensitivity") // todo: make independent from screen size
     private val invertMouse = Cvar.getInstance().FindVar("in_invert_mouse")
-    private val alwaysRun = Cvar.getInstance().Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
-    private val lightLevel = Cvar.getInstance().Get("r_lightlevel", "150", 0, "Light level sent with move commands") // todo: verify a proper server side fix
+    private val alwaysRun = Cvar.getInstance().FindVar("cl_run")
+    private val lightLevel = Cvar.getInstance().FindVar("r_lightlevel") // todo: verify a proper server side fix
     private var mouseWasMoved = false
 
     private val cameraKeyboardRotationSpeed = 140f // degrees per second // todo cvar
@@ -147,7 +145,7 @@ class InputManager(
         cmd.angles[PITCH] = Math3D.ANGLE2SHORT(localPitch - initialPitch!!).toShort()
         cmd.angles[YAW] = Math3D.ANGLE2SHORT(localYaw - initialYaw!!).toShort()
         cmd.angles[ROLL] = 0
-        cmd.lightlevel = lightLevel.value.coerceIn(0f, 255f).toInt().toByte()
+        cmd.lightlevel = lightLevel.asInt().toByte()
 
         cmd.msec = normalizeCommandMsec(commandMsec).toByte()
         commandSequence[cmdIndex] = outgoingSequence
@@ -215,7 +213,7 @@ class InputManager(
 
     private fun currentSpeedMultiplier(): Int {
         val speedHeld = isActive(ImmediateAction.SPEED)
-        val runByDefault = alwaysRun.value != 0f
+        val runByDefault = alwaysRun.asBoolean()
         return if (speedHeld.xor(runByDefault)) runMultiplier else 1
     }
 
@@ -325,8 +323,8 @@ class InputManager(
             deltaY = 0f
             mouseWasMoved = false
         } else {
-            deltaX = sensitivity.value * (screenX - previousX) / Gdx.graphics.width.coerceAtLeast(1)
-            deltaY = sensitivity.value * (screenY - previousY) / Gdx.graphics.height.coerceAtLeast(1)
+            deltaX = sensitivity.asFloat() * (screenX - previousX) / Gdx.graphics.width.coerceAtLeast(1)
+            deltaY = sensitivity.asFloat() * (screenY - previousY) / Gdx.graphics.height.coerceAtLeast(1)
             previousX = screenX.toFloat()
             previousY = screenY.toFloat()
             mouseWasMoved = true

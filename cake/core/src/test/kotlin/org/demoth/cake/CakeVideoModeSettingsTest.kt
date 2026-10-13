@@ -71,17 +71,30 @@ class CakeVideoModeSettingsTest {
         CakeCvars.registerVideoMode(cvars)
         cvars.Set("vid_windowed_width", "1600")
         rememberWindowedSize(1200, 800, fullscreen = false, cvars = cvars)
-        assertEquals("1200", cvars.VariableString("vid_windowed_width"))
-        assertEquals("1600", cvars.FindVar("vid_windowed_width").latched_string)
-        assertEquals("800", cvars.VariableString("vid_windowed_height"))
-        assertNull(cvars.FindVar("vid_windowed_height").latched_string)
+        assertEquals(1200, cvars.FindVar("vid_windowed_width").asInt())
+        assertEquals(1600, cvars.FindVar("vid_windowed_width").pendingIntValue)
+        assertEquals(800, cvars.FindVar("vid_windowed_height").asInt())
+        assertNull(cvars.FindVar("vid_windowed_height").pendingIntValue)
 
-        val config = Files.createFile(directory.resolve("config.cfg"))
+        val config = directory.resolve("config.cfg")
         cvars.writeArchiveVariables(config.toString())
         val text = Files.readString(config)
         assertTrue(text.contains("set vid_windowed_width \"1600\""))
         assertTrue(text.contains("set vid_windowed_height \"800\""))
         assertFalse(text.contains("set vid_fullscreen_modes"))
+        cvars.updateLatchedVars()
+        assertEquals(1600, cvars.FindVar("vid_windowed_width").asInt())
+        assertNull(cvars.FindVar("vid_windowed_width").pendingIntValue)
+    }
+
+    @Test
+    fun resizingToPendingDimensionsSatisfiesTheQueuedChange() {
+        CakeCvars.registerVideoMode(cvars)
+        cvars.Set("vid_windowed_width", "1600")
+        rememberWindowedSize(1600, 900, fullscreen = false, cvars = cvars)
+        assertEquals(1600, cvars.FindVar("vid_windowed_width").asInt())
+        assertNull(cvars.FindVar("vid_windowed_width").rawPendingString)
+        assertNull(cvars.FindVar("vid_windowed_width").pendingIntValue)
     }
 
     @Test
@@ -165,7 +178,7 @@ class CakeVideoModeSettingsTest {
             CakeCvars.registerVideoMode(cvars)
             cvars.setResult("vid_hidpi", HdpiMode.Logical.name)
             cvars.setResult("vid_fullscreen_mode", "1920x1080@144")
-            val config = Files.createFile(directory.resolve("config.cfg"))
+            val config = directory.resolve("config.cfg")
             cvars.writeArchiveVariables(config.toString())
             val script = Files.readString(config)
             cvars.clear()

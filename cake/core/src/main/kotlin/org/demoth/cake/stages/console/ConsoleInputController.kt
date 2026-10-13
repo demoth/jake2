@@ -118,7 +118,7 @@ class ConsoleInputController(
         return buildString {
             append(name)
             append(" (")
-            append(cvar.string)
+            append(cvar.rawString)
             append(')')
             if (!cvar.description.isNullOrBlank()) {
                 append(' ')

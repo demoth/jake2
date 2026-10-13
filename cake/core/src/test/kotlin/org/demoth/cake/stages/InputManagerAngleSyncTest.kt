@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks server/local angle synchronization using the normal input cvar definitions. */
 class InputManagerAngleSyncTest {
     @BeforeEach
     fun registerInputCvars() {

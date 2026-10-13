@@ -4,6 +4,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
+import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -19,6 +20,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @BeforeEach
     fun setUp() {
+        CakeCvars.registerAudio()
         Cvar.getInstance().Set("s_volume", "1")
     }
 

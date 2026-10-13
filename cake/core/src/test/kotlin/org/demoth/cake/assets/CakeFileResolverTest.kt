@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -24,6 +25,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
+/** Checks asset resolution and strict/fallback behavior; only asset cvars and headless file access are needed. */
 class CakeFileResolverTest {
 
     @TempDir
@@ -341,6 +343,7 @@ class CakeFileResolverTest {
         @BeforeAll
         @JvmStatic
         fun setupGdx() {
+            CakeCvars.registerAssets()
             if (Gdx.app == null) {
                 app = HeadlessApplication(EmptyListener(), HeadlessApplicationConfiguration())
             }

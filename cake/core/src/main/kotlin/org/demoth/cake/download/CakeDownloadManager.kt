@@ -88,7 +88,7 @@ class CakeDownloadManager(
     fun pendingCount(): Int = pending.size
 
     private fun isEnabled(cvarName: String): Boolean {
-        return cvars.VariableValue(cvarName) != 0f
+        return cvars.FindVar(cvarName).asBoolean()
     }
 
     companion object {
