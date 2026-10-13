@@ -1132,7 +1132,7 @@ class Cake(
             return
         }
 
-        val port = Cvar.getInstance().VariableValue("qport").toInt()
+        val port = Cvar.getInstance().find<Int>("qport").typedValue
         Globals.userinfo_modified = false
 
         Netchan.sendConnectionlessPacket(

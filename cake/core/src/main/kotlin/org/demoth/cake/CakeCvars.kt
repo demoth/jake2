@@ -16,7 +16,6 @@ object CakeCvars {
         val registry = Cvar.getInstance()
         registerUserInfo(registry)
         registerClient(registry)
-        registerDownloads(registry)
         registerVideoMode(registry)
     }
 
@@ -57,7 +56,6 @@ object CakeCvars {
     }
 
     private fun registerClient(cvars: Cvar) {
-        cvars.register("rcon_password", CvarTypes.STRING, "asdf", 0, "Remote console password")
         cvars.register("rcon_address", CvarTypes.STRING, "127.0.0.1", 0, "Remote console target address")
         cvars.register("cl_debug_stufftext", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Log raw server stufftext commands")
 
@@ -93,14 +91,6 @@ object CakeCvars {
         cvars.register("cl_run", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
         // Protocol byte packing remains at the move-command boundary.
         cvars.register("r_lightlevel", CvarTypes.IntegerType(0, 255), 150, 0, "Light level sent with move commands") // TODO: verify a proper server side fix
-    }
-
-    fun registerDownloads(cvars: Cvar) {
-        cvars.register("allow_download", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Allow downloading missing game content from servers")
-        cvars.register("allow_download_maps", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Allow downloading missing maps from servers")
-        cvars.register("allow_download_models", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Allow downloading missing models from servers")
-        cvars.register("allow_download_sounds", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Allow downloading missing sounds from servers")
-        cvars.register("allow_download_players", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Allow downloading missing player models and skins from servers")
     }
 
     fun registerAudio(cvars: Cvar = Cvar.getInstance()) {

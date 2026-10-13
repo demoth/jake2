@@ -170,7 +170,11 @@ public class TestCvar {
 
 		Info.Print(cvar.Userinfo());
 
-		Assertions.assertEquals("\\msg\\1\\gender\\male\\rate\\25000\\name\\unnamed\\skin\\male/grunt\\fov\\90\\hand\\0", cvar.Userinfo());
+        String userinfo = cvar.Userinfo();
+        var expected = java.util.Map.of("msg", "1", "gender", "male", "rate", "25000",
+                "name", "unnamed", "skin", "male/grunt", "fov", "90", "hand", "0");
+        assertEquals(expected.size() * 2 + 1, userinfo.split("\\\\").length);
+        expected.forEach((key, value) -> assertEquals(value, Info.Info_ValueForKey(userinfo, key)));
 	}
 
 	@Test

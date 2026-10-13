@@ -3,6 +3,7 @@ package jake2.server;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.Globals;
+import jake2.qcommon.MainCommon;
 import jake2.qcommon.ServerStates;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.server.save.ServerSaveJsonStore;
@@ -24,6 +25,7 @@ class GameCvarInitializationTest {
         cvars.clear();
         try {
             cvars.Set("skill", "2");
+            MainCommon.registerCvars(false);
             cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
@@ -60,6 +62,7 @@ class GameCvarInitializationTest {
         cvars.clear();
         EngineWriteRoot.setRoot(temp);
         try {
+            MainCommon.registerCvars(false);
             cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));
@@ -90,6 +93,7 @@ class GameCvarInitializationTest {
             cvars.Set("skill", "2");
             cvars.Set("maxspectators", "8");
             cvars.Set("spectator_password", "secret");
+            MainCommon.registerCvars(false);
             cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             // A picture transition constructs real game imports without loading a BSP or opening sockets.

@@ -1,7 +1,7 @@
 package org.demoth.cake.download
 
 import jake2.qcommon.exec.Cvar
-import org.demoth.cake.CakeCvars
+import jake2.qcommon.MainCommon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 /** Checks download admission and queueing with an isolated registry containing only download settings. */
 class CakeDownloadManagerTest {
-    private val cvars = Cvar().also(CakeCvars::registerDownloads)
+    private val cvars = Cvar().also(MainCommon::registerDownloads)
 
     private fun newManager(): CakeDownloadManager {
         return CakeDownloadManager(cache = CakeDownloadCache(Path.of("/tmp/cake-downloads")), cvars = cvars)

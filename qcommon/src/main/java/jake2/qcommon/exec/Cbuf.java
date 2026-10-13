@@ -285,7 +285,7 @@ public final class Cbuf {
     }
 
     public static void reconfigure(List<String> args, boolean clear) {
-        String dir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE).string;
+        String dir = Cvar.getInstance().find("cddir", String.class).getTypedValue();
         Cbuf.AddText("exec default.cfg\n");
         Cbuf.AddText("bind MWHEELUP weapnext\n");
         Cbuf.AddText("bind MWHEELDOWN weapprev\n");

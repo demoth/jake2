@@ -1,5 +1,6 @@
 package org.demoth.cake
 
+import jake2.qcommon.MainCommon
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
@@ -25,6 +26,7 @@ object CakeStartupBootstrap {
         if (initialized) return
         Cmd.Init()
         Cvar.Init()
+        MainCommon.registerCvars(false)
         CakeCvars.registerAll()
         initialized = true
     }

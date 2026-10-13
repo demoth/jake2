@@ -343,7 +343,7 @@ public final class Com
 
 	public static void DPrintf(String fmt, Vargs vargs)
 	{
-		if (Globals.developer == null || Globals.developer.value == 0)
+		if (Globals.developer == null || !Globals.developer.getTypedValue())
 			return; // don't confuse non-developers with techie stuff...
 		_debugContext = debugContext;
 		Printf(fmt, vargs);

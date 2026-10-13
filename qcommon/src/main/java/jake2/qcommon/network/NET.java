@@ -26,7 +26,7 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.messages.NetworkPacket;
 
 import java.net.DatagramSocket;
@@ -170,32 +170,39 @@ public final class NET {
     }
 
     /**
-     * OpenIP, creates the network sockets. 
+     * Declare protected network settings after startup config has supplied early values.
      */
+    static void registerCvars() {
+        Cvar cvars = Cvar.getInstance();
+        cvars.register("port", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_SERVER, Defines.CVAR_NOSET);
+        cvars.register("ip", CvarTypes.STRING, "localhost", Defines.CVAR_NOSET);
+        cvars.register("clientport", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_CLIENT, Defines.CVAR_NOSET);
+        cvars.register("thinclient", CvarTypes.BOOLEAN, false);
+    }
+
+    /** Creates the network sockets. */
     public static void OpenIP() {
-        cvar_t port, ip, clientport;
-
-        port = Cvar.getInstance().Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
-        ip = Cvar.getInstance().Get("ip", "localhost", Defines.CVAR_NOSET);
-        clientport = Cvar.getInstance().Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
-
-        cvar_t thinclient = Cvar.getInstance().Get("thinclient", "0", 0);
-        cvar_t dedicated = Cvar.getInstance().Get("dedicated", "0", 0);
+        Cvar cvars = Cvar.getInstance();
+        int port = cvars.find("port", Integer.class).getTypedValue();
+        String ip = cvars.find("ip", String.class).getTypedValue();
+        int clientport = cvars.find("clientport", Integer.class).getTypedValue();
+        boolean thinclient = cvars.find("thinclient", Boolean.class).getTypedValue();
+        boolean dedicated = cvars.find("dedicated", Boolean.class).getTypedValue();
 
         // clients do not need server sockets
-        if (thinclient.value == 0.f) {
+        if (!thinclient) {
             if (ip_sockets[NS_SERVER] == null)
-                ip_sockets[NS_SERVER] = Socket(NS_SERVER, ip.string, (int) port.value);
+                ip_sockets[NS_SERVER] = Socket(NS_SERVER, ip, port);
         }
 
         // servers do not need client sockets
-        if (dedicated.value == 0) {
+        if (!dedicated) {
             // first try with cvar clientport value
             if (ip_sockets[Defines.NS_CLIENT] == null)
-                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip.string, (int) clientport.value);
+                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip, clientport);
             // try any port
             if (ip_sockets[Defines.NS_CLIENT] == null)
-                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip.string, Defines.PORT_ANY);
+                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip, Defines.PORT_ANY);
         }
     }
 
@@ -264,7 +271,7 @@ public final class NET {
     /** Sleeps msec or until net socket is ready. */
     public static void Sleep(int msec) {
         if (ip_sockets[NS_SERVER] == null
-                || (Globals.dedicated != null && Globals.dedicated.value == 0))
+                || (Globals.dedicated != null && !Globals.dedicated.getTypedValue()))
             return; // we're not a server, just run full speed
 
         try {
