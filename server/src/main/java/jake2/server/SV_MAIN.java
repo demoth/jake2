@@ -1024,22 +1024,22 @@ public class SV_MAIN implements JakeServer {
         Cvar cvars = Cvar.getInstance();
         cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        cvars.register("dmflags", CvarTypes.INTEGER, Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
-        cvars.register("fraglimit", new CvarTypes.IntegerType(0, null), 0, Defines.CVAR_SERVERINFO);
-        cvars.register("timelimit", new CvarTypes.FloatType(0f, null), 0f, Defines.CVAR_SERVERINFO);
+        cvars.register("dmflags", CvarTypes.INTEGER, Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO, "Deathmatch rule bitmask; combine DF_* flags");
+        cvars.register("fraglimit", new CvarTypes.IntegerType(0, null), 0, Defines.CVAR_SERVERINFO, "End a deathmatch level at this score; 0 disables the limit");
+        cvars.register("timelimit", new CvarTypes.FloatType(0f, null), 0f, Defines.CVAR_SERVERINFO, "Deathmatch level time limit in minutes; 0 disables the limit");
         cvars.register("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("protocol", CvarTypes.INTEGER, Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
         cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-        cvars.register("nextserver", CvarTypes.STRING, "", 0);
-        cvars.register("maxclients", new CvarTypes.IntegerType(1, Defines.MAX_CLIENTS), 1, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        cvars.register("nextserver", CvarTypes.STRING, "", 0, "Console command to execute after a cinematic or picture");
+        cvars.register("maxclients", new CvarTypes.IntegerType(1, Defines.MAX_CLIENTS), 1, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, "Client slot limit; single-player and coop mode also restrict the count");
 
         hostname = cvars.register("hostname", CvarTypes.STRING, "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
-        timeout = cvars.register("timeout", new CvarTypes.FloatType(0f, null), 125f, 0);
-        zombietime = cvars.register("zombietime", new CvarTypes.FloatType(0f, null), 2f, 0);
-        sv_showclamp = cvars.register("showclamp", CvarTypes.BOOLEAN, false, 0);
+        timeout = cvars.register("timeout", new CvarTypes.FloatType(0f, null), 125f, 0, "Seconds without a client message before disconnection");
+        zombietime = cvars.register("zombietime", new CvarTypes.FloatType(0f, null), 2f, 0, "Seconds to retain a disconnected client slot for final reliable messages");
+        sv_showclamp = cvars.register("showclamp", CvarTypes.BOOLEAN, false, 0, "Legacy frame-time clamp diagnostics; unused by the current server and Cake");
         sv_paused = cvars.register("paused", CvarTypes.BOOLEAN, false, 0);
-        sv_timedemo = cvars.register("timedemo", CvarTypes.BOOLEAN, false, 0);
-        sv_enforcetime = cvars.register("sv_enforcetime", CvarTypes.BOOLEAN, false, 0);
+        sv_timedemo = cvars.register("timedemo", CvarTypes.BOOLEAN, false, 0, "Legacy demo benchmarking switch; unused by the current server and Cake");
+        sv_enforcetime = cvars.register("sv_enforcetime", CvarTypes.BOOLEAN, false, 0, "Ignore movement commands that exceed the client time budget");
 
         // come from MainCommon
         allow_download = cvars.find("allow_download", Boolean.class);
@@ -1048,10 +1048,10 @@ public class SV_MAIN implements JakeServer {
         allow_download_sounds = cvars.find("allow_download_sounds", Boolean.class);
         allow_download_maps = cvars.find("allow_download_maps", Boolean.class);
 
-        cvars.register("sv_noreload", CvarTypes.BOOLEAN, false, 0);
-        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH);
-        public_server = cvars.register("public", CvarTypes.BOOLEAN, false, 0);
-        sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE);
+        cvars.register("sv_noreload", CvarTypes.BOOLEAN, false, 0, "Start revisited levels fresh instead of restoring their saved state");
+        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Legacy air acceleration setting; currently not connected to movement");
+        public_server = cvars.register("public", CvarTypes.BOOLEAN, false, 0, "Legacy master-server advertising switch; currently unused");
+        sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE, "Minimum seconds between reconnect attempts from the same remote client");
         resetClients();
     }
 
