@@ -48,7 +48,7 @@ class CachedCvarTest {
             assertNull(integer.rawPendingString)
             assertNotNull(integer.type)
         }
-        assertThrows(IllegalStateException::class.java) { integer.asBoolean() }
+        assertThrows(IllegalArgumentException::class.java) { registry.find<Boolean>("integer") }
         assertEquals(initialCalls, types.map { it.calls })
         assertEquals(initialNativeCalls, types.map { it.nativeCalls })
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(integer.name, "16777217").status)
@@ -73,6 +73,11 @@ class CachedCvarTest {
         assertEquals(4, variable.pendingValue)
         assertEquals("4", variable.rawPendingString)
         assertFalse(variable.modified)
+        assertEquals(textCalls, type.calls)
+        assertEquals(nativeCalls + 2, type.nativeCalls)
+        registry.updateLatchedVars()
+        assertEquals(4, variable.typedValue)
+        assertNull(variable.pendingValue)
         assertEquals(textCalls, type.calls)
         assertEquals(nativeCalls + 2, type.nativeCalls)
     }

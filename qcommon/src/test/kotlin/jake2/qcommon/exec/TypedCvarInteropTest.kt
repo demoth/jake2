@@ -9,10 +9,10 @@ class TypedCvarInteropTest {
     @Test
     fun `Kotlin registration consumes staged input and preserves lookup identity`() {
         val registry = Cvar()
-        registry.Set("count", "0002")
-        assertNull(registry.FindVar("count"))
+        registry.setResult("count", "0002")
+        assertNull(registry.find("count"))
         val variable = registry.register("count", CvarTypes.INTEGER, 0, 0, "Counter")
-        assertSame(variable, registry.FindVar("count"))
+        assertSame(variable, registry.find("count"))
         assertSame(variable, registry.find<Int>("count"))
         assertEquals(2, variable.typedValue)
         assertEquals("2", variable.rawString)
@@ -20,26 +20,26 @@ class TypedCvarInteropTest {
     }
 
     @Test
-    fun `explicit raw declarations cannot become typed declarations`() {
+    fun `string declarations cannot become integer declarations`() {
         val registry = Cvar()
-        val raw = registry.Get("count", "2", 0)
-        assertNull(raw.type)
+        val raw = registry.register("count", CvarTypes.STRING, "2", 0)
+        assertSame(CvarTypes.STRING, raw.type)
         assertThrows(IllegalArgumentException::class.java) {
             registry.register("count", CvarTypes.INTEGER, 0)
         }
-        assertSame(raw, registry.FindVar("count"))
+        assertSame(raw, registry.find("count"))
         assertEquals("2", raw.rawString)
     }
 
     @Test
-    fun `Kotlin consumers use typed accessors and nullable metadata`() {
+    fun `Kotlin consumers use typed accessors and nonnull declarations`() {
         val cvars = Cvar()
         val toggle = cvars.register("toggle", CvarTypes.BOOLEAN, false)
         val count = cvars.register("count", CvarTypes.INTEGER, 0)
-        assertFalse(toggle.asBoolean())
-        assertEquals(0, count.asInt())
+        assertFalse(toggle.typedValue)
+        assertEquals(0, count.typedValue)
         assertEquals("0", count.rawString)
-        assertEquals(CvarType.Kind.BOOLEAN, toggle.type?.kind)
+        assertEquals(CvarType.Kind.BOOLEAN, toggle.type.kind)
     }
 
     @Test
@@ -58,9 +58,9 @@ class TypedCvarInteropTest {
     @Test
     fun `checked lookup preserves identity and rejects mismatched undeclared or missing entries`() {
         val cvars = Cvar()
-        cvars.Get("raw", "true", 0)
+        cvars.register("raw", CvarTypes.STRING, "true", 0)
         assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("raw") }
-        cvars.Set("toggle", "true")
+        cvars.setResult("toggle", "true")
         val declared: cvar_t<Boolean> = cvars.register("toggle", CvarTypes.BOOLEAN, false)
         val found = cvars.find<Boolean>("toggle")
         assertSame(declared, found)
@@ -71,7 +71,7 @@ class TypedCvarInteropTest {
         assertThrows(IllegalArgumentException::class.java) { cvars.find<Int>("toggle") }
         assertThrows(IllegalArgumentException::class.java) { cvars.find<Any>("toggle") }
         assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("missing") }
-        val unknown: cvar_t<*> = cvars.FindVar("toggle")
+        val unknown: cvar_t<*> = requireNotNull(cvars.find("toggle"))
         assertEquals("1", unknown.rawString)
     }
 
@@ -101,7 +101,7 @@ class TypedCvarInteropTest {
         assertEquals(Mode.Pixels, mode.defaultValue)
         assertEquals("Pixels", mode.rawString)
         assertEquals(CvarSetResult.Status.APPLIED, cvars.setResult(mode.name, Mode.Logical.name).status)
-        assertEquals(Mode.Logical, mode.asEnum(Mode::class.java))
+        assertEquals(Mode.Logical, mode.typedValue)
         val choices = listOf("desktop")
         val displayType = CvarTypes.ChoiceType(choices)
         assertEquals(listOf("desktop"), displayType.choices)

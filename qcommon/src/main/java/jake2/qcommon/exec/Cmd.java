@@ -172,7 +172,7 @@ public final class Cmd {
             String token = Com.Parse(new Com.ParseHelp(text, i + 1));
 
             i += token.length();
-            token = Cvar.getInstance().VariableString(token);
+            token = Cvar.getInstance().getRawString(token);
             result.append(token);
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {

@@ -29,40 +29,21 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.ServerStates;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
-
-import static jake2.qcommon.Defines.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * One variable with optional native typing, validation and write/latch behavior.
- * TODO: Retire public legacy value fields after callers/writers migrate; direct writes bypass validation and leave native state stale.
- */
+import static jake2.qcommon.Defines.*;
+
+/** One typed variable with immutable declaration metadata and validated active/pending values. */
 public final class cvar_t<T> {
-    public String name;
-    // TODO: After legacy field users migrate, derive declared entries' rawString from the native value.
-    // Raw text access stays; unconstrained entries still need text storage. Preserve 0/1 and enum-name tokens.
-    public String string;
-    public String description;
-    // TODO: After legacy latch users migrate, derive rawPendingString from pendingValue;
-    // retain canonical text conversion for console/config, without repeating validation.
-    public String latched_string;
-    public int flags = 0;
-    public boolean modified = false;
-    // TODO: Remove this Float mirror when legacy numeric readers migrate to typedValue.
-    public float value = 0.0f;
+    public final String name;
+    public final @Nullable String description;
+    public final int flags;
+    public boolean modified;
 
     private final CvarType<T> type;
     private final T defaultValue;
-    // Lasting state: the active native value and an optional queued replacement (existing CVAR_LATCH).
-    private T cachedValue, pendingValue;
-
-    /** Legacy explicit raw registration; typed registration uses the owning declaration constructor. */
-    public cvar_t() {
-        this.type = null;
-        this.defaultValue = null;
-    }
+    private CvarType.Resolved<T> active, pending;
 
     cvar_t(String name, CvarType<T> type, T defaultValue, int flags, String description) {
         this.name = name;
@@ -72,32 +53,14 @@ public final class cvar_t<T> {
         this.description = description;
     }
 
-    /** Reusable conversion rules, or null for an explicitly registered legacy raw entry. */
-    public @Nullable CvarType<T> getType() { return type; }
-
-    /** Owning default, independent of current active/pending state. */
-    public @Nullable T getDefaultValue() { return defaultValue; }
-
-    // TODO: Rename to value once the legacy Float field is removed.
-    /** Returns the native value prepared by registration or the latest accepted write. */
-    public @NotNull T getTypedValue() {
-        if (cachedValue == null) throw wrongType("a typed value");
-        return cachedValue;
-    }
+    public @NotNull CvarType<T> getType() { return type; }
+    public @NotNull T getDefaultValue() { return defaultValue; }
+    public @NotNull T getTypedValue() { return active.getValue(); }
 
     /** Null means no queued change; false, zero and an empty String remain valid pending values. */
-    public @Nullable T getPendingValue() {
-        getTypedValue();
-        return pendingValue;
-    }
-
-    public @NotNull String getRawString() {
-        return string;
-    }
-
-    public @Nullable String getRawPendingString() {
-        return latched_string;
-    }
+    public @Nullable T getPendingValue() { return pending == null ? null : pending.getValue(); }
+    public @NotNull String getRawString() { return active.getToken(); }
+    public @Nullable String getRawPendingString() { return pending == null ? null : pending.getToken(); }
 
     /** Validates a native value, respecting write protection and latching. */
     public CvarSetResult set(T value) { return setNative(value, false); }
@@ -105,10 +68,10 @@ public final class cvar_t<T> {
     /** Applies a native value immediately, bypassing protection and latching but not validation. */
     public CvarSetResult forceSet(T value) { return setNative(value, true); }
 
-    /** Parses map or config text with the entry's normal validation and latch rules. */
-    public CvarSetResult setText(String text) { return setText(text, flags, false); }
+    /** Parses external text and applies the same validation, protection and latch rules as native edits. */
+    public CvarSetResult setText(String text) { return setText(text, false); }
 
-    boolean requiresAppRestart() { return name != null && name.startsWith("vid_"); }
+    boolean requiresAppRestart() { return name.startsWith("vid_"); }
 
     static boolean invalidInfoString(String value) {
         return value.indexOf('\\') >= 0 || value.indexOf(';') >= 0 || value.indexOf('"') >= 0;
@@ -120,139 +83,91 @@ public final class cvar_t<T> {
 
     @SuppressWarnings("unchecked")
     CvarSetResult setNative(Object value, boolean force) {
-        if (this.getType() == null) return rejected("Cvar " + this.name + " has no native type");
-        if (value == null || nativeClass(value) != nativeClass(this.getDefaultValue()))
-            return rejected("Wrong native value type for " + this.name);
+        if (value == null || nativeClass(value) != nativeClass(defaultValue))
+            return rejected("Wrong native value type for " + name);
+        CvarType.Resolved<?> resolved;
         try {
-            CvarType<Object> type = (CvarType<Object>) this.getType();
-            return commitWrite(normalizeResolved(type.validate(value), this.flags), this.flags, force);
+            resolved = normalizeResolved(((CvarType<Object>) type).validate(value));
         } catch (IllegalArgumentException e) {
-            return rejected("Invalid value for " + this.name + ": " + e.getMessage());
+            return rejected("Invalid value for " + name + ": " + e.getMessage());
         }
+        return commitWrite(resolved, force);
     }
 
     static Class<?> nativeClass(Object value) {
         return value instanceof Enum<?> ? ((Enum<?>) value).getDeclaringClass() : value.getClass();
     }
 
-    /** Prepares the canonical token and typed caches, checking type and transport limits before commit. */
-    CvarValue normalize(String text, int flags) {
+    CvarType.Resolved<T> normalize(String text) {
         if (text == null) throw new IllegalArgumentException("missing value");
-        return normalizeResolved(this.getType().parse(text), flags);
+        return normalizeResolved(type.parse(text));
     }
 
-    /** Checks interchange limits for both native and parsed writes without revalidating their values. */
-    CvarValue normalizeResolved(CvarType.Resolved<?> resolved, int flags) {
+    /** Checks interchange limits without revalidating an already converted value. */
+    <V> CvarType.Resolved<V> normalizeResolved(CvarType.Resolved<V> resolved) {
         String token = resolved.getToken();
         if ((flags & CVAR_ARCHIVE) != 0 && (token.indexOf('"') >= 0 || token.indexOf('\n') >= 0
                 || token.indexOf('\r') >= 0 || token.indexOf('\0') >= 0
-                || token.length() + this.name.length() + 7 >= Defines.MAX_STRING_CHARS))
+                || token.length() + name.length() + 7 >= Defines.MAX_STRING_CHARS))
             throw new IllegalArgumentException("value cannot round-trip through config command quoting");
-        if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && (invalidInfoString(this.name) || invalidInfoString(token)))
+        if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && (invalidInfoString(name) || invalidInfoString(token)))
             throw new IllegalArgumentException("invalid info string characters");
-        return new CvarValue(token, resolved.getValue());
+        return resolved;
     }
 
-    /**
-     * Shares validation, latch handling and cache commits across writes to constrained entries.
-     * Force bypasses protection and delay, but still requires valid values.
-     */
-    CvarSetResult setText(String text, int flags, boolean force) {
-        CvarValue resolved;
+    CvarSetResult setText(String text, boolean force) {
+        CvarType.Resolved<T> resolved;
         try {
-            resolved = normalize(text, flags);
+            resolved = normalize(text);
+        } catch (IllegalArgumentException e) {
+            return rejected("Invalid value for " + name + ": " + e.getMessage());
         }
-        catch (IllegalArgumentException e) { return rejected("Invalid value for " + this.name + ": " + e.getMessage()); }
-        return commitWrite(resolved, flags, force);
+        return commitWrite(resolved, force);
     }
 
-    /** Applies an already validated value, sharing notifications and latch semantics across input forms. */
-    private CvarSetResult commitWrite(CvarValue resolved, int flags, boolean force) {
+    private CvarSetResult commitWrite(CvarType.Resolved<?> resolved, boolean force) {
         String token = resolved.getToken();
-        if (!force && (this.flags & CVAR_NOSET) != 0) return rejected(this.name + " is write protected");
+        if (!force && (flags & CVAR_NOSET) != 0) return rejected(name + " is write protected");
         if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart())) {
-            if (token.equals(this.latched_string)) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
-            if (token.equals(this.string)) {
-                boolean cancelled = this.latched_string != null;
-                this.commitPending(null);
+            if (token.equals(getRawPendingString())) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
+            if (token.equals(getRawString())) {
+                boolean cancelled = pending != null;
+                commitPending(null);
                 return new CvarSetResult(cancelled ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
             }
-            this.commitPending(resolved);
+            commitPending(resolved);
             String timing = requiresAppRestart() ? "after restart" : "for next game";
-            return new CvarSetResult(CvarSetResult.Status.QUEUED, this.name + " will be changed " + timing + ".");
+            return new CvarSetResult(CvarSetResult.Status.QUEUED, name + " will be changed " + timing + ".");
         }
-        boolean valueChanged = !token.equals(this.string);
-        boolean flagsChanged = flags != this.flags;
-        boolean hadPending = this.latched_string != null;
-        int oldFlags = this.flags;
-        this.commitActive(resolved);
-        this.flags = flags;
-        this.commitPending(null);
-        if (valueChanged || flagsChanged) {
-            this.modified = true;
-            if (((oldFlags | flags) & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
+        boolean valueChanged = !token.equals(getRawString());
+        boolean hadPending = pending != null;
+        commitActive(resolved);
+        commitPending(null);
+        if (valueChanged) {
+            modified = true;
+            if ((flags & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
         }
-        if (valueChanged && this.name.equals("game")) {
+        if (valueChanged && name.equals("game")) {
             EngineFilesystemLifecycle.setGameDir(token);
             EngineFilesystemLifecycle.execAutoexec();
         }
-        return new CvarSetResult(valueChanged || flagsChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
+        return new CvarSetResult(valueChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
     }
 
-    /** Updates active state without changing queued intent; keeps migration-era mirrors coherent. */
+    /** Pending state was validated when queued and declaration metadata cannot change. */
+    CvarSetResult applyPending() {
+        return pending == null ? new CvarSetResult(CvarSetResult.Status.UNCHANGED, null) : commitWrite(pending, true);
+    }
+
     @SuppressWarnings("unchecked")
-    void commitActive(CvarValue resolved) {
-        string = resolved.getToken();
-        value = resolved.getLegacyFloat();
-        cachedValue = (T) resolved.getValue();
-    }
+    void commitActive(CvarType.Resolved<?> resolved) { active = (CvarType.Resolved<T>) resolved; }
 
-    /** Updates or clears queued intent without changing the active value; this split remains after migration. */
     @SuppressWarnings("unchecked")
-    void commitPending(@Nullable CvarValue resolved) {
-        latched_string = resolved == null ? null : resolved.getToken();
-        pendingValue = resolved == null ? null : (T) resolved.getValue();
-    }
-
-    private IllegalStateException wrongType(String expected) {
-        return new IllegalStateException("Cvar " + name + " does not declare " + expected);
-    }
-
-    private <V> V readAs(Class<V> expected) {
-        if (!expected.isInstance(cachedValue)) throw wrongType(expected.getSimpleName());
-        return expected.cast(cachedValue);
-    }
-
-    // TODO: Remove these compatibility readers (including asEnum) once callers use generic references.
-    public boolean asBoolean() { return readAs(Boolean.class); }
-    public int asInt() { return readAs(Integer.class); }
-    public float asFloat() { return readAs(Float.class); }
-    public @NotNull String asString() { return readAs(String.class); }
-
-    public <E extends Enum<E>> E asEnum(Class<E> enumClass) {
-        if (!(cachedValue instanceof Enum<?>) || ((Enum<?>) cachedValue).getDeclaringClass() != enumClass)
-            throw wrongType(enumClass.getSimpleName());
-        return enumClass.cast(cachedValue);
-    }
+    private void commitPending(@Nullable CvarType.Resolved<?> resolved) { pending = (CvarType.Resolved<T>) resolved; }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("cvar_t{");
-        if (name != null)
-            sb.append("name='").append(name).append('\'');
-        if (string != null)
-            sb.append(", string='").append(string).append('\'');
-        if (description != null)
-            sb.append(", description='").append(description).append('\'');
-        if (latched_string != null)
-        	sb.append(", latched_string='").append(latched_string).append('\'');
-        if (flags != 0)
-        	sb.append(", flags=").append(flags);
-        if (modified)
-        	sb.append(", modified=").append(modified);
-        if (value != 0f)
-        	sb.append(", value=").append(value);
-        sb.append('}');
-        return sb.toString();
+        return "cvar_t{name='" + name + "', value=" + getTypedValue()
+                + (pending == null ? "" : ", pending=" + pending.getValue()) + ", flags=" + flags + "}";
     }
 }

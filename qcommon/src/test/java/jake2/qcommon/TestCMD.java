@@ -24,6 +24,7 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +55,7 @@ public class TestCMD {
 
     @Test
     public void testTokenizeWithExpansion() {
-        Cvar.getInstance().Get("test1", "world", 0);
+        Cvar.getInstance().register("test1", CvarTypes.STRING, "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", true);
         Assertions.assertEquals(Arrays.asList("echo", "world", "again"), result);
     }
@@ -67,28 +68,28 @@ public class TestCMD {
 
     @Test
     public void testTokenizeWithQuotesWithExpansion() {
-        Cvar.getInstance().Get("test2", "world", 0);
+        Cvar.getInstance().register("test2", CvarTypes.STRING, "world", 0);
         List<String> result = Cmd.TokenizeString("echo \"$test2\"", true);
         Assertions.assertEquals(Arrays.asList("echo", "$test2"), result);
     }
 
     @Test
     public void testTokenizeWithExpansionFalse() {
-        Cvar.getInstance().Get("test1", "world", 0);
+        Cvar.getInstance().register("test1", CvarTypes.STRING, "world", 0);
         List<String> result = Cmd.TokenizeString("echo $test1 again", false);
         Assertions.assertEquals(Arrays.asList("echo", "$test1", "again"), result);
     }
 
     @Test
     public void testExpandMacro() {
-        Cvar.getInstance().Get("name", "world", 0);
+        Cvar.getInstance().register("name", CvarTypes.STRING, "world", 0);
         String result = Cmd.MacroExpandString("hello $name");
         Assertions.assertEquals("hello world", result);
     }
 
     @Test
     public void testExpandMacroMiddle() {
-        Cvar.getInstance().Get("name1", "world", 0);
+        Cvar.getInstance().register("name1", CvarTypes.STRING, "world", 0);
         String result = Cmd.MacroExpandString("hello $name1 again");
         Assertions.assertEquals("hello world again", result);
     }
@@ -96,7 +97,7 @@ public class TestCMD {
     @Test
     public void testCommandWithVariable() {
         StringBuilder result = new StringBuilder();
-        Cvar.getInstance().Get("test_var", "value", 0);
+        Cvar.getInstance().register("test_var", CvarTypes.STRING, "value", 0);
         Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(getArguments(args)));
 
         Cmd.ExecuteString("test_cmd $test_var");

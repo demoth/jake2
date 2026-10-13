@@ -26,15 +26,15 @@ class CommonCvarsTest {
     @Test
     void timingUsesNativeValuesAndRejectsInvalidInputs() {
         assertEquals(20, MainCommon.adjustTime(20));
-        cvars.Set("timescale", "0.5");
+        cvars.setResult("timescale", "0.5");
         assertEquals(10, MainCommon.adjustTime(20));
-        cvars.Set("timescale", "NaN");
+        cvars.setResult("timescale", "NaN");
         assertEquals(10, MainCommon.adjustTime(20));
-        cvars.Set("fixedtime", "7");
-        cvars.Set("fixedtime", "1.5");
+        cvars.setResult("fixedtime", "7");
+        cvars.setResult("fixedtime", "1.5");
         assertEquals(7, MainCommon.adjustTime(20));
-        cvars.Set("fixedtime", "0");
-        cvars.Set("timescale", "0");
+        cvars.setResult("fixedtime", "0");
+        cvars.setResult("timescale", "0");
         assertEquals(20, MainCommon.adjustTime(20));
         assertEquals("", cvars.find("rcon_password", String.class).getTypedValue());
     }
@@ -49,13 +49,13 @@ class CommonCvarsTest {
         assertEquals(28000, cvars.find("port", Integer.class).getTypedValue());
         assertEquals(-1, cvars.find("clientport", Integer.class).getTypedValue());
         assertEquals(65535, Netchan.qport.getTypedValue());
-        cvars.Set("port", "29000");
+        cvars.setResult("port", "29000");
         assertEquals(28000, cvars.find("port", Integer.class).getTypedValue());
-        cvars.ForceSet("qport", "65536");
+        cvars.forceSetResult("qport", "65536");
         assertEquals(65535, Netchan.qport.getTypedValue());
         Netchan.Netchan_Init();
         assertEquals(65535, Netchan.qport.getTypedValue());
-        cvars.Set("sv_print_network", "true");
+        cvars.setResult("sv_print_network", "true");
         assertTrue(Netchan.printNetwork.getTypedValue());
     }
 }
