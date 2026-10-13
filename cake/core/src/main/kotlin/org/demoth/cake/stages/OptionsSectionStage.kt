@@ -9,7 +9,7 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
-import org.demoth.cake.ui.menu.OptionEditValue
+import org.demoth.cake.videoOptionChoices
 import org.demoth.cake.ui.menu.OptionsSectionState
 
 class OptionsSectionStage(
@@ -22,7 +22,10 @@ class OptionsSectionStage(
     parentIntent = MenuIntent.OpenOptions,
 ) {
     private var renderedState: OptionsSectionState = OptionsSectionState()
+    // Widgets hold unapplied edits. These snapshots only detect changes to the shared cvar references.
     private val valuesByName = linkedMapOf<String, () -> String>()
+    private var renderedValues: List<Pair<String, String?>> = emptyList()
+    private var renderedChoices: List<List<String>> = emptyList()
     private val labelStyle = style.menuWidgets.label
     private val buttonStyle = style.menuWidgets.button
     private val textFieldStyle = style.menuWidgets.textField
@@ -40,7 +43,11 @@ class OptionsSectionStage(
     }
 
     private fun rebuild(state: OptionsSectionState, force: Boolean) {
-        if (!force && state == renderedState) {
+        val section = state.section
+        val entries = section?.entries.orEmpty()
+        val values = entries.map { it.rawString to it.rawPendingString }
+        val choices = entries.map { videoOptionChoices(it.name) }
+        if (!force && state == renderedState && values == renderedValues && choices == renderedChoices) {
             return
         }
         clear()
@@ -49,23 +56,24 @@ class OptionsSectionStage(
             top().left().pad(12f)
             defaults().top().left().pad(12f)
 
-            add(Label(state.title.ifBlank { "Options" }, labelStyle)).colspan(3).left().row()
+            add(Label(section?.title ?: "Options", labelStyle)).colspan(3).left().row()
 
             add(Label("Name", labelStyle)).left()
             add(Label("Value", labelStyle)).left()
             add(Label("Description", labelStyle)).left().growX().fillX().row()
 
-            state.entries.forEach { entry ->
+            entries.forEachIndexed { index, entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
-                val value = entry.latchedValue ?: entry.value
-                val editor = if (entry.choices.isEmpty()) {
+                val value = entry.rawPendingString ?: entry.rawString
+                val entryChoices = choices[index]
+                val editor = if (entryChoices.isEmpty()) {
                     TextField(value, textFieldStyle).also { field ->
                         valuesByName[entry.name] = { field.text }
                     }
                 } else {
                     SelectBox<String>(selectBoxStyle).apply {
                         // Preserve a saved or pending value even if this monitor no longer offers it.
-                        setItems(*(entry.choices + value).distinct().toTypedArray())
+                        setItems(*(entryChoices + value).distinct().toTypedArray())
                         selected = value
                         setMaxListCount(10)
                         valuesByName[entry.name] = { selected }
@@ -74,10 +82,10 @@ class OptionsSectionStage(
                 add(editor).minWidth(220f).prefWidth(280f).fillX()
 
                 val descriptionText = buildString {
-                    if (entry.description.isNotBlank()) {
+                    if (!entry.description.isNullOrBlank()) {
                         append(entry.description)
                     }
-                    entry.latchedValue?.takeIf { it.isNotBlank() }?.let { latched ->
+                    entry.rawPendingString?.let { latched ->
                         if (isNotEmpty()) {
                             append('\n')
                         }
@@ -97,8 +105,8 @@ class OptionsSectionStage(
                     createMenuButton("Apply", buttonStyle) {
                         menuEventBus.postIntent(
                             MenuIntent.SaveOptionsSection(
-                                prefix = state.prefix,
-                                values = currentValues(),
+                                prefix = section?.prefix.orEmpty(),
+                                values = valuesByName.mapValues { (_, value) -> value() },
                             ),
                         )
                     },
@@ -113,11 +121,7 @@ class OptionsSectionStage(
         }
         addCenteredForm(root, scrollPaneStyle)
         renderedState = state
-    }
-
-    private fun currentValues(): List<OptionEditValue> {
-        return valuesByName.entries.map { (name, value) ->
-            OptionEditValue(name = name, value = value())
-        }
+        renderedValues = values
+        renderedChoices = choices
     }
 }

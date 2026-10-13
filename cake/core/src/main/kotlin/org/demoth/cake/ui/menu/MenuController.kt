@@ -18,9 +18,8 @@ interface MenuBackend {
     fun playerSetupCatalog(): PlayerSetupCatalog
     fun currentPlayerSetupForm(): PlayerSetupFormState
     fun savePlayerSetup(form: PlayerSetupFormState): String
-    fun optionSections(): List<OptionsSectionSummary>
-    fun optionEntries(prefix: String): List<OptionEntryState>
-    fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String
+    fun optionSections(): List<OptionsSection>
+    fun saveOptionEntries(prefix: String, values: Map<String, String>): String
 }
 
 class MenuController(
@@ -372,12 +371,10 @@ class MenuController(
             sections = optionSections,
         )
         val optionsSectionPrefix = optionsSectionPrefixOverride
-            ?: state.optionsSection.prefix.takeIf { it.isNotBlank() }
+            ?: state.optionsSection.section?.prefix
         val selectedOptionsSection = optionSections.firstOrNull { it.prefix == optionsSectionPrefix }
         val optionsSectionState = OptionsSectionState(
-            title = selectedOptionsSection?.title.orEmpty(),
-            prefix = selectedOptionsSection?.prefix.orEmpty(),
-            entries = selectedOptionsSection?.let { backend.optionEntries(it.prefix) }.orEmpty(),
+            section = selectedOptionsSection,
             statusMessage = optionsSectionStatusOverride ?: state.optionsSection.statusMessage,
         )
         val previousScreen = state.activeScreen

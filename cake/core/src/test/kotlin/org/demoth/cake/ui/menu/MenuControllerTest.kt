@@ -1,9 +1,13 @@
 package org.demoth.cake.ui.menu
 
+import jake2.qcommon.Defines.CVAR_OPTIONS
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+/** Checks menu intent navigation and deferred option edits using a local cvar registry. */
 class MenuControllerTest {
 
     @Test
@@ -175,30 +179,38 @@ class MenuControllerTest {
 
         val state = bus.latestState()
         assertEquals(MenuScreen.OPTIONS_SECTION, state.activeScreen)
-        assertEquals("Client", state.optionsSection.title)
-        assertEquals(listOf("cl_showfps"), state.optionsSection.entries.map { it.name })
+        val section = requireNotNull(state.optionsSection.section)
+        assertEquals("Client", section.title)
+        assertEquals(listOf("cl_showfps"), section.entries.map { it.name })
     }
 
     @Test
-    fun saveOptionsSectionDelegatesToBackend() {
+    fun optionDraftStaysLocalUntilSaveIsProcessed() {
         val backend = FakeMenuBackend()
         val bus = MenuEventBus()
         val controller = MenuController(backend, bus)
 
         controller.initialize()
+        bus.postIntent(MenuIntent.OpenOptionsSection("cl_"))
+        controller.pumpIntents()
+        val entry = bus.latestState().optionsSection.section!!.entries.single()
+        val draft = mutableMapOf(entry.name to entry.rawString)
+        draft[entry.name] = "2"
+        assertEquals("0", entry.rawString)
         bus.postIntent(
             MenuIntent.SaveOptionsSection(
                 prefix = "cl_",
-                values = listOf(OptionEditValue(name = "cl_showfps", value = "2")),
+                values = draft,
             ),
         )
+        assertEquals("0", entry.rawString)
         controller.pumpIntents()
 
-        assertEquals(listOf(OptionEditValue(name = "cl_showfps", value = "2")), backend.savedOptionsValues)
+        assertEquals(mapOf("cl_showfps" to "2"), backend.savedOptionsValues)
         val state = bus.latestState()
         assertEquals(MenuScreen.OPTIONS_SECTION, state.activeScreen)
         assertEquals("Saved options", state.optionsSection.statusMessage)
-        assertEquals("2", state.optionsSection.entries.single().value)
+        assertEquals("2", state.optionsSection.section!!.entries.single().rawString)
     }
 
     @Test
@@ -364,7 +376,7 @@ class MenuControllerTest {
     private class FakeMenuBackend : MenuBackend {
         val joinedAddresses = mutableListOf<String>()
         val savedPlayerSetupForms = mutableListOf<PlayerSetupFormState>()
-        val savedOptionsValues = mutableListOf<OptionEditValue>()
+        val savedOptionsValues = mutableMapOf<String, String>()
         val profiles = linkedMapOf(
             "default" to ProfileFormState(
                 id = "default",
@@ -385,23 +397,11 @@ class MenuControllerTest {
                 "male" to listOf("grunt"),
             ),
         )
-        private val optionValues = linkedMapOf(
-            "cl_showfps" to OptionEntryState(
-                name = "cl_showfps",
-                description = "FPS overlay mode",
-                value = "0",
-            ),
-            "r_particles" to OptionEntryState(
-                name = "r_particles",
-                description = "Particle budget",
-                value = "4096",
-            ),
-            "s_volume" to OptionEntryState(
-                name = "s_volume",
-                description = "Effects volume",
-                value = "0.7",
-            ),
-        )
+        private val cvars = Cvar().apply {
+            register("cl_showfps", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 0, CVAR_OPTIONS, "FPS overlay mode")
+            register("r_particles", CvarTypes.IntegerType(min = 0), 4096, CVAR_OPTIONS, "Particle budget")
+            register("s_volume", CvarTypes.FloatType(min = 0f, max = 1f), 0.7f, CVAR_OPTIONS, "Effects volume")
+        }
 
         override fun activeProfileId(): String = selectedProfileId.orEmpty()
 
@@ -450,29 +450,17 @@ class MenuControllerTest {
             return "Saved player setup"
         }
 
-        override fun optionSections(): List<OptionsSectionSummary> = DEFAULT_OPTIONS_SECTIONS.mapNotNull { section ->
-            val count = optionValues.values.count { it.name.startsWith(section.prefix) }
-            if (count == 0) {
-                null
-            } else {
-                OptionsSectionSummary(
-                    title = section.title,
-                    prefix = section.prefix,
-                    optionCount = count,
-                )
-            }
+        override fun optionSections(): List<OptionsSection> = DEFAULT_OPTIONS_SECTIONS.mapNotNull { section ->
+            val entries = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS)
+            if (entries.isEmpty()) null else section.copy(entries = entries)
         }
 
-        override fun optionEntries(prefix: String): List<OptionEntryState> {
-            return optionValues.values.filter { it.name.startsWith(prefix) }
-        }
-
-        override fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String {
+        override fun saveOptionEntries(prefix: String, values: Map<String, String>): String {
             savedOptionsValues.clear()
-            savedOptionsValues.addAll(values)
-            values.forEach { update ->
-                if (update.name.startsWith(prefix)) {
-                    optionValues[update.name] = optionValues.getValue(update.name).copy(value = update.value)
+            savedOptionsValues.putAll(values)
+            values.forEach { (name, value) ->
+                if (name.startsWith(prefix)) {
+                    check(cvars.setResult(name, value).accepted)
                 }
             }
             return "Saved options"

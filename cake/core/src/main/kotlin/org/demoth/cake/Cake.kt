@@ -1591,42 +1591,26 @@ class Cake(
         return "Saved player setup for ${normalized.name}"
     }
 
-    private fun optionSections(): List<OptionsSectionSummary> {
+    private fun optionSections(): List<OptionsSection> {
         val cvars = Cvar.getInstance()
         return DEFAULT_OPTIONS_SECTIONS.map { section ->
-            OptionsSectionSummary(
-                title = section.title,
-                prefix = section.prefix,
-                optionCount = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS).size,
-            )
+            section.copy(entries = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS))
         }
     }
 
-    private fun optionEntries(prefix: String): List<OptionEntryState> {
-        return Cvar.getInstance().listByPrefixAndFlags(prefix, CVAR_OPTIONS).map { cvar ->
-            OptionEntryState(
-                name = cvar.name,
-                description = cvar.description.orEmpty(),
-                value = cvar.rawString,
-                latchedValue = cvar.rawPendingString,
-                choices = videoOptionChoices(cvar.name),
-            )
-        }
-    }
-
-    private fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String {
+    private fun saveOptionEntries(prefix: String, values: Map<String, String>): String {
         val cvars = Cvar.getInstance()
         var updatedCount = 0
         var latchedCount = 0
         val errors = mutableListOf<String>()
-        values.forEach { update ->
-            val cvar = cvars.FindVar(update.name) ?: return@forEach
-            if (!update.name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
+        values.forEach { (name, value) ->
+            val cvar = cvars.FindVar(name) ?: return@forEach
+            if (!name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
                 return@forEach
             }
-            val result = cvars.setResult(cvar.name, update.value)
+            val result = cvars.setResult(cvar.name, value)
             if (!result.accepted) {
-                errors += result.diagnostic ?: "Rejected ${update.name}"
+                errors += result.diagnostic ?: "Rejected $name"
                 return@forEach
             }
             updatedCount++
@@ -1849,11 +1833,9 @@ class Cake(
 
         override fun savePlayerSetup(form: PlayerSetupFormState): String = this@Cake.savePlayerSetup(form)
 
-        override fun optionSections(): List<OptionsSectionSummary> = this@Cake.optionSections()
+        override fun optionSections(): List<OptionsSection> = this@Cake.optionSections()
 
-        override fun optionEntries(prefix: String): List<OptionEntryState> = this@Cake.optionEntries(prefix)
-
-        override fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String =
+        override fun saveOptionEntries(prefix: String, values: Map<String, String>): String =
             this@Cake.saveOptionEntries(prefix, values)
     }
 

@@ -6,7 +6,7 @@ import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.OptionsHubState
-import org.demoth.cake.ui.menu.OptionsSectionSummary
+import org.demoth.cake.ui.menu.OptionsSection
 
 class OptionsMenuStage(
     viewport: Viewport,
@@ -17,7 +17,7 @@ class OptionsMenuStage(
     menuEventBus = menuEventBus,
     parentIntent = MenuIntent.OpenMainMenu,
 ) {
-    private var renderedSections: List<OptionsSectionSummary> = emptyList()
+    private var renderedSections: List<OptionsSection> = emptyList()
 
     init {
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
@@ -43,10 +43,10 @@ class OptionsMenuStage(
             row()
 
             state.sections.forEach { section ->
-                val button = createMenuButton("${section.title} (${section.optionCount})", buttonStyle) {
+                val button = createMenuButton("${section.title} (${section.entries.size})", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenOptionsSection(section.prefix))
                 }
-                button.isDisabled = section.optionCount == 0
+                button.isDisabled = section.entries.isEmpty()
                 add(button)
                 row()
             }

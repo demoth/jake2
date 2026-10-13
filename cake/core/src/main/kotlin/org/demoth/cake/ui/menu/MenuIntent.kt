@@ -18,5 +18,5 @@ sealed interface MenuIntent {
     data class JoinGameRequested(val form: JoinGameFormState) : MenuIntent
     data class UpdatePlayerSetupDraft(val form: PlayerSetupFormState) : MenuIntent
     data class SavePlayerSetup(val form: PlayerSetupFormState) : MenuIntent
-    data class SaveOptionsSection(val prefix: String, val values: List<OptionEditValue>) : MenuIntent
+    data class SaveOptionsSection(val prefix: String, val values: Map<String, String>) : MenuIntent
 }
