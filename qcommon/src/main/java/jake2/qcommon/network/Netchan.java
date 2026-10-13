@@ -109,13 +109,14 @@ public final class Netchan {
 
         Cvar cvars = Cvar.getInstance();
         NET.registerCvars();
-        showpackets = cvars.register("showpackets", CvarTypes.BOOLEAN, false);
-        showdrop = cvars.register("showdrop", CvarTypes.BOOLEAN, false);
-        printNetwork = cvars.register("sv_print_network", CvarTypes.BOOLEAN, false);
+        showpackets = cvars.register("showpackets", CvarTypes.BOOLEAN, false, 0, "Log packet sizes, sequences and acknowledgements");
+        showdrop = cvars.register("showdrop", CvarTypes.BOOLEAN, false, 0, "Log dropped or out-of-order packets");
+        printNetwork = cvars.register("sv_print_network", CvarTypes.BOOLEAN, false, 0, "Log decoded incoming network messages");
         // Reinitializing channels retains the process's original random qport declaration.
         qport = cvars.isRegistered("qport") ? cvars.find("qport", Integer.class)
                 : cvars.register("qport", new CvarTypes.IntegerType(0, 65535),
-                        Timer.Milliseconds() & 0xffff, Defines.CVAR_NOSET);
+                        Timer.Milliseconds() & 0xffff, Defines.CVAR_NOSET,
+                        "Client connection identifier for NAT port changes; not a UDP socket port");
     }
 
     /**

@@ -85,11 +85,11 @@ public final class EngineFilesystemLifecycle {
 
         Cvar cvars = Cvar.getInstance();
         baseDir = cvars.register("basedir", CvarTypes.STRING,
-                new File("./baseq2").exists() ? "." : autodetectBasedir(), Defines.CVAR_NOSET);
+                new File("./baseq2").exists() ? "." : autodetectBasedir(), Defines.CVAR_NOSET, "Directory containing baseq2 and mod directories");
         gameDirPath = baseDir.getTypedValue() + '/' + Globals.BASEQ2;
-        gameDirVar = cvars.register("game", new CvarTypes.StringType("(?s)(?!.*\\.\\.)[^/\\\\:]*"), "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO);
-        cvars.register("gamedir", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-        caseSensitive = cvars.register("fs_casesensitive", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE);
+        gameDirVar = cvars.register("game", new CvarTypes.StringType("(?s)(?!.*\\.\\.)[^/\\\\:]*"), "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO, "Mod directory name, not a path; empty selects baseq2");
+        cvars.register("gamedir", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET, "Active mod directory advertised in serverinfo; empty means baseq2");
+        caseSensitive = cvars.register("fs_casesensitive", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE, "Use case-sensitive virtual filesystem lookups");
 
         if (!gameDirVar.getTypedValue().isEmpty()) {
             setGameDir(gameDirVar.getTypedValue());
