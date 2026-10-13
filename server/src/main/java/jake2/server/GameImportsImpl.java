@@ -370,7 +370,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (cvar("deathmatch", "", 0).value != 0) {
+        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -619,7 +619,7 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         sv.framenum++;
 
-        if (SV_MAIN.sv_paused != null && 1 == SV_MAIN.sv_paused.value && serverMain.getClients().size() <= 1) {
+        if (SV_MAIN.sv_paused != null && SV_MAIN.sv_paused.getTypedValue() && serverMain.getClients().size() <= 1) {
             return;
         }
 
@@ -696,10 +696,10 @@ public class GameImportsImpl implements GameImports {
             List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
             Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
                 if (!localCvars.isRegistered(var.name))
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string));
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString()));
             });
             localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string)));
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
             store.writeLatchedCvars("current", latchedCvars);
         } catch (Exception e) {
             throw new RuntimeException(e);

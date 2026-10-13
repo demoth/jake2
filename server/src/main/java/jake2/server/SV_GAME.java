@@ -280,10 +280,10 @@ public class SV_GAME {
     }
 
     boolean isPreviousLevel(server_t sv) {
-        if (Cvar.getInstance().Get("sv_noreload", "0", 0).value != 0)
+        if (Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
             return false;
 
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0)
+        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue())
             return false;
 
         String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();

@@ -19,6 +19,41 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Checks early config consumption, game-instance isolation and shared engine entries without map assets. */
 class GameCvarInitializationTest {
     @Test
+    void legacyGameWritesValidateSharedTypesAndRetainLatchSemantics() {
+        Cvar cvars = Cvar.getInstance();
+        var previousState = Globals.server_state;
+        cvars.clear();
+        try {
+            cvars.Set("maxclients", "3.5");
+            cvars.Set("timeout", "0.5");
+            MainCommon.registerCvars(false);
+            SV_MAIN server = new SV_MAIN();
+            GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
+            cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
+            cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
+            assertEquals(1, maxclients.getTypedValue());
+            assertEquals(0.5f, SV_MAIN.timeout.getTypedValue());
+            assertSame(deathmatch, imports.cvar("deathmatch", "0", CVAR_LATCH));
+
+            Globals.server_state = ServerStates.SS_GAME;
+            imports.cvar_set("deathmatch", "true");
+            assertFalse(deathmatch.getTypedValue());
+            assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
+            imports.cvar_forceset("deathmatch", "2");
+            assertFalse(deathmatch.getTypedValue());
+            assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
+            cvars.updateLatchedVars();
+            assertTrue(deathmatch.getTypedValue());
+            assertEquals("1", deathmatch.getRawString());
+            imports.cvar_forceset("maxclients", "0");
+            assertEquals(1, maxclients.getTypedValue());
+        } finally {
+            Globals.server_state = previousState;
+            cvars.clear();
+        }
+    }
+
+    @Test
     void successorCopiesSettingsAndAppliesPendingWithoutChangingTheSource() {
         Cvar cvars = Cvar.getInstance();
         var previousState = Globals.server_state;
@@ -26,7 +61,6 @@ class GameCvarInitializationTest {
         try {
             cvars.Set("skill", "2");
             MainCommon.registerCvars(false);
-            cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
             cvar_t skill = first.cvar("skill", "0", CVAR_LATCH);
@@ -63,7 +97,6 @@ class GameCvarInitializationTest {
         EngineWriteRoot.setRoot(temp);
         try {
             MainCommon.registerCvars(false);
-            cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));
             cvar_t otherSkill = other.cvar("skill", "1", CVAR_LATCH);
@@ -94,7 +127,6 @@ class GameCvarInitializationTest {
             cvars.Set("maxspectators", "8");
             cvars.Set("spectator_password", "secret");
             MainCommon.registerCvars(false);
-            cvars.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
             SV_MAIN server = new SV_MAIN();
             // A picture transition constructs real game imports without loading a BSP or opening sockets.
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
