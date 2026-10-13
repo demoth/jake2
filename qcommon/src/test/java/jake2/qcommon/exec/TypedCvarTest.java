@@ -39,6 +39,45 @@ class TypedCvarTest {
     }
 
     @Test
+    void directWritesKeepSameNamedEntriesIndependentAndNotifyUserinfo() {
+        var local = registry.register("skill", CvarTypes.INTEGER, 1);
+        var other = new Cvar().register("skill", CvarTypes.INTEGER, 2);
+        assertEquals(APPLIED, local.set(3).getStatus());
+        assertEquals(3, local.getTypedValue());
+        assertEquals(2, other.getTypedValue());
+
+        var player = registry.register("player", CvarTypes.STRING, "old", CVAR_USERINFO);
+        Globals.userinfo_modified = false;
+        player.modified = false;
+        assertEquals(REJECTED, player.set("bad;value").getStatus());
+        assertFalse(Globals.userinfo_modified);
+        assertFalse(player.modified);
+        assertEquals(APPLIED, player.set("new").getStatus());
+        assertTrue(Globals.userinfo_modified);
+        assertTrue(player.modified);
+    }
+
+    @Test
+    void nativeForcedWritesValidateValuesAndClearPendingOnlyOnSuccess() {
+        var number = registry.register("vid_number", new CvarTypes.IntegerType(0, 10), 1, CVAR_LATCH);
+        assertEquals(QUEUED, number.set(2).getStatus());
+        assertEquals(REJECTED, number.forceSet(11).getStatus());
+        assertEquals(1, number.getTypedValue());
+        assertEquals(2, number.getPendingValue());
+        assertEquals(APPLIED, number.forceSet(3).getStatus());
+        assertEquals(3, number.getTypedValue());
+        assertNull(number.getPendingValue());
+        assertEquals(CVAR_LATCH, number.flags);
+        assertEquals(1, number.getDefaultValue());
+
+        var protectedValue = registry.register("protected", CvarTypes.BOOLEAN, false, CVAR_NOSET);
+        assertEquals(REJECTED, protectedValue.set(true).getStatus());
+        assertEquals(APPLIED, protectedValue.forceSet(true).getStatus());
+        assertTrue(protectedValue.getTypedValue());
+        assertEquals(CVAR_NOSET, protectedValue.flags);
+    }
+
+    @Test
     void javaLookupAcceptsPrimitiveAndWrapperTokensWithoutChangingLegacyAccess() {
         cvar_t<Integer> registered = registry.register("number", CvarTypes.INTEGER, 7);
         cvar_t<Integer> found = registry.find("number", int.class);
@@ -54,7 +93,7 @@ class TypedCvarTest {
     @Test
     void nativeWritesKeepCanonicalTokensAndValidateTheUnknownTypeBoundary() {
         var toggle = registry.register("toggle", CvarTypes.BOOLEAN, false);
-        assertEquals(APPLIED, registry.setResult(toggle, true).getStatus());
+        assertEquals(APPLIED, toggle.set(true).getStatus());
         assertTrue(toggle.getTypedValue());
         assertEquals("1", toggle.getRawString());
         var samples = registry.register("samples", new CvarTypes.ChoiceType<>(List.of(0, 4)), 0);
@@ -63,14 +102,14 @@ class TypedCvarTest {
         assertEquals(REJECTED, registry.setNativeResult(samples.name, 4f).getStatus());
         assertEquals(4, samples.getTypedValue());
         var mode = registry.register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels);
-        assertEquals(APPLIED, registry.setResult(mode, Mode.Logical).getStatus());
+        assertEquals(APPLIED, mode.set(Mode.Logical).getStatus());
         assertEquals("Logical", mode.getRawString());
         assertEquals(REJECTED, registry.setNativeResult(mode.name, OtherMode.Logical).getStatus());
         var scale = registry.register("scale", CvarTypes.FLOAT, 1f);
-        assertEquals(REJECTED, registry.setResult(scale, Float.NaN).getStatus());
+        assertEquals(REJECTED, scale.set(Float.NaN).getStatus());
         assertEquals(1f, scale.getTypedValue());
         var text = registry.register("text", CvarTypes.STRING, "safe", CVAR_ARCHIVE);
-        assertEquals(REJECTED, registry.setResult(text, "unsafe\"text").getStatus());
+        assertEquals(REJECTED, text.set("unsafe\"text").getStatus());
         assertEquals("safe", text.getTypedValue());
     }
 

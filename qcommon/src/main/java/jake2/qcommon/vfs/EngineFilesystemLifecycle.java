@@ -123,13 +123,15 @@ public final class EngineFilesystemLifecycle {
             Cbuf.AddText("snd_restart");
         }
 
+        Cvar cvars = Cvar.getInstance();
+        cvar_t<String> gamedir = cvars.find("gamedir", String.class);
         gameDirPath = baseDir.getTypedValue() + '/' + gameName;
 
         if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
-            Cvar.getInstance().FullSet("gamedir", "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-            Cvar.getInstance().FullSet("game", "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO);
+            gamedir.forceSet("");
+            gameDirVar.forceSet("");
         } else {
-            Cvar.getInstance().FullSet("gamedir", gameName, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+            gamedir.forceSet(gameName);
         }
 
         setWriteDir(gameName);

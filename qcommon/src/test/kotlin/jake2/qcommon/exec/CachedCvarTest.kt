@@ -63,12 +63,12 @@ class CachedCvarTest {
         val variable = registry.register("vid_budget", type, 1, CVAR_LATCH)
         val textCalls = type.calls
         val nativeCalls = type.nativeCalls
-        assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(variable, 4).status)
+        assertEquals(CvarSetResult.Status.QUEUED, variable.set(4).status)
         assertEquals(1, variable.typedValue)
         assertEquals(4, variable.pendingValue)
         assertEquals("4", variable.rawPendingString)
         variable.modified = false
-        assertEquals(CvarSetResult.Status.REJECTED, registry.setResult(variable, 11).status)
+        assertEquals(CvarSetResult.Status.REJECTED, variable.set(11).status)
         assertEquals(1, variable.typedValue)
         assertEquals(4, variable.pendingValue)
         assertEquals("4", variable.rawPendingString)

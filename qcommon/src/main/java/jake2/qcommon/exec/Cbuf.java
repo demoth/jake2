@@ -299,7 +299,7 @@ public final class Cbuf {
 
         Cbuf.AddEarlySetCommands(args, clear);
         Cbuf.Execute();
-        if (!("".equals(dir))) Cvar.getInstance().Set("cddir", dir);
+        if (!("".equals(dir))) Cvar.getInstance().find("cddir", String.class).set(dir);
     }
 
 }

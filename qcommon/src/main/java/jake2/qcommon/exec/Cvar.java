@@ -46,6 +46,9 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static jake2.qcommon.exec.cvar_t.invalidInfoString;
+import static jake2.qcommon.exec.cvar_t.nativeClass;
+
 /**
  * Cvar implements console variables. The original code is located in cvar.c
  */
@@ -347,7 +350,7 @@ public class Cvar extends Globals {
         }
 
         if (var.getType() != null) {
-            report(typedWrite(var, value, flags, true));
+            report(var.setText(value, flags, true));
             return var;
         }
 
@@ -391,7 +394,7 @@ public class Cvar extends Globals {
         }
 
         if (var.getType() != null) {
-            report(typedWrite(var, value, var.flags, force));
+            report(var.setText(value, var.flags, force));
             return var;
         }
 
@@ -418,8 +421,8 @@ public class Cvar extends Globals {
                         return var;
                 }
 
-                if (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart(var)) {
-                    if (requiresAppRestart(var)) {
+                if (Globals.server_state != ServerStates.SS_DEAD || var.requiresAppRestart()) {
+                    if (var.requiresAppRestart()) {
                         Com.Printf(canonicalName + " will be changed after restart.\n");
                     } else {
                         Com.Printf(canonicalName + " will be changed for next game.\n");
@@ -458,11 +461,6 @@ public class Cvar extends Globals {
 
         return var;
     }
-
-    private boolean requiresAppRestart(cvar_t<?> var) {
-        return var != null && var.name != null && var.name.startsWith("vid_");
-    }
-
 
     /**
      * Sets a float value of a variable.
@@ -558,7 +556,7 @@ public class Cvar extends Globals {
     public void updateLatchedVars() {
         for (cvar_t var : cvarMap.values()) {
             if (var.getType() != null) {
-                if (var.latched_string != null) report(typedWrite(var, var.latched_string, var.flags, true));
+                if (var.latched_string != null) report(var.setText(var.latched_string, var.flags, true));
                 continue;
             }
             if (var.latched_string == null || var.latched_string.length() == 0)
@@ -641,13 +639,6 @@ public class Cvar extends Globals {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Some characters are invalid for info strings.
-     */
-    private static boolean invalidInfoString(String s) {
-        return INFO_DISALLOWED_CHARS.matcher(s).find();
-    }
-
     private String resolveCanonicalName(String var_name) {
         if (var_name == null) {
             return null;
@@ -696,12 +687,12 @@ public class Cvar extends Globals {
             return (cvar_t<T>) previous;
         }
         cvar_t<T> var = new cvar_t<>(name, type, defaultValue, flags, description);
-        CvarValue active = normalizeResolved(var, type.validate(defaultValue), flags);
+        CvarValue active = var.normalizeResolved(type.validate(defaultValue), flags);
         EarlyCvarValue early = earlyValues.remove(name);
         if (early != null) {
             try {
                 validateSuggestedFlags(early, flags);
-                active = normalize(var, early.getText(), flags);
+                active = var.normalize(early.getText(), flags);
             } catch (IllegalArgumentException e) {
                 Com.Warn("Rejected early input for '" + name + "'; using default: " + e.getMessage() + "\n");
             }
@@ -725,34 +716,11 @@ public class Cvar extends Globals {
 
     /** Lets callers distinguish acceptance, rejection and delayed application without console parsing. */
     public CvarSetResult setResult(String name, String value) { return setResult(name, value, false); }
-    /** Validates a native value and uses the same protection/latch rules as console writes. */
-    public <T> CvarSetResult setResult(cvar_t<T> var, T value) {
-        if (var == null || lookup(var.name) != var) return rejected("Cvar reference is not registered here");
-        return nativeWrite(var, value);
-    }
-
     /** Runtime-checked native writes for heterogeneous editors whose entries have unknown generic types. */
     public CvarSetResult setNativeResult(String name, Object value) {
         cvar_t<?> var = FindVar(name);
         if (var == null) return rejected("Unknown cvar: " + name);
-        return nativeWrite(var, value);
-    }
-
-    @SuppressWarnings("unchecked")
-    private CvarSetResult nativeWrite(cvar_t<?> var, Object value) {
-        if (var.getType() == null) return rejected("Cvar " + var.name + " has no native type");
-        if (value == null || nativeClass(value) != nativeClass(var.getDefaultValue()))
-            return rejected("Wrong native value type for " + var.name);
-        try {
-            CvarType<Object> type = (CvarType<Object>) var.getType();
-            return commitWrite(var, normalizeResolved(var, type.validate(value), var.flags), var.flags, false);
-        } catch (IllegalArgumentException e) {
-            return rejected("Invalid value for " + var.name + ": " + e.getMessage());
-        }
-    }
-
-    private static Class<?> nativeClass(Object value) {
-        return value instanceof Enum<?> ? ((Enum<?>) value).getDeclaringClass() : value.getClass();
+        return var.setNative(value, false);
     }
 
     /** Supports immediate lifecycle updates while retaining validation for constrained entries. */
@@ -761,7 +729,7 @@ public class Cvar extends Globals {
     /** Unifies constrained and legacy write paths behind the same result-bearing API. */
     private CvarSetResult setResult(String name, String value, boolean force) {
         cvar_t var = lookup(name);
-        if (var != null && var.getType() != null) return typedWrite(var, value, var.flags, force);
+        if (var != null && var.getType() != null) return var.setText(value, var.flags, force);
         if (var == null) return stageEarly(resolveCanonicalName(name), value, null);
         if (value == null) return rejected("Missing value for " + name);
         if (!force && (var.flags & CVAR_NOSET) != 0) return rejected(name + " is write protected");
@@ -785,24 +753,6 @@ public class Cvar extends Globals {
         if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
     }
 
-    /** Prepares the canonical token and typed caches, checking type and transport limits before commit. */
-    private static <T> CvarValue normalize(cvar_t<T> var, String text, int flags) {
-        if (text == null) throw new IllegalArgumentException("missing value");
-        return normalizeResolved(var, var.getType().parse(text), flags);
-    }
-
-    /** Checks interchange limits for both native and parsed writes without revalidating their values. */
-    private static CvarValue normalizeResolved(cvar_t<?> var, CvarType.Resolved<?> resolved, int flags) {
-        String token = resolved.getToken();
-        if ((flags & CVAR_ARCHIVE) != 0 && (token.indexOf('"') >= 0 || token.indexOf('\n') >= 0
-                || token.indexOf('\r') >= 0 || token.indexOf('\0') >= 0
-                || token.length() + var.name.length() + 7 >= Defines.MAX_STRING_CHARS))
-            throw new IllegalArgumentException("value cannot round-trip through config command quoting");
-        if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && (invalidInfoString(var.name) || invalidInfoString(token)))
-            throw new IllegalArgumentException("invalid info string characters");
-        return new CvarValue(token, resolved.getValue());
-    }
-
     /** Ensures flag changes also update modified state and userinfo notifications. */
     private static void updateTypedFlags(cvar_t<?> var, int flags) {
         if (var.flags == flags) return;
@@ -813,54 +763,8 @@ public class Cvar extends Globals {
 
     /** Prevents flag changes from making existing active or pending values invalid. */
     private void validateTypedState(cvar_t<?> var, int flags) {
-        normalize(var, var.string, flags);
-        if (var.latched_string != null) normalize(var, var.latched_string, flags);
-    }
-
-    /**
-     * Shares validation, latch handling and cache commits across writes to constrained entries.
-     * Force bypasses protection and delay, but still requires valid values.
-     */
-    private CvarSetResult typedWrite(cvar_t<?> var, String text, int flags, boolean force) {
-        CvarValue resolved;
-        try {
-            resolved = normalize(var, text, flags);
-        }
-        catch (IllegalArgumentException e) { return rejected("Invalid value for " + var.name + ": " + e.getMessage()); }
-        return commitWrite(var, resolved, flags, force);
-    }
-
-    /** Applies an already validated value, sharing notifications and latch semantics across input forms. */
-    private CvarSetResult commitWrite(cvar_t<?> var, CvarValue resolved, int flags, boolean force) {
-        String token = resolved.getToken();
-        if (!force && (var.flags & CVAR_NOSET) != 0) return rejected(var.name + " is write protected");
-        if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart(var))) {
-            if (token.equals(var.latched_string)) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
-            if (token.equals(var.string)) {
-                boolean cancelled = var.latched_string != null;
-                var.commitPending(null);
-                return new CvarSetResult(cancelled ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
-            }
-            var.commitPending(resolved);
-            String timing = requiresAppRestart(var) ? "after restart" : "for next game";
-            return new CvarSetResult(CvarSetResult.Status.QUEUED, var.name + " will be changed " + timing + ".");
-        }
-        boolean valueChanged = !token.equals(var.string);
-        boolean flagsChanged = flags != var.flags;
-        boolean hadPending = var.latched_string != null;
-        int oldFlags = var.flags;
-        var.commitActive(resolved);
-        var.flags = flags;
-        var.commitPending(null);
-        if (valueChanged || flagsChanged) {
-            var.modified = true;
-            if (((oldFlags | flags) & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
-        }
-        if (valueChanged && var.name.equals("game")) {
-            EngineFilesystemLifecycle.setGameDir(token);
-            EngineFilesystemLifecycle.execAutoexec();
-        }
-        return new CvarSetResult(valueChanged || flagsChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
+        var.normalize(var.string, flags);
+        if (var.latched_string != null) var.normalize(var.latched_string, flags);
     }
 
     /** Clears entries and aliases for tests; discard acquired entries and their consumers before reuse. */

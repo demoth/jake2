@@ -25,11 +25,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon.exec;
 
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
+import jake2.qcommon.vfs.EngineFilesystemLifecycle;
+
+import static jake2.qcommon.Defines.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One registered variable with optional native typing. The registry coordinates all API writes.
+ * One variable with optional native typing, validation and write/latch behavior.
  * TODO: Retire public legacy value fields after callers/writers migrate; direct writes bypass validation and leave native state stale.
  */
 public final class cvar_t<T> {
@@ -90,6 +97,103 @@ public final class cvar_t<T> {
 
     public @Nullable String getRawPendingString() {
         return latched_string;
+    }
+
+    /** Validates a native value, respecting write protection and latching. */
+    public CvarSetResult set(T value) { return setNative(value, false); }
+
+    /** Applies a native value immediately, bypassing protection and latching but not validation. */
+    public CvarSetResult forceSet(T value) { return setNative(value, true); }
+
+    boolean requiresAppRestart() { return name != null && name.startsWith("vid_"); }
+
+    static boolean invalidInfoString(String value) {
+        return value.indexOf('\\') >= 0 || value.indexOf(';') >= 0 || value.indexOf('"') >= 0;
+    }
+
+    private static CvarSetResult rejected(String diagnostic) {
+        return new CvarSetResult(CvarSetResult.Status.REJECTED, diagnostic);
+    }
+
+    @SuppressWarnings("unchecked")
+    CvarSetResult setNative(Object value, boolean force) {
+        if (this.getType() == null) return rejected("Cvar " + this.name + " has no native type");
+        if (value == null || nativeClass(value) != nativeClass(this.getDefaultValue()))
+            return rejected("Wrong native value type for " + this.name);
+        try {
+            CvarType<Object> type = (CvarType<Object>) this.getType();
+            return commitWrite(normalizeResolved(type.validate(value), this.flags), this.flags, force);
+        } catch (IllegalArgumentException e) {
+            return rejected("Invalid value for " + this.name + ": " + e.getMessage());
+        }
+    }
+
+    static Class<?> nativeClass(Object value) {
+        return value instanceof Enum<?> ? ((Enum<?>) value).getDeclaringClass() : value.getClass();
+    }
+
+    /** Prepares the canonical token and typed caches, checking type and transport limits before commit. */
+    CvarValue normalize(String text, int flags) {
+        if (text == null) throw new IllegalArgumentException("missing value");
+        return normalizeResolved(this.getType().parse(text), flags);
+    }
+
+    /** Checks interchange limits for both native and parsed writes without revalidating their values. */
+    CvarValue normalizeResolved(CvarType.Resolved<?> resolved, int flags) {
+        String token = resolved.getToken();
+        if ((flags & CVAR_ARCHIVE) != 0 && (token.indexOf('"') >= 0 || token.indexOf('\n') >= 0
+                || token.indexOf('\r') >= 0 || token.indexOf('\0') >= 0
+                || token.length() + this.name.length() + 7 >= Defines.MAX_STRING_CHARS))
+            throw new IllegalArgumentException("value cannot round-trip through config command quoting");
+        if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0 && (invalidInfoString(this.name) || invalidInfoString(token)))
+            throw new IllegalArgumentException("invalid info string characters");
+        return new CvarValue(token, resolved.getValue());
+    }
+
+    /**
+     * Shares validation, latch handling and cache commits across writes to constrained entries.
+     * Force bypasses protection and delay, but still requires valid values.
+     */
+    CvarSetResult setText(String text, int flags, boolean force) {
+        CvarValue resolved;
+        try {
+            resolved = normalize(text, flags);
+        }
+        catch (IllegalArgumentException e) { return rejected("Invalid value for " + this.name + ": " + e.getMessage()); }
+        return commitWrite(resolved, flags, force);
+    }
+
+    /** Applies an already validated value, sharing notifications and latch semantics across input forms. */
+    private CvarSetResult commitWrite(CvarValue resolved, int flags, boolean force) {
+        String token = resolved.getToken();
+        if (!force && (this.flags & CVAR_NOSET) != 0) return rejected(this.name + " is write protected");
+        if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart())) {
+            if (token.equals(this.latched_string)) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
+            if (token.equals(this.string)) {
+                boolean cancelled = this.latched_string != null;
+                this.commitPending(null);
+                return new CvarSetResult(cancelled ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
+            }
+            this.commitPending(resolved);
+            String timing = requiresAppRestart() ? "after restart" : "for next game";
+            return new CvarSetResult(CvarSetResult.Status.QUEUED, this.name + " will be changed " + timing + ".");
+        }
+        boolean valueChanged = !token.equals(this.string);
+        boolean flagsChanged = flags != this.flags;
+        boolean hadPending = this.latched_string != null;
+        int oldFlags = this.flags;
+        this.commitActive(resolved);
+        this.flags = flags;
+        this.commitPending(null);
+        if (valueChanged || flagsChanged) {
+            this.modified = true;
+            if (((oldFlags | flags) & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
+        }
+        if (valueChanged && this.name.equals("game")) {
+            EngineFilesystemLifecycle.setGameDir(token);
+            EngineFilesystemLifecycle.execAutoexec();
+        }
+        return new CvarSetResult(valueChanged || flagsChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
     }
 
     /** Updates active state without changing queued intent; keeps migration-era mirrors coherent. */
