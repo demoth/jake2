@@ -55,7 +55,7 @@ class CakeDownloadManagerTest {
     @Test
     fun `rejects category disabled by cvar`() {
         val manager = newManager()
-        cvars.Set("allow_download_maps", "0")
+        cvars.setResult("allow_download_maps", "0")
 
         val result = manager.enqueue("maps/base1.bsp", null)
 

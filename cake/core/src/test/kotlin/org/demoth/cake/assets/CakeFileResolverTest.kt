@@ -357,7 +357,7 @@ class CakeFileResolverTest {
         }
 
         private fun setFsDebugLoaders(value: String) {
-            Cvar.getInstance().ForceSet("fs_debug_loaders", value)
+            Cvar.getInstance().forceSetResult("fs_debug_loaders", value)
         }
     }
 

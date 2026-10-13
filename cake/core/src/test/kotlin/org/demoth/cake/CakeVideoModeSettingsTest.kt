@@ -32,7 +32,7 @@ class CakeVideoModeSettingsTest {
 
     @Test
     fun parsesLogicalHidpiModeFromCvars() {
-        cvars.Set("vid_hidpi", "Logical")
+        cvars.setResult("vid_hidpi", "Logical")
 
         CakeCvars.registerVideoMode(cvars)
         val settings = CakeVideoModeSettings.fromCvars(cvars)
@@ -42,7 +42,7 @@ class CakeVideoModeSettingsTest {
 
     @Test
     fun firstRegistrationRepairsUnknownHidpiModeToPixels() {
-        cvars.Set("vid_hidpi", "unknown")
+        cvars.setResult("vid_hidpi", "unknown")
 
         CakeCvars.registerVideoMode(cvars)
         val settings = CakeVideoModeSettings.fromCvars(cvars)
@@ -52,10 +52,10 @@ class CakeVideoModeSettingsTest {
 
     @Test
     fun invalidDimensionsAndBufferValuesUseDefaults() {
-        cvars.Set("vid_windowed_width", "-1")
-        cvars.Set("vid_windowed_height", "invalid")
-        cvars.Set("vid_depthbits", "0")
-        cvars.Set("vid_samples", "-2")
+        cvars.setResult("vid_windowed_width", "-1")
+        cvars.setResult("vid_windowed_height", "invalid")
+        cvars.setResult("vid_depthbits", "0")
+        cvars.setResult("vid_samples", "-2")
         CakeCvars.registerVideoMode(cvars)
 
         val settings = CakeVideoModeSettings.fromCvars(cvars)
@@ -68,11 +68,11 @@ class CakeVideoModeSettingsTest {
     @Test
     fun resizingPreservesExplicitPendingDimensionsAndArchivesThem(@TempDir directory: Path) {
         CakeCvars.registerVideoMode(cvars)
-        cvars.Set("vid_windowed_width", "1600")
+        cvars.setResult("vid_windowed_width", "1600")
         rememberWindowedSize(1200, 800, fullscreen = false, cvars = cvars)
-        assertEquals(1200, cvars.FindVar("vid_windowed_width").asInt())
+        assertEquals(1200, cvars.find<Int>("vid_windowed_width").typedValue)
         assertEquals(1600, cvars.find<Int>("vid_windowed_width").pendingValue)
-        assertEquals(800, cvars.FindVar("vid_windowed_height").asInt())
+        assertEquals(800, cvars.find<Int>("vid_windowed_height").typedValue)
         assertNull(cvars.find<Int>("vid_windowed_height").pendingValue)
 
         val config = directory.resolve("config.cfg")
@@ -82,17 +82,17 @@ class CakeVideoModeSettingsTest {
         assertTrue(text.contains("set vid_windowed_height \"800\""))
         assertFalse(text.contains("set vid_fullscreen_modes"))
         cvars.updateLatchedVars()
-        assertEquals(1600, cvars.FindVar("vid_windowed_width").asInt())
+        assertEquals(1600, cvars.find<Int>("vid_windowed_width").typedValue)
         assertNull(cvars.find<Int>("vid_windowed_width").pendingValue)
     }
 
     @Test
     fun resizingToPendingDimensionsSatisfiesTheQueuedChange() {
         CakeCvars.registerVideoMode(cvars)
-        cvars.Set("vid_windowed_width", "1600")
+        cvars.setResult("vid_windowed_width", "1600")
         rememberWindowedSize(1600, 900, fullscreen = false, cvars = cvars)
-        assertEquals(1600, cvars.FindVar("vid_windowed_width").asInt())
-        assertNull(cvars.FindVar("vid_windowed_width").rawPendingString)
+        assertEquals(1600, cvars.find<Int>("vid_windowed_width").typedValue)
+        assertNull(cvars.find<Int>("vid_windowed_width").rawPendingString)
         assertNull(cvars.find<Int>("vid_windowed_width").pendingValue)
     }
 
@@ -120,8 +120,8 @@ class CakeVideoModeSettingsTest {
     fun supportedModesAreReadOnlyAndNotEditableOptions() {
         CakeCvars.registerVideoMode(cvars)
         publishFullscreenModes(listOf(CakeDisplayMode(1920, 1080, 144), CakeDisplayMode(1920, 1080, 144)), cvars)
-        cvars.Set("vid_fullscreen_modes", "fake")
-        assertEquals("1920x1080@144", cvars.VariableString("vid_fullscreen_modes"))
+        cvars.setResult("vid_fullscreen_modes", "fake")
+        assertEquals("1920x1080@144", cvars.find<String>("vid_fullscreen_modes").typedValue)
         assertFalse(cvars.listByPrefixAndFlags("vid_", CVAR_OPTIONS).any { it.name == "vid_fullscreen_modes" })
     }
 
@@ -132,9 +132,9 @@ class CakeVideoModeSettingsTest {
         assertTrue(cvars.setResult(hidpi.name, HdpiMode.Logical.name).accepted)
         assertFalse(cvars.setResult(hidpi.name, "logical").accepted)
         assertFalse(cvars.setResult(hidpi.name, "unknown").accepted)
-        assertEquals(HdpiMode.Pixels, hidpi.asEnum(HdpiMode::class.java))
+        assertEquals(HdpiMode.Pixels, hidpi.typedValue)
         assertEquals(HdpiMode.Logical, hidpi.pendingValue)
-        assertEquals(HdpiMode.values().toList(), hidpi.type?.choices)
+        assertEquals(HdpiMode.values().toList(), hidpi.type.choices)
         cvars.updateLatchedVars()
         assertEquals(HdpiMode.Logical, CakeVideoModeSettings.fromCvars(cvars).hdpiMode)
     }
@@ -149,7 +149,7 @@ class CakeVideoModeSettingsTest {
             assertFalse(cvars.setResult(selection.name, invalid).accepted, invalid)
         }
         publishFullscreenModes(listOf(CakeDisplayMode(2560, 1440, 60)), cvars)
-        assertEquals("2560x1440@60", cvars.FindVar("vid_fullscreen_modes").asString())
+        assertEquals("2560x1440@60", cvars.find<String>("vid_fullscreen_modes").typedValue)
         assertEquals(listOf("desktop", "2560x1440@60"), fullscreenModeSuggestions(cvars))
         assertEquals("1920x1080@144", selection.pendingValue)
         cvars.updateLatchedVars()
@@ -185,8 +185,8 @@ class CakeVideoModeSettingsTest {
             CakeCvars.registerVideoMode(cvars)
             Cbuf.AddAndExecuteScript(script)
             assertEquals(HdpiMode.Pixels, CakeVideoModeSettings.fromCvars(cvars).hdpiMode)
-            assertEquals("Logical", cvars.FindVar("vid_hidpi").rawPendingString)
-            assertEquals("1920x1080@144", cvars.FindVar("vid_fullscreen_mode").rawPendingString)
+            assertEquals("Logical", cvars.find<HdpiMode>("vid_hidpi").rawPendingString)
+            assertEquals("1920x1080@144", cvars.find<String>("vid_fullscreen_mode").rawPendingString)
             cvars.updateLatchedVars()
             val settings = CakeVideoModeSettings.fromCvars(cvars)
             assertEquals(HdpiMode.Logical, settings.hdpiMode)

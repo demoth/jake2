@@ -51,7 +51,7 @@ class OptionsSectionStage(
         val values = entries.map { it.rawString to it.rawPendingString }
         val choices = entries.map {
             if (it.name == "vid_fullscreen_mode") fullscreenModeSuggestions()
-            else it.type?.choices.orEmpty()
+            else it.type.choices
         }
         if (!force && state == renderedState && values == renderedValues && choices == renderedChoices) {
             return
@@ -71,11 +71,10 @@ class OptionsSectionStage(
             entries.forEachIndexed { index, entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
                 val type = entry.type
-                val value: Any = if (type == null) entry.rawPendingString ?: entry.rawString
-                    else entry.pendingValue ?: entry.typedValue
+                val value: Any = entry.pendingValue ?: entry.typedValue
                 val entryChoices = choices[index]
                 val editor = when {
-                    type?.kind == CvarType.Kind.BOOLEAN -> TextButton("x", checkBoxStyle).apply {
+                    type.kind == CvarType.Kind.BOOLEAN -> TextButton("x", checkBoxStyle).apply {
                         isChecked = value as Boolean
                         valuesByName[entry.name] = { isChecked }
                     }
@@ -91,7 +90,7 @@ class OptionsSectionStage(
                         valuesByName[entry.name] = { field.text }
                     }
                 }
-                if (type?.kind == CvarType.Kind.BOOLEAN) {
+                if (type.kind == CvarType.Kind.BOOLEAN) {
                     add(editor).size(maxOf(editor.prefWidth, editor.prefHeight)).left()
                 } else {
                     add(editor).minWidth(220f).prefWidth(280f).fillX()

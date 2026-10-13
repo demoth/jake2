@@ -1604,7 +1604,7 @@ class Cake(
         var latchedCount = 0
         val errors = mutableListOf<String>()
         values.forEach { (name, value) ->
-            val cvar = cvars.FindVar(name) ?: return@forEach
+            val cvar = cvars.find(name) ?: return@forEach
             if (!name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
                 return@forEach
             }

@@ -114,7 +114,7 @@ class ConsoleInputController(
             }
         }
 
-        val cvar = Cvar.getInstance().FindVar(name) ?: return name
+        val cvar = Cvar.getInstance().find(name) ?: return name
         return buildString {
             append(name)
             append(" (")

@@ -21,7 +21,7 @@ class FireAndForgetCakeAudioSystemTest {
     @BeforeEach
     fun setUp() {
         CakeCvars.registerAudio()
-        Cvar.getInstance().Set("s_volume", "1")
+        Cvar.getInstance().setResult("s_volume", "1")
     }
 
     @AfterEach
@@ -32,7 +32,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @Test
     fun gameplayOneShotStealsAmbientLoopWhenPoolIsFull() {
-        Cvar.getInstance().Set("s_maxvoices", "1")
+        Cvar.getInstance().setResult("s_maxvoices", "1")
         val system = createSystem()
         // Invalid edits must retain the live one-voice budget, rather than truncate or clamp.
         for (invalid in listOf("2.5", "0", "129", "NaN")) {
@@ -60,7 +60,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @Test
     fun loopSyncDoesNotThrashExistingLoopsWhenRequestsExceedPool() {
-        Cvar.getInstance().Set("s_maxvoices", "1")
+        Cvar.getInstance().setResult("s_maxvoices", "1")
         val system = createSystem()
         val firstLoop = registerFakeSound(durationMs = 1500)
         val secondLoop = registerFakeSound(durationMs = 1500)
@@ -80,7 +80,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @Test
     fun replacementPrefersShortestRemainingLife() {
-        Cvar.getInstance().Set("s_maxvoices", "2")
+        Cvar.getInstance().setResult("s_maxvoices", "2")
         val system = createSystem()
         val longShot = registerFakeSound(durationMs = 2000)
         val shortShot = registerFakeSound(durationMs = 300)
@@ -120,7 +120,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @Test
     fun localPlayerVoiceIsProtectedFromNonPlayerReplacement() {
-        Cvar.getInstance().Set("s_maxvoices", "1")
+        Cvar.getInstance().setResult("s_maxvoices", "1")
         val system = createSystem(localPlayerEntityIndex = 1)
         val localPlayerShot = registerFakeSound(durationMs = 1500)
         val monsterShot = registerFakeSound(durationMs = 150)
@@ -148,7 +148,7 @@ class FireAndForgetCakeAudioSystemTest {
 
     @Test
     fun explicitChannelOverridesSameEntityChannel() {
-        Cvar.getInstance().Set("s_maxvoices", "1")
+        Cvar.getInstance().setResult("s_maxvoices", "1")
         val system = createSystem()
         val firstShot = registerFakeSound(durationMs = 1000)
         val secondShot = registerFakeSound(durationMs = 1000)
