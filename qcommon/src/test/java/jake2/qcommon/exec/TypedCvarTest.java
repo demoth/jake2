@@ -1,5 +1,6 @@
 package jake2.qcommon.exec;
 
+import jake2.qcommon.Com;
 import jake2.qcommon.Globals;
 import jake2.qcommon.ServerStates;
 import org.junit.jupiter.api.AfterEach;
@@ -15,7 +16,7 @@ import static jake2.qcommon.Defines.*;
 import static jake2.qcommon.exec.CvarSetResult.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Covers typed registry behavior through legacy writes, late registration, latches and config reloads. */
+/** Covers typed registry behavior through legacy writes, early initialization, latches and config reloads. */
 class TypedCvarTest {
     private Cvar registry;
     private boolean previousUserinfoModified;
@@ -33,8 +34,8 @@ class TypedCvarTest {
         Globals.userinfo_modified = previousUserinfoModified;
     }
 
-    private <T> CvarSpec<T> spec(String name, CvarType<T> type, T value, int flags) {
-        return new CvarSpec<>(name, type, value, flags, "Test setting");
+    private <T> cvar_t<T> register(String name, CvarType<T> type, T value, int flags) {
+        return registry.register(name, type, value, flags, "Test setting");
     }
 
     @Test
@@ -53,14 +54,14 @@ class TypedCvarTest {
     @ParameterizedTest
     @ValueSource(strings = {"2", "-1", "1.0", "yes", "NaN", "", "truthy"})
     void booleansRejectNumericTruthinessAndUnknownWords(String text) {
-        var variable = registry.register(spec("toggle", CvarTypes.BOOLEAN, false, 0));
+        var variable = register("toggle", CvarTypes.BOOLEAN, false, 0);
         assertEquals(REJECTED, registry.setResult("toggle", text).getStatus());
         assertFalse(variable.asBoolean());
     }
 
     @Test
     void booleanCanonicalizationAndNotifications() {
-        var variable = registry.register(spec("toggle", CvarTypes.BOOLEAN, false, CVAR_USERINFO));
+        var variable = register("toggle", CvarTypes.BOOLEAN, false, CVAR_USERINFO);
         registry.FindVar("toggle").modified = false;
         Globals.userinfo_modified = false;
         assertEquals(APPLIED, registry.setResult("toggle", " TrUe ").getStatus());
@@ -78,13 +79,13 @@ class TypedCvarTest {
     @ParameterizedTest
     @ValueSource(strings = {"1.0", "1.9", "1e2", "true", "2147483648", "-2147483649", "0x10", ""})
     void integerGrammarIsStrict(String text) {
-        registry.register(spec("number", CvarTypes.INTEGER, 0, 0));
+        register("number", CvarTypes.INTEGER, 0, 0);
         assertEquals(REJECTED, registry.setResult("number", text).getStatus());
     }
 
     @Test
     void integersPreservePrecisionAndCanonicalWireEncoding() {
-        var variable = registry.register(spec("number", CvarTypes.INTEGER, 0, CVAR_USERINFO));
+        var variable = register("number", CvarTypes.INTEGER, 0, CVAR_USERINFO);
         assertEquals(APPLIED, registry.setResult("number", "\u00a0 +016777217 \u00a0").getStatus());
         assertEquals(16777217, variable.asInt());
         assertEquals("16777217", registry.VariableString("number"));
@@ -101,20 +102,20 @@ class TypedCvarTest {
         assertEquals(32, integer.asInt());
         assertEquals(APPLIED, registry.setResult(integer.name, "1").getStatus());
         assertEquals(APPLIED, registry.setResult(integer.name, "128").getStatus());
-        assertThrows(IllegalArgumentException.class, () -> spec("bad", new CvarTypes.IntegerType(1, 2), 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> register("bad", new CvarTypes.IntegerType(1, 2), 0, 0));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"NaN", "Infinity", "-Infinity", "1e99", "true", "", "1.2.3"})
     void floatsRejectNonfiniteAndInvalidInput(String text) {
-        var variable = registry.register(spec("gain", CvarTypes.FLOAT, 1f, 0));
+        var variable = register("gain", CvarTypes.FLOAT, 1f, 0);
         assertEquals(REJECTED, registry.setResult("gain", text).getStatus());
         assertEquals(1f, variable.asFloat());
     }
 
     @Test
     void floatsHaveFiniteRangesAndOneZero() {
-        var variable = registry.register(spec("gain", new CvarTypes.FloatType(0f, 2f), 1f, 0));
+        var variable = register("gain", new CvarTypes.FloatType(0f, 2f), 1f, 0);
         assertEquals(APPLIED, registry.setResult("gain", " .2e1 ").getStatus());
         assertEquals(2f, variable.asFloat());
         assertEquals(APPLIED, registry.setResult("gain", "0x1.0p0").getStatus());
@@ -132,7 +133,7 @@ class TypedCvarTest {
 
     @Test
     void regexUsesFullMatchAndStringWhitespaceIsPreserved() {
-        var variable = registry.register(spec("name", new CvarTypes.StringType("[a-z ]+"), "bob", 0));
+        var variable = register("name", new CvarTypes.StringType("[a-z ]+"), "bob", 0);
         assertEquals(APPLIED, registry.setResult(variable.name, " bob ").getStatus());
         assertEquals(" bob ", variable.asString());
         assertEquals(REJECTED, registry.setResult(variable.name, "bob123").getStatus());
@@ -144,13 +145,13 @@ class TypedCvarTest {
 
     @Test
     void enumTokensAreNamesAndNumericChoicesRemainTypedIntegers() {
-        var mode = registry.register(spec("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0));
+        var mode = register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0);
         assertEquals(APPLIED, registry.setResult(mode.name, "Logical").getStatus());
         assertEquals("Logical", registry.VariableString("mode"));
         assertEquals(REJECTED, registry.setResult("mode", "1").getStatus());
         assertEquals(REJECTED, registry.setResult("mode", "logical").getStatus());
         var choices = new CvarTypes.ChoiceType<>(List.of(0, 4));
-        var samples = registry.register(spec("samples", choices, 0, 0));
+        var samples = register("samples", choices, 0, 0);
         assertEquals(APPLIED, registry.setResult(samples.name, "4").getStatus());
         assertEquals(4, samples.asInt());
         assertEquals(REJECTED, registry.setResult(samples.name, "004").getStatus());
@@ -159,51 +160,126 @@ class TypedCvarTest {
     }
 
     @Test
-    void lateRegistrationRepairsInvalidValuesAndKeepsIdentity() {
-        var entry = registry.Set("number", "not an integer");
-        entry.latched_string = "also bad";
-        var variable = registry.register(spec("number", CvarTypes.INTEGER, 7, 0));
-        assertSame(entry, variable);
-        assertSame(entry, registry.FindVar("number"));
+    void earlyInputIsValidatedWhenTheCompleteEntryIsRegistered() {
+        assertNull(registry.Set("number", "not an integer"));
+        assertTrue(registry.listByPrefixAndFlags("number", 0).isEmpty());
+        var variable = register("number", CvarTypes.INTEGER, 7, 0);
+        assertSame(variable, registry.FindVar("number"));
         assertEquals(7, variable.asInt());
         assertNull(variable.getPendingValue());
-        registry.Set("valid", " +0009 ").latched_string = " +0010 ";
-        var valid = registry.register(spec("valid", CvarTypes.INTEGER, 7, CVAR_LATCH));
+        assertNull(registry.Set("valid", " +0009 "));
+        var valid = register("valid", CvarTypes.INTEGER, 7, CVAR_LATCH);
         assertEquals(9, valid.asInt());
-        assertEquals(10, valid.getPendingValue());
-        assertEquals("9", registry.VariableString("valid"));
-        assertEquals("10", registry.FindVar("valid").latched_string);
+        assertEquals("9", valid.getRawString());
+        assertNull(valid.getPendingValue());
     }
 
     @Test
-    void duplicateDefinitionsAreExplicit() {
-        var definition = spec("number", new CvarTypes.IntegerType(0, 10), 1, 0);
-        var variable = registry.register(definition);
-        assertSame(variable, registry.register(definition));
-        assertEquals(1, registry.register(spec("number", new CvarTypes.IntegerType(0, 10), 1, 0)).asInt());
-        assertThrows(IllegalArgumentException.class, () -> registry.register(spec("number", CvarTypes.BOOLEAN, true, 0)));
-        assertThrows(IllegalArgumentException.class, () -> registry.register(spec("number", new CvarTypes.IntegerType(0, 11), 1, 0)));
+    void earlyWritesStayOutOfRegisteredViewsAndProduceDiagnostics() {
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            assertNull(registry.FullSet("early", "private-invalid-value", CVAR_USERINFO));
+            assertNull(registry.FindVar("early"));
+            assertTrue(registry.listByPrefixAndFlags("", 0).isEmpty());
+            assertEquals("", registry.Userinfo());
+            assertFalse(Globals.userinfo_modified);
+            assertEquals("private-invalid-value", registry.VariableString("early"));
+            assertNull(registry.FindVar("missing"));
+            assertEquals(7, register("early", CvarTypes.INTEGER, 7, CVAR_USERINFO).asInt());
+        } finally {
+            Com.EndRedirect();
+        }
+        assertFalse(output.toString().contains("private-invalid-value"));
+        assertTrue(output.toString().contains("Cvar 'missing' is not registered"));
+        assertTrue(output.toString().contains("storing early input"));
+        assertTrue(output.toString().contains("before cvar registration"));
+        assertTrue(output.toString().contains("Rejected early input"));
+    }
+
+    @Test
+    void earlyFullSetFlagsMustAgreeWithTheOwnerAndPlainSetPreservesThem() {
+        registry.FullSet("matching", "2", CVAR_USERINFO);
+        registry.Set("matching", "3");
+        var matching = register("matching", CvarTypes.INTEGER, 1, CVAR_USERINFO | CVAR_ARCHIVE);
+        assertEquals(3, matching.asInt());
+        assertEquals(CVAR_USERINFO | CVAR_ARCHIVE, matching.flags);
+
+        registry.FullSet("conflict", "2", CVAR_USERINFO);
+        registry.Set("conflict", "3");
+        var conflict = register("conflict", CvarTypes.INTEGER, 1, CVAR_ARCHIVE);
+        assertEquals(1, conflict.asInt());
+        assertEquals(CVAR_ARCHIVE, conflict.flags);
+
+        registry.FullSet("replaced", "2", CVAR_USERINFO);
+        registry.FullSet("replaced", "4", 0);
+        assertEquals(4, register("replaced", CvarTypes.INTEGER, 1, 0).asInt());
+    }
+
+    @Test
+    void aliasesRouteEarlyInputInLastWriteOrder() {
+        registry.Set("old_number", "2");
+        registry.Set("number", "3");
+        registry.Set("old_number", "4");
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            registry.AddAlias("old_number", "number");
+        } finally {
+            Com.EndRedirect();
+        }
+        assertTrue(output.toString().contains("Alias 'old_number' was used before alias registration"));
+        var number = register("number", CvarTypes.INTEGER, 1, 0);
+        assertEquals(4, number.asInt());
+        assertSame(number, registry.FindVar("old_number"));
+
+        registry.Set("old_other", "5");
+        registry.Set("other", "6");
+        registry.AddAlias("old_other", "other");
+        assertEquals(6, register("other", CvarTypes.INTEGER, 1, 0).asInt());
+    }
+
+    @Test
+    void aLateAliasUsesNormalWritesForAnAlreadyRegisteredTarget() {
+        registry.Set("old_video", "2");
+        var video = register("vid_number", CvarTypes.INTEGER, 1, CVAR_LATCH);
+        registry.AddAlias("old_video", "vid_number");
+        assertEquals(1, video.asInt());
+        assertEquals(2, video.getPendingValue());
+        registry.updateLatchedVars();
+        assertEquals(2, video.asInt());
+    }
+
+    @Test
+    void registrationOwnsTheTypeAndRejectsOtherDeclarations() {
+        var variable = register("number", new CvarTypes.IntegerType(0, 10), 1, 0);
+        assertThrows(IllegalArgumentException.class, () -> register("number", CvarTypes.BOOLEAN, true, 0));
+        assertThrows(IllegalArgumentException.class, () -> register("number", new CvarTypes.IntegerType(0, 11), 1, 0));
+        assertEquals(1, variable.asInt());
+        var raw = registry.Get("raw", "3", 0);
+        assertNull(raw.getType());
+        assertThrows(IllegalArgumentException.class, () -> register("raw", CvarTypes.INTEGER, 1, 0));
     }
 
     @Test
     void registriesAreIndependentAndAliasesUseTheOwningDefinition() {
-        var first = registry.register(spec("number", CvarTypes.INTEGER, 7, 0));
+        var first = register("number", CvarTypes.INTEGER, 7, 0);
         var other = new Cvar();
         other.Get("number", "not typed", 0);
         assertEquals("not typed", other.VariableString("number"));
         assertEquals(7, first.asInt());
         registry.AddAlias("old_number", "number");
-        assertSame(registry.definition("number"), registry.definition("old_number"));
+        assertSame(registry.FindVar("number"), registry.FindVar("old_number"));
         assertEquals(REJECTED, registry.setResult("old_number", "bad").getStatus());
         assertEquals(APPLIED, registry.setResult("old_number", "8").getStatus());
         assertEquals(8, first.asInt());
         assertEquals("not typed", other.VariableString("number"));
-        assertThrows(IllegalArgumentException.class, () -> registry.register(spec("old_number", CvarTypes.INTEGER, 7, 0)));
+        assertThrows(IllegalArgumentException.class, () -> register("old_number", CvarTypes.INTEGER, 7, 0));
     }
 
     @Test
     void everyRegistryWritePathValidatesAndCannotDiscardPendingOnFailure() {
-        var variable = registry.register(spec("vid_number", new CvarTypes.IntegerType(0, 10), 1, CVAR_LATCH | CVAR_USERINFO));
+        var variable = register("vid_number", new CvarTypes.IntegerType(0, 10), 1, CVAR_LATCH | CVAR_USERINFO);
         var entry = registry.FindVar("vid_number");
         assertEquals(QUEUED, registry.setResult(variable.name, "2").getStatus());
         entry.modified = false;
@@ -231,19 +307,19 @@ class TypedCvarTest {
 
     @Test
     void forceAndFullSetPreserveValidationAndReplaceFlags() {
-        var variable = registry.register(spec("number", CvarTypes.INTEGER, 1, CVAR_NOSET));
+        var variable = register("number", CvarTypes.INTEGER, 1, CVAR_NOSET);
         assertEquals(REJECTED, registry.setResult(variable.name, "2").getStatus());
         assertEquals(APPLIED, registry.forceSetResult("number", "2").getStatus());
         assertEquals(REJECTED, registry.forceSetResult("number", "bad").getStatus());
         registry.FullSet("number", "3", CVAR_ARCHIVE);
         assertEquals(CVAR_ARCHIVE, registry.FindVar("number").flags);
         assertEquals(3, variable.asInt());
-        assertNotNull(registry.definition("number"));
+        assertSame(CvarTypes.INTEGER, variable.getType());
     }
 
     @Test
     void pendingChangesUseCanonicalEqualityAndCanBeCancelled() {
-        var variable = registry.register(spec("vid_toggle", CvarTypes.BOOLEAN, false, CVAR_LATCH));
+        var variable = register("vid_toggle", CvarTypes.BOOLEAN, false, CVAR_LATCH);
         assertEquals(QUEUED, registry.setResult("vid_toggle", "true").getStatus());
         assertEquals(UNCHANGED, registry.setResult("vid_toggle", "1").getStatus());
         assertEquals(APPLIED, registry.setResult(variable.name, "false").getStatus());
@@ -260,7 +336,7 @@ class TypedCvarTest {
         var previousState = Globals.server_state;
         try {
             Globals.server_state = ServerStates.SS_DEAD;
-            var variable = registry.register(spec("number", CvarTypes.INTEGER, 1, CVAR_LATCH));
+            var variable = register("number", CvarTypes.INTEGER, 1, CVAR_LATCH);
             assertEquals(APPLIED, registry.setResult(variable.name, "2").getStatus());
             assertEquals(2, variable.asInt());
             Globals.server_state = ServerStates.SS_GAME;
@@ -275,7 +351,7 @@ class TypedCvarTest {
 
     @Test
     void invalidRawPendingIsRevalidatedAtApplication() {
-        var variable = registry.register(spec("vid_number", CvarTypes.INTEGER, 1, CVAR_LATCH));
+        var variable = register("vid_number", CvarTypes.INTEGER, 1, CVAR_LATCH);
         registry.FindVar("vid_number").latched_string = "invalid";
         registry.updateLatchedVars();
         assertEquals(1, variable.asInt());
@@ -284,7 +360,7 @@ class TypedCvarTest {
 
     @Test
     void newInfoFlagsValidateActiveAndPendingWithoutPartialMutation() {
-        registry.register(spec("name", CvarTypes.STRING, "safe", CVAR_LATCH));
+        register("name", CvarTypes.STRING, "safe", CVAR_LATCH);
         registry.ForceSet("name", "unsafe;value");
         registry.Get("name", "ignored", CVAR_USERINFO);
         assertEquals(CVAR_LATCH, registry.FindVar("name").flags);
@@ -297,12 +373,12 @@ class TypedCvarTest {
         assertEquals("safe", registry.FindVar("name").asString());
         assertEquals(CVAR_USERINFO, registry.FindVar("name").flags);
         assertEquals(REJECTED, registry.forceSetResult("name", "unsafe\\value").getStatus());
-        registry.register(spec("other", CvarTypes.STRING, "bad;default", 0));
+        register("other", CvarTypes.STRING, "bad;default", 0);
         // Defaults belong to the declaration's flags; FullSet validates its proposed value/flags.
         registry.FullSet("other", "safe", CVAR_USERINFO);
         assertEquals("safe", registry.FindVar("other").asString());
         assertEquals(CVAR_USERINFO, registry.FindVar("other").flags);
-        var pending = registry.register(spec("vid_name", CvarTypes.STRING, "safe", CVAR_LATCH));
+        var pending = register("vid_name", CvarTypes.STRING, "safe", CVAR_LATCH);
         registry.setResult(pending.name, "unsafe;pending");
         registry.Get("vid_name", "ignored", CVAR_USERINFO);
         assertEquals(CVAR_LATCH, registry.FindVar("vid_name").flags);
@@ -312,7 +388,7 @@ class TypedCvarTest {
     @Test
     void flagChangesNotifyUserinfo() {
         registry.Set("toggle", "0");
-        registry.register(spec("toggle", CvarTypes.BOOLEAN, false, CVAR_USERINFO));
+        register("toggle", CvarTypes.BOOLEAN, false, CVAR_USERINFO);
         assertTrue(Globals.userinfo_modified);
         Globals.userinfo_modified = false;
         registry.GetForceFlags("toggle", "ignored", 0);
@@ -324,7 +400,7 @@ class TypedCvarTest {
 
     @Test
     void archiveRejectsTokensThatTheCommandParserCannotRepresent() {
-        var variable = registry.register(spec("text", CvarTypes.STRING, "", CVAR_ARCHIVE));
+        var variable = register("text", CvarTypes.STRING, "", CVAR_ARCHIVE);
         assertEquals(REJECTED, registry.setResult(variable.name, "has\"quote").getStatus());
         assertEquals(REJECTED, registry.setResult(variable.name, "two\nlines").getStatus());
         assertEquals(REJECTED, registry.setResult(variable.name, "has\0nul").getStatus());
@@ -339,16 +415,14 @@ class TypedCvarTest {
         var singleton = Cvar.getInstance();
         singleton.clear();
         Cvar.Init();
-        var textSpec = spec("vid_text", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_ARCHIVE);
-        var numberSpec = spec("rate", CvarTypes.INTEGER, 25000, CVAR_ARCHIVE | CVAR_USERINFO);
-        var text = singleton.register(textSpec);
-        var number = singleton.register(numberSpec);
+        var text = singleton.register("vid_text", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_ARCHIVE, "Test setting");
+        var number = singleton.register("rate", CvarTypes.INTEGER, 25000, CVAR_ARCHIVE | CVAR_USERINFO, "Test setting");
         var path = Files.createTempFile("typed-cvars", ".cfg");
         try {
             assertEquals(QUEUED, singleton.setResult(text.name, "").getStatus());
             assertEquals("", text.getPendingValue());
             singleton.setResult(number.name, "16777217");
-            var unicode = singleton.register(spec("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE));
+            var unicode = singleton.register("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE, "Test setting");
             singleton.setResult(unicode.name, "Grüße; C:\\quake");
             singleton.Get("raw_name", "", CVAR_ARCHIVE);
             singleton.Set("raw_name", "Jäger 日本語");
@@ -359,9 +433,10 @@ class TypedCvarTest {
             assertTrue(script.contains("Grüße; C:\\quake"));
             assertTrue(script.contains("Jäger 日本語"));
             singleton.clear();
-            text = singleton.register(textSpec);
-            number = singleton.register(numberSpec);
-            unicode = singleton.register(spec("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE));
+            text = singleton.register("vid_text", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_ARCHIVE, "Test setting");
+            number = singleton.register("rate", CvarTypes.INTEGER, 25000, CVAR_ARCHIVE | CVAR_USERINFO, "Test setting");
+            unicode = singleton.register("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE, "Test setting");
+            singleton.Get("raw_name", "", CVAR_ARCHIVE);
             Cbuf.AddAndExecuteScript(script);
             singleton.updateLatchedVars();
             assertEquals("", text.asString());
@@ -369,7 +444,7 @@ class TypedCvarTest {
             assertEquals(16777217, number.asInt());
             assertEquals("Grüße; C:\\quake", unicode.asString());
             assertEquals("Jäger 日本語", singleton.VariableString("raw_name"));
-            assertNull(singleton.definition("raw_name"));
+            assertNull(singleton.FindVar("raw_name").getType());
         } finally {
             Files.deleteIfExists(path);
             singleton.clear();
@@ -377,13 +452,11 @@ class TypedCvarTest {
     }
 
     @Test
-    void theSameRawReferenceGainsConstraintsAndRegistryWritesCannotBypassThem() {
-        var variable = registry.Get("budget", " 0003 ", 0);
-        assertNull(variable.getDefinition());
-        assertThrows(IllegalStateException.class, variable::asInt);
-        var definition = spec("budget", new CvarTypes.IntegerType(1, 10), 1, 0);
-        assertSame(variable, registry.register(definition));
-        assertSame(definition, variable.getDefinition());
+    void registeredEntriesKeepTheirTypeAndRegistryWritesCannotBypassIt() {
+        registry.Set("budget", " 0003 ");
+        var type = new CvarTypes.IntegerType(1, 10);
+        var variable = register("budget", type, 1, 0);
+        assertSame(type, variable.getType());
         assertEquals(3, variable.asInt());
         assertEquals("3", variable.getRawString());
         variable.modified = false;
@@ -403,9 +476,9 @@ class TypedCvarTest {
 
     @Test
     void accessorsCheckDeclaredTypesWithoutBooleanOrNumericCoercion() {
-        var toggle = registry.register(spec("toggle", CvarTypes.BOOLEAN, false, 0));
-        var number = registry.register(spec("number", CvarTypes.INTEGER, 0, 0));
-        var mode = registry.register(spec("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0));
+        var toggle = register("toggle", CvarTypes.BOOLEAN, false, 0);
+        var number = register("number", CvarTypes.INTEGER, 0, 0);
+        var mode = register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0);
         assertThrows(IllegalStateException.class, toggle::asInt);
         assertThrows(IllegalStateException.class, number::asBoolean);
         assertThrows(IllegalStateException.class, number::asFloat);
@@ -418,15 +491,14 @@ class TypedCvarTest {
 
     @Test
     void arbitraryUntypedCvarsKeepLegacySemantics() {
-        assertEquals(APPLIED, registry.setResult("script_var", "anything").getStatus());
-        var variable = registry.FindVar("script_var");
-        assertNull(variable.getDefinition());
+        var variable = registry.Get("script_var", "anything", 0);
+        assertNull(variable.getType());
         assertEquals("anything", variable.getRawString());
         assertEquals(APPLIED, registry.setResult(variable.name, "other arbitrary text").getStatus());
         assertEquals("other arbitrary text", variable.getRawString());
         assertThrows(IllegalStateException.class, variable::asString);
         registry.setResult(variable.name, "anything");
-        assertNull(registry.definition("script_var"));
+        assertNull(variable.getType());
         assertEquals("anything", registry.VariableString("script_var"));
         registry.Set("script_var", "2.5");
         assertEquals(2.5f, registry.FindVar("script_var").value);

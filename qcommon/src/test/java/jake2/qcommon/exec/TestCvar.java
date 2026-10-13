@@ -25,6 +25,7 @@ package jake2.qcommon.exec;
 
 
 import jake2.qcommon.Info;
+import jake2.qcommon.Com;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,26 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCvar {
+
+    @Test
+    void commandRegistrationProbesQuietlyAndRejectsEmptyCvarNames() {
+        String command = "test_quiet_command_probe";
+        String collision = "test_empty_cvar_collision";
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            Cmd.AddCommand(command, true, args -> {});
+            Assertions.assertNotNull(Cmd.FindCommand(command));
+            Cvar.getInstance().Get(collision, "", 0);
+            Cmd.AddCommand(collision, args -> {});
+            assertNull(Cmd.FindCommand(collision));
+        } finally {
+            Com.EndRedirect();
+            Cmd.RemoveCommand(command);
+        }
+        assertFalse(output.toString().contains("not registered"));
+        assertTrue(output.toString().contains(collision + " already defined as a var"));
+    }
 
 	@Test
 	public void testInit() {
@@ -78,7 +99,7 @@ public class TestCvar {
 
 	@Test
 	public void testFind() {
-		Cvar.getInstance().Set("rene3", "is cool.");
+		Cvar.getInstance().Get("rene3", "is cool.", 0);
 
 		Assertions.assertEquals("is cool.", Cvar.getInstance().FindVar("rene3").string);
 	}
@@ -91,7 +112,9 @@ public class TestCvar {
 
 	@Test
 	public void testFullSetCreateNew() {
-		Cvar.getInstance().FullSet("rene5", "0.56", 0);
+		assertNull(Cvar.getInstance().FullSet("rene5", "0.56", 0));
+		assertNull(Cvar.getInstance().FindVar("rene5"));
+		Cvar.getInstance().Get("rene5", "default", 0);
 
 		cvar_t rene5 = Cvar.getInstance().FindVar("rene5");
 		Assertions.assertNotNull(rene5);
@@ -100,8 +123,22 @@ public class TestCvar {
 	}
 
 	@Test
+	public void testEarlyFullSetCannotGrantFlagsToTheRawOwner() {
+		Cvar cvar = Cvar.getInstance();
+		cvar.FullSet("matching", "configured", CVAR_ARCHIVE);
+		cvar_t matching = cvar.Get("matching", "default", CVAR_ARCHIVE | CVAR_OPTIONS);
+		assertEquals("configured", matching.string);
+		assertEquals(CVAR_ARCHIVE | CVAR_OPTIONS, matching.flags);
+
+		cvar.FullSet("conflict", "configured", CVAR_USERINFO);
+		cvar_t conflict = cvar.Get("conflict", "default", CVAR_ARCHIVE);
+		assertEquals("default", conflict.string);
+		assertEquals(CVAR_ARCHIVE, conflict.flags);
+	}
+
+	@Test
 	public void testFullSetOverwrite() {
-		Cvar.getInstance().FullSet("rene6", "0.56", 0);
+		Cvar.getInstance().Get("rene6", "0.56", 0);
 		Cvar.getInstance().FullSet("rene6", "10.6", 0);
 
 		cvar_t rene6 = Cvar.getInstance().FindVar("rene6");
@@ -184,7 +221,8 @@ public class TestCvar {
 		Cvar cvar = Cvar.getInstance();
 		cvar.AddAlias("sensitivity", "in_sensitivity");
 
-		cvar_t sensitivity = cvar.Set("sensitivity", "4");
+		assertNull(cvar.Set("sensitivity", "4"));
+		cvar_t sensitivity = cvar.Get("in_sensitivity", "3", 0);
 
 		assertEquals("in_sensitivity", sensitivity.name);
 		assertEquals("4", cvar.VariableString("in_sensitivity"));

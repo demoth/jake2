@@ -1,26 +1,5 @@
 package jake2.qcommon.exec
 
-/** Immutable owning definition. Re-registration must preserve the complete contract. */
-data class CvarSpec<T : Any>(
-    val name: String,
-    val type: CvarType<T>,
-    val defaultValue: T,
-    val flags: Int = 0,
-    val description: String? = null,
-) {
-    val defaultString: String
-
-    init {
-        require(NAME.matches(name)) { "invalid cvar name" }
-        val token = if (defaultValue is Enum<*>) defaultValue.name else defaultValue.toString()
-        defaultString = type.resolve(token).token
-    }
-
-    private companion object {
-        val NAME = Regex("[A-Za-z_][A-Za-z0-9_]*")
-    }
-}
-
 /** Mutation outcome and optional feedback for callers; rejection leaves the entry unchanged. */
 data class CvarSetResult(
     val status: Status,
@@ -45,3 +24,6 @@ internal class CvarValue(val token: String, val value: Any) {
 
 /** Acquires a required native reference, checking the declared type once at lookup. */
 inline fun <reified T : Any> Cvar.find(name: String): cvar_t<T> = find(name, T::class.javaObjectType)
+
+/** Input awaiting its owning declaration; suggested flags never grant attributes themselves. */
+internal data class EarlyCvarValue(val text: String, val suggestedFlags: Int? = null)

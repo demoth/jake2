@@ -32,7 +32,7 @@ class CakeVideoModeSettingsTest {
 
     @Test
     fun parsesLogicalHidpiModeFromCvars() {
-        cvars.Get("vid_hidpi", "Logical", 0)
+        cvars.Set("vid_hidpi", "Logical")
 
         CakeCvars.registerVideoMode(cvars)
         val settings = CakeVideoModeSettings.fromCvars(cvars)
@@ -42,7 +42,7 @@ class CakeVideoModeSettingsTest {
 
     @Test
     fun firstRegistrationRepairsUnknownHidpiModeToPixels() {
-        cvars.Get("vid_hidpi", "unknown", 0)
+        cvars.Set("vid_hidpi", "unknown")
 
         CakeCvars.registerVideoMode(cvars)
         val settings = CakeVideoModeSettings.fromCvars(cvars)

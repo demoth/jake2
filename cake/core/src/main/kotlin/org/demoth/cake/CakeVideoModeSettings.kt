@@ -40,7 +40,7 @@ fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<Str
         return (listOf("desktop") + cvars.find<String>("vid_fullscreen_modes").typedValue
             .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
     }
-    val type = cvars.definition(name)?.type
+    val type = cvars.FindVar(name)?.type
     if (type != null) {
         return if (type.kind == CvarType.Kind.BOOLEAN) listOf("0", "1") else type.choices.map { if (it is Enum<*>) it.name else it.toString() }
     }

@@ -21,11 +21,11 @@ class CachedCvarTest {
         val floatType = CountingType(CvarTypes.FLOAT)
         val stringType = CountingType(CvarTypes.STRING)
         val enumType = CountingType(CvarTypes.enumeration<Mode>())
-        val boolean = registry.register(CvarSpec("boolean", booleanType, false))
-        val integer = registry.register(CvarSpec("integer", intType, 0))
-        val float = registry.register(CvarSpec("float", floatType, 0f))
-        val string = registry.register(CvarSpec("string", stringType, ""))
-        val enum = registry.register(CvarSpec("enum", enumType, Mode.Pixels))
+        val boolean = registry.register("boolean", booleanType, false)
+        val integer = registry.register("integer", intType, 0)
+        val float = registry.register("float", floatType, 0f)
+        val string = registry.register("string", stringType, "")
+        val enum = registry.register("enum", enumType, Mode.Pixels)
         val types = listOf(booleanType, intType, floatType, stringType, enumType)
         val initialCalls = types.map { it.calls }
         assertTrue(initialCalls.all { it > 0 })
@@ -43,7 +43,7 @@ class CachedCvarTest {
             assertNull(enum.pendingValue)
             assertEquals("0", integer.rawString)
             assertNull(integer.rawPendingString)
-            assertNotNull(integer.definition)
+            assertNotNull(integer.type)
         }
         assertThrows(IllegalStateException::class.java) { integer.asBoolean() }
         assertEquals(initialCalls, types.map { it.calls })
@@ -56,7 +56,7 @@ class CachedCvarTest {
     fun `regex validation runs on mutations and rejected writes preserve the cache`() {
         val type = CountingType(CvarTypes.StringType("old|new"))
         val registry = Cvar()
-        val variable = registry.register(CvarSpec("text", type, "old"))
+        val variable = registry.register("text", type, "old")
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(variable.name, "new").status)
         val before = type.calls
         repeat(2) {
@@ -76,7 +76,7 @@ class CachedCvarTest {
     fun `choice reads use caches and rejected edits preserve pending selection`() {
         val type = CountingType(CvarTypes.ChoiceType(listOf("first", "second")))
         val registry = Cvar()
-        val variable = registry.register(CvarSpec("vid_choice", type, "first", CVAR_LATCH))
+        val variable = registry.register("vid_choice", type, "first", CVAR_LATCH)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(variable.name, "second").status)
         val beforeReads = type.calls
         repeat(2) {
@@ -99,9 +99,9 @@ class CachedCvarTest {
     @Test
     fun `nullable pending slots preserve false zero and enum values through commits`() {
         val registry = Cvar()
-        val boolean = registry.register(CvarSpec("vid_boolean", CvarTypes.BOOLEAN, true, CVAR_LATCH))
-        val float = registry.register(CvarSpec("vid_float", CvarTypes.FLOAT, 1f, CVAR_LATCH))
-        val mode = registry.register(CvarSpec("vid_mode", CvarTypes.enumeration<Mode>(), Mode.Pixels, CVAR_LATCH))
+        val boolean = registry.register("vid_boolean", CvarTypes.BOOLEAN, true, CVAR_LATCH)
+        val float = registry.register("vid_float", CvarTypes.FLOAT, 1f, CVAR_LATCH)
+        val mode = registry.register("vid_mode", CvarTypes.enumeration<Mode>(), Mode.Pixels, CVAR_LATCH)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(boolean.name, "false").status)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(float.name, "0.0").status)
         assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(mode.name, Mode.Logical.name).status)

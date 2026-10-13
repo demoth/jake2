@@ -4,18 +4,31 @@ import jake2.qcommon.Defines.CVAR_LATCH
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-/** Exercises Kotlin properties, registration overloads, nullable pending values and the reified enum helper. */
+/** Exercises Kotlin properties, direct registration, nullable pending values and the reified enum helper. */
 class TypedCvarInteropTest {
     @Test
-    fun `Kotlin registration accepts direct fields and shared specs`() {
+    fun `Kotlin registration consumes staged input and preserves lookup identity`() {
         val registry = Cvar()
-        val variable = registry.Get("count", "0002", 0)
-        assertNull(variable.definition)
-        assertEquals("0002", variable.rawString)
-        assertSame(variable, registry.register("count", CvarTypes.INTEGER, 0, 0, "Counter"))
-        assertSame(variable, registry.register(CvarSpec("count", CvarTypes.INTEGER, 0, 0, "Counter")))
-        assertEquals(2, variable.asInt())
+        registry.Set("count", "0002")
+        assertNull(registry.FindVar("count"))
+        val variable = registry.register("count", CvarTypes.INTEGER, 0, 0, "Counter")
+        assertSame(variable, registry.FindVar("count"))
+        assertSame(variable, registry.find<Int>("count"))
+        assertEquals(2, variable.typedValue)
         assertEquals("2", variable.rawString)
+        assertEquals(0, variable.defaultValue)
+    }
+
+    @Test
+    fun `explicit raw declarations cannot become typed declarations`() {
+        val registry = Cvar()
+        val raw = registry.Get("count", "2", 0)
+        assertNull(raw.type)
+        assertThrows(IllegalArgumentException::class.java) {
+            registry.register("count", CvarTypes.INTEGER, 0)
+        }
+        assertSame(raw, registry.FindVar("count"))
+        assertEquals("2", raw.rawString)
     }
 
     @Test
@@ -26,7 +39,7 @@ class TypedCvarInteropTest {
         assertFalse(toggle.asBoolean())
         assertEquals(0, count.asInt())
         assertEquals("0", count.rawString)
-        assertEquals(CvarType.Kind.BOOLEAN, toggle.definition?.type?.kind)
+        assertEquals(CvarType.Kind.BOOLEAN, toggle.type?.kind)
     }
 
     @Test
@@ -45,10 +58,10 @@ class TypedCvarInteropTest {
     @Test
     fun `checked lookup preserves identity and rejects mismatched undeclared or missing entries`() {
         val cvars = Cvar()
-        val raw = cvars.Get("toggle", "true", 0)
-        assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("toggle") }
+        cvars.Get("raw", "true", 0)
+        assertThrows(IllegalArgumentException::class.java) { cvars.find<Boolean>("raw") }
+        cvars.Set("toggle", "true")
         val declared: cvar_t<Boolean> = cvars.register("toggle", CvarTypes.BOOLEAN, false)
-        assertSame(raw, declared)
         val found = cvars.find<Boolean>("toggle")
         assertSame(declared, found)
         val value: Boolean = found.typedValue
@@ -84,9 +97,8 @@ class TypedCvarInteropTest {
     fun `Kotlin enum helper and native choice lists need no Java wrapper types`() {
         val modeType = CvarTypes.enumeration<Mode>()
         val cvars = Cvar()
-        val spec = CvarSpec("mode", modeType, Mode.Pixels)
-        assertEquals("Pixels", spec.defaultString)
-        val mode = cvars.register(spec)
+        val mode = cvars.register("mode", modeType, Mode.Pixels)
+        assertEquals(Mode.Pixels, mode.defaultValue)
         assertEquals("Pixels", mode.rawString)
         assertEquals(CvarSetResult.Status.APPLIED, cvars.setResult(mode.name, Mode.Logical.name).status)
         assertEquals(Mode.Logical, mode.asEnum(Mode::class.java))

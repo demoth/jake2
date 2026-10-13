@@ -248,7 +248,7 @@ public final class Cmd {
 
     public static void AddCommand(String cmd_name, boolean replace, String description, Command function) {
         // fail if the command is a variable name
-        if ((Cvar.getInstance().VariableString(cmd_name)).length() > 0) {
+        if (Cvar.getInstance().isRegistered(cmd_name)) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
             return;
         }

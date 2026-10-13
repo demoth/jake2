@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One variable, optionally constrained by a definition. The registry coordinates all API writes.
+ * One registered variable with optional native typing. The registry coordinates all API writes.
  * TODO: Retire public legacy value fields after callers/writers migrate; direct writes bypass validation and leave native state stale.
  */
 public final class cvar_t<T> {
@@ -37,8 +37,6 @@ public final class cvar_t<T> {
     // TODO: After legacy field users migrate, derive declared entries' rawString from the native value.
     // Raw text access stays; unconstrained entries still need text storage. Preserve 0/1 and enum-name tokens.
     public String string;
-    // TODO: Delegate declared entries' description to their spec instead of copying it here;
-    // retain separate metadata only for entries without a definition.
     public String description;
     // TODO: After legacy latch users migrate, derive rawPendingString from pendingValue;
     // retain canonical text conversion for console/config, without repeating validation.
@@ -48,17 +46,30 @@ public final class cvar_t<T> {
     // TODO: Remove this Float mirror when legacy numeric readers migrate to typedValue.
     public float value = 0.0f;
 
-    private CvarSpec<T> definition;
+    private final CvarType<T> type;
+    private final T defaultValue;
     // Lasting state: the active native value and an optional queued replacement (existing CVAR_LATCH).
     private T cachedValue, pendingValue;
 
-    public @Nullable CvarSpec<T> getDefinition() {
-        return definition;
+    /** Legacy explicit raw registration; typed registration uses the owning declaration constructor. */
+    public cvar_t() {
+        this.type = null;
+        this.defaultValue = null;
     }
 
-    void attachDefinition(CvarSpec<T> definition) {
-        this.definition = definition;
+    cvar_t(String name, CvarType<T> type, T defaultValue, int flags, String description) {
+        this.name = name;
+        this.type = type;
+        this.defaultValue = defaultValue;
+        this.flags = flags;
+        this.description = description;
     }
+
+    /** Reusable conversion rules, or null for an explicitly registered legacy raw entry. */
+    public @Nullable CvarType<T> getType() { return type; }
+
+    /** Owning default, independent of current active/pending state. */
+    public @Nullable T getDefaultValue() { return defaultValue; }
 
     // TODO: Rename to value once the legacy Float field is removed.
     /** Returns the native value prepared by registration or the latest accepted write. */
