@@ -26,6 +26,7 @@ public class MainCommon {
         cvars.register("map_noareas", CvarTypes.BOOLEAN, false, 0, "Ignore area portals and treat all map areas as connected for debugging");
         cvars.register("flushmap", CvarTypes.BOOLEAN, false, 0, "Reload collision map data even when loading the same server map");
         cvars.register("rcon_password", CvarTypes.STRING, "", 0, "Remote console password; empty disables remote console access");
+        cvars.register("password", CvarTypes.STRING, "", CVAR_USERINFO | CVAR_ARCHIVE, "Server password");
         registerDownloads(cvars);
     }
 

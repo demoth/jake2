@@ -1,6 +1,7 @@
 package jake2.qcommon;
 
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.exec.CvarType;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.ServerMessage;
 
@@ -69,7 +70,13 @@ public interface GameImports {
 
     void Pmove(pmove_t pmove);
 
-    /* console variable interaction */
+    /** Declares a game-owned entry in this instance's registry. */
+    <T> cvar_t<T> registerCvar(String name, CvarType<T> type, T defaultValue, int flags, String description);
+
+    /** Acquires an existing local or shared engine entry without redeclaring it. */
+    <T> cvar_t<T> findCvar(String name, Class<T> type);
+
+    /* Legacy console variable interaction. */
     cvar_t cvar(String var_name, String value, int flags);
 
     /* console variable interaction */

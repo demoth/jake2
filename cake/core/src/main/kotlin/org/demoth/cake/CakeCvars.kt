@@ -44,7 +44,6 @@ object CakeCvars {
     }
 
     private fun registerUserInfo(cvars: Cvar) {
-        cvars.register("password", CvarTypes.STRING, "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
         cvars.register("spectator", CvarTypes.STRING, "0", CVAR_USERINFO, "Spectator request: 0 to play, 1 or spectator password to spectate")
         cvars.register("name", CvarTypes.STRING, "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
         cvars.register("skin", CvarTypes.STRING, "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")

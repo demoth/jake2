@@ -1,6 +1,7 @@
 package jake2.server;
 
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.Globals;
 import jake2.qcommon.MainCommon;
@@ -63,28 +64,89 @@ class GameCvarInitializationTest {
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
-            cvar_t skill = first.cvar("skill", "0", CVAR_LATCH);
-            cvar_t gravity = first.cvar("sv_gravity", "800", 0);
-            first.cvar_set("sv_gravity", "600");
+            var skill = first.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
+            var gravity = first.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, null);
+            gravity.set(600f);
             Globals.server_state = ServerStates.SS_GAME;
-            first.cvar_set("skill", "3");
+            skill.set(3);
 
             GameImportsImpl next = new GameImportsImpl(server, new ChangeMapInfo("next.pcx", false, false), first);
-            cvar_t nextSkill = next.cvar("skill", "0", CVAR_LATCH);
-            cvar_t nextGravity = next.cvar("sv_gravity", "800", 0);
+            var nextSkill = next.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
+            var nextGravity = next.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, null);
             assertNotSame(skill, nextSkill);
-            assertEquals(3f, nextSkill.value);
-            assertNull(nextSkill.latched_string);
-            assertEquals(600f, nextGravity.value);
-            assertEquals(2f, skill.value);
-            assertEquals("3", skill.latched_string);
-            next.cvar_forceset("skill", "1");
-            next.cvar_set("sv_gravity", "400");
-            assertEquals(2f, skill.value);
-            assertEquals(600f, gravity.value);
+            assertEquals(3, nextSkill.getTypedValue());
+            assertNull(nextSkill.getPendingValue());
+            assertEquals(600f, nextGravity.getTypedValue());
+            assertEquals(2, skill.getTypedValue());
+            assertEquals(3, skill.getPendingValue());
+            nextSkill.forceSet(1);
+            nextGravity.set(400f);
+            assertEquals(2, skill.getTypedValue());
+            assertEquals(600f, gravity.getTypedValue());
             assertSame(first.cvar("deathmatch", "0", CVAR_LATCH), next.cvar("deathmatch", "0", CVAR_LATCH));
         } finally {
             Globals.server_state = previousState;
+            cvars.clear();
+        }
+    }
+
+    @Test
+    void typedDeclarationsRejectInvalidEarlyInputAndRemainIndependent() {
+        Cvar cvars = Cvar.getInstance();
+        cvars.clear();
+        try {
+            cvars.Set("skill", "4");
+            cvars.Set("sv_gravity", "600.5");
+            MainCommon.registerCvars(false);
+            SV_MAIN server = new SV_MAIN();
+            GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
+            GameImportsImpl second = new GameImportsImpl(server, new ChangeMapInfo("second.pcx", false, false));
+            var skillType = new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3));
+            var firstSkill = first.registerCvar("skill", skillType, 0, CVAR_LATCH, null);
+            var firstGravity = first.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, null);
+            var secondSkill = second.registerCvar("skill", skillType, 0, CVAR_LATCH, null);
+            var secondGravity = second.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, null);
+
+            assertEquals(0, firstSkill.getTypedValue()); // Rejected choice falls back to the declaration default.
+            assertEquals(600.5f, firstGravity.getTypedValue());
+            assertEquals(800f, secondGravity.getTypedValue()); // Early input is consumed only once.
+            assertNotSame(firstSkill, secondSkill);
+            assertNotSame(firstGravity, secondGravity);
+            assertSame(firstSkill, first.findCvar("skill", Integer.class));
+            assertSame(firstGravity, first.findCvar("sv_gravity", Float.class));
+            firstSkill.forceSet(2);
+            firstGravity.set(-200f);
+            assertEquals(0, secondSkill.getTypedValue());
+            assertEquals(800f, secondGravity.getTypedValue());
+            assertFalse(cvars.isRegistered("skill"));
+            assertFalse(cvars.isRegistered("sv_gravity"));
+        } finally {
+            cvars.clear();
+        }
+    }
+
+    @Test
+    void explicitLocalRegistrationShadowsGlobalWithoutChangingIt() {
+        Cvar cvars = Cvar.getInstance();
+        cvars.clear();
+        try {
+            MainCommon.registerCvars(false);
+            var globalSetting = cvars.register("test_setting", CvarTypes.STRING, "client-secret", CVAR_USERINFO | CVAR_ARCHIVE);
+            SV_MAIN server = new SV_MAIN();
+            GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
+            assertSame(globalSetting, imports.findCvar("test_setting", String.class));
+            var localSetting = imports.registerCvar("test_setting", CvarTypes.STRING, "", CVAR_USERINFO, null);
+            assertNotSame(globalSetting, localSetting);
+            assertEquals("", localSetting.getTypedValue());
+            assertSame(localSetting, imports.findCvar("test_setting", String.class));
+            localSetting.set("game-secret");
+            assertEquals("client-secret", globalSetting.getTypedValue());
+            assertEquals("game-secret", localSetting.getTypedValue());
+            assertEquals(CVAR_USERINFO | CVAR_ARCHIVE, globalSetting.flags);
+            assertEquals(CVAR_USERINFO, localSetting.flags);
+            assertSame(cvars.find("hostname", String.class), imports.findCvar("hostname", String.class));
+            assertThrows(IllegalArgumentException.class, () -> imports.findCvar("test_setting", Boolean.class));
+        } finally {
             cvars.clear();
         }
     }
@@ -139,7 +201,7 @@ class GameCvarInitializationTest {
             assertEquals("secret", password.string);
             assertFalse(cvars.isRegistered("skill"));
             assertFalse(cvars.isRegistered("maxspectators"));
-            assertFalse(cvars.isRegistered("spectator_password"));
+            assertSame(cvars.find("spectator_password", String.class), password);
             assertSame(skill, imports.cvar("skill", "0", CVAR_LATCH));
 
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));

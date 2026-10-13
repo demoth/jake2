@@ -4,6 +4,9 @@ import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.monsters.monsterinfo_t;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarType;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,32 @@ public class GameAITest {
     private float traceSuccessRate = 1.0f; // 1.0 means all traces succeed
 
     private class MockGameImports implements GameImports {
+        private final Cvar cvars = new Cvar();
+
+        MockGameImports() {
+            cvars.register("deathmatch", CvarTypes.BOOLEAN, false);
+            cvars.register("coop", CvarTypes.BOOLEAN, false);
+            cvars.register("cheats", CvarTypes.BOOLEAN, false);
+            cvars.register("dedicated", CvarTypes.BOOLEAN, false);
+            cvars.register("maxclients", CvarTypes.INTEGER, 1);
+            cvars.register("dmflags", CvarTypes.INTEGER, 0);
+            cvars.register("fraglimit", CvarTypes.INTEGER, 0);
+            cvars.register("timelimit", CvarTypes.FLOAT, 0f);
+            cvars.register("password", CvarTypes.STRING, "");
+            cvars.register("spectator_password", CvarTypes.STRING, "");
+            cvars.register("needpass", CvarTypes.INTEGER, 0);
+        }
+
+        @Override
+        public <T> cvar_t<T> registerCvar(String name, CvarType<T> type, T value, int flags, String description) {
+            return cvars.register(name, type, value, flags, description);
+        }
+
+        @Override
+        public <T> cvar_t<T> findCvar(String name, Class<T> type) {
+            return cvars.find(name, type);
+        }
+
         @Override
         public void dprintf(String s) {
             // Do nothing for tests
@@ -208,17 +237,17 @@ public class GameAITest {
 
         @Override
         public cvar_t cvar(String var_name, String value, int flags) {
-            return new cvar_t();
+            return cvars.Get(var_name, value, flags);
         }
 
         @Override
         public cvar_t cvar_set(String var_name, String value) {
-            return new cvar_t();
+            return cvars.Set(var_name, value);
         }
 
         @Override
         public cvar_t cvar_forceset(String var_name, String value) {
-            return new cvar_t();
+            return cvars.ForceSet(var_name, value);
         }
 
         @Override

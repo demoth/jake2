@@ -1022,6 +1022,10 @@ public class SV_MAIN implements JakeServer {
 
 
         Cvar cvars = Cvar.getInstance();
+        cvars.register("spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
+                "Spectator admission password; empty or none allows access");
+        cvars.register("needpass", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, Defines.CVAR_SERVERINFO,
+                "Required passwords: 0 none, 1 player, 2 spectator, 3 both");
         cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("dmflags", CvarTypes.INTEGER, Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO, "Deathmatch rule bitmask; combine DF_* flags");

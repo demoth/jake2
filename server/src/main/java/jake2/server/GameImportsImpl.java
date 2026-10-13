@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarType;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
@@ -316,6 +317,17 @@ public class GameImportsImpl implements GameImports {
     @Override
     public void Pmove(pmove_t pmove) {
         pmoveProcessor.move(pmove);
+    }
+
+    @Override
+    public <T> cvar_t<T> registerCvar(String name, CvarType<T> type, T defaultValue, int flags, String description) {
+        if (!localCvars.isRegistered(name)) Cvar.getInstance().transferEarlyValue(name, localCvars);
+        return localCvars.register(name, type, defaultValue, flags, description);
+    }
+
+    @Override
+    public <T> cvar_t<T> findCvar(String name, Class<T> type) {
+        return (localCvars.isRegistered(name) ? localCvars : Cvar.getInstance()).find(name, type);
     }
 
     /** Engine entries are shared; game-owned declarations consume early input into this instance's registry. */
