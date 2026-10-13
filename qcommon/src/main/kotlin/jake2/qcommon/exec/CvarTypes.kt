@@ -11,7 +11,10 @@ interface CvarType<T : Any> {
 
     val kind: Kind
     /** Validate input and prepare its native value and canonical token together. */
-    fun resolve(text: String): Resolved<T>
+    fun parse(text: String): Resolved<T>
+
+    /** Validate a native edit and prepare its token without parsing text. */
+    fun validate(value: T): Resolved<T>
 
     /** An immutable snapshot of native choices; enums use names, other values use toString(). */
     val choices: List<T> get() = emptyList()
@@ -26,14 +29,15 @@ object CvarTypes {
 
     data object BooleanType : CvarType<Boolean> {
         override val kind = CvarType.Kind.BOOLEAN
-        override fun resolve(text: String): CvarType.Resolved<Boolean> {
+        override fun parse(text: String): CvarType.Resolved<Boolean> {
             val value = when (text.trim().lowercase(Locale.ROOT)) {
                 "0", "false" -> false
                 "1", "true" -> true
                 else -> throw IllegalArgumentException("expected 0, 1, false or true")
             }
-            return CvarType.Resolved(value, if (value) "1" else "0")
+            return validate(value)
         }
+        override fun validate(value: Boolean) = CvarType.Resolved(value, if (value) "1" else "0")
     }
 
     data class IntegerType(val min: Int? = null, val max: Int? = null) : CvarType<Int> {
@@ -41,8 +45,11 @@ object CvarTypes {
             require(min == null || max == null || min <= max) { "inverted integer range" }
         }
         override val kind = CvarType.Kind.INTEGER
-        override fun resolve(text: String): CvarType.Resolved<Int> {
+        override fun parse(text: String): CvarType.Resolved<Int> {
             val value = text.trim().toIntOrNull() ?: throw IllegalArgumentException("invalid integer or overflow")
+            return validate(value)
+        }
+        override fun validate(value: Int): CvarType.Resolved<Int> {
             require((min == null || value >= min) && (max == null || value <= max)) {
                 "integer outside range [$min, $max]"
             }
@@ -56,8 +63,11 @@ object CvarTypes {
                 && (min == null || max == null || min <= max)) { "invalid float range" }
         }
         override val kind = CvarType.Kind.FLOAT
-        override fun resolve(text: String): CvarType.Resolved<Float> {
+        override fun parse(text: String): CvarType.Resolved<Float> {
             val value = text.trim().toFloatOrNull() ?: throw IllegalArgumentException("invalid float")
+            return validate(value)
+        }
+        override fun validate(value: Float): CvarType.Resolved<Float> {
             require(value.isFinite()) { "expected a finite float" }
             require((min == null || value >= min) && (max == null || value <= max)) {
                 "float outside range [$min, $max]"
@@ -70,9 +80,10 @@ object CvarTypes {
     data class StringType(val regex: String? = null) : CvarType<String> {
         private val pattern = regex?.let(::Regex)
         override val kind = CvarType.Kind.STRING
-        override fun resolve(text: String): CvarType.Resolved<String> {
-            require(pattern == null || pattern.matches(text)) { "expected full match: $regex" }
-            return CvarType.Resolved(text, text)
+        override fun parse(text: String): CvarType.Resolved<String> = validate(text)
+        override fun validate(value: String): CvarType.Resolved<String> {
+            require(pattern == null || pattern.matches(value)) { "expected full match: $regex" }
+            return CvarType.Resolved(value, value)
         }
     }
 
@@ -80,12 +91,16 @@ object CvarTypes {
 
     data class EnumType<E : Enum<E>>(val enumClass: Class<E>) : CvarType<E> {
         override val kind = CvarType.Kind.ENUM
-        override fun resolve(text: String): CvarType.Resolved<E> {
+        override fun parse(text: String): CvarType.Resolved<E> {
             val value = try {
                 java.lang.Enum.valueOf(enumClass, text.trim())
             } catch (_: IllegalArgumentException) {
                 throw IllegalArgumentException("unknown ${enumClass.simpleName} token")
             }
+            return validate(value)
+        }
+        override fun validate(value: E): CvarType.Resolved<E> {
+            require(value.declaringJavaClass == enumClass) { "expected ${enumClass.simpleName}" }
             return CvarType.Resolved(value, value.name)
         }
         override val choices: List<E>
@@ -104,10 +119,16 @@ object CvarTypes {
             require(this.choices.map { it.toString() }.toSet().size == this.choices.size) { "duplicate choice token" }
         }
 
-        override fun resolve(text: String): CvarType.Resolved<T> {
+        override fun parse(text: String): CvarType.Resolved<T> {
             val value = choices.firstOrNull { it.toString() == text }
                 ?: throw IllegalArgumentException("value is not an available choice")
             return CvarType.Resolved(value, text)
+        }
+
+        override fun validate(value: T): CvarType.Resolved<T> {
+            val choice = choices.firstOrNull { it == value }
+                ?: throw IllegalArgumentException("value is not an available choice")
+            return CvarType.Resolved(choice, choice.toString())
         }
     }
 }

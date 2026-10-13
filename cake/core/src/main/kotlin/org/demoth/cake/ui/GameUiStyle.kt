@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.Disposable
 data class MenuWidgetStyles(
     val label: Label.LabelStyle,
     val button: TextButton.TextButtonStyle,
+    val checkBox: TextButton.TextButtonStyle,
     val textField: TextField.TextFieldStyle,
     val selectBox: SelectBox.SelectBoxStyle,
     val list: Scene2dList.ListStyle,
@@ -153,6 +154,15 @@ internal fun createMenuWidgetStyles(
                 style.down = contentButtonDrawable.tint(Color(0.7f, 0.7f, 0.7f, 1f))
                 style.disabled = contentButtonDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
             }
+        },
+        // A toggle button draws the font's x inside the same border as other controls.
+        checkBox = TextButton.TextButtonStyle().also { style ->
+            style.up = contentButtonDrawable ?: baseButtonStyle.up
+            style.font = font
+            style.fontColor = Color.CLEAR.cpy()
+            style.checkedFontColor = baseLabelStyle.fontColor.cpy()
+            style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
+            style.checkedOverFontColor = MENU_HOVER_TEXT_COLOR.cpy()
         },
         textField = TextField.TextFieldStyle(baseTextFieldStyle).also { style ->
             style.font = font

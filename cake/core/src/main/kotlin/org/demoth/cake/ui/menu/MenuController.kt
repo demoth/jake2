@@ -19,7 +19,7 @@ interface MenuBackend {
     fun currentPlayerSetupForm(): PlayerSetupFormState
     fun savePlayerSetup(form: PlayerSetupFormState): String
     fun optionSections(): List<OptionsSection>
-    fun saveOptionEntries(prefix: String, values: Map<String, String>): String
+    fun saveOptionEntries(prefix: String, values: Map<String, Any>): String
 }
 
 class MenuController(

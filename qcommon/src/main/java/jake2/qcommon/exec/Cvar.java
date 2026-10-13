@@ -644,8 +644,7 @@ public class Cvar extends Globals {
         if (var == null) throw new IllegalArgumentException("Unknown cvar: " + name);
         if (var.getType() == null) throw new IllegalArgumentException("Cvar " + name + " has no type declaration");
         Object defaultValue = var.getDefaultValue();
-        Class<?> declaredType = defaultValue instanceof Enum<?>
-                ? ((Enum<?>) defaultValue).getDeclaringClass() : defaultValue.getClass();
+        Class<?> declaredType = nativeClass(defaultValue);
         Class<?> expected = expectedType == boolean.class ? Boolean.class
                 : expectedType == int.class ? Integer.class
                 : expectedType == float.class ? Float.class : expectedType;
@@ -671,8 +670,7 @@ public class Cvar extends Globals {
             return (cvar_t<T>) previous;
         }
         cvar_t<T> var = new cvar_t<>(name, type, defaultValue, flags, description);
-        String defaultText = defaultValue instanceof Enum<?> ? ((Enum<?>) defaultValue).name() : defaultValue.toString();
-        CvarValue active = normalize(var, defaultText, flags);
+        CvarValue active = normalizeResolved(var, type.validate(defaultValue), flags);
         EarlyCvarValue early = earlyValues.remove(name);
         if (early != null) {
             try {
@@ -701,6 +699,36 @@ public class Cvar extends Globals {
 
     /** Lets callers distinguish acceptance, rejection and delayed application without console parsing. */
     public CvarSetResult setResult(String name, String value) { return setResult(name, value, false); }
+    /** Validates a native value and uses the same protection/latch rules as console writes. */
+    public <T> CvarSetResult setResult(cvar_t<T> var, T value) {
+        if (var == null || lookup(var.name) != var) return rejected("Cvar reference is not registered here");
+        return nativeWrite(var, value);
+    }
+
+    /** Runtime-checked native writes for heterogeneous editors whose entries have unknown generic types. */
+    public CvarSetResult setNativeResult(String name, Object value) {
+        cvar_t<?> var = FindVar(name);
+        if (var == null) return rejected("Unknown cvar: " + name);
+        return nativeWrite(var, value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private CvarSetResult nativeWrite(cvar_t<?> var, Object value) {
+        if (var.getType() == null) return rejected("Cvar " + var.name + " has no native type");
+        if (value == null || nativeClass(value) != nativeClass(var.getDefaultValue()))
+            return rejected("Wrong native value type for " + var.name);
+        try {
+            CvarType<Object> type = (CvarType<Object>) var.getType();
+            return commitWrite(var, normalizeResolved(var, type.validate(value), var.flags), var.flags, false);
+        } catch (IllegalArgumentException e) {
+            return rejected("Invalid value for " + var.name + ": " + e.getMessage());
+        }
+    }
+
+    private static Class<?> nativeClass(Object value) {
+        return value instanceof Enum<?> ? ((Enum<?>) value).getDeclaringClass() : value.getClass();
+    }
+
     /** Supports immediate lifecycle updates while retaining validation for constrained entries. */
     public CvarSetResult forceSetResult(String name, String value) { return setResult(name, value, true); }
 
@@ -734,7 +762,11 @@ public class Cvar extends Globals {
     /** Prepares the canonical token and typed caches, checking type and transport limits before commit. */
     private static <T> CvarValue normalize(cvar_t<T> var, String text, int flags) {
         if (text == null) throw new IllegalArgumentException("missing value");
-        CvarType.Resolved<T> resolved = var.getType().resolve(text);
+        return normalizeResolved(var, var.getType().parse(text), flags);
+    }
+
+    /** Checks interchange limits for both native and parsed writes without revalidating their values. */
+    private static CvarValue normalizeResolved(cvar_t<?> var, CvarType.Resolved<?> resolved, int flags) {
         String token = resolved.getToken();
         if ((flags & CVAR_ARCHIVE) != 0 && (token.indexOf('"') >= 0 || token.indexOf('\n') >= 0
                 || token.indexOf('\r') >= 0 || token.indexOf('\0') >= 0
@@ -769,6 +801,11 @@ public class Cvar extends Globals {
             resolved = normalize(var, text, flags);
         }
         catch (IllegalArgumentException e) { return rejected("Invalid value for " + var.name + ": " + e.getMessage()); }
+        return commitWrite(var, resolved, flags, force);
+    }
+
+    /** Applies an already validated value, sharing notifications and latch semantics across input forms. */
+    private CvarSetResult commitWrite(cvar_t<?> var, CvarValue resolved, int flags, boolean force) {
         String token = resolved.getToken();
         if (!force && (var.flags & CVAR_NOSET) != 0) return rejected(var.name + " is write protected");
         if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart(var))) {

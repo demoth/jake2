@@ -194,8 +194,8 @@ class MenuControllerTest {
         bus.postIntent(MenuIntent.OpenOptionsSection("cl_"))
         controller.pumpIntents()
         val entry = bus.latestState().optionsSection.section!!.entries.single()
-        val draft = mutableMapOf(entry.name to entry.rawString)
-        draft[entry.name] = "2"
+        val draft = mutableMapOf<String, Any>(entry.name to entry.typedValue)
+        draft[entry.name] = 2
         assertEquals("0", entry.rawString)
         bus.postIntent(
             MenuIntent.SaveOptionsSection(
@@ -206,7 +206,7 @@ class MenuControllerTest {
         assertEquals("0", entry.rawString)
         controller.pumpIntents()
 
-        assertEquals(mapOf("cl_showfps" to "2"), backend.savedOptionsValues)
+        assertEquals(mapOf("cl_showfps" to 2), backend.savedOptionsValues)
         val state = bus.latestState()
         assertEquals(MenuScreen.OPTIONS_SECTION, state.activeScreen)
         assertEquals("Saved options", state.optionsSection.statusMessage)
@@ -376,7 +376,7 @@ class MenuControllerTest {
     private class FakeMenuBackend : MenuBackend {
         val joinedAddresses = mutableListOf<String>()
         val savedPlayerSetupForms = mutableListOf<PlayerSetupFormState>()
-        val savedOptionsValues = mutableMapOf<String, String>()
+        val savedOptionsValues = mutableMapOf<String, Any>()
         val profiles = linkedMapOf(
             "default" to ProfileFormState(
                 id = "default",
@@ -455,12 +455,12 @@ class MenuControllerTest {
             if (entries.isEmpty()) null else section.copy(entries = entries)
         }
 
-        override fun saveOptionEntries(prefix: String, values: Map<String, String>): String {
+        override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
             savedOptionsValues.clear()
             savedOptionsValues.putAll(values)
             values.forEach { (name, value) ->
                 if (name.startsWith(prefix)) {
-                    check(cvars.setResult(name, value).accepted)
+                    check((if (value is String) cvars.setResult(name, value) else cvars.setNativeResult(name, value)).accepted)
                 }
             }
             return "Saved options"

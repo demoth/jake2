@@ -51,6 +51,29 @@ class TypedCvarTest {
         assertSame(registry.register("scale", CvarTypes.FLOAT, 1f), registry.find("scale", float.class));
     }
 
+    @Test
+    void nativeWritesKeepCanonicalTokensAndValidateTheUnknownTypeBoundary() {
+        var toggle = registry.register("toggle", CvarTypes.BOOLEAN, false);
+        assertEquals(APPLIED, registry.setResult(toggle, true).getStatus());
+        assertTrue(toggle.getTypedValue());
+        assertEquals("1", toggle.getRawString());
+        var samples = registry.register("samples", new CvarTypes.ChoiceType<>(List.of(0, 4)), 0);
+        assertEquals(APPLIED, registry.setNativeResult(samples.name, 4).getStatus());
+        assertEquals(REJECTED, registry.setNativeResult(samples.name, 2).getStatus());
+        assertEquals(REJECTED, registry.setNativeResult(samples.name, 4f).getStatus());
+        assertEquals(4, samples.getTypedValue());
+        var mode = registry.register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels);
+        assertEquals(APPLIED, registry.setResult(mode, Mode.Logical).getStatus());
+        assertEquals("Logical", mode.getRawString());
+        assertEquals(REJECTED, registry.setNativeResult(mode.name, OtherMode.Logical).getStatus());
+        var scale = registry.register("scale", CvarTypes.FLOAT, 1f);
+        assertEquals(REJECTED, registry.setResult(scale, Float.NaN).getStatus());
+        assertEquals(1f, scale.getTypedValue());
+        var text = registry.register("text", CvarTypes.STRING, "safe", CVAR_ARCHIVE);
+        assertEquals(REJECTED, registry.setResult(text, "unsafe\"text").getStatus());
+        assertEquals("safe", text.getTypedValue());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"2", "-1", "1.0", "yes", "NaN", "", "truthy"})
     void booleansRejectNumericTruthinessAndUnknownWords(String text) {

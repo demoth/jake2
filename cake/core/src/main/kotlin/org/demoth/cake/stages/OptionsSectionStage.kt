@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -9,7 +10,8 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
-import org.demoth.cake.videoOptionChoices
+import org.demoth.cake.fullscreenModeSuggestions
+import jake2.qcommon.exec.CvarType
 import org.demoth.cake.ui.menu.OptionsSectionState
 
 class OptionsSectionStage(
@@ -23,13 +25,14 @@ class OptionsSectionStage(
 ) {
     private var renderedState: OptionsSectionState = OptionsSectionState()
     // Widgets hold unapplied edits. These snapshots only detect changes to the shared cvar references.
-    private val valuesByName = linkedMapOf<String, () -> String>()
+    private val valuesByName = linkedMapOf<String, () -> Any>()
     private var renderedValues: List<Pair<String, String?>> = emptyList()
-    private var renderedChoices: List<List<String>> = emptyList()
+    private var renderedChoices: List<List<Any>> = emptyList()
     private val labelStyle = style.menuWidgets.label
     private val buttonStyle = style.menuWidgets.button
     private val textFieldStyle = style.menuWidgets.textField
     private val selectBoxStyle = style.menuWidgets.selectBox
+    private val checkBoxStyle = style.menuWidgets.checkBox
     private val scrollPaneStyle = style.menuWidgets.scrollPane
 
     init {
@@ -46,7 +49,10 @@ class OptionsSectionStage(
         val section = state.section
         val entries = section?.entries.orEmpty()
         val values = entries.map { it.rawString to it.rawPendingString }
-        val choices = entries.map { videoOptionChoices(it.name) }
+        val choices = entries.map {
+            if (it.name == "vid_fullscreen_mode") fullscreenModeSuggestions()
+            else it.type?.choices.orEmpty()
+        }
         if (!force && state == renderedState && values == renderedValues && choices == renderedChoices) {
             return
         }
@@ -64,22 +70,32 @@ class OptionsSectionStage(
 
             entries.forEachIndexed { index, entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
-                val value = entry.rawPendingString ?: entry.rawString
+                val type = entry.type
+                val value: Any = if (type == null) entry.rawPendingString ?: entry.rawString
+                    else entry.pendingValue ?: entry.typedValue
                 val entryChoices = choices[index]
-                val editor = if (entryChoices.isEmpty()) {
-                    TextField(value, textFieldStyle).also { field ->
-                        valuesByName[entry.name] = { field.text }
+                val editor = when {
+                    type?.kind == CvarType.Kind.BOOLEAN -> TextButton("x", checkBoxStyle).apply {
+                        isChecked = value as Boolean
+                        valuesByName[entry.name] = { isChecked }
                     }
-                } else {
-                    SelectBox<String>(selectBoxStyle).apply {
-                        // Preserve a saved or pending value even if this monitor no longer offers it.
+                    entryChoices.isNotEmpty() -> SelectBox<Any>(selectBoxStyle).apply {
+                        // Suggestions may omit a saved fullscreen mode; fixed choices are already validated.
                         setItems(*(entryChoices + value).distinct().toTypedArray())
                         selected = value
                         setMaxListCount(10)
                         valuesByName[entry.name] = { selected }
                     }
+                    else -> TextField(entry.rawPendingString ?: entry.rawString, textFieldStyle).also { field ->
+                        // Numeric text is parsed once by the registry on Apply, using the same rules as console input.
+                        valuesByName[entry.name] = { field.text }
+                    }
                 }
-                add(editor).minWidth(220f).prefWidth(280f).fillX()
+                if (type?.kind == CvarType.Kind.BOOLEAN) {
+                    add(editor).size(maxOf(editor.prefWidth, editor.prefHeight)).left()
+                } else {
+                    add(editor).minWidth(220f).prefWidth(280f).fillX()
+                }
 
                 val descriptionText = buildString {
                     if (!entry.description.isNullOrBlank()) {

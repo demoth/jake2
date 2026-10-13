@@ -4,13 +4,15 @@ import jake2.qcommon.Defines.CVAR_LATCH
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-/** Verifies read-time codec independence and coherent active/pending caches after writes. */
+/** Verifies cached reads, native writes without parsing, and coherent active/pending state after rejection. */
 class CachedCvarTest {
     private enum class Mode { Pixels, Logical }
 
     private class CountingType<T : Any>(private val base: CvarType<T>) : CvarType<T> by base {
         var calls = 0
-        override fun resolve(text: String): CvarType.Resolved<T> { calls++; return base.resolve(text) }
+        var nativeCalls = 0
+        override fun parse(text: String): CvarType.Resolved<T> { calls++; return base.parse(text) }
+        override fun validate(value: T): CvarType.Resolved<T> { nativeCalls++; return base.validate(value) }
     }
 
     @Test
@@ -28,7 +30,8 @@ class CachedCvarTest {
         val enum = registry.register("enum", enumType, Mode.Pixels)
         val types = listOf(booleanType, intType, floatType, stringType, enumType)
         val initialCalls = types.map { it.calls }
-        assertTrue(initialCalls.all { it > 0 })
+        val initialNativeCalls = types.map { it.nativeCalls }
+        assertTrue(initialNativeCalls.all { it > 0 })
         assertSame(integer, registry.find<Int>("integer"))
         repeat(2) {
             assertFalse(boolean.typedValue)
@@ -47,9 +50,31 @@ class CachedCvarTest {
         }
         assertThrows(IllegalStateException::class.java) { integer.asBoolean() }
         assertEquals(initialCalls, types.map { it.calls })
+        assertEquals(initialNativeCalls, types.map { it.nativeCalls })
         assertEquals(CvarSetResult.Status.APPLIED, registry.setResult(integer.name, "16777217").status)
         assertEquals(16_777_217, integer.typedValue)
         assertTrue(intType.calls > initialCalls[1])
+    }
+
+    @Test
+    fun `native writes validate without parsing and preserve pending state on rejection`() {
+        val registry = Cvar()
+        val type = CountingType(CvarTypes.IntegerType(1, 10))
+        val variable = registry.register("vid_budget", type, 1, CVAR_LATCH)
+        val textCalls = type.calls
+        val nativeCalls = type.nativeCalls
+        assertEquals(CvarSetResult.Status.QUEUED, registry.setResult(variable, 4).status)
+        assertEquals(1, variable.typedValue)
+        assertEquals(4, variable.pendingValue)
+        assertEquals("4", variable.rawPendingString)
+        variable.modified = false
+        assertEquals(CvarSetResult.Status.REJECTED, registry.setResult(variable, 11).status)
+        assertEquals(1, variable.typedValue)
+        assertEquals(4, variable.pendingValue)
+        assertEquals("4", variable.rawPendingString)
+        assertFalse(variable.modified)
+        assertEquals(textCalls, type.calls)
+        assertEquals(nativeCalls + 2, type.nativeCalls)
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.exec.CvarType
 
 data class CakeVideoModeSettings(
     val fullscreen: Boolean,
@@ -33,19 +32,10 @@ data class CakeVideoModeSettings(
     }
 }
 
-/** Choices for the existing cvar-driven options screen; empty means a free-form value. */
-fun videoOptionChoices(name: String, cvars: Cvar = Cvar.getInstance()): List<String> {
-    // These are hardware suggestions; saved mode IDs remain valid when absent from this monitor.
-    if (name == "vid_fullscreen_mode") {
-        return (listOf("desktop") + cvars.find<String>("vid_fullscreen_modes").typedValue
-            .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
-    }
-    val type = cvars.FindVar(name)?.type
-    if (type != null) {
-        return if (type.kind == CvarType.Kind.BOOLEAN) listOf("0", "1") else type.choices.map { if (it is Enum<*>) it.name else it.toString() }
-    }
-    return emptyList()
-}
+/** Hardware suggestions only; a saved mode remains valid when this monitor does not offer it. */
+fun fullscreenModeSuggestions(cvars: Cvar = Cvar.getInstance()): List<String> =
+    (listOf("desktop") + cvars.find<String>("vid_fullscreen_modes").typedValue
+        .split(Regex("\\s+")).filter { it.isNotEmpty() }).distinct()
 
 /** Stable persisted identifier, independent of display-mode enumeration order. */
 data class CakeDisplayMode(val width: Int, val height: Int, val refreshRate: Int) {

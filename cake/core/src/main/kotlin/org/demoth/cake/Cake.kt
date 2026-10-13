@@ -1598,7 +1598,7 @@ class Cake(
         }
     }
 
-    private fun saveOptionEntries(prefix: String, values: Map<String, String>): String {
+    private fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
         val cvars = Cvar.getInstance()
         var updatedCount = 0
         var latchedCount = 0
@@ -1608,7 +1608,8 @@ class Cake(
             if (!name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
                 return@forEach
             }
-            val result = cvars.setResult(cvar.name, value)
+            val result = if (value is String) cvars.setResult(cvar.name, value)
+            else cvars.setNativeResult(cvar.name, value)
             if (!result.accepted) {
                 errors += result.diagnostic ?: "Rejected $name"
                 return@forEach
@@ -1835,7 +1836,7 @@ class Cake(
 
         override fun optionSections(): List<OptionsSection> = this@Cake.optionSections()
 
-        override fun saveOptionEntries(prefix: String, values: Map<String, String>): String =
+        override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String =
             this@Cake.saveOptionEntries(prefix, values)
     }
 

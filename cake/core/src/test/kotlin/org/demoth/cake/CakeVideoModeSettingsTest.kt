@@ -134,7 +134,7 @@ class CakeVideoModeSettingsTest {
         assertFalse(cvars.setResult(hidpi.name, "unknown").accepted)
         assertEquals(HdpiMode.Pixels, hidpi.asEnum(HdpiMode::class.java))
         assertEquals(HdpiMode.Logical, hidpi.pendingValue)
-        assertEquals(HdpiMode.values().map { it.name }, videoOptionChoices("vid_hidpi", cvars))
+        assertEquals(HdpiMode.values().toList(), hidpi.type?.choices)
         cvars.updateLatchedVars()
         assertEquals(HdpiMode.Logical, CakeVideoModeSettings.fromCvars(cvars).hdpiMode)
     }
@@ -143,14 +143,14 @@ class CakeVideoModeSettingsTest {
     fun dynamicSelectionWorksBeforeEnumerationAndRetainsUnavailableModes() {
         CakeCvars.registerVideoMode(cvars)
         val selection = cvars.find<String>("vid_fullscreen_mode")
-        assertEquals(listOf("desktop"), videoOptionChoices(selection.name, cvars))
+        assertEquals(listOf("desktop"), fullscreenModeSuggestions(cvars))
         assertTrue(cvars.setResult(selection.name, "1920x1080@144").accepted)
         for (invalid in listOf("", "1920x1080", "0x1080@144", "Desktop", "1920x1080@-1")) {
             assertFalse(cvars.setResult(selection.name, invalid).accepted, invalid)
         }
         publishFullscreenModes(listOf(CakeDisplayMode(2560, 1440, 60)), cvars)
         assertEquals("2560x1440@60", cvars.FindVar("vid_fullscreen_modes").asString())
-        assertEquals(listOf("desktop", "2560x1440@60"), videoOptionChoices(selection.name, cvars))
+        assertEquals(listOf("desktop", "2560x1440@60"), fullscreenModeSuggestions(cvars))
         assertEquals("1920x1080@144", selection.pendingValue)
         cvars.updateLatchedVars()
         assertEquals("1920x1080@144", CakeVideoModeSettings.fromCvars(cvars).fullscreenMode)
@@ -164,8 +164,8 @@ class CakeVideoModeSettingsTest {
         CakeCvars.registerVideoMode(second)
         publishFullscreenModes(listOf(CakeDisplayMode(1920, 1080, 60)), first)
         publishFullscreenModes(listOf(CakeDisplayMode(2560, 1440, 144)), second)
-        assertEquals(listOf("desktop", "1920x1080@60"), videoOptionChoices("vid_fullscreen_mode", first))
-        assertEquals(listOf("desktop", "2560x1440@144"), videoOptionChoices("vid_fullscreen_mode", second))
+        assertEquals(listOf("desktop", "1920x1080@60"), fullscreenModeSuggestions(first))
+        assertEquals(listOf("desktop", "2560x1440@144"), fullscreenModeSuggestions(second))
     }
 
     @Test

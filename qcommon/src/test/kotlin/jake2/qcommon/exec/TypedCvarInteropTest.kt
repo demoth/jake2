@@ -105,7 +105,7 @@ class TypedCvarInteropTest {
         val choices = listOf("desktop")
         val displayType = CvarTypes.ChoiceType(choices)
         assertEquals(listOf("desktop"), displayType.choices)
-        assertThrows(IllegalArgumentException::class.java) { displayType.resolve("missing") }
+        assertThrows(IllegalArgumentException::class.java) { displayType.parse("missing") }
     }
 
     @Test
@@ -114,8 +114,8 @@ class TypedCvarInteropTest {
         val type = CvarTypes.ChoiceType(choices)
         choices.clear()
         assertEquals(listOf(0, 4), type.choices)
-        assertEquals("4", type.resolve("4").token)
-        assertThrows(IllegalArgumentException::class.java) { type.resolve("2") }
+        assertEquals("4", type.parse("4").token)
+        assertThrows(IllegalArgumentException::class.java) { type.parse("2") }
         assertThrows(IllegalArgumentException::class.java) {
             CvarTypes.ChoiceType(emptyList<Int>())
         }
@@ -126,7 +126,7 @@ class TypedCvarInteropTest {
             CvarTypes.ChoiceType(listOf(0, "mixed"))
         }
         val text = CvarTypes.ChoiceType(listOf(" low ", "high"))
-        assertEquals(" low ", text.resolve(" low ").value)
-        assertThrows(IllegalArgumentException::class.java) { text.resolve("low") }
+        assertEquals(" low ", text.parse(" low ").value)
+        assertThrows(IllegalArgumentException::class.java) { text.parse("low") }
     }
 }
