@@ -105,6 +105,9 @@ public final class cvar_t<T> {
     /** Applies a native value immediately, bypassing protection and latching but not validation. */
     public CvarSetResult forceSet(T value) { return setNative(value, true); }
 
+    /** Parses map or config text with the entry's normal validation and latch rules. */
+    public CvarSetResult setText(String text) { return setText(text, flags, false); }
+
     boolean requiresAppRestart() { return name != null && name.startsWith("vid_"); }
 
     static boolean invalidInfoString(String value) {

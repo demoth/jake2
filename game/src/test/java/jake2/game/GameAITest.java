@@ -47,7 +47,7 @@ public class GameAITest {
     void entityBudgetAlwaysAccommodatesClientAndBodySlots() {
         MockGameImports imports = new MockGameImports();
         imports.findCvar("maxclients", Integer.class).set(32);
-        imports.cvar_set("maxentities", "10");
+        imports.cvars.setResult("maxentities", "10");
         GameExportsImpl game = new GameExportsImpl(imports);
         assertEquals(32 + GameDefines.BODY_QUEUE_SIZE + 1, game.game.maxentities);
         assertEquals(game.game.maxentities, game.g_edicts.length);
@@ -273,21 +273,6 @@ public class GameAITest {
         @Override
         public void Pmove(pmove_t pmove) {
             // Do nothing for tests
-        }
-
-        @Override
-        public cvar_t cvar(String var_name, String value, int flags) {
-            return cvars.Get(var_name, value, flags);
-        }
-
-        @Override
-        public cvar_t cvar_set(String var_name, String value) {
-            return cvars.Set(var_name, value);
-        }
-
-        @Override
-        public cvar_t cvar_forceset(String var_name, String value) {
-            return cvars.ForceSet(var_name, value);
         }
 
         @Override

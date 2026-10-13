@@ -213,6 +213,12 @@ public class Cvar extends Globals {
         });
     }
 
+    /** Console text input includes staged values before an owner registers. */
+    public String getRawString(String name) { return readLegacyText(name); }
+
+    /** Unknown-type lookup for callers that only need metadata or interchange text. */
+    public cvar_t<?> find(String name) { return FindVar(name); }
+
     public String VariableString(String var_name) {
         return readLegacyText(var_name);
     }

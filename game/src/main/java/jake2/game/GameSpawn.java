@@ -135,8 +135,10 @@ public class GameSpawn {
             gameExports.gameImports.imageindex("field_3");
             if ("".equals(ent.st.gravity))
                 gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
-            else
-                gameExports.gameImports.cvar_set("sv_gravity", ent.st.gravity);
+            else {
+                var result = gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);
+                if (result.getDiagnostic() != null) gameExports.gameImports.dprintf(result.getDiagnostic() + "\n");
+            }
 
             // standing in lava / slime
             gameExports.gameImports.soundindex("player/fry.wav");

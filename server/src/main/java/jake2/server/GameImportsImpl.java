@@ -164,7 +164,8 @@ public class GameImportsImpl implements GameImports {
                 String name = cvar.name();
                 String value = cvar.value();
                 Com.DPrintf("Set " + name + " = " + value + "\n");
-                cvar_forceset(name, value);
+                var result = writeRegistry(name).forceSetResult(name, value);
+                if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
             }
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
@@ -328,26 +329,6 @@ public class GameImportsImpl implements GameImports {
     @Override
     public <T> cvar_t<T> findCvar(String name, Class<T> type) {
         return (localCvars.isRegistered(name) ? localCvars : Cvar.getInstance()).find(name, type);
-    }
-
-    /** Engine entries are shared; game-owned declarations consume early input into this instance's registry. */
-    @Override
-    public cvar_t cvar(String var_name, String value, int flags) {
-        if (localCvars.isRegistered(var_name)) return localCvars.Get(var_name, value, flags);
-        Cvar globalCvars = Cvar.getInstance();
-        if (globalCvars.isRegistered(var_name)) return globalCvars.Get(var_name, value, flags);
-        globalCvars.transferEarlyValue(var_name, localCvars);
-        return localCvars.Get(var_name, value, flags);
-    }
-
-    @Override
-    public cvar_t cvar_set(String var_name, String value) {
-        return writeRegistry(var_name).Set(var_name, value);
-    }
-
-    @Override
-    public cvar_t cvar_forceset(String var_name, String value) {
-        return writeRegistry(var_name).ForceSet(var_name, value);
     }
 
     /** Writes follow the same ownership as reads; undeclared game inputs stay local. */

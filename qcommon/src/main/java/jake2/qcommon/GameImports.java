@@ -76,15 +76,6 @@ public interface GameImports {
     /** Acquires an existing local or shared engine entry without redeclaring it. */
     <T> cvar_t<T> findCvar(String name, Class<T> type);
 
-    /* Legacy console variable interaction. */
-    cvar_t cvar(String var_name, String value, int flags);
-
-    /* console variable interaction */
-    cvar_t cvar_set(String var_name, String value);
-
-    /* console variable interaction */
-    cvar_t cvar_forceset(String var_name, String value);
-
     /*
          add commands to the server console as if they were typed in
          for map changing, etc

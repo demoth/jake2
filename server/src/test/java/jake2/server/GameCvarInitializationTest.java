@@ -20,13 +20,13 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Checks early config consumption, game-instance isolation and shared engine entries without map assets. */
 class GameCvarInitializationTest {
     @Test
-    void legacyGameWritesValidateSharedTypesAndRetainLatchSemantics() {
+    void gameWritesValidateSharedTypesAndRetainLatchSemantics() {
         Cvar cvars = Cvar.getInstance();
         var previousState = Globals.server_state;
         cvars.clear();
         try {
-            cvars.Set("maxclients", "3.5");
-            cvars.Set("timeout", "0.5");
+            cvars.setResult("maxclients", "3.5");
+            cvars.setResult("timeout", "0.5");
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
@@ -34,19 +34,19 @@ class GameCvarInitializationTest {
             cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
             assertEquals(1, maxclients.getTypedValue());
             assertEquals(0.5f, SV_MAIN.timeout.getTypedValue());
-            assertSame(deathmatch, imports.cvar("deathmatch", "0", CVAR_LATCH));
+            assertSame(deathmatch, imports.findCvar("deathmatch", Boolean.class));
 
             Globals.server_state = ServerStates.SS_GAME;
-            imports.cvar_set("deathmatch", "true");
+            imports.findCvar("deathmatch", Boolean.class).set(true);
             assertFalse(deathmatch.getTypedValue());
             assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
-            imports.cvar_forceset("deathmatch", "2");
+            cvars.forceSetResult("deathmatch", "2");
             assertFalse(deathmatch.getTypedValue());
             assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
             cvars.updateLatchedVars();
             assertTrue(deathmatch.getTypedValue());
             assertEquals("1", deathmatch.getRawString());
-            imports.cvar_forceset("maxclients", "0");
+            imports.findCvar("maxclients", Integer.class).forceSet(0);
             assertEquals(1, maxclients.getTypedValue());
         } finally {
             Globals.server_state = previousState;
@@ -60,7 +60,7 @@ class GameCvarInitializationTest {
         var previousState = Globals.server_state;
         cvars.clear();
         try {
-            cvars.Set("skill", "2");
+            cvars.setResult("skill", "2");
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
@@ -83,7 +83,7 @@ class GameCvarInitializationTest {
             nextGravity.set(400f);
             assertEquals(2, skill.getTypedValue());
             assertEquals(600f, gravity.getTypedValue());
-            assertSame(first.cvar("deathmatch", "0", CVAR_LATCH), next.cvar("deathmatch", "0", CVAR_LATCH));
+            assertSame(first.findCvar("deathmatch", Boolean.class), next.findCvar("deathmatch", Boolean.class));
         } finally {
             Globals.server_state = previousState;
             cvars.clear();
@@ -95,8 +95,8 @@ class GameCvarInitializationTest {
         Cvar cvars = Cvar.getInstance();
         cvars.clear();
         try {
-            cvars.Set("skill", "4");
-            cvars.Set("sv_gravity", "600.5");
+            cvars.setResult("skill", "4");
+            cvars.setResult("sv_gravity", "600.5");
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
@@ -161,19 +161,19 @@ class GameCvarInitializationTest {
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));
-            cvar_t otherSkill = other.cvar("skill", "1", CVAR_LATCH);
+            cvar_t<Integer> otherSkill = other.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 1, CVAR_LATCH, null);
             ServerSaveJsonStore.forWriteDir(temp.toString()).writeLatchedCvars("current", List.of(
                     new ServerSaveJsonStore.LatchedCvarSnapshot("skill", "2"),
                     new ServerSaveJsonStore.LatchedCvarSnapshot("deathmatch", "1")));
 
             GameImportsImpl loaded = new GameImportsImpl(server, new ChangeMapInfo("saved.pcx", false, true), other);
-            cvar_t loadedSkill = loaded.cvar("skill", "0", CVAR_LATCH);
-            assertEquals(2f, loadedSkill.value);
-            assertNull(loadedSkill.latched_string);
-            assertEquals(1f, otherSkill.value);
+            cvar_t<Integer> loadedSkill = loaded.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
+            assertEquals(2, loadedSkill.getTypedValue());
+            assertNull(loadedSkill.getRawPendingString());
+            assertEquals(1, otherSkill.getTypedValue());
             assertFalse(cvars.isRegistered("skill"));
-            assertSame(cvars.FindVar("deathmatch"), loaded.cvar("deathmatch", "0", CVAR_LATCH));
-            assertEquals("1", cvars.VariableString("deathmatch"));
+            assertSame(cvars.find("deathmatch"), loaded.findCvar("deathmatch", Boolean.class));
+            assertEquals("1", cvars.find("deathmatch", Boolean.class).getRawString());
         } finally {
             EngineWriteRoot.setRoot(previousRoot);
             cvars.clear();
@@ -185,56 +185,57 @@ class GameCvarInitializationTest {
         Cvar cvars = Cvar.getInstance();
         cvars.clear();
         try {
-            cvars.Set("skill", "2");
-            cvars.Set("maxspectators", "8");
-            cvars.Set("spectator_password", "secret");
+            cvars.setResult("skill", "2");
+            cvars.setResult("maxspectators", "8");
+            cvars.setResult("spectator_password", "secret");
             MainCommon.registerCvars(false);
             SV_MAIN server = new SV_MAIN();
             // A picture transition constructs real game imports without loading a BSP or opening sockets.
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
 
-            cvar_t skill = imports.cvar("skill", "0", CVAR_LATCH);
-            cvar_t spectators = imports.cvar("maxspectators", "4", CVAR_SERVERINFO);
-            cvar_t password = imports.cvar("spectator_password", "", CVAR_USERINFO);
-            assertEquals("2", skill.string);
-            assertEquals("8", spectators.string);
-            assertEquals("secret", password.string);
+            cvar_t<Integer> skill = imports.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
+            cvar_t<Integer> spectators = imports.registerCvar("maxspectators", CvarTypes.INTEGER, 4, CVAR_SERVERINFO, null);
+            cvar_t<String> password = imports.findCvar("spectator_password", String.class);
+            assertEquals("2", skill.getRawString());
+            assertEquals("8", spectators.getRawString());
+            assertEquals("secret", password.getRawString());
             assertFalse(cvars.isRegistered("skill"));
             assertFalse(cvars.isRegistered("maxspectators"));
             assertSame(cvars.find("spectator_password", String.class), password);
-            assertSame(skill, imports.cvar("skill", "0", CVAR_LATCH));
+            assertSame(skill, imports.findCvar("skill", Integer.class));
 
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));
-            cvar_t otherSkill = other.cvar("skill", "0", CVAR_LATCH);
-            cvar_t otherSpectators = other.cvar("maxspectators", "4", CVAR_SERVERINFO);
+            cvar_t<Integer> otherSkill = other.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
+            cvar_t<Integer> otherSpectators = other.registerCvar("maxspectators", CvarTypes.INTEGER, 4, CVAR_SERVERINFO, null);
             assertNotSame(skill, otherSkill);
-            assertEquals("0", otherSkill.string); // Startup input was consumed by the first owner.
-            assertEquals("4", otherSpectators.string);
+            assertEquals("0", otherSkill.getRawString()); // Startup input was consumed by the first owner.
+            assertEquals("4", otherSpectators.getRawString());
 
-            assertSame(spectators, imports.cvar_set("maxspectators", "6"));
-            assertEquals("6", spectators.string);
-            assertEquals("4", otherSpectators.string);
-            assertSame(skill, imports.cvar_forceset("skill", "1"));
-            assertEquals("1", skill.string);
-            assertEquals("0", otherSkill.string);
-            other.cvar_set("maxspectators", "3");
-            assertEquals("3", otherSpectators.string);
-            assertEquals("6", spectators.string);
+            assertTrue(spectators.set(6).getAccepted());
+            assertEquals("6", spectators.getRawString());
+            assertEquals("4", otherSpectators.getRawString());
+            assertTrue(skill.forceSet(1).getAccepted());
+            assertEquals("1", skill.getRawString());
+            assertEquals("0", otherSkill.getRawString());
+            otherSpectators.set(3);
+            assertEquals("3", otherSpectators.getRawString());
+            assertEquals("6", spectators.getRawString());
 
-            cvar_t shared = imports.cvar("hostname", "ignored", CVAR_SERVERINFO);
-            assertSame(cvars.FindVar("hostname"), shared);
-            assertSame(shared, other.cvar("hostname", "ignored", CVAR_SERVERINFO));
-            assertSame(shared, imports.cvar_set("hostname", "shared-host"));
-            assertEquals("shared-host", cvars.VariableString("hostname"));
-            assertSame(shared, other.cvar_forceset("hostname", "other-host"));
-            assertEquals("other-host", shared.string);
+            cvar_t<String> shared = imports.findCvar("hostname", String.class);
+            assertSame(cvars.find("hostname"), shared);
+            assertSame(shared, other.findCvar("hostname", String.class));
+            shared.set("shared-host");
+            assertEquals("shared-host", cvars.find("hostname", String.class).getTypedValue());
+            other.findCvar("hostname", String.class).forceSet("other-host");
+            assertEquals("other-host", shared.getRawString());
 
-            imports.cvar_set("game_custom", "7");
-            assertEquals("7", imports.cvar("game_custom", "0", 0).string);
-            assertEquals("0", other.cvar("game_custom", "0", 0).string);
+            var custom = imports.registerCvar("game_custom", CvarTypes.INTEGER, 0, 0, null);
+            custom.set(7);
+            assertEquals(7, custom.getTypedValue());
+            assertEquals(0, other.registerCvar("game_custom", CvarTypes.INTEGER, 0, 0, null).getTypedValue());
 
-            assertNotNull(cvars.FindVar("mapname"));
-            cvars.FullSet("mapname", "test-map", CVAR_SERVERINFO | CVAR_NOSET);
+            assertNotNull(cvars.find("mapname"));
+            cvars.find("mapname", String.class).forceSet("test-map");
             assertTrue(cvars.Serverinfo().contains("\\mapname\\test-map"));
         } finally {
             cvars.clear();
