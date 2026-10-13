@@ -164,16 +164,16 @@ class DebugGraphStage(viewport: Viewport) : Stage(viewport) {
         resizeMetricHistory(Gdx.graphics.width.coerceAtLeast(1))
 
         Cmd.AddCommand("r_debug_hideall", "(internal) Disable all render debug graph metrics") {
-            graphicsMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "0") }
+            graphicsMetricDefinitions().forEach { metricEnabledCvars.getValue(it.id).set(false) }
         }
         Cmd.AddCommand("r_debug_showall", "(internal) Enable all render debug graph metrics") {
-            graphicsMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "1") }
+            graphicsMetricDefinitions().forEach { metricEnabledCvars.getValue(it.id).set(true) }
         }
         Cmd.AddCommand("net_debug_hideall", "(internal) Disable all network debug graph metrics") {
-            networkMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "0") }
+            networkMetricDefinitions().forEach { metricEnabledCvars.getValue(it.id).set(false) }
         }
         Cmd.AddCommand("net_debug_showall", "(internal) Enable all network debug graph metrics") {
-            networkMetricDefinitions().forEach { Cvar.getInstance().Set(it.name, "1") }
+            networkMetricDefinitions().forEach { metricEnabledCvars.getValue(it.id).set(true) }
         }
     }
 

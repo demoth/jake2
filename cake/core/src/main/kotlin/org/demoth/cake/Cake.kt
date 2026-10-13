@@ -1582,11 +1582,11 @@ class Cake(
         val skinValue = "${normalized.model}/${normalized.skin}"
         val genderValue = deriveGenderFromSkin(skinValue)
 
-        Cvar.getInstance().Set("name", normalized.name)
-        Cvar.getInstance().Set("password", normalized.password)
-        Cvar.getInstance().Set("skin", skinValue)
-        Cvar.getInstance().Set("hand", normalized.hand.toString())
-        Cvar.getInstance().Set("gender", genderValue)
+        Cvar.getInstance().find<String>("name").set(normalized.name)
+        Cvar.getInstance().find<String>("password").set(normalized.password)
+        Cvar.getInstance().find<String>("skin").set(skinValue)
+        Cvar.getInstance().find<Int>("hand").set(normalized.hand)
+        Cvar.getInstance().find<String>("gender").set(genderValue)
         saveActiveProfileConfig()
         return "Saved player setup for ${normalized.name}"
     }

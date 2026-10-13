@@ -59,15 +59,16 @@ interface CakeVideoPlatform {
 fun rememberWindowedSize(width: Int, height: Int, fullscreen: Boolean, cvars: Cvar = Cvar.getInstance()) {
     if (fullscreen || width <= 0 || height <= 0) return
     for ((name, value) in listOf("vid_windowed_width" to width, "vid_windowed_height" to height)) {
-        val variable = cvars.FindVar(name) ?: continue
-        val pending = variable.rawPendingString
-        cvars.ForceSet(name, value.toString())
-        if (pending != null) cvars.Set(name, pending)
+        if (!cvars.isRegistered(name)) continue
+        val variable = cvars.find<Int>(name)
+        val pending = variable.pendingValue
+        variable.forceSet(value)
+        if (pending != null) variable.set(pending)
     }
 }
 
 fun publishFullscreenModes(modes: List<CakeDisplayMode>, cvars: Cvar = Cvar.getInstance()) {
-    cvars.forceSetResult("vid_fullscreen_modes", modes.distinct().sortedWith(
+    cvars.find<String>("vid_fullscreen_modes").forceSet(modes.distinct().sortedWith(
         compareBy<CakeDisplayMode> { it.width }.thenBy { it.height }.thenBy { it.refreshRate }
     ).joinToString(" ") { it.id })
 }
