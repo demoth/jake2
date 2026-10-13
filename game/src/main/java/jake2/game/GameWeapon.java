@@ -49,7 +49,7 @@ public class GameWeapon {
                 return;
             }
     
-            if (gameExports.gameImports.cvar("dev_blaster", "0", 0).value == 1) {
+            if (gameExports.gameCvars.dev_blaster.getTypedValue()) {
                 if (self.getOwner().getClient() != null && !"worldspawn".equalsIgnoreCase(other.classname)) {
                     gameExports.gameImports.centerprintf(gameExports.g_edicts[1], buildEntityInfo(other) + "\n");
                     gameExports.freeEntity(self);
@@ -242,7 +242,7 @@ public class GameWeapon {
                         GameDefines.MOD_ROCKET, gameExports);
             } else {
                 // don't throw any debris in net games
-                if (gameExports.gameCvars.deathmatch.value == 0 && 0 == gameExports.gameCvars.coop.value) {
+                if (!gameExports.gameCvars.deathmatch.getTypedValue() && !gameExports.gameCvars.coop.getTypedValue()) {
                     if ((surf != null)
                             && 0 == (surf.flags & (Defines.SURF_WARP
                                     | Defines.SURF_TRANS33
@@ -378,7 +378,7 @@ public class GameWeapon {
             int dmg;
             trace_t tr;
     
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 dmg = 5;
             else
                 dmg = 10;
@@ -462,7 +462,7 @@ public class GameWeapon {
         float eta;
     
         // easy mode only ducks one quarter the time
-        if (gameExports.gameCvars.skill.value == 0) {
+        if (gameExports.gameCvars.skill.getTypedValue() == 0) {
             if (Lib.random() > 0.25)
                 return;
         }

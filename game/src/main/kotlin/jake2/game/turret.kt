@@ -223,7 +223,7 @@ fun turretBreachFireRocket(self: GameEntity, game: GameExportsImpl) {
     Math3D.VectorMA(start, self.move_origin[1], right, start)
     Math3D.VectorMA(start, self.move_origin[2], up, start)
     val damage = (100 + Lib.random() * 50).toInt()
-    val speed = (550 + 50 * game.gameCvars.skill.value).toInt()
+    val speed = 550 + 50 * game.gameCvars.skill.typedValue
     GameWeapon.fire_rocket(
         self.teammaster.owner, start, forward, damage, speed, 150f,
         damage, game
@@ -367,7 +367,7 @@ private val turretDriverThink = registerThink("turret_driver_think") { self, gam
     if (game.level.time < self.monsterinfo.attack_finished)
         return@registerThink true
 
-    val reactionTime = 3 - game.gameCvars.skill.value
+    val reactionTime = 3 - game.gameCvars.skill.typedValue
     if (game.level.time - self.monsterinfo.trail_time < reactionTime)
         return@registerThink true
 

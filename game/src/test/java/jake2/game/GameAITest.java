@@ -24,6 +24,46 @@ public class GameAITest {
     private float[] lastMoveVector;  // Store M_walkmove's movement vector
     private float traceSuccessRate = 1.0f; // 1.0 means all traces succeed
 
+    @Test
+    void gameDeclarationsRejectUnsafeCountsAndPreserveSignedGravity() {
+        GameCvars cvars = gameExports.gameCvars;
+        assertTrue(cvars.skill.forceSet(3).getAccepted());
+        assertFalse(cvars.skill.forceSet(4).getAccepted());
+        assertEquals(3, cvars.skill.getTypedValue());
+        assertTrue(cvars.flood_msgs.set(10).getAccepted());
+        assertFalse(cvars.flood_msgs.set(11).getAccepted());
+        assertFalse(cvars.flood_msgs.set(-1).getAccepted());
+        assertEquals(10, cvars.flood_msgs.getTypedValue());
+        assertFalse(cvars.flood_persecond.set(-1f).getAccepted());
+        assertFalse(cvars.flood_waitdelay.set(Float.NaN).getAccepted());
+        assertTrue(cvars.sv_gravity.set(-400.5f).getAccepted());
+        assertEquals(-400.5f, cvars.sv_gravity.getTypedValue());
+        var velocity = gameExports.gameImports.findCvar("sv_maxvelocity", Float.class);
+        assertFalse(velocity.set(-1f).getAccepted());
+        assertFalse(cvars.maxentities.forceSet(Defines.MAX_EDICTS + 1).getAccepted());
+    }
+
+    @Test
+    void entityBudgetAlwaysAccommodatesClientAndBodySlots() {
+        MockGameImports imports = new MockGameImports();
+        imports.findCvar("maxclients", Integer.class).set(32);
+        imports.cvar_set("maxentities", "10");
+        GameExportsImpl game = new GameExportsImpl(imports);
+        assertEquals(32 + GameDefines.BODY_QUEUE_SIZE + 1, game.game.maxentities);
+        assertEquals(game.game.maxentities, game.g_edicts.length);
+        assertEquals(32, game.game.clients.length);
+    }
+
+    @Test
+    void normalPlayerAdmissionUsesPlayerPasswordRatherThanSpectatorPassword() {
+        gameExports.gameCvars.password.set("players");
+        gameExports.gameCvars.spectator_password.set("spectators");
+        GameEntity player = gameExports.g_edicts[1];
+        assertFalse(PlayerClient.ClientConnect(player, "\\password\\spectators", gameExports));
+        assertFalse(PlayerClient.ClientConnect(player, "", gameExports));
+        assertTrue(PlayerClient.ClientConnect(player, "\\password\\players", gameExports));
+    }
+
     private class MockGameImports implements GameImports {
         private final Cvar cvars = new Cvar();
 

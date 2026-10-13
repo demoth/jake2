@@ -123,7 +123,7 @@ public class GameSpawn {
             gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (gameExports.game.maxclients));
             // status bar program
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
                 gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
@@ -134,7 +134,7 @@ public class GameSpawn {
             gameExports.gameImports.imageindex("help");
             gameExports.gameImports.imageindex("field_3");
             if ("".equals(ent.st.gravity))
-                gameExports.gameImports.cvar_set("sv_gravity", "800");
+                gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
             else
                 gameExports.gameImports.cvar_set("sv_gravity", ent.st.gravity);
 
@@ -678,7 +678,7 @@ public class GameSpawn {
         gameExports.level.mapname = mapname;
         gameExports.game.spawnpoint = spawnpoint;
 
-        final float skill = normalizeSkillCvar(gameExports);
+        final int skill = gameExports.gameCvars.skill.getTypedValue();
 
         // set client fields on player ents
         for (int i = 0; i < gameExports.game.maxclients; i++)
@@ -704,7 +704,7 @@ public class GameSpawn {
 
             boolean spawned = true;
             if (!ent.classname.equals("worldspawn")) {
-                if (gameExports.gameCvars.deathmatch.value != 0) {
+                if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
                         spawned = false;
                     }
@@ -737,19 +737,6 @@ public class GameSpawn {
         gameExports.gameImports.dprintf("player skill level:" + skill + "\n");
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
-    }
-
-    private static float normalizeSkillCvar(GameExportsImpl gameExports) {
-        final float skill = gameExports.gameCvars.skill.value;
-        float skillNormalized = (float) Math.floor(skill);
-
-        if (skillNormalized < 0)
-            skillNormalized = 0;
-        if (skillNormalized > 3)
-            skillNormalized = 3;
-        if (skill != skillNormalized)
-            gameExports.gameImports.cvar_forceset("skill", "" + skillNormalized);
-        return skill;
     }
 
     /**
@@ -799,7 +786,7 @@ public class GameSpawn {
             return;
         }
 
-        if (gameExports.gameCvars.deathmatch.value != 0 && gameExports.gameCvars.sv_cheats.value == 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue() && !gameExports.gameCvars.sv_cheats.getTypedValue()) {
             gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;

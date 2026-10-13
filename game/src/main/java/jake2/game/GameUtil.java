@@ -152,8 +152,8 @@ public class GameUtil {
     /** 
      * Returns true, if two edicts are on the same team. 
      */
-    static boolean OnSameTeam(GameEntity ent1, GameEntity ent2, float dmflags) {
-        if (0 == ((int) dmflags & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+    static boolean OnSameTeam(GameEntity ent1, GameEntity ent2, int dmflags) {
+        if (0 == (dmflags & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
 
         if (ClientTeam(ent1, dmflags).equals(ClientTeam(ent2, dmflags)))
@@ -165,7 +165,7 @@ public class GameUtil {
      * Returns the team string of an entity 
      * with respect to rteam_by_model and team_by_skin. 
      */
-    private static String ClientTeam(GameEntity ent, float dmflags) {
+    private static String ClientTeam(GameEntity ent, int dmflags) {
         String value;
 
         GamePlayerInfo client = ent.getClient();
@@ -179,7 +179,7 @@ public class GameUtil {
         if (p == -1)
             return value;
 
-        if (((int) dmflags & Defines.DF_MODELTEAMS) != 0) {
+        if ((dmflags & Defines.DF_MODELTEAMS) != 0) {
             return value.substring(0, p);
         }
 
@@ -518,7 +518,7 @@ public class GameUtil {
             // melee attack
             if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
-                if (gameExports.gameCvars.skill.value == 0 && (Lib.rand() & 3) != 0)
+                if (gameExports.gameCvars.skill.getTypedValue() == 0 && (Lib.rand() & 3) != 0)
                     return false;
                 if (self.monsterinfo.melee != null)
                     self.monsterinfo.attack_state = GameDefines.AS_MELEE;
@@ -550,9 +550,9 @@ public class GameUtil {
                 return false;
             }
 
-            if (gameExports.gameCvars.skill.value == 0)
+            if (gameExports.gameCvars.skill.getTypedValue() == 0)
                 chance *= 0.5;
-            else if (gameExports.gameCvars.skill.value >= 2)
+            else if (gameExports.gameCvars.skill.getTypedValue() >= 2)
                 chance *= 2;
 
             if (Lib.random() < chance) {

@@ -884,7 +884,7 @@ public class M_Chick {
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)

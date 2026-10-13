@@ -182,7 +182,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -249,7 +249,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -277,7 +277,7 @@ public class PlayerWeapon {
 
             int damage;
 
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 damage = 15;
             else
                 damage = 10;
@@ -338,12 +338,12 @@ public class PlayerWeapon {
                         effect = Defines.EF_HYPERBLASTER;
                     else
                         effect = 0;
-                    if (gameExports.gameCvars.deathmatch.value != 0)
+                    if (gameExports.gameCvars.deathmatch.getTypedValue())
                         damage = 15;
                     else
                         damage = 20;
                     Blaster_Fire(ent, offset, damage, true, effect, gameExports);
-                    if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+                    if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                         client.pers.inventory[client.ammo_index]--;
 
                     client.anim_priority = Defines.ANIM_ATTACK;
@@ -453,7 +453,7 @@ public class PlayerWeapon {
                 kick *= 4;
             }
 
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 GameWeapon.fire_shotgun(ent, start, forward, damage, kick, 500, 500,
                         GameDefines.DEFAULT_DEATHMATCH_SHOTGUN_COUNT,
                         GameDefines.MOD_SHOTGUN, gameExports);
@@ -468,7 +468,7 @@ public class PlayerWeapon {
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -534,7 +534,7 @@ public class PlayerWeapon {
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 2;
 
             return true;
@@ -572,7 +572,7 @@ public class PlayerWeapon {
             int damage;
             int kick;
 
-            if (gameExports.gameCvars.deathmatch.value != 0) { // normal damage is too
+            if (gameExports.gameCvars.deathmatch.getTypedValue()) { // normal damage is too
                 // extreme in dm
                 damage = 100;
                 kick = 200;
@@ -602,7 +602,7 @@ public class PlayerWeapon {
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -640,7 +640,7 @@ public class PlayerWeapon {
             int damage;
             float damage_radius = 1000;
 
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 damage = 200;
             else
                 damage = 500;
@@ -683,7 +683,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 50;
 
             return true;
@@ -722,7 +722,7 @@ public class PlayerWeapon {
             if (item == client.pers.weapon)
                 return;
 
-            if (item.ammo != null && 0 == gameExports.gameCvars.g_select_empty.value
+            if (item.ammo != null && !gameExports.gameCvars.g_select_empty.getTypedValue()
                     && 0 == (item.flags & GameDefines.IT_AMMO)) {
                 
                 ammo_item = GameItems.FindItem(item.ammo, gameExports);
@@ -762,7 +762,7 @@ public class PlayerWeapon {
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
 
-            if (0 != ((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_WEAPONS_STAY))
+            if (0 != (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_WEAPONS_STAY))
                 return;
 
             index = item.index;
@@ -838,7 +838,7 @@ public class PlayerWeapon {
             client.kick_angles[0] = client.machinegun_shots * -1.5f;
 
             // raise the gun as it is firing
-            if (0 == gameExports.gameCvars.deathmatch.value) {
+            if (!gameExports.gameCvars.deathmatch.getTypedValue()) {
                 client.machinegun_shots++;
                 if (client.machinegun_shots > 9)
                     client.machinegun_shots = 9;
@@ -860,7 +860,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             client.anim_priority = Defines.ANIM_ATTACK;
@@ -891,7 +891,7 @@ public class PlayerWeapon {
             int damage;
             int kick = 2;
 
-            if (gameExports.gameCvars.deathmatch.value != 0)
+            if (gameExports.gameCvars.deathmatch.getTypedValue())
                 damage = 6;
             else
                 damage = 8;
@@ -988,7 +988,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= shots;
 
             return true;
@@ -1004,7 +1004,7 @@ public class PlayerWeapon {
             index = ent.item.index;
 
             GamePlayerInfo client = other.getClient();
-            if ((((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || gameExports.gameCvars.coop.value != 0)
+            if (((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_WEAPONS_STAY) != 0 || gameExports.gameCvars.coop.getTypedValue())
                     && 0 != client.pers.inventory[index]) {
                 if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM)))
                     return false; // leave the weapon for others to pickup
@@ -1015,26 +1015,26 @@ public class PlayerWeapon {
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)) {
                 // give them some ammo with it
                 ammo = GameItems.FindItem(ent.item.ammo, gameExports);
-                if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
+                if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO) != 0)
                     GameItems.Add_Ammo(other, ammo, 1000);
                 else
                     GameItems.Add_Ammo(other, ammo, ammo.quantity);
     
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM)) {
-                    if (gameExports.gameCvars.deathmatch.value != 0) {
-                        if (((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
+                    if (gameExports.gameCvars.deathmatch.getTypedValue()) {
+                        if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_WEAPONS_STAY) != 0)
                             ent.flags |= GameDefines.FL_RESPAWN;
                         else
                             GameItems.SetRespawn(ent, 30, gameExports);
                     }
-                    if (gameExports.gameCvars.coop.value != 0)
+                    if (gameExports.gameCvars.coop.getTypedValue())
                         ent.flags |= GameDefines.FL_RESPAWN;
                 }
             }
     
             if (client.pers.weapon != ent.item
                     && (client.pers.inventory[index] == 1)
-                    && (0 == gameExports.gameCvars.deathmatch.value || client.pers.weapon == GameItems
+                    && (!gameExports.gameCvars.deathmatch.getTypedValue() || client.pers.weapon == GameItems
                             .FindItem("blaster", gameExports)))
                 client.newweapon = ent.item;
     
@@ -1367,7 +1367,7 @@ public class PlayerWeapon {
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
                 held, gameExports);
 
-        if (0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO))
+        if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO))
             client.pers.inventory[client.ammo_index]--;
 
         client.grenade_time = gameExports.level.time + 1.0f;
@@ -1453,7 +1453,7 @@ public class PlayerWeapon {
             }
         }
     
-        if (gameExports.gameCvars.deathmatch.value != 0)
+        if (gameExports.gameCvars.deathmatch.getTypedValue())
             return;
     
         if ((who.flags & GameDefines.FL_NOTARGET) != 0)

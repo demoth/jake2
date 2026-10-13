@@ -119,7 +119,7 @@ public class GameCombat {
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 gameExports.level.killed_monsters++;
                 GamePlayerInfo attackerClient = attacker.getClient();
-                if (gameExports.gameCvars.coop.value != 0 && attackerClient != null)
+                if (gameExports.gameCvars.coop.getTypedValue() && attackerClient != null)
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
                 if (attacker.classname.equals("monster_medic"))
@@ -419,9 +419,9 @@ public class GameCombat {
         // knockback still occurs
         final GameCvars cvars = gameExports.gameCvars;
         if (target != attacker
-                && ((cvars.deathmatch.value != 0 && 0 != ((int) (cvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.value != 0)) {
-            if (GameUtil.OnSameTeam(target, attacker, gameExports.gameCvars.dmflags.value)) {
-                if (((int) (cvars.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
+                && ((cvars.deathmatch.getTypedValue() && 0 != (cvars.dmflags.getTypedValue() & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.getTypedValue())) {
+            if (GameUtil.OnSameTeam(target, attacker, gameExports.gameCvars.dmflags.getTypedValue())) {
+                if ((cvars.dmflags.getTypedValue() & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
                 else
                     mod |= GameDefines.MOD_FRIENDLY_FIRE;
@@ -430,7 +430,7 @@ public class GameCombat {
         target.meansOfDeath = mod;
     
         // easy mode takes half damage
-        if (cvars.skill.value == 0 && cvars.deathmatch.value == 0
+        if (cvars.skill.getTypedValue() == 0 && !cvars.deathmatch.getTypedValue()
                 && target.getClient() != null) {
             damage *= 0.5;
             if (damage == 0)
@@ -538,7 +538,7 @@ public class GameCombat {
             if (0 == (target.monsterinfo.aiflags & GameDefines.AI_DUCKED) && received != 0) {
                 target.pain.pain(target, attacker, knockback, received, gameExports);
                 // nightmare mode monsters don't go into pain frames often
-                if (cvars.skill.value == 3)
+                if (cvars.skill.getTypedValue() == 3)
                     target.pain_debounce_time = gameExports.level.time + 5;
             }
         }  else if (received != 0) {

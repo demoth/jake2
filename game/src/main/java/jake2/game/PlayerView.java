@@ -28,6 +28,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.GameImports;
 import jake2.qcommon.Globals;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -36,16 +37,16 @@ import jake2.qcommon.util.Math3D;
  */
 class PlayerView {
 
-    private final cvar_t sv_rollspeed;
-    private final cvar_t sv_rollangle;
-    private final cvar_t gun_x;
-    private final cvar_t gun_y;
-    private final cvar_t gun_z;
-    private final cvar_t run_pitch;
-    private final cvar_t run_roll;
-    private final cvar_t bob_up;
-    private final cvar_t bob_pitch;
-    private final cvar_t bob_roll;
+    private final cvar_t<Float> sv_rollspeed;
+    private final cvar_t<Float> sv_rollangle;
+    private final cvar_t<Float> gun_x;
+    private final cvar_t<Float> gun_y;
+    private final cvar_t<Float> gun_z;
+    private final cvar_t<Float> run_pitch;
+    private final cvar_t<Float> run_roll;
+    private final cvar_t<Float> bob_up;
+    private final cvar_t<Float> bob_pitch;
+    private final cvar_t<Float> bob_roll;
 
     private float xyspeed;
     private float bobmove;
@@ -62,19 +63,19 @@ class PlayerView {
     private float[] up = { 0, 0, 0 };
 
     PlayerView(GameImports gameImports) {
-        gun_x = gameImports.cvar("gun_x", "0", 0);
-        gun_y = gameImports.cvar("gun_y", "0", 0);
-        gun_z = gameImports.cvar("gun_z", "0", 0);
+        gun_x = gameImports.registerCvar("gun_x", CvarTypes.FLOAT, 0f, 0, "Sideways view weapon offset");
+        gun_y = gameImports.registerCvar("gun_y", CvarTypes.FLOAT, 0f, 0, "Forward view weapon offset");
+        gun_z = gameImports.registerCvar("gun_z", CvarTypes.FLOAT, 0f, 0, "Downward view weapon offset");
 
         //FIXME: sv_ prefix are wrong names for these variables
-        sv_rollspeed = gameImports.cvar("sv_rollspeed", "200", 0);
-        sv_rollangle = gameImports.cvar("sv_rollangle", "2", 0);
+        sv_rollspeed = gameImports.registerCvar("sv_rollspeed", new CvarTypes.FloatType(0f, null), 200f, 0, "Sideways speed at which view roll reaches sv_rollangle; 0 applies full roll");
+        sv_rollangle = gameImports.registerCvar("sv_rollangle", CvarTypes.FLOAT, 2f, 0, "Maximum view roll angle in degrees");
 
-        run_pitch = gameImports.cvar("run_pitch", "0.002", 0);
-        run_roll = gameImports.cvar("run_roll", "0.005", 0);
-        bob_up = gameImports.cvar("bob_up", "0.005", 0);
-        bob_pitch = gameImports.cvar("bob_pitch", "0.002", 0);
-        bob_roll = gameImports.cvar("bob_roll", "0.002", 0);
+        run_pitch = gameImports.registerCvar("run_pitch", CvarTypes.FLOAT, 0.002f, 0, "View pitch per unit of forward speed");
+        run_roll = gameImports.registerCvar("run_roll", CvarTypes.FLOAT, 0.005f, 0, "View roll per unit of sideways speed");
+        bob_up = gameImports.registerCvar("bob_up", CvarTypes.FLOAT, 0.005f, 0, "Vertical view bob per unit of speed");
+        bob_pitch = gameImports.registerCvar("bob_pitch", CvarTypes.FLOAT, 0.002f, 0, "View pitch bob per unit of speed");
+        bob_roll = gameImports.registerCvar("bob_roll", CvarTypes.FLOAT, 0.002f, 0, "View roll bob per unit of speed");
 
     }
 
@@ -90,10 +91,10 @@ class PlayerView {
         sign = side < 0 ? -1 : 1;
         side = Math.abs(side);
 
-        value = sv_rollangle.value;
+        value = sv_rollangle.getTypedValue();
 
-        if (side < sv_rollspeed.value)
-            side = side * value / sv_rollspeed.value;
+        if (side < sv_rollspeed.getTypedValue())
+            side = side * value / sv_rollspeed.getTypedValue();
         else
             side = value;
 
@@ -294,17 +295,17 @@ class PlayerView {
 
             // add angles based on velocity
             delta = Math3D.DotProduct(ent.velocity, forward);
-            angles[Defines.PITCH] += delta * run_pitch.value;
+            angles[Defines.PITCH] += delta * run_pitch.getTypedValue();
 
             delta = Math3D.DotProduct(ent.velocity, right);
-            angles[Defines.ROLL] += delta * run_roll.value;
+            angles[Defines.ROLL] += delta * run_roll.getTypedValue();
 
             // add angles based on bob
-            delta = bobfracsin * bob_pitch.value * xyspeed;
+            delta = bobfracsin * bob_pitch.getTypedValue() * xyspeed;
             if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             angles[Defines.PITCH] += delta;
-            delta = bobfracsin * bob_roll.value * xyspeed;
+            delta = bobfracsin * bob_roll.getTypedValue() * xyspeed;
             if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             if ((bobcycle & 1) != 0)
@@ -326,7 +327,7 @@ class PlayerView {
         v[2] -= ratio * client.fall_value * 0.4;
 
         // add bob height
-        bob = bobfracsin * xyspeed * bob_up.value;
+        bob = bobfracsin * xyspeed * bob_up.getTypedValue();
         if (bob > 6)
             bob = 6;
         
@@ -396,9 +397,9 @@ class PlayerView {
 
         // gun_x / gun_y / gun_z are development tools
         for (i = 0; i < 3; i++) {
-            client.getPlayerState().gunoffset[i] += forward[i] * (gun_y.value);
-            client.getPlayerState().gunoffset[i] += right[i] * gun_x.value;
-            client.getPlayerState().gunoffset[i] += up[i] * (-gun_z.value);
+            client.getPlayerState().gunoffset[i] += forward[i] * (gun_y.getTypedValue());
+            client.getPlayerState().gunoffset[i] += right[i] * gun_x.getTypedValue();
+            client.getPlayerState().gunoffset[i] += up[i] * (-gun_z.getTypedValue());
         }
     }
 
@@ -562,8 +563,8 @@ class PlayerView {
                 damage = 1;
             Math3D.VectorSet(dir, 0, 0, 1);
 
-            if (gameExports.gameCvars.deathmatch.value == 0
-                    || 0 == ((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_FALLING))
+            if (!gameExports.gameCvars.deathmatch.getTypedValue()
+                    || 0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_NO_FALLING))
                 GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                         gameExports.g_edicts[0], dir, ent.s.origin,
                         Globals.vec3_origin, damage, 0, 0, GameDefines.MOD_FALLING, gameExports);

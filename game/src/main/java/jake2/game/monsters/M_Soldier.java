@@ -1091,7 +1091,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((gameExports.gameCvars.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.gameCvars.skill.getTypedValue() == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             else
@@ -1109,7 +1109,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((gameExports.gameCvars.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.gameCvars.skill.getTypedValue() == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             return true;
@@ -1125,7 +1125,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((gameExports.gameCvars.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.gameCvars.skill.getTypedValue() == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             else
@@ -1143,7 +1143,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((gameExports.gameCvars.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.gameCvars.skill.getTypedValue() == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             return true;
@@ -1168,7 +1168,7 @@ public class M_Soldier {
             if (GameUtil.range(self, self.enemy) < GameDefines.RANGE_MID)
                 return true;
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 self.monsterinfo.nextframe = FRAME_runs03;
             return true;
         }
@@ -1362,7 +1362,7 @@ public class M_Soldier {
                 return;
             }
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             r = Lib.random();
@@ -1401,7 +1401,7 @@ public class M_Soldier {
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if ((gameExports.gameCvars.skill.value > 0)
+            if ((gameExports.gameCvars.skill.getTypedValue() > 0)
                     && (GameUtil.range(self, self.enemy) >= GameDefines.RANGE_MID)) {
                 if (Lib.random() > 0.5)
                     self.monsterinfo.currentmove = soldier_move_attack6;
@@ -2218,7 +2218,7 @@ public class M_Soldier {
             if (self.enemy == null)
                 self.enemy = attacker;
 
-            if (gameExports.gameCvars.skill.value == 0) {
+            if (gameExports.gameCvars.skill.getTypedValue() == 0) {
                 self.monsterinfo.currentmove = soldier_move_duck;
                 return;
             }
@@ -2226,7 +2226,7 @@ public class M_Soldier {
             self.monsterinfo.pausetime = gameExports.level.time + eta + 0.3f;
             r = Lib.random();
 
-            if (gameExports.gameCvars.skill.value == 1) {
+            if (gameExports.gameCvars.skill.getTypedValue() == 1) {
                 if (r > 0.33)
                     self.monsterinfo.currentmove = soldier_move_duck;
                 else
@@ -2234,7 +2234,7 @@ public class M_Soldier {
                 return;
             }
 
-            if (gameExports.gameCvars.skill.value >= 2) {
+            if (gameExports.gameCvars.skill.getTypedValue() >= 2) {
                 if (r > 0.66)
                     self.monsterinfo.currentmove = soldier_move_duck;
                 else

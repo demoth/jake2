@@ -852,7 +852,7 @@ public class M_Berserk {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             if ((damage < 20) || (Lib.random() < 0.5))

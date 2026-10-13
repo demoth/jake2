@@ -852,7 +852,7 @@ public class M_Brain {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 8);
             if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600, gameExports)
-                    && gameExports.gameCvars.skill.value > 0)
+                    && gameExports.gameCvars.skill.getTypedValue() > 0)
                 self.spawnflags |= 65536;
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,
                     sound_tentacles_retract, 1, Defines.ATTN_NORM, 0);
@@ -1045,7 +1045,7 @@ public class M_Brain {
                 return;
 
             self.pain_debounce_time = gameExports.level.time + 3;
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             r = Lib.random();

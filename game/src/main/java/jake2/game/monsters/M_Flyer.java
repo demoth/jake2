@@ -892,7 +892,7 @@ public class M_Flyer {
                 return;
 
             self.pain_debounce_time = gameExports.level.time + 3;
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             n = Lib.rand() % 3;

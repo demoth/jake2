@@ -72,7 +72,7 @@ fun funcDoor(self: GameEntity, game: GameExportsImpl) {
     self.use = doorOpenUse
     if (self.speed == 0f)
         self.speed = 100f
-    if (game.gameCvars.deathmatch.value != 0f)
+    if (game.gameCvars.deathmatch.typedValue)
         self.speed *= 2f
     if (self.accel == 0f)
         self.accel = self.speed

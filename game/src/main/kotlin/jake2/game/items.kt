@@ -35,7 +35,7 @@ fun itemHealthMega(self: GameEntity, game: GameExportsImpl) {
 
 
 private fun spawnHealth(self: GameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, ignoreHealth: Boolean = false, timed: Boolean = false) {
-    if (game.gameCvars.dmflags.value.toInt() and Defines.DF_NO_HEALTH != 0) {
+    if (game.gameCvars.dmflags.typedValue and Defines.DF_NO_HEALTH != 0) {
         game.freeEntity(self)
         return
     }
