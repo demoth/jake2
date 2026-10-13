@@ -49,8 +49,8 @@ object CakeCvars {
         cvars.register("name", CvarTypes.STRING, "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
         cvars.register("skin", CvarTypes.STRING, "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")
         cvars.register("rate", CvarTypes.INTEGER, 25000, CVAR_USERINFO or CVAR_ARCHIVE, "Network rate in bytes per second")
-        cvars.register("msg", CvarTypes.INTEGER, 1, CVAR_USERINFO or CVAR_ARCHIVE, "Server message level")
-        cvars.register("hand", CvarTypes.ChoiceType(listOf(0, 1, 2)), 0, CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness")
+        cvars.register("msg", CvarTypes.ChoiceType(listOf(0, 1, 2, 3, 4)), 1, CVAR_USERINFO or CVAR_ARCHIVE, "Minimum server message level: 0 pickups, 1 deaths, 2 critical, 3 chat; 4 suppresses all levels")
+        cvars.register("hand", CvarTypes.ChoiceType(listOf(0, 1, 2)), 0, CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness: 0 right, 1 left, 2 centered")
         cvars.register("fov", CvarTypes.IntegerType(1, 160), 90, CVAR_USERINFO or CVAR_ARCHIVE, "Player field of view")
         cvars.register("gender", CvarTypes.STRING, "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
     }
@@ -68,15 +68,15 @@ object CakeCvars {
         DebugGraphStage.metricDefinitions.forEach { metric ->
             cvars.register(metric.name, CvarTypes.BOOLEAN, false, 0, metric.description)
         }
-        cvars.register("cl_maxfps", CvarTypes.FloatType(10f, 125f), 62f, CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update cadence")
+        cvars.register("cl_maxfps", CvarTypes.FloatType(10f, 125f), 62f, CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update rate per second; independent of rendering FPS")
 
         RenderTuningCvars.register()
     }
 
     fun registerHud(cvars: Cvar) {
         cvars.AddAlias("crosshair", "cl_crosshair")
-        cvars.register("cl_crosshair", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 1, CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
-        cvars.register("cl_showfps", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 0, CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
+        cvars.register("cl_crosshair", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 1, CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair: 0 off, 1-3 select ch1-ch3 pictures")
+        cvars.register("cl_showfps", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 0, CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay: 0 off, 1 average, 2 minimum/maximum/average, 3 also shows frame times in milliseconds")
         cvars.register("cl_ui_size", CvarTypes.FloatType(min = 640f), 720f, CVAR_ARCHIVE or CVAR_OPTIONS,
             "Virtual game UI reference height (minimum 640); lower values enlarge menus and HUD; applies immediately")
     }

@@ -20,12 +20,12 @@ object RenderTuningCvars {
 
     private val vidGamma = cvars.register(
         "vid_gamma", CvarTypes.FloatType(min = 0.01f), 1.2f,
-        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Display gamma",
+        Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Display gamma: 1 leaves colors unchanged; higher values brighten midtones",
     )
-    private val gl3Intensity = cvars.register("gl3_intensity", CvarTypes.FloatType(min = 0f), 1.5f, Defines.CVAR_ARCHIVE, "Lightmap intensity scale")
-    private val gl3OverbrightBits = cvars.register("gl3_overbrightbits", CvarTypes.FloatType(min = Float.MIN_VALUE), 1.3f, Defines.CVAR_ARCHIVE, "Overbright intensity scale")
+    private val gl3Intensity = cvars.register("gl3_intensity", CvarTypes.FloatType(min = 0f), 1.5f, Defines.CVAR_ARCHIVE, "BSP surface brightness multiplier after lighting, before gamma")
+    private val gl3OverbrightBits = cvars.register("gl3_overbrightbits", CvarTypes.FloatType(min = Float.MIN_VALUE), 1.3f, Defines.CVAR_ARCHIVE, "BSP static lightmap multiplier, applied before dynamic lighting")
     private val rDlights = cvars.register("r_dlights", CvarTypes.BOOLEAN, true, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Dynamic lights")
-    private val rParticles = cvars.register("r_particles", CvarTypes.IntegerType(min = 0, max = Defines.MAX_PARTICLES), Defines.MAX_PARTICLES, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Particle budget")
+    private val rParticles = cvars.register("r_particles", CvarTypes.IntegerType(min = 0, max = Defines.MAX_PARTICLES), Defines.MAX_PARTICLES, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Maximum live particles; 0 disables particles")
     private val rBspBatchDebug = cvars.register("r_bsp_batch_debug", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE, "Log BSP batch renderer stats")
     val rPostVignette = cvars.register("r_post_vignette", CvarTypes.BOOLEAN, true, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Postprocess vignette")
     val rPostVignetteStrength = cvars.register("r_post_vignette_strength", CvarTypes.FloatType(min = 0f), 1.30f, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Vignette strength")
