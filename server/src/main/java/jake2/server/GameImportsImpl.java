@@ -76,7 +76,7 @@ public class GameImportsImpl implements GameImports {
 
     SV_WORLD world;
 
-    private final Cvar localCvars;
+    private final Cvar localCvars = new Cvar();
 
     CM cm;
 
@@ -88,12 +88,16 @@ public class GameImportsImpl implements GameImports {
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
+        this(serverMain, changeMapInfo, null);
+    }
+
+    GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         this.serverMain = serverMain;
         this.name = "jake2_" + SV_MAIN.gameCounter++;
+        if (previous != null && !changeMapInfo.isLoadgame)
+            previous.localCvars.copyValuesTo(localCvars);
 
         spawncount = Lib.rand();
-
-        localCvars = new Cvar();
 
         world = new SV_WORLD();
 
@@ -159,11 +163,8 @@ public class GameImportsImpl implements GameImports {
                 String name = cvar.name();
                 String value = cvar.value();
                 Com.DPrintf("Set " + name + " = " + value + "\n");
-                Cvar.getInstance().ForceSet(name, value);
+                cvar_forceset(name, value);
             }
-
-            // read game state
-            this.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
         }
@@ -317,28 +318,30 @@ public class GameImportsImpl implements GameImports {
         pmoveProcessor.move(pmove);
     }
 
-    /**
-     * Ready only expected
-     * Todo: return value instead
-     */
+    /** Engine entries are shared; game-owned declarations consume early input into this instance's registry. */
     @Override
     public cvar_t cvar(String var_name, String value, int flags) {
-        final cvar_t parentValue = Cvar.getInstance().FindVar(var_name);
-        if (parentValue != null) {
-            return parentValue;
-        } else {
-            return localCvars.Get(var_name, value, flags);
-        }
+        if (localCvars.isRegistered(var_name)) return localCvars.Get(var_name, value, flags);
+        Cvar globalCvars = Cvar.getInstance();
+        if (globalCvars.isRegistered(var_name)) return globalCvars.Get(var_name, value, flags);
+        globalCvars.transferEarlyValue(var_name, localCvars);
+        return localCvars.Get(var_name, value, flags);
     }
 
     @Override
     public cvar_t cvar_set(String var_name, String value) {
-        return localCvars.Set(var_name, value);
+        return writeRegistry(var_name).Set(var_name, value);
     }
 
     @Override
     public cvar_t cvar_forceset(String var_name, String value) {
-        return localCvars.ForceSet(var_name, value);
+        return writeRegistry(var_name).ForceSet(var_name, value);
+    }
+
+    /** Writes follow the same ownership as reads; undeclared game inputs stay local. */
+    private Cvar writeRegistry(String name) {
+        if (localCvars.isRegistered(name)) return localCvars;
+        return Cvar.getInstance().isRegistered(name) ? Cvar.getInstance() : localCvars;
     }
 
     /*
@@ -692,8 +695,11 @@ public class GameImportsImpl implements GameImports {
             // these will be things like coop, skill, deathmatch, etc
             List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
             Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string));
+                if (!localCvars.isRegistered(var.name))
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string));
             });
+            localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string)));
             store.writeLatchedCvars("current", latchedCvars);
         } catch (Exception e) {
             throw new RuntimeException(e);

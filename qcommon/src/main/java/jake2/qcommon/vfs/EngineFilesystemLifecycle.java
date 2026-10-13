@@ -90,6 +90,7 @@ public final class EngineFilesystemLifecycle {
 
         gameDirPath = baseDir.string + '/' + Globals.BASEQ2;
         gameDirVar = Cvar.getInstance().Get("game", "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO);
+        Cvar.getInstance().Get("gamedir", "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
         caseSensitive = Cvar.getInstance().Get("fs_casesensitive", "0", Defines.CVAR_ARCHIVE);
 
         if (!gameDirVar.string.isEmpty()) {

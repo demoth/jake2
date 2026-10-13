@@ -1030,6 +1030,7 @@ public class SV_MAIN implements JakeServer {
         Cvar.getInstance().Get("timelimit", "0", Defines.CVAR_SERVERINFO);
         Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+        Cvar.getInstance().Get("mapname", "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
         hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
         timeout = Cvar.getInstance().Get("timeout", "125", 0);
@@ -1057,8 +1058,14 @@ public class SV_MAIN implements JakeServer {
      * A brand new game has been started.
      */
     GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo) {
-        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo);
+        return createGameInstance(changeMapInfo, null);
+    }
+
+    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo, previous);
         gameImports.gameExports = createGameModInstance(gameImports);
+        if (changeMapInfo.isLoadgame)
+            gameImports.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
         return gameImports;
     }
 
@@ -1142,7 +1149,9 @@ public class SV_MAIN implements JakeServer {
         final String mapCommand = SV_ReadMapCommand();
 
         // go to the map
-        spawnServerInstance(new ChangeMapInfo(mapCommand, false, true), 0);
+        GameImportsImpl loaded = spawnServerInstance(new ChangeMapInfo(mapCommand, false, true), 0);
+        loaded.name = "default";
+        games.put("default", loaded);
     }
 
     private String SV_ReadMapCommand() {
@@ -1294,7 +1303,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             oldGame.SaveClientData();
         }
 
-        gameImports = createGameInstance(changeMapInfo);
+        gameImports = createGameInstance(changeMapInfo, gameImports);
 
         Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
 
@@ -1325,7 +1334,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // map initialization
         Globals.server_state = gameImports.sv.state; // LOADING
 
-        if (oldGame != null) {
+        if (oldGame != null && !changeMapInfo.isLoadgame) {
             // copy persistent data between instances.
             // after a 'map' command the persistent state will be empty
             gameImports.gameExports.fromPrevious(oldGame, changeMapInfo.spawnPoint);

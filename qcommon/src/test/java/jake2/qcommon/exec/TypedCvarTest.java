@@ -183,6 +183,42 @@ class TypedCvarTest {
     }
 
     @Test
+    void copiedValuesAreIndependentInputsValidatedByTheNewOwner() {
+        var source = registry.register("vid_number", CvarTypes.INTEGER, 2, CVAR_LATCH);
+        registry.setResult("vid_number", "8");
+        registry.Set("undeclared", "4");
+        Cvar destination = new Cvar();
+        registry.copyValuesTo(destination);
+        var copied = destination.register("vid_number", new CvarTypes.IntegerType(0, 5), 1, CVAR_LATCH);
+        assertEquals(1, copied.getTypedValue()); // The destination's declaration rejects the copied 8.
+        assertEquals(2, source.getTypedValue());
+        assertEquals(8, source.getPendingValue());
+        assertEquals(4, destination.register("undeclared", CvarTypes.INTEGER, 0).getTypedValue());
+        assertEquals("4", registry.VariableString("undeclared"));
+        destination.setResult("undeclared", "5");
+        assertEquals("4", registry.VariableString("undeclared"));
+    }
+
+    @Test
+    void scopedEarlyTransferPreservesValidationAndConsumesInputOnce() {
+        Cvar owner = new Cvar();
+        registry.FullSet("scoped", "2", CVAR_SERVERINFO);
+        registry.transferEarlyValue("scoped", owner);
+        assertFalse(registry.isRegistered("scoped"));
+        assertEquals(2, owner.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+        Cvar other = new Cvar();
+        registry.transferEarlyValue("scoped", other);
+        assertEquals(0, other.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+
+        registry.FullSet("wrong_flags", "2", CVAR_SERVERINFO);
+        registry.transferEarlyValue("wrong_flags", owner);
+        assertEquals(0, owner.register("wrong_flags", CvarTypes.INTEGER, 0).getTypedValue());
+        registry.Set("invalid", "not-an-int");
+        registry.transferEarlyValue("invalid", owner);
+        assertEquals(0, owner.register("invalid", CvarTypes.INTEGER, 0).getTypedValue());
+    }
+
+    @Test
     void earlyInputIsValidatedWhenTheCompleteEntryIsRegistered() {
         assertNull(registry.Set("number", "not an integer"));
         assertTrue(registry.listByPrefixAndFlags("number", 0).isEmpty());

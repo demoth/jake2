@@ -218,9 +218,35 @@ public class Cvar extends Globals {
         return cvarMap.get(resolveCanonicalName(name));
     }
 
-    /** Quiet namespace probe: absence is expected when registering commands. */
-    boolean isRegistered(String name) {
+    /** Quiet namespace probe for command registration and scoped registry ownership checks. */
+    public boolean isRegistered(String name) {
         return lookup(name) != null;
+    }
+
+    /** Moves an unregistered input to its owning registry, retaining suggested flags for declaration validation. */
+    public void transferEarlyValue(String name, Cvar destination) {
+        if (destination == this || destination.isRegistered(name)) return;
+        EarlyCvarValue input = earlyValues.remove(resolveCanonicalName(name));
+        if (input != null) {
+            // Explicit input already staged in the owning registry takes precedence over process startup input.
+            destination.earlyValues.putIfAbsent(destination.resolveCanonicalName(name), input);
+        }
+    }
+
+    /** Seeds a new game registry with independent inputs; its declarations still own types and flags.
+     * Queued changes take effect in the new instance, without mutating the source instance.
+     */
+    public void copyValuesTo(Cvar destination) {
+        if (destination == this) return;
+        for (cvar_t<?> var : cvarMap.values()) {
+            if (!destination.isRegistered(var.name))
+                destination.earlyValues.putIfAbsent(destination.resolveCanonicalName(var.name),
+                        new EarlyCvarValue(var.latched_string != null ? var.latched_string : var.string, null));
+        }
+        earlyValues.forEach((name, input) -> {
+            if (!destination.isRegistered(name))
+                destination.earlyValues.putIfAbsent(destination.resolveCanonicalName(name), input);
+        });
     }
 
     /** Unknown-type registered lookup. Early inputs are not entries; missing names warn and return null. */
