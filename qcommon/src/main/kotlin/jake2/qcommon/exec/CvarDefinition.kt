@@ -31,8 +31,9 @@ data class CvarSetResult(
     val accepted: Boolean get() = status != Status.REJECTED
 }
 
-/** Resolved mutation payload. Typed slots are populated once, then copied into the existing entry. */
+/** Native value and canonical token prepared together for a validated registry write. */
 internal class CvarValue(val token: String, val value: Any) {
+    // TODO: Remove this conversion together with cvar_t's legacy Float mirror after reader migration.
     val legacyFloat: Float = jake2.qcommon.util.Lib.atof(token)
 
     init {

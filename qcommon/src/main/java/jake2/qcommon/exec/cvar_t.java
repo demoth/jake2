@@ -30,21 +30,26 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * One variable, optionally constrained by a definition. The registry coordinates all API writes.
- * TODO: Encapsulate legacy value fields after the scoped writer migration; direct writes bypass validation and leave typed caches stale.
+ * TODO: Retire public legacy value fields after callers/writers migrate; direct writes bypass validation and leave native state stale.
  */
 public final class cvar_t<T> {
     public String name;
+    // TODO: After legacy field users migrate, derive declared entries' rawString from the native value.
+    // Raw text access stays; unconstrained entries still need text storage. Preserve 0/1 and enum-name tokens.
     public String string;
+    // TODO: Delegate declared entries' description to their spec instead of copying it here;
+    // retain separate metadata only for entries without a definition.
     public String description;
-    // allow changes, but for the next game
-    // see jake2.server.SV_INIT.SV_InitGame()
-    // todo rename to deferred_value
+    // TODO: After legacy latch users migrate, derive rawPendingString from pendingValue;
+    // retain canonical text conversion for console/config, without repeating validation.
     public String latched_string;
     public int flags = 0;
     public boolean modified = false;
+    // TODO: Remove this Float mirror when legacy numeric readers migrate to typedValue.
     public float value = 0.0f;
 
     private CvarSpec<T> definition;
+    // Lasting state: the active native value and an optional queued replacement (existing CVAR_LATCH).
     private T cachedValue, pendingValue;
 
     public @Nullable CvarSpec<T> getDefinition() {
@@ -55,7 +60,7 @@ public final class cvar_t<T> {
         this.definition = definition;
     }
 
-    // todo: will become simply 'value' once value name is freed from the legacy usages
+    // TODO: Rename to value once the legacy Float field is removed.
     /** Returns the native value prepared by registration or the latest accepted write. */
     public @NotNull T getTypedValue() {
         if (cachedValue == null) throw wrongType("a typed value");
@@ -76,7 +81,7 @@ public final class cvar_t<T> {
         return latched_string;
     }
 
-    /** Registry-only commits keep the legacy token/mirror and native cache coherent. */
+    /** Updates active state without changing queued intent; keeps migration-era mirrors coherent. */
     @SuppressWarnings("unchecked")
     void commitActive(CvarValue resolved) {
         string = resolved.getToken();
@@ -84,6 +89,7 @@ public final class cvar_t<T> {
         cachedValue = (T) resolved.getValue();
     }
 
+    /** Updates or clears queued intent without changing the active value; this split remains after migration. */
     @SuppressWarnings("unchecked")
     void commitPending(@Nullable CvarValue resolved) {
         latched_string = resolved == null ? null : resolved.getToken();
@@ -99,7 +105,7 @@ public final class cvar_t<T> {
         return expected.cast(cachedValue);
     }
 
-    // Compatibility readers for consumers still migrating to generic references.
+    // TODO: Remove these compatibility readers (including asEnum) once callers use generic references.
     public boolean asBoolean() { return readAs(Boolean.class); }
     public int asInt() { return readAs(Integer.class); }
     public float asFloat() { return readAs(Float.class); }
