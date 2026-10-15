@@ -294,7 +294,6 @@ public final class Cbuf {
         Cbuf.AddText("bind a +moveleft\n");
         Cbuf.AddText("bind d +moveright\n");
         Cbuf.Execute();
-        Cvar.getInstance().setResult("vid_fullscreen", "0");
         Cbuf.AddText("exec config.cfg\n");
 
         Cbuf.AddEarlySetCommands(args, clear);
