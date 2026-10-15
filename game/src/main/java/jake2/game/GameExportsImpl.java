@@ -1339,11 +1339,17 @@ public class GameExportsImpl implements GameExports {
     private void checkNeedPassCvar() {
         String password = gameCvars.password.getTypedValue();
         String spectatorPassword = gameCvars.spectator_password.getTypedValue();
-        int need = 0;
-        if (!password.isEmpty() && !"none".equalsIgnoreCase(password))
-            need |= 1;
-        if (!spectatorPassword.isEmpty() && !"none".equalsIgnoreCase(spectatorPassword))
-            need |= 2;
+        boolean playerRequired = !password.isEmpty() && !"none".equalsIgnoreCase(password);
+        boolean spectatorRequired = !spectatorPassword.isEmpty() && !"none".equalsIgnoreCase(spectatorPassword);
+        int need;
+        if (playerRequired && spectatorRequired)
+            need = 3;
+        else if (playerRequired)
+            need = 1;
+        else if (spectatorRequired)
+            need = 2;
+        else
+            need = 0;
         gameCvars.needpass.set(need);
     }
 
