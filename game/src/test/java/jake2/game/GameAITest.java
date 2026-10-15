@@ -64,6 +64,31 @@ public class GameAITest {
         assertTrue(PlayerClient.ClientConnect(player, "\\password\\players", gameExports));
     }
 
+    @Test
+    void framesDerivePasswordRequirementsWithoutDependingOnModifiedFlags() {
+        var cvars = gameExports.gameCvars;
+        gameExports.G_RunFrame();
+        assertEquals(0, cvars.needpass.getTypedValue());
+
+        cvars.password.set("players");
+        cvars.password.modified = false;
+        gameExports.G_RunFrame();
+        assertEquals(1, cvars.needpass.getTypedValue());
+
+        cvars.spectator_password.set("spectators");
+        cvars.spectator_password.modified = false;
+        gameExports.G_RunFrame();
+        assertEquals(3, cvars.needpass.getTypedValue());
+
+        cvars.password.set("NoNe");
+        gameExports.G_RunFrame();
+        assertEquals(2, cvars.needpass.getTypedValue());
+
+        cvars.spectator_password.set("");
+        gameExports.G_RunFrame();
+        assertEquals(0, cvars.needpass.getTypedValue());
+    }
+
     private class MockGameImports implements GameImports {
         private final Cvar cvars = new Cvar();
 
