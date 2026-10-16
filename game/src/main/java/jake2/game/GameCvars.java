@@ -42,11 +42,13 @@ public class GameCvars {
         sv_gravity = gameImports.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, "Downward acceleration in game units per second squared; negative reverses gravity");
         maxspectators = gameImports.registerCvar("maxspectators", new CvarTypes.IntegerType(0, Defines.MAX_CLIENTS), 4, Defines.CVAR_SERVERINFO, "Maximum spectators in this game instance");
 
+        // fixed game metadata
+        gameImports.registerCvar("gamename", CvarTypes.STRING, Defines.GAMEVERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET, null);
+        gameImports.registerCvar("gamedate", CvarTypes.STRING, Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET, null);
+
         // latched vars
         deathmatch = gameImports.findCvar("deathmatch", Boolean.class);
         sv_cheats = gameImports.findCvar("cheats", Boolean.class);
-        gameImports.registerCvar("gamename", CvarTypes.STRING, Defines.GAMEVERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, null);
-        gameImports.registerCvar("gamedate", CvarTypes.STRING, Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, null);
         coop = gameImports.findCvar("coop", Boolean.class);
 
         skill = gameImports.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, Defines.CVAR_LATCH, "Difficulty: 0 easy, 1 medium, 2 hard, 3 nightmare");
