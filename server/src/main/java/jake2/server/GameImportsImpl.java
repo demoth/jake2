@@ -86,6 +86,8 @@ public class GameImportsImpl implements GameImports {
     SV_GAME sv_game;
 
     final float[] origin_v = { 0, 0, 0 };
+    private final float configuredAirAcceleration;
+    final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
@@ -137,6 +139,12 @@ public class GameImportsImpl implements GameImports {
         if (changeMapInfo.isLoadgame) {
             SV_Read_Latched_Vars();
         }
+
+        // Snapshot the applied setting for this game; client prediction receives the same value.
+        configuredAirAcceleration = Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue();
+        airAcceleration = Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()
+                ? configuredAirAcceleration : 0f;
+        sv.configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
 
         // clear physics interaction links
         // Q: is it required? the instance was just created
@@ -317,6 +325,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void Pmove(pmove_t pmove) {
+        pmove.airAccelerate = airAcceleration;
         pmoveProcessor.move(pmove);
     }
 
@@ -684,22 +693,29 @@ public class GameImportsImpl implements GameImports {
 
             store.writeMapCommand("current", comment, mapcmd);
 
-            // write all CVAR_LATCH cvars
-            // these will be things like coop, skill, deathmatch, etc
-            List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
-            Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-                if (!localCvars.isRegistered(var.name))
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString()));
-            });
-            localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
-            store.writeLatchedCvars("current", latchedCvars);
+            writeLatchedCvars(store);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         // write game state
         gameExports.WriteGame(EngineWriteRoot.resolve("save/current/game.ssv.json").toString(), autosave);
+    }
+
+    /** Save shared and local latched cvars, with local entries taking precedence. */
+    void writeLatchedCvars(ServerSaveJsonStore store) throws IOException {
+        List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
+        Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
+            if (!localCvars.isRegistered(var.name)) {
+                // Air acceleration is captured per instance; the global value may now belong to another game.
+                String value = var.name.equals("sv_airaccelerate")
+                        ? Float.toString(configuredAirAcceleration) : var.getRawString();
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, value));
+            }
+        });
+        localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
+        store.writeLatchedCvars("current", latchedCvars);
     }
 
     /**

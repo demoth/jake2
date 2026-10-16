@@ -1053,7 +1053,7 @@ public class SV_MAIN implements JakeServer {
         allow_download_maps = cvars.find("allow_download_maps", Boolean.class);
 
         cvars.register("sv_noreload", CvarTypes.BOOLEAN, false, 0, "Start revisited levels fresh instead of restoring their saved state");
-        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Legacy air acceleration setting; currently not connected to movement");
+        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Controls air acceleration (currently only for deathmatch)");
         public_server = cvars.register("public", CvarTypes.BOOLEAN, false, 0, "Legacy master-server advertising switch; currently unused");
         sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE, "Minimum seconds between reconnect attempts from the same remote client");
         resetClients();
@@ -1368,6 +1368,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // create a baseline for more efficient communications
         gameImports.sv_game.SV_CreateBaseline();
 
+
+        // Level restoration may replace configstrings, including saves from before air movement was published.
+        gameImports.sv.configstrings[CS_AIRACCEL] = Float.toString(gameImports.airAcceleration);
 
         // all precaches are complete
         gameImports.sv.state = changeMapInfo.state;
