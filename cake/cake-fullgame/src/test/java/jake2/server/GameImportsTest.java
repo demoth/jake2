@@ -1,22 +1,49 @@
 package jake2.server;
 
-import jake2.game.SubgameEntity;
+import jake2.game.GameEntity;
 import jake2.game.monsters.M_Gunner;
 import jake2.qcommon.GameExports;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.filesystem.FS;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import jake2.qcommon.MainCommon;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
+import jake2.qcommon.vfs.EngineVfs;
+import jake2.qcommon.vfs.EngineWriteRoot;
+import jake2.qcommon.vfs.VfsConfig;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
 public class GameImportsTest {
 
-    @Before
+    @TempDir Path writeRoot;
+    private Path previousWriteRoot;
+    private ServerStates previousServerState;
+
+    @BeforeEach
     public void setup() {
-        Cvar.getInstance().ForceSet("basedir", new File("src/test/resources").getAbsoluteFile().toString());
-        FS.InitFilesystem();
+        previousWriteRoot = EngineWriteRoot.path();
+        previousServerState = Globals.server_state;
+        Globals.server_state = ServerStates.SS_DEAD;
+        Cvar.getInstance().clear();
+        MainCommon.registerCvars(false);
+        EngineVfs.configure(new VfsConfig(new File("src/test/resources").toPath(),
+                "baseq2", null, true, false, false, List.of(), Set.of("pak")));
+        EngineWriteRoot.setRoot(writeRoot);
+    }
+
+    @AfterEach
+    public void cleanup() {
+        Globals.server_state = previousServerState;
+        EngineWriteRoot.setRoot(previousWriteRoot);
+        Cvar.getInstance().clear();
     }
 
     @Test
@@ -25,7 +52,7 @@ public class GameImportsTest {
 
         testInstance.SV_RunGameFrame(100);
 
-        Assert.assertEquals(1, testInstance.sv.framenum);
+        Assertions.assertEquals(1, testInstance.sv.framenum);
     }
 
     @Test
@@ -34,18 +61,18 @@ public class GameImportsTest {
         final SV_MAIN sv_main = new SV_MAIN();
         GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         final GameExports gameExports = game.gameExports;
-        SubgameEntity gunner = null;
-        SubgameEntity soldier = null;
+        GameEntity gunner = null;
+        GameEntity soldier = null;
         for (int i = 1; i < gameExports.getNumEdicts(); i++) {
-            SubgameEntity e = (SubgameEntity) gameExports.getEdict(i);
+            GameEntity e = (GameEntity) gameExports.getEdict(i);
             if ("monster_gunner".equals(e.classname)) {
                 gunner = e;
             } else if ("monster_soldier".equals(e.classname)) {
                 soldier = e;
             }
         }
-        Assert.assertNotNull(gunner);
-        Assert.assertNotNull(soldier);
+        Assertions.assertNotNull(gunner);
+        Assertions.assertNotNull(soldier);
         gunner.enemy = soldier;
         gunner.goalentity = soldier;
         gunner.monsterinfo.currentmove = M_Gunner.gunner_move_run;
@@ -56,6 +83,6 @@ public class GameImportsTest {
                 return;
             }
         }
-        Assert.fail("Soldier was not killed");
+        Assertions.fail("Soldier was not killed");
     }
 }

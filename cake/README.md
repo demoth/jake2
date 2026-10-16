@@ -10,7 +10,24 @@ Main game client logic: rendering, audio, input, HUD, networking integration, an
 
 ### `cake-client`
 
-Desktop platform launcher/wrapper for `core`.
+Remote-only desktop launcher for `core`.
+
+### `cake-fullgame`
+
+Desktop application containing Cake, server, and game modules. Migrated from the
+legacy `fullgame` module, retaining `build.gradle.kts` and the Java entrypoint
+`jake2.fullgame.Jake2` history. Run with `./gradlew :cake:cake-fullgame:run`.
+
+The module currently provides the hosting composition boundary only: its
+`EmbeddedCakeHost` reports `NOT_READY` and rejects start requests. It launches
+the existing Cake client; local server lifecycle, networking and hosting menus
+are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
+
+### `desktop-common`
+
+Shared game window configuration, video platform, JVM restart helper and desktop
+icons. Both game launchers use `CakeDesktopLauncher`; the model viewer shares
+the restart helper and icons while retaining its own window configuration.
 
 ### `cake-modelviewer`
 
@@ -39,11 +56,12 @@ Build portable ZIPs with Java 25:
 
 ```sh
 ./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip
+./gradlew :cake:cake-fullgame:distZip
 ```
 
 Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
 and `lib/` application/dependency JARs. Extract the entire ZIP and run
-`bin/cake-client` or `bin/cake-modelviewer` (the `.bat` script on Windows).
+`bin/cake-client`, `bin/cake-fullgame`, or `bin/cake-modelviewer` (the `.bat` script on Windows).
 Pass an asset path to the model viewer; Quake 2 game data remains external.
 
 For a local installation, use `:cake:cake-client:installDist` or
@@ -84,6 +102,25 @@ These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
 that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
+Fullgame native-image support is not verified; embedded game reflection and save
+serialization need additional reachability coverage before that is supported.
+
+## Hosting boundary
+
+`CakeHost` lives in core and is injected into `Cake` by the launcher. Its request
+captures the profile, map, mode, difficulty, client count and hostname. The host
+owns validation and reports a typed start result and session state. All host
+operations belong to the application thread. `stop` must be idempotent, and pause
+requests must not pause multiplayer. Core has no dependency on server or game.
+
+TSK-16 only installs this boundary; it does not yet call host operations from the
+frame loop. Constructing either current host implementation has no server-side
+effects. Server construction and socket policy belong to the later integration.
+
+The migrated `GameImportsTest` and map fixtures retain the original server/game
+smoke coverage using JUnit 5 and EngineVfs. Legacy renderer debug programs,
+the obsolete `Jake2.Init` example and the standalone buffer-allocation experiment
+were retired with the launcher replacement; their sources remain in Git history.
 
 ## Subsystem Guides
 

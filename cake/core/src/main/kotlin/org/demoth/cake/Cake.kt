@@ -47,6 +47,8 @@ import org.demoth.cake.download.CakeDownloadQueueResult
 import org.demoth.cake.download.CakeDownloadRejectReason
 import org.demoth.cake.download.CakeDownloadTransfer
 import org.demoth.cake.download.CakeDownloadTransferResult
+import org.demoth.cake.hosting.CakeHost
+import org.demoth.cake.hosting.UnavailableCakeHost
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeConsoleHistoryStore
 import org.demoth.cake.profile.CakeGameProfile
@@ -97,6 +99,7 @@ private enum class MenuView {
 class Cake(
     startupContext: CakeStartupContext? = null,
     private val videoPlatform: CakeVideoPlatform? = null,
+    val host: CakeHost = UnavailableCakeHost(),
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
