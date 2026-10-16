@@ -1469,7 +1469,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             fixedtime = 100;
         }
         boolean multiplayer = initializeServerCvars();
-        NET.Config(multiplayer);
+        if (!NET.configureServer(multiplayer)) {
+            Com.Error(ERR_DROP, "Could not open the server UDP port");
+            return;
+        }
         resetClients();
         SV_GameMap_f(args);
     }

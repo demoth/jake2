@@ -65,7 +65,6 @@ class EmbeddedCakeHost(
             cvars.find<Boolean>("paused").forceSet(false)
             // Consumed by the new game instance's existing early-cvar transfer.
             cvars.setResult("skill", request.skill.toString())
-            cvars.find<Boolean>("thinclient").forceSet(false)
             if (!manager.startMap(request.map)) {
                 stop("Map did not start")
                 return HostStartResult.Rejected("Could not start map: ${request.map}")
@@ -120,10 +119,10 @@ class EmbeddedCakeHost(
             } finally {
                 if (ownedSession) {
                     // Shutdown notification is sent before sockets close.
-                    NET.Config(false)
+                    NET.configureServer(false)
+                    NET.clearLoopbacks()
                     Cbuf.ClearDeferred()
                     val cvars = Cvar.getInstance()
-                    if (cvars.isRegistered("thinclient")) cvars.forceSetResult("thinclient", "1")
                     if (cvars.isRegistered("paused")) cvars.forceSetResult("paused", "0")
                 }
                 previousWriteRoot?.let(EngineWriteRoot::setRoot)

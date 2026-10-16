@@ -12,6 +12,9 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.Netchan
+import jake2.qcommon.Defines.NS_SERVER
+import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.messages.ConnectionlessCommand
 import org.demoth.cake.Cake
 import org.demoth.cake.CakeCvars
 import org.demoth.cake.CakeStartupBootstrap
@@ -25,7 +28,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
-/** Exercises the real application loop without displaying a window or attaching a client. */
+/** Exercises application lifecycle and handshake boundaries without displaying a window. */
 @EnabledIfEnvironmentVariable(named = "CAKE_HOST_GL_TESTS", matches = "1")
 class CakeHostApplicationTest {
     @TempDir lateinit var temp: Path
@@ -89,11 +92,19 @@ class CakeHostApplicationTest {
                                 assertEquals(HostState.STOPPED, host.state)
                             }
                             3 -> {
+                                // An old local handshake must not attach while targeting a UDP server.
+                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                cake!!.render()
+                                assertEquals("CONNECTING", clientState(cake!!))
                                 Cbuf.AddText("host_start missing")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
                             }
                             4 -> {
+                                // Nor may it resurrect a disconnected client after rejected startup.
+                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                cake!!.render()
+                                assertEquals("DISCONNECTED", clientState(cake!!))
                                 Cbuf.AddText("host_start testbox")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
@@ -132,4 +143,7 @@ class CakeHostApplicationTest {
     }
 
     private fun gameFrame() = (SV_MAIN.games.getValue("default").gameExports as GameExportsImpl).level.framenum
+    private fun clientState(cake: Cake) = Cake::class.java.getDeclaredField("networkState").apply {
+        isAccessible = true
+    }.get(cake).toString()
 }

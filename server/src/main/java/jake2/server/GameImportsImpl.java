@@ -566,7 +566,7 @@ public class GameImportsImpl implements GameImports {
     */
     private void SV_KillServer_f(List<String> args) {
         serverMain.SV_Shutdown("Server was killed.\n", false);
-        NET.Config(false); // close network sockets
+        NET.configureServer(false); // client transport belongs to its session owner
     }
     //===========================================================
 

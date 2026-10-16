@@ -25,6 +25,7 @@ import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.NET
+import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
@@ -151,7 +152,9 @@ class Cake(
 
     // network
     private var networkState = DISCONNECTED
-    private var servername = "localhost"
+    // Retain the last endpoint for manual reconnect; handshake replies also require CONNECTING.
+    private var connectionTarget: netadr_t? = null
+    private var localConnection = false
     private var challenge = 0
     private var reconnectTimeout = 0f // fire first connect attempt immediately
     private val netchan = netchan_t()
@@ -213,7 +216,6 @@ class Cake(
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
     init {
-        Cbuf.AddText("set thinclient 1")
         Netchan.Netchan_Init()
     }
 
@@ -305,11 +307,15 @@ class Cake(
                 Com.Printf("Sending 'new' to server\n")
                 netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
 
-            } else if (servername.isNotEmpty()) { // todo: check this condition
-                disconnect(stopHost = host.state == HostState.STOPPED)
-                // CheckForResend() will fire immediately
-                reconnectTimeout = 0f
-                networkState = CONNECTING
+            } else {
+                val target = connectionTarget ?: return@AddCommand
+                val local = target.type == NetAddrType.NA_LOOPBACK
+                if (local && host.state != HostState.RUNNING) {
+                    Com.Warn("No local server is running.\n")
+                    return@AddCommand
+                }
+                resetClientConnection()
+                beginConnection(target, local)
             }
 
         }
@@ -320,15 +326,22 @@ class Cake(
                 Com.Printf("usage: connect <server>\n")
                 return@AddCommand
             }
-            Com.Printf("Connecting to $server...\n")
-            // first disconnect
-            disconnect()
-
-            NET.Config(true) // allow remote
-            servername = server
-            networkState = CONNECTING
-            reconnectTimeout = 0f
-            // picked up later in the CheckForResend() // fixme: why not connect immediately?
+            val target = netadr_t.fromString(server, PORT_SERVER)
+            if (target == null) {
+                Com.Warn("Bad server address\n")
+                return@AddCommand
+            }
+            if (target.type == NetAddrType.NA_LOOPBACK) {
+                if (host.state != HostState.RUNNING) {
+                    Com.Warn("No local server is running. Use host_start or connect to a UDP address.\n")
+                    return@AddCommand
+                }
+                resetClientConnection()
+                beginConnection(target, local = true)
+            } else {
+                disconnect()
+                beginConnection(target, local = false)
+            }
         }
 
         /*
@@ -342,9 +355,6 @@ class Cake(
                 Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
                 return@AddCommand
             }
-
-            // allow remote
-            NET.Config(true)
 
             // assemble password and arguments into a string and send
             val message = buildString {
@@ -370,6 +380,10 @@ class Cake(
                 }
             }
 
+            if (to.type != NetAddrType.NA_LOOPBACK && !NET.configureClient(true)) {
+                Com.Warn("Could not open the client UDP socket\n")
+                return@AddCommand
+            }
             Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
         }
 
@@ -390,11 +404,7 @@ class Cake(
                 Com.Warn("Hosting is unavailable in this application.\n")
                 return@AddCommand
             }
-            disconnect()
-            when (val result = host.start(request)) {
-                HostStartResult.Started -> Com.Printf("Local server started: ${request.map}\n")
-                is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
-            }
+            startHostedGame(request)
         }
         Cmd.AddCommand("host_stop", "Stop the local game and disconnect") { disconnect() }
         Cmd.AddCommand("loading", "(internal) Prepare local map-change presentation") {
@@ -484,25 +494,56 @@ class Cake(
 
     }
 
-    private fun disconnect(stopHost: Boolean = true) {
-        if (stopHost) host.stop("Disconnected")
+    /** Shared entrypoint for the console and future hosting menus. */
+    private fun startHostedGame(request: HostRequest) {
+        disconnect()
+        when (val result = host.start(request)) {
+            HostStartResult.Started -> {
+                Com.Printf("Local server started: ${request.map}\n")
+                beginConnection(netadr_t(), local = true)
+            }
+            is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
+        }
+    }
+
+    private fun beginConnection(target: netadr_t, local: Boolean) {
+        if (!local && !NET.configureClient(true)) {
+            Com.Warn("Could not open the client UDP socket\n")
+            return
+        }
+        if (local) NET.configureClient(false)
+        Com.Printf("Connecting to ${if (local) "local server" else target}...\n")
+        connectionTarget = target
+        localConnection = local
+        challenge = 0
+        reconnectTimeout = 0f
+        networkState = CONNECTING
+    }
+
+    /** End the complete session. Map transitions use client reset/handshake paths instead. */
+    private fun disconnect() {
+        resetClientConnection()
+        host.stop("Disconnected")
         hostClock.reset()
+        NET.configureClient(false)
+        NET.clearLoopbacks()
+    }
+
+    /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
+    private fun resetClientConnection() {
         Com.Printf("Disconnecting from server...\n")
-        // todo: clear the game state and release resources
+        if (networkState == CONNECTED || networkState == ACTIVE) {
+            transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+        }
         game3dScreen?.stopAudio()
         disposeGame3dScreen()
         releaseDeferredConfigUnload()
         clearTransitionBackdrop()
-
-        // send a disconnect message to the server
-        if (networkState != DISCONNECTED) {
-            transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
-        }
-
-        // A reconnect/map transition must retain the owned server's sockets.
-        if (stopHost) NET.Config(false)
+        netchan.clear()
         networkState = DISCONNECTED
+        localConnection = false
         challenge = 0
+        reconnectTimeout = 0f
         clientCommandExtraMs = 0f
         resetDownloadState()
     }
@@ -728,6 +769,10 @@ class Cake(
             host.setPaused(menuVisible || consoleVisible || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
+            if (localConnection && host.state == HostState.STOPPED) {
+                dropToConsole()
+                return
+            }
             game3dScreen?.updateLocalInput(deltaSeconds)
             runClientCommandSteps(deltaSeconds)
             CheckForResend(deltaSeconds)
@@ -1165,16 +1210,14 @@ class Cake(
         if (networkState != CONNECTING)
             return
 
-        val adr = netadr_t.fromString(servername, PORT_SERVER)
-        if (adr == null) {
-            Com.Warn("Bad server address\n")
-            networkState = DISCONNECTED
-            reconnectTimeout = 0f
-            return
-        }
+        val adr = connectionTarget ?: return
         if (reconnectTimeout <= 0f) {
-            Com.Printf("${"CheckForResend ${networkState}: Connecting to $servername"}...\n")
-            Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+            if (localConnection) {
+                // The server already trusts in-process loopback; use its normal connect path.
+                SendConnectPacket()
+            } else {
+                Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+            }
             reconnectTimeout = CONNECT_RETRY_TIMEOUT_SECONDS
         } else {
             reconnectTimeout -= deltaSeconds
@@ -1183,13 +1226,7 @@ class Cake(
 
     @Suppress("DEPRECATION")
     private fun SendConnectPacket() {
-        val adr = netadr_t.fromString(servername, PORT_SERVER)
-        if (adr == null) {
-            Com.Warn("Bad server address\n")
-            networkState = DISCONNECTED
-            reconnectTimeout = 0f
-            return
-        }
+        val adr = connectionTarget ?: return
 
         val port = Cvar.getInstance().find<Int>("qport").typedValue
         Globals.userinfo_modified = false
@@ -1225,7 +1262,8 @@ class Cake(
             //
             // packet from server
             //
-            if (!networkPacket.from.compareIp(netchan.remote_address)) {
+            if (networkPacket.from.type != netchan.remote_address.type ||
+                !networkPacket.from.compareIp(netchan.remote_address)) {
                 Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
                 continue
             }
@@ -1458,29 +1496,24 @@ class Cake(
 
     private fun CL_ConnectionlessPacket(packet: NetworkPacket) {
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
-        val c = args[0]
+        val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
+        if (cmd == ConnectionlessCommand.challenge || cmd == ConnectionlessCommand.client_connect) {
+            val target = connectionTarget ?: return
+            if (networkState != CONNECTING || packet.from.type != target.type || !packet.from.compareIp(target)) return
+        }
 
         when (cmd) {
             ConnectionlessCommand.challenge -> {
-                challenge = args[1].toInt()
+                challenge = args.getOrNull(1)?.toIntOrNull() ?: return
                 SendConnectPacket()
             }
 
             ConnectionlessCommand.client_connect -> {
-                if (networkState == CONNECTED) {
-                    Com.Warn("Dup connect received.  Ignored.\n")
-
-                } else {
-                    networkState = CONNECTED // Defines.ca_connected
-                    netchan.setup(
-                        NS_CLIENT,
-                        packet.from,
-                        packet.qport
-                    ) // fixme: port isn't needed? should it be Netchan.qport?
-                    netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
-                    Com.Println("Connected!")
-                }
+                networkState = CONNECTED
+                netchan.setup(NS_CLIENT, packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
+                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+                Com.Println("Connected!")
             }
 
             ConnectionlessCommand.print -> {

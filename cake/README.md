@@ -19,8 +19,8 @@ legacy `fullgame` module, retaining `build.gradle.kts` and the Java entrypoint
 `jake2.fullgame.Jake2` history. Run with `./gradlew :cake:cake-fullgame:run`.
 
 `EmbeddedCakeHost` owns an embedded server, started after the client applies its
-selected profile. The console can start and stop sessions; local client attachment
-and hosting menus are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
+selected profile. Console hosting automatically attaches the local player through
+loopback; hosting menus are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
 
 ### `desktop-common`
 
@@ -118,8 +118,20 @@ the server using the active profile. Defaults are singleplayer, skill 1 and
 1/8/4 clients for singleplayer/deathmatch/coop. Existing server rules normalize
 client counts. Map names omit `maps/` and `.bsp`, e.g. `host_start base1`.
 `host_stop`, disconnect, remote join and application exit stop the session.
-Profile changes are blocked until the session stops. Automatic local attachment
-is not implemented yet (TSK-18), so starting a server does not enter gameplay.
+Profile changes are blocked until the session stops. Successful startup attaches
+the local client through the normal connection/precache/spawn protocol.
+Use `map <map>` or `gamemap <map>` during hosting to change levels, or `reconnect`
+to reattach. `connect localhost`/`connect loopback` attach to an already running
+host; use `127.0.0.1:<port>` to join a separate server process on the same machine.
+
+Singleplayer uses only in-process loopback and opens no UDP sockets. Hosted coop
+and deathmatch open the server UDP socket while the local player still uses
+loopback. Remote joining opens only the client UDP socket and stops any owned
+host first. Client reset never closes the server socket; whole-session teardown
+clears stale loopback packets and netchan state. Handshake replies must match the
+current connection attempt. The protected startup `port` setting remains the
+server port source; this step adds no per-session port option. Bind failures
+reject hosting and release partially opened channels so a retry is possible.
 
 The server reads the selected profile's base game and optional mod through
 EngineVfs. Saves use `~/.cake/<profileId>/save/`; stopping restores the previous
@@ -138,12 +150,21 @@ Menus, the console and application pause requests pause singleplayer simulation.
 Multiplayer continues running. Desktop focus loss/minimization does not suspend
 the application loop, and server updates precede any zero-size framebuffer return.
 Shutdown releases owned operator commands, clears deferred map commands and closes
-sockets; recoverable server drops return to the console. Network ownership during
-local attachment and transitions is completed in TSK-18.
+sockets; recoverable server drops return to the console. Map transitions preserve
+the host, server socket and reconnect traffic.
 
 Hosting lifecycle tests use the retained test maps without external game data.
 The optional application-loop check uses an invisible GL window and a temporary
 profile: `CAKE_HOST_GL_TESTS=1 ./gradlew :cake:cake-fullgame:test --tests '*CakeHostApplicationTest'`.
+
+The optional gameplay check requires an installed Quake 2 base game and uses
+temporary profiles/saves with hidden windows. It checks local spawn/movement,
+map transitions, restarts, a separate thin-client process joining hosted coop and
+deathmatch, and switching from hosting to a separate UDP server:
+
+```sh
+CAKE_HOST_GAME_TESTS=1 CAKE_TEST_BASEDIR=/path/to/Quake2 ./gradlew :cake:cake-fullgame:test --tests '*CakeLocalSessionGlTest'
+```
 
 The migrated `GameImportsTest` and map fixtures retain the original server/game
 smoke coverage using JUnit 5 and EngineVfs. Legacy renderer debug programs,

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
+import java.net.DatagramSocket
 
 class EmbeddedCakeHostTest {
     @TempDir lateinit var temp: Path
@@ -133,6 +134,21 @@ class EmbeddedCakeHostTest {
             host.stop("next mode")
             assertTrue(NET.ip_sockets.all { it == null })
         }
+    }
+
+    @Test
+    fun `occupied multiplayer port rejects and can be retried without stale channels`() {
+        DatagramSocket(0).use { occupied ->
+            cvars.find<Int>("port").forceSet(occupied.localPort)
+            assertInstanceOf(HostStartResult.Rejected::class.java, host.start(request(HostMode.COOP)))
+            assertEquals(HostState.STOPPED, host.state)
+            assertTrue(NET.ip_sockets.all { it == null })
+            assertTrue(NET.ip_channels.all { it == null })
+            assertNull(Cmd.FindCommand("map"))
+        }
+        assertEquals(HostStartResult.Started, host.start(request(HostMode.COOP)))
+        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(NET.ip_sockets[Defines.NS_CLIENT])
     }
 
     @Test
