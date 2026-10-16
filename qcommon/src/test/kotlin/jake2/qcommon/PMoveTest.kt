@@ -183,23 +183,32 @@ class PMoveTest {
 
     @Test
     fun `airmove uses airaccelerate when enabled`() {
-        val previousAirAccel = PMove.pm_airaccelerate
-        try {
-            PMove.pm_airaccelerate = 1f // force PM_AirMove -> PM_AirAccelerate branch
+        val pm = defaultPmove(Defines.PM_NORMAL)
+        pm.airAccelerate = 1f
+        pm.cmd.forwardmove = 300
+        pm.cmd.msec = 200.toByte()
 
+        PMove.Pmove(pm)
+
+        // Alternate air movement caps wishspd to 30: 240 in protocol 1/8 units.
+        assertEquals(240, pm.s.velocity[0].toInt())
+        assertTrue(pm.groundentity == null)
+    }
+
+    @Test
+    fun `air movement parameters remain independent when simulations are interleaved`() {
+        fun run(air: Float): Int {
             val pm = defaultPmove(Defines.PM_NORMAL)
+            pm.airAccelerate = air
             pm.cmd.forwardmove = 300
-            pm.cmd.msec = 100.toByte() // 100ms frametime
-
+            pm.cmd.msec = 200.toByte()
             PMove.Pmove(pm)
-
-            // PM_AirAccelerate caps wishspd to 30, so x-velocity increase is 30 u/s -> 240 in 1/8 units.
-            // If PM_Accelerate branch ran instead, this would be much larger (about 2400 here).
-            assertEquals(240, pm.s.velocity[0].toInt())
-            assertTrue(pm.groundentity == null)
-        } finally {
-            PMove.pm_airaccelerate = previousAirAccel
+            return pm.s.velocity[0].toInt()
         }
+        assertEquals(240, run(1f))
+        assertEquals(480, run(0f))
+        assertEquals(240, run(7f))
+        assertEquals(480, run(0f))
     }
 
     @Test

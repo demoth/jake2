@@ -144,7 +144,7 @@ class ClientPrediction(
             s.set(currentFrame.playerstate.pmove)
         }
 
-        PMove.pm_airaccelerate = gameConfig.getConfigValue(Defines.CS_AIRACCEL)?.toFloatOrNull() ?: 0f
+        pm.airAccelerate = gameConfig.getConfigValue(Defines.CS_AIRACCEL)?.toFloatOrNull() ?: 0f
 
         var ack = incomingAcknowledged
         // Key behavior: replay exactly the unacknowledged command range (ack+1 .. outgoing-1).
