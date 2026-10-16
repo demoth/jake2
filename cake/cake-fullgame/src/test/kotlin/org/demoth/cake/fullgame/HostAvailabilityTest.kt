@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test
 
 class HostAvailabilityTest {
     @Test
-    fun `unavailable hosts reject all modes without bootstrapping server state`() {
+    fun `host construction and invalid starts do not bootstrap server state`() {
         val cvars = Cvar.getInstance()
         val mapCommand = Cmd.FindCommand("map")
         val maxclients = cvars.find("maxclients")
         val hosts = listOf(UnavailableCakeHost(), EmbeddedCakeHost())
-        assertEquals(listOf(HostAvailability.REMOTE_ONLY, HostAvailability.NOT_READY), hosts.map { it.availability })
+        assertEquals(listOf(HostAvailability.REMOTE_ONLY, HostAvailability.AVAILABLE), hosts.map { it.availability })
         for (host in hosts) {
             for (mode in HostMode.entries) {
                 val result = host.start(HostRequest(CakeGameProfile("test", "/missing"), "base1", mode))

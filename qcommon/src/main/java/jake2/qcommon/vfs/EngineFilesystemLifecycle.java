@@ -112,6 +112,17 @@ public final class EngineFilesystemLifecycle {
         }
     }
 
+    /**
+     * React to the game cvar only when this lifecycle bootstrapped the filesystem.
+     * Profile-driven applications configure EngineVfs and the write root themselves;
+     * publishing their mod metadata must not run legacy restarts or autoexec scripts.
+     */
+    public static void onGameCvarChanged(String gameName) {
+        if (baseDir == null) return;
+        setGameDir(gameName);
+        execAutoexec();
+    }
+
     public static void setGameDir(String gameName) {
         if (gameName.contains("..") || gameName.contains("/") || gameName.contains("\\") || gameName.contains(":")) {
             Com.Printf("Gamedir should be a single filename, not a path\n");

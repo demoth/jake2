@@ -35,6 +35,9 @@ sealed interface HostStartResult {
     data class Rejected(val reason: String) : HostStartResult
 }
 
+/** A recoverable server drop; programming errors retain their original exception type. */
+class HostFailureException(message: String, cause: Throwable) : RuntimeException(message, cause)
+
 /** Remote-only builds can accept the same application wiring without server side effects. */
 class UnavailableCakeHost : CakeHost {
     override val availability = HostAvailability.REMOTE_ONLY

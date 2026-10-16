@@ -25,6 +25,7 @@ public class GameImportsTest {
 
     @TempDir Path writeRoot;
     private Path previousWriteRoot;
+    private SV_MAIN manager;
     private ServerStates previousServerState;
 
     @BeforeEach
@@ -41,6 +42,7 @@ public class GameImportsTest {
 
     @AfterEach
     public void cleanup() {
+        if (manager != null) manager.close();
         Globals.server_state = previousServerState;
         EngineWriteRoot.setRoot(previousWriteRoot);
         Cvar.getInstance().clear();
@@ -48,7 +50,8 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        manager = new SV_MAIN();
+        GameImportsImpl testInstance = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
 
         testInstance.SV_RunGameFrame(100);
 
@@ -58,7 +61,7 @@ public class GameImportsTest {
     @Test
     public void runGame() {
 
-        final SV_MAIN sv_main = new SV_MAIN();
+        final SV_MAIN sv_main = manager = new SV_MAIN();
         GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         final GameExports gameExports = game.gameExports;
         GameEntity gunner = null;

@@ -47,8 +47,7 @@ import org.demoth.cake.download.CakeDownloadQueueResult
 import org.demoth.cake.download.CakeDownloadRejectReason
 import org.demoth.cake.download.CakeDownloadTransfer
 import org.demoth.cake.download.CakeDownloadTransferResult
-import org.demoth.cake.hosting.CakeHost
-import org.demoth.cake.hosting.UnavailableCakeHost
+import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeConsoleHistoryStore
 import org.demoth.cake.profile.CakeGameProfile
@@ -132,6 +131,9 @@ class Cake(
     private var transitionBackdropTexture: Texture? = null
     private var transitionBackdropRegion: TextureRegion? = null
     private var transitionBackdropActive = false
+
+    private val hostClock = HostFrameClock()
+    private var applicationPaused = false
 
     // whenever these are changed, input handlers should be updated
     private var consoleVisible = false
@@ -304,7 +306,7 @@ class Cake(
                 netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
 
             } else if (servername.isNotEmpty()) { // todo: check this condition
-                disconnect()
+                disconnect(stopHost = host.state == HostState.STOPPED)
                 // CheckForResend() will fire immediately
                 reconnectTimeout = 0f
                 networkState = CONNECTING
@@ -371,7 +373,35 @@ class Cake(
             Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
         }
 
-        Cmd.AddCommand("disconnect", "Disconnect from the current server") { disconnect() }
+        Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
+
+        Cmd.AddCommand("host_start", "Start a local server: host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]") { args ->
+            val profile = activeGameProfile
+            if (profile == null) {
+                Com.Warn("Select a game profile before hosting.\n")
+                return@AddCommand
+            }
+            val request = parseHostRequest(args, profile)
+            if (request == null) {
+                Com.Printf("usage: host_start <map> [singleplayer|deathmatch|coop] [skill 0..3] [maxclients]\n")
+                return@AddCommand
+            }
+            if (host.availability != HostAvailability.AVAILABLE) {
+                Com.Warn("Hosting is unavailable in this application.\n")
+                return@AddCommand
+            }
+            disconnect()
+            when (val result = host.start(request)) {
+                HostStartResult.Started -> Com.Printf("Local server started: ${request.map}\n")
+                is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
+            }
+        }
+        Cmd.AddCommand("host_stop", "Stop the local game and disconnect") { disconnect() }
+        Cmd.AddCommand("loading", "(internal) Prepare local map-change presentation") {
+            if (host.state != HostState.STOPPED && game3dScreen != null) {
+                beginMapTransitionRetainingConfigAssets()
+            }
+        }
 
         Cmd.AddCommand("userinfo", "Print the current userinfo string") {
             val userInfo = Cvar.getInstance().Userinfo()
@@ -454,7 +484,9 @@ class Cake(
 
     }
 
-    private fun disconnect() {
+    private fun disconnect(stopHost: Boolean = true) {
+        if (stopHost) host.stop("Disconnected")
+        hostClock.reset()
         Com.Printf("Disconnecting from server...\n")
         // todo: clear the game state and release resources
         game3dScreen?.stopAudio()
@@ -463,10 +495,12 @@ class Cake(
         clearTransitionBackdrop()
 
         // send a disconnect message to the server
-        transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+        if (networkState != DISCONNECTED) {
+            transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
+        }
 
-        // reset network state
-        NET.Config(false)
+        // A reconnect/map transition must retain the owned server's sockets.
+        if (stopHost) NET.Config(false)
         networkState = DISCONNECTED
         challenge = 0
         clientCommandExtraMs = 0f
@@ -689,6 +723,11 @@ class Cake(
             // then react in the same frame by sending reliable/new packets or a reconnect challenge.
             CL_ReadPackets()
             Cbuf.Execute()
+            // Commands may have started/stopped a map. Tick once on this thread before sending
+            // new client input; the next frame reads server replies (no second command pump).
+            host.setPaused(menuVisible || consoleVisible || applicationPaused)
+            host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
+                Globals.fixedtime.typedValue, Globals.timescale.typedValue))
             game3dScreen?.updateLocalInput(deltaSeconds)
             runClientCommandSteps(deltaSeconds)
             CheckForResend(deltaSeconds)
@@ -776,6 +815,12 @@ class Cake(
                 }
             }
         } catch (error: RuntimeException) {
+            if (error is HostFailureException ||
+                (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
+                Com.Warn("Local server stopped: ${error.message}\n")
+                dropToConsole()
+                return
+            }
             val missingResource = findMissingResourceFailure(error)
             if (missingResource != null) {
                 handleMissingResourceFailure(missingResource)
@@ -932,8 +977,19 @@ class Cake(
         }
     }
 
-    // fixme is it called from somewhere?
+    override fun pause() {
+        applicationPaused = true
+        host.setPaused(true)
+    }
+
+    override fun resume() {
+        applicationPaused = false
+        hostClock.reset()
+        host.setPaused(menuVisible || consoleVisible)
+    }
+
     override fun dispose() {
+        disconnect()
         saveActiveProfileConfig()
         menuStage.dispose()
         profileEditStage.dispose()
@@ -1665,7 +1721,7 @@ class Cake(
         emptyList()
     }
 
-    private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED
+    private fun isProfileSwitchAllowed(): Boolean = networkState == DISCONNECTED && host.state == HostState.STOPPED
 
     private fun createNewProfileDraft(): CakeGameProfile {
         val base = activeGameProfile?.basedir ?: autodetectSteamBasedir().orEmpty()
@@ -1718,7 +1774,7 @@ class Cake(
     // when switching profiles, we expect no active game, therefore, no loaded game resources
     private fun applySelectedProfileForMenu(profileId: String): String {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching is only allowed while disconnected.\n")
+            Com.Warn("Profile switching requires disconnecting and stopping the local server.\n")
             return "Disconnect first to switch profiles"
         }
         val selected = try {
@@ -1773,7 +1829,7 @@ class Cake(
 
     private fun setActiveGameProfile(args: List<String>) {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching is only allowed while disconnected.\n")
+            Com.Warn("Profile switching requires disconnecting and stopping the local server.\n")
             return
         }
         if (args.size < 3) {
@@ -1800,7 +1856,7 @@ class Cake(
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
         override fun activeProfileId(): String = this@Cake.activeProfileId()
 
-        override fun canDisconnect(): Boolean = networkState != DISCONNECTED
+        override fun canDisconnect(): Boolean = networkState != DISCONNECTED || host.state != HostState.STOPPED
 
         override fun disconnect() {
             this@Cake.disconnect()

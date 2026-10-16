@@ -18,10 +18,9 @@ Desktop application containing Cake, server, and game modules. Migrated from the
 legacy `fullgame` module, retaining `build.gradle.kts` and the Java entrypoint
 `jake2.fullgame.Jake2` history. Run with `./gradlew :cake:cake-fullgame:run`.
 
-The module currently provides the hosting composition boundary only: its
-`EmbeddedCakeHost` reports `NOT_READY` and rejects start requests. It launches
-the existing Cake client; local server lifecycle, networking and hosting menus
-are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
+`EmbeddedCakeHost` owns an embedded server, started after the client applies its
+selected profile. The console can start and stop sessions; local client attachment
+and hosting menus are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
 
 ### `desktop-common`
 
@@ -113,9 +112,38 @@ owns validation and reports a typed start result and session state. All host
 operations belong to the application thread. `stop` must be idempotent, and pause
 requests must not pause multiplayer. Core has no dependency on server or game.
 
-TSK-16 only installs this boundary; it does not yet call host operations from the
-frame loop. Constructing either current host implementation has no server-side
-effects. Server construction and socket policy belong to the later integration.
+Constructing either host implementation has no server-side effects. In fullgame,
+`host_start <map> [singleplayer|deathmatch|coop] [skill 0..3] [maxclients]` starts
+the server using the active profile. Defaults are singleplayer, skill 1 and
+1/8/4 clients for singleplayer/deathmatch/coop. Existing server rules normalize
+client counts. Map names omit `maps/` and `.bsp`, e.g. `host_start base1`.
+`host_stop`, disconnect, remote join and application exit stop the session.
+Profile changes are blocked until the session stops. Automatic local attachment
+is not implemented yet (TSK-18), so starting a server does not enter gameplay.
+
+The server reads the selected profile's base game and optional mod through
+EngineVfs. Saves use `~/.cake/<profileId>/save/`; stopping restores the previous
+engine write root. The existing map initialization path applies game mode and
+difficulty and creates autosaves. It also applies pending global cvars, including
+video settings; isolating video settings is explicitly deferred as low priority.
+
+Each application frame reads client packets, executes the shared command buffer,
+updates the server, then sends client input. Server replies are read on the next
+frame. There is no second command loop or server thread. Fractional milliseconds
+are retained, `fixedtime` overrides `timescale`, and elapsed simulation time is
+capped at 100 ms per frame without retaining stall debt. The server retains its
+existing 100 ms simulation scheduler.
+
+Menus, the console and application pause requests pause singleplayer simulation.
+Multiplayer continues running. Desktop focus loss/minimization does not suspend
+the application loop, and server updates precede any zero-size framebuffer return.
+Shutdown releases owned operator commands, clears deferred map commands and closes
+sockets; recoverable server drops return to the console. Network ownership during
+local attachment and transitions is completed in TSK-18.
+
+Hosting lifecycle tests use the retained test maps without external game data.
+The optional application-loop check uses an invisible GL window and a temporary
+profile: `CAKE_HOST_GL_TESTS=1 ./gradlew :cake:cake-fullgame:test --tests '*CakeHostApplicationTest'`.
 
 The migrated `GameImportsTest` and map fixtures retain the original server/game
 smoke coverage using JUnit 5 and EngineVfs. Legacy renderer debug programs,

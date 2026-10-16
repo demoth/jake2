@@ -148,8 +148,7 @@ public final class cvar_t<T> {
             if ((flags & CVAR_USERINFO) != 0) Globals.userinfo_modified = true;
         }
         if (valueChanged && name.equals("game")) {
-            EngineFilesystemLifecycle.setGameDir(token);
-            EngineFilesystemLifecycle.execAutoexec();
+            EngineFilesystemLifecycle.onGameCvarChanged(token);
         }
         return new CvarSetResult(valueChanged || hadPending ? CvarSetResult.Status.APPLIED : CvarSetResult.Status.UNCHANGED, null);
     }

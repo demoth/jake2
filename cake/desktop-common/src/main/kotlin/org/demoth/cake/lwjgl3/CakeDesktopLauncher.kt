@@ -54,6 +54,10 @@ object CakeDesktopLauncher {
             useVsync(videoMode.vsync)
             setForegroundFPS(displayMode.refreshRate)
             setResizable(true)
+            // The same thread drives a listen server even when its window is minimized/unfocused.
+            setPauseWhenMinimized(false)
+            setPauseWhenLostFocus(false)
+            setIdleFPS(60)
             setHdpiMode(videoMode.hdpiMode)
             if (videoMode.fullscreen) {
                 setFullscreenMode(displayMode)

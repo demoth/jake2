@@ -284,6 +284,11 @@ public final class Cbuf {
         deferredBuffer.clear();
     }
 
+    /** Abandon commands waiting for a local game that has been stopped or failed to start. */
+    public static void ClearDeferred() {
+        deferredBuffer.clear();
+    }
+
     public static void reconfigure(List<String> args, boolean clear) {
         String dir = Cvar.getInstance().find("cddir", String.class).getTypedValue();
         Cbuf.AddText("exec default.cfg\n");
