@@ -51,6 +51,42 @@ class EmbeddedCakeHostTest {
     private fun game() = SV_MAIN.games.getValue("default").gameExports as GameExportsImpl
 
     @Test
+    fun `missing selected mod cannot silently fall back to base content`() {
+        val result = host.start(request().copy(profile = profile.copy(gamemod = "missing-mod")))
+        assertInstanceOf(HostStartResult.Rejected::class.java, result)
+        assertEquals(HostState.STOPPED, host.state)
+        assertEquals(previousRoot, EngineWriteRoot.path())
+        assertNull(Cmd.FindCommand("map"))
+        assertEquals(HostStartResult.Started, host.start(request()))
+    }
+
+    @Test
+    fun `invalid slots leave existing saves untouched and copying a slot to itself is harmless`() {
+        assertEquals(HostStartResult.Started, host.start(request()))
+        val current = temp.resolve("session/save/current/server_mapcmd.ssv.json")
+        val snapshot = Files.readString(current)
+        val sentinel = temp.resolve("sentinel/server_mapcmd.ssv.json")
+        Files.createDirectories(sentinel.parent)
+        Files.writeString(sentinel, "outside profile")
+        for (slot in listOf("../../sentinel", ".", "..", "nested/slot", "nested\\slot", "C:slot", "")) {
+            // Invalid names must be rejected before the not-yet-spawned player check or any writes.
+            Cmd.ExecuteString("save \"$slot\"")
+            Cmd.ExecuteString("load \"$slot\"")
+            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame("current", slot) }
+            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame(slot, "current") }
+            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_WipeSavegame(slot) }
+            assertEquals(snapshot, Files.readString(current))
+            assertEquals("outside profile", Files.readString(sentinel))
+        }
+        SV_CCMDS.SV_CopySaveGame("current", "current")
+        Cmd.ExecuteString("load current")
+        Cmd.ExecuteString("save current")
+        Cmd.ExecuteString("save before-spawn")
+        assertFalse(Files.exists(temp.resolve("session/save/before-spawn")))
+        assertEquals(snapshot, Files.readString(current))
+    }
+
+    @Test
     fun `start uses profile files and saves and stop unregisters the session`() {
         assertEquals(HostState.STOPPED, host.state)
         assertEquals(HostStartResult.Started, host.start(request(skill = 2)))

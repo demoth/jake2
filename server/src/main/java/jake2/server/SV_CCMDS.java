@@ -28,6 +28,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.server.save.ServerLevelJsonStore;
+import jake2.server.save.ServerSaveJsonStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,7 @@ public class SV_CCMDS {
 	
 	/** Delete save files save/(number)/.  */
 	static void SV_WipeSavegame(String savename) {
+        savename = ServerSaveJsonStore.normalizeSlot(savename);
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
@@ -157,6 +159,10 @@ public class SV_CCMDS {
 	================
 	*/
 	static void SV_CopySaveGame(String src, String dst) {
+        src = ServerSaveJsonStore.normalizeSlot(src);
+        dst = ServerSaveJsonStore.normalizeSlot(dst);
+        // Never wipe the source when asked to copy a slot onto itself.
+        if (src.equals(dst)) return;
 
 		Com.DPrintf("SV_CopySaveGame(" + src + "," + dst + ")\n");
 

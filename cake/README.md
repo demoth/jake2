@@ -135,7 +135,18 @@ reject hosting and release partially opened channels so a retry is possible.
 
 The server reads the selected profile's base game and optional mod through
 EngineVfs. Saves use `~/.cake/<profileId>/save/`; stopping restores the previous
-engine write root. The existing map initialization path applies game mode and
+engine write root. A selected mod directory must exist; missing mods cannot silently
+fall back to the base game. Both resolvers select the profile's mod, while client
+resolver changes remain independent of the hosted EngineVfs.
+
+With a host running and the player spawned, `save <slot>` and `load <slot>` use
+that profile's save directory. Slot names must be single directory names (no
+path separators, traversal, colon, or control characters); `current` is reserved
+for the engine. Different profiles may reuse the same slot name independently.
+Stop/disconnect before switching profiles. Loading a save without first starting
+a host is deferred.
+
+The existing map initialization path applies game mode and
 difficulty and creates autosaves. It also applies pending global cvars, including
 video settings; isolating video settings is explicitly deferred as low priority.
 
@@ -164,6 +175,14 @@ deathmatch, and switching from hosting to a separate UDP server:
 
 ```sh
 CAKE_HOST_GAME_TESTS=1 CAKE_TEST_BASEDIR=/path/to/Quake2 ./gradlew :cake:cake-fullgame:test --tests '*CakeLocalSessionGlTest'
+```
+
+A separate check verifies a mod-only map on both client and server, player-health
+restoration through console save/load, and reuse of the same slot under two
+profiles. It uses a temporary content directory referencing installed base assets:
+
+```sh
+CAKE_HOST_GAME_TESTS=1 CAKE_TEST_BASEDIR=/path/to/Quake2 ./gradlew :cake:cake-fullgame:test --tests '*CakeProfileSaveGlTest'
 ```
 
 The migrated `GameImportsTest` and map fixtures retain the original server/game

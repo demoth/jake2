@@ -377,20 +377,28 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        String saveGame = args.get(1);
+        String saveGame;
+        try {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1));
+        } catch (IllegalArgumentException e) {
+            Com.Printf("Bad save name.\n");
+            return;
+        }
         if ("current".equals(saveGame)) {
             Com.Printf("Can't save to 'current'\n");
             return;
         }
 
-        // fixme: quite hacky way to get a player
-        if (serverMain.getClients().size() == 1 && serverMain.getClients().get(0).edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
-            Com.Printf("\nCan't savegame while dead!\n");
-            return;
-        }
-
-        if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
-            Com.Printf("Bad save name.\n");
+        if (serverMain.getClients().size() == 1) {
+            ClientNetworkInfo client = serverMain.getClients().get(0);
+            if (client.state != ClientStates.CS_SPAWNED || client.edict == null) {
+                Com.Printf("Can't savegame before the player has spawned.\n");
+                return;
+            }
+            if (client.edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+                Com.Printf("\nCan't savegame while dead!\n");
+                return;
+            }
         }
 
         Com.Printf("Saving game...\n");

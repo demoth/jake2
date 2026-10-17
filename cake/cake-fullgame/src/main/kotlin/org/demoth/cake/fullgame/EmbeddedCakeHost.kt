@@ -169,6 +169,9 @@ class EmbeddedCakeHost(
             "Profile game directory does not exist"
         }
         require(profile.gamemod?.let(::safeDirectory) != false) { "Invalid mod directory" }
+        require(profile.gamemod == null || Files.isDirectory(Path.of(profile.basedir).resolve(profile.gamemod))) {
+            "Profile mod directory does not exist: ${profile.gamemod}"
+        }
         require(request.map.matches(Regex("[A-Za-z0-9_/-]+")) && !request.map.startsWith('/')) {
             "Map must be a relative map name without an extension"
         }

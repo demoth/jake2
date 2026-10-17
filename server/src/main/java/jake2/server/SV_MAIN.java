@@ -1175,9 +1175,15 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
         Com.Printf("Loading game...\n");
 
-        String saveGame = args.get(1);
-        if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
+        String saveGame;
+        try {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1));
+        } catch (IllegalArgumentException e) {
             Com.Printf("Bad save name.\n");
+            return;
+        }
+        if ("current".equals(saveGame)) {
+            Com.Printf("Can't load from 'current'\n");
             return;
         }
 
