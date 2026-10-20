@@ -70,8 +70,7 @@ class HostingSetupStage(
             previousForm = form
         }
         val snapshot = menuEventBus.latestState()
-        val reason = if (singleplayer) snapshot.singleplayerUnavailableReason else snapshot.hostingUnavailableReason
-        start.isDisabled = reason != null
+        start.isDisabled = if (singleplayer) !snapshot.canStartSingleplayer else !snapshot.canHostGame
         val setup = if (singleplayer) snapshot.singleplayer else snapshot.hostGame
         status.setText(setup.statusMessage)
     }

@@ -405,8 +405,8 @@ class MenuController(
         val previousScreen = state.activeScreen
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
-            hostingUnavailableReason = backend.hostingUnavailableReason(),
-            singleplayerUnavailableReason = backend.singleplayerUnavailableReason(),
+            canHostGame = backend.hostingUnavailableReason() == null,
+            canStartSingleplayer = backend.singleplayerUnavailableReason() == null,
             singleplayer = state.singleplayer,
             hostGame = state.hostGame,
             mainMenu = mainMenuState,

@@ -19,8 +19,7 @@ class MultiplayerMenuStage(
 
     override fun act(delta: Float) {
         super.act(delta)
-        val reason = menuEventBus.latestState().hostingUnavailableReason
-        hostButton.isDisabled = reason != null
+        hostButton.isDisabled = !menuEventBus.latestState().canHostGame
     }
 
     init {

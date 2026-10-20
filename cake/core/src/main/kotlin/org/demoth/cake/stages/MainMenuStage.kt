@@ -98,7 +98,7 @@ class MainMenuStage(
     override fun act(delta: Float) {
         super.act(delta)
         val snapshot = menuEventBus.latestState()
-        singleplayerButton.isDisabled = snapshot.singleplayerUnavailableReason != null
+        singleplayerButton.isDisabled = !snapshot.canStartSingleplayer
         val state = snapshot.mainMenu
         val active = state.activeProfileId.trim()
         if (active != renderedProfileId) {
