@@ -14,13 +14,9 @@ Remote-only desktop launcher for `core`.
 
 ### `cake-fullgame`
 
-Desktop application containing Cake, server, and game modules. Migrated from the
-legacy `fullgame` module, retaining `build.gradle.kts` and the Java entrypoint
-`jake2.fullgame.Jake2` history. Run with `./gradlew :cake:cake-fullgame:run`.
-
-`EmbeddedCakeHost` owns an embedded server, started after the client applies its
-selected profile. Console hosting automatically attaches the local player through
-loopback; hosting menus are subsequent work. The remote-only launcher reports `REMOTE_ONLY`.
+Desktop application containing Cake, server, and game modules, with Singleplayer
+and Host Game menus. Core accesses hosting through `CakeHost`; only
+`cake-fullgame` depends on the server and game modules.
 
 ### `desktop-common`
 
@@ -42,7 +38,8 @@ Standalone desktop tooling for engine asset generation workflows.
 
 From repository root:
 
-- `./gradlew :cake:cake-client:run` - runs the desktop client launcher directly.
+- `./gradlew :cake:cake-client:run` - runs the remote-only client.
+- `./gradlew :cake:cake-fullgame:run` - runs the client with singleplayer and hosting support.
 - `./gradlew :cake:cake-modelviewer:run --args="/absolute/path/to/file.md2"` - runs the model viewer launcher directly.
 
 Main desktop entrypoint:
@@ -104,106 +101,22 @@ assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal hel
 Fullgame native-image support is not verified; embedded game reflection and save
 serialization need additional reachability coverage before that is supported.
 
-## Hosting boundary
+## Playing and hosting
 
-`CakeHost` lives in core and is injected into `Cake` by the launcher. Its request
-captures the profile, map, mode, difficulty, client count and hostname. The host
-owns validation and reports a typed start result and session state. All host
-operations belong to the application thread. `stop` must be idempotent, and pause
-requests must not pause multiplayer. Core has no dependency on server or game.
+`cake-client` connects to remote servers. `cake-fullgame` also provides Singleplayer
+and Host Game menus, using the selected profile's game data and mod.
 
-Fullgame exposes Singleplayer (difficulty and New Game) and Multiplayer → Host Game
-(map text, deathmatch/coop, player count, hostname, and difficulty). Disconnect
-before starting another session. Thin builds omit Singleplayer and Host Game from their menus. Availability
-hints are deferred to future tooltips.
-Host Game uses the same request/start path as the console; server-side validation
-and player-count normalization remain authoritative.
+Hosting automatically connects the local player. Disconnect before switching
+profiles or starting another session.
 
-On profile selection, Cake registers only `alias newgame ...` from the VFS-selected
-`default.cfg`; it does not apply the file's other settings/bindings. New Game prepares
-the embedded filesystem and server commands, queues `newgame`, then connects the
-local client when the alias starts a map or cinematic. Missing definitions are
-reported when New Game is requested. Startup failures return feedback to the setup
-menu. Map discovery, custom
-port/password/rules controls, and save browsing remain deferred.
+Console equivalents:
 
-Constructing either host implementation has no server-side effects. In fullgame,
-`host_start <map> [singleplayer|deathmatch|coop] [skill 0..3] [maxclients]` starts
-the server using the active profile. Defaults are singleplayer, skill 1 and
-1/8/4 clients for singleplayer/deathmatch/coop. Existing server rules normalize
-client counts. Map names omit `maps/` and `.bsp`, e.g. `host_start base1`.
-`host_stop`, disconnect, remote join and application exit stop the session.
-Profile changes are blocked until the session stops. Successful startup attaches
-the local client through the normal connection/precache/spawn protocol.
-Use `map <map>` or `gamemap <map>` during hosting to change levels, or `reconnect`
-to reattach. `connect localhost`/`connect loopback` attach to an already running
-host; use `127.0.0.1:<port>` to join a separate server process on the same machine.
+- `host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]`
+- `host_stop` — disconnect and stop hosting.
+- `map <map>` / `gamemap <map>` — change maps while hosting.
 
-Singleplayer uses only in-process loopback and opens no UDP sockets. Hosted coop
-and deathmatch open the server UDP socket while the local player still uses
-loopback. Remote joining opens only the client UDP socket and stops any owned
-host first. Client reset never closes the server socket; whole-session teardown
-clears stale loopback packets and netchan state. Handshake replies must match the
-current connection attempt. The protected startup `port` setting remains the
-server port source; this step adds no per-session port option. Bind failures
-reject hosting and release partially opened channels so a retry is possible.
-
-The server reads the selected profile's base game and optional mod through
-EngineVfs. Saves use `~/.cake/<profileId>/save/`; stopping restores the previous
-engine write root. A selected mod directory must exist; missing mods cannot silently
-fall back to the base game. Both resolvers select the profile's mod, while client
-resolver changes remain independent of the hosted EngineVfs.
-
-With a host running and the player spawned, `save <slot>` and `load <slot>` use
-that profile's save directory. Slot names must be single directory names (no
-path separators, traversal, colon, or control characters); `current` is reserved
-for the engine. Different profiles may reuse the same slot name independently.
-Stop/disconnect before switching profiles. Loading a save without first starting
-a host is deferred.
-
-The existing map initialization path applies game mode and
-difficulty and creates autosaves. It also applies pending global cvars, including
-video settings; isolating video settings is explicitly deferred as low priority.
-
-Each application frame reads client packets, executes the shared command buffer,
-updates the server, then sends client input. Server replies are read on the next
-frame. There is no second command loop or server thread. Fractional milliseconds
-are retained, `fixedtime` overrides `timescale`, and elapsed simulation time is
-capped at 100 ms per frame without retaining stall debt. The server retains its
-existing 100 ms simulation scheduler.
-
-Menus, the console and application pause requests pause singleplayer simulation.
-Multiplayer continues running. Desktop focus loss/minimization does not suspend
-the application loop, and server updates precede any zero-size framebuffer return.
-Shutdown releases owned operator commands, clears deferred map commands and closes
-sockets; recoverable server drops return to the console. Map transitions preserve
-the host, server socket and reconnect traffic.
-
-Hosting lifecycle tests use the retained test maps without external game data.
-The optional application-loop check uses an invisible GL window and a temporary
-profile: `CAKE_HOST_GL_TESTS=1 ./gradlew :cake:cake-fullgame:test --tests '*CakeHostApplicationTest'`.
-
-The optional gameplay check requires an installed Quake 2 base game and uses
-temporary profiles/saves with hidden windows. It checks local spawn/movement,
-map transitions, restarts, a separate thin-client process joining hosted coop and
-deathmatch, and switching from hosting to a separate UDP server:
-
-```sh
-CAKE_HOST_GAME_TESTS=1 CAKE_TEST_BASEDIR=/path/to/Quake2 ./gradlew :cake:cake-fullgame:test --tests '*CakeLocalSessionGlTest'
-```
-
-A separate check verifies a mod-only map on both client and server, player-health
-restoration through console save/load, and reuse of the same slot under two
-profiles. It uses a temporary content directory referencing installed base assets:
-
-```sh
-CAKE_HOST_GAME_TESTS=1 CAKE_TEST_BASEDIR=/path/to/Quake2 ./gradlew :cake:cake-fullgame:test --tests '*CakeProfileSaveGlTest'
-```
-
-The migrated `GameImportsTest` and map fixtures retain the original server/game
-smoke coverage using JUnit 5 and EngineVfs. Legacy renderer debug programs,
-the obsolete `Jake2.Init` example and the standalone buffer-allocation experiment
-were retired with the launcher replacement; their sources remain in Git history.
+Saves are stored in `~/.cake/<profileId>/save/`. Console `save <slot>` and
+`load <slot>` currently require an active game.
 
 ## Subsystem Guides
 
