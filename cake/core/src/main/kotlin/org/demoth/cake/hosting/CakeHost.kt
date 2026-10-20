@@ -9,6 +9,9 @@ interface CakeHost {
 
     /** Success means the server is ready for local attachment, not that the client has spawned. */
     fun start(request: HostRequest): HostStartResult
+    /** Prepare commands/filesystem before the caller queues the content's newgame alias. */
+    fun prepareNewGame(profile: CakeGameProfile, skill: Int): HostStartResult =
+        HostStartResult.Rejected("Hosting requires the Cake fullgame application.")
     fun update(elapsedMillis: Long)
     /** Safe to call repeatedly, including before a session has started. */
     fun stop(reason: String)

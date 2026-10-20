@@ -120,7 +120,7 @@ abstract class BackNavigableMenuStage(
                 onClick {
                     hovered = false
                     resetHoverState()
-                    action()
+                    if (!isDisabled) action()
                 }
             }
         }

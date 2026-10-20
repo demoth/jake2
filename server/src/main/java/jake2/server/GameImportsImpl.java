@@ -191,7 +191,6 @@ public class GameImportsImpl implements GameImports {
         serverMain.registerGameCommand("dumpuser", this::SV_DumpUser_f);
         serverMain.registerGameCommand("say", this::SV_ConSay_f);
         serverMain.registerGameCommand("save", this::SV_Savegame_f);
-        serverMain.registerGameCommand("killserver", this::SV_KillServer_f);
 
         // ip filtering and stuff
         serverMain.registerGameCommand("sv", args -> {
@@ -563,20 +562,6 @@ public class GameImportsImpl implements GameImports {
         Info.Print(client.userinfo);
 
     }
-
-    /*
-    ===============
-    SV_KillServer_f
-
-    Kick everyone off, possibly in preparation for a new jake2.game
-
-    ===============
-    */
-    private void SV_KillServer_f(List<String> args) {
-        serverMain.SV_Shutdown("Server was killed.\n", false);
-        NET.configureServer(false); // client transport belongs to its session owner
-    }
-    //===========================================================
 
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)

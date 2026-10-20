@@ -262,6 +262,10 @@ public final class Cmd {
         cmd_functions.put(cmd_name, new cmd_function_t(cmd_name, function, description));
     }
 
+    public static boolean HasAlias(String name) {
+        return cmd_alias.keySet().stream().anyMatch(alias -> alias.equalsIgnoreCase(name));
+    }
+
     /** Remove an alias, matching the case-insensitive alias lookup used during execution. */
     public static void RemoveAlias(String name) {
         cmd_alias.keySet().removeIf(alias -> alias.equalsIgnoreCase(name));

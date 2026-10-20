@@ -15,6 +15,16 @@ class MultiplayerMenuStage(
     menuEventBus = menuEventBus,
     parentIntent = MenuIntent.OpenMainMenu,
 ) {
+    private val hostButton: com.badlogic.gdx.scenes.scene2d.ui.TextButton
+    private val hostingStatus: Label
+
+    override fun act(delta: Float) {
+        super.act(delta)
+        val reason = menuEventBus.latestState().hostingUnavailableReason
+        hostButton.isDisabled = reason != null
+        hostingStatus.setText(reason.orEmpty())
+    }
+
     init {
         val labelStyle = style.menuWidgets.label
         val buttonStyle = style.menuWidgets.button
@@ -23,9 +33,13 @@ class MultiplayerMenuStage(
 
             add(Label("Multiplayer", labelStyle)).padBottom(12f)
             row()
-            add(createMenuButton("Host Game (future)", buttonStyle).apply {
-                isDisabled = true
-            })
+            hostButton = createMenuButton("Host Game", buttonStyle) {
+                menuEventBus.postIntent(MenuIntent.OpenHostingSetup(false))
+            }
+            add(hostButton)
+            row()
+            hostingStatus = Label("", labelStyle).apply { setWrap(true) }
+            add(hostingStatus).width(300f)
             row()
             add(createMenuButton("Join Game", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenJoinGame)

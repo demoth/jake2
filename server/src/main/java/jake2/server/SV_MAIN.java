@@ -1057,6 +1057,10 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
         // Publish callbacks only after initialization succeeds. Game operator commands
         // are registered separately when a map starts.
+        commands.add("killserver", args -> {
+            SV_Shutdown("Server was killed.\n", false);
+            NET.configureServer(false);
+        });
         commands.add("map", this::SV_Map_f);
         commands.add("gamemap", this::SV_GameMap_f);
         commands.add("load", this::SV_Loadgame_f);
@@ -1447,15 +1451,16 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 */
     void SV_Map_f(List<String> args) {
         //char expanded[MAX_QPATH];
-        if (args.size() < 2) {
+        if (args.size() < 2 || args.get(1).isBlank()) {
             Com.Printf("usage: map <map_name>\n");
             return;
         }
 
         // if not a pcx, demo, or cinematic, check to make sure the level exists
         String mapName = args.get(1);
-        if (!mapName.contains(".")) {
-            String mapPath = "maps/" + mapName + ".bsp";
+        ChangeMapInfo target = new ChangeMapInfo(mapName, false, false);
+        if (target.state == ServerStates.SS_GAME) {
+            String mapPath = "maps/" + target.mapName + ".bsp";
             if (!EngineVfs.exists(mapPath)) {
                 Com.Printf("Can't find " + mapPath + "\n");
                 return;

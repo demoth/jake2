@@ -55,6 +55,7 @@ import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfileConfigStore
 import org.demoth.cake.stages.DebugGraphStage
+import org.demoth.cake.stages.HostingSetupStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
@@ -86,6 +87,8 @@ private enum class MenuView {
     MAIN,
     PROFILE_EDIT,
     MULTIPLAYER,
+    SINGLEPLAYER,
+    HOST_GAME,
     JOIN_GAME,
     PLAYER_SETUP,
     OPTIONS,
@@ -115,6 +118,9 @@ class Cake(
     private lateinit var menuStage: MainMenuStage
     private lateinit var profileEditStage: ProfileEditStage
     private lateinit var multiplayerMenuStage: MultiplayerMenuStage
+    private lateinit var singleplayerStage: HostingSetupStage
+    private lateinit var hostGameStage: HostingSetupStage
+    private var awaitingNewGame = false
     private lateinit var joinGameStage: JoinGameStage
     private lateinit var playerSetupStage: PlayerSetupStage
     private lateinit var optionsMenuStage: OptionsMenuStage
@@ -494,16 +500,18 @@ class Cake(
 
     }
 
-    /** Shared entrypoint for the console and future hosting menus. */
-    private fun startHostedGame(request: HostRequest) {
+    /** Shared entrypoint for the console and Host Game menu. */
+    private fun startHostedGame(request: HostRequest): HostStartResult {
         disconnect()
-        when (val result = host.start(request)) {
+        val result = host.start(request)
+        when (result) {
             HostStartResult.Started -> {
                 Com.Printf("Local server started: ${request.map}\n")
                 beginConnection(netadr_t(), local = true)
             }
             is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
         }
+        return result
     }
 
     private fun beginConnection(target: netadr_t, local: Boolean) {
@@ -522,6 +530,7 @@ class Cake(
 
     /** End the complete session. Map transitions use client reset/handshake paths instead. */
     private fun disconnect() {
+        awaitingNewGame = false
         resetClientConnection()
         host.stop("Disconnected")
         hostClock.reset()
@@ -709,6 +718,8 @@ class Cake(
                 MenuView.MAIN -> menuStage
                 MenuView.PROFILE_EDIT -> profileEditStage
                 MenuView.MULTIPLAYER -> multiplayerMenuStage
+                MenuView.SINGLEPLAYER -> singleplayerStage
+                MenuView.HOST_GAME -> hostGameStage
                 MenuView.JOIN_GAME -> joinGameStage
                 MenuView.PLAYER_SETUP -> playerSetupStage
                 MenuView.OPTIONS -> optionsMenuStage
@@ -769,6 +780,12 @@ class Cake(
             host.setPaused(menuVisible || consoleVisible || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
+            if (awaitingNewGame && host.state == HostState.RUNNING) {
+                awaitingNewGame = false
+                beginConnection(netadr_t(), local = true)
+                menuVisible = false
+                consoleVisible = false
+            }
             if (localConnection && host.state == HostState.STOPPED) {
                 dropToConsole()
                 return
@@ -822,6 +839,14 @@ class Cake(
                         multiplayerMenuStage.draw()
                     }
 
+                    MenuView.SINGLEPLAYER -> {
+                        singleplayerStage.act(deltaSeconds)
+                        singleplayerStage.draw()
+                    }
+                    MenuView.HOST_GAME -> {
+                        hostGameStage.act(deltaSeconds)
+                        hostGameStage.draw()
+                    }
                     MenuView.JOIN_GAME -> {
                         joinGameStage.act(deltaSeconds)
                         joinGameStage.draw()
@@ -862,8 +887,14 @@ class Cake(
         } catch (error: RuntimeException) {
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
+                val startingFromMenu = awaitingNewGame
                 Com.Warn("Local server stopped: ${error.message}\n")
                 dropToConsole()
+                if (startingFromMenu) {
+                    menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
+                    menuVisible = true
+                    consoleVisible = false
+                }
                 return
             }
             val missingResource = findMissingResourceFailure(error)
@@ -1039,6 +1070,8 @@ class Cake(
         menuStage.dispose()
         profileEditStage.dispose()
         multiplayerMenuStage.dispose()
+        singleplayerStage.dispose()
+        hostGameStage.dispose()
         joinGameStage.dispose()
         playerSetupStage.dispose()
         optionsMenuStage.dispose()
@@ -1127,6 +1160,10 @@ class Cake(
             menuEventBus = menuEventBus,
             style = style,
         )
+        if (::singleplayerStage.isInitialized) singleplayerStage.dispose()
+        singleplayerStage = HostingSetupStage(uiViewport, menuEventBus, style, true)
+        if (::hostGameStage.isInitialized) hostGameStage.dispose()
+        hostGameStage = HostingSetupStage(uiViewport, menuEventBus, style, false)
         if (::joinGameStage.isInitialized) {
             joinGameStage.dispose()
         }
@@ -1164,6 +1201,8 @@ class Cake(
                 MenuView.MAIN,
                 MenuView.PROFILE_EDIT,
                 MenuView.MULTIPLAYER,
+                MenuView.SINGLEPLAYER,
+                MenuView.HOST_GAME,
                 MenuView.JOIN_GAME,
                 MenuView.PLAYER_SETUP,
                 MenuView.OPTIONS,
@@ -1902,6 +1941,43 @@ class Cake(
     }
 
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
+        override fun hostingUnavailableReason(): String? = when {
+            host.availability != HostAvailability.AVAILABLE -> "Hosting requires Cake fullgame."
+            activeGameProfile == null -> "Select a game profile first."
+            networkState != DISCONNECTED || host.state != HostState.STOPPED -> "Disconnect before starting a new game."
+            else -> null
+        }
+
+        override fun singleplayerUnavailableReason(): String? = hostingUnavailableReason()
+            ?: if (!Cmd.HasAlias("newgame")) "This profile's default.cfg does not define newgame." else null
+
+        override fun startHosting(singleplayer: Boolean, form: HostGameFormState): String {
+            val reason = if (singleplayer) singleplayerUnavailableReason() else hostingUnavailableReason()
+            if (reason != null) return reason
+            val profile = activeGameProfile ?: return "Select a game profile first."
+            val result = if (singleplayer) {
+                host.prepareNewGame(profile, form.skill)
+            } else {
+                val count = form.maxClients.trim().toIntOrNull() ?: return "Player count must be a whole number."
+                startHostedGame(HostRequest(profile, form.map.trim(),
+                    if (form.coop) HostMode.COOP else HostMode.DEATHMATCH,
+                    form.skill, count, form.hostname.trim()))
+            }
+            return when (result) {
+                is HostStartResult.Rejected -> result.reason
+                HostStartResult.Started -> {
+                    if (singleplayer) {
+                        awaitingNewGame = true
+                        Cbuf.AddText("newgame")
+                    } else {
+                        menuVisible = false
+                        consoleVisible = false
+                    }
+                    "Starting game..."
+                }
+            }
+        }
+
         override fun activeProfileId(): String = this@Cake.activeProfileId()
 
         override fun canDisconnect(): Boolean = networkState != DISCONNECTED || host.state != HostState.STOPPED
@@ -1964,6 +2040,8 @@ class Cake(
             MenuScreen.MAIN -> MenuView.MAIN
             MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
             MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
+            MenuScreen.SINGLEPLAYER -> MenuView.SINGLEPLAYER
+            MenuScreen.HOST_GAME -> MenuView.HOST_GAME
             MenuScreen.JOIN_GAME -> MenuView.JOIN_GAME
             MenuScreen.PLAYER_SETUP -> MenuView.PLAYER_SETUP
             MenuScreen.OPTIONS -> MenuView.OPTIONS
@@ -1983,6 +2061,8 @@ class Cake(
             MenuView.MAIN -> menuStage
             MenuView.PROFILE_EDIT -> profileEditStage
             MenuView.MULTIPLAYER -> multiplayerMenuStage
+            MenuView.SINGLEPLAYER -> singleplayerStage
+            MenuView.HOST_GAME -> hostGameStage
             MenuView.JOIN_GAME -> joinGameStage
             MenuView.PLAYER_SETUP -> playerSetupStage
             MenuView.OPTIONS -> optionsMenuStage

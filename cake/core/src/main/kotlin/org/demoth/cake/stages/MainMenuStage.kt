@@ -40,6 +40,8 @@ class MainMenuStage(
 ) {
     private var currentProfileLabel: Label
     private var switchProfileButton: TextButton
+    private var singleplayerButton: TextButton
+    private var hostingStatus: Label
     private var disconnectButton: TextButton
     private var renderedProfileId: String = ""
     private var lastCanDisconnectState: Boolean = false
@@ -66,9 +68,13 @@ class MainMenuStage(
             add(disconnectButton)
             row()
 
-            add(createMenuButton("Singleplayer (future)", buttonStyle).apply {
-                isDisabled = true
-            })
+            singleplayerButton = createMenuButton("Singleplayer", buttonStyle) {
+                menuEventBus.postIntent(MenuIntent.OpenHostingSetup(true))
+            }
+            add(singleplayerButton)
+            row()
+            hostingStatus = Label("", labelStyle).apply { setWrap(true) }
+            add(hostingStatus).width(300f)
             row()
 
             add(createMenuButton("Multiplayer", buttonStyle) {
@@ -95,7 +101,10 @@ class MainMenuStage(
 
     override fun act(delta: Float) {
         super.act(delta)
-        val state = menuEventBus.latestState().mainMenu
+        val snapshot = menuEventBus.latestState()
+        singleplayerButton.isDisabled = snapshot.singleplayerUnavailableReason != null
+        hostingStatus.setText(snapshot.singleplayerUnavailableReason.orEmpty())
+        val state = snapshot.mainMenu
         val active = state.activeProfileId.trim()
         if (active != renderedProfileId) {
             refreshProfileHeader(active)

@@ -12,6 +12,7 @@ import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.vfs.VfsConfig
 import jake2.server.SV_MAIN
 import org.demoth.cake.hosting.*
+import org.demoth.cake.profile.CakeGameProfile
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,10 +41,15 @@ class EmbeddedCakeHost(
             else -> HostState.STOPPED
         }
 
-    override fun start(request: HostRequest): HostStartResult {
+    override fun start(request: HostRequest) = start(request, prepareOnly = false)
+
+    override fun prepareNewGame(profile: CakeGameProfile, skill: Int) =
+        start(HostRequest(profile, "", HostMode.SINGLEPLAYER, skill), prepareOnly = true)
+
+    private fun start(request: HostRequest, prepareOnly: Boolean): HostStartResult {
         checkThread()
         try {
-            validate(request)
+            validate(request, prepareOnly)
         } catch (error: IllegalArgumentException) {
             return HostStartResult.Rejected(error.message ?: "Invalid host request")
         }
@@ -51,7 +57,7 @@ class EmbeddedCakeHost(
         starting = true
         try {
             configureFilesystem(request)
-            if (!EngineVfs.exists("maps/${request.map}.bsp")) {
+            if (!prepareOnly && !EngineVfs.exists("maps/${request.map}.bsp")) {
                 stop("Map not found")
                 return HostStartResult.Rejected("Map not found: ${request.map}")
             }
@@ -65,6 +71,7 @@ class EmbeddedCakeHost(
             cvars.find<Boolean>("paused").forceSet(false)
             // Consumed by the new game instance's existing early-cvar transfer.
             cvars.setResult("skill", request.skill.toString())
+            if (prepareOnly) return HostStartResult.Started
             if (!manager.startMap(request.map)) {
                 stop("Map did not start")
                 return HostStartResult.Rejected("Could not start map: ${request.map}")
@@ -90,6 +97,15 @@ class EmbeddedCakeHost(
     override fun update(elapsedMillis: Long) {
         checkThread()
         val manager = server ?: return
+        if (starting) {
+            if (manager.isRunning) starting = false
+            else if (Cbuf.contents().isNotBlank()) return // Alias may contain wait.
+            else {
+                stop("New Game did not start a map")
+                throw HostFailureException("The newgame alias did not start a map. Check the console for details.",
+                    IllegalStateException("No map after newgame"))
+            }
+        }
         if (!manager.isRunning) {
             stop("Server stopped") // e.g. killserver or sv_shutdown from the console
             return
@@ -160,7 +176,7 @@ class EmbeddedCakeHost(
         EngineWriteRoot.setRoot(root)
     }
 
-    private fun validate(request: HostRequest) {
+    private fun validate(request: HostRequest, prepareOnly: Boolean) {
         val profile = request.profile.normalized()
         fun safeDirectory(value: String) = value.isNotBlank() && value != "." &&
             !value.contains("..") && value.none { it == '/' || it == '\\' || it == ':' }
@@ -172,7 +188,7 @@ class EmbeddedCakeHost(
         require(profile.gamemod == null || Files.isDirectory(Path.of(profile.basedir).resolve(profile.gamemod))) {
             "Profile mod directory does not exist: ${profile.gamemod}"
         }
-        require(request.map.matches(Regex("[A-Za-z0-9_/-]+")) && !request.map.startsWith('/')) {
+        require(prepareOnly || (request.map.matches(Regex("[A-Za-z0-9_/-]+")) && !request.map.startsWith('/'))) {
             "Map must be a relative map name without an extension"
         }
         require(request.skill in 0..3) { "Difficulty must be between 0 and 3" }

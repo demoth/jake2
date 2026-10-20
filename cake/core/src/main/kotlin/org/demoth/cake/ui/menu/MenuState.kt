@@ -4,6 +4,8 @@ enum class MenuScreen {
     MAIN,
     PROFILE_EDIT,
     MULTIPLAYER,
+    SINGLEPLAYER,
+    HOST_GAME,
     JOIN_GAME,
     PLAYER_SETUP,
     OPTIONS,
@@ -69,6 +71,10 @@ data class OptionsSectionState(
 
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
+    val hostingUnavailableReason: String? = null,
+    val singleplayerUnavailableReason: String? = null,
+    val singleplayer: HostingSetupState = HostingSetupState(),
+    val hostGame: HostingSetupState = HostingSetupState(),
     val mainMenu: MainMenuState = MainMenuState(),
     val profileEditor: ProfileEditorState = ProfileEditorState(),
     val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
@@ -76,4 +82,18 @@ data class MenuStateSnapshot(
     val playerSetup: PlayerSetupState = PlayerSetupState(),
     val optionsHub: OptionsHubState = OptionsHubState(),
     val optionsSection: OptionsSectionState = OptionsSectionState(),
+)
+
+/** Raw text stays in the form so rejected input can be corrected without losing it. */
+data class HostGameFormState(
+    val map: String = "",
+    val coop: Boolean = false,
+    val maxClients: String = "8",
+    val hostname: String = "Cake server",
+    val skill: Int = 1,
+)
+
+data class HostingSetupState(
+    val form: HostGameFormState = HostGameFormState(),
+    val statusMessage: String = "",
 )

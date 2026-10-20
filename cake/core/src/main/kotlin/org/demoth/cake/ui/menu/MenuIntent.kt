@@ -5,6 +5,10 @@ sealed interface MenuIntent {
     data object OpenProfileEditor : MenuIntent
     data object OpenMainMenu : MenuIntent
     data object OpenMultiplayerMenu : MenuIntent
+    data class OpenHostingSetup(val singleplayer: Boolean) : MenuIntent
+    data class StartHosting(val singleplayer: Boolean, val form: HostGameFormState) : MenuIntent
+    data class UpdateHostingDraft(val singleplayer: Boolean, val form: HostGameFormState) : MenuIntent
+    data class HostingFailed(val reason: String) : MenuIntent
     data object OpenJoinGame : MenuIntent
     data object OpenPlayerSetup : MenuIntent
     data object OpenOptions : MenuIntent
