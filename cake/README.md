@@ -114,7 +114,7 @@ requests must not pause multiplayer. Core has no dependency on server or game.
 
 Fullgame exposes Singleplayer (difficulty and New Game) and Multiplayer → Host Game
 (map text, deathmatch/coop, player count, hostname, and difficulty). Disconnect
-before starting another session. Thin builds disable these actions. Availability
+before starting another session. Thin builds omit Singleplayer and Host Game from their menus. Availability
 hints are deferred to future tooltips.
 Host Game uses the same request/start path as the console; server-side validation
 and player-count normalization remain authoritative.

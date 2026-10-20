@@ -1136,6 +1136,7 @@ class Cake(
     }
 
     private fun rebuildContentStyledMenuStages(style: GameUiStyle) {
+        val showHosting = host.availability != HostAvailability.REMOTE_ONLY
         if (::menuStage.isInitialized) {
             menuStage.dispose()
         }
@@ -1143,6 +1144,7 @@ class Cake(
             viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
+            showHosting = showHosting,
         )
         if (::multiplayerMenuStage.isInitialized) {
             multiplayerMenuStage.dispose()
@@ -1151,6 +1153,7 @@ class Cake(
             viewport = uiViewport,
             menuEventBus = menuEventBus,
             style = style,
+            showHosting = showHosting,
         )
         if (::optionsMenuStage.isInitialized) {
             optionsMenuStage.dispose()

@@ -10,16 +10,17 @@ class MultiplayerMenuStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
+    showHosting: Boolean,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
     parentIntent = MenuIntent.OpenMainMenu,
 ) {
-    private val hostButton: com.badlogic.gdx.scenes.scene2d.ui.TextButton
+    private var hostButton: com.badlogic.gdx.scenes.scene2d.ui.TextButton? = null
 
     override fun act(delta: Float) {
         super.act(delta)
-        hostButton.isDisabled = !menuEventBus.latestState().canHostGame
+        hostButton?.isDisabled = !menuEventBus.latestState().canHostGame
     }
 
     init {
@@ -30,11 +31,13 @@ class MultiplayerMenuStage(
 
             add(Label("Multiplayer", labelStyle)).padBottom(12f)
             row()
-            hostButton = createMenuButton("Host Game", buttonStyle) {
-                menuEventBus.postIntent(MenuIntent.OpenHostingSetup(false))
+            if (showHosting) {
+                hostButton = createMenuButton("Host Game", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenHostingSetup(false))
+                }
+                add(hostButton)
+                row()
             }
-            add(hostButton)
-            row()
             add(createMenuButton("Join Game", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenJoinGame)
             })
