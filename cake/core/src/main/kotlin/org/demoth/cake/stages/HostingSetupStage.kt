@@ -73,6 +73,6 @@ class HostingSetupStage(
         val reason = if (singleplayer) snapshot.singleplayerUnavailableReason else snapshot.hostingUnavailableReason
         start.isDisabled = reason != null
         val setup = if (singleplayer) snapshot.singleplayer else snapshot.hostGame
-        status.setText(setup.statusMessage.ifBlank { reason.orEmpty() })
+        status.setText(setup.statusMessage)
     }
 }
