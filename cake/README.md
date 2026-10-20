@@ -113,16 +113,18 @@ operations belong to the application thread. `stop` must be idempotent, and paus
 requests must not pause multiplayer. Core has no dependency on server or game.
 
 Fullgame exposes Singleplayer (difficulty and New Game) and Multiplayer → Host Game
-(map text, deathmatch/coop, player count, hostname, and coop difficulty). Disconnect
-before starting another session. Thin builds disable these actions. Availability hints are deferred to future tooltips.
+(map text, deathmatch/coop, player count, hostname, and difficulty). Disconnect
+before starting another session. Thin builds disable these actions. Availability
+hints are deferred to future tooltips.
 Host Game uses the same request/start path as the console; server-side validation
 and player-count normalization remain authoritative.
 
 On profile selection, Cake registers only `alias newgame ...` from the VFS-selected
 `default.cfg`; it does not apply the file's other settings/bindings. New Game prepares
 the embedded filesystem and server commands, queues `newgame`, then connects the
-local client when the alias starts a map or cinematic. Missing definitions disable
-New Game. Startup failures return feedback to the setup menu. Map discovery, custom
+local client when the alias starts a map or cinematic. Missing definitions are
+reported when New Game is requested. Startup failures return feedback to the setup
+menu. Map discovery, custom
 port/password/rules controls, and save browsing remain deferred.
 
 Constructing either host implementation has no server-side effects. In fullgame,

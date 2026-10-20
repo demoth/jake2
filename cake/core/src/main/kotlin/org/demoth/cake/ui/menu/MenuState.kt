@@ -72,7 +72,6 @@ data class OptionsSectionState(
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val canHostGame: Boolean = false,
-    val canStartSingleplayer: Boolean = false,
     val singleplayer: HostingSetupState = HostingSetupState(),
     val hostGame: HostingSetupState = HostingSetupState(),
     val mainMenu: MainMenuState = MainMenuState(),

@@ -33,7 +33,6 @@ class HostingSetupStage(
         menuEventBus.postIntent(MenuIntent.StartHosting(singleplayer, form()))
     }
     private var previousForm = initial
-    private var previousCoop = initial.coop
 
     init {
         val root = Table().apply {
@@ -42,10 +41,10 @@ class HostingSetupStage(
             if (!singleplayer) {
                 add(Label("Map", style.menuWidgets.label)); add(map).width(360f).row()
                 add(Label("Mode", style.menuWidgets.label)); add(mode).growX().row()
-                add(Label("Players (including you)", style.menuWidgets.label)); add(clients).growX().row()
+                add(Label("Players", style.menuWidgets.label)); add(clients).growX().row()
                 add(Label("Server name", style.menuWidgets.label)); add(hostname).growX().row()
             }
-            add(Label(if (singleplayer) "Difficulty" else "Coop difficulty", style.menuWidgets.label))
+            add(Label("Difficulty", style.menuWidgets.label))
             add(difficulty).width(360f).row()
             add(start); add(createBackButton(style = style.menuWidgets.button)).row()
             add(status).colspan(2).width(560f).row()
@@ -58,19 +57,13 @@ class HostingSetupStage(
 
     override fun act(delta: Float) {
         super.act(delta)
-        val coop = mode.selectedIndex == 1
-        if (coop != previousCoop) {
-            clients.text = if (coop) "4" else "8"
-            previousCoop = coop
-        }
-        difficulty.isDisabled = !singleplayer && !coop
         val form = form()
         if (form != previousForm) {
             menuEventBus.postIntent(MenuIntent.UpdateHostingDraft(singleplayer, form))
             previousForm = form
         }
         val snapshot = menuEventBus.latestState()
-        start.isDisabled = if (singleplayer) !snapshot.canStartSingleplayer else !snapshot.canHostGame
+        start.isDisabled = !snapshot.canHostGame
         val setup = if (singleplayer) snapshot.singleplayer else snapshot.hostGame
         status.setText(setup.statusMessage)
     }

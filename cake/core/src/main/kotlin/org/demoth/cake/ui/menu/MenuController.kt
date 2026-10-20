@@ -5,7 +5,6 @@ import jake2.qcommon.network.netadr_t
 
 interface MenuBackend {
     fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
-    fun singleplayerUnavailableReason(): String? = hostingUnavailableReason()
     fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
         "Hosting requires the Cake fullgame application."
     fun activeProfileId(): String
@@ -70,8 +69,7 @@ class MenuController(
                 state = if (intent.singleplayer) state.copy(singleplayer = setup) else state.copy(hostGame = setup)
             }
             is MenuIntent.StartHosting -> {
-                val reason = if (intent.singleplayer) backend.singleplayerUnavailableReason() else backend.hostingUnavailableReason()
-                val status = reason ?: backend.startHosting(intent.singleplayer, intent.form)
+                val status = backend.startHosting(intent.singleplayer, intent.form)
                 val setup = HostingSetupState(intent.form, status)
                 state = if (intent.singleplayer) state.copy(singleplayer = setup) else state.copy(hostGame = setup)
                 refreshState()
@@ -406,7 +404,6 @@ class MenuController(
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             canHostGame = backend.hostingUnavailableReason() == null,
-            canStartSingleplayer = backend.singleplayerUnavailableReason() == null,
             singleplayer = state.singleplayer,
             hostGame = state.hostGame,
             mainMenu = mainMenuState,

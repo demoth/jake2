@@ -1948,14 +1948,12 @@ class Cake(
             else -> null
         }
 
-        override fun singleplayerUnavailableReason(): String? = hostingUnavailableReason()
-            ?: if (!Cmd.HasAlias("newgame")) "This profile's default.cfg does not define newgame." else null
-
         override fun startHosting(singleplayer: Boolean, form: HostGameFormState): String {
-            val reason = if (singleplayer) singleplayerUnavailableReason() else hostingUnavailableReason()
+            val reason = hostingUnavailableReason()
             if (reason != null) return reason
             val profile = activeGameProfile ?: return "Select a game profile first."
             val result = if (singleplayer) {
+                if (!Cmd.HasAlias("newgame")) return "This profile's default.cfg does not define newgame."
                 host.prepareNewGame(profile, form.skill)
             } else {
                 val count = form.maxClients.trim().toIntOrNull() ?: return "Player count must be a whole number."
