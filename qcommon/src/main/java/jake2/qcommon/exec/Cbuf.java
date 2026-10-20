@@ -73,7 +73,7 @@ public final class Cbuf {
      * text should not survive long enough to be reinterpreted as commands just
      * because a comment line contains a semicolon.
      */
-    static List<String> splitScriptCommandLine(String text) {
+    public static List<String> splitScriptCommandLine(String text) {
         List<String> result = new ArrayList<>();
         String[] lines = text.split("[\\n\\r]");
         for (String line : lines) {

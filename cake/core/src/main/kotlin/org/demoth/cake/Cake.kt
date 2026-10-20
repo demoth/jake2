@@ -1838,12 +1838,27 @@ class Cake(
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
+        resolveNewGameAlias()
         clearCurrentGameUiStyle()
         cachedPlayerSetupCatalog = null
         reloadProfileBackground()
         reloadActiveConsoleHistory()
         if (::menuStage.isInitialized) {
             resolveCurrentGameUiStyle()
+        }
+    }
+
+    /** Register only the content's newgame alias; profiles retain their bindings and settings. */
+    private fun resolveNewGameAlias() {
+        Cmd.RemoveAlias("newgame")
+        if (activeGameProfile == null) return
+        val config = fileResolver.resolveContent("default.cfg")?.readString("UTF-8") ?: return
+        for (command in Cbuf.splitScriptCommandLine(config)) {
+            val args = Cmd.TokenizeString(command, false)
+            if (args.size >= 2 && args[0] == "alias" && args[1].equals("newgame", ignoreCase = true)) {
+                Cmd.RemoveAlias("newgame")
+                Cmd.ExecuteString(command)
+            }
         }
     }
 
