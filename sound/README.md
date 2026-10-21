@@ -42,8 +42,13 @@ Per render frame:
 ### 4) Channel semantics (current baseline)
 
 - Explicit channels (`CHAN_* != CHAN_AUTO`) are keyed by `(entity, channel)` and override previous active voice on the same key.
-- `CHAN_AUTO` currently behaves as fire-and-forget (no override key).
+- `CHAN_AUTO` allows overlapping one-shots without a keyed override. All one-shots are tracked until their estimated end time and respatialized each frame.
 - `SoundMessage.timeOffset` is honored for delayed one-shot scheduling.
+
+One-shots and entity loops share the `s_maxvoices` budget. Under pressure, a
+one-shot replaces the eligible voice with the shortest remaining lifetime;
+non-player sounds cannot steal the local player's voices. Loop synchronization
+keeps existing loops stable and skips new loops when the pool is full.
 
 ### 5) Non-spatial exceptions
 
@@ -75,9 +80,9 @@ Item respawn and player teleport also trigger their paired visual effect paths f
 
 ## Current producers
 
-- Server sound packets: `Game3dScreen.processSoundMessage`
-- Weapon sound packets: `Game3dScreen.processWeaponSoundMessage`
-- Entity events: `Game3dScreen.playEntityEventSounds`
+- Server sound packets: `IngameSoundMessageHandler.processSoundMessage`
+- Weapon sound packets: `IngameSoundMessageHandler.processWeaponSoundMessage`
+- Entity events: `IngameSoundMessageHandler.playEntityEventSounds`
 - Temp/effect sounds: `ClientEffectsSystem.playEffectSound`
 
 ## Transition lifecycle
@@ -92,7 +97,11 @@ This prevents lingering sounds across reconnect/map changes.
 
 ## Known limits
 
-- No strict full parity yet for all channel-pressure/voice-stealing edge cases.
-- `CHAN_AUTO` one-shots are not persistently tracked after playback starts.
-- `EV_OTHER_TELEPORT` still needs an explicit parity decision.
-- Music/streaming, environmental filters, and doppler are deferred for future work.
+- Voice allocation has regression coverage for channel overrides, voice stealing,
+  local-player protection, and stable loops under pressure. This does not establish
+  full parity with every legacy mixer edge case.
+- One-shot lifetimes use decoded sound durations, with an estimate when the duration
+  is unknown.
+- Footsteps currently have no `cl_footsteps` gate.
+- Music playback, environmental filters, and Doppler are not implemented. Cinematic
+  audio streaming is handled separately by `CinematicPresentationController`.

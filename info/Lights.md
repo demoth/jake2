@@ -7,7 +7,8 @@ which is defined by the light style of the entity.
 Internally dynamic styles **values** are stored as a sequence of chars, 
 representing light's magnitude with values between `a` (dark), `m` (normal value).
 and `z` (double bright).
-So the light style `ma` will flicker between normal and dark every frame.
+Lightstyle patterns advance every 100 ms. The style `ma` alternates between
+normal and dark at those ticks, independently of the rendering frame rate.
 
 There are predefined light styles for common effects, see `jake2.game.GameSpawn.defineLightStyles`.
 

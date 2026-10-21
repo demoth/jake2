@@ -18,12 +18,16 @@ Alternatively, you can build a native (so you have easier time to associate with
 You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 
 ## List of features
- - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .md2 file)
- - can also render `.pcx` & `.wal` images
- - grid & axes
- - TODO: change skins
- - TODO: render animation
- - TODO: display information about opened file - like size, number of triangles, vertices, frames, etc...
+
+- Renders `.md2` models with frame stepping and interpolated animation playback.
+- Resolves referenced skins using the opened file's folder and parent, with detected
+  game-data fallback and an adjacent-file fallback for game-relative skin paths.
+  Models can render with a default skin when their referenced skins are missing.
+- Renders `.bsp` maps and `.pcx` / `.wal` images.
+- Displays a grid and axes for models and maps.
+
+For MD2 models, press Space to toggle animation playback and Left/Right to step
+frames. Press Escape to exit.
 
 ## How to associate .md2 files with Cake Viewer?
 
