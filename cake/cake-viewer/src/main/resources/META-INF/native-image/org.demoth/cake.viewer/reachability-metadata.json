@@ -1,0 +1,12 @@
+{
+  "reflection": [
+    {
+      "type": "com.badlogic.gdx.graphics.g2d.GlyphLayout",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "com.badlogic.gdx.graphics.g2d.GlyphLayout$GlyphRun",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    }
+  ]
+}

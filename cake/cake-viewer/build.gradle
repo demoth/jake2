@@ -9,3 +9,15 @@ application {
 }
 
 apply from: rootProject.file('cake/desktop.gradle')
+
+if (providers.gradleProperty('enableGraalNative').getOrElse('false').toBoolean()) {
+  graalvmNative.binaries.main {
+    // The viewer uses neither annotated serialization nor GDX JSON/Skin loading.
+    // These optional helper scanners call GraalVM APIs removed in current releases.
+    // BitmapFont pool constructors are registered in the viewer's reachability metadata.
+    buildArgs.addAll(
+      '--exclude-config', '.*\\.jar',
+      'META-INF/native-image/gdx-svmhelper/core/native-image.properties'
+    )
+  }
+}
