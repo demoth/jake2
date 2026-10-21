@@ -66,7 +66,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var bspWorldRenderer: BspWorldBatchRenderer? = null
     private var bspVisibleSurfaces = BooleanArray(0)
     private var bspTime = 0f
-    private lateinit var modelBatch: ModelBatch
+    private var modelBatch: ModelBatch? = null
+    private lateinit var fileResolver: ViewerFileResolver
+    private var currentFile: File? = null
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
@@ -76,6 +78,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private val ownedModels: MutableList<Model> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var stage: Stage
+    private lateinit var filenameLabel: Label
+    private lateinit var controlsLabel: Label
+    private lateinit var errorLabel: Label
     private lateinit var resourceInfo: Label
     private lateinit var frameTimeLabel: Label
     private var frameTime = 0f // to have an idea of the fps
@@ -104,7 +109,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
         val startupHints = detectViewerStartupHints(file.absolutePath)
 
-        val fileResolver = ViewerFileResolver(
+        fileResolver = ViewerFileResolver(
             openedFilePath = file.absolutePath,
             basedir = startupHints.basedir,
             gamemod = startupHints.gamemod,
@@ -121,6 +126,60 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
+        batch = SpriteBatch()
+
+        camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        camera.near = 1f
+        camera.far = 4096f
+        resetCamera()
+
+        environment = Environment()
+        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
+        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
+        createStage()
+        openFile(file.absolutePath)
+    }
+
+    /** Replaces the preview. Call on the application thread, between render calls. */
+    fun openFile(path: String) {
+        val file = File(expandTildePath(path)).absoluteFile
+        val rejection = when {
+            SUPPORTED_FORMATS.none { file.name.lowercase().endsWith(it) } -> "Unsupported file: ${file.name}"
+            !file.isFile || !file.canRead() -> "File is missing or unreadable: ${file.name}"
+            else -> null
+        }
+        if (rejection != null) {
+            errorLabel.setText(rejection)
+            return
+        }
+
+        closePreview()
+        resetCamera()
+        try {
+            val hints = detectViewerStartupHints(file.absolutePath)
+            fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
+            currentFile = file
+            loadPreview(file)
+            filenameLabel.setText(file.name)
+            controlsLabel.setText(when {
+                sound != null -> "Space: replay | S: stop | Escape: close"
+                sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
+                else -> "Escape: close"
+            })
+            errorLabel.setText("")
+            updateResourceInfo()
+        } catch (error: Exception) {
+            Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
+            closePreview()
+            // Failed dependency loads can leave assets and dependency records behind.
+            stage.dispose()
+            assetManager.clear()
+            createStage()
+            errorLabel.setText("Could not load ${file.name}. Drop another resource to continue.")
+        }
+    }
+
+    private fun loadPreview(file: File) {
         modelBatch = ModelBatch()
 
         when (file.extension.lowercase()) {
@@ -155,10 +214,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                         assetManager.getLoaded(md2FragmentShader),
                     )
                 )
-                md2Shader.init()
-
-                modelBatch.dispose()
+                modelBatch?.dispose()
                 modelBatch = ModelBatch(CakeShaderProvider(md2Shader))
+                md2Shader.init()
 
                 instances.add(md2Instance!!)
                 addOwnedInstance(createOriginArrows(GRID_SIZE))
@@ -181,49 +239,35 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 addOwnedInstance(createOriginArrows(GRID_SIZE))
                 addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
-            else -> {
-                println("Unsupported file format ${file.extension}")
-                Gdx.app.exit()
-                return
-            }
         }
-
-        batch = SpriteBatch()
-
-        camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        camera.position.set(0f, 0f, 0f);
-        camera.near = 1f
-        camera.far = 4096f
-        camera.up.set(0f, 0f, 1f) // make z up
-        camera.direction.set(0f, 1f, 0f) // make y forward
-
-        cameraInputController = FlyingCameraController(camera)
-
-        environment = Environment()
-        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
-        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
-        createStage(file)
-        Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
     }
 
-    private fun createStage(file: File) {
+    private fun resetCamera() {
+        camera.position.setZero()
+        camera.up.set(0f, 0f, 1f)
+        camera.direction.set(0f, 1f, 0f)
+        camera.update()
+        cameraInputController = FlyingCameraController(camera)
+        if (::stage.isInitialized) Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
+    }
+
+    private fun createStage() {
         val skin = assetManager.getLoaded<Skin>(cakeSkin)
         stage = Stage(UiViewport())
         stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         resourceInfo = Label("", skin)
         frameTimeLabel = Label("", skin)
-        val controls = when {
-            sound != null -> "Space: replay | S: stop | Escape: close"
-            sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
-            else -> "Escape: close"
-        }
+        filenameLabel = Label("No resource", skin).apply { setWrap(true) }
+        controlsLabel = Label("Drop a resource to view | Escape: close", skin).apply { setWrap(true) }
+        errorLabel = Label("", skin).apply { setWrap(true) }
         val panel = Table(skin).apply {
             background = skin.getDrawable("window")
             pad(12f)
             defaults().left().growX().padBottom(4f)
-            add(Label(file.name, skin).apply { setWrap(true) }).row()
+            add(filenameLabel).row()
             add(resourceInfo).row()
-            add(Label(controls, skin).apply { setWrap(true) }).row()
+            add(controlsLabel).row()
+            add(errorLabel).row()
             add(frameTimeLabel)
         }
         stage.addActor(Table().apply {
@@ -232,6 +276,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             add(panel).growX()
         })
         updateResourceInfo()
+        Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
     }
 
     private fun updateResourceInfo() {
@@ -261,7 +306,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun render() {
-        if (!::camera.isInitialized || !::batch.isInitialized || !::modelBatch.isInitialized) {
+        if (!::camera.isInitialized || !::batch.isInitialized || !::stage.isInitialized) {
             return
         }
 
@@ -333,13 +378,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 dynamicLights = emptyList(),
             )
 
-            if (instances.isNotEmpty()) {
-                modelBatch.begin(camera)
-                instances.forEach {
-                    modelBatch.render(it)
-                }
-                modelBatch.end()
-
+            modelBatch?.let { models ->
+                models.begin(camera)
+                instances.forEach { models.render(it) }
+                models.end()
             }
 
             bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
@@ -367,8 +409,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun dispose() {
-        sound?.stop()
-        bspWorldRenderer?.dispose()
+        closePreview()
         if (::stage.isInitialized) {
             Gdx.input.inputProcessor = null
             stage.dispose()
@@ -376,14 +417,36 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (::batch.isInitialized) {
             batch.dispose()
         }
-        ownedModels.forEach { it.dispose() }
-        ownedModels.clear()
-        if (::modelBatch.isInitialized) {
-            modelBatch.dispose()
-        }
         if (::assetManager.isInitialized) {
             assetManager.dispose()
         }
+    }
+
+    private fun closePreview() {
+        sound?.stop()
+        bspWorldRenderer?.dispose()
+        bspWorldRenderer = null
+        modelBatch?.dispose()
+        modelBatch = null
+        instances.clear()
+        ownedModels.forEach { it.dispose() }
+        ownedModels.clear()
+        currentFile?.let { if (assetManager.isLoaded(it.absolutePath)) assetManager.unload(it.absolutePath) }
+        currentFile = null
+        image = null
+        sound = null
+        sprite = null
+        spriteFrameIndex = 0
+        spriteElapsed = 0f
+        playingSpriteAnimation = false
+        bspMap = null
+        bspVisibleSurfaces = BooleanArray(0)
+        bspTime = 0f
+        md2Instance = null
+        md2Frames = 1
+        md2SkinTextures = 0
+        md2FrameLerp = 0f
+        playingMd2Animation = false
     }
 
     private fun changeSpriteFrame(delta: Int) {

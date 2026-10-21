@@ -1,7 +1,9 @@
 package org.demoth.cake.lwjgl3
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import org.demoth.cake.viewer.CakeViewer
 
@@ -15,7 +17,15 @@ object Lwjgl3ViewerLauncher {
 }
 
 private fun createApplication(args: Array<String>): Lwjgl3Application {
-    return Lwjgl3Application(CakeViewer(args), createConfiguration())
+    val viewer = CakeViewer(args)
+    val configuration = createConfiguration().apply {
+        setWindowListener(object : Lwjgl3WindowAdapter() {
+            override fun filesDropped(files: Array<String>) {
+                files.firstOrNull()?.let { path -> Gdx.app.postRunnable { viewer.openFile(path) } }
+            }
+        })
+    }
+    return Lwjgl3Application(viewer, configuration)
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {

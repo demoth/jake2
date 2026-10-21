@@ -7,6 +7,12 @@ This small app can display .md2, .bsp, .pcx, .wal, .tga and .sp2 files and play 
 (provided as an argument).
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
+Drop a resource file onto the viewer window to replace the current preview.
+If several files are dropped, the first is opened. Switching stops sound playback
+and resets animation and camera controls. Missing or unsupported files leave the
+current preview open and show an error. A resource that fails during loading clears
+the preview and shows an error; another file can still be dropped afterward.
+
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
 
