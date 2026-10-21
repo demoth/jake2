@@ -24,6 +24,7 @@ import ktx.assets.TextAssetLoader
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.cakeSkin
+import org.demoth.cake.audio.SoundDurationRegistry
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.bsp.BspLoader
@@ -221,13 +222,15 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun updateResourceInfo() {
         val frame = spriteFrame
+        val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
             frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
             md2Instance != null -> "Frames: $md2Frames | Skin textures: $md2SkinTextures"
+            sound != null -> durationMs?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown"
             else -> ""
         })
-        resourceInfo.isVisible = frame != null || image != null || md2Instance != null
+        resourceInfo.isVisible = frame != null || image != null || md2Instance != null || sound != null
     }
 
     override fun resize(width: Int, height: Int) {
