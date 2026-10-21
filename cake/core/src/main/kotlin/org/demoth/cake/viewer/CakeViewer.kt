@@ -31,6 +31,8 @@ import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.md2.Md2Shader
 import org.demoth.cake.assets.CakeShaderProvider
 import org.demoth.cake.assets.ConvertingSoundLoader
+import org.demoth.cake.assets.Sp2Asset
+import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
@@ -40,11 +42,17 @@ import kotlin.system.measureTimeMillis
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
+    private var sprite: Sp2Asset? = null
+    private var spriteFrameIndex = 0
+    private val spriteFrame: Sp2Asset.Frame? get() = sprite?.frames?.get(spriteFrameIndex)
+    private var playingSpriteAnimation = false
+    private var spriteElapsed = 0f
+    private val spriteFrameDuration = 0.1f
     private var sound: Sound? = null
     private lateinit var modelBatch: ModelBatch
     private lateinit var assetManager: AssetManager
@@ -93,6 +101,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
             setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
             setLoader(Sound::class.java, ConvertingSoundLoader(fileResolver))
+            setLoader(Sp2Asset::class.java, Sp2Loader(fileResolver))
             setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
@@ -101,6 +110,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         font = BitmapFont()
 
         when (file.extension.lowercase()) {
+            "sp2" -> {
+                sprite = assetManager.getLoaded<Sp2Asset>(file.absolutePath)
+            }
             "wav" -> {
                 sound = assetManager.getLoaded<Sound>(file.absolutePath).also { it.play() }
             }
@@ -183,17 +195,38 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 currentSound.play()
             } else if (md2Data != null) {
                 playingMd2Animation = !playingMd2Animation
+            } else if (sprite != null) {
+                playingSpriteAnimation = !playingSpriteAnimation
             }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
         } else if (sound != null && Gdx.input.isKeyJustPressed(Input.Keys.S)) {
             sound?.stop()
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && md2Data != null) {
-            md2FrameLerp = 0f
-            changeFrame(1, md2Data, md2Frames)
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && md2Data != null) {
-            md2FrameLerp = 0f
-            changeFrame(-1, md2Data, md2Frames)
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            if (md2Data != null) {
+                md2FrameLerp = 0f
+                changeFrame(1, md2Data, md2Frames)
+            } else if (sprite != null) {
+                spriteElapsed = 0f
+                changeSpriteFrame(1)
+            }
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            if (md2Data != null) {
+                md2FrameLerp = 0f
+                changeFrame(-1, md2Data, md2Frames)
+            } else if (sprite != null) {
+                spriteElapsed = 0f
+                changeSpriteFrame(-1)
+            }
+        }
+
+        if (playingSpriteAnimation) {
+            spriteElapsed += Gdx.graphics.deltaTime
+            val steps = (spriteElapsed / spriteFrameDuration).toInt()
+            if (steps > 0) {
+                changeSpriteFrame(steps)
+                spriteElapsed %= spriteFrameDuration
+            }
         }
 
         if (playingMd2Animation && md2Data != null) {
@@ -226,13 +259,19 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 font.draw(batch, "Frame time ms: $frameTime", 0f, font.lineHeight)
                 if (sound != null) {
                     font.draw(batch, "Space: replay | S: stop | Escape: close", 0f, font.lineHeight * 2)
+                } else if (sprite != null) {
+                    font.draw(batch, "Space: play/pause | Left/Right: step | Escape: close", 0f, font.lineHeight * 2)
                 }
 
-                if (image != null) {
+                val currentFrame = spriteFrame
+                val currentImage = currentFrame?.texture ?: image
+                if (currentImage != null) {
                     // draw image in the center of the screen
-                    val x = (Gdx.graphics.width - image!!.width) / 2f
-                    val y = (Gdx.graphics.height - image!!.height) / 2f
-                    it.draw(image, x, y)
+                    val width = (currentFrame?.width ?: currentImage.width).toFloat()
+                    val height = (currentFrame?.height ?: currentImage.height).toFloat()
+                    val x = (Gdx.graphics.width - width) / 2f
+                    val y = (Gdx.graphics.height - height) / 2f
+                    it.draw(currentImage, x, y, width, height)
                 }
 
             }
@@ -254,6 +293,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (::assetManager.isInitialized) {
             assetManager.dispose()
         }
+    }
+
+    private fun changeSpriteFrame(delta: Int) {
+        spriteFrameIndex = Math.floorMod(spriteFrameIndex + delta, sprite!!.frames.size)
     }
 
     private fun addOwnedInstance(instance: ModelInstance) {
