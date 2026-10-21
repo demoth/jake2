@@ -22,16 +22,28 @@ import java.util.LinkedHashSet
  */
 class ViewerFileResolver(
     openedFilePath: String,
-    private val basedir: String? = null,
-    private val gamemod: String? = null,
+    private var basedir: String? = null,
+    gamemod: String? = null,
 ) : FileHandleResolver {
 
-    private val openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
-    private val openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
+    private var openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
+    private var openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
     private val localVfs = DefaultVirtualFileSystem()
     private val gameDataVfs = CakeVfsAssetSource()
 
     init {
+        configure(openedFilePath, basedir, gamemod)
+    }
+
+    /**
+     * Changes the resource context while preserving the resolver used by asset loaders.
+     * Call only after unloading the previous preview and finishing all asset-loading work.
+     * This does not invalidate AssetManager's cached assets.
+     */
+    fun configure(openedFilePath: String, basedir: String? = null, gamemod: String? = null) {
+        this.basedir = basedir
+        openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
+        openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
         localVfs.configure(
             VfsConfig(
                 null,

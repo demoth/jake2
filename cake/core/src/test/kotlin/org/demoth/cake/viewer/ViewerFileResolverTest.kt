@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -134,6 +135,49 @@ class ViewerFileResolverTest {
         val resolved = resolver.resolve("missing/asset/file.pcx")
 
         assertNull(resolved)
+    }
+
+    @Test
+    fun reconfiguresLocalRootsAndAdjacentFileFallback() {
+        val first = createFile("first/models/tris.md2")
+        val second = createFile("second/models/tris.md2")
+        val firstTexture = createFile("first/textures/shared.wal")
+        val secondTexture = createFile("second/textures/shared.wal")
+        val firstSkin = createFile("first/models/skin.pcx")
+        val secondSkin = createFile("second/models/skin.pcx")
+        createFile("first/textures/old-only.wal")
+        val resolver = ViewerFileResolver(first.absolutePath)
+
+        assertEquals(firstTexture.absolutePath, resolver.resolve("textures/shared.wal")!!.file().absolutePath)
+        assertEquals(firstSkin.absolutePath, resolver.resolve("players/male/skin.pcx")!!.file().absolutePath)
+
+        resolver.configure(second.absolutePath)
+
+        assertEquals(secondTexture.absolutePath, resolver.resolve("textures/shared.wal")!!.file().absolutePath)
+        assertEquals(secondSkin.absolutePath, resolver.resolve("players/male/skin.pcx")!!.file().absolutePath)
+        assertNull(resolver.resolve("textures/old-only.wal"))
+    }
+
+    @Test
+    fun reconfiguresGameDataAndReleasesPreviousArchiveExtracts() {
+        val openedFile = createFile("viewer/models/tris.md2")
+        val path = "textures/shared.wal"
+        writePak(temp.resolve("first/baseq2/pak0.pak"), linkedMapOf(path to "first".toByteArray()))
+        writePak(temp.resolve("second/custom/pak0.pak"), linkedMapOf(path to "second".toByteArray()))
+        val resolver = ViewerFileResolver(openedFile.absolutePath, basedir = temp.resolve("first").toString())
+        val firstExtract = resolver.resolve(path)!!
+        assertEquals("first", firstExtract.readString())
+
+        resolver.configure(openedFile.absolutePath, basedir = temp.resolve("second").toString(), gamemod = "custom")
+
+        assertFalse(firstExtract.exists())
+        val secondExtract = resolver.resolve(path)!!
+        assertEquals("second", secondExtract.readString())
+
+        resolver.configure(openedFile.absolutePath)
+
+        assertFalse(secondExtract.exists())
+        assertNull(resolver.resolve(path))
     }
 
     private fun createFile(relativePath: String): File {
