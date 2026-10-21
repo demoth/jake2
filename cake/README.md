@@ -102,8 +102,10 @@ These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
 that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
-Fullgame native-image support is not verified; embedded game reflection and save
-serialization need additional reachability coverage before that is supported.
+All three launchers use the shared native configuration and explicit reflection
+metadata for audio and Scene2D skin/pool classes. Native compilation and basic
+startup are verified on Linux ARM64; fullgame hosting and save/load still need
+runtime validation.
 
 ## Playing and hosting
 
