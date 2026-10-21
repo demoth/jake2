@@ -3,7 +3,8 @@
 ![screenshot](screenshots/md2-viewer.png)
 ![screenshot](screenshots/bsp-viewer.png)
 
-This small app can display .md2, .bsp, .pcx, .wal and .tga files (provided as an argument).
+This small app can display .md2, .bsp, .pcx, .wal and .tga files and play .wav sounds
+(provided as an argument).
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
 ### How to run
@@ -24,10 +25,14 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
   game-data fallback and an adjacent-file fallback for game-relative skin paths.
   Models can render with a default skin when their referenced skins are missing.
 - Renders `.bsp` maps and `.pcx` / `.wal` / `.tga` images.
+- Plays `.wav` sounds, including Quake II's 8-bit PCM files.
 - Displays a grid and axes for models and maps.
 
 For MD2 models, press Space to toggle animation playback and Left/Right to step
 frames. Press Escape to exit.
+
+WAV files play once on opening. Press Space to replay, S to stop, and Escape to
+close. These controls are also shown in the window.
 
 ## How to associate .md2 files with Cake Viewer?
 

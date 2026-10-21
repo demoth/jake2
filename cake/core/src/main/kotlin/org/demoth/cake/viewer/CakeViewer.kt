@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -29,6 +30,7 @@ import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.md2.Md2Shader
 import org.demoth.cake.assets.CakeShaderProvider
+import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
@@ -38,11 +40,12 @@ import kotlin.system.measureTimeMillis
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
+    private var sound: Sound? = null
     private lateinit var modelBatch: ModelBatch
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
@@ -89,6 +92,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
             setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
             setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
+            setLoader(Sound::class.java, ConvertingSoundLoader(fileResolver))
             setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
@@ -97,6 +101,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         font = BitmapFont()
 
         when (file.extension.lowercase()) {
+            "wav" -> {
+                sound = assetManager.getLoaded<Sound>(file.absolutePath).also { it.play() }
+            }
             "pcx", "wal", "tga" -> {
                 image = assetManager.getLoaded(file.absolutePath)
             }
@@ -170,9 +177,17 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         val md2Data = md2Instance?.let { it.userData as? Md2CustomData }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            playingMd2Animation = !playingMd2Animation
+            val currentSound = sound
+            if (currentSound != null) {
+                currentSound.stop()
+                currentSound.play()
+            } else if (md2Data != null) {
+                playingMd2Animation = !playingMd2Animation
+            }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
+        } else if (sound != null && Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+            sound?.stop()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && md2Data != null) {
             md2FrameLerp = 0f
             changeFrame(1, md2Data, md2Frames)
@@ -209,6 +224,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             batch.use {
                 // draw frame time in the bottom left corner
                 font.draw(batch, "Frame time ms: $frameTime", 0f, font.lineHeight)
+                if (sound != null) {
+                    font.draw(batch, "Space: replay | S: stop | Escape: close", 0f, font.lineHeight * 2)
+                }
 
                 if (image != null) {
                     // draw image in the center of the screen
@@ -224,6 +242,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     override fun dispose() {
+        sound?.stop()
         if (::batch.isInitialized) {
             batch.dispose()
         }
