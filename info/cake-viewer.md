@@ -3,8 +3,8 @@
 ![screenshot](screenshots/md2-viewer.png)
 ![screenshot](screenshots/bsp-viewer.png)
 
-This small app can display .md2, .bsp, .pcx, .wal, .tga and .sp2 files and play .wav sounds
-(provided as an argument).
+This small app can display .md2, .bsp, .pcx, .wal, .tga and .sp2 files, play .wav
+sounds, and browse .pak archives (provided as an argument).
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
 Drop a resource file onto the viewer window to replace the current preview.
@@ -12,6 +12,12 @@ If several files are dropped, the first is opened. Switching stops sound playbac
 and resets animation and camera controls. Missing or unsupported files leave the
 current preview open and show an error. A resource that fails during loading clears
 the preview and shows an error; another file can still be dropped afterward.
+
+PAK archives open a folder tree on the left and the selected folder's contents on
+the right, sorted with folders first. Select a folder in the tree or double-click
+a folder in the list to browse it. Selecting a file shows its logical path and
+size in bytes. Browsing lists the selected archive's contents without extracting
+its resources.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.

@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import ktx.assets.TextAssetLoader
@@ -44,13 +45,14 @@ import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
 import org.demoth.cake.ui.UiViewport
+import org.demoth.cake.ui.ContentBrowser
 import java.io.File
 import kotlin.system.measureTimeMillis
 
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
@@ -69,6 +71,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var modelBatch: ModelBatch? = null
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
+    private var archiveEntryCount: Int? = null
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
@@ -78,6 +81,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private val ownedModels: MutableList<Model> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var stage: Stage
+    private lateinit var browserHost: Container<ContentBrowser>
     private lateinit var filenameLabel: Label
     private lateinit var controlsLabel: Label
     private lateinit var errorLabel: Label
@@ -156,12 +160,20 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         closePreview()
         resetCamera()
         try {
-            val hints = detectViewerStartupHints(file.absolutePath)
-            fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
             currentFile = file
-            loadPreview(file)
+            if (file.extension.equals("pak", ignoreCase = true)) {
+                val entries = fileResolver.configureArchive(file.absolutePath)
+                archiveEntryCount = entries.size
+                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin))
+                browserHost.isVisible = true
+            } else {
+                val hints = detectViewerStartupHints(file.absolutePath)
+                fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
+                loadPreview(file)
+            }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
+                archiveEntryCount != null -> "Select a folder | Double-click a folder in the list to open it | Escape: close"
                 sound != null -> "Space: replay | S: stop | Escape: close"
                 sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
@@ -260,6 +272,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         filenameLabel = Label("No resource", skin).apply { setWrap(true) }
         controlsLabel = Label("Drop a resource to view | Escape: close", skin).apply { setWrap(true) }
         errorLabel = Label("", skin).apply { setWrap(true) }
+        browserHost = Container<ContentBrowser>().apply {
+            fill()
+            isVisible = false
+        }
         val panel = Table(skin).apply {
             background = skin.getDrawable("window")
             pad(12f)
@@ -273,7 +289,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         stage.addActor(Table().apply {
             setFillParent(true)
             top().left().pad(12f)
-            add(panel).growX()
+            add(panel).growX().row()
+            add(browserHost).grow()
         })
         updateResourceInfo()
         Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
@@ -284,6 +301,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         val bsp = bspMap
         val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
+            archiveEntryCount != null -> "Files: $archiveEntryCount"
             frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
             md2Instance != null -> "Frames: $md2Frames | Skin textures: $md2SkinTextures"
@@ -423,6 +441,11 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun closePreview() {
+        archiveEntryCount = null
+        if (::browserHost.isInitialized) {
+            browserHost.actor = null
+            browserHost.isVisible = false
+        }
         sound?.stop()
         bspWorldRenderer?.dispose()
         bspWorldRenderer = null
