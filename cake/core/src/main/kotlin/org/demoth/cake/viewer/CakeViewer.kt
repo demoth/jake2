@@ -38,7 +38,7 @@ import kotlin.system.measureTimeMillis
 private const val GRID_SIZE = 16f
 private const val GRID_DIVISIONS = 8
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
@@ -97,10 +97,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         font = BitmapFont()
 
         when (file.extension.lowercase()) {
-            "pcx" -> {
-                image = assetManager.getLoaded(file.absolutePath)
-            }
-            "wal" -> {
+            "pcx", "wal", "tga" -> {
                 image = assetManager.getLoaded(file.absolutePath)
             }
             "md2" -> {

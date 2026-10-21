@@ -3,7 +3,7 @@
 ![screenshot](screenshots/md2-viewer.png)
 ![screenshot](screenshots/bsp-viewer.png)
 
-This small app can display .md2, .bsp, .pcx and .wal files (provided as an argument).
+This small app can display .md2, .bsp, .pcx, .wal and .tga files (provided as an argument).
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
 ### How to run
@@ -23,7 +23,7 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 - Resolves referenced skins using the opened file's folder and parent, with detected
   game-data fallback and an adjacent-file fallback for game-relative skin paths.
   Models can render with a default skin when their referenced skins are missing.
-- Renders `.bsp` maps and `.pcx` / `.wal` images.
+- Renders `.bsp` maps and `.pcx` / `.wal` / `.tga` images.
 - Displays a grid and axes for models and maps.
 
 For MD2 models, press Space to toggle animation playback and Left/Right to step
