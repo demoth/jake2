@@ -3,6 +3,7 @@ package org.demoth.cake.assets
 import com.badlogic.gdx.files.FileHandle
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
+import jake2.qcommon.vfs.VfsEntry
 import jake2.qcommon.vfs.VfsSourceType
 import java.nio.file.Files
 import java.nio.file.Path
@@ -14,13 +15,14 @@ import java.nio.file.Path
  * to temporary files so libGDX loaders can consume standard [FileHandle]s.
  */
 internal class CakeVfsAssetSource {
-    private val vfs = DefaultVirtualFileSystem()
+    private var vfs = DefaultVirtualFileSystem()
     private val extractedPackageFiles = mutableMapOf<String, Path>()
 
     private var configuredBasedir: String? = null
     private var configuredGameMod: String? = null
     private var configuredCaseSensitive: Boolean = false
     private var initialized = false
+    private var archiveContext = false
 
     @Synchronized
     fun configure(basedir: String?, gameMod: String?, caseSensitive: Boolean) {
@@ -28,6 +30,7 @@ internal class CakeVfsAssetSource {
         val normalizedGameMod = gameMod?.takeIf { it.isNotBlank() }
         if (
             initialized &&
+            !archiveContext &&
             configuredBasedir == normalizedBasedir &&
             configuredGameMod == normalizedGameMod &&
             configuredCaseSensitive == caseSensitive
@@ -38,6 +41,7 @@ internal class CakeVfsAssetSource {
         configuredBasedir = normalizedBasedir
         configuredGameMod = normalizedGameMod
         configuredCaseSensitive = caseSensitive
+        archiveContext = false
 
         clearExtractedPackageFiles()
 
@@ -55,6 +59,25 @@ internal class CakeVfsAssetSource {
             ),
         )
         initialized = true
+    }
+
+    /** Mounts only the selected archive, retaining the previous context if mounting fails. */
+    @Synchronized
+    fun configureArchive(archivePath: String): List<VfsEntry> {
+        val archiveVfs = DefaultVirtualFileSystem()
+        archiveVfs.configure(
+            VfsConfig(
+                null, "baseq2", null, false, false, false, emptyList(),
+                setOf("pak", "pk2", "pk3", "pkz", "zip"),
+            ),
+        )
+        val mounted = archiveVfs.mountPackage(archivePath)
+        require(mounted.success) { mounted.error ?: "Could not mount archive: $archivePath" }
+        clearExtractedPackageFiles()
+        vfs = archiveVfs
+        archiveContext = true
+        initialized = true
+        return vfs.listEntries()
     }
 
     @Synchronized

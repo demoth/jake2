@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -178,6 +179,77 @@ class ViewerFileResolverTest {
 
         assertFalse(secondExtract.exists())
         assertNull(resolver.resolve(path))
+    }
+
+    @Test
+    fun archiveContextPreservesLogicalPathsWithoutLooseOrProfileFallbacks() {
+        val openedFile = createFile("game/baseq2/models/tris.md2")
+        val loose = createFile("game/baseq2/textures/loose.wal")
+        createFile("game/baseq2/models/adjacent.pcx")
+        writePak(temp.resolve("game/baseq2/other.pak"), linkedMapOf("textures/other.wal" to byteArrayOf(1)))
+        val pak = temp.resolve("game/baseq2/selected.pak")
+        writePak(pak, linkedMapOf("models/thing/tris.md2" to "model".toByteArray(),
+            "models/thing/Skin.PCX" to "skin".toByteArray()))
+        val resolver = ViewerFileResolver(openedFile.absolutePath, basedir = temp.resolve("game").toString())
+
+        val entries = resolver.configureArchive(pak.toString())
+
+        assertEquals(listOf("models/thing/skin.pcx", "models/thing/tris.md2"), entries.map { it.normalizedPath })
+        assertTrue(entries.all { it.source.containerPath == pak })
+        assertEquals("model", resolver.resolve("models/thing/tris.md2")!!.readString())
+        val skin = resolver.resolve("models/thing/skin.pcx")!!
+        assertEquals("skin", skin.readString())
+        assertEquals(skin.path(), resolver.resolve("models/thing/skin.pcx")!!.path())
+        assertNull(resolver.resolve("textures/loose.wal"))
+        assertNull(resolver.resolve("textures/other.wal"))
+        assertNull(resolver.resolve("players/male/adjacent.pcx"))
+        assertNull(resolver.resolve(loose.absolutePath))
+        assertNotNull(resolver.resolve("com/badlogic/gdx/utils/lsans-15.fnt"))
+        resolver.configure(openedFile.absolutePath)
+    }
+
+    @Test
+    fun changingArchivesAndReturningToLooseContextReleasesExtracts() {
+        val openedFile = createFile("viewer/models/tris.md2")
+        val loose = createFile("viewer/textures/shared.wal")
+        val path = "textures/shared.wal"
+        val first = temp.resolve("first.pak")
+        val second = temp.resolve("second.pak")
+        writePak(first, linkedMapOf(path to "first".toByteArray()))
+        writePak(second, linkedMapOf(path to "second".toByteArray()))
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
+        resolver.configureArchive(first.toString())
+        val firstExtract = resolver.resolve(path)!!
+        assertEquals("first", firstExtract.readString())
+
+        resolver.configureArchive(second.toString())
+
+        assertFalse(firstExtract.exists())
+        val secondExtract = resolver.resolve(path)!!
+        assertEquals("second", secondExtract.readString())
+
+        resolver.configure(openedFile.absolutePath)
+
+        assertFalse(secondExtract.exists())
+        assertEquals(loose.absolutePath, resolver.resolve(path)!!.file().absolutePath)
+    }
+
+    @Test
+    fun failedArchiveMountRetainsThePreviousContext() {
+        val openedFile = createFile("viewer/models/tris.md2")
+        val pak = temp.resolve("selected.pak")
+        writePak(pak, linkedMapOf("textures/shared.wal" to "selected".toByteArray()))
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
+        resolver.configureArchive(pak.toString())
+        val extracted = resolver.resolve("textures/shared.wal")!!
+
+        assertThrows(IllegalArgumentException::class.java) {
+            resolver.configureArchive(temp.resolve("missing.pak").toString())
+        }
+
+        assertTrue(extracted.exists())
+        assertEquals("selected", resolver.resolve("textures/shared.wal")!!.readString())
+        resolver.configure(openedFile.absolutePath)
     }
 
     private fun createFile(relativePath: String): File {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
+import jake2.qcommon.vfs.VfsEntry
 import jake2.qcommon.vfs.VfsSourceType
 import org.demoth.cake.assets.CakeVfsAssetSource
 import java.io.File
@@ -19,6 +20,7 @@ import java.util.LinkedHashSet
  * 1. classpath/internal assets (viewer shaders, palette, icons)
  * 2. opened file folder and its parents via local VFS (for local model/map bundles)
  * 3. optional basedir/mod fallback via Cake VFS adapter (same convention as the game client)
+ * Archive mode resolves only bundled classpath assets and entries in the selected archive.
  */
 class ViewerFileResolver(
     openedFilePath: String,
@@ -30,6 +32,7 @@ class ViewerFileResolver(
     private var openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
     private val localVfs = DefaultVirtualFileSystem()
     private val gameDataVfs = CakeVfsAssetSource()
+    private var archiveContext = false
 
     init {
         configure(openedFilePath, basedir, gamemod)
@@ -41,6 +44,7 @@ class ViewerFileResolver(
      * This does not invalidate AssetManager's cached assets.
      */
     fun configure(openedFilePath: String, basedir: String? = null, gamemod: String? = null) {
+        archiveContext = false
         this.basedir = basedir
         openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
         openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
@@ -59,9 +63,17 @@ class ViewerFileResolver(
         gameDataVfs.configure(basedir = basedir, gameMod = gamemod, caseSensitive = false)
     }
 
+    /** Changes to an isolated archive context under the same loading/unloading rules as [configure]. */
+    fun configureArchive(archivePath: String): List<VfsEntry> {
+        val entries = gameDataVfs.configureArchive(archivePath)
+        archiveContext = true
+        return entries
+    }
+
     override fun resolve(fileName: String): FileHandle? {
-        // Absolute paths can come from CLI args and should always be accepted.
+        // Loose previews accept absolute CLI paths; archive dependencies use logical paths.
         val absoluteCandidate = File(fileName)
+        if (archiveContext && absoluteCandidate.isAbsolute) return null
         if (absoluteCandidate.isAbsolute) {
             val absoluteHandle = Gdx.files.absolute(absoluteCandidate.path)
             if (absoluteHandle.exists()) {
@@ -70,9 +82,12 @@ class ViewerFileResolver(
         }
 
         val normalized = fileName.replace('\\', '/')
-        val roots = listOf(Gdx.files.classpath(""), Gdx.files.internal(""))
+        val roots = if (archiveContext) listOf(Gdx.files.classpath(""))
+            else listOf(Gdx.files.classpath(""), Gdx.files.internal(""))
         resolveCaseSensitive(roots, fileName)?.let { return it }
         resolveCaseInsensitive(roots, normalized.lowercase())?.let { return it }
+
+        if (archiveContext) return gameDataVfs.resolve(fileName)
 
         resolveFromLocalVfs(fileName)?.let { return it }
         if (basedir != null) {
