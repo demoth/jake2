@@ -28,6 +28,8 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 - Displays `.sp2` sprites at each frame's declared dimensions, resolving
   referenced images through the same resource lookup as model skins.
 - Plays `.wav` sounds, including Quake II's 8-bit PCM files.
+- Uses the shared engine skin for a Scene2D information panel showing the filename,
+  image dimensions, and current/total SP2 frames with frame dimensions.
 - Displays a grid and axes for models and maps.
 
 For MD2 models, press Space to toggle animation playback and Left/Right to step

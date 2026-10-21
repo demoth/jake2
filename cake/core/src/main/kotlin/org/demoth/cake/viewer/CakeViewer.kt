@@ -3,11 +3,11 @@ package org.demoth.cake.viewer
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
@@ -16,9 +16,14 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import ktx.assets.TextAssetLoader
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
+import org.demoth.cake.cakeSkin
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.bsp.BspLoader
@@ -36,6 +41,7 @@ import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
+import org.demoth.cake.ui.UiViewport
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -63,7 +69,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     // models created directly in the viewer (grid/origin), not owned by AssetManager
     private val ownedModels: MutableList<Model> = mutableListOf()
     private lateinit var environment: Environment
-    private lateinit var font: BitmapFont
+    private lateinit var stage: Stage
+    private lateinit var resourceInfo: Label
+    private lateinit var frameTimeLabel: Label
     private var frameTime = 0f // to have an idea of the fps
 
     // md2 related stuff
@@ -107,7 +115,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
 
         modelBatch = ModelBatch()
-        font = BitmapFont()
 
         when (file.extension.lowercase()) {
             "sp2" -> {
@@ -174,11 +181,61 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         camera.direction.set(0f, 1f, 0f) // make y forward
 
         cameraInputController = FlyingCameraController(camera)
-        Gdx.input.inputProcessor = cameraInputController
 
         environment = Environment()
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
+        createStage(file)
+        Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
+    }
+
+    private fun createStage(file: File) {
+        val skin = assetManager.getLoaded<Skin>(cakeSkin)
+        stage = Stage(UiViewport())
+        stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+        resourceInfo = Label("", skin)
+        frameTimeLabel = Label("", skin)
+        val controls = when {
+            sound != null -> "Space: replay | S: stop | Escape: close"
+            sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
+            else -> "Escape: close"
+        }
+        val panel = Table(skin).apply {
+            background = skin.getDrawable("window")
+            pad(12f)
+            defaults().left().growX().padBottom(4f)
+            add(Label(file.name, skin).apply { setWrap(true) }).row()
+            add(resourceInfo).row()
+            add(Label(controls, skin).apply { setWrap(true) }).row()
+            add(frameTimeLabel)
+        }
+        stage.addActor(Table().apply {
+            setFillParent(true)
+            top().left().pad(12f)
+            add(panel).growX()
+        })
+        updateResourceInfo()
+    }
+
+    private fun updateResourceInfo() {
+        val frame = spriteFrame
+        resourceInfo.setText(when {
+            frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
+            image != null -> "${image!!.width} x ${image!!.height}"
+            else -> ""
+        })
+        resourceInfo.isVisible = frame != null || image != null
+    }
+
+    override fun resize(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) return
+        if (::stage.isInitialized) stage.viewport.update(width, height, true)
+        if (::batch.isInitialized) batch.projectionMatrix.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
+        if (::camera.isInitialized) {
+            camera.viewportWidth = width.toFloat()
+            camera.viewportHeight = height.toFloat()
+            camera.update()
+        }
     }
 
     override fun render() {
@@ -255,14 +312,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
 
             batch.use {
-                // draw frame time in the bottom left corner
-                font.draw(batch, "Frame time ms: $frameTime", 0f, font.lineHeight)
-                if (sound != null) {
-                    font.draw(batch, "Space: replay | S: stop | Escape: close", 0f, font.lineHeight * 2)
-                } else if (sprite != null) {
-                    font.draw(batch, "Space: play/pause | Left/Right: step | Escape: close", 0f, font.lineHeight * 2)
-                }
-
                 val currentFrame = spriteFrame
                 val currentImage = currentFrame?.texture ?: image
                 if (currentImage != null) {
@@ -277,11 +326,19 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
 
             cameraInputController.update()
+            frameTimeLabel.setText("Frame time ms: $frameTime")
+            stage.act(Gdx.graphics.deltaTime)
+            stage.viewport.apply()
+            stage.draw()
         }.toFloat()
     }
 
     override fun dispose() {
         sound?.stop()
+        if (::stage.isInitialized) {
+            Gdx.input.inputProcessor = null
+            stage.dispose()
+        }
         if (::batch.isInitialized) {
             batch.dispose()
         }
@@ -297,6 +354,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun changeSpriteFrame(delta: Int) {
         spriteFrameIndex = Math.floorMod(spriteFrameIndex + delta, sprite!!.frames.size)
+        updateResourceInfo()
     }
 
     private fun addOwnedInstance(instance: ModelInstance) {
