@@ -29,6 +29,7 @@ import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.bsp.BspLoader
 import org.demoth.cake.assets.bsp.BspMapAsset
+import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
 import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.md2.Md2Loader
@@ -61,6 +62,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var spriteElapsed = 0f
     private val spriteFrameDuration = 0.1f
     private var sound: Sound? = null
+    private var bspMap: BspMapAsset? = null
+    private var bspWorldRenderer: BspWorldBatchRenderer? = null
+    private var bspVisibleSurfaces = BooleanArray(0)
+    private var bspTime = 0f
     private lateinit var modelBatch: ModelBatch
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
@@ -161,6 +166,15 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> {
                 val bspMap = assetManager.getLoaded<BspMapAsset>(file.absolutePath)
+                this.bspMap = bspMap
+                bspWorldRenderer = BspWorldBatchRenderer(
+                    worldRenderData = bspMap.worldRenderData,
+                    worldBatchData = bspMap.worldBatchData,
+                    lightmapAtlasPages = bspMap.lightmapAtlasPages,
+                    assetManager = assetManager,
+                )
+                // Free-flight inspection shows the whole world without gameplay visibility state.
+                bspVisibleSurfaces = BooleanArray(bspMap.worldRenderData.surfaces.size) { true }
                 bspMap.models.forEach { model ->
                     instances.add(ModelInstance(model))
                 }
@@ -222,15 +236,17 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun updateResourceInfo() {
         val frame = spriteFrame
+        val bsp = bspMap
         val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
             frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
             md2Instance != null -> "Frames: $md2Frames | Skin textures: $md2SkinTextures"
             sound != null -> durationMs?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown"
+            bsp != null -> "World surfaces: ${bsp.worldRenderData.surfaces.size} | Inline brush models: ${bsp.inlineRenderData.size}"
             else -> ""
         })
-        resourceInfo.isVisible = frame != null || image != null || md2Instance != null || sound != null
+        resourceInfo.isVisible = resourceInfo.text.isNotEmpty()
     }
 
     override fun resize(width: Int, height: Int) {
@@ -307,6 +323,15 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
             camera.update()
 
+            bspTime += Gdx.graphics.deltaTime
+            val currentTimeMs = (bspTime * 1000f).toInt()
+            bspWorldRenderer?.render(
+                camera = camera,
+                visibleSurfaceMask = bspVisibleSurfaces,
+                currentTimeMs = currentTimeMs,
+                lightStyleResolver = { 1f },
+                dynamicLights = emptyList(),
+            )
 
             if (instances.isNotEmpty()) {
                 modelBatch.begin(camera)
@@ -316,6 +341,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 modelBatch.end()
 
             }
+
+            bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
 
             batch.use {
                 val currentFrame = spriteFrame
@@ -341,6 +368,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     override fun dispose() {
         sound?.stop()
+        bspWorldRenderer?.dispose()
         if (::stage.isInitialized) {
             Gdx.input.inputProcessor = null
             stage.dispose()

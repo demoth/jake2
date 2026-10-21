@@ -25,13 +25,17 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
   game-data fallback and an adjacent-file fallback for game-relative skin paths.
   Models can render with a default skin when their referenced skins are missing.
 - Renders `.bsp` maps and `.pcx` / `.wal` / `.tga` images.
+- BSP previews reuse the engine world renderer for opaque and translucent world
+  surfaces, with all surfaces enabled for free-flight inspection, static light
+  styles at full intensity, and no gameplay dynamic lights.
 - Displays `.sp2` sprites at each frame's declared dimensions, resolving
   referenced images through the same resource lookup as model skins.
 - Plays `.wav` sounds, including Quake II's 8-bit PCM files.
 - Uses the shared engine skin for a Scene2D information panel showing the filename,
   image dimensions, current/total SP2 frames with frame dimensions, MD2 frame
   and loaded skin texture counts (including the fallback texture when used),
-  and sound duration in seconds (or "unknown" when unavailable).
+  sound duration in seconds (or "unknown" when unavailable), and BSP world surface
+  and inline brush model counts from the loaded render data.
 - Displays a grid and axes for models and maps.
 
 For MD2 models, press Space to toggle animation playback and Left/Right to step
