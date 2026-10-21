@@ -37,8 +37,9 @@ which is incompatible with the current LWJGL version.
 Secondly, jake2 rendering is implemented in OpenGL immediate mode and had to be rewritten on a modern shader pipeline anyway.
 And lastly, there is a libGDX framework that can provide a lot of useful functionality, and ditch a lot of code (yes, `Menu.java`, I am looking at you)
 
-The `client` and `fullgame` modules are excluded from the build. 
-The new `cake` module is introduced for the client side part (WIP).
+The legacy `client` module is excluded from the build.
+The `cake` modules provide the new client: `cake-client` connects to remote servers,
+while `cake-fullgame` also supports singleplayer and hosting games.
 
 See [README.md](cake/README.md)
 
@@ -48,7 +49,9 @@ Installation and running
 build from source:
 - `./gradlew build` - to build (and run tests) from source. Building and testing does not require quake2 game files.
 - `./gradlew :cake:cake-client:run` - to run the Cake client (running the game requires quake2 game files)
+- `./gradlew :cake:cake-fullgame:run` - to run Cake with singleplayer and hosting support
 - `./gradlew :cake:cake-client:distZip` - to build the desktop Java distribution
+- `./gradlew :cake:cake-fullgame:distZip` - to build the full game desktop Java distribution
 - `./gradlew :cake:cake-modelviewer:distZip` - to build the model viewer desktop Java distribution
 
 If you run jake from an IDE:

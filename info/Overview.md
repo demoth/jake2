@@ -13,7 +13,8 @@ In addition to that there are several auxiliary modules:
 
   * `qcommon` - a common module with necessary data classes, utility functions, file formats, etc
   * `dedicated` - **executable** for the dedicated server - contains `server` and `game` modules.
-  * `fullgame` - (Deprecated) legacy executable with all the modules (except `dedicated`), excluded from the build
+  * `cake-client` - **executable** for the remote-only Cake client
+  * `cake-fullgame` - **executable** combining Cake with the `server` and `game` modules for singleplayer and hosting
   * `maptools` - set of tools (WIP) for map -> bsp pipeline
 
 # Module `game`

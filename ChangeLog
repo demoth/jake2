@@ -1,3 +1,42 @@
+1.2.2
+    - added cake-fullgame desktop distribution with Singleplayer and Host Game menus
+    - embedded server and game modules for local singleplayer and multiplayer hosting
+    - kept cake-client as a remote-only client
+    - added typed cvars across client, server, and game, with validated options controls
+    - scaled menus and game UI through a shared virtual viewport (cvar cl_ui_size)
+    - fixed air acceleration replication, instance save settings, and macOS launcher argument forwarding
+
+1.2.1
+    - added BSP lightmaps, animated textures, visibility culling, and batched world rendering
+    - improved dynamic lighting, particles, weapon effects, water rendering, and positional sound
+    - added persistent game-data profiles, profile editing, and automatic data-directory detection
+    - added Join Game, Player Setup, and Options menus with content-themed styling
+    - improved console history, completion, scrolling, and command descriptions
+    - introduced a shared virtual filesystem with directory, PAK, and ZIP support, and JSON save files
+    - added UDP asset downloads, screenshots, and rendering/network diagnostic graphs
+    - split client and model viewer launchers into separate standard JVM distributions
+    - upgraded to Java 25, Kotlin 2.4.20, and Gradle 9.8.0; updated runtime and native build tooling
+
+1.2.0
+    - introduced the Cake client built on libGDX and LWJGL3, replacing the legacy client in the active build
+    - added multiplayer connectivity, keyboard/mouse bindings, and interpolated player/entity movement
+    - added BSP map rendering, animated MD2 models, player and weapon models, skies, and SP2 sprites
+    - added HUD layouts, inventory display, crosshairs, positional sounds, footsteps, and initial client effects
+    - introduced the standalone model viewer for MD2, BSP, PCX, and WAL assets
+    - migrated asset loading to libGDX AssetManager and added Apple Silicon support
+    - upgraded the build baseline to Java 21
+
+1.1.1
+    - split common, game, server, client, and fullgame into separate build modules
+    - enabled multiple server/game instances in one JVM by removing shared static state
+    - reworked network packets and messages, with Quake 2 protocol 34 compatibility tests
+    - migrated map entity logic to Kotlin and extracted item definitions into CSV data
+    - added a dynamic-light flashlight to the legacy client and fixed savegame and entity behavior bugs
+
+1.1.0
+    - separated game, server, client, and common code into packages with explicit dependencies
+    - added a standalone dedicated server without client libraries
+
 1.0.0
     - gradle support
     - project cleanup
