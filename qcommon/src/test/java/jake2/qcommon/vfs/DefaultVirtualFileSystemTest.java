@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -20,6 +21,7 @@ import java.util.zip.ZipOutputStream;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultVirtualFileSystemTest {
@@ -171,6 +173,58 @@ public class DefaultVirtualFileSystemTest {
         assertTrue(bytes.success());
         assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes.value());
         assertEquals(VfsLayer.BASE_PACK, vfs.resolve("textures/zip.wal").entry().layer());
+    }
+
+    @Test
+    public void listsResolvedWinnersAsImmutableSnapshot() throws Exception {
+        Path basedir = temp.resolve("q2");
+        writeFile(basedir.resolve("baseq2/shared.cfg"), "base");
+        writeFile(basedir.resolve("baseq2/z.cfg"), "z");
+        writeFile(basedir.resolve("rogue/Shared.cfg"), "modded");
+        writeFile(basedir.resolve("rogue/A.cfg"), "a");
+        VirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(config(basedir, "rogue", false, false, List.of()));
+
+        List<VfsEntry> snapshot = vfs.listEntries();
+
+        assertEquals(List.of("a.cfg", "shared.cfg", "z.cfg"), snapshot.stream().map(VfsEntry::normalizedPath).toList());
+        VfsEntry shared = snapshot.get(1);
+        assertEquals(vfs.resolve("shared.cfg").entry(), shared);
+        assertEquals("Shared.cfg", shared.displayPath());
+        assertEquals(6, shared.size());
+        assertEquals(VfsSourceType.DIRECTORY, shared.source().type());
+        assertEquals(basedir.resolve("rogue"), shared.source().containerPath());
+        assertThrows(UnsupportedOperationException.class, snapshot::clear);
+
+        vfs.setGameMod(null);
+
+        assertEquals(List.of("shared.cfg", "z.cfg"), vfs.listEntries().stream().map(VfsEntry::normalizedPath).toList());
+        assertEquals(3, snapshot.size());
+        assertEquals(VfsLayer.MOD_LOOSE, snapshot.get(1).layer());
+    }
+
+    @Test
+    public void listsOnlyExplicitlyMountedArchiveEntries() throws Exception {
+        Path pak = temp.resolve("archive/content.pak");
+        writePak(pak, Map.of("nested/Z.txt", "zip".getBytes(StandardCharsets.US_ASCII),
+                "a.txt", "a".getBytes(StandardCharsets.US_ASCII)));
+        writeFile(pak.resolveSibling("outside.cfg"), "outside");
+        VirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(config(null, null, false, false, List.of()));
+        VfsResult<String> mount = vfs.mountPackage(pak.toString());
+        assertTrue(mount.success());
+
+        List<VfsEntry> snapshot = vfs.listEntries();
+
+        assertEquals(List.of("a.txt", "nested/z.txt"), snapshot.stream().map(VfsEntry::normalizedPath).toList());
+        VfsEntry nested = snapshot.get(1);
+        assertEquals("nested/Z.txt", nested.displayPath());
+        assertEquals(3, nested.size());
+        assertEquals(VfsSourceType.PACKAGE_ENTRY, nested.source().type());
+        assertEquals(pak, nested.source().containerPath());
+        assertTrue(vfs.unmount(mount.value()).success());
+        assertTrue(vfs.listEntries().isEmpty());
+        assertEquals(2, snapshot.size());
     }
 
     private VfsConfig config(

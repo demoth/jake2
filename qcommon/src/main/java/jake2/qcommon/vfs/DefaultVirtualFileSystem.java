@@ -196,6 +196,14 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         rebuildAll();
     }
 
+    @Override
+    public synchronized List<VfsEntry> listEntries() {
+        ensureConfigured();
+        return flattenedIndex.values().stream()
+                .sorted(Comparator.comparing(VfsEntry::normalizedPath))
+                .toList();
+    }
+
     /**
      * Returns resolved winner paths in ascending order.
      */
