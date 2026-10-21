@@ -30,6 +30,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.vfs.EngineVfs;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -63,7 +64,7 @@ public final class Cmd {
             return;
         }
         Com.Printf("execing " + args.get(1) + "\n");
-        Cbuf.InsertText(new String(f));
+        Cbuf.InsertText(new String(f, StandardCharsets.UTF_8));
 
     };
 
@@ -171,7 +172,7 @@ public final class Cmd {
             String token = Com.Parse(new Com.ParseHelp(text, i + 1));
 
             i += token.length();
-            token = Cvar.getInstance().VariableString(token);
+            token = Cvar.getInstance().getRawString(token);
             result.append(token);
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {
@@ -247,7 +248,7 @@ public final class Cmd {
 
     public static void AddCommand(String cmd_name, boolean replace, String description, Command function) {
         // fail if the command is a variable name
-        if ((Cvar.getInstance().VariableString(cmd_name)).length() > 0) {
+        if (Cvar.getInstance().isRegistered(cmd_name)) {
             Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
             return;
         }

@@ -7,11 +7,18 @@ import jake2.qcommon.network.messages.client.ClientMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.sizebuf_t
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.CakeCvars
 import org.demoth.cake.ClientFrame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks move-packet delta compression; input definitions are the only cvar prerequisites. */
 class InputManagerDeltaCompressionTest {
+    @BeforeEach
+    fun registerInputCvars() {
+        CakeCvars.registerInput()
+    }
 
     @Test
     fun invalidCurrentFrameRequestsFullFrameResync() {

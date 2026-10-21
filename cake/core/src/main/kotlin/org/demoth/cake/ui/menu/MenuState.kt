@@ -58,33 +58,12 @@ data class PlayerSetupState(
     val statusMessage: String = "",
 )
 
-data class OptionsSectionSummary(
-    val title: String,
-    val prefix: String,
-    val optionCount: Int = 0,
-)
-
-data class OptionEntryState(
-    val name: String,
-    val description: String = "",
-    val value: String = "",
-    val latchedValue: String? = null,
-    val choices: List<String> = emptyList(),
-)
-
-data class OptionEditValue(
-    val name: String,
-    val value: String,
-)
-
 data class OptionsHubState(
-    val sections: List<OptionsSectionSummary> = emptyList(),
+    val sections: List<OptionsSection> = emptyList(),
 )
 
 data class OptionsSectionState(
-    val title: String = "",
-    val prefix: String = "",
-    val entries: List<OptionEntryState> = emptyList(),
+    val section: OptionsSection? = null,
     val statusMessage: String = "",
 )
 

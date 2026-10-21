@@ -23,6 +23,7 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -100,8 +101,6 @@ class Cake(
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
-        private const val MIN_CLIENT_COMMAND_HZ = 10f
-        private const val MAX_CLIENT_COMMAND_HZ = 125f
         private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
         private val SCREENSHOT_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS")
@@ -165,7 +164,10 @@ class Cake(
 
     // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
     // Per-mod binding persistence is not implemented yet.
-    private val startup = startupContext ?: CakeStartupBootstrap.bootstrap()
+    private val startup = run {
+        CakeStartupBootstrap.ensureInitialized()
+        startupContext ?: CakeStartupBootstrap.bootstrap()
+    }
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
@@ -201,11 +203,11 @@ class Cake(
 
     }
     private var backgroundColor = Color.BLACK
-    private val clDebugStufftext = Cvar.getInstance().Get("cl_debug_stufftext", "0", 0, "Log raw server stufftext commands")
-    private val clMaxfps = Cvar.getInstance().Get("cl_maxfps", "62", 0)
+    private val clDebugStufftext = Cvar.getInstance().find<Boolean>("cl_debug_stufftext")
+    private val clMaxfps = Cvar.getInstance().find<Float>("cl_maxfps")
+    private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
     init {
-        CakeStartupBootstrap.ensureInitialized()
         Cbuf.AddText("set thinclient 1")
         Netchan.Netchan_Init()
     }
@@ -230,7 +232,7 @@ class Cake(
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
         // Game UI shares one reference scale; engine overlays and backdrops use window coordinates.
         uiViewport = UiViewport()
-        uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)
+        uiViewport.setReferenceHeight(uiSize.typedValue)
         uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
@@ -330,7 +332,7 @@ class Cake(
          * Send the rest of the command line over as an unconnected command.
          */
         Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
-            val rconPassword = Cvar.getInstance().VariableString("rcon_password")
+            val rconPassword = Cvar.getInstance().find<String>("rcon_password").typedValue
             if (rconPassword.isEmpty()) {
                 Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
                 return@AddCommand
@@ -352,7 +354,7 @@ class Cake(
             val to = if (networkState == CONNECTED || networkState == ACTIVE) {
                 netchan.remote_address
             } else {
-                val rconAddress = Cvar.getInstance().VariableString("rcon_address")
+                val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
                     Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
                     return@AddCommand
@@ -689,7 +691,7 @@ class Cake(
             CheckForResend(deltaSeconds)
 
             if (!drawable) return
-            if (uiViewport.setReferenceHeight(Cvar.getInstance().FindVar("cl_ui_size").value)) {
+            if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
                 uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
             }
             viewport.apply()
@@ -843,7 +845,7 @@ class Cake(
     }
 
     private fun currentClientCommandStepMs(): Float {
-        val hz = clMaxfps.value.coerceIn(MIN_CLIENT_COMMAND_HZ, MAX_CLIENT_COMMAND_HZ)
+        val hz = clMaxfps.typedValue
         return 1000f / hz
     }
 
@@ -1130,7 +1132,7 @@ class Cake(
             return
         }
 
-        val port = Cvar.getInstance().VariableValue("qport").toInt()
+        val port = Cvar.getInstance().find<Int>("qport").typedValue
         Globals.userinfo_modified = false
 
         Netchan.sendConnectionlessPacket(
@@ -1209,7 +1211,7 @@ class Cake(
                 }
 
                 is StuffTextMessage -> {
-                    if (clDebugStufftext.value != 0f) {
+                    if (clDebugStufftext.typedValue) {
                         Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
                     }
                     val filtered = filterServerStuffText(msg.text)
@@ -1552,13 +1554,13 @@ class Cake(
     }
 
     private fun currentPlayerSetupForm(): PlayerSetupFormState {
-        val name = Cvar.getInstance().VariableString("name").ifBlank { "unnamed" }
-        val password = Cvar.getInstance().VariableString("password")
-        val skinValue = Cvar.getInstance().VariableString("skin").ifBlank { "male/grunt" }
+        val name = Cvar.getInstance().find<String>("name").typedValue.ifBlank { "unnamed" }
+        val password = Cvar.getInstance().find<String>("password").typedValue
+        val skinValue = Cvar.getInstance().find<String>("skin").typedValue.ifBlank { "male/grunt" }
         val split = skinValue.split('/', limit = 2)
         val rawModel = split.firstOrNull().orEmpty().ifBlank { "male" }
         val rawSkin = split.getOrNull(1).orEmpty().ifBlank { "grunt" }
-        val hand = Cvar.getInstance().VariableString("hand").toIntOrNull()?.coerceIn(0, 2) ?: 0
+        val hand = Cvar.getInstance().find<Int>("hand").typedValue
         return playerSetupCatalog().normalize(
             PlayerSetupFormState(
                 name = name,
@@ -1580,59 +1582,50 @@ class Cake(
         val skinValue = "${normalized.model}/${normalized.skin}"
         val genderValue = deriveGenderFromSkin(skinValue)
 
-        Cvar.getInstance().Set("name", normalized.name)
-        Cvar.getInstance().Set("password", normalized.password)
-        Cvar.getInstance().Set("skin", skinValue)
-        Cvar.getInstance().Set("hand", normalized.hand.toString())
-        Cvar.getInstance().Set("gender", genderValue)
+        Cvar.getInstance().find<String>("name").set(normalized.name)
+        Cvar.getInstance().find<String>("password").set(normalized.password)
+        Cvar.getInstance().find<String>("skin").set(skinValue)
+        Cvar.getInstance().find<Int>("hand").set(normalized.hand)
+        Cvar.getInstance().find<String>("gender").set(genderValue)
         saveActiveProfileConfig()
         return "Saved player setup for ${normalized.name}"
     }
 
-    private fun optionSections(): List<OptionsSectionSummary> {
+    private fun optionSections(): List<OptionsSection> {
         val cvars = Cvar.getInstance()
         return DEFAULT_OPTIONS_SECTIONS.map { section ->
-            OptionsSectionSummary(
-                title = section.title,
-                prefix = section.prefix,
-                optionCount = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS).size,
-            )
+            section.copy(entries = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS))
         }
     }
 
-    private fun optionEntries(prefix: String): List<OptionEntryState> {
-        return Cvar.getInstance().listByPrefixAndFlags(prefix, CVAR_OPTIONS).map { cvar ->
-            OptionEntryState(
-                name = cvar.name,
-                description = cvar.description.orEmpty(),
-                value = cvar.string.orEmpty(),
-                latchedValue = cvar.latched_string,
-                choices = videoOptionChoices(cvar.name),
-            )
-        }
-    }
-
-    private fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String {
+    private fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
         val cvars = Cvar.getInstance()
         var updatedCount = 0
         var latchedCount = 0
-        values.forEach { update ->
-            val cvar = cvars.FindVar(update.name) ?: return@forEach
-            if (!update.name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
+        val errors = mutableListOf<String>()
+        values.forEach { (name, value) ->
+            val cvar = cvars.find(name) ?: return@forEach
+            if (!name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
                 return@forEach
             }
-            cvars.Set(update.name, update.value)
+            val result = if (value is String) cvars.setResult(cvar.name, value)
+            else cvars.setNativeResult(cvar.name, value)
+            if (!result.accepted) {
+                errors += result.diagnostic ?: "Rejected $name"
+                return@forEach
+            }
             updatedCount++
-            if (!cvar.latched_string.isNullOrBlank()) {
+            if (cvar.rawPendingString != null) {
                 latchedCount++
             }
         }
         saveActiveProfileConfig()
-        return if (latchedCount > 0) {
+        val summary = if (latchedCount > 0) {
             "Saved $updatedCount option(s). $latchedCount pending restart."
         } else {
             "Saved $updatedCount option(s)."
         }
+        return (listOf(summary) + errors).joinToString("\n")
     }
 
     private fun deriveGenderFromSkin(skinValue: String): String {
@@ -1841,11 +1834,9 @@ class Cake(
 
         override fun savePlayerSetup(form: PlayerSetupFormState): String = this@Cake.savePlayerSetup(form)
 
-        override fun optionSections(): List<OptionsSectionSummary> = this@Cake.optionSections()
+        override fun optionSections(): List<OptionsSection> = this@Cake.optionSections()
 
-        override fun optionEntries(prefix: String): List<OptionEntryState> = this@Cake.optionEntries(prefix)
-
-        override fun saveOptionEntries(prefix: String, values: List<OptionEditValue>): String =
+        override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String =
             this@Cake.saveOptionEntries(prefix, values)
     }
 

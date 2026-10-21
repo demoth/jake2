@@ -68,13 +68,13 @@ public class PlayerClient {
                 client.getPlayerState().pmove.pm_type = Defines.PM_DEAD;
                 ClientObituary(self, inflictor, attacker, gameExports);
                 PlayerClient.TossClientWeapon(self, gameExports);
-                if (gameExports.gameCvars.deathmatch.value != 0) {
+                if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                     gameExports.Help_f(self); // show scores
                 }
 
                 // clear inventory
                 gameExports.items.forEach(it -> {
-                    if (gameExports.gameCvars.coop.value != 0) {
+                    if (gameExports.gameCvars.coop.getTypedValue()) {
                         if ((gameExports.items.get(it.index).flags & GameDefines.IT_KEY) != 0) {
                             // this is kind of ugly, but it's how we want to handle keys in coop
                             client.resp.coop_respawn.inventory[it.index] = client.pers.inventory[it.index];
@@ -172,11 +172,11 @@ public class PlayerClient {
                                       GameExportsImpl gameExports) {
 
         GamePlayerInfo attackerClient = attacker.getClient();
-        if (gameExports.gameCvars.coop.value != 0 && attackerClient != null)
+        if (gameExports.gameCvars.coop.getTypedValue() && attackerClient != null)
             self.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         GamePlayerInfo client = self.getClient();
-        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue() || gameExports.gameCvars.coop.getTypedValue()) {
             boolean friendlyFire = (self.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
             int mod = self.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
             String message = null;
@@ -258,7 +258,7 @@ public class PlayerClient {
             if (message != null) {
                 gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
                         client.pers.netname + " " + message + ".\n");
-                if (gameExports.gameCvars.deathmatch.value != 0)
+                if (gameExports.gameCvars.deathmatch.getTypedValue())
                     client.resp.score--;
                 self.enemy = null;
                 return;
@@ -341,7 +341,7 @@ public class PlayerClient {
                             client.pers.netname + " " + message + " "
                                     + attackerClient.pers.netname + " "
                                     + message2 + "\n");
-                    if (gameExports.gameCvars.deathmatch.value != 0) {
+                    if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                         if (friendlyFire)
                             attackerClient.resp.score--;
                         else
@@ -353,7 +353,7 @@ public class PlayerClient {
         }
 
         gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname + " died.\n");
-        if (gameExports.gameCvars.deathmatch.value != 0)
+        if (gameExports.gameCvars.deathmatch.getTypedValue())
             client.resp.score--;
     }
 
@@ -396,7 +396,7 @@ public class PlayerClient {
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
         ent.flags |= client.pers.savedFlags;
-        if (gameExports.gameCvars.coop.value != 0)
+        if (gameExports.gameCvars.coop.getTypedValue())
             client.resp.score = client.pers.score;
     }
 
@@ -524,7 +524,7 @@ public class PlayerClient {
 
     
     public static GameEntity SelectDeathmatchSpawnPoint(GameExportsImpl gameExports) {
-        if (0 != ((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
+        if (0 != (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_SPAWN_FARTHEST))
             return SelectFarthestDeathmatchSpawnPoint(gameExports);
         else
             return SelectRandomDeathmatchSpawnPoint(gameExports);
@@ -574,9 +574,9 @@ public class PlayerClient {
     public static void SelectSpawnPoint(ServerEntity ent, float[] origin, float[] angles, GameExportsImpl gameExports) {
         GameEntity spot = null;
 
-        if (gameExports.gameCvars.deathmatch.value != 0)
+        if (gameExports.gameCvars.deathmatch.getTypedValue())
             spot = SelectDeathmatchSpawnPoint(gameExports);
-        else if (gameExports.gameCvars.coop.value != 0)
+        else if (gameExports.gameCvars.coop.getTypedValue())
             spot = SelectCoopSpawnPoint(ent, gameExports);
 
         EdictIterator es = null;
@@ -663,7 +663,7 @@ public class PlayerClient {
     }
 
     public static void respawn(GameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue() || gameExports.gameCvars.coop.getTypedValue()) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
                 CopyToBodyQue(self, gameExports);
@@ -717,7 +717,7 @@ public class PlayerClient {
         client = ent.getClient();
 
         // deathmatch wipes most client data every spawn
-        if (gameExports.gameCvars.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()) {
 
             resp.set(client.resp);
             String userinfo = client.pers.userinfo;
@@ -725,7 +725,7 @@ public class PlayerClient {
 
             userinfo = ClientUserinfoChanged(ent, userinfo, gameExports);
 
-        } else if (gameExports.gameCvars.coop.value != 0) {
+        } else if (gameExports.gameCvars.coop.getTypedValue()) {
 
             resp.set(client.resp);
 
@@ -785,8 +785,8 @@ public class PlayerClient {
         client.getPlayerState().pmove.origin[1] = (short) (spawn_origin[1] * 8);
         client.getPlayerState().pmove.origin[2] = (short) (spawn_origin[2] * 8);
 
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && 0 != ((int) gameExports.gameCvars.dmflags.value & Defines.DF_FIXED_FOV)) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()
+                && 0 != (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib.atoi(Info.Info_ValueForKey(
@@ -882,7 +882,7 @@ public class PlayerClient {
         //ent.client = game.clients + (ent - g_edicts - 1);
         ent.setClient(gameExports.game.clients[ent.index - 1]);
 
-        if (gameExports.gameCvars.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()) {
             ClientBeginDeathmatch(ent, gameExports);
             return;
         }
@@ -942,7 +942,7 @@ public class PlayerClient {
         // set spectator
         s = Info.Info_ValueForKey(userinfo, "spectator");
         // spectators are only supported in deathmatch
-        if (gameExports.gameCvars.deathmatch.value != 0 && !s.equals("0"))
+        if (gameExports.gameCvars.deathmatch.getTypedValue() && !s.equals("0"))
             client.pers.spectator = true;
         else
             client.pers.spectator = false;
@@ -957,8 +957,8 @@ public class PlayerClient {
                 client.pers.netname + "\\" + s);
 
         // fov
-        if (gameExports.gameCvars.deathmatch.value != 0
-                && 0 != ((int) gameExports.gameCvars.dmflags.value & Defines.DF_FIXED_FOV)) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()
+                && 0 != (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib
@@ -989,17 +989,17 @@ public class PlayerClient {
     static boolean ClientConnect(GameEntity ent, String userinfo, GameExportsImpl gameExports) {
         // check to see if they are on the banned IP list
         String ip = Info.Info_ValueForKey(userinfo, "ip");
-        if (GameSVCmds.SV_FilterPacket(ip, gameExports.gameCvars.filterban.value)) {
+        if (GameSVCmds.SV_FilterPacket(ip, gameExports.gameCvars.filterban.getTypedValue())) {
             Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
             return false;
         }
 
         // check for a spectator
         String spectator = Info.Info_ValueForKey(userinfo, "spectator");
-        if (gameExports.gameCvars.deathmatch.value != 0 && spectator.length() != 0 && !"0".equals(spectator)) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue() && spectator.length() != 0 && !"0".equals(spectator)) {
 
             // check for spectator password
-            if (!passwdOK(gameExports.gameCvars.spectator_password.string, spectator)) {
+            if (!passwdOK(gameExports.gameCvars.spectator_password.getTypedValue(), spectator)) {
                 Info.Info_SetValueForKey(userinfo, "rejmsg", "Spectator password required or incorrect.");
                 return false;
             }
@@ -1012,14 +1012,14 @@ public class PlayerClient {
                     numspec++;
             }
 
-            if (numspec >= gameExports.gameCvars.maxspectators.value) {
+            if (numspec >= gameExports.gameCvars.maxspectators.getTypedValue()) {
                 Info.Info_SetValueForKey(userinfo, "rejmsg", "Server spectator limit is full.");
                 return false;
             }
         } else {
             // check for a password
             String password = Info.Info_ValueForKey(userinfo, "password");
-            if (!passwdOK(gameExports.gameCvars.spectator_password.string, password)) {
+            if (!passwdOK(gameExports.gameCvars.password.getTypedValue(), password)) {
                 Info.Info_SetValueForKey(userinfo, "rejmsg", "Password required or incorrect.");
                 return false;
             }
@@ -1129,7 +1129,7 @@ public class PlayerClient {
             else
                 client.getPlayerState().pmove.pm_type = Defines.PM_NORMAL;
 
-            client.getPlayerState().pmove.gravity = (short) gameExports.gameCvars.sv_gravity.value;
+            client.getPlayerState().pmove.gravity = gameExports.gameCvars.sv_gravity.getTypedValue().shortValue();
             pm.s.set(client.getPlayerState().pmove);
 
             for (i = 0; i < 3; i++) {
@@ -1277,17 +1277,12 @@ public class PlayerClient {
      * Returns true, if the players gender flag was set to female. 
      */
     public static boolean IsFemale(GameEntity ent) {
-        char info;
-
         GamePlayerInfo client = ent.getClient();
         if (client == null)
             return false;
-    
-        info = Info.Info_ValueForKey(client.pers.userinfo, "gender")
-                .charAt(0);
-        if (info == 'f' || info == 'F')
-            return true;
-        return false;
+
+        String gender = Info.Info_ValueForKey(client.pers.userinfo, "gender");
+        return !gender.isEmpty() && (gender.charAt(0) == 'f' || gender.charAt(0) == 'F');
     }
 
     /**
@@ -1295,18 +1290,15 @@ public class PlayerClient {
      * male.
      */
     public static boolean IsNeutral(GameEntity ent) {
-        char info;
-
         GamePlayerInfo client = ent.getClient();
         if (client == null)
             return false;
-    
-        info = Info.Info_ValueForKey(client.pers.userinfo, "gender")
-                .charAt(0);
-    
-        if (info != 'f' && info != 'F' && info != 'm' && info != 'M')
+
+        String gender = Info.Info_ValueForKey(client.pers.userinfo, "gender");
+        if (gender.isEmpty())
             return true;
-        return false;
+        char info = gender.charAt(0);
+        return info != 'f' && info != 'F' && info != 'm' && info != 'M';
     }
 
     /**
@@ -1347,7 +1339,7 @@ public class PlayerClient {
      */ 
     public static void TossClientWeapon(GameEntity self, GameExportsImpl gameExports) {
 
-        if (gameExports.gameCvars.deathmatch.value == 0)
+        if (!gameExports.gameCvars.deathmatch.getTypedValue())
             return;
 
         GamePlayerInfo client = self.getClient();
@@ -1358,7 +1350,7 @@ public class PlayerClient {
             item = null;
 
         boolean quad;
-        if (0 == ((int) (gameExports.gameCvars.dmflags.value) & Defines.DF_QUAD_DROP))
+        if (0 == (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_QUAD_DROP))
             quad = false;
         else
             quad = (client.quad_framenum > (gameExports.level.framenum + 10));

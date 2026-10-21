@@ -1,9 +1,13 @@
 package org.demoth.cake.stages.ingame.hud
 
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
+import org.demoth.cake.CakeCvars
 import jake2.qcommon.Defines
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+/** Checks HUD layout commands and typed crosshair selection without a graphics context. */
 class HudTest {
     private sealed interface TestCommand {
         data class Image(val x: Int, val y: Int, val texture: Any?) : TestCommand
@@ -212,14 +216,19 @@ class HudTest {
     }
 
     @Test
-    fun resolvesCrosshairPicFromLegacyCvarValues() {
-        Assertions.assertNull(resolveCrosshairPicName(0f))
-        Assertions.assertEquals("ch1", resolveCrosshairPicName(1f))
-        Assertions.assertEquals("ch2", resolveCrosshairPicName(2f))
-        Assertions.assertEquals("ch3", resolveCrosshairPicName(3f))
-        Assertions.assertEquals("ch3", resolveCrosshairPicName(-1f))
-        Assertions.assertEquals("ch3", resolveCrosshairPicName(4f))
-        Assertions.assertEquals("ch0", resolveCrosshairPicName(0.5f))
+    fun resolvesCrosshairPicFromTypedCvarValues() {
+        val cvars = Cvar()
+        CakeCvars.registerHud(cvars)
+        val crosshair = cvars.find<Int>("cl_crosshair")
+        Assertions.assertEquals("ch1", resolveCrosshairPicName(crosshair.typedValue))
+        for (value in 0..3) {
+            Assertions.assertTrue(cvars.setResult(crosshair.name, value.toString()).accepted)
+            Assertions.assertEquals(if (value == 0) null else "ch$value", resolveCrosshairPicName(crosshair.typedValue))
+        }
+        for (invalid in listOf("-1", "4", "0.5")) {
+            Assertions.assertFalse(cvars.setResult(crosshair.name, invalid).accepted)
+            Assertions.assertEquals("ch3", resolveCrosshairPicName(crosshair.typedValue))
+        }
     }
 
     @Test

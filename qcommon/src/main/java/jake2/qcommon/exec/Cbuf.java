@@ -105,6 +105,7 @@ public final class Cbuf {
                     sb = new StringBuilder();
                 } else if (c == '"') {
                     inQuotes = !inQuotes;
+                    sb.append(c); // Tokenization still needs quotes around values containing spaces/macros.
                 } else {
                     sb.append(c);
                 }
@@ -284,7 +285,7 @@ public final class Cbuf {
     }
 
     public static void reconfigure(List<String> args, boolean clear) {
-        String dir = Cvar.getInstance().Get("cddir", "", CVAR_ARCHIVE).string;
+        String dir = Cvar.getInstance().find("cddir", String.class).getTypedValue();
         Cbuf.AddText("exec default.cfg\n");
         Cbuf.AddText("bind MWHEELUP weapnext\n");
         Cbuf.AddText("bind MWHEELDOWN weapprev\n");
@@ -293,12 +294,12 @@ public final class Cbuf {
         Cbuf.AddText("bind a +moveleft\n");
         Cbuf.AddText("bind d +moveright\n");
         Cbuf.Execute();
-        Cvar.getInstance().Set("vid_fullscreen", "0");
+        Cvar.getInstance().setResult("vid_fullscreen", "0");
         Cbuf.AddText("exec config.cfg\n");
 
         Cbuf.AddEarlySetCommands(args, clear);
         Cbuf.Execute();
-        if (!("".equals(dir))) Cvar.getInstance().Set("cddir", dir);
+        if (!("".equals(dir))) Cvar.getInstance().find("cddir", String.class).set(dir);
     }
 
 }

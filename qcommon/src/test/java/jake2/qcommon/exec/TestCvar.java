@@ -23,228 +23,161 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon.exec;
 
-
+import jake2.qcommon.Com;
 import jake2.qcommon.Info;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
-import static jake2.qcommon.Defines.CVAR_ARCHIVE;
-import static jake2.qcommon.Defines.CVAR_LATCH;
-import static jake2.qcommon.Defines.CVAR_OPTIONS;
-import static jake2.qcommon.Defines.CVAR_USERINFO;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jake2.qcommon.Defines.*;
+import static jake2.qcommon.exec.CvarSetResult.Status.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class TestCvar {
+class TestCvar {
+    private final Cvar cvars = Cvar.getInstance();
 
-	@Test
-	public void testInit() {
-		Cvar.Init();
-	}
+    @BeforeEach
+    void setUp() {
+        cvars.clear();
+        Cvar.Init();
+    }
 
-	@BeforeEach
-	public void setUp() {
-		Cvar.getInstance().clear();
-	}
+    @Test
+    void commandRegistrationProbesQuietlyAndRejectsCvarCollisions() {
+        String command = "test_quiet_command_probe";
+        String collision = "test_empty_cvar_collision";
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            Cmd.AddCommand(command, true, args -> {});
+            assertNotNull(Cmd.FindCommand(command));
+            cvars.register(collision, CvarTypes.STRING, "");
+            Cmd.AddCommand(collision, args -> {});
+            assertNull(Cmd.FindCommand(collision));
+        } finally {
+            Com.EndRedirect();
+            Cmd.RemoveCommand(command);
+        }
+        assertFalse(output.toString().contains("not registered"));
+        assertTrue(output.toString().contains(collision + " already defined as a var"));
+    }
 
-	@Test
-	public void testGet() {
-		Cvar.getInstance().Set("rene", "is cool.");
+    @Test
+    void earlyInputAndDefaultsRemainSeparateFromLookup() {
+        cvars.setResult("configured", "is cool.");
+        assertNull(cvars.find("configured"));
+        assertEquals("is cool.", cvars.getRawString("configured"));
+        var configured = cvars.register("configured", CvarTypes.STRING, "default");
+        assertEquals("is cool.", configured.getTypedValue());
+        assertEquals("default", configured.getDefaultValue());
+        assertSame(configured, cvars.find("configured"));
+        assertEquals("default", cvars.register("untouched", CvarTypes.STRING, "default").getTypedValue());
+        assertNull(cvars.find("missing"));
+    }
 
-		Assertions.assertEquals("is cool.", Cvar.getInstance().Get("rene", "default", 0).string);
-	}
+    @Test
+    void userinfoContainsOnlyValidNonemptyDeclaredValues() {
+        var expected = java.util.Map.of("msg", "1", "gender", "male", "rate", "25000",
+                "name", "unnamed", "skin", "male/grunt", "fov", "90", "hand", "0");
+        expected.forEach((name, value) -> cvars.register(name, CvarTypes.STRING, value, CVAR_USERINFO));
+        for (String value : List.of("value;", "value\"", "value\\")) {
+            assertThrows(IllegalArgumentException.class, () -> cvars.register("invalid_value", CvarTypes.STRING, value, CVAR_USERINFO));
+        }
+        for (String name : List.of("wrong;", "wrong\"", "wrong\\")) {
+            assertThrows(IllegalArgumentException.class, () -> cvars.register(name, CvarTypes.STRING, "value", CVAR_USERINFO));
+        }
+        cvars.register("non_userinfo", CvarTypes.STRING, "asdf");
+        cvars.register("password", CvarTypes.STRING, "", CVAR_USERINFO);
+        String userinfo = cvars.Userinfo();
+        assertEquals(expected.size() * 2 + 1, userinfo.split("\\\\").length);
+        expected.forEach((key, value) -> assertEquals(value, Info.Info_ValueForKey(userinfo, key)));
+        assertFalse(userinfo.contains("password"));
+        assertTrue(Info.Info_ValueForKey(userinfo, "password").isEmpty());
+    }
 
-	@Test
-	public void testGetDefault() {
-		Cvar.getInstance().Set("rene1", "is cool.");
+    @Test
+    void declarationsOwnDescriptionsAndFlags() {
+        var sensitivity = cvars.register("sensitivity", CvarTypes.FLOAT, 3f, CVAR_OPTIONS, "Mouse speed");
+        assertEquals("Mouse speed", sensitivity.description);
+        assertSame(sensitivity, cvars.register("sensitivity", CvarTypes.FLOAT, 3f, CVAR_OPTIONS, "Mouse speed"));
+        assertThrows(IllegalArgumentException.class, () -> cvars.register("sensitivity", CvarTypes.FLOAT, 3f, 0, "Mouse speed"));
+        assertThrows(IllegalArgumentException.class, () -> cvars.register("sensitivity", CvarTypes.FLOAT, 3f, CVAR_OPTIONS, "Changed"));
+        assertEquals(CVAR_OPTIONS, sensitivity.flags);
+        assertEquals("Mouse speed", sensitivity.description);
+    }
 
-		Assertions.assertEquals("default", Cvar.getInstance().Get("hello", "default", 0).string);
-	}
+    @Test
+    void listByPrefixAndFlagsFiltersAndSorts() {
+        cvars.register("s_volume", CvarTypes.FLOAT, 0.7f, CVAR_OPTIONS);
+        cvars.register("s_music", CvarTypes.FLOAT, 0.5f, CVAR_OPTIONS);
+        cvars.register("s_hidden", CvarTypes.BOOLEAN, false);
+        cvars.register("vid_gamma", CvarTypes.FLOAT, 1.2f, CVAR_OPTIONS);
+        assertEquals(List.of("s_music", "s_volume"), cvars.listByPrefixAndFlags("s_", CVAR_OPTIONS).stream().map(var -> var.name).toList());
+    }
 
-	@Test
-	public void testGetDefaultNull() {
-		Cvar.getInstance().Set("rene2", "is cool.");
+    @Test
+    void aliasesResolveEarlyInputsAndParticipateInCompletion() {
+        cvars.AddAlias("sensitivity", "in_sensitivity");
+        cvars.setResult("sensitivity", "4");
+        var sensitivity = cvars.register("in_sensitivity", CvarTypes.INTEGER, 3, CVAR_OPTIONS, "Mouse speed");
+        assertEquals("in_sensitivity", sensitivity.name);
+        assertEquals("4", cvars.getRawString("in_sensitivity"));
+        assertEquals("4", cvars.getRawString("sensitivity"));
+        assertEquals(CVAR_OPTIONS, sensitivity.flags);
+        assertEquals("Mouse speed", sensitivity.description);
+        assertEquals(List.of("sensitivity"), cvars.CompleteVariable("s"));
+    }
 
-		assertNull(Cvar.getInstance().Get("hello2", null, 0));
-	}
+    @Test
+    void videoLatchIsArchivedBeforeApplication() throws Exception {
+        var width = cvars.register("vid_width", CvarTypes.INTEGER, 1024, CVAR_ARCHIVE | CVAR_LATCH);
+        assertEquals(QUEUED, width.set(1280).getStatus());
+        assertEquals(1024, width.getTypedValue());
+        assertEquals("1280", width.getRawPendingString());
+        var file = Files.createTempFile("cvar-archive", ".cfg");
+        try {
+            cvars.writeArchiveVariables(file.toString());
+            String configText = Files.readString(file);
+            assertTrue(configText.contains("set vid_width \"1280\""));
+            assertFalse(configText.contains("set vid_width \"1024\""));
+        } finally {
+            Files.deleteIfExists(file);
+        }
+        cvars.updateLatchedVars();
+        assertEquals(1280, width.getTypedValue());
+        assertNull(width.getPendingValue());
+    }
 
-	@Test
-	public void testFind() {
-		Cvar.getInstance().Set("rene3", "is cool.");
+    @Test
+    void consoleFlagSuggestionsCannotEscalateFlagsOrBypassProtectionAndLatching() {
+        var plain = cvars.register("plain", CvarTypes.STRING, "old");
+        var locked = cvars.register("locked", CvarTypes.STRING, "old", CVAR_NOSET | CVAR_USERINFO);
+        var video = cvars.register("vid_setting", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_SERVERINFO);
+        cvars.AddAlias("old_plain", "plain");
+        Cbuf.AddAndExecuteScript("set old_plain changed u\nset locked changed u\nset vid_setting changed s\n");
+        assertEquals("old", plain.getTypedValue());
+        assertEquals(0, plain.flags);
+        assertEquals("old", locked.getTypedValue());
+        assertEquals(CVAR_NOSET | CVAR_USERINFO, locked.flags);
+        assertEquals("old", video.getTypedValue());
+        assertEquals("changed", video.getPendingValue());
+        assertEquals(CVAR_LATCH | CVAR_SERVERINFO, video.flags);
+    }
 
-		Assertions.assertEquals("is cool.", Cvar.getInstance().FindVar("rene3").string);
-	}
-
-	@Test
-	public void testVariableString() {
-		Cvar.getInstance().Set("rene4", "is cool.");
-		Assertions.assertEquals("is cool.", Cvar.getInstance().VariableString("rene4"));
-	}
-
-	@Test
-	public void testFullSetCreateNew() {
-		Cvar.getInstance().FullSet("rene5", "0.56", 0);
-
-		cvar_t rene5 = Cvar.getInstance().FindVar("rene5");
-		Assertions.assertNotNull(rene5);
-		Assertions.assertEquals("0.56", rene5.string);
-		assertTrue(rene5.value > 0.5f);
-	}
-
-	@Test
-	public void testFullSetOverwrite() {
-		Cvar.getInstance().FullSet("rene6", "0.56", 0);
-		Cvar.getInstance().FullSet("rene6", "10.6", 0);
-
-		cvar_t rene6 = Cvar.getInstance().FindVar("rene6");
-		Assertions.assertNotNull(rene6);
-		assertTrue(rene6.modified);
-		Assertions.assertEquals("10.6", rene6.string);
-		assertTrue(rene6.value > 0.5f);
-
-	}
-
-	@Test
-	public void testUserInfo() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("name", "unnamed", CVAR_USERINFO );
-		cvar.Get("skin", "male/grunt", CVAR_USERINFO);
-		cvar.Get("rate", "25000", CVAR_USERINFO);
-		cvar.Get("msg", "1", CVAR_USERINFO );
-		cvar.Get("hand", "0", CVAR_USERINFO );
-		cvar.Get("fov", "90", CVAR_USERINFO );
-		cvar.Get("gender", "male", CVAR_USERINFO );
-
-		cvar.Get("wrongcharacter1", "value;", CVAR_USERINFO);
-		cvar.Get("wrongcharacter2", "value\"", CVAR_USERINFO);
-		cvar.Get("wrongcharacter3", "value\\", CVAR_USERINFO);
-		cvar.Get("wrongcharacter4;", "value1", CVAR_USERINFO);
-		cvar.Get("wrongcharacter5\"", "value2", CVAR_USERINFO);
-		cvar.Get("wrongcharacter6\\", "value3", CVAR_USERINFO);
-		cvar.Get("non_userinfo", "asdf", 0);
-
-		Info.Print(cvar.Userinfo());
-
-		Assertions.assertEquals("\\msg\\1\\gender\\male\\rate\\25000\\name\\unnamed\\skin\\male/grunt\\fov\\90\\hand\\0", cvar.Userinfo());
-	}
-
-	@Test
-	public void testEmptyValue() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("name", "asdf", CVAR_USERINFO );
-		cvar.Get("password", "", CVAR_USERINFO );
-
-		String userinfo = cvar.Userinfo();
-		assertFalse(userinfo.contains("password")); // empty cvars should be ignored
-
-		String empty = Info.Info_ValueForKey(userinfo, "password");
-		assertTrue(empty.isEmpty());
-	}
-
-	@Test
-	public void testGetStoresDescription() {
-		cvar_t sensitivity = Cvar.getInstance().Get("sensitivity", "3", CVAR_OPTIONS, "Mouse speed");
-
-		assertEquals("Mouse speed", sensitivity.description);
-	}
-
-	@Test
-	public void testGetBackfillsDescriptionForExistingCvar() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("crosshair", "1", CVAR_OPTIONS);
-
-		cvar_t crosshair = cvar.Get("crosshair", "1", CVAR_OPTIONS, "Crosshair style");
-
-		assertEquals("Crosshair style", crosshair.description);
-	}
-
-	@Test
-	public void testListByPrefixAndFlagsFiltersAndSorts() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("s_volume", "0.7", CVAR_OPTIONS);
-		cvar.Get("s_music", "0.5", CVAR_OPTIONS);
-		cvar.Get("s_hidden", "0", 0);
-		cvar.Get("vid_gamma", "1.2", CVAR_OPTIONS);
-
-		List<cvar_t> sound = cvar.listByPrefixAndFlags("s_", CVAR_OPTIONS);
-
-		assertEquals(List.of("s_music", "s_volume"), sound.stream().map(var -> var.name).toList());
-	}
-
-	@Test
-	public void testAliasResolvesToCanonicalCvar() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.AddAlias("sensitivity", "in_sensitivity");
-
-		cvar_t sensitivity = cvar.Set("sensitivity", "4");
-
-		assertEquals("in_sensitivity", sensitivity.name);
-		assertEquals("4", cvar.VariableString("in_sensitivity"));
-		assertEquals("4", cvar.VariableString("sensitivity"));
-	}
-
-	@Test
-	public void testCanonicalGetBackfillsFlagsAfterAliasSet() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.AddAlias("crosshair", "cl_crosshair");
-		cvar.Set("crosshair", "2");
-
-		cvar_t crosshair = cvar.Get("cl_crosshair", "1", CVAR_OPTIONS, "Crosshair style");
-
-		assertEquals("cl_crosshair", crosshair.name);
-		assertEquals("2", crosshair.string);
-		assertEquals("Crosshair style", crosshair.description);
-		assertEquals(CVAR_OPTIONS, crosshair.flags & CVAR_OPTIONS);
-	}
-
-	@Test
-	public void testCompleteVariableIncludesAliases() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("in_sensitivity", "3", CVAR_OPTIONS);
-		cvar.AddAlias("sensitivity", "in_sensitivity");
-
-		List<String> completions = cvar.CompleteVariable("s");
-
-		assertEquals(List.of("sensitivity"), completions);
-	}
-
-	@Test
-	public void testVideoCvarLatchesWhileServerIsDead() {
-		Cvar cvar = Cvar.getInstance();
-		cvar.Get("vid_width", "1024", CVAR_ARCHIVE | CVAR_LATCH);
-
-		cvar_t vidWidth = cvar.Set("vid_width", "1280");
-
-		assertEquals("1024", vidWidth.string);
-		assertEquals("1280", vidWidth.latched_string);
-		cvar.updateLatchedVars();
-		assertEquals("1280", vidWidth.string);
-		assertNull(vidWidth.latched_string);
-	}
-
-	@Test
-	public void testWriteArchiveVariablesPrefersLatchedValue() throws IOException {
-		Cvar cvar = Cvar.getInstance();
-		cvar_t vidWidth = cvar.Get("vid_width", "1024", CVAR_ARCHIVE | CVAR_LATCH);
-		vidWidth.latched_string = "1280";
-
-		Path file = Files.createTempFile("cvar-archive", ".cfg");
-		try {
-			cvar.writeArchiveVariables(file.toString());
-
-			String configText = Files.readString(file);
-			assertTrue(configText.contains("set vid_width \"1280\""));
-			assertFalse(configText.contains("set vid_width \"1024\""));
-		} finally {
-			Files.deleteIfExists(file);
-		}
-	}
+    @Test
+    void earlyConsoleFlagSuggestionsAreValidatedAndSurvivePlainWritesAndTransfer() {
+        Cbuf.AddAndExecuteScript("set matching 2 u\nset matching 3\nset conflict 2 s\nset conflict 3\nset scoped 4 s\n");
+        assertEquals(3, cvars.register("matching", CvarTypes.INTEGER, 1, CVAR_USERINFO | CVAR_ARCHIVE).getTypedValue());
+        var conflict = cvars.register("conflict", CvarTypes.INTEGER, 1, CVAR_ARCHIVE);
+        assertEquals(1, conflict.getTypedValue());
+        assertEquals(CVAR_ARCHIVE, conflict.flags);
+        var local = new Cvar();
+        cvars.transferEarlyValue("scoped", local);
+        assertEquals(4, local.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+        var second = new Cvar();
+        cvars.transferEarlyValue("scoped", second);
+        assertEquals(0, second.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+    }
 }

@@ -1,5 +1,6 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -9,7 +10,8 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
-import org.demoth.cake.ui.menu.OptionEditValue
+import org.demoth.cake.fullscreenModeSuggestions
+import jake2.qcommon.exec.CvarType
 import org.demoth.cake.ui.menu.OptionsSectionState
 
 class OptionsSectionStage(
@@ -22,11 +24,15 @@ class OptionsSectionStage(
     parentIntent = MenuIntent.OpenOptions,
 ) {
     private var renderedState: OptionsSectionState = OptionsSectionState()
-    private val valuesByName = linkedMapOf<String, () -> String>()
+    // Widgets hold unapplied edits. These snapshots only detect changes to the shared cvar references.
+    private val valuesByName = linkedMapOf<String, () -> Any>()
+    private var renderedValues: List<Pair<String, String?>> = emptyList()
+    private var renderedChoices: List<List<Any>> = emptyList()
     private val labelStyle = style.menuWidgets.label
     private val buttonStyle = style.menuWidgets.button
     private val textFieldStyle = style.menuWidgets.textField
     private val selectBoxStyle = style.menuWidgets.selectBox
+    private val checkBoxStyle = style.menuWidgets.checkBox
     private val scrollPaneStyle = style.menuWidgets.scrollPane
 
     init {
@@ -40,7 +46,14 @@ class OptionsSectionStage(
     }
 
     private fun rebuild(state: OptionsSectionState, force: Boolean) {
-        if (!force && state == renderedState) {
+        val section = state.section
+        val entries = section?.entries.orEmpty()
+        val values = entries.map { it.rawString to it.rawPendingString }
+        val choices = entries.map {
+            if (it.name == "vid_fullscreen_mode") fullscreenModeSuggestions()
+            else it.type.choices
+        }
+        if (!force && state == renderedState && values == renderedValues && choices == renderedChoices) {
             return
         }
         clear()
@@ -49,35 +62,45 @@ class OptionsSectionStage(
             top().left().pad(12f)
             defaults().top().left().pad(12f)
 
-            add(Label(state.title.ifBlank { "Options" }, labelStyle)).colspan(3).left().row()
+            add(Label(section?.title ?: "Options", labelStyle)).colspan(3).left().row()
 
             add(Label("Name", labelStyle)).left()
             add(Label("Value", labelStyle)).left()
             add(Label("Description", labelStyle)).left().growX().fillX().row()
 
-            state.entries.forEach { entry ->
+            entries.forEachIndexed { index, entry ->
                 add(Label(entry.name, labelStyle)).minWidth(180f).left()
-                val value = entry.latchedValue ?: entry.value
-                val editor = if (entry.choices.isEmpty()) {
-                    TextField(value, textFieldStyle).also { field ->
-                        valuesByName[entry.name] = { field.text }
+                val type = entry.type
+                val value: Any = entry.pendingValue ?: entry.typedValue
+                val entryChoices = choices[index]
+                val editor = when {
+                    type.kind == CvarType.Kind.BOOLEAN -> TextButton("x", checkBoxStyle).apply {
+                        isChecked = value as Boolean
+                        valuesByName[entry.name] = { isChecked }
                     }
-                } else {
-                    SelectBox<String>(selectBoxStyle).apply {
-                        // Preserve a saved or pending value even if this monitor no longer offers it.
-                        setItems(*(entry.choices + value).distinct().toTypedArray())
+                    entryChoices.isNotEmpty() -> SelectBox<Any>(selectBoxStyle).apply {
+                        // Suggestions may omit a saved fullscreen mode; fixed choices are already validated.
+                        setItems(*(entryChoices + value).distinct().toTypedArray())
                         selected = value
                         setMaxListCount(10)
                         valuesByName[entry.name] = { selected }
                     }
+                    else -> TextField(entry.rawPendingString ?: entry.rawString, textFieldStyle).also { field ->
+                        // Numeric text is parsed once by the registry on Apply, using the same rules as console input.
+                        valuesByName[entry.name] = { field.text }
+                    }
                 }
-                add(editor).minWidth(220f).prefWidth(280f).fillX()
+                if (type.kind == CvarType.Kind.BOOLEAN) {
+                    add(editor).size(maxOf(editor.prefWidth, editor.prefHeight)).left()
+                } else {
+                    add(editor).minWidth(220f).prefWidth(280f).fillX()
+                }
 
                 val descriptionText = buildString {
-                    if (entry.description.isNotBlank()) {
+                    if (!entry.description.isNullOrBlank()) {
                         append(entry.description)
                     }
-                    entry.latchedValue?.takeIf { it.isNotBlank() }?.let { latched ->
+                    entry.rawPendingString?.let { latched ->
                         if (isNotEmpty()) {
                             append('\n')
                         }
@@ -97,8 +120,8 @@ class OptionsSectionStage(
                     createMenuButton("Apply", buttonStyle) {
                         menuEventBus.postIntent(
                             MenuIntent.SaveOptionsSection(
-                                prefix = state.prefix,
-                                values = currentValues(),
+                                prefix = section?.prefix.orEmpty(),
+                                values = valuesByName.mapValues { (_, value) -> value() },
                             ),
                         )
                     },
@@ -113,11 +136,7 @@ class OptionsSectionStage(
         }
         addCenteredForm(root, scrollPaneStyle)
         renderedState = state
-    }
-
-    private fun currentValues(): List<OptionEditValue> {
-        return valuesByName.entries.map { (name, value) ->
-            OptionEditValue(name = name, value = value())
-        }
+        renderedValues = values
+        renderedChoices = choices
     }
 }

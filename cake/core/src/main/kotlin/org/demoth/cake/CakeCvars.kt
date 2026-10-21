@@ -1,76 +1,114 @@
 package org.demoth.cake
 
+import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Defines.CVAR_ARCHIVE
 import jake2.qcommon.Defines.CVAR_LATCH
+import jake2.qcommon.Defines.CVAR_NOSET
 import jake2.qcommon.Defines.CVAR_OPTIONS
 import jake2.qcommon.Defines.CVAR_USERINFO
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.CvarTypes
+import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.ingame.RenderTuningCvars
 
 object CakeCvars {
     fun registerAll() {
-        registerUserInfo()
-        registerClient()
-        registerDownloads()
-        registerVideoMode()
+        val registry = Cvar.getInstance()
+        registerUserInfo(registry)
+        registerClient(registry)
+        registerVideoMode(registry)
     }
 
-    fun registerVideoMode() {
-        val cvars = Cvar.getInstance()
+    fun registerVideoMode(cvars: Cvar) {
         val flags = CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH
-        cvars.Get("vid_fullscreen", "0", flags, "Fullscreen: 0 windowed, 1 fullscreen (restart required)")
-        cvars.Get("vid_hidpi", "Pixels", flags, "Coordinate units: Pixels or Logical; differs when OS window and framebuffer sizes differ (restart required)")
-        cvars.Get("vid_windowed_width", "1024", flags, "Windowed width in OS window coordinates (restart required)")
-        cvars.Get("vid_windowed_height", "768", flags, "Windowed height in OS window coordinates (restart required)")
-        cvars.Get("vid_fullscreen_mode", "desktop", flags, "Fullscreen mode: desktop or WIDTHxHEIGHT@HZ; see vid_fullscreen_modes (restart required)")
-        cvars.Get("vid_fullscreen_modes", "", jake2.qcommon.Defines.CVAR_NOSET, "Supported primary-monitor modes; populated by the desktop launcher")
-        cvars.Get("vid_depthbits", "24", flags, "Requested scene/window depth bits: 16, 24, 32 (restart required)")
-        cvars.Get("vid_samples", "4", flags, "Requested scene/window MSAA samples: 0, 2, 4, 8 (restart required)")
-        cvars.Get("vid_vsync", "1", flags, "Vertical sync (restart required)")
+        cvars.register("vid_fullscreen", CvarTypes.BOOLEAN, false, flags, "Fullscreen: 0 windowed, 1 fullscreen (restart required)")
+        cvars.register(
+            "vid_hidpi", CvarTypes.enumeration<HdpiMode>(), HdpiMode.Pixels, CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH,
+            "Coordinate units: Pixels or Logical; differs when OS window and framebuffer sizes differ (restart required)"
+        )
+        cvars.register("vid_windowed_width", CvarTypes.IntegerType(min = 1), 1024, flags, "Windowed width in OS window coordinates (restart required)")
+        cvars.register("vid_windowed_height", CvarTypes.IntegerType(min = 1), 768, flags, "Windowed height in OS window coordinates (restart required)")
+        cvars.register(
+            "vid_fullscreen_modes", CvarTypes.STRING, "", CVAR_NOSET,
+            "Supported primary-monitor modes; populated by the desktop launcher",
+        )
+        cvars.register(
+            "vid_fullscreen_mode",
+            CvarTypes.StringType("desktop|[1-9][0-9]*x[1-9][0-9]*@[1-9][0-9]*"),
+            "desktop", flags,
+            "Fullscreen mode: desktop or WIDTHxHEIGHT@HZ; see vid_fullscreen_modes (restart required)",
+        )
+        cvars.register("vid_depthbits", CvarTypes.ChoiceType(listOf(16, 24, 32)), 24, flags, "Requested scene/window depth bits: 16, 24, 32 (restart required)")
+        cvars.register("vid_samples", CvarTypes.ChoiceType(listOf(0, 2, 4, 8)), 4, flags, "Requested scene/window MSAA samples: 0, 2, 4, 8 (restart required)")
+        cvars.register("vid_vsync", CvarTypes.BOOLEAN, true, flags, "Vertical sync (restart required)")
     }
 
-    private fun registerUserInfo() {
-        val cvars = Cvar.getInstance()
-        cvars.Get("password", "", CVAR_USERINFO or CVAR_ARCHIVE, "Server password")
-        cvars.Get("spectator", "0", CVAR_USERINFO, "Request spectator mode")
-        cvars.Get("name", "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
-        cvars.Get("skin", "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")
-        cvars.Get("rate", "25000", CVAR_USERINFO or CVAR_ARCHIVE, "Network rate in bytes per second")
-        cvars.Get("msg", "1", CVAR_USERINFO or CVAR_ARCHIVE, "Server message level")
-        cvars.Get("hand", "0", CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness")
-        cvars.Get("fov", "90", CVAR_USERINFO or CVAR_ARCHIVE, "Player field of view")
-        cvars.Get("gender", "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
+    private fun registerUserInfo(cvars: Cvar) {
+        cvars.register("spectator", CvarTypes.STRING, "0", CVAR_USERINFO, "Spectator request: 0 to play, 1 or spectator password to spectate")
+        cvars.register("name", CvarTypes.STRING, "unnamed", CVAR_USERINFO or CVAR_ARCHIVE, "Player name")
+        cvars.register("skin", CvarTypes.STRING, "male/grunt", CVAR_USERINFO or CVAR_ARCHIVE, "Player model and skin")
+        cvars.register("rate", CvarTypes.INTEGER, 25000, CVAR_USERINFO or CVAR_ARCHIVE, "Network rate in bytes per second")
+        cvars.register("msg", CvarTypes.ChoiceType(listOf(0, 1, 2, 3, 4)), 1, CVAR_USERINFO or CVAR_ARCHIVE, "Minimum server message level: 0 pickups, 1 deaths, 2 critical, 3 chat; 4 suppresses all levels")
+        cvars.register("hand", CvarTypes.ChoiceType(listOf(0, 1, 2)), 0, CVAR_USERINFO or CVAR_ARCHIVE, "Weapon handedness: 0 right, 1 left, 2 centered")
+        cvars.register("fov", CvarTypes.IntegerType(1, 160), 90, CVAR_USERINFO or CVAR_ARCHIVE, "Player field of view")
+        cvars.register("gender", CvarTypes.STRING, "male", CVAR_USERINFO or CVAR_ARCHIVE, "Player gender")
     }
 
-    private fun registerClient() {
-        val cvars = Cvar.getInstance()
-        cvars.Get("rcon_password", "asdf", 0, "Remote console password")
-        cvars.Get("rcon_address", "127.0.0.1", 0, "Remote console target address")
-        cvars.Get("cl_vwep", "1", CVAR_ARCHIVE, "Draw other players' weapon models")
-        cvars.Get("cl_debug_stufftext", "0", CVAR_ARCHIVE, "Log raw server stufftext commands")
+    private fun registerClient(cvars: Cvar) {
+        cvars.register("rcon_address", CvarTypes.STRING, "127.0.0.1", 0, "Remote console target address")
+        cvars.register("cl_debug_stufftext", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Log raw server stufftext commands")
 
-        cvars.AddAlias("sensitivity", "in_sensitivity")
-        cvars.Get("in_sensitivity", "80", CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
-        cvars.Get("in_invert_mouse", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis")
-        cvars.Get("cl_run", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
+        registerInput(cvars)
 
-        cvars.AddAlias("crosshair", "cl_crosshair")
-        cvars.Get("cl_crosshair", "1", CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair preset")
-        cvars.Get("cl_showfps", "0", CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay mode")
-        cvars.Get("cl_ui_size", "720", CVAR_ARCHIVE or CVAR_OPTIONS,
-            "Virtual game UI reference height (minimum 640); lower values enlarge menus and HUD; applies immediately")
-        cvars.Get("s_volume", "0.7", CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
-        cvars.Get("cl_maxfps", "62", CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update cadence")
+        registerHud(cvars)
+        registerAudio(cvars)
+        registerAssets(cvars)
+        registerEntities(cvars)
+        DebugGraphStage.metricDefinitions.forEach { metric ->
+            cvars.register(metric.name, CvarTypes.BOOLEAN, false, 0, metric.description)
+        }
+        cvars.register("cl_maxfps", CvarTypes.FloatType(10f, 125f), 62f, CVAR_ARCHIVE or CVAR_OPTIONS, "Client command and update rate per second; independent of rendering FPS")
 
         RenderTuningCvars.register()
     }
 
-    private fun registerDownloads() {
-        val cvars = Cvar.getInstance()
-        cvars.Get("allow_download", "1", CVAR_ARCHIVE, "Allow downloading missing game content from servers")
-        cvars.Get("allow_download_maps", "1", CVAR_ARCHIVE, "Allow downloading missing maps from servers")
-        cvars.Get("allow_download_models", "1", CVAR_ARCHIVE, "Allow downloading missing models from servers")
-        cvars.Get("allow_download_sounds", "1", CVAR_ARCHIVE, "Allow downloading missing sounds from servers")
-        cvars.Get("allow_download_players", "0", CVAR_ARCHIVE, "Allow downloading missing player models and skins from servers")
+    fun registerHud(cvars: Cvar) {
+        cvars.AddAlias("crosshair", "cl_crosshair")
+        cvars.register("cl_crosshair", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 1, CVAR_ARCHIVE or CVAR_OPTIONS, "Crosshair: 0 off, 1-3 select ch1-ch3 pictures")
+        cvars.register("cl_showfps", CvarTypes.ChoiceType(listOf(0, 1, 2, 3)), 0, CVAR_ARCHIVE or CVAR_OPTIONS, "FPS overlay: 0 off, 1 average, 2 minimum/maximum/average, 3 also shows frame times in milliseconds")
+        cvars.register("cl_ui_size", CvarTypes.FloatType(min = 640f), 720f, CVAR_ARCHIVE or CVAR_OPTIONS,
+            "Virtual game UI reference height (minimum 640); lower values enlarge menus and HUD; applies immediately")
+    }
+
+    fun registerInput(cvars: Cvar = Cvar.getInstance()) {
+        cvars.AddAlias("sensitivity", "in_sensitivity")
+        cvars.register("in_sensitivity", CvarTypes.FLOAT, 80f, CVAR_ARCHIVE or CVAR_OPTIONS, "Mouse sensitivity")
+        cvars.register(
+            "in_invert_mouse", CvarTypes.BOOLEAN, false,
+            CVAR_ARCHIVE or CVAR_OPTIONS, "Invert mouse Y axis",
+        )
+        cvars.register("cl_run", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE or CVAR_OPTIONS, "Always run by default")
+        // Protocol byte packing remains at the move-command boundary.
+        cvars.register("r_lightlevel", CvarTypes.IntegerType(0, 255), 150, 0, "Light level sent with move commands") // TODO: verify a proper server side fix
+    }
+
+    fun registerAudio(cvars: Cvar = Cvar.getInstance()) {
+        cvars.register("s_volume", CvarTypes.FloatType(0f, 1f), 0.7f, CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
+        cvars.register("s_maxvoices", CvarTypes.IntegerType(1, 128), 32, CVAR_ARCHIVE or CVAR_OPTIONS,
+            "Maximum simultaneous Cake gameplay voices")
+    }
+
+    fun registerAssets(cvars: Cvar = Cvar.getInstance()) {
+        cvars.register("fs_debug_loaders", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Log asset loader fallback decisions")
+    }
+
+    internal fun registerEntities(cvars: Cvar = Cvar.getInstance()) {
+        cvars.register("r_drawsky", CvarTypes.BOOLEAN, true, 0, "Draw the sky layer")
+        cvars.register("r_drawbeams", CvarTypes.BOOLEAN, true, 0, "Draw beam effects")
+        cvars.register("r_drawsprites", CvarTypes.BOOLEAN, true, 0, "Draw sprite entities")
+        cvars.register("r_drawentities", CvarTypes.BOOLEAN, true, 0, "Draw model entities")
+        cvars.register("cl_gun", CvarTypes.BOOLEAN, true, 0, "Draw the view weapon model")
+        cvars.register("cl_vwep", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Draw other players' weapon models")
+        cvars.register("r_debug", CvarTypes.BOOLEAN, false, 0, "Show debug origin marker")
     }
 }

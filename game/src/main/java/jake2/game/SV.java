@@ -27,6 +27,7 @@ package jake2.game;
 
 import jake2.qcommon.*;
 import jake2.qcommon.exec.cvar_t;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -35,10 +36,10 @@ import jake2.qcommon.util.Math3D;
  */
 final class SV {
 
-    private final cvar_t sv_maxvelocity;
+    private final cvar_t<Float> sv_maxvelocity;
 
     SV(GameImports gameImports) {
-        sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
+        sv_maxvelocity = gameImports.registerCvar("sv_maxvelocity", new CvarTypes.FloatType(0f, null), 2000f, 0, "Maximum speed per velocity component in game units per second");
     }
 
     ///////////////////////////////////////
@@ -67,10 +68,10 @@ final class SV {
         //	   bound velocity
         //
         for (i = 0; i < 3; i++) {
-            if (ent.velocity[i] > sv_maxvelocity.value)
-                ent.velocity[i] = sv_maxvelocity.value;
-            else if (ent.velocity[i] < -sv_maxvelocity.value)
-                ent.velocity[i] = -sv_maxvelocity.value;
+            if (ent.velocity[i] > sv_maxvelocity.getTypedValue())
+                ent.velocity[i] = sv_maxvelocity.getTypedValue();
+            else if (ent.velocity[i] < -sv_maxvelocity.getTypedValue())
+                ent.velocity[i] = -sv_maxvelocity.getTypedValue();
         }
     }
 
@@ -560,7 +561,7 @@ final class SV {
         //	   add gravity
         if (ent.movetype != GameDefines.MOVETYPE_FLY
                 && ent.movetype != GameDefines.MOVETYPE_FLYMISSILE)
-            SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
+            SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.getTypedValue());
 
         //	   move angles
         Math3D.VectorMA(ent.s.angles, Defines.FRAMETIME, ent.avelocity,
@@ -685,10 +686,10 @@ final class SV {
         if (!wasonground)
             if (0 == (ent.flags & GameDefines.FL_FLY))
                 if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
-                    if (ent.velocity[2] < gameExports.gameCvars.sv_gravity.value * -0.1)
+                    if (ent.velocity[2] < gameExports.gameCvars.sv_gravity.getTypedValue() * -0.1)
                         hitsound = true;
                     if (ent.waterlevel == 0)
-                        SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.value);
+                        SV_AddGravity(ent, gameExports.gameCvars.sv_gravity.getTypedValue());
                 }
 
         // friction for flying monsters that have been given vertical velocity

@@ -85,7 +85,7 @@ class SV_USER {
         // serverdata needs to go over for all types of servers
         // to make sure the protocol is right, and to set the gamedir
         //
-        String gamedir = Cvar.getInstance().VariableString("gamedir");
+        String gamedir = Cvar.getInstance().find("gamedir", String.class).getTypedValue();
 
         // send the serverdata
         // send full levelname
@@ -281,17 +281,17 @@ class SV_USER {
         // first off, no .. or global allow check
 
         if (name.contains("..")
-                || SV_MAIN.allow_download.value == 0 // leading dot is no good
+                || !SV_MAIN.allow_download.getTypedValue() // leading dot is no good
                 || name.charAt(0) == '.' // leading slash bad as well, must be
                                          // in subdir
                 || name.charAt(0) == '/' // next up, skin check
-                || (name.startsWith("players/") && 0 == SV_MAIN.allow_download_players.value) // now
+                || (name.startsWith("players/") && !SV_MAIN.allow_download_players.getTypedValue()) // now
                                                                                               // models
-                || (name.startsWith("models/") && 0 == SV_MAIN.allow_download_models.value) // now
+                || (name.startsWith("models/") && !SV_MAIN.allow_download_models.getTypedValue()) // now
                                                                                             // sounds
-                || (name.startsWith("sound/") && 0 == SV_MAIN.allow_download_sounds.value)
+                || (name.startsWith("sound/") && !SV_MAIN.allow_download_sounds.getTypedValue())
                 // now maps (note special case for maps, must not be in pak)
-                || (name.startsWith("maps/") && 0 == SV_MAIN.allow_download_maps.value) // MUST
+                || (name.startsWith("maps/") && !SV_MAIN.allow_download_maps.getTypedValue()) // MUST
                                                                                         // be
                                                                                         // in a
                                                                                         // subdirectory
@@ -358,11 +358,11 @@ class SV_USER {
 
         //ZOID, ss_pic can be nextserver'd in coop mode
         if (gameImports.sv.state == ServerStates.SS_GAME
-                || (gameImports.sv.state == ServerStates.SS_PIC && 0 == Cvar.getInstance().VariableValue("coop")))
+                || (gameImports.sv.state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue()))
             return; // can't nextserver while playing a normal game
 
         gameImports.spawncount++; // make sure another doesn't sneak in
-        String v = Cvar.getInstance().VariableString("nextserver");
+        String v = Cvar.getInstance().find("nextserver", String.class).getTypedValue();
         //if (!v[0])
         if (v.length() == 0)
             Cbuf.AddText("killserver\n");
@@ -370,7 +370,7 @@ class SV_USER {
             Cbuf.AddText(v);
             Cbuf.AddText("\n");
         }
-        Cvar.getInstance().Set("nextserver", "");
+        Cvar.getInstance().find("nextserver", String.class).set("");
     }
 
     /*

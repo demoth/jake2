@@ -554,14 +554,14 @@ private val targetChangelevelUse = registerUse("use_target_changelevel") { self,
         return@registerUse  // already activated
 
 
-    if (game.gameCvars.deathmatch.value == 0f && game.gameCvars.coop.value == 0f) {
+    if (!game.gameCvars.deathmatch.typedValue && !game.gameCvars.coop.typedValue) {
         if (game.g_edicts[1].health <= 0)
             return@registerUse
     }
 
     // if noexit, do a ton of damage to other
-    if (game.gameCvars.deathmatch.value != 0f
-        && game.gameCvars.dmflags.value.toInt() and Defines.DF_ALLOW_EXIT == 0 && other !== game.g_edicts[0] /* world */) {
+    if (game.gameCvars.deathmatch.typedValue
+        && game.gameCvars.dmflags.typedValue and Defines.DF_ALLOW_EXIT == 0 && other !== game.g_edicts[0] /* world */) {
         GameCombat.T_Damage(
             other, self, self, Globals.vec3_origin,
             other!!.s.origin, Globals.vec3_origin,
@@ -571,7 +571,7 @@ private val targetChangelevelUse = registerUse("use_target_changelevel") { self,
     }
 
     // if multiplayer, let everyone know who hit the exit
-    if (game.gameCvars.deathmatch.value != 0f) {
+    if (game.gameCvars.deathmatch.typedValue) {
         if (activator != null) {
             val activatorClient = activator.client
             if (activatorClient != null)

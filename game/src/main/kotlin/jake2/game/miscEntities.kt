@@ -249,7 +249,7 @@ private val miscDishRotate = registerThink("misc_satellite_dish_think") { self, 
  */
 // todo: extract spawnflags
 fun miscDeadSoldier(self: GameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value != 0f) { // auto-remove for deathmatch
+    if (game.gameCvars.deathmatch.typedValue) { // auto-remove for deathmatch
         game.freeEntity(self)
         return
     }

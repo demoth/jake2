@@ -6,6 +6,7 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Sys;
 
@@ -24,9 +25,9 @@ import java.util.Set;
 public final class EngineFilesystemLifecycle {
     private static String gameDirPath;
     private static String userDirPath;
-    private static cvar_t baseDir;
-    private static cvar_t caseSensitive;
-    private static cvar_t gameDirVar;
+    private static cvar_t<String> baseDir;
+    private static cvar_t<Boolean> caseSensitive;
+    private static cvar_t<String> gameDirVar;
 
     private EngineFilesystemLifecycle() {
     }
@@ -82,18 +83,16 @@ public final class EngineFilesystemLifecycle {
 
         setWriteDir(Globals.BASEQ2);
 
-        if (new File("./baseq2").exists()) {
-            baseDir = Cvar.getInstance().Get("basedir", ".", Defines.CVAR_NOSET);
-        } else {
-            baseDir = Cvar.getInstance().Get("basedir", autodetectBasedir(), Defines.CVAR_NOSET);
-        }
+        Cvar cvars = Cvar.getInstance();
+        baseDir = cvars.register("basedir", CvarTypes.STRING,
+                new File("./baseq2").exists() ? "." : autodetectBasedir(), Defines.CVAR_NOSET, "Directory containing baseq2 and mod directories");
+        gameDirPath = baseDir.getTypedValue() + '/' + Globals.BASEQ2;
+        gameDirVar = cvars.register("game", new CvarTypes.StringType("(?s)(?!.*\\.\\.)[^/\\\\:]*"), "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO, "Mod directory name, not a path; empty selects baseq2");
+        cvars.register("gamedir", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET, "Active mod directory advertised in serverinfo; empty means baseq2");
+        caseSensitive = cvars.register("fs_casesensitive", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE, "Use case-sensitive virtual filesystem lookups");
 
-        gameDirPath = baseDir.string + '/' + Globals.BASEQ2;
-        gameDirVar = Cvar.getInstance().Get("game", "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO);
-        caseSensitive = Cvar.getInstance().Get("fs_casesensitive", "0", Defines.CVAR_ARCHIVE);
-
-        if (!gameDirVar.string.isEmpty()) {
-            setGameDir(gameDirVar.string);
+        if (!gameDirVar.getTypedValue().isEmpty()) {
+            setGameDir(gameDirVar.getTypedValue());
         }
 
         initEngineVfs();
@@ -104,7 +103,7 @@ public final class EngineFilesystemLifecycle {
         if (userDirPath != null && !userDirPath.isEmpty()) {
             name = userDirPath + "/autoexec.cfg";
         } else {
-            name = baseDir.string + '/' + Globals.BASEQ2 + "/autoexec.cfg";
+            name = baseDir.getTypedValue() + '/' + Globals.BASEQ2 + "/autoexec.cfg";
         }
 
         int canthave = Defines.SFF_SUBDIR | Defines.SFF_HIDDEN | Defines.SFF_SYSTEM;
@@ -119,18 +118,20 @@ public final class EngineFilesystemLifecycle {
             return;
         }
 
-        if ((Globals.dedicated != null) && (Globals.dedicated.value == 0.0f)) {
+        if ((Globals.dedicated != null) && (!Globals.dedicated.getTypedValue())) {
             Cbuf.AddText("vid_restart");
             Cbuf.AddText("snd_restart");
         }
 
-        gameDirPath = baseDir.string + '/' + gameName;
+        Cvar cvars = Cvar.getInstance();
+        cvar_t<String> gamedir = cvars.find("gamedir", String.class);
+        gameDirPath = baseDir.getTypedValue() + '/' + gameName;
 
         if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
-            Cvar.getInstance().FullSet("gamedir", "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-            Cvar.getInstance().FullSet("game", "", Defines.CVAR_LATCH | Defines.CVAR_SERVERINFO);
+            gamedir.forceSet("");
+            gameDirVar.forceSet("");
         } else {
-            Cvar.getInstance().FullSet("gamedir", gameName, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+            gamedir.forceSet(gameName);
         }
 
         setWriteDir(gameName);
@@ -142,7 +143,7 @@ public final class EngineFilesystemLifecycle {
     }
 
     public static boolean isVfsCaseSensitive() {
-        return caseSensitive != null && caseSensitive.value != 0.0f;
+        return caseSensitive != null && caseSensitive.getTypedValue();
     }
 
     public static void syncVfsCaseSensitivity() {
@@ -159,12 +160,12 @@ public final class EngineFilesystemLifecycle {
 
     private static void initEngineVfs() {
         String gameMod = null;
-        if (gameDirVar != null && !gameDirVar.string.isEmpty()) {
-            gameMod = gameDirVar.string;
+        if (gameDirVar != null && !gameDirVar.getTypedValue().isEmpty()) {
+            gameMod = gameDirVar.getTypedValue();
         }
         EngineVfs.configure(
                 new VfsConfig(
-                        Paths.get(baseDir.string),
+                        Paths.get(baseDir.getTypedValue()),
                         Globals.BASEQ2,
                         gameMod,
                         true,

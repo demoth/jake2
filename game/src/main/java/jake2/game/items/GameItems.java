@@ -165,7 +165,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
@@ -182,7 +182,7 @@ public class GameItems {
             }
 
             if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(self, 20, gameExports);
             else
                 gameExports.freeEntity(self);
@@ -220,7 +220,7 @@ public class GameItems {
             } else {
                 // mega-health is respawned in `MegaHealth_think`, only after it is expired
                 if ((self.spawnflags & GameDefines.DROPPED_ITEM) == 0
-                        && (game.gameCvars.deathmatch.value != 0))
+                        && (game.gameCvars.deathmatch.getTypedValue()))
                     SetRespawn(self, 30, game);
             }
     
@@ -280,7 +280,7 @@ public class GameItems {
 
             gameExports.gameImports.dprintf("Picked up:" + ent.classname + "\n");
     
-            if (!((gameExports.gameCvars.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+            if (!((gameExports.gameCvars.coop.getTypedValue()) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
                 if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                     ent.flags &= ~GameDefines.FL_RESPAWN;
@@ -303,7 +303,7 @@ public class GameItems {
         public String getID() { return "drop_make_touchable";}
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
-            if (gameExports.gameCvars.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                 ent.think.nextTime = gameExports.level.time + 29;
                 ent.think.action = GameUtil.G_FreeEdictA;
             }
@@ -417,7 +417,7 @@ public class GameItems {
         public String getID() { return "pickup_key";}
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             GamePlayerInfo client = other.getClient();
-            if (gameExports.gameCvars.coop.value != 0) {
+            if (gameExports.gameCvars.coop.getTypedValue()) {
                 if ("key_power_cube".equals(ent.classname)) {
                     if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
                         return false;
@@ -443,7 +443,7 @@ public class GameItems {
     
             weapon = (ent.item.flags & GameDefines.IT_WEAPON) != 0;
             if ((weapon)
-                    && ((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
+                    && (gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO) != 0)
                 count = 1000;
             else if (ent.count != 0)
                 count = ent.count;
@@ -458,12 +458,12 @@ public class GameItems {
     
             if (weapon && 0 == oldcount) {
                 if (client.pers.weapon != ent.item
-                        && (0 == gameExports.gameCvars.deathmatch.value || client.pers.weapon == FindItem("blaster", gameExports)))
+                        && (!gameExports.gameCvars.deathmatch.getTypedValue() || client.pers.weapon == FindItem("blaster", gameExports)))
                     client.newweapon = ent.item;
             }
     
             if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, 30, gameExports);
             return true;
         }
@@ -542,7 +542,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, 20, gameExports);
     
             return true;
@@ -559,7 +559,7 @@ public class GameItems {
 
             client.pers.inventory[ent.item.index]++;
     
-            if (gameExports.gameCvars.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity, gameExports);
                 // auto-use for DM only if we didn't already have one
@@ -576,21 +576,21 @@ public class GameItems {
 
             GamePlayerInfo client = other.getClient();
             quantity = client.pers.inventory[ent.item.index];
-            if ((gameExports.gameCvars.skill.value == 1 && quantity >= 2)
-                    || (gameExports.gameCvars.skill.value >= 2 && quantity >= 1))
+            if ((gameExports.gameCvars.skill.getTypedValue() == 1 && quantity >= 2)
+                    || (gameExports.gameCvars.skill.getTypedValue() >= 2 && quantity >= 1))
                 return false;
     
-            if ((gameExports.gameCvars.coop.value != 0)
+            if ((gameExports.gameCvars.coop.getTypedValue())
                     && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0
                     && (quantity > 0))
                 return false;
 
             client.pers.inventory[ent.item.index]++;
     
-            if (gameExports.gameCvars.deathmatch.value != 0) {
+            if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity, gameExports);
-                if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
+                if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INSTANT_ITEMS) != 0
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
@@ -606,14 +606,14 @@ public class GameItems {
     static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
         public String getID() { return "pickup_adrenaline";}
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.deathmatch.value == 0)
+            if (!gameExports.gameCvars.deathmatch.getTypedValue())
                 other.max_health += 1;
     
             if (other.health < other.max_health)
                 other.health = other.max_health;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
@@ -626,7 +626,7 @@ public class GameItems {
             other.max_health += 2;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
@@ -665,7 +665,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (gameExports.gameCvars.deathmatch.value != 0))
+                    && (gameExports.gameCvars.deathmatch.getTypedValue()))
                 SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
@@ -1157,21 +1157,21 @@ public class GameItems {
         }
     
         // some items will be prevented in deathmatch
-        if (gameExports.gameCvars.deathmatch.value != 0) {
-            if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()) {
+            if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
                     gameExports.freeEntity(ent);
                     return;
                 }
             }
-            if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
+            if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_NO_ITEMS) != 0) {
                 if (item.pickup == Pickup_Powerup) {
                     gameExports.freeEntity(ent);
                     return;
                 }
             }
-            if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+            if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_NO_HEALTH) != 0) {
                 if (item.pickup == Pickup_Health
                         || item.pickup == Pickup_Adrenaline
                         || item.pickup == Pickup_AncientHead) {
@@ -1179,7 +1179,7 @@ public class GameItems {
                     return;
                 }
             }
-            if (((int) gameExports.gameCvars.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
+            if ((gameExports.gameCvars.dmflags.getTypedValue() & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
                     gameExports.freeEntity(ent);
@@ -1188,14 +1188,14 @@ public class GameItems {
             }
         }
     
-        if (gameExports.gameCvars.coop.value != 0
+        if (gameExports.gameCvars.coop.getTypedValue()
                 && ("key_power_cube".equals(ent.classname))) {
             ent.spawnflags |= (1 << (8 + gameExports.level.power_cubes));
             gameExports.level.power_cubes++;
         }
     
         // don't let them drop items that stay in a coop game
-        if ((gameExports.gameCvars.coop.value != 0)
+        if ((gameExports.gameCvars.coop.getTypedValue())
                 && (item.flags & GameDefines.IT_STAY_COOP) != 0) {
             item.drop = null;
         }
@@ -1281,7 +1281,7 @@ public class GameItems {
         if (!taken)
             return;
     
-        if (!((gameExports.gameCvars.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+        if (!((gameExports.gameCvars.coop.getTypedValue()) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                 || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
             if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                 ent.flags &= ~GameDefines.FL_RESPAWN;

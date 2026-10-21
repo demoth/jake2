@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarType;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
@@ -76,7 +77,7 @@ public class GameImportsImpl implements GameImports {
 
     SV_WORLD world;
 
-    private final Cvar localCvars;
+    private final Cvar localCvars = new Cvar();
 
     CM cm;
 
@@ -88,12 +89,16 @@ public class GameImportsImpl implements GameImports {
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
+        this(serverMain, changeMapInfo, null);
+    }
+
+    GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         this.serverMain = serverMain;
         this.name = "jake2_" + SV_MAIN.gameCounter++;
+        if (previous != null && !changeMapInfo.isLoadgame)
+            previous.localCvars.copyValuesTo(localCvars);
 
         spawncount = Lib.rand();
-
-        localCvars = new Cvar();
 
         world = new SV_WORLD();
 
@@ -159,11 +164,9 @@ public class GameImportsImpl implements GameImports {
                 String name = cvar.name();
                 String value = cvar.value();
                 Com.DPrintf("Set " + name + " = " + value + "\n");
-                Cvar.getInstance().ForceSet(name, value);
+                var result = writeRegistry(name).forceSetResult(name, value);
+                if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
             }
-
-            // read game state
-            this.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
         }
@@ -317,28 +320,21 @@ public class GameImportsImpl implements GameImports {
         pmoveProcessor.move(pmove);
     }
 
-    /**
-     * Ready only expected
-     * Todo: return value instead
-     */
     @Override
-    public cvar_t cvar(String var_name, String value, int flags) {
-        final cvar_t parentValue = Cvar.getInstance().FindVar(var_name);
-        if (parentValue != null) {
-            return parentValue;
-        } else {
-            return localCvars.Get(var_name, value, flags);
-        }
+    public <T> cvar_t<T> registerCvar(String name, CvarType<T> type, T defaultValue, int flags, String description) {
+        if (!localCvars.isRegistered(name)) Cvar.getInstance().transferEarlyValue(name, localCvars);
+        return localCvars.register(name, type, defaultValue, flags, description);
     }
 
     @Override
-    public cvar_t cvar_set(String var_name, String value) {
-        return localCvars.Set(var_name, value);
+    public <T> cvar_t<T> findCvar(String name, Class<T> type) {
+        return (localCvars.isRegistered(name) ? localCvars : Cvar.getInstance()).find(name, type);
     }
 
-    @Override
-    public cvar_t cvar_forceset(String var_name, String value) {
-        return localCvars.ForceSet(var_name, value);
+    /** Writes follow the same ownership as reads; undeclared game inputs stay local. */
+    private Cvar writeRegistry(String name) {
+        if (localCvars.isRegistered(name)) return localCvars;
+        return Cvar.getInstance().isRegistered(name) ? Cvar.getInstance() : localCvars;
     }
 
     /*
@@ -367,7 +363,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (cvar("deathmatch", "", 0).value != 0) {
+        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -616,7 +612,7 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         sv.framenum++;
 
-        if (SV_MAIN.sv_paused != null && 1 == SV_MAIN.sv_paused.value && serverMain.getClients().size() <= 1) {
+        if (SV_MAIN.sv_paused != null && SV_MAIN.sv_paused.getTypedValue() && serverMain.getClients().size() <= 1) {
             return;
         }
 
@@ -692,8 +688,11 @@ public class GameImportsImpl implements GameImports {
             // these will be things like coop, skill, deathmatch, etc
             List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
             Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.string));
+                if (!localCvars.isRegistered(var.name))
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString()));
             });
+            localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
+                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
             store.writeLatchedCvars("current", latchedCvars);
         } catch (Exception e) {
             throw new RuntimeException(e);

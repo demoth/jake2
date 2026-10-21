@@ -183,10 +183,14 @@ public class GameExportsImpl implements GameExports {
         // create necessary cvars
         gameCvars = new GameCvars(imports);
 
-        CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
-
-        // fixme: should be already set in SV_MAIN
-        CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
+        // Client slots and the body queue must fit even with a reduced entity budget.
+        int minimumEntities = gameCvars.maxclients.getTypedValue() + GameDefines.BODY_QUEUE_SIZE + 1;
+        if (gameCvars.maxentities.getTypedValue() < minimumEntities) {
+            gameImports.dprintf("Increasing maxentities to " + minimumEntities + " for client and body slots\n");
+            gameCvars.maxentities.forceSet(minimumEntities);
+        }
+        CreateEdicts(gameCvars.maxentities.getTypedValue());
+        CreateClients(gameCvars.maxclients.getTypedValue());
 
         for (int n = 0; n < Defines.MAX_EDICTS; n++) {
             pushed[n] = new pushed_t();
@@ -263,7 +267,7 @@ public class GameExportsImpl implements GameExports {
             game.clients[i].pers.max_health = ent.max_health;
             game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
-            if (gameCvars.coop.value != 0) {
+            if (gameCvars.coop.getTypedValue()) {
                 GamePlayerInfo client = ent.getClient();
                 game.clients[i].pers.score = client.resp.score;
             }
@@ -271,18 +275,18 @@ public class GameExportsImpl implements GameExports {
     }
 
     // create the entities array and fill it with empty entities
-    private void CreateEdicts(float max) {
+    private void CreateEdicts(int max) {
         // initialize all entities for this game
-        game.maxentities = (int) max;
+        game.maxentities = max;
         g_edicts = new GameEntity[game.maxentities];
         for (int i = 0; i < game.maxentities; i++)
             g_edicts[i] = new GameEntity(i);
     }
 
     // create the clients array and fill it with empty clients
-    private void CreateClients(float max) {
+    private void CreateClients(int max) {
         // initialize all clients for this game
-        game.maxclients = (int) max;
+        game.maxclients = max;
 
         game.clients = new GamePlayerInfo[game.maxclients];
 
@@ -306,11 +310,11 @@ public class GameExportsImpl implements GameExports {
         StringBuilder sb = new StringBuilder(256);
         String sk;
 
-        if (gameCvars.skill.value == 0)
+        if (gameCvars.skill.getTypedValue() == 0)
             sk = "easy";
-        else if (gameCvars.skill.value == 1)
+        else if (gameCvars.skill.getTypedValue() == 1)
             sk = "medium";
-        else if (gameCvars.skill.value == 2)
+        else if (gameCvars.skill.getTypedValue() == 2)
             sk = "hard";
         else
             sk = "hard+";
@@ -338,7 +342,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Give_f(GameEntity ent, List<String> args) {
 
-        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.getTypedValue() && !gameCvars.sv_cheats.getTypedValue()) {
             gameImports.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -477,7 +481,7 @@ public class GameExportsImpl implements GameExports {
     private void God_f(GameEntity ent) {
         String msg;
 
-        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.getTypedValue() && !gameCvars.sv_cheats.getTypedValue()) {
             gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -498,7 +502,7 @@ public class GameExportsImpl implements GameExports {
     private void Notarget_f(GameEntity ent) {
 
         // why do you need notarget in deathmatch??
-        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.getTypedValue() && !gameCvars.sv_cheats.getTypedValue()) {
             gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -522,7 +526,7 @@ public class GameExportsImpl implements GameExports {
     private void Noclip_f(GameEntity ent) {
         String msg;
 
-        if (gameCvars.deathmatch.value != 0 && gameCvars.sv_cheats.value == 0) {
+        if (gameCvars.deathmatch.getTypedValue() && !gameCvars.sv_cheats.getTypedValue()) {
             gameImports.cprintf(ent, PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -757,7 +761,7 @@ public class GameExportsImpl implements GameExports {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == gameCvars.deathmatch.value && 0 == gameCvars.coop.value)
+        if (!gameCvars.deathmatch.getTypedValue() && !gameCvars.coop.getTypedValue())
             return;
 
         if (client.showscores) {
@@ -777,7 +781,7 @@ public class GameExportsImpl implements GameExports {
      */
     void Help_f(GameEntity ent) {
         // this is for backwards compatability
-        if (gameCvars.deathmatch.value != 0) {
+        if (gameCvars.deathmatch.getTypedValue()) {
             Score_f(ent);
             return;
         }
@@ -925,7 +929,7 @@ public class GameExportsImpl implements GameExports {
         if (args.size() < 2 && !sayAll)
             return;
 
-        if (0 == ((int) (gameCvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+        if (0 == (gameCvars.dmflags.getTypedValue() & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             team = false;
 
         GamePlayerInfo client = ent.getClient();
@@ -956,7 +960,7 @@ public class GameExportsImpl implements GameExports {
 
         text += "\n";
 
-        if (gameCvars.flood_msgs.value != 0) {
+        if (gameCvars.flood_msgs.getTypedValue() != 0) {
             GamePlayerInfo cl = client;
 
             if (level.time < cl.flood_locktill) {
@@ -965,15 +969,15 @@ public class GameExportsImpl implements GameExports {
                         + " more seconds\n");
                 return;
             }
-            int i = (int) (cl.flood_whenhead - gameCvars.flood_msgs.value + 1);
+            int i = cl.flood_whenhead - gameCvars.flood_msgs.getTypedValue() + 1;
             if (i < 0)
                 i = (10) + i;
             if (cl.flood_when[i] != 0
-                    && level.time - cl.flood_when[i] < gameCvars.flood_persecond.value) {
-                cl.flood_locktill = level.time + gameCvars.flood_waitdelay.value;
+                    && level.time - cl.flood_when[i] < gameCvars.flood_persecond.getTypedValue()) {
+                cl.flood_locktill = level.time + gameCvars.flood_waitdelay.getTypedValue();
                 gameImports.cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
-                                + (int) gameCvars.flood_waitdelay.value
+                                + gameCvars.flood_waitdelay.getTypedValue().intValue()
                                 + " seconds.\n");
                 return;
             }
@@ -982,7 +986,7 @@ public class GameExportsImpl implements GameExports {
             cl.flood_when[cl.flood_whenhead] = level.time;
         }
 
-        if (gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET).value != 0)
+        if (gameCvars.dedicated.getTypedValue())
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
         for (int j = 1; j <= game.maxclients; j++) {
@@ -992,7 +996,7 @@ public class GameExportsImpl implements GameExports {
             if (other.getClient() == null)
                 continue;
             if (team) {
-                if (!GameUtil.OnSameTeam(ent, other, gameCvars.dmflags.value))
+                if (!GameUtil.OnSameTeam(ent, other, gameCvars.dmflags.getTypedValue()))
                     continue;
             }
             gameImports.cprintf(other, Defines.PRINT_CHAT, "" + text + "");
@@ -1090,7 +1094,7 @@ public class GameExportsImpl implements GameExports {
 
         GamePlayerInfo client = ent.getClient();
 
-        if (gameCvars.deathmatch.value != 0
+        if (gameCvars.deathmatch.getTypedValue()
                 && client.pers.spectator != client.resp.spectator
                 && (level.time - client.respawn_time) >= 5) {
             spectatorRespawn(ent);
@@ -1108,13 +1112,13 @@ public class GameExportsImpl implements GameExports {
             if (level.time > client.respawn_time) {
                 // in deathmatch, only wait for attack button
                 int buttonMask;
-                if (gameCvars.deathmatch.value != 0)
+                if (gameCvars.deathmatch.getTypedValue())
                     buttonMask = Defines.BUTTON_ATTACK;
                 else
                     buttonMask = -1;
 
                 if ((client.latched_buttons & buttonMask) != 0
-                        || (gameCvars.deathmatch.value != 0 && 0 != ((int) gameCvars.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                        || (gameCvars.deathmatch.getTypedValue() && 0 != (gameCvars.dmflags.getTypedValue() & Defines.DF_FORCE_RESPAWN))) {
                     respawn(ent, this);
                     client.latched_buttons = 0;
                 }
@@ -1123,7 +1127,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         // add player trail so monsters can follow
-        if (gameCvars.deathmatch.value != 0)
+        if (gameCvars.deathmatch.getTypedValue())
             if (!GameUtil.visible(ent, playerTrail.LastSpot(), this))
                 playerTrail.Add(ent.s.old_origin, level.time);
 
@@ -1143,7 +1147,7 @@ public class GameExportsImpl implements GameExports {
         if (client.pers.spectator) {
             String spectator = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
 
-            if (!passwdOK(gameCvars.spectator_password.string, spectator)) {
+            if (!passwdOK(gameCvars.spectator_password.getTypedValue(), spectator)) {
                 gameImports.cprintf(ent, PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
                 gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0"), true);
@@ -1159,7 +1163,7 @@ public class GameExportsImpl implements GameExports {
                     numspec++;
             }
 
-            if (numspec >= gameCvars.maxspectators.value) {
+            if (numspec >= gameCvars.maxspectators.getTypedValue()) {
                 gameImports.cprintf(ent, PRINT_HIGH,
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
@@ -1171,7 +1175,7 @@ public class GameExportsImpl implements GameExports {
             // he was a spectator and wants to join the game
             // he must have the right password
             String password = Info.Info_ValueForKey(client.pers.userinfo, "password");
-            if (!passwdOK(gameCvars.password.string, password)) {
+            if (!passwdOK(gameCvars.password.getTypedValue(), password)) {
                 gameImports.cprintf(ent, PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
                 gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 1"), true);
@@ -1247,24 +1251,24 @@ public class GameExportsImpl implements GameExports {
         if (level.intermissiontime != 0)
             return;
 
-        if (0 == gameCvars.deathmatch.value)
+        if (!gameCvars.deathmatch.getTypedValue())
             return;
 
-        if (gameCvars.timelimit.value != 0) {
-            if (level.time >= gameCvars.timelimit.value * 60) {
+        if (gameCvars.timelimit.getTypedValue() != 0) {
+            if (level.time >= gameCvars.timelimit.getTypedValue() * 60) {
                 gameImports.bprintf(PRINT_HIGH, "Timelimit hit.\n");
                 EndDMLevel();
                 return;
             }
         }
 
-        if (gameCvars.fraglimit.value != 0) {
+        if (gameCvars.fraglimit.getTypedValue() != 0) {
             for (i = 0; i < game.maxclients; i++) {
                 cl = game.clients[i];
                 if (!g_edicts[i + 1].inuse)
                     continue;
 
-                if (cl.resp.score >= gameCvars.fraglimit.value) {
+                if (cl.resp.score >= gameCvars.fraglimit.getTypedValue()) {
                     gameImports.bprintf(PRINT_HIGH, "Fraglimit hit.\n");
                     EndDMLevel();
                     return;
@@ -1282,14 +1286,14 @@ public class GameExportsImpl implements GameExports {
         String seps = " ,\n\r";
 
         // stay on same level flag
-        if (((int) gameCvars.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
+        if ((gameCvars.dmflags.getTypedValue() & Defines.DF_SAME_LEVEL) != 0) {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
             return;
         }
 
         // see if it's in the map list
-        if (gameCvars.sv_maplist.string.length() > 0) {
-            String mapList = gameCvars.sv_maplist.string;
+        if (gameCvars.sv_maplist.getTypedValue().length() > 0) {
+            String mapList = gameCvars.sv_maplist.getTypedValue();
             // todo: cleanup parsing of maplist
             String f = null;
             StringTokenizer tk = new StringTokenizer(mapList, seps);
@@ -1344,13 +1348,13 @@ public class GameExportsImpl implements GameExports {
 
             int need = 0;
 
-            if (!gameCvars.password.string.isEmpty() && !"none".equalsIgnoreCase(gameCvars.password.string))
+            if (!gameCvars.password.getTypedValue().isEmpty() && !"none".equalsIgnoreCase(gameCvars.password.getTypedValue()))
                 need |= 1;
 
-            if (!gameCvars.spectator_password.string.isEmpty() && !"none".equalsIgnoreCase(gameCvars.spectator_password.string))
+            if (!gameCvars.spectator_password.getTypedValue().isEmpty() && !"none".equalsIgnoreCase(gameCvars.spectator_password.getTypedValue()))
                 need |= 2;
 
-            gameImports.cvar_set("needpass", "" + need);
+            gameCvars.needpass.set(need);
         }
     }
 
@@ -1749,7 +1753,7 @@ public class GameExportsImpl implements GameExports {
     }
 
     public boolean skipForDeathmatch(GameEntity entity) {
-        if (gameCvars.deathmatch.value != 0f) {
+        if (gameCvars.deathmatch.getTypedValue()) {
             freeEntity(entity);
             return true;
         } else {

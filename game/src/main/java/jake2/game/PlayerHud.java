@@ -43,7 +43,7 @@ public class PlayerHud {
 
     public static void MoveClientToIntermission(GameEntity ent, GameExportsImpl gameExports) {
         GamePlayerInfo client = ent.getClient();
-        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0)
+        if (gameExports.gameCvars.deathmatch.getTypedValue() || gameExports.gameCvars.coop.getTypedValue())
             client.showscores = true;
         Math3D.VectorCopy(gameExports.level.intermission_origin, ent.s.origin);
         client.getPlayerState().pmove.origin[0] = (short) (gameExports.level.intermission_origin[0] * 8);
@@ -75,7 +75,7 @@ public class PlayerHud {
 
         // add the layout
 
-        if (gameExports.gameCvars.deathmatch.value != 0 || gameExports.gameCvars.coop.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue() || gameExports.gameCvars.coop.getTypedValue()) {
             gameExports.gameImports.unicastMessage(ent.index, DeathmatchScoreboardMessage(ent, null, gameExports), true);
         }
 
@@ -102,7 +102,7 @@ public class PlayerHud {
 
         // if we exit current unit in coop (only in coop because in single player all keys should have been already used)
         if (gameExports.level.changemap.contains("*")) {
-            if (gameExports.gameCvars.coop.value != 0) {
+            if (gameExports.gameCvars.coop.getTypedValue()) {
                 for (int i = 0; i < gameExports.game.maxclients; i++) {
                     final GameEntity client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
@@ -114,7 +114,7 @@ public class PlayerHud {
                 }
             }
         } else {
-            if (0 == gameExports.gameCvars.deathmatch.value) {
+            if (!gameExports.gameCvars.deathmatch.getTypedValue()) {
                 // go immediately to the next level
                 gameExports.level.exitintermission = true;
                 return;
@@ -366,7 +366,7 @@ public class PlayerHud {
         //
         client.getPlayerState().stats[Defines.STAT_LAYOUTS] = 0;
 
-        if (gameExports.gameCvars.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()) {
             if (client.pers.health <= 0
                     || gameExports.level.intermissiontime != 0
                     || client.showscores)

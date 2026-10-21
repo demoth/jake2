@@ -2,7 +2,7 @@ package jake2.qcommon.network.messages;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndOfClientPacketMessage;
@@ -74,7 +74,7 @@ public class NetworkPacket {
 
         if (isConnectionless()) {
             connectionlessMessage = buffer.readString();
-            if (Cvar.getInstance().Get("sv_print_network", "0", 0).value == 1) {
+            if (Netchan.printNetwork.getTypedValue()) {
                 Com.Printf("Network: Received from " + (fromClient ? "client" : "server") + " connectionless: " + connectionlessMessage + "\n");
             }
             if (!fromClient) {
@@ -104,7 +104,7 @@ public class NetworkPacket {
                 break;
             } else if (msg != null) {
                 if (!(msg instanceof FrameHeaderMessage) && !(msg instanceof PlayerInfoMessage) && !(msg instanceof PacketEntitiesMessage)) {
-                    if (Cvar.getInstance().Get("sv_print_network", "0", 0).value == 1) {
+                    if (Netchan.printNetwork.getTypedValue()) {
                         Com.Printf("Network: Received server msg: " + msg + "\n");
                     }
                 }
@@ -126,7 +126,7 @@ public class NetworkPacket {
                 break;
             } else {
                 if (!(msg instanceof MoveMessage)) {
-                    if (Cvar.getInstance().Get("sv_print_network", "0", 0).value == 1) {
+                    if (Netchan.printNetwork.getTypedValue()) {
                         Com.Printf("Network: Received client msg: " + msg + "\n");
                     }
                 }

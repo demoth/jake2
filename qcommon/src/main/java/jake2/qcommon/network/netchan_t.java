@@ -205,7 +205,7 @@ public class netchan_t {
 
         // send the qport if we are a client
         if (sock == Defines.NS_CLIENT)
-            packet.writeShort((int) Netchan.qport.value);
+            packet.writeShort(Netchan.qport.getTypedValue());
 
         // copy the reliable message to the packet first
         if (send_reliable != 0) {
@@ -229,7 +229,7 @@ public class netchan_t {
         // send the datagram
         NET.SendPacket(sock, packet.cursize, packet.data, remote_address);
 
-        if (Netchan.showpackets.value != 0) {
+        if (Netchan.showpackets.getTypedValue()) {
             Com.Printf(String.format("Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d \n", sock == 0 ? "client" : "server", outgoing_sequence - 1, incoming_sequence, send_reliable, reliable_received_flag));
         }
 

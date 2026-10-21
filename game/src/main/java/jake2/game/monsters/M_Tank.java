@@ -918,7 +918,7 @@ public class M_Tank {
                     return;
 
             // If hard or nightmare, don't go into pain while attacking
-            if (gameExports.gameCvars.skill.value >= 2) {
+            if (gameExports.gameCvars.skill.getTypedValue() >= 2) {
                 if ((self.s.frame >= FRAME_attak301)
                         && (self.s.frame <= FRAME_attak330))
                     return;
@@ -931,7 +931,7 @@ public class M_Tank {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 30)
@@ -1070,7 +1070,7 @@ public class M_Tank {
     static EntThinkAdapter tank_reattack_blaster = new EntThinkAdapter() {
     	public String getID(){ return "tank_reattack_blaster"; }
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.gameCvars.skill.value >= 2)
+            if (gameExports.gameCvars.skill.getTypedValue() >= 2)
                 if (GameUtil.visible(self, self.enemy, gameExports))
                     if (self.enemy.health > 0)
                         if (Lib.random() <= 0.6) {
@@ -1150,7 +1150,7 @@ public class M_Tank {
     	public String getID(){ return "tank_refire_rocket"; }
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             // Only on hard or nightmare
-            if (gameExports.gameCvars.skill.value >= 2)
+            if (gameExports.gameCvars.skill.getTypedValue() >= 2)
                 if (self.enemy.health > 0)
                     if (GameUtil.visible(self, self.enemy, gameExports))
                         if (Lib.random() <= 0.4) {

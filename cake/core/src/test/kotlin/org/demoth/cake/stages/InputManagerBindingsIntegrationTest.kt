@@ -7,14 +7,21 @@ import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.usercmd_t
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.CakeCvars
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.input.InputManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks bindings through generated commands; registers input definitions without bootstrapping Cake. */
 class InputManagerBindingsIntegrationTest {
+    @BeforeEach
+    fun registerInputCvars() {
+        CakeCvars.registerInput()
+    }
 
     @Test
     fun rebindedImmediateControlAffectsGeneratedUserCommand() {

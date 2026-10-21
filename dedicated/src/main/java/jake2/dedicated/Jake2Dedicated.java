@@ -1,13 +1,12 @@
 package jake2.dedicated;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
+import jake2.qcommon.MainCommon;
+import jake2.qcommon.network.Netchan;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.longjmpException;
-import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
@@ -26,7 +25,7 @@ public class Jake2Dedicated {
     public static void main(String[] args) {
 
 
-        Globals.dedicated = Cvar.getInstance().Get("dedicated", "1", Defines.CVAR_NOSET );
+        MainCommon.registerCvars(true);
 
         // in C the first arg is the filename
         int argc = args.length + 1;
@@ -60,15 +59,7 @@ public class Jake2Dedicated {
             //
             // init commands and vars
 
-            Globals.host_speeds= Cvar.getInstance().Get("host_speeds", "0", 0);
-            Globals.developer= Cvar.getInstance().Get("developer", "0", Defines.CVAR_ARCHIVE);
-            Globals.timescale= Cvar.getInstance().Get("timescale", "0", 0);
-            Globals.fixedtime= Cvar.getInstance().Get("fixedtime", "0", 0);
-            Globals.showtrace= Cvar.getInstance().Get("showtrace", "0", 0);
-            Cvar.getInstance().Get("version", "1.0.0", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
-
-            Netchan.Netchan_Init();	//ok
-
+            Netchan.Netchan_Init();
             serverMain = new SV_MAIN();	//ok
 
             // add + commands from command line

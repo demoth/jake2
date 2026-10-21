@@ -6,13 +6,21 @@ import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.PITCH
 import jake2.qcommon.Defines.YAW
 import jake2.qcommon.util.Math3D
+import org.demoth.cake.CakeCvars
 import org.demoth.cake.ClientFrame
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.wrapSignedAngle
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+/** Checks server/local angle synchronization using the normal input cvar definitions. */
 class InputManagerAngleSyncTest {
+    @BeforeEach
+    fun registerInputCvars() {
+        CakeCvars.registerInput()
+    }
+
     private val angleEpsilon = 0.05f
     private val cmdAngleEpsilon = 0.1f
 

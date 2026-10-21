@@ -25,7 +25,7 @@ import kotlin.math.min
  *
  * Notes:
  * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
- * - live particles are capped by `r_particles` budget (clamped to legacy `MAX_PARTICLES` parity), overflow spawns are dropped.
+ * - live particles are capped by the validated `r_particles` budget; overflow spawns are dropped.
  */
 class EffectParticleSystem(
     assetManager: AssetManager,

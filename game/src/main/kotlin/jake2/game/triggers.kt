@@ -266,7 +266,7 @@ private val triggerKeyUse = registerUse("trigger_key_use") { self, other, activa
     )
 
     // in multiplayer games we deduct keys from all players at once
-    if (game.gameCvars.coop.value != 0f) {
+    if (game.gameCvars.coop.typedValue) {
         if ("key_power_cube" == self.item.classname) {
             // power cubes are handled differently in coop than other keys
             var cubeMaxBit = 0

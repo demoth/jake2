@@ -152,7 +152,7 @@ internal class WorldPresentationRenderer {
 
         context.modelBatch.begin(context.camera)
         try {
-            if (context.entityManager.rDrawSky?.value != 0f) {
+            if (context.entityManager.rDrawSky.typedValue) {
                 context.entityManager.skyEntity?.modelInstance?.let { skyModelInstance ->
                     Gdx.gl.glDepthMask(false)
                     context.onApplySkyTransform(skyModelInstance)

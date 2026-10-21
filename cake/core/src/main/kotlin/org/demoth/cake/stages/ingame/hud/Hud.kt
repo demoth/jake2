@@ -12,6 +12,7 @@ import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
 import jake2.qcommon.Defines.MAX_ITEMS
 import jake2.qcommon.player_state_t
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.ui.GameUiStyle
 import java.util.Locale
@@ -45,13 +46,8 @@ internal data class LayoutClientInfo(
  * Legacy counterpart:
  * `client/SCR.TouchPics` and `client/SCR.DrawCrosshair`.
  */
-internal fun resolveCrosshairPicName(crosshairValue: Float): String? {
-    if (crosshairValue == 0f) {
-        return null
-    }
-    val index = if (crosshairValue !in 0f..3f) 3 else crosshairValue.toInt()
-    return "ch$index"
-}
+internal fun resolveCrosshairPicName(crosshairValue: Int): String? =
+    if (crosshairValue == 0) null else "ch$crosshairValue"
 
 /**
  * Shared IdTech2 HUD layout parser used by runtime rendering.
@@ -367,8 +363,8 @@ internal class Hud(
     private var centerPrintLineCount: Int = 0
     private var centerPrintTimeLeftSeconds: Float = 0f
     private val notifyLines = mutableListOf<NotifyLine>()
-    private val crosshairCvar = Cvar.getInstance().Get("cl_crosshair", "1", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Crosshair preset")
-    private val clShowFpsCvar = Cvar.getInstance().Get("cl_showfps", "0", Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "FPS overlay mode")
+    private val crosshairCvar = Cvar.getInstance().find<Int>("cl_crosshair")
+    private val clShowFpsCvar = Cvar.getInstance().find<Int>("cl_showfps")
     private var crosshairPic: String? = null
     private var crosshairTexture: Texture? = null
     private val fpsFrameTimesMicros = LongArray(FPS_SAMPLE_WINDOW)
@@ -505,7 +501,7 @@ internal class Hud(
     }
 
     fun drawCrosshair(screenWidth: Int, screenHeight: Int) {
-        val nextCrosshairPic = resolveCrosshairPicName(crosshairCvar.value)
+        val nextCrosshairPic = resolveCrosshairPicName(crosshairCvar.typedValue)
         if (nextCrosshairPic == null) {
             crosshairPic = null
             crosshairTexture = null
@@ -609,11 +605,11 @@ internal class Hud(
      * Mode parity with Yamagi:
      * - `0`: disabled
      * - `1`: average fps
-     * - `2+`: min/max/avg fps
-     * - `3+`: adds a second line with max/min/avg frame time in milliseconds
+     * - `2`: min/max/avg fps
+     * - `3`: adds a second line with max/min/avg frame time in milliseconds
      */
     private fun drawFpsCounter(screenWidth: Int, screenHeight: Int) {
-        val showFpsMode = clShowFpsCvar.value.toInt()
+        val showFpsMode = clShowFpsCvar.typedValue
         if (showFpsMode < 1) {
             return
         }

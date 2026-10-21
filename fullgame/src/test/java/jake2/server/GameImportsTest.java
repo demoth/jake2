@@ -21,7 +21,7 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("testbox", false, false));
+        GameImportsImpl testInstance = new SV_MAIN().createGameInstance(new ChangeMapInfo("testbox", false, false), null);
 
         testInstance.SV_RunGameFrame(100);
 

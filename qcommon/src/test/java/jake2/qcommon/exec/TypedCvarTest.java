@@ -1,0 +1,523 @@
+package jake2.qcommon.exec;
+
+import jake2.qcommon.Com;
+import jake2.qcommon.Globals;
+import jake2.qcommon.ServerStates;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.nio.file.Files;
+import java.util.List;
+
+import static jake2.qcommon.Defines.*;
+import static jake2.qcommon.exec.CvarSetResult.Status.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+/** Covers typed registry behavior through native and text writes, early initialization, latches and config reloads. */
+class TypedCvarTest {
+    private Cvar registry;
+    private boolean previousUserinfoModified;
+
+    @BeforeEach
+    void setup() {
+        registry = new Cvar();
+        // Registries share this notification flag; isolate tests that assert or trigger it.
+        previousUserinfoModified = Globals.userinfo_modified;
+        Globals.userinfo_modified = false;
+    }
+
+    @AfterEach
+    void restoreGlobals() {
+        Globals.userinfo_modified = previousUserinfoModified;
+    }
+
+    private <T> cvar_t<T> register(String name, CvarType<T> type, T value, int flags) {
+        return registry.register(name, type, value, flags, "Test setting");
+    }
+
+    @Test
+    void directWritesKeepSameNamedEntriesIndependentAndNotifyUserinfo() {
+        var local = registry.register("skill", CvarTypes.INTEGER, 1);
+        var other = new Cvar().register("skill", CvarTypes.INTEGER, 2);
+        assertEquals(APPLIED, local.set(3).getStatus());
+        assertEquals(3, local.getTypedValue());
+        assertEquals(2, other.getTypedValue());
+
+        var player = registry.register("player", CvarTypes.STRING, "old", CVAR_USERINFO);
+        Globals.userinfo_modified = false;
+        player.modified = false;
+        assertEquals(REJECTED, player.set("bad;value").getStatus());
+        assertFalse(Globals.userinfo_modified);
+        assertFalse(player.modified);
+        assertEquals(APPLIED, player.set("new").getStatus());
+        assertTrue(Globals.userinfo_modified);
+        assertTrue(player.modified);
+    }
+
+    @Test
+    void nativeForcedWritesValidateValuesAndClearPendingOnlyOnSuccess() {
+        var number = registry.register("vid_number", new CvarTypes.IntegerType(0, 10), 1, CVAR_LATCH);
+        assertEquals(QUEUED, number.set(2).getStatus());
+        assertEquals(REJECTED, number.forceSet(11).getStatus());
+        assertEquals(1, number.getTypedValue());
+        assertEquals(2, number.getPendingValue());
+        assertEquals(APPLIED, number.forceSet(3).getStatus());
+        assertEquals(3, number.getTypedValue());
+        assertNull(number.getPendingValue());
+        assertEquals(CVAR_LATCH, number.flags);
+        assertEquals(1, number.getDefaultValue());
+
+        var protectedValue = registry.register("protected", CvarTypes.BOOLEAN, false, CVAR_NOSET);
+        assertEquals(REJECTED, protectedValue.set(true).getStatus());
+        assertEquals(APPLIED, protectedValue.forceSet(true).getStatus());
+        assertTrue(protectedValue.getTypedValue());
+        assertEquals(CVAR_NOSET, protectedValue.flags);
+    }
+
+    @Test
+    void javaLookupAcceptsPrimitiveAndWrapperTokensWithNativeValues() {
+        cvar_t<Integer> registered = registry.register("number", CvarTypes.INTEGER, 7);
+        cvar_t<Integer> found = registry.find("number", int.class);
+        assertSame(registered, found);
+        assertSame(found, registry.find("number", Integer.class));
+        int nativeValue = found.getTypedValue();
+        assertEquals(7, nativeValue);
+        assertEquals(7, registry.find("number").getTypedValue());
+        assertSame(registry.register("toggle", CvarTypes.BOOLEAN, false), registry.find("toggle", boolean.class));
+        assertSame(registry.register("scale", CvarTypes.FLOAT, 1f), registry.find("scale", float.class));
+    }
+
+    @Test
+    void nativeWritesKeepCanonicalTokensAndValidateTheUnknownTypeBoundary() {
+        var toggle = registry.register("toggle", CvarTypes.BOOLEAN, false);
+        assertEquals(APPLIED, toggle.set(true).getStatus());
+        assertTrue(toggle.getTypedValue());
+        assertEquals("1", toggle.getRawString());
+        var samples = registry.register("samples", new CvarTypes.ChoiceType<>(List.of(0, 4)), 0);
+        assertEquals(APPLIED, registry.setNativeResult(samples.name, 4).getStatus());
+        assertEquals(REJECTED, registry.setNativeResult(samples.name, 2).getStatus());
+        assertEquals(REJECTED, registry.setNativeResult(samples.name, 4f).getStatus());
+        assertEquals(4, samples.getTypedValue());
+        var mode = registry.register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels);
+        assertEquals(APPLIED, mode.set(Mode.Logical).getStatus());
+        assertEquals("Logical", mode.getRawString());
+        assertEquals(REJECTED, registry.setNativeResult(mode.name, OtherMode.Logical).getStatus());
+        var scale = registry.register("scale", CvarTypes.FLOAT, 1f);
+        assertEquals(REJECTED, scale.set(Float.NaN).getStatus());
+        assertEquals(1f, scale.getTypedValue());
+        var text = registry.register("text", CvarTypes.STRING, "safe", CVAR_ARCHIVE);
+        assertEquals(REJECTED, text.set("unsafe\"text").getStatus());
+        assertEquals("safe", text.getTypedValue());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"2", "-1", "1.0", "yes", "NaN", "", "truthy"})
+    void booleansRejectNumericTruthinessAndUnknownWords(String text) {
+        var variable = register("toggle", CvarTypes.BOOLEAN, false, 0);
+        assertEquals(REJECTED, registry.setResult("toggle", text).getStatus());
+        assertFalse(variable.getTypedValue());
+    }
+
+    @Test
+    void booleanCanonicalizationAndNotifications() {
+        var variable = register("toggle", CvarTypes.BOOLEAN, false, CVAR_USERINFO);
+        registry.find("toggle").modified = false;
+        Globals.userinfo_modified = false;
+        assertEquals(APPLIED, registry.setResult("toggle", " TrUe ").getStatus());
+        assertTrue(variable.getTypedValue());
+        assertEquals("1", registry.getRawString("toggle"));
+        assertTrue(registry.find("toggle").modified);
+        assertTrue(Globals.userinfo_modified);
+        registry.find("toggle").modified = false;
+        Globals.userinfo_modified = false;
+        assertEquals(UNCHANGED, registry.setResult(variable.name, "true").getStatus());
+        assertFalse(registry.find("toggle").modified);
+        assertFalse(Globals.userinfo_modified);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1.0", "1.9", "1e2", "true", "2147483648", "-2147483649", "0x10", ""})
+    void integerGrammarIsStrict(String text) {
+        register("number", CvarTypes.INTEGER, 0, 0);
+        assertEquals(REJECTED, registry.setResult("number", text).getStatus());
+    }
+
+    @Test
+    void integersPreservePrecisionAndCanonicalWireEncoding() {
+        var variable = register("number", CvarTypes.INTEGER, 0, CVAR_USERINFO);
+        assertEquals(APPLIED, registry.setResult("number", "\u00a0 +016777217 \u00a0").getStatus());
+        assertEquals(16777217, variable.getTypedValue());
+        assertEquals("16777217", registry.getRawString("number"));
+        assertTrue(registry.Userinfo().contains("\\number\\16777217"));
+        assertEquals(REJECTED, registry.setNativeResult("number", 2f).getStatus());
+        assertEquals(16777217, variable.getTypedValue()); // No implicit float-to-integer conversion, even for 2.0.
+    }
+
+    @Test
+    void rangesRejectInsteadOfClamping() {
+        var integer = registry.register("budget", new CvarTypes.IntegerType(1, 128), 32, 0, "Test setting");
+        assertEquals(REJECTED, registry.setResult(integer.name, "129").getStatus());
+        assertEquals(REJECTED, registry.setResult("budget", "0").getStatus());
+        assertEquals(32, integer.getTypedValue());
+        assertEquals(APPLIED, registry.setResult(integer.name, "1").getStatus());
+        assertEquals(APPLIED, registry.setResult(integer.name, "128").getStatus());
+        assertThrows(IllegalArgumentException.class, () -> register("bad", new CvarTypes.IntegerType(1, 2), 0, 0));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"NaN", "Infinity", "-Infinity", "1e99", "true", "", "1.2.3"})
+    void floatsRejectNonfiniteAndInvalidInput(String text) {
+        var variable = register("gain", CvarTypes.FLOAT, 1f, 0);
+        assertEquals(REJECTED, registry.setResult("gain", text).getStatus());
+        assertEquals(1f, variable.getTypedValue());
+    }
+
+    @Test
+    void floatsHaveFiniteRangesAndOneZero() {
+        var variable = register("gain", new CvarTypes.FloatType(0f, 2f), 1f, 0);
+        assertEquals(APPLIED, registry.setResult("gain", " .2e1 ").getStatus());
+        assertEquals(2f, variable.getTypedValue());
+        assertEquals(APPLIED, registry.setResult("gain", "0x1.0p0").getStatus());
+        assertEquals(1f, variable.getTypedValue());
+        assertEquals("1.0", variable.getRawString());
+        assertEquals(APPLIED, registry.setResult("gain", "2f").getStatus());
+        assertEquals(2f, variable.getTypedValue());
+        assertEquals("2.0", variable.getRawString());
+        assertEquals(REJECTED, registry.setResult(variable.name, "NaN").getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, "-1.0").getStatus());
+        assertEquals(APPLIED, registry.setResult("gain", "-0.0").getStatus());
+        assertEquals("0.0", registry.getRawString("gain"));
+        assertEquals(UNCHANGED, registry.setResult(variable.name, "0.0").getStatus());
+    }
+
+    @Test
+    void regexUsesFullMatchAndStringWhitespaceIsPreserved() {
+        var variable = register("name", new CvarTypes.StringType("[a-z ]+"), "bob", 0);
+        assertEquals(APPLIED, registry.setResult(variable.name, " bob ").getStatus());
+        assertEquals(" bob ", variable.getTypedValue());
+        assertEquals(REJECTED, registry.setResult(variable.name, "bob123").getStatus());
+        assertEquals(APPLIED, registry.setResult(variable.name, "longerthaneight").getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, null).getStatus());
+    }
+
+    enum Mode { Pixels, Logical }
+
+    @Test
+    void enumTokensAreNamesAndNumericChoicesRemainTypedIntegers() {
+        var mode = register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0);
+        assertEquals(APPLIED, registry.setResult(mode.name, "Logical").getStatus());
+        assertEquals("Logical", registry.getRawString("mode"));
+        assertEquals(REJECTED, registry.setResult("mode", "1").getStatus());
+        assertEquals(REJECTED, registry.setResult("mode", "logical").getStatus());
+        var choices = new CvarTypes.ChoiceType<>(List.of(0, 4));
+        var samples = register("samples", choices, 0, 0);
+        assertEquals(APPLIED, registry.setResult(samples.name, "4").getStatus());
+        assertEquals(4, samples.getTypedValue());
+        assertEquals(REJECTED, registry.setResult(samples.name, "004").getStatus());
+        assertEquals(REJECTED, registry.setResult(samples.name, " 4 ").getStatus());
+        assertEquals(REJECTED, registry.setResult(samples.name, "2").getStatus());
+    }
+
+    @Test
+    void copiedValuesAreIndependentInputsValidatedByTheNewOwner() {
+        var source = registry.register("vid_number", CvarTypes.INTEGER, 2, CVAR_LATCH);
+        registry.setResult("vid_number", "8");
+        registry.setResult("undeclared", "4");
+        Cvar destination = new Cvar();
+        registry.copyValuesTo(destination);
+        var copied = destination.register("vid_number", new CvarTypes.IntegerType(0, 5), 1, CVAR_LATCH);
+        assertEquals(1, copied.getTypedValue()); // The destination's declaration rejects the copied 8.
+        assertEquals(2, source.getTypedValue());
+        assertEquals(8, source.getPendingValue());
+        assertEquals(4, destination.register("undeclared", CvarTypes.INTEGER, 0).getTypedValue());
+        assertEquals("4", registry.getRawString("undeclared"));
+        destination.setResult("undeclared", "5");
+        assertEquals("4", registry.getRawString("undeclared"));
+    }
+
+    @Test
+    void scopedEarlyTransferPreservesValidationAndConsumesInputOnce() {
+        Cvar owner = new Cvar();
+        registry.setResult("scoped", "2");
+        registry.transferEarlyValue("scoped", owner);
+        assertFalse(registry.isRegistered("scoped"));
+        assertEquals(2, owner.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+        Cvar other = new Cvar();
+        registry.transferEarlyValue("scoped", other);
+        assertEquals(0, other.register("scoped", CvarTypes.INTEGER, 0, CVAR_SERVERINFO).getTypedValue());
+
+        registry.setResult("invalid", "not-an-int");
+        registry.transferEarlyValue("invalid", owner);
+        assertEquals(0, owner.register("invalid", CvarTypes.INTEGER, 0).getTypedValue());
+    }
+
+    @Test
+    void earlyInputIsValidatedWhenTheCompleteEntryIsRegistered() {
+        registry.setResult("number", "not an integer");
+        assertTrue(registry.listByPrefixAndFlags("number", 0).isEmpty());
+        var variable = register("number", CvarTypes.INTEGER, 7, 0);
+        assertSame(variable, registry.find("number"));
+        assertEquals(7, variable.getTypedValue());
+        assertNull(variable.getPendingValue());
+        registry.setResult("valid", " +0009 ");
+        var valid = register("valid", CvarTypes.INTEGER, 7, CVAR_LATCH);
+        assertEquals(9, valid.getTypedValue());
+        assertEquals("9", valid.getRawString());
+        assertNull(valid.getPendingValue());
+    }
+
+    @Test
+    void earlyWritesStayOutOfRegisteredViewsAndProduceDiagnostics() {
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            registry.setResult("early", "private-invalid-value");
+            assertNull(registry.find("early"));
+            assertTrue(registry.listByPrefixAndFlags("", 0).isEmpty());
+            assertEquals("", registry.Userinfo());
+            assertFalse(Globals.userinfo_modified);
+            assertEquals("private-invalid-value", registry.getRawString("early"));
+            assertNull(registry.find("missing"));
+            assertEquals(7, register("early", CvarTypes.INTEGER, 7, CVAR_USERINFO).getTypedValue());
+        } finally {
+            Com.EndRedirect();
+        }
+        assertFalse(output.toString().contains("private-invalid-value"));
+        assertTrue(output.toString().contains("Cvar 'missing' is not registered"));
+        assertTrue(output.toString().contains("storing early input"));
+        assertTrue(output.toString().contains("before cvar registration"));
+        assertTrue(output.toString().contains("Rejected early input"));
+    }
+
+
+    @Test
+    void aliasesRouteEarlyInputInLastWriteOrder() {
+        registry.setResult("old_number", "2");
+        registry.setResult("number", "3");
+        registry.setResult("old_number", "4");
+        var output = new StringBuilder();
+        Com.BeginRedirect(output::append);
+        try {
+            registry.AddAlias("old_number", "number");
+        } finally {
+            Com.EndRedirect();
+        }
+        assertTrue(output.toString().contains("Alias 'old_number' was used before alias registration"));
+        var number = register("number", CvarTypes.INTEGER, 1, 0);
+        assertEquals(4, number.getTypedValue());
+        assertSame(number, registry.find("old_number"));
+
+        registry.setResult("old_other", "5");
+        registry.setResult("other", "6");
+        registry.AddAlias("old_other", "other");
+        assertEquals(6, register("other", CvarTypes.INTEGER, 1, 0).getTypedValue());
+    }
+
+    @Test
+    void aLateAliasUsesNormalWritesForAnAlreadyRegisteredTarget() {
+        registry.setResult("old_video", "2");
+        var video = register("vid_number", CvarTypes.INTEGER, 1, CVAR_LATCH);
+        registry.AddAlias("old_video", "vid_number");
+        assertEquals(1, video.getTypedValue());
+        assertEquals(2, video.getPendingValue());
+        registry.updateLatchedVars();
+        assertEquals(2, video.getTypedValue());
+    }
+
+    @Test
+    void registrationOwnsTheTypeAndRejectsOtherDeclarations() {
+        var variable = register("number", new CvarTypes.IntegerType(0, 10), 1, 0);
+        assertThrows(IllegalArgumentException.class, () -> register("number", CvarTypes.BOOLEAN, true, 0));
+        assertThrows(IllegalArgumentException.class, () -> register("number", new CvarTypes.IntegerType(0, 11), 1, 0));
+        assertEquals(1, variable.getTypedValue());
+        var raw = registry.register("raw", CvarTypes.STRING, "3");
+        assertSame(CvarTypes.STRING, raw.getType());
+        assertThrows(IllegalArgumentException.class, () -> register("raw", CvarTypes.INTEGER, 1, 0));
+    }
+
+    @Test
+    void registriesAreIndependentAndAliasesUseTheOwningDefinition() {
+        var first = register("number", CvarTypes.INTEGER, 7, 0);
+        var other = new Cvar();
+        other.register("number", CvarTypes.STRING, "separate text");
+        assertEquals("separate text", other.getRawString("number"));
+        assertEquals(7, first.getTypedValue());
+        registry.AddAlias("old_number", "number");
+        assertSame(registry.find("number"), registry.find("old_number"));
+        assertEquals(REJECTED, registry.setResult("old_number", "bad").getStatus());
+        assertEquals(APPLIED, registry.setResult("old_number", "8").getStatus());
+        assertEquals(8, first.getTypedValue());
+        assertEquals("separate text", other.getRawString("number"));
+        assertThrows(IllegalArgumentException.class, () -> register("old_number", CvarTypes.INTEGER, 7, 0));
+    }
+
+    @Test
+    void everyRegistryWritePathValidatesAndCannotDiscardPendingOnFailure() {
+        var variable = register("vid_number", new CvarTypes.IntegerType(0, 10), 1, CVAR_LATCH | CVAR_USERINFO);
+        var entry = registry.find("vid_number");
+        assertEquals(QUEUED, registry.setResult(variable.name, "2").getStatus());
+        entry.modified = false;
+        Globals.userinfo_modified = false;
+        for (var write : List.<Runnable>of(
+                () -> registry.setResult("vid_number", "bad"),
+                () -> registry.forceSetResult("vid_number", "bad"),
+                () -> variable.setText("bad"),
+                () -> variable.set(11),
+                () -> assertEquals(REJECTED, variable.forceSet(11).getStatus()))) {
+            write.run();
+            // Check each path before another write can mask a partial mutation.
+            assertEquals(1, variable.getTypedValue());
+            assertEquals(2, variable.getPendingValue());
+            assertEquals(CVAR_LATCH | CVAR_USERINFO, entry.flags);
+            assertFalse(entry.modified);
+            assertFalse(Globals.userinfo_modified);
+        }
+        registry.updateLatchedVars();
+        assertEquals(2, variable.getTypedValue());
+        assertNull(variable.getPendingValue());
+        assertTrue(entry.modified);
+        assertTrue(Globals.userinfo_modified);
+    }
+
+    @Test
+    void forcedWritesPreserveValidationAndDeclarationFlags() {
+        var variable = register("number", CvarTypes.INTEGER, 1, CVAR_NOSET);
+        assertEquals(REJECTED, registry.setResult(variable.name, "2").getStatus());
+        assertEquals(APPLIED, registry.forceSetResult("number", "2").getStatus());
+        assertEquals(REJECTED, registry.forceSetResult("number", "bad").getStatus());
+        variable.forceSet(3);
+        assertEquals(CVAR_NOSET, registry.find("number").flags);
+        assertEquals(3, variable.getTypedValue());
+        assertSame(CvarTypes.INTEGER, variable.getType());
+    }
+
+    @Test
+    void pendingChangesUseCanonicalEqualityAndCanBeCancelled() {
+        var variable = register("vid_toggle", CvarTypes.BOOLEAN, false, CVAR_LATCH);
+        assertEquals(QUEUED, registry.setResult("vid_toggle", "true").getStatus());
+        assertEquals(UNCHANGED, registry.setResult("vid_toggle", "1").getStatus());
+        assertEquals(APPLIED, registry.setResult(variable.name, "false").getStatus());
+        assertNull(variable.getPendingValue());
+        assertEquals(UNCHANGED, registry.setResult(variable.name, "false").getStatus());
+        assertEquals(QUEUED, registry.setResult(variable.name, "true").getStatus());
+        assertEquals(APPLIED, registry.forceSetResult("vid_toggle", "false").getStatus());
+        assertFalse(variable.getTypedValue());
+        assertNull(variable.getPendingValue());
+    }
+
+    @Test
+    void ordinaryLatchDependsOnServerState() {
+        var previousState = Globals.server_state;
+        try {
+            Globals.server_state = ServerStates.SS_DEAD;
+            var variable = register("number", CvarTypes.INTEGER, 1, CVAR_LATCH);
+            assertEquals(APPLIED, registry.setResult(variable.name, "2").getStatus());
+            assertEquals(2, variable.getTypedValue());
+            Globals.server_state = ServerStates.SS_GAME;
+            assertEquals(QUEUED, registry.setResult(variable.name, "3").getStatus());
+            assertEquals(2, variable.getTypedValue());
+            registry.updateLatchedVars();
+            assertEquals(3, variable.getTypedValue());
+        } finally {
+            Globals.server_state = previousState;
+        }
+    }
+
+
+
+
+    @Test
+    void archiveRejectsTokensThatTheCommandParserCannotRepresent() {
+        var variable = register("text", CvarTypes.STRING, "", CVAR_ARCHIVE);
+        assertEquals(REJECTED, registry.setResult(variable.name, "has\"quote").getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, "two\nlines").getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, "has\0nul").getStatus());
+        int maxLength = MAX_STRING_CHARS - "text".length() - 8;
+        assertEquals(APPLIED, registry.setResult(variable.name, "a".repeat(maxLength)).getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, "a".repeat(maxLength + 1)).getStatus());
+        assertEquals(APPLIED, registry.setResult(variable.name, "C:\\quake;test").getStatus());
+    }
+
+    @Test
+    void archiveAndCommandReloadPreserveEmptyPendingAndExactIntegers() throws Exception {
+        var singleton = Cvar.getInstance();
+        singleton.clear();
+        Cvar.Init();
+        var text = singleton.register("vid_text", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_ARCHIVE, "Test setting");
+        var number = singleton.register("rate", CvarTypes.INTEGER, 25000, CVAR_ARCHIVE | CVAR_USERINFO, "Test setting");
+        var path = Files.createTempFile("typed-cvars", ".cfg");
+        try {
+            assertEquals(QUEUED, singleton.setResult(text.name, "").getStatus());
+            assertEquals("", text.getPendingValue());
+            singleton.setResult(number.name, "16777217");
+            var unicode = singleton.register("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE, "Test setting");
+            singleton.setResult(unicode.name, "Grüße; C:\\quake");
+            singleton.register("raw_name", CvarTypes.STRING, "", CVAR_ARCHIVE);
+            singleton.setResult("raw_name", "Jäger 日本語");
+            singleton.writeArchiveVariables(path.toString());
+            String script = Files.readString(path);
+            assertTrue(script.contains("set vid_text \"\""));
+            assertTrue(script.contains("set rate \"16777217\""));
+            assertTrue(script.contains("Grüße; C:\\quake"));
+            assertTrue(script.contains("Jäger 日本語"));
+            singleton.clear();
+            text = singleton.register("vid_text", CvarTypes.STRING, "old", CVAR_LATCH | CVAR_ARCHIVE, "Test setting");
+            number = singleton.register("rate", CvarTypes.INTEGER, 25000, CVAR_ARCHIVE | CVAR_USERINFO, "Test setting");
+            unicode = singleton.register("unicode", CvarTypes.STRING, "", CVAR_ARCHIVE, "Test setting");
+            singleton.register("raw_name", CvarTypes.STRING, "", CVAR_ARCHIVE);
+            Cbuf.AddAndExecuteScript(script);
+            singleton.updateLatchedVars();
+            assertEquals("", text.getTypedValue());
+            assertNull(text.getPendingValue());
+            assertEquals(16777217, number.getTypedValue());
+            assertEquals("Grüße; C:\\quake", unicode.getTypedValue());
+            assertEquals("Jäger 日本語", singleton.getRawString("raw_name"));
+            assertSame(CvarTypes.STRING, singleton.find("raw_name").getType());
+        } finally {
+            Files.deleteIfExists(path);
+            singleton.clear();
+        }
+    }
+
+    @Test
+    void registeredEntriesKeepTheirTypeAndRegistryWritesCannotBypassIt() {
+        registry.setResult("budget", " 0003 ");
+        var type = new CvarTypes.IntegerType(1, 10);
+        var variable = register("budget", type, 1, 0);
+        assertSame(type, variable.getType());
+        assertEquals(3, variable.getTypedValue());
+        assertEquals("3", variable.getRawString());
+        variable.modified = false;
+        assertEquals(REJECTED, registry.setResult(variable.name, "11").getStatus());
+        assertEquals(REJECTED, registry.setResult(variable.name, null).getStatus());
+        assertEquals(3, variable.getTypedValue());
+        assertFalse(variable.modified);
+        assertEquals(APPLIED, registry.setResult(variable.name, " +0004 ").getStatus());
+        assertEquals(4, variable.getTypedValue());
+        assertEquals("4", variable.getRawString());
+        registry.AddAlias("old_budget", "budget");
+        assertSame(variable, registry.find("old_budget"));
+        assertSame(variable, registry.find("old_budget", Integer.class));
+    }
+
+    enum OtherMode { Pixels, Logical }
+
+    @Test
+    void accessorsCheckDeclaredTypesWithoutBooleanOrNumericCoercion() {
+        var toggle = register("toggle", CvarTypes.BOOLEAN, false, 0);
+        var number = register("number", CvarTypes.INTEGER, 0, 0);
+        var mode = register("mode", new CvarTypes.EnumType<>(Mode.class), Mode.Pixels, 0);
+        assertThrows(IllegalArgumentException.class, () -> registry.find("toggle", Integer.class));
+        assertThrows(IllegalArgumentException.class, () -> registry.find("number", Boolean.class));
+        assertThrows(IllegalArgumentException.class, () -> registry.find("number", Float.class));
+        assertThrows(IllegalArgumentException.class, () -> registry.find("number", String.class));
+        assertThrows(IllegalArgumentException.class, () -> registry.find("mode", OtherMode.class));
+        assertFalse(toggle.getTypedValue());
+        assertEquals(0, number.getTypedValue());
+        assertEquals(Mode.Pixels, mode.getTypedValue());
+    }
+
+}

@@ -25,6 +25,7 @@ package jake2.qcommon.network;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.sizebuf_t;
@@ -92,11 +93,13 @@ public final class Netchan {
      * unacknowledged reliable
      */
 
-    public static cvar_t showpackets;
+    public static cvar_t<Boolean> showpackets;
 
-    public static cvar_t showdrop;
+    public static cvar_t<Boolean> showdrop;
 
-    public static cvar_t qport;
+    public static cvar_t<Integer> qport;
+
+    public static cvar_t<Boolean> printNetwork;
 
     /**
      * Netchan_Init.
@@ -104,12 +107,16 @@ public final class Netchan {
      */
     public static void Netchan_Init() {
 
-        // pick a port value that should be nice and random
-        long port = Timer.Milliseconds() & 0xffff;
-
-        showpackets = Cvar.getInstance().Get("showpackets", "0", 0);
-        showdrop = Cvar.getInstance().Get("showdrop", "0", 0);
-        qport = Cvar.getInstance().Get("qport", "" + port, Defines.CVAR_NOSET);
+        Cvar cvars = Cvar.getInstance();
+        NET.registerCvars();
+        showpackets = cvars.register("showpackets", CvarTypes.BOOLEAN, false, 0, "Log packet sizes, sequences and acknowledgements");
+        showdrop = cvars.register("showdrop", CvarTypes.BOOLEAN, false, 0, "Log dropped or out-of-order packets");
+        printNetwork = cvars.register("sv_print_network", CvarTypes.BOOLEAN, false, 0, "Log decoded incoming network messages");
+        // Reinitializing channels retains the process's original random qport declaration.
+        qport = cvars.isRegistered("qport") ? cvars.find("qport", Integer.class)
+                : cvars.register("qport", new CvarTypes.IntegerType(0, 65535),
+                        Timer.Milliseconds() & 0xffff, Defines.CVAR_NOSET,
+                        "Client connection identifier for NAT port changes; not a UDP socket port");
     }
 
     /**

@@ -29,6 +29,7 @@ public class LoadMapUtil {
 	public static void main(String[] args) {
 		Com.DPrintf("hello!\n");
 
+		MainCommon.registerCvars(false);
 		EngineFilesystemLifecycle.init();
 
 		new CM().CM_LoadMap("maps/base1.bsp", true, new int[]{0});

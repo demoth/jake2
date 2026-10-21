@@ -11,6 +11,7 @@ public class Jbsp {
             logger.info("usage: [info|transparency] <args>");
             return;
         }
+        jake2.qcommon.MainCommon.registerCvars(false);
         switch (args[0]) {
             case "info":
                 JbspInfo.info(args);

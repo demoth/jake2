@@ -60,12 +60,12 @@ public class Globals extends Defines {
 	@Deprecated
 	public static ServerStates server_state;
 
-	public static cvar_t dedicated;
-	public static cvar_t developer;
-	public static cvar_t fixedtime;
-	public static cvar_t host_speeds;
-	public static cvar_t showtrace;
-	public static cvar_t timescale;
+	public static cvar_t<Boolean> dedicated;
+	public static cvar_t<Boolean> developer;
+	public static cvar_t<Integer> fixedtime;
+	public static cvar_t<Boolean> host_speeds;
+	public static cvar_t<Boolean> showtrace;
+	public static cvar_t<Float> timescale;
 
 
 	// client/anorms.h

@@ -734,7 +734,7 @@ public class M_Gunner {
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (gameExports.gameCvars.skill.value == 3)
+            if (gameExports.gameCvars.skill.getTypedValue() == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -819,7 +819,7 @@ public class M_Gunner {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
-            if (gameExports.gameCvars.skill.value >= 2) {
+            if (gameExports.gameCvars.skill.getTypedValue() >= 2) {
                 if (Lib.random() > 0.5)
                     GunnerGrenade.think(self, gameExports);
             }

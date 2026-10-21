@@ -1520,7 +1520,7 @@ public class M_Actor {
 
 
     public static void SP_misc_actor(GameEntity self, GameExportsImpl gameExports) {
-        if (gameExports.gameCvars.deathmatch.value != 0) {
+        if (gameExports.gameCvars.deathmatch.getTypedValue()) {
             gameExports.freeEntity(self);
             return;
         }

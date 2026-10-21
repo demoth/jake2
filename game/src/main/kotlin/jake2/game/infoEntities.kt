@@ -9,7 +9,7 @@ import jake2.qcommon.util.Math3D
  * The normal starting point for a level.
  */
 fun infoPlayerStart(self: GameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.coop.value == 0f)
+    if (!game.gameCvars.coop.typedValue)
         return
     if ("security".equals(game.level.mapname, true)) {
         // invoke one of our gross, ugly, disgusting hacks
@@ -40,7 +40,7 @@ private val mapsToFixCoop = setOf(
  * A potential spawning position for coop games.
  */
 fun infoPlayerCoop(self: GameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.coop.value == 0f) {
+    if (!game.gameCvars.coop.typedValue) {
         game.freeEntity(self)
         return
     }
@@ -123,7 +123,7 @@ private val createCoopStartHack = registerThink("SP_CreateCoopSpots") { _, game 
  * A potential spawning position for deathmatch games.
  */
 fun infoPlayerDeathmatch(self: GameEntity, game: GameExportsImpl) {
-    if (game.gameCvars.deathmatch.value == 0f) {
+    if (!game.gameCvars.deathmatch.typedValue) {
         game.freeEntity(self)
         return
     }

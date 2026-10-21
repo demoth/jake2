@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.vfs.EngineWriteRoot;
@@ -85,7 +86,7 @@ public class SV_MAIN implements JakeServer {
     // prevent invalid IPs from connecting
     private final challenge_t[] challenges = new challenge_t[Defines.MAX_CHALLENGES]; // to
 
-    private List<ClientNetworkInfo> clients = new ArrayList<>(); // [maxclients->value];
+    private List<ClientNetworkInfo> clients = new ArrayList<>();
 
     private long realtime = 0;
     private int frameNum = 0;
@@ -99,36 +100,36 @@ public class SV_MAIN implements JakeServer {
 
     }
 
-    static cvar_t sv_paused;
+    static cvar_t<Boolean> sv_paused;
 
-    static cvar_t sv_timedemo;
+    static cvar_t<Boolean> sv_timedemo;
 
-    static cvar_t sv_enforcetime;
+    static cvar_t<Boolean> sv_enforcetime;
 
-    static cvar_t timeout; // seconds without any message
+    static cvar_t<Float> timeout; // seconds without any message
 
-    static cvar_t zombietime; // seconds to sink messages after
+    static cvar_t<Float> zombietime; // seconds to sink messages after
                                      // disconnect
 
-    static cvar_t allow_download;
+    static cvar_t<Boolean> allow_download;
 
-    static cvar_t allow_download_players;
+    static cvar_t<Boolean> allow_download_players;
 
-    static cvar_t allow_download_models;
+    static cvar_t<Boolean> allow_download_models;
 
-    static cvar_t allow_download_sounds;
+    static cvar_t<Boolean> allow_download_sounds;
 
-    static cvar_t allow_download_maps;
+    static cvar_t<Boolean> allow_download_maps;
 
-    static cvar_t sv_airaccelerate;
+    static cvar_t<Float> sv_airaccelerate;
 
-    static cvar_t sv_showclamp;
+    static cvar_t<Boolean> sv_showclamp;
 
-    static cvar_t hostname;
+    static cvar_t<String> hostname;
 
-    static cvar_t public_server; // should heartbeats be sent
+    static cvar_t<Boolean> public_server; // should heartbeats be sent
 
-    static cvar_t sv_reconnect_limit; // minimum seconds between connect
+    static cvar_t<Float> sv_reconnect_limit; // minimum seconds between connect
                                              // messages
 
 
@@ -169,14 +170,14 @@ public class SV_MAIN implements JakeServer {
 
         String info;
         if (version != Defines.PROTOCOL_VERSION)
-            info = SV_MAIN.hostname.string + ": wrong version\n";
+            info = SV_MAIN.hostname.getTypedValue() + ": wrong version\n";
         else {
             int players = 0;
             for (ClientNetworkInfo cl: clients)
                 if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
-            info = SV_MAIN.hostname.string + " " + games.get("default").sv.name + " " + players + "/" + clients.size() + "\n";
+            info = SV_MAIN.hostname.getTypedValue() + " " + games.get("default").sv.name + " " + players + "/" + clients.size() + "\n";
         }
 
         return info;
@@ -274,7 +275,7 @@ public class SV_MAIN implements JakeServer {
                 continue;
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (SV_MAIN.sv_reconnect_limit.getTypedValue() * 1000)) {
                     Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n");
                     return;
                 }
@@ -353,7 +354,7 @@ public class SV_MAIN implements JakeServer {
      * Checks if the rcon password is corect.
      */
     private static boolean Rcon_Validate(List<String> args) {
-        String rconPassword = Cvar.getInstance().Get("rcon_password", "", 0).string;
+        String rconPassword = Cvar.getInstance().find("rcon_password", String.class).getTypedValue();
         if (rconPassword.isEmpty())
             return false;
 
@@ -580,7 +581,7 @@ public class SV_MAIN implements JakeServer {
     public void SV_BroadcastPrintf(int level, String message, String gameName) {
 
         // echo to console
-        if (Globals.dedicated.value != 0) {
+        if (Globals.dedicated.getTypedValue()) {
             Com.Printf(message);
         }
 
@@ -728,7 +729,7 @@ public class SV_MAIN implements JakeServer {
                 }
 
 
-                if (0 == SV_MAIN.sv_paused.value) {
+                if (!SV_MAIN.sv_paused.getTypedValue()) {
                     int net_drop = cl.netchan.dropped;
                     if (net_drop < 20) {
 
@@ -762,7 +763,7 @@ public class SV_MAIN implements JakeServer {
     static void SV_ClientThink(ClientNetworkInfo cl, usercmd_t cmd) {
         cl.commandMsec -= cmd.msec & 0xFF;
 
-        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
+        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.getTypedValue()) {
             Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
             return;
         }
@@ -824,8 +825,8 @@ public class SV_MAIN implements JakeServer {
     }
 
     /**
-     * If a packet has not been received from a client for timeout.value
-     * seconds, drop the conneciton. Server frames are used instead of realtime
+     * If a packet has not been received from a client for the configured timeout
+     * in seconds, drop the connection. Server frames are used instead of realtime
      * to avoid dropping the local client while debugging.
      *
      * When a client is normally dropped, the ClientNetworkInfo goes into a zombie state
@@ -839,8 +840,8 @@ public class SV_MAIN implements JakeServer {
                 continue;
 
             final GameImportsImpl game = games.get(cl.gameName);
-            int droppoint = (int) (game.realtime - 1000 * SV_MAIN.timeout.value);
-            int zombiepoint = (int) (game.realtime - 1000 * SV_MAIN.zombietime.value);
+            int droppoint = (int) (game.realtime - 1000 * SV_MAIN.timeout.getTypedValue());
+            int zombiepoint = (int) (game.realtime - 1000 * SV_MAIN.zombietime.getTypedValue());
 
             // message times may be wrong across a changelevel
             if (cl.lastmessage > game.realtime)
@@ -953,11 +954,11 @@ public class SV_MAIN implements JakeServer {
     }
 
     /**
-     * Resets the clients, use when maxclients.value is changed
+     * Resets the clients when maxclients changes
      */
     void resetClients() {
         SV_FinalMessage("Server restarted", true);
-        final int max = (int) Cvar.getInstance().VariableValue("maxclients");
+        final int max = Cvar.getInstance().find("maxclients", Integer.class).getTypedValue();
 
         // Clear all clients
         clients = new ArrayList<>(max);
@@ -979,8 +980,6 @@ public class SV_MAIN implements JakeServer {
         for (int n = 0; n < Defines.MAX_CHALLENGES; n++) {
             challenges[n] = new challenge_t();
         }
-
-        resetClients();
 
         // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
         Cmd.AddCommand("map", this::SV_Map_f);
@@ -1022,33 +1021,42 @@ public class SV_MAIN implements JakeServer {
         });
 
 
-        Cvar.getInstance().Get("rcon_password", "", 0);
-        Cvar.getInstance().Get("deathmatch", "0", Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("coop", "0", Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("dmflags", "" + Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("timelimit", "0", Defines.CVAR_SERVERINFO);
-        Cvar.getInstance().Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        Cvar.getInstance().Get("protocol", "" + Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+        Cvar cvars = Cvar.getInstance();
+        cvars.register("spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
+                "Spectator admission password; empty or none allows access");
+        cvars.register("needpass", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, Defines.CVAR_SERVERINFO,
+                "Required passwords: 0 none, 1 player, 2 spectator, 3 both");
+        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        cvars.register("dmflags", CvarTypes.INTEGER, Defines.DF_INSTANT_ITEMS, Defines.CVAR_SERVERINFO, "Deathmatch rule bitmask; combine DF_* flags");
+        cvars.register("fraglimit", new CvarTypes.IntegerType(0, null), 0, Defines.CVAR_SERVERINFO, "End a deathmatch level at this score; 0 disables the limit");
+        cvars.register("timelimit", new CvarTypes.FloatType(0f, null), 0f, Defines.CVAR_SERVERINFO, "Deathmatch level time limit in minutes; 0 disables the limit");
+        cvars.register("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        cvars.register("protocol", CvarTypes.INTEGER, Defines.PROTOCOL_VERSION, Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+        cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
+        cvars.register("nextserver", CvarTypes.STRING, "", 0, "Console command to execute after a cinematic or picture");
+        cvars.register("maxclients", new CvarTypes.IntegerType(1, Defines.MAX_CLIENTS), 1, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, "Client slot limit; single-player and coop mode also restrict the count");
 
-        hostname = Cvar.getInstance().Get("hostname", "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
-        timeout = Cvar.getInstance().Get("timeout", "125", 0);
-        zombietime = Cvar.getInstance().Get("zombietime", "2", 0);
-        sv_showclamp = Cvar.getInstance().Get("showclamp", "0", 0);
-        sv_paused = Cvar.getInstance().Get("paused", "0", 0);
-        sv_timedemo = Cvar.getInstance().Get("timedemo", "0", 0);
-        sv_enforcetime = Cvar.getInstance().Get("sv_enforcetime", "0", 0);
+        hostname = cvars.register("hostname", CvarTypes.STRING, "noname", Defines.CVAR_SERVERINFO | Defines.CVAR_ARCHIVE);
+        timeout = cvars.register("timeout", new CvarTypes.FloatType(0f, null), 125f, 0, "Seconds without a client message before disconnection");
+        zombietime = cvars.register("zombietime", new CvarTypes.FloatType(0f, null), 2f, 0, "Seconds to retain a disconnected client slot for final reliable messages");
+        sv_showclamp = cvars.register("showclamp", CvarTypes.BOOLEAN, false, 0, "Legacy frame-time clamp diagnostics; unused by the current server and Cake");
+        sv_paused = cvars.register("paused", CvarTypes.BOOLEAN, false, 0);
+        sv_timedemo = cvars.register("timedemo", CvarTypes.BOOLEAN, false, 0, "Legacy demo benchmarking switch; unused by the current server and Cake");
+        sv_enforcetime = cvars.register("sv_enforcetime", CvarTypes.BOOLEAN, false, 0, "Ignore movement commands that exceed the client time budget");
 
-        allow_download = Cvar.getInstance().Get("allow_download", "1", Defines.CVAR_ARCHIVE);
-        allow_download_players = Cvar.getInstance().Get("allow_download_players", "0", Defines.CVAR_ARCHIVE);
-        allow_download_models = Cvar.getInstance().Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
-        allow_download_sounds = Cvar.getInstance().Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
-        allow_download_maps = Cvar.getInstance().Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+        // come from MainCommon
+        allow_download = cvars.find("allow_download", Boolean.class);
+        allow_download_players = cvars.find("allow_download_players", Boolean.class);
+        allow_download_models = cvars.find("allow_download_models", Boolean.class);
+        allow_download_sounds = cvars.find("allow_download_sounds", Boolean.class);
+        allow_download_maps = cvars.find("allow_download_maps", Boolean.class);
 
-        Cvar.getInstance().Get("sv_noreload", "0", 0);
-        sv_airaccelerate = Cvar.getInstance().Get("sv_airaccelerate", "0", Defines.CVAR_LATCH);
-        public_server = Cvar.getInstance().Get("public", "0", 0);
-        sv_reconnect_limit = Cvar.getInstance().Get("sv_reconnect_limit", "3", Defines.CVAR_ARCHIVE);
+        cvars.register("sv_noreload", CvarTypes.BOOLEAN, false, 0, "Start revisited levels fresh instead of restoring their saved state");
+        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Legacy air acceleration setting; currently not connected to movement");
+        public_server = cvars.register("public", CvarTypes.BOOLEAN, false, 0, "Legacy master-server advertising switch; currently unused");
+        sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE, "Minimum seconds between reconnect attempts from the same remote client");
+        resetClients();
     }
 
     /**
@@ -1056,46 +1064,53 @@ public class SV_MAIN implements JakeServer {
      *
      * A brand new game has been started.
      */
-    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo) {
-        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo);
+    GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo, previous);
         gameImports.gameExports = createGameModInstance(gameImports);
+        if (changeMapInfo.isLoadgame)
+            gameImports.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
         return gameImports;
     }
 
+    /**
+     * @return if the game is multiplayer or not
+     */
     private boolean initializeServerCvars() {
-        // get any latched variable changes (maxclients, etc)
-        Cvar.getInstance().updateLatchedVars();
+        Cvar cvars = Cvar.getInstance();
+        cvar_t<Boolean> coop = cvars.find("coop", Boolean.class);
+        cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
+        cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
 
-        if (Cvar.getInstance().VariableValue("coop") != 0 && Cvar.getInstance().VariableValue("deathmatch") != 0) {
+        // get any latched variable changes (maxclients, etc)
+        cvars.updateLatchedVars();
+
+        if (coop.getTypedValue() && deathmatch.getTypedValue()) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
-            Cvar.getInstance().FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            coop.forceSet(false);
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
-        if (Cvar.getInstance().Get("dedicated", "0", 0).value != 0) {
-            if (0 == Cvar.getInstance().VariableValue("coop"))
-                Cvar.getInstance().FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        if (Globals.dedicated.getTypedValue()) {
+            if (!coop.getTypedValue())
+                deathmatch.forceSet(true);
         }
 
 
         // set max clients based on game mode
-        final cvar_t maxclients = Cvar.getInstance().Get("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
-        if (Cvar.getInstance().VariableValue("deathmatch") != 0) {
-            if (maxclients.value <= 1)
-                Cvar.getInstance().FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-            else if (maxclients.value > Defines.MAX_CLIENTS)
-                Cvar.getInstance().FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        } else if (Cvar.getInstance().VariableValue("coop") != 0) {
-            if (maxclients.value <= 1 || maxclients.value > 4)
-                Cvar.getInstance().FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        if (deathmatch.getTypedValue()) {
+            if (maxclients.getTypedValue() <= 1)
+                maxclients.forceSet(8);
+        } else if (coop.getTypedValue()) {
+            if (maxclients.getTypedValue() <= 1 || maxclients.getTypedValue() > 4)
+                maxclients.forceSet(4);
 
         } else {
             // non-deathmatch, non-coop is one player
-            Cvar.getInstance().FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+            maxclients.forceSet(1);
         }
-        return maxclients.value > 1;
+        return maxclients.getTypedValue() > 1;
     }
 
     /**
@@ -1142,7 +1157,9 @@ public class SV_MAIN implements JakeServer {
         final String mapCommand = SV_ReadMapCommand();
 
         // go to the map
-        spawnServerInstance(new ChangeMapInfo(mapCommand, false, true), 0);
+        GameImportsImpl loaded = spawnServerInstance(new ChangeMapInfo(mapCommand, false, true), 0);
+        loaded.name = "default";
+        games.put("default", loaded);
     }
 
     private String SV_ReadMapCommand() {
@@ -1261,7 +1278,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         }
 
         // copy off the level to the autosave slot
-        if (0 == Globals.dedicated.value) {
+        if (!Globals.dedicated.getTypedValue()) {
             game.SV_WriteServerFile(true);
             SV_CopySaveGame("current", "save0");
         }
@@ -1294,9 +1311,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             oldGame.SaveClientData();
         }
 
-        gameImports = createGameInstance(changeMapInfo);
+        gameImports = createGameInstance(changeMapInfo, gameImports);
 
-        Cvar.getInstance().Set("nextserver", "gamemap \"" + changeMapInfo.nextServer + "\"");
+        Cvar.getInstance().find("nextserver", String.class).set("gamemap \"" + changeMapInfo.nextServer + "\"");
 
         Cmd.ExecuteFunction("loading"); // for local system
 
@@ -1325,7 +1342,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // map initialization
         Globals.server_state = gameImports.sv.state; // LOADING
 
-        if (oldGame != null) {
+        if (oldGame != null && !changeMapInfo.isLoadgame) {
             // copy persistent data between instances.
             // after a 'map' command the persistent state will be empty
             gameImports.gameExports.fromPrevious(oldGame, changeMapInfo.spawnPoint);
@@ -1358,7 +1375,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
 
         // set serverinfo variable
-        Cvar.getInstance().FullSet("mapname", gameImports.sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+        Cvar.getInstance().find("mapname", String.class).forceSet(gameImports.sv.name);
         Com.Println("mapname: " + gameImports.sv.name);
 
         if (changeMapInfo.state == ServerStates.SS_GAME)

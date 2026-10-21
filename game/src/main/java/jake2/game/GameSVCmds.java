@@ -115,7 +115,7 @@ public class GameSVCmds {
     /**
      * SV_FilterPacket.
      */
-    static boolean SV_FilterPacket(String from, float filterBan) {
+    static boolean SV_FilterPacket(String from, boolean filterBan) {
         int i;
         int in;
         int m[] = { 0, 0, 0, 0 };
@@ -145,9 +145,9 @@ public class GameSVCmds {
 
         for (i = 0; i < numipfilters; i++)
             if ((in & ipfilters[i].mask) == ipfilters[i].compare)
-                return ((int) filterBan) != 0;
+                return filterBan;
 
-        return ((int) 1 - filterBan) != 0;
+        return !filterBan;
     }
 
     /**
@@ -232,15 +232,15 @@ public class GameSVCmds {
         byte b[];
 
         int i;
-        cvar_t game;
+        cvar_t<String> game;
 
-        game = gameExports.gameImports.cvar("game", "", 0);
+        game = gameExports.gameImports.findCvar("game", String.class);
 
         String name;
-        if (game.string == null)
+        if (game.getTypedValue().isEmpty())
             name = Defines.GAMEVERSION + "/listip.cfg";
         else
-            name = game.string + "/listip.cfg";
+            name = game.getTypedValue() + "/listip.cfg";
 
         gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
 
@@ -252,7 +252,7 @@ public class GameSVCmds {
         }
 
         try {
-            f.writeChars("set filterban " + (int) gameExports.gameCvars.filterban.value
+            f.writeChars("set filterban " + (gameExports.gameCvars.filterban.getTypedValue() ? 1 : 0)
                     + "\n");
 
             for (i = 0; i < numipfilters; i++) {

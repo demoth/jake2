@@ -177,7 +177,7 @@ public class CM {
 
     public boolean[] portalopen = new boolean[Defines.MAX_MAP_AREAPORTALS];
 
-    public cvar_t map_noareas;
+    public cvar_t<Boolean> map_noareas;
 
     public byte[] cmod_base;
 
@@ -238,10 +238,10 @@ public class CM {
     public cmodel_t CM_LoadMap(String name, boolean clientload, int[] checksum) {
         Com.DPrintf("CM_LoadMap(" + name + ")...\n");
 
-        map_noareas = Cvar.getInstance().Get("map_noareas", "0", 0);
+        map_noareas = Cvar.getInstance().find("map_noareas", Boolean.class);
 
         if (map_name.equals(name)
-                && (clientload || 0 == Cvar.getInstance().VariableValue("flushmap"))) {
+                && (clientload || !Cvar.getInstance().find("flushmap", Boolean.class).getTypedValue())) {
 
             checksum[0] = last_checksum;
 
@@ -1746,7 +1746,7 @@ public class CM {
      */
 
     public boolean CM_AreasConnected(int area1, int area2) {
-        if (map_noareas.value != 0)
+        if (map_noareas.getTypedValue())
             return true;
 
         if (area1 > numareas || area2 > numareas)
@@ -1771,7 +1771,7 @@ public class CM {
 
         bytes = (numareas + 7) >> 3;
 
-        if (map_noareas.value != 0) { 
+        if (map_noareas.getTypedValue()) {
             // for debugging, send everything
             Arrays.fill(buffer, 0, bytes, (byte) 255);
         } else {
