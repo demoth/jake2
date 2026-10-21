@@ -3,6 +3,7 @@ This package is responsible for internal command execution (like when you type i
 Current metadata support:
 
 - commands may carry an optional description through `Cmd.AddCommand(...)`
-- cvars may carry descriptions and options metadata through `Cvar.Get(...)`
+- cvars declare their type, default, flags and optional description through
+  `Cvar.register(name, type, defaultValue, flags, description)` on a registry instance
 
 Cake uses that metadata to render richer console completion output.
