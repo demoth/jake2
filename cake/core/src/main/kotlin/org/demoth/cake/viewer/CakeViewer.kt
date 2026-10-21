@@ -76,6 +76,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     // md2 related stuff
     private var md2Frames = 1
+    private var md2SkinTextures = 0
     private var md2Instance: ModelInstance? = null // to control the model animation
     private var md2AnimationFrameTime = 0.1f
     private var md2FrameLerp = 0.0f
@@ -138,6 +139,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                     userData = Md2CustomData.empty()
                 }
                 md2Frames = md2.frames
+                md2SkinTextures = md2.skins.size
 
                 val tempRenderable = Renderable()
                 val md2Shader = Md2Shader(
@@ -222,9 +224,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         resourceInfo.setText(when {
             frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
+            md2Instance != null -> "Frames: $md2Frames | Skin textures: $md2SkinTextures"
             else -> ""
         })
-        resourceInfo.isVisible = frame != null || image != null
+        resourceInfo.isVisible = frame != null || image != null || md2Instance != null
     }
 
     override fun resize(width: Int, height: Int) {
