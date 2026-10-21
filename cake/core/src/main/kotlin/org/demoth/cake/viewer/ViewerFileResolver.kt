@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.loaders.FileHandleResolver
@@ -13,14 +13,14 @@ import java.nio.file.Path
 import java.util.LinkedHashSet
 
 /**
- * Lightweight resolver for the standalone model viewer.
+ * Lightweight resolver for the standalone viewer.
  *
  * Lookup order:
  * 1. classpath/internal assets (viewer shaders, palette, icons)
  * 2. opened file folder and its parents via local VFS (for local model/map bundles)
  * 3. optional basedir/mod fallback via Cake VFS adapter (same convention as the game client)
  */
-class ModelViewerFileResolver(
+class ViewerFileResolver(
     openedFilePath: String,
     private val basedir: String? = null,
     private val gamemod: String? = null,

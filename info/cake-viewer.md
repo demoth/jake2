@@ -1,4 +1,4 @@
-# Model viewer for Cake engine
+# Cake Viewer
 
 ![screenshot](screenshots/md2-viewer.png)
 ![screenshot](screenshots/bsp-viewer.png)
@@ -7,15 +7,15 @@ This small app can display .md2, .bsp, .pcx and .wal files (provided as an argum
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
 ### How to run
-Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher.main` and pass a file path as the program argument.
+Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
 
 ### How to build
-Build the model viewer desktop app with `./gradlew :cake:cake-modelviewer:build`.
+Build the viewer desktop app with `./gradlew :cake:cake-viewer:build`.
 
 ### Native build
 Alternatively, you can build a native (so you have easier time to associate with the files in OS)
-`./gradlew :cake:cake-modelviewer:nativeBuild`
-You will find the executable in `cake/cake-modelviewer/build/native/nativeCompile`
+`./gradlew -PenableGraalNative=true :cake:cake-viewer:nativeCompile`
+You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 
 ## List of features
  - renders .md2 model in the 1st animation frame with the first referenced skin (searches in the same folder as the .md2 file)
@@ -25,7 +25,7 @@ You will find the executable in `cake/cake-modelviewer/build/native/nativeCompil
  - TODO: render animation
  - TODO: display information about opened file - like size, number of triangles, vertices, frames, etc...
 
-## How to associate .md2 files with Cake model viewer?
+## How to associate .md2 files with Cake Viewer?
 
 ### Linux instruction:
 
@@ -46,12 +46,12 @@ You will find the executable in `cake/cake-modelviewer/build/native/nativeCompil
 Then update database `update-mime-database ~/.local/share/mime`
 
 2. Define the desktop entry in this file.
-You can add an application file here `~/.local/share/applications/cake-md2-viewer.desktop`:
+You can add an application file here `~/.local/share/applications/cake-viewer.desktop`:
 
 ```
  [Desktop Entry]
  Version=1.0
- Name=Cake Model Viewer
+ Name=Cake Viewer
  Exec=/path/to/the/executable %f
  Icon=quake
  Terminal=false
@@ -64,4 +64,4 @@ Then update database `update-desktop-database ~/.local/share/applications`
 3. Associate the MIME Type with Your Application
 
 
-Run `xdg-mime default cake-md2-viewer.desktop application/x-quake-md2`
+Run `xdg-mime default cake-viewer.desktop application/x-quake-md2`

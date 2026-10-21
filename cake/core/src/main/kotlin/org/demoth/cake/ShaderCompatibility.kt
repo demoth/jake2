@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 
 /**
  * Configures LibGDX shader source prefixes for the GL3 pipeline used by Cake.
- * Shared between the game client and the standalone model viewer.
+ * Shared between the game client and the standalone viewer.
  */
 fun initializeShaderCompatibility() {
     ShaderProgram.prependVertexCode = """

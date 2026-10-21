@@ -4,7 +4,7 @@ import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
-import org.demoth.cake.modelviewer.ModelViewerFileResolver
+import org.demoth.cake.viewer.ViewerFileResolver
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,14 +21,14 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
-/** Checks Cake/model-viewer resolution parity; asset cvars initialize the Cake resolver only. */
+/** Checks Cake/viewer resolution parity; asset cvars initialize the Cake resolver only. */
 class ResolverParityIntegrationTest {
 
     @TempDir
     lateinit var temp: Path
 
     @Test
-    fun cakeAndModelViewerResolveSameWinnerForModLooseVsBasePack() {
+    fun cakeAndViewerResolveSameWinnerForModLooseVsBasePack() {
         val basedir = temp.toString()
         val openedFile = createFile("viewer/tris.md2")
         createFile("rogue/textures/wall.wal", "mod-loose".toByteArray(StandardCharsets.US_ASCII))
@@ -38,7 +38,7 @@ class ResolverParityIntegrationTest {
         )
 
         val cakeResolver = CakeFileResolver(basedir = basedir, gamemod = "rogue")
-        val viewerResolver = ModelViewerFileResolver(
+        val viewerResolver = ViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
             basedir = basedir,
             gamemod = "rogue",
@@ -54,7 +54,7 @@ class ResolverParityIntegrationTest {
     }
 
     @Test
-    fun cakeAndModelViewerResolveSameWinnerForBaseZip() {
+    fun cakeAndViewerResolveSameWinnerForBaseZip() {
         val basedir = temp.toString()
         val openedFile = createFile("viewer/tris.md2")
         writeZip(
@@ -63,7 +63,7 @@ class ResolverParityIntegrationTest {
         )
 
         val cakeResolver = CakeFileResolver(basedir = basedir, gamemod = null)
-        val viewerResolver = ModelViewerFileResolver(
+        val viewerResolver = ViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
             basedir = basedir,
             gamemod = null,

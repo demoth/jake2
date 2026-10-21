@@ -21,12 +21,16 @@ and Host Game menus. Core accesses hosting through `CakeHost`; only
 ### `desktop-common`
 
 Shared game window configuration, video platform, JVM restart helper and desktop
-icons. Both game launchers use `CakeDesktopLauncher`; the model viewer shares
+icons. Both game launchers use `CakeDesktopLauncher`; the viewer shares
 the restart helper and icons while retaining its own window configuration.
 
-### `cake-modelviewer`
+The icons in `desktop-common/icons` and `desktop-common/src/main/resources` are
+the default libGDX Liftoff placeholders, pending Cake branding.
 
-Standalone desktop launcher for the Cake model viewer.
+### `cake-viewer`
+
+Standalone desktop launcher for the Cake Viewer.
+Opens MD2 models, BSP maps, and PCX/WAL images; see the [viewer guide](../info/cake-viewer.md).
 
 ### [`engine-tools`](engine-tools/README.md)
 
@@ -40,7 +44,7 @@ From repository root:
 
 - `./gradlew :cake:cake-client:run` - runs the remote-only client.
 - `./gradlew :cake:cake-fullgame:run` - runs the client with singleplayer and hosting support.
-- `./gradlew :cake:cake-modelviewer:run --args="/absolute/path/to/file.md2"` - runs the model viewer launcher directly.
+- `./gradlew :cake:cake-viewer:run --args="/absolute/path/to/file.md2"` - runs the viewer launcher directly.
 
 Main desktop entrypoint:
 
@@ -51,17 +55,17 @@ Main desktop entrypoint:
 Build portable ZIPs with Java 25:
 
 ```sh
-./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip
+./gradlew :cake:cake-client:distZip :cake:cake-viewer:distZip
 ./gradlew :cake:cake-fullgame:distZip
 ```
 
 Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
 and `lib/` application/dependency JARs. Extract the entire ZIP and run
-`bin/cake-client`, `bin/cake-fullgame`, or `bin/cake-modelviewer` (the `.bat` script on Windows).
-Pass an asset path to the model viewer; Quake 2 game data remains external.
+`bin/cake-client`, `bin/cake-fullgame`, or `bin/cake-viewer` (the `.bat` script on Windows).
+Pass an asset path to the viewer; Quake 2 game data remains external.
 
 For a local installation, use `:cake:cake-client:installDist` or
-`:cake:cake-modelviewer:installDist`; scripts are under the corresponding
+`:cake:cake-viewer:installDist`; scripts are under the corresponding
 `build/install/<application>/bin/` directory. JARs under `build/libs/` are normal
 project JARs and need the distribution classpath. Use `distZip` instead of the
 former custom `dist` task; standalone fat JARs are no longer produced.
@@ -80,7 +84,7 @@ tasks. Beryx 2.0.1 still requires `--no-configuration-cache` for
 ```
 
 `runtimeZip` writes `build/image.zip`; `jpackageImage` writes an application
-under `build/jpackage/`. Use the corresponding model-viewer tasks for that app.
+under `build/jpackage/`. Use the corresponding viewer tasks for that app.
 These outputs bundle the project Java toolchain and target the build machine's
 OS and architecture. Installers remain disabled.
 
@@ -91,7 +95,7 @@ experimental native executable:
 
 ```sh
 ./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
-./gradlew -PenableGraalNative=true :cake:cake-modelviewer:nativeCompile
+./gradlew -PenableGraalNative=true :cake:cake-viewer:nativeCompile
 ```
 
 These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to

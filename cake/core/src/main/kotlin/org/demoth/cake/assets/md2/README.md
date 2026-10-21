@@ -26,7 +26,7 @@ its cross-pipeline routing remains outside this package.
 
 `Md2Loader` chooses skins in this order: a synthetic key's prefix; otherwise embedded
 MD2 skin paths if enabled; otherwise an optional generated white 1-by-1 skin.
-The model viewer enables `useDefaultSkinIfMissing` for models with no selected skin
+The viewer enables `useDefaultSkinIfMissing` for models with no selected skin
 paths. That option does not recover arbitrary failures to load a referenced file.
 
 Player variants use keys such as

@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
@@ -21,7 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
-class ModelViewerFileResolverTest {
+class ViewerFileResolverTest {
 
     @TempDir
     lateinit var temp: Path
@@ -30,7 +30,7 @@ class ModelViewerFileResolverTest {
     fun resolvesFromOpenedFileDirectory() {
         val openedFile = createFile("viewer/tris.md2")
         val skin = createFile("viewer/skin.pcx")
-        val resolver = ModelViewerFileResolver(openedFile.absolutePath)
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
 
         val resolved = resolver.resolve("skin.pcx")
 
@@ -42,7 +42,7 @@ class ModelViewerFileResolverTest {
     fun resolvesCaseInsensitiveFromOpenedFileDirectory() {
         val openedFile = createFile("viewer/tris.md2")
         val skin = createFile("viewer/Skin.PCX")
-        val resolver = ModelViewerFileResolver(openedFile.absolutePath)
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
 
         val resolved = resolver.resolve("skin.pcx")
 
@@ -55,7 +55,7 @@ class ModelViewerFileResolverTest {
     fun resolvesByFileNameWhenDependencyUsesGameRelativePath() {
         val openedFile = createFile("viewer/tris.md2")
         val skin = createFile("viewer/grunt.pcx")
-        val resolver = ModelViewerFileResolver(openedFile.absolutePath)
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
 
         val resolved = resolver.resolve("players/male/grunt.pcx")
 
@@ -67,7 +67,7 @@ class ModelViewerFileResolverTest {
     fun fallsBackToBasedirBaseq2WhenProvided() {
         val openedFile = createFile("viewer/tris.md2")
         val baseSkin = createFile("baseq2/models/monsters/berserk/skin.pcx")
-        val resolver = ModelViewerFileResolver(
+        val resolver = ViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
             basedir = temp.toString(),
         )
@@ -85,7 +85,7 @@ class ModelViewerFileResolverTest {
             temp.resolve("baseq2").resolve("pak0.pak"),
             linkedMapOf("models/monsters/berserk/skin.pcx" to "pak-skin".toByteArray(StandardCharsets.US_ASCII)),
         )
-        val resolver = ModelViewerFileResolver(
+        val resolver = ViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
             basedir = temp.toString(),
         )
@@ -103,7 +103,7 @@ class ModelViewerFileResolverTest {
             temp.resolve("baseq2").resolve("assets.pk3"),
             linkedMapOf("textures/e1u1/wall.wal" to "zip-wall".toByteArray(StandardCharsets.US_ASCII)),
         )
-        val resolver = ModelViewerFileResolver(
+        val resolver = ViewerFileResolver(
             openedFilePath = openedFile.absolutePath,
             basedir = temp.toString(),
         )
@@ -118,7 +118,7 @@ class ModelViewerFileResolverTest {
     fun resolvesMapTextureFromParentFolder() {
         val openedMap = createFile("baseq2/maps/base1.bsp")
         val texture = createFile("baseq2/textures/e1u1/wall.wal")
-        val resolver = ModelViewerFileResolver(openedMap.absolutePath)
+        val resolver = ViewerFileResolver(openedMap.absolutePath)
 
         val resolved = resolver.resolve("textures/e1u1/wall.wal")
 
@@ -129,7 +129,7 @@ class ModelViewerFileResolverTest {
     @Test
     fun returnsNullForMissingAsset() {
         val openedFile = createFile("viewer/tris.md2")
-        val resolver = ModelViewerFileResolver(openedFile.absolutePath)
+        val resolver = ViewerFileResolver(openedFile.absolutePath)
 
         val resolved = resolver.resolve("missing/asset/file.pcx")
 

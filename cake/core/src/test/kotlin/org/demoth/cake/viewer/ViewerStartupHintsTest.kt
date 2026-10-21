@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ModelViewerStartupHintsTest {
+class ViewerStartupHintsTest {
 
     @TempDir
     lateinit var temp: Path
@@ -19,7 +19,7 @@ class ModelViewerStartupHintsTest {
         val openedFile = Files.createDirectories(temp.resolve("viewer")).resolve("tris.md2")
         Files.writeString(openedFile, "")
 
-        val hints = detectModelViewerStartupHints(openedFile.toString(), installRoot)
+        val hints = detectViewerStartupHints(openedFile.toString(), installRoot)
 
         assertEquals(installRoot.toString(), hints.basedir)
         assertNull(hints.gamemod)
@@ -32,7 +32,7 @@ class ModelViewerStartupHintsTest {
         val openedFile = Files.createDirectories(installRoot.resolve("rogue/models/objects")).resolve("tris.md2")
         Files.writeString(openedFile, "")
 
-        val hints = detectModelViewerStartupHints(openedFile.toString(), temp)
+        val hints = detectViewerStartupHints(openedFile.toString(), temp)
 
         assertEquals(installRoot.toString(), hints.basedir)
         assertEquals("rogue", hints.gamemod)
@@ -43,7 +43,7 @@ class ModelViewerStartupHintsTest {
         val openedFile = Files.createDirectories(temp.resolve("viewer")).resolve("tris.md2")
         Files.writeString(openedFile, "")
 
-        val hints = detectModelViewerStartupHints(openedFile.toString(), temp)
+        val hints = detectViewerStartupHints(openedFile.toString(), temp)
 
         assertNull(hints.basedir)
         assertNull(hints.gamemod)

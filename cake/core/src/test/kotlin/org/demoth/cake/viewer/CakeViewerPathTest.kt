@@ -1,9 +1,9 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class CakeModelViewerPathTest {
+class CakeViewerPathTest {
 
     @Test
     fun expandsHomeOnlyPath() {

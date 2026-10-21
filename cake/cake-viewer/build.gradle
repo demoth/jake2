@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-  mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3ModelViewerLauncher')
+  mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher')
 }
 
 apply from: rootProject.file('cake/desktop.gradle')

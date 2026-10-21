@@ -1,21 +1,21 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-internal data class ModelViewerStartupHints(
+internal data class ViewerStartupHints(
     val basedir: String? = null,
     val gamemod: String? = null,
 )
 
-internal fun detectModelViewerStartupHints(
+internal fun detectViewerStartupHints(
     openedFilePath: String,
     currentDirectory: Path = Path.of("").toAbsolutePath().normalize(),
-): ModelViewerStartupHints {
+): ViewerStartupHints {
     val openedFile = Path.of(openedFilePath).toAbsolutePath().normalize()
     val basedir = detectBasedirCandidate(currentDirectory) ?: detectBasedirCandidate(openedFile.parent)
     val gamemod = basedir?.let { detectGameMod(openedFile, it) }
-    return ModelViewerStartupHints(
+    return ViewerStartupHints(
         basedir = basedir?.toString(),
         gamemod = gamemod,
     )

@@ -16,7 +16,7 @@ shared VFS implementation, with the same lookup semantics.
 - **Client:** `CakeVfsAssetSource` owns a `DefaultVirtualFileSystem`, adapted to
   libGDX file handles. `CakeFileResolver` adds download-cache precedence and bundled
   fallbacks; see [Cake asset loading](../../cake/core/src/main/kotlin/org/demoth/cake/assets/README.md).
-  The model viewer uses the same resolver with startup hints derived from the opened
+  The viewer uses the same resolver with startup hints derived from the opened
   file and current directory.
 - `DefaultWritableFileSystem` implements `WritableFileSystem` for a caller-selected
   root. `EngineWriteRoot` supplies the server's writable instance.

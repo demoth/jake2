@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
@@ -40,7 +40,7 @@ private const val GRID_DIVISIONS = 8
 
 private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal")
 
-class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
+class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
     private lateinit var modelBatch: ModelBatch
@@ -76,9 +76,9 @@ class CakeModelViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.app.exit()
             return
         }
-        val startupHints = detectModelViewerStartupHints(file.absolutePath)
+        val startupHints = detectViewerStartupHints(file.absolutePath)
 
-        val fileResolver = ModelViewerFileResolver(
+        val fileResolver = ViewerFileResolver(
             openedFilePath = file.absolutePath,
             basedir = startupHints.basedir,
             gamemod = startupHints.gamemod,

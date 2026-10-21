@@ -3,9 +3,9 @@ package org.demoth.cake.lwjgl3
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.glutils.HdpiMode
-import org.demoth.cake.modelviewer.CakeModelViewer
+import org.demoth.cake.viewer.CakeViewer
 
-object Lwjgl3ModelViewerLauncher {
+object Lwjgl3ViewerLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
         if (startNewJvmIfRequired(args)) return  // This handles macOS support and helps on Windows.
@@ -15,11 +15,11 @@ object Lwjgl3ModelViewerLauncher {
 }
 
 private fun createApplication(args: Array<String>): Lwjgl3Application {
-    return Lwjgl3Application(CakeModelViewer(args), createConfiguration())
+    return Lwjgl3Application(CakeViewer(args), createConfiguration())
 }
 
 private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Model Viewer 1.2.2")
+    setTitle("Cake Viewer 1.2.2")
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
     useVsync(true)
     //// Limits FPS to the refresh rate of the currently active monitor.

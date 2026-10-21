@@ -1,4 +1,4 @@
-package org.demoth.cake.modelviewer
+package org.demoth.cake.viewer
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Camera
