@@ -4,6 +4,9 @@ import jake2.qcommon.Defines.PORT_SERVER
 import jake2.qcommon.network.netadr_t
 
 interface MenuBackend {
+    fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
+    fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
+        "Hosting requires the Cake fullgame application."
     fun activeProfileId(): String
     fun canDisconnect(): Boolean
     fun disconnect()
@@ -56,6 +59,26 @@ class MenuController(
 
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
+            is MenuIntent.OpenHostingSetup -> {
+                state = if (intent.singleplayer) state.copy(singleplayer = state.singleplayer.copy(statusMessage = ""))
+                    else state.copy(hostGame = state.hostGame.copy(statusMessage = ""))
+                refreshState(activeScreen = if (intent.singleplayer) MenuScreen.SINGLEPLAYER else MenuScreen.HOST_GAME)
+            }
+            is MenuIntent.UpdateHostingDraft -> {
+                val setup = (if (intent.singleplayer) state.singleplayer else state.hostGame).copy(form = intent.form)
+                state = if (intent.singleplayer) state.copy(singleplayer = setup) else state.copy(hostGame = setup)
+            }
+            is MenuIntent.StartHosting -> {
+                val status = backend.startHosting(intent.singleplayer, intent.form)
+                val setup = HostingSetupState(intent.form, status)
+                state = if (intent.singleplayer) state.copy(singleplayer = setup) else state.copy(hostGame = setup)
+                refreshState()
+            }
+            is MenuIntent.HostingFailed -> {
+                state = state.copy(activeScreen = MenuScreen.SINGLEPLAYER,
+                    singleplayer = state.singleplayer.copy(statusMessage = intent.reason))
+                refreshState()
+            }
             is MenuIntent.RequestStateSync -> {
                 bus.postState(state)
             }
@@ -380,6 +403,9 @@ class MenuController(
         val previousScreen = state.activeScreen
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
+            canHostGame = backend.hostingUnavailableReason() == null,
+            singleplayer = state.singleplayer,
+            hostGame = state.hostGame,
             mainMenu = mainMenuState,
             profileEditor = profileEditorState,
             multiplayer = state.multiplayer,
@@ -405,8 +431,8 @@ class MenuController(
     private fun screenDepth(screen: MenuScreen): Int {
         return when (screen) {
             MenuScreen.MAIN -> 0
-            MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS -> 1
-            MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION -> 2
+            MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER -> 1
+            MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME -> 2
         }
     }
 

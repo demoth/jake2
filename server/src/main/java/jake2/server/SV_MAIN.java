@@ -56,7 +56,40 @@ import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
 @SuppressWarnings("deprecation")
-public class SV_MAIN implements JakeServer {
+public class SV_MAIN implements JakeServer, AutoCloseable {
+
+    // Recreating an embedded manager must reuse the same choice declaration.
+    private static final CvarTypes.ChoiceType<Integer> NEEDPASS_TYPE =
+            new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3));
+
+    private final ServerCommands commands = new ServerCommands();
+    private final ServerCommands gameCommands = new ServerCommands();
+
+    @Override
+    public void registerGameCommand(String name, jake2.qcommon.exec.Command command) {
+        gameCommands.add(name, true, command);
+    }
+
+    public boolean isRunning() {
+        return !games.isEmpty();
+    }
+
+    /** Typed entrypoint for an embedded host; uses the same map path as the console. */
+    public boolean startMap(String mapName) {
+        GameImportsImpl previous = games.get("default");
+        SV_Map_f(List.of("map", mapName));
+        return games.get("default") != null && games.get("default") != previous;
+    }
+
+    /** Release this manager's console hooks after ending its last session. */
+    @Override
+    public void close() {
+        try {
+            SV_Shutdown("Server stopped\n", false);
+        } finally {
+            commands.close();
+        }
+    }
 
     @Override
     public List<ClientNetworkInfo> getClients() {
@@ -940,17 +973,21 @@ public class SV_MAIN implements JakeServer {
      */
     @Override
     public void SV_Shutdown(String finalmsg, boolean reconnect) {
-        if (games.isEmpty())
-            return;
-
-        // todo: identify if we need to send the final message (clients is always != null)
-        if (!clients.isEmpty())
-            SV_FinalMessage(finalmsg, reconnect);
-
-        Com.Printf("==== ShutdownGame ====\n");
-
-        games.clear();
-        Globals.server_state = ServerStates.SS_DEAD;
+        try {
+            if (!games.isEmpty()) {
+                if (!clients.isEmpty()) SV_FinalMessage(finalmsg, reconnect);
+                Com.Printf("==== ShutdownGame ====\n");
+            }
+        } finally {
+            // Also clean commands installed by a partially constructed game.
+            gameCommands.close();
+            games.clear();
+            clients.clear();
+            Globals.server_state = ServerStates.SS_DEAD;
+            realtime = 0;
+            frameNum = 0;
+            fixedtime = 100;
+        }
     }
 
     /**
@@ -970,7 +1007,7 @@ public class SV_MAIN implements JakeServer {
     }
 
     /**
-     * Only called at quake2.exe startup, not for each game
+     * One manager per dedicated process or embedded session; map changes reuse it.
      */
     public SV_MAIN() {
 
@@ -981,50 +1018,10 @@ public class SV_MAIN implements JakeServer {
             challenges[n] = new challenge_t();
         }
 
-        // add commands to start the server instance. Other sv_ccmds are registered after the server is up (when these 4 are run)
-        Cmd.AddCommand("map", this::SV_Map_f);
-        Cmd.AddCommand("gamemap", this::SV_GameMap_f);
-        Cmd.AddCommand("load", this::SV_Loadgame_f);
-        Cmd.AddCommand("sv_shutdown", args -> {
-            String reason;
-            if (args.size() > 1) {
-                reason = args.get(1);
-            } else {
-                reason = "Server is shut down";
-            }
-
-            SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
-        });
-
-        Cmd.AddCommand("listmaps", (List<String> args) -> {
-            byte[] bytes = EngineVfs.loadBytes("maps.lst");
-            if (bytes == null) {
-                Com.Error(ERR_DROP, "Could not read maps.lst");
-                return;
-            }
-            for (String line : new String(bytes).split("\n")) {
-                Com.Printf(PRINT_ALL, line.trim() + "\n");
-            }
-        });
-        Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
-        Cmd.AddCommand("games", args -> {
-            for (GameImportsImpl game : games.values()) {
-                Com.Printf(game.name + " - " + game.mapcmd + "\n");
-            }
-            Com.Printf("Total " + games.size() + " games\n");
-        });
-        Cmd.AddCommand("spamgames", args -> {
-            int total = Integer.parseInt(args.get(1));
-            for (int i = 0; i < total; i++) {
-                SV_GameMap_f(List.of("gamemap", "base1", "1"));
-            }
-        });
-
-
         Cvar cvars = Cvar.getInstance();
         cvars.register("spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
                 "Spectator admission password; empty or none allows access");
-        cvars.register("needpass", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, Defines.CVAR_SERVERINFO,
+        cvars.register("needpass", NEEDPASS_TYPE, 0, Defines.CVAR_SERVERINFO,
                 "Required passwords: 0 none, 1 player, 2 spectator, 3 both");
         cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
@@ -1053,10 +1050,54 @@ public class SV_MAIN implements JakeServer {
         allow_download_maps = cvars.find("allow_download_maps", Boolean.class);
 
         cvars.register("sv_noreload", CvarTypes.BOOLEAN, false, 0, "Start revisited levels fresh instead of restoring their saved state");
-        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Legacy air acceleration setting; currently not connected to movement");
+        sv_airaccelerate = cvars.register("sv_airaccelerate", CvarTypes.FLOAT, 0f, Defines.CVAR_LATCH, "Controls air acceleration (currently only for deathmatch)");
         public_server = cvars.register("public", CvarTypes.BOOLEAN, false, 0, "Legacy master-server advertising switch; currently unused");
         sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE, "Minimum seconds between reconnect attempts from the same remote client");
         resetClients();
+
+        // Publish callbacks only after initialization succeeds. Game operator commands
+        // are registered separately when a map starts.
+        commands.add("killserver", args -> {
+            SV_Shutdown("Server was killed.\n", false);
+            NET.configureServer(false);
+        });
+        commands.add("map", this::SV_Map_f);
+        commands.add("gamemap", this::SV_GameMap_f);
+        commands.add("load", this::SV_Loadgame_f);
+        commands.add("sv_shutdown", args -> {
+            String reason;
+            if (args.size() > 1) {
+                reason = args.get(1);
+            } else {
+                reason = "Server is shut down";
+            }
+
+            SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
+        });
+
+        commands.add("listmaps", (List<String> args) -> {
+            byte[] bytes = EngineVfs.loadBytes("maps.lst");
+            if (bytes == null) {
+                Com.Error(ERR_DROP, "Could not read maps.lst");
+                return;
+            }
+            for (String line : new String(bytes).split("\n")) {
+                Com.Printf(PRINT_ALL, line.trim() + "\n");
+            }
+        });
+        commands.add("jvm_memory", SV_CCMDS::VM_Mem_f);
+        commands.add("games", args -> {
+            for (GameImportsImpl game : games.values()) {
+                Com.Printf(game.name + " - " + game.mapcmd + "\n");
+            }
+            Com.Printf("Total " + games.size() + " games\n");
+        });
+        commands.add("spamgames", args -> {
+            int total = Integer.parseInt(args.get(1));
+            for (int i = 0; i < total; i++) {
+                SV_GameMap_f(List.of("gamemap", "base1", "1"));
+            }
+        });
     }
 
     /**
@@ -1138,9 +1179,15 @@ public class SV_MAIN implements JakeServer {
 
         Com.Printf("Loading game...\n");
 
-        String saveGame = args.get(1);
-        if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
+        String saveGame;
+        try {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1));
+        } catch (IllegalArgumentException e) {
             Com.Printf("Bad save name.\n");
+            return;
+        }
+        if ("current".equals(saveGame)) {
+            Com.Printf("Can't load from 'current'\n");
             return;
         }
 
@@ -1369,6 +1416,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         gameImports.sv_game.SV_CreateBaseline();
 
 
+        // Level restoration may replace configstrings, including saves from before air movement was published.
+        gameImports.sv.configstrings[CS_AIRACCEL] = Float.toString(gameImports.airAcceleration);
+
         // all precaches are complete
         gameImports.sv.state = changeMapInfo.state;
         Globals.server_state = gameImports.sv.state;
@@ -1401,15 +1451,16 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 */
     void SV_Map_f(List<String> args) {
         //char expanded[MAX_QPATH];
-        if (args.size() < 2) {
+        if (args.size() < 2 || args.get(1).isBlank()) {
             Com.Printf("usage: map <map_name>\n");
             return;
         }
 
         // if not a pcx, demo, or cinematic, check to make sure the level exists
         String mapName = args.get(1);
-        if (!mapName.contains(".")) {
-            String mapPath = "maps/" + mapName + ".bsp";
+        ChangeMapInfo target = new ChangeMapInfo(mapName, false, false);
+        if (target.state == ServerStates.SS_GAME) {
+            String mapPath = "maps/" + target.mapName + ".bsp";
             if (!EngineVfs.exists(mapPath)) {
                 Com.Printf("Can't find " + mapPath + "\n");
                 return;
@@ -1423,8 +1474,16 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         SV_WipeSavegame("current");
 
         // init mode & maxclients cvar
+        if (games.isEmpty()) {
+            realtime = 0;
+            frameNum = 0;
+            fixedtime = 100;
+        }
         boolean multiplayer = initializeServerCvars();
-        NET.Config(multiplayer);
+        if (!NET.configureServer(multiplayer)) {
+            Com.Error(ERR_DROP, "Could not open the server UDP port");
+            return;
+        }
         resetClients();
         SV_GameMap_f(args);
     }

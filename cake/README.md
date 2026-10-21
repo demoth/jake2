@@ -10,7 +10,19 @@ Main game client logic: rendering, audio, input, HUD, networking integration, an
 
 ### `cake-client`
 
-Desktop platform launcher/wrapper for `core`.
+Remote-only desktop launcher for `core`.
+
+### `cake-fullgame`
+
+Desktop application containing Cake, server, and game modules, with Singleplayer
+and Host Game menus. Core accesses hosting through `CakeHost`; only
+`cake-fullgame` depends on the server and game modules.
+
+### `desktop-common`
+
+Shared game window configuration, video platform, JVM restart helper and desktop
+icons. Both game launchers use `CakeDesktopLauncher`; the model viewer shares
+the restart helper and icons while retaining its own window configuration.
 
 ### `cake-modelviewer`
 
@@ -26,7 +38,8 @@ Standalone desktop tooling for engine asset generation workflows.
 
 From repository root:
 
-- `./gradlew :cake:cake-client:run` - runs the desktop client launcher directly.
+- `./gradlew :cake:cake-client:run` - runs the remote-only client.
+- `./gradlew :cake:cake-fullgame:run` - runs the client with singleplayer and hosting support.
 - `./gradlew :cake:cake-modelviewer:run --args="/absolute/path/to/file.md2"` - runs the model viewer launcher directly.
 
 Main desktop entrypoint:
@@ -39,11 +52,12 @@ Build portable ZIPs with Java 25:
 
 ```sh
 ./gradlew :cake:cake-client:distZip :cake:cake-modelviewer:distZip
+./gradlew :cake:cake-fullgame:distZip
 ```
 
 Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
 and `lib/` application/dependency JARs. Extract the entire ZIP and run
-`bin/cake-client` or `bin/cake-modelviewer` (the `.bat` script on Windows).
+`bin/cake-client`, `bin/cake-fullgame`, or `bin/cake-modelviewer` (the `.bat` script on Windows).
 Pass an asset path to the model viewer; Quake 2 game data remains external.
 
 For a local installation, use `:cake:cake-client:installDist` or
@@ -84,6 +98,25 @@ These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
 that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
+Fullgame native-image support is not verified; embedded game reflection and save
+serialization need additional reachability coverage before that is supported.
+
+## Playing and hosting
+
+`cake-client` connects to remote servers. `cake-fullgame` also provides Singleplayer
+and Host Game menus, using the selected profile's game data and mod.
+
+Hosting automatically connects the local player. Disconnect before switching
+profiles or starting another session.
+
+Console equivalents:
+
+- `host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]`
+- `host_stop` — disconnect and stop hosting.
+- `map <map>` / `gamemap <map>` — change maps while hosting.
+
+Saves are stored in `~/.cake/<profileId>/save/`. Console `save <slot>` and
+`load <slot>` currently require an active game.
 
 ## Subsystem Guides
 

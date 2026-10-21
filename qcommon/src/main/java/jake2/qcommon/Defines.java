@@ -102,8 +102,11 @@ public class Defines {
 	public final static int CVAR_SERVERINFO = 4; // added to serverinfo when changed 
 	public final static int CVAR_NOSET = 8; // don't allow change from console at all, 
 	// but can be set from the command line
-	// todo rename to CVAR_DEFERRED
-	public final static int CVAR_LATCH = 16; // save changes until server restart 
+
+	/**
+	 * Defers changes until the owning subsystem restarts. Exact restart semantics depends on the subsystem.
+	 */
+	public final static int CVAR_LATCH = 16;
 	public final static int CVAR_OPTIONS = 32; // expose in options UI when grouped/handled by client
 
 	// lower bits are stronger, and will eat weaker brushes completely

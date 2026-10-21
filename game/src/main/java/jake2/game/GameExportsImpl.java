@@ -1335,27 +1335,22 @@ public class GameExportsImpl implements GameExports {
         }
     }
 
-    /**
-     * CheckNeedPass.
-     */
+    /** Keep the advertised password requirements in sync with the current server settings. */
     private void checkNeedPassCvar() {
-        // if password or spectator_password has changed, update needpass
-        // as needed
-        if (gameCvars.password.modified || gameCvars.spectator_password.modified) {
-
-            gameCvars.password.modified = false;
-            gameCvars.spectator_password.modified = false;
-
-            int need = 0;
-
-            if (!gameCvars.password.getTypedValue().isEmpty() && !"none".equalsIgnoreCase(gameCvars.password.getTypedValue()))
-                need |= 1;
-
-            if (!gameCvars.spectator_password.getTypedValue().isEmpty() && !"none".equalsIgnoreCase(gameCvars.spectator_password.getTypedValue()))
-                need |= 2;
-
-            gameCvars.needpass.set(need);
-        }
+        String password = gameCvars.password.getTypedValue();
+        String spectatorPassword = gameCvars.spectator_password.getTypedValue();
+        boolean playerRequired = !password.isEmpty() && !"none".equalsIgnoreCase(password);
+        boolean spectatorRequired = !spectatorPassword.isEmpty() && !"none".equalsIgnoreCase(spectatorPassword);
+        int need;
+        if (playerRequired && spectatorRequired)
+            need = 3;
+        else if (playerRequired)
+            need = 1;
+        else if (spectatorRequired)
+            need = 2;
+        else
+            need = 0;
+        gameCvars.needpass.set(need);
     }
 
     /**

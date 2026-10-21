@@ -73,7 +73,7 @@ public final class Cbuf {
      * text should not survive long enough to be reinterpreted as commands just
      * because a comment line contains a semicolon.
      */
-    static List<String> splitScriptCommandLine(String text) {
+    public static List<String> splitScriptCommandLine(String text) {
         List<String> result = new ArrayList<>();
         String[] lines = text.split("[\\n\\r]");
         for (String line : lines) {
@@ -284,6 +284,11 @@ public final class Cbuf {
         deferredBuffer.clear();
     }
 
+    /** Abandon commands waiting for a local game that has been stopped or failed to start. */
+    public static void ClearDeferred() {
+        deferredBuffer.clear();
+    }
+
     public static void reconfigure(List<String> args, boolean clear) {
         String dir = Cvar.getInstance().find("cddir", String.class).getTypedValue();
         Cbuf.AddText("exec default.cfg\n");
@@ -294,7 +299,6 @@ public final class Cbuf {
         Cbuf.AddText("bind a +moveleft\n");
         Cbuf.AddText("bind d +moveright\n");
         Cbuf.Execute();
-        Cvar.getInstance().setResult("vid_fullscreen", "0");
         Cbuf.AddText("exec config.cfg\n");
 
         Cbuf.AddEarlySetCommands(args, clear);

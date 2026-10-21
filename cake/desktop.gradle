@@ -4,7 +4,6 @@ application {
 }
 dependencies {
   implementation rootProject.libs.gdxControllersDesktop
-  implementation rootProject.libs.gdxBackendLwjgl3
   implementation(rootProject.libs.gdxFreetypePlatform) {
     artifact {
       classifier = 'natives-desktop'
@@ -15,11 +14,11 @@ dependencies {
       classifier = 'natives-desktop'
     }
   }
-  implementation project(':cake:core')
+  implementation project(':cake:desktop-common')
 }
 
 def os = System.properties['os.name'].toLowerCase()
-def iconsDir = project.file('icons')
+def iconsDir = rootProject.file('cake/desktop-common/icons')
 
 run {
   outputs.upToDateWhen { false }

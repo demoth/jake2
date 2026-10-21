@@ -50,6 +50,9 @@ public class pmove_t {
 
     public boolean snapinitial; // if s has been changed outside pmove
 
+    /** Per-simulation air movement mode; numeric value matches CS_AIRACCEL. */
+    public float airAccelerate;
+
     // results (out)
     public int numtouch;
 
@@ -1101,7 +1104,7 @@ public class pmove_t {
                         PMove.pm_maxspeed,
                         PMove.pm_waterspeed,
                         PMove.pm_accelerate,
-                        PMove.pm_airaccelerate,
+                        airAccelerate,
                         planes
                 );
             }
@@ -1126,6 +1129,7 @@ public class pmove_t {
         Arrays.fill(touchents, null);
         numtouch = 0;
         snapinitial = false;
+        airAccelerate = 0f;
         cmd.clear();
         s.clear();
     }

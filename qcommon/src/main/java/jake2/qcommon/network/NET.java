@@ -180,47 +180,66 @@ public final class NET {
         cvars.register("thinclient", CvarTypes.BOOLEAN, false, 0, "Do not open a server UDP socket");
     }
 
-    /** Creates the network sockets. */
+    /** Legacy combined socket policy. New session owners configure each role explicitly. */
     public static void OpenIP() {
         Cvar cvars = Cvar.getInstance();
-        int port = cvars.find("port", Integer.class).getTypedValue();
-        String ip = cvars.find("ip", String.class).getTypedValue();
-        int clientport = cvars.find("clientport", Integer.class).getTypedValue();
-        boolean thinclient = cvars.find("thinclient", Boolean.class).getTypedValue();
-        boolean dedicated = cvars.find("dedicated", Boolean.class).getTypedValue();
+        if (!cvars.find("thinclient", Boolean.class).getTypedValue()) configureServer(true);
+        if (!cvars.find("dedicated", Boolean.class).getTypedValue()) configureClient(true);
+    }
 
-        // clients do not need server sockets
-        if (!thinclient) {
-            if (ip_sockets[NS_SERVER] == null)
-                ip_sockets[NS_SERVER] = Socket(NS_SERVER, ip, port);
+    /** Configure only the server UDP endpoint; loopback never needs a socket. */
+    public static boolean configureServer(boolean enabled) {
+        return configureRole(NS_SERVER, enabled, "port", false);
+    }
+
+    /** Configure only the client UDP endpoint, retaining the legacy ephemeral-port fallback. */
+    public static boolean configureClient(boolean enabled) {
+        return configureRole(Defines.NS_CLIENT, enabled, "clientport", true);
+    }
+
+    private static boolean configureRole(int role, boolean enabled, String portName, boolean fallback) {
+        if (!enabled) {
+            closeRole(role);
+            return true;
         }
+        if (ip_sockets[role] != null && !ip_sockets[role].isClosed()) return true;
+        closeRole(role);
+        Cvar cvars = Cvar.getInstance();
+        String ip = cvars.find("ip", String.class).getTypedValue();
+        int port = cvars.find(portName, Integer.class).getTypedValue();
+        ip_sockets[role] = Socket(role, ip, port);
+        if (ip_sockets[role] == null && fallback)
+            ip_sockets[role] = Socket(role, ip, Defines.PORT_ANY);
+        return ip_sockets[role] != null;
+    }
 
-        // servers do not need client sockets
-        if (!dedicated) {
-            // first try with cvar clientport value
-            if (ip_sockets[Defines.NS_CLIENT] == null)
-                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip, clientport);
-            // try any port
-            if (ip_sockets[Defines.NS_CLIENT] == null)
-                ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT, ip, Defines.PORT_ANY);
+    private static void closeRole(int role) {
+        if (ip_sockets[role] != null) ip_sockets[role].close();
+        ip_sockets[role] = null;
+        if (ip_channels[role] != null) {
+            try {
+                ip_channels[role].close();
+            } catch (java.io.IOException error) {
+                Com.Println("Closing UDP channel: " + error.getMessage());
+            }
+            ip_channels[role] = null;
         }
     }
 
-    /**
-     * Config multi or singlepalyer - A single player game will only use the loopback code.
-     */
+    /** Whole-session boundary only: do not discard reconnect traffic during map changes. */
+    public static void clearLoopbacks() {
+        for (loopback_t loop : loopbacks) {
+            loop.get = 0;
+            loop.send = 0;
+        }
+    }
+
+    /** Legacy combined policy for callers that own both socket roles. */
     public static void Config(boolean multiplayer) {
-        if (!multiplayer) {
-            // shut down any existing sockets
-            for (int i = 0; i < 2; i++) {
-                if (ip_sockets[i] != null) {
-                    ip_sockets[i].close();
-                    ip_sockets[i] = null;
-                }
-            }
-        } else {
-            // open sockets
-            OpenIP();
+        if (multiplayer) OpenIP();
+        else {
+            configureClient(false);
+            configureServer(false);
         }
     }
 
@@ -254,7 +273,7 @@ public final class NET {
             Com.Println("Opened port: " + port);
         } catch (Exception e) {
             Com.Println("jake2.qcommon.network.NET.Socket: " + e.toString());
-            e.printStackTrace();
+            closeRole(sock); // A failed bind may still have opened a channel.
             newsocket = null;
         }
         return newsocket;

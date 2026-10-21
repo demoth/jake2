@@ -91,12 +91,15 @@ public final class ServerSaveJsonStore {
         return "save/" + normalizeSlot(slot) + "/server_latched_cvars.ssv.json";
     }
 
-    private static String normalizeSlot(String slot) {
+    /** Validates a single save-directory name, including internal slots such as current. */
+    public static String normalizeSlot(String slot) {
         if (slot == null) {
             throw new IllegalArgumentException("slot must not be null");
         }
-        String normalized = slot.trim().replace('\\', '/');
-        if (normalized.isEmpty() || normalized.contains("..") || normalized.contains("/") || normalized.contains(":")) {
+        String normalized = slot.trim();
+        if (normalized.isEmpty() || normalized.equals(".") || normalized.contains("..")
+                || normalized.contains("/") || normalized.contains("\\") || normalized.contains(":")
+                || normalized.chars().anyMatch(Character::isISOControl)) {
             throw new IllegalArgumentException("Invalid save slot: " + slot);
         }
         return normalized;

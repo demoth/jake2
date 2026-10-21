@@ -86,6 +86,8 @@ public class GameImportsImpl implements GameImports {
     SV_GAME sv_game;
 
     final float[] origin_v = { 0, 0, 0 };
+    private final float configuredAirAcceleration;
+    final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
     public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
@@ -138,6 +140,12 @@ public class GameImportsImpl implements GameImports {
             SV_Read_Latched_Vars();
         }
 
+        // Snapshot the applied setting for this game; client prediction receives the same value.
+        configuredAirAcceleration = Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue();
+        airAcceleration = Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()
+                ? configuredAirAcceleration : 0f;
+        sv.configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
+
         // clear physics interaction links
         // Q: is it required? the instance was just created
         SV_WORLD.SV_ClearWorld(this);
@@ -176,17 +184,16 @@ public class GameImportsImpl implements GameImports {
      * bind operator commands to this server instance
      */
     private void SV_InitOperatorCommands() {
-        Cmd.AddCommand("heartbeat", true, this::SV_Heartbeat_f);
-        Cmd.AddCommand("kick", true, this::SV_Kick_f);
-        Cmd.AddCommand("status", true, this::SV_Status_f);
-        Cmd.AddCommand("serverinfo", true, this::SV_Serverinfo_f);
-        Cmd.AddCommand("dumpuser", true, this::SV_DumpUser_f);
-        Cmd.AddCommand("say", true, this::SV_ConSay_f);
-        Cmd.AddCommand("save", true, this::SV_Savegame_f);
-        Cmd.AddCommand("killserver", true, this::SV_KillServer_f);
+        serverMain.registerGameCommand("heartbeat", this::SV_Heartbeat_f);
+        serverMain.registerGameCommand("kick", this::SV_Kick_f);
+        serverMain.registerGameCommand("status", this::SV_Status_f);
+        serverMain.registerGameCommand("serverinfo", this::SV_Serverinfo_f);
+        serverMain.registerGameCommand("dumpuser", this::SV_DumpUser_f);
+        serverMain.registerGameCommand("say", this::SV_ConSay_f);
+        serverMain.registerGameCommand("save", this::SV_Savegame_f);
 
         // ip filtering and stuff
-        Cmd.AddCommand("sv", true, args -> {
+        serverMain.registerGameCommand("sv", args -> {
             if (gameExports != null)
                 gameExports.ServerCommand(args);
         });
@@ -317,6 +324,7 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void Pmove(pmove_t pmove) {
+        pmove.airAccelerate = airAcceleration;
         pmoveProcessor.move(pmove);
     }
 
@@ -368,20 +376,28 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        String saveGame = args.get(1);
+        String saveGame;
+        try {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1));
+        } catch (IllegalArgumentException e) {
+            Com.Printf("Bad save name.\n");
+            return;
+        }
         if ("current".equals(saveGame)) {
             Com.Printf("Can't save to 'current'\n");
             return;
         }
 
-        // fixme: quite hacky way to get a player
-        if (serverMain.getClients().size() == 1 && serverMain.getClients().get(0).edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
-            Com.Printf("\nCan't savegame while dead!\n");
-            return;
-        }
-
-        if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
-            Com.Printf("Bad save name.\n");
+        if (serverMain.getClients().size() == 1) {
+            ClientNetworkInfo client = serverMain.getClients().get(0);
+            if (client.state != ClientStates.CS_SPAWNED || client.edict == null) {
+                Com.Printf("Can't savegame before the player has spawned.\n");
+                return;
+            }
+            if (client.edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+                Com.Printf("\nCan't savegame while dead!\n");
+                return;
+            }
         }
 
         Com.Printf("Saving game...\n");
@@ -547,20 +563,6 @@ public class GameImportsImpl implements GameImports {
 
     }
 
-    /*
-    ===============
-    SV_KillServer_f
-
-    Kick everyone off, possibly in preparation for a new jake2.game
-
-    ===============
-    */
-    private void SV_KillServer_f(List<String> args) {
-        serverMain.SV_Shutdown("Server was killed.\n", false);
-        NET.Config(false); // close network sockets
-    }
-    //===========================================================
-
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
      */
@@ -684,22 +686,29 @@ public class GameImportsImpl implements GameImports {
 
             store.writeMapCommand("current", comment, mapcmd);
 
-            // write all CVAR_LATCH cvars
-            // these will be things like coop, skill, deathmatch, etc
-            List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
-            Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-                if (!localCvars.isRegistered(var.name))
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString()));
-            });
-            localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
-                    latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
-            store.writeLatchedCvars("current", latchedCvars);
+            writeLatchedCvars(store);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         // write game state
         gameExports.WriteGame(EngineWriteRoot.resolve("save/current/game.ssv.json").toString(), autosave);
+    }
+
+    /** Save shared and local latched cvars, with local entries taking precedence. */
+    void writeLatchedCvars(ServerSaveJsonStore store) throws IOException {
+        List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
+        Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
+            if (!localCvars.isRegistered(var.name)) {
+                // Air acceleration is captured per instance; the global value may now belong to another game.
+                String value = var.name.equals("sv_airaccelerate")
+                        ? Float.toString(configuredAirAcceleration) : var.getRawString();
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, value));
+            }
+        });
+        localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString())));
+        store.writeLatchedCvars("current", latchedCvars);
     }
 
     /**

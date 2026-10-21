@@ -33,6 +33,7 @@ class MainMenuStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
+    showHosting: Boolean,
 ) : BackNavigableMenuStage(
     viewport = viewport,
     menuEventBus = menuEventBus,
@@ -40,6 +41,7 @@ class MainMenuStage(
 ) {
     private var currentProfileLabel: Label
     private var switchProfileButton: TextButton
+    private var singleplayerButton: TextButton? = null
     private var disconnectButton: TextButton
     private var renderedProfileId: String = ""
     private var lastCanDisconnectState: Boolean = false
@@ -66,10 +68,13 @@ class MainMenuStage(
             add(disconnectButton)
             row()
 
-            add(createMenuButton("Singleplayer (future)", buttonStyle).apply {
-                isDisabled = true
-            })
-            row()
+            if (showHosting) {
+                singleplayerButton = createMenuButton("Singleplayer", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenHostingSetup(true))
+                }
+                add(singleplayerButton)
+                row()
+            }
 
             add(createMenuButton("Multiplayer", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenMultiplayerMenu)
@@ -95,7 +100,9 @@ class MainMenuStage(
 
     override fun act(delta: Float) {
         super.act(delta)
-        val state = menuEventBus.latestState().mainMenu
+        val snapshot = menuEventBus.latestState()
+        singleplayerButton?.isDisabled = !snapshot.canHostGame
+        val state = snapshot.mainMenu
         val active = state.activeProfileId.trim()
         if (active != renderedProfileId) {
             refreshProfileHeader(active)

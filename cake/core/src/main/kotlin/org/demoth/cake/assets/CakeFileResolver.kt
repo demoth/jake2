@@ -54,6 +54,9 @@ class CakeFileResolver(
 
     fun isVfsInitialized(): Boolean = vfsAssetSource.isInitialized()
 
+    /** Profile content only, without remote downloads or bundled asset fallbacks. */
+    internal fun resolveContent(path: String): FileHandle? = vfsAssetSource.resolve(path)
+
     fun debugResolvedFiles(): List<String> = vfsAssetSource.debugResolvedFiles()
 
     fun debugMounts(): List<String> = vfsAssetSource.debugMounts()
