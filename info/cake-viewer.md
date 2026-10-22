@@ -19,9 +19,10 @@ tree or double-click its tile to browse it. Click a file to show its logical pat
 and size in bytes. Visible PCX, WAL and TGA tiles load image previews progressively;
 unavailable images show a placeholder. Double-click an image for its original
 pixel size, with scrolling for larger images. "Back to folder" restores the grid
-and its scroll position. Thumbnail textures are released when they leave view,
-when opening a full preview, or when leaving the folder/archive; there is no
-persistent thumbnail cache. Browsing reads archive metadata without extraction;
+and its scroll position. Loaded thumbnails stay available while scrolling in the
+same folder and across full-preview/Back navigation. Leaving the folder or archive
+releases them; there is no persistent thumbnail cache. Preview tiles use plain
+images with a flat hover/selection highlight. Browsing reads archive metadata without extraction;
 visible thumbnails and full previews materialize resources on demand. A failed
 full image preview shows an error and reopens the archive at its root folder.
 

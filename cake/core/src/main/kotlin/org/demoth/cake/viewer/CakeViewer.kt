@@ -172,7 +172,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
                 browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
-                    ::previewArchiveImage, ::loadArchiveThumbnail, ::retainArchiveThumbnails)
+                    ::previewArchiveImage, ::loadArchiveThumbnail, ::clearArchiveThumbnails)
                 browserHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -217,15 +217,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
     }
 
-    private fun retainArchiveThumbnails(paths: Set<String>) {
-        val iterator = archiveThumbnails.iterator()
-        while (iterator.hasNext()) {
-            val (path, texture) = iterator.next()
-            if (path !in paths) {
-                texture.dispose()
-                iterator.remove()
-            }
-        }
+    private fun clearArchiveThumbnails() {
+        archiveThumbnails.values.forEach { it.dispose() }
+        archiveThumbnails.clear()
+        failedThumbnails.clear()
     }
 
     private fun previewArchiveImage(entry: VfsEntry?): Actor? {
@@ -511,8 +506,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun closePreview() {
         releaseArchivePreview()
-        retainArchiveThumbnails(emptySet())
-        failedThumbnails.clear()
+        clearArchiveThumbnails()
         archiveEntryCount = null
         if (::browserHost.isInitialized) {
             browserHost.actor = null

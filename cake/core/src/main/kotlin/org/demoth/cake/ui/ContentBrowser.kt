@@ -49,21 +49,25 @@ internal class ContentDirectory(val path: String, val name: String) {
 /**
  * Browse a resolved entry snapshot. The host owns preview and thumbnail resources.
  * [previewSelection] replaces/releases the full preview; null clears it.
- * [retainThumbnails] releases textures outside the visible set; [loadThumbnail] borrows
- * a texture from the host, which keeps it alive until the next retain call excludes it.
+ * [loadThumbnail] borrows a texture from the host for this folder's lifetime.
+ * [clearThumbnails] releases the folder's textures when navigating to another folder.
  */
 class ContentBrowser(
     entries: List<VfsEntry>, rootName: String, skin: Skin,
     private val previewSelection: (VfsEntry?) -> Actor? = { null },
     private val loadThumbnail: (VfsEntry) -> Texture? = { null },
-    private val retainThumbnails: (Set<String>) -> Unit = {},
+    private val clearThumbnails: () -> Unit = {},
 ) : Table(skin) {
     private class FolderNode(val directory: ContentDirectory, skin: Skin) :
         Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, skin)) {
         init { value = directory }
     }
 
-    private class Tile(val directory: ContentDirectory?, val entry: VfsEntry?, skin: Skin) : Button(skin, "toggle") {
+    private class Tile(val directory: ContentDirectory?, val entry: VfsEntry?, skin: Skin) : Button(ButtonStyle().apply {
+        over = skin.getDrawable("selection")
+        down = over
+        checked = over
+    }) {
         val thumbnail = entry?.normalizedPath?.substringAfterLast('.') in setOf("pcx", "wal", "tga")
         val placeholder = Label(if (directory != null) "Folder" else if (thumbnail) "…" else
             entry!!.normalizedPath.substringAfterLast('.').uppercase(), skin).apply {
@@ -78,11 +82,6 @@ class ContentBrowser(
             add(picture).size(128f, 96f).row()
             add(Label(name, skin).apply { setEllipsis(true) }).width(128f).padTop(4f)
             pad(6f)
-        }
-
-        fun clearThumbnail() {
-            picture.actor = placeholder
-            attempted = false
         }
     }
 
@@ -139,15 +138,15 @@ class ContentBrowser(
         // Compare in grid coordinates, including the ScrollPane's visual (smoothed) scroll.
         val top = grid.height - gridScroll.visualScrollY
         val bottom = top - gridScroll.scrollHeight
-        val visible = tiles.filter { it.thumbnail && it.y < top && it.y + it.height > bottom }.toSet()
-        tiles.filter { it.thumbnail && it !in visible }.forEach { it.clearThumbnail() }
-        retainThumbnails(visible.map { it.entry!!.normalizedPath }.toSet())
-        // Existing PCX/WAL loaders are synchronous: decode at most one image per frame.
-        visible.firstOrNull { !it.attempted }?.let { tile ->
+        val pending = tiles.filter { it.thumbnail && !it.attempted && it.y < top && it.y + it.height > bottom }
+        val started = System.nanoTime()
+        // Load small images together. A single synchronous load can exceed this 4 ms budget.
+        for (tile in pending) {
             tile.attempted = true
             val texture = loadThumbnail(tile.entry!!)
             tile.picture.actor = texture?.let { Image(it).apply { setScaling(Scaling.fit) } }
                 ?: tile.placeholder.apply { setText("Unavailable") }
+            if (System.nanoTime() - started >= 4_000_000L) break
         }
     }
 
@@ -160,13 +159,12 @@ class ContentBrowser(
 
     private fun showDirectory(directory: ContentDirectory) {
         previewSelection(null)
-        tiles.forEach { it.clearThumbnail() }
-        retainThumbnails(emptySet())
+        grid.clearChildren()
+        tiles.clear()
+        clearThumbnails()
         content.actor = gridScroll
         backButton.isVisible = false
         pathLabel.setText(if (directory.path.isEmpty()) "/" else "/${directory.path}/")
-        grid.clearChildren()
-        tiles.clear()
         directory.folders.values.forEach { addTile(it, null) }
         directory.files.forEach { addTile(null, it) }
         gridScroll.scrollY = 0f
@@ -190,9 +188,6 @@ class ContentBrowser(
                     tree.selection.set(node)
                 } else {
                     val preview = previewSelection(entry) ?: return
-                    // Clear borrowed drawables before releasing their textures.
-                    tiles.forEach { it.clearThumbnail() }
-                    retainThumbnails(emptySet())
                     content.actor = scrollPane(preview, skin)
                     backButton.isVisible = true
                 }
