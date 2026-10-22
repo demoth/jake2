@@ -65,6 +65,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var playback: FramePlayback? = null
     private val spriteFrame: Sp2Asset.Frame? get() = sprite?.frames?.get(playback!!.frameIndex)
     private var sound: Sound? = null
+    private var soundPlayback: SoundPlayback? = null
     private var bspMap: BspMapAsset? = null
     private var bspWorldRenderer: BspWorldBatchRenderer? = null
     private var bspVisibleSurfaces = BooleanArray(0)
@@ -181,7 +182,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
                 archiveEntryCount != null -> "Click: select / play sound or sprite | Double-click: open | Escape: close"
-                sound != null -> "Space: replay | S: stop | Escape: close"
+                sound != null -> "Space: play/pause | S: stop | Escape: close"
                 sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
             })
@@ -246,7 +247,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp")) return null
         if (!loadArchiveResource(entry)) return null
         // Presentation borrows the active resource; opening controls does not start playback.
-        return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
+        return sound?.let { SoundPreviewControls(it, soundPlayback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: image?.let {
                 Table().apply {
                     add(ImagePreviewPane(Image(it))).grow().row()
@@ -316,7 +317,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun replaySound() {
-        sound?.let { it.stop(); it.play() }
+        soundPlayback?.replay()
     }
 
     private fun recoverFromLoadError(message: String, archiveToReopen: File? = null) {
@@ -339,6 +340,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "wav" -> {
                 sound = previewResources.load(path, Sound::class.java)
+                soundPlayback = SoundPlayback(sound!!)
             }
             "pcx", "wal", "tga" -> {
                 image = previewResources.load(path, Texture::class.java)
@@ -468,12 +470,13 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             return
         }
 
+        soundPlayback?.update()
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if (sound != null) replaySound() else playback?.toggle()
+            if (sound != null) soundPlayback?.toggle() else playback?.toggle()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
         } else if (sound != null && Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            sound?.stop()
+            soundPlayback?.stop()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             playback?.step(1)
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
@@ -546,13 +549,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun closeResourcePreview() {
-        sound?.stop()
+        soundPlayback?.stop()
         if (::previewResources.isInitialized) previewResources.close()
         bspWorldRenderer = null
         modelBatch = null
         instances.clear()
         image = null
         sound = null
+        soundPlayback = null
         sprite = null
         playback = null
         bspMap = null

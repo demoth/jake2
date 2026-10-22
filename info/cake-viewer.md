@@ -31,9 +31,11 @@ visible thumbnails and full previews materialize resources on demand. A failed
 resource preview shows an error and reopens the archive at its root folder.
 
 Click a WAV tile to play once while keeping the folder grid visible. Double-click
-to show duration and Play/Loop/Stop controls without restarting playback. Play
-restarts a single play, Loop starts repeated playback, and Stop ends either mode;
-Space replays once and S stops. Selecting another tile, Back to folder, changing
+to show duration and Play/Pause/Loop/Stop controls without restarting playback.
+Play starts or resumes single playback, Pause holds position, Loop starts or
+resumes repeated playback, and Stop resets. Space toggles pause/resume while
+retaining loop mode; S stops. Clicking the tile again restarts single playback.
+Selecting another tile, Back to folder, changing
 folders, or opening another resource stops playback and unloads the sound.
 
 Click an SP2 tile to play its animation once in the tile. Double-click to open
@@ -105,7 +107,7 @@ single animation at 10 frames per second, or Left/Right to step frames with
 wraparound. Archive previews also offer explicit looping. SP2 files do not
 specify a playback rate. Controls are also shown in the window.
 
-WAV files play once on opening. Press Space to replay, S to stop, and Escape to
+WAV files play once on opening. Press Space to pause/resume, S to stop, and Escape to
 close. These controls are also shown in the window.
 
 ## How to associate .md2 files with Cake Viewer?
