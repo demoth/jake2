@@ -17,7 +17,10 @@ AssetManager request (model path or <skinPath>|<modelPath>)
   -> Md2Shader: sample animation textures, interpolate positions, draw
 ```
 
-`Md2Asset` contains the model, frame count, and ordered skin textures. The model
+`Md2Asset` contains the model, frame count, ordered skin textures, and bounds
+covering decoded vertex positions across all frames. The viewer uses these bounds
+for camera framing; ordinary mesh bounds cannot represent the VAT geometry,
+whose mesh contains animation indices rather than position attributes. The model
 viewer and transient model effects use the same loader/shader pipeline as gameplay
 entities. The shared `CakeShaderProvider` dispatches MD2, BSP, and default shaders;
 its cross-pipeline routing remains outside this package.

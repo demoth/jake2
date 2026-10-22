@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
@@ -42,6 +43,7 @@ import org.demoth.cake.assets.ResourceKind
  * Geometry is pre-normalized to Cake winding expectations, so default backface culling works as-is.
  * [frames] is frame count metadata used by animation code.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
+ * [bounds] encloses decoded positions across all frames; the VAT mesh has no position attribute.
  *
  * This allows future runtime skin switching (for example normal/injured monster skin)
  * without replacing model geometry.
@@ -50,6 +52,7 @@ class Md2Asset(
     val model: Model,
     val frames: Int,
     val skins: List<Texture>,
+    val bounds: BoundingBox,
 ) : Disposable {
     override fun dispose() {
         model.dispose()
@@ -160,6 +163,11 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             model = model,
             frames = md2.frames.size,
             skins = skins,
+            bounds = BoundingBox().apply {
+                inf()
+                val positions = vertexData.vertexPositions
+                for (i in positions.indices step 3) ext(positions[i], positions[i + 1], positions[i + 2])
+            },
         )
     }
 

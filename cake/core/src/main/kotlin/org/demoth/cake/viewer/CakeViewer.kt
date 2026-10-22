@@ -174,6 +174,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val hints = detectViewerStartupHints(file.absolutePath)
                 fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
                 loadPreview(file.absolutePath)
+                if (md2Instance != null || bspMap != null) {
+                    addOwnedInstance(createOriginArrows(GRID_SIZE))
+                    addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                }
                 if (sound != null) replaySound()
             }
             filenameLabel.setText(file.name)
@@ -241,12 +245,24 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             closeResourcePreview()
             return null
         }
-        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2")) return null
+        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2")) return null
         if (!loadArchiveResource(entry)) return null
         // Presentation borrows the active resource; opening controls does not start playback.
         return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: image?.let { Image(it).apply { setScaling(Scaling.none) } }
             ?: sprite?.let { SpritePreview(it, spritePlayback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
+            ?: md2Instance?.let { instance ->
+                val md2 = assetManager.get(entry.normalizedPath, Md2Asset::class.java)
+                val pane = previewResources.own(Md2PreviewPane(md2.bounds) { paneCamera ->
+                    modelBatch!!.begin(paneCamera)
+                    modelBatch!!.render(instance)
+                    modelBatch!!.end()
+                })
+                Table().apply {
+                    add(pane).grow().row()
+                    add(Label("Drag: orbit | Wheel: zoom", assetManager.getLoaded<Skin>(cakeSkin))).pad(4f)
+                }
+            }
     }
 
     private fun loadArchiveResource(entry: VfsEntry): Boolean {
@@ -317,8 +333,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 md2Shader.init()
 
                 instances.add(md2Instance!!)
-                addOwnedInstance(createOriginArrows(GRID_SIZE))
-                addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
                 val bspMap = previewResources.load(path, BspMapAsset::class.java)
@@ -335,8 +349,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 bspMap.models.forEach { model ->
                     instances.add(ModelInstance(model))
                 }
-                addOwnedInstance(createOriginArrows(GRID_SIZE))
-                addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
         }
     }
@@ -415,7 +427,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             return
         }
 
-        val md2Data = md2Instance?.let { it.userData as? Md2CustomData }
+        val md2Data = if (archiveEntryCount == null) md2Instance?.let { it.userData as? Md2CustomData } else null
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             val currentSound = sound
@@ -479,7 +491,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 dynamicLights = emptyList(),
             )
 
-            modelBatch?.let { models ->
+            modelBatch?.takeIf { archiveEntryCount == null }?.let { models ->
                 models.begin(camera)
                 instances.forEach { models.render(it) }
                 models.end()
@@ -489,7 +501,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
             batch.use {
                 val currentFrame = if (archiveEntryCount == null) spriteFrame else null
-                val currentImage = currentFrame?.texture ?: image
+                val currentImage = if (archiveEntryCount == null) currentFrame?.texture ?: image else null
                 if (currentImage != null) {
                     // draw image in the center of the screen
                     val width = (currentFrame?.width ?: currentImage.width).toFloat()

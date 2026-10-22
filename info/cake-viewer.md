@@ -39,6 +39,11 @@ or restarts a completed animation; Stop resets to the first frame. Frame steppin
 pauses playback. Space toggles play/pause and Left/Right steps frames. Back or
 changing selection releases the sprite and its frame textures.
 
+Double-click an MD2 tile to view its first frame, automatically centred and framed
+in the preview pane. Drag with the left mouse button to orbit around the model;
+use the wheel over the pane to zoom. Resizing adjusts the preview resolution and
+framing. Archive MD2 playback controls will follow in a separate slice.
+
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
 
