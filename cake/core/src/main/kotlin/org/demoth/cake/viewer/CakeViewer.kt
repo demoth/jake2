@@ -23,8 +23,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.Scaling
 import jake2.qcommon.vfs.VfsEntry
@@ -78,16 +76,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
     private var archiveEntryCount: Int? = null
-    private var archivePreviewPath: String? = null
     private val archiveThumbnails = mutableMapOf<String, Texture>()
     private val failedThumbnails = mutableSetOf<String>()
+    private lateinit var previewResources: PreviewResources
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
     private val instances: MutableList<ModelInstance> = mutableListOf()
-    // models created directly in the viewer (grid/origin), not owned by AssetManager
-    private val ownedModels: MutableList<Model> = mutableListOf()
     private lateinit var environment: Environment
     private lateinit var stage: Stage
     private lateinit var browserHost: Container<ContentBrowser>
@@ -139,6 +135,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
+        previewResources = PreviewResources(assetManager)
         batch = SpriteBatch()
 
         camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
@@ -179,7 +176,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
                 fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
-                loadPreview(file)
+                loadPreview(file.absolutePath)
+                if (sound != null) replaySound()
             }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
@@ -227,78 +225,41 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun selectArchiveResource(entry: VfsEntry?) {
         if (entry?.normalizedPath?.endsWith(".wav") == true) {
-            if (archivePreviewPath == entry.normalizedPath && sound != null) replaySound()
-            else previewArchiveResource(entry)
+            if (loadArchiveResource(entry)) replaySound()
         } else {
-            releaseArchivePreview()
+            closeResourcePreview()
         }
     }
 
     private fun previewArchiveResource(entry: VfsEntry?): Actor? {
-        // Opening controls after the first click keeps the already playing sound intact.
-        if (entry != null && archivePreviewPath == entry.normalizedPath && sound != null) return archiveSoundControls()
-        releaseArchivePreview()
         errorLabel.setText("")
-        if (entry == null) return null
-        val extension = entry.normalizedPath.substringAfterLast('.')
-        if (extension !in listOf("pcx", "wal", "tga", "wav")) return null
+        if (entry == null) {
+            closeResourcePreview()
+            return null
+        }
+        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav")) return null
+        if (!loadArchiveResource(entry)) return null
+        // Presentation borrows the active resource; opening controls does not start playback.
+        return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
+            ?: image?.let { Image(it).apply { setScaling(Scaling.none) } }
+    }
+
+    private fun loadArchiveResource(entry: VfsEntry): Boolean {
+        errorLabel.setText("")
+        if (previewResources.path == entry.normalizedPath) return true
         val archive = currentFile
-        archivePreviewPath = entry.normalizedPath
         return try {
-            if (extension == "wav") {
-                assetManager.load(entry.normalizedPath, Sound::class.java)
-                assetManager.finishLoading()
-                sound = assetManager.get(entry.normalizedPath, Sound::class.java)
-                replaySound()
-                archiveSoundControls()
-            } else {
-                assetManager.load(entry.normalizedPath, Texture::class.java)
-                assetManager.finishLoading()
-                Image(assetManager.get(entry.normalizedPath, Texture::class.java)).apply { setScaling(Scaling.none) }
-            }
+            loadPreview(entry.normalizedPath)
+            true
         } catch (error: Exception) {
             Gdx.app.error("Cake Viewer", "Could not preview ${entry.displayPath}", error)
             recoverFromLoadError("Could not preview ${entry.displayPath}.", archive)
-            null
+            false
         }
-    }
-
-    private fun releaseArchivePreview() {
-        archivePreviewPath?.let {
-            sound?.stop()
-            sound = null
-            if (assetManager.isLoaded(it)) assetManager.unload(it)
-        }
-        archivePreviewPath = null
     }
 
     private fun replaySound() {
         sound?.let { it.stop(); it.play() }
-    }
-
-    private fun archiveSoundControls(): Actor {
-        val skin = assetManager.getLoaded<Skin>(cakeSkin)
-        val duration = sound?.let { SoundDurationRegistry.durationMs(it) }
-        return Table(skin).apply {
-            defaults().pad(8f)
-            add(Label(duration?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown", skin)).colspan(3).row()
-            add(TextButton("Play", skin).apply {
-                addListener(object : ChangeListener() {
-                    override fun changed(event: ChangeEvent, actor: Actor) { replaySound() }
-                })
-            })
-            add(TextButton("Loop", skin).apply {
-                addListener(object : ChangeListener() {
-                    override fun changed(event: ChangeEvent, actor: Actor) { sound?.let { it.stop(); it.loop() } }
-                })
-            })
-            add(TextButton("Stop", skin).apply {
-                addListener(object : ChangeListener() {
-                    override fun changed(event: ChangeEvent, actor: Actor) { sound?.stop() }
-                })
-            }).row()
-            add(Label("Space: replay | S: stop", skin)).colspan(3)
-        }
     }
 
     private fun recoverFromLoadError(message: String, archiveToReopen: File? = null) {
@@ -311,23 +272,23 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         errorLabel.setText(message)
     }
 
-    private fun loadPreview(file: File) {
-        modelBatch = ModelBatch()
-
-        when (file.extension.lowercase()) {
+    /** Same resource lifetime for loose absolute paths and archive logical paths. */
+    private fun loadPreview(path: String) {
+        closeResourcePreview()
+        when (path.substringAfterLast('.').lowercase()) {
             "sp2" -> {
-                sprite = assetManager.getLoaded<Sp2Asset>(file.absolutePath)
+                sprite = previewResources.load(path, Sp2Asset::class.java)
             }
             "wav" -> {
-                sound = assetManager.getLoaded<Sound>(file.absolutePath).also { it.play() }
+                sound = previewResources.load(path, Sound::class.java)
             }
             "pcx", "wal", "tga" -> {
-                image = assetManager.getLoaded(file.absolutePath)
+                image = previewResources.load(path, Texture::class.java)
             }
             "md2" -> {
                 // Viewer mode: prefer embedded MD2 skins, but allow rendering without them.
-                val md2 = assetManager.getLoaded<Md2Asset>(
-                    file.absolutePath,
+                val md2 = previewResources.load(
+                    path, Md2Asset::class.java,
                     Md2Loader.Parameters(
                         useDefaultSkinIfMissing = true,
                     ),
@@ -346,8 +307,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                         assetManager.getLoaded(md2FragmentShader),
                     )
                 )
-                modelBatch?.dispose()
-                modelBatch = ModelBatch(CakeShaderProvider(md2Shader))
+                modelBatch = previewResources.own(ModelBatch(CakeShaderProvider(md2Shader)))
                 md2Shader.init()
 
                 instances.add(md2Instance!!)
@@ -355,14 +315,15 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
             }
             "bsp" -> {
-                val bspMap = assetManager.getLoaded<BspMapAsset>(file.absolutePath)
+                val bspMap = previewResources.load(path, BspMapAsset::class.java)
+                modelBatch = previewResources.own(ModelBatch())
                 this.bspMap = bspMap
-                bspWorldRenderer = BspWorldBatchRenderer(
+                bspWorldRenderer = previewResources.own(BspWorldBatchRenderer(
                     worldRenderData = bspMap.worldRenderData,
                     worldBatchData = bspMap.worldBatchData,
                     lightmapAtlasPages = bspMap.lightmapAtlasPages,
                     assetManager = assetManager,
-                )
+                ))
                 // Free-flight inspection shows the whole world without gameplay visibility state.
                 bspVisibleSurfaces = BooleanArray(bspMap.worldRenderData.surfaces.size) { true }
                 bspMap.models.forEach { model ->
@@ -560,23 +521,22 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun closePreview() {
-        releaseArchivePreview()
+        closeResourcePreview()
         clearArchiveThumbnails()
         archiveEntryCount = null
         if (::browserHost.isInitialized) {
             browserHost.actor = null
             browserHost.isVisible = false
         }
+        currentFile = null
+    }
+
+    private fun closeResourcePreview() {
         sound?.stop()
-        bspWorldRenderer?.dispose()
+        if (::previewResources.isInitialized) previewResources.close()
         bspWorldRenderer = null
-        modelBatch?.dispose()
         modelBatch = null
         instances.clear()
-        ownedModels.forEach { it.dispose() }
-        ownedModels.clear()
-        currentFile?.let { if (assetManager.isLoaded(it.absolutePath)) assetManager.unload(it.absolutePath) }
-        currentFile = null
         image = null
         sound = null
         sprite = null
@@ -600,7 +560,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun addOwnedInstance(instance: ModelInstance) {
         instances.add(instance)
-        ownedModels.add(instance.model)
+        previewResources.own(instance.model)
     }
 }
 
