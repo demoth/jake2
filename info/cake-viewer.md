@@ -37,7 +37,10 @@ Space replays once and S stops. Selecting another tile, Back to folder, changing
 folders, or opening another resource stops playback and unloads the sound.
 
 Click an SP2 tile to play its animation once in the tile. Double-click to open
-the larger preview without restarting playback. It shows frame index/count and
+the larger preview without restarting playback. Like images, it initially fits
+the pane and supports pointer-anchored wheel zoom and left-drag pan. Frames are
+centred on a fixed canvas with a shared pixel scale; frame changes retain zoom
+and pan. The same frame sizing is used for tile animation. It shows frame index/count and
 dimensions, with Previous/Next, Play, Pause, Loop and Stop controls. Play resumes
 or restarts a completed animation; Stop resets to the first frame. Frame stepping
 pauses playback. Space toggles play/pause and Left/Right steps frames. Back or
