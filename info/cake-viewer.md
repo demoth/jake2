@@ -42,7 +42,10 @@ changing selection releases the sprite and its frame textures.
 Double-click an MD2 tile to view its first frame, automatically centred and framed
 in the preview pane. Drag with the left mouse button to orbit around the model;
 use the wheel over the pane to zoom. Resizing adjusts the preview resolution and
-framing. Archive MD2 playback controls will follow in a separate slice.
+framing. The preview shows frame index/count, the stored frame name, and skin
+texture count. MD2 and sprite previews share Play/Pause/Loop/Stop and Previous/Next
+controls: Play resumes or restarts a completed animation, Pause holds its current
+pose, Loop repeats, Stop resets to frame one, and stepping pauses and wraps.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
@@ -76,7 +79,10 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 - Displays a grid and axes for models and maps.
 
 For MD2 models, press Space to toggle animation playback and Left/Right to step
-frames. Press Escape to exit.
+frames. Playback runs once by default; archive previews also offer explicit Loop.
+MD2 animation interpolates smoothly between frames, while stepping selects an
+exact frame. These playback rules also apply to loose model previews. Press
+Escape to exit.
 
 Loose SP2 sprites start paused on the first frame. Press Space to play/pause a
 single animation at 10 frames per second, or Left/Right to step frames with

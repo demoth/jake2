@@ -42,6 +42,7 @@ import org.demoth.cake.assets.ResourceKind
  * [model] is the renderable geometry using the VAT shader attributes.
  * Geometry is pre-normalized to Cake winding expectations, so default backface culling works as-is.
  * [frames] is frame count metadata used by animation code.
+ * [frameNames] retains stored names in the same order as the animation frames.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
  * [bounds] encloses decoded positions across all frames; the VAT mesh has no position attribute.
  *
@@ -53,6 +54,7 @@ class Md2Asset(
     val frames: Int,
     val skins: List<Texture>,
     val bounds: BoundingBox,
+    val frameNames: List<String>,
 ) : Disposable {
     override fun dispose() {
         model.dispose()
@@ -162,6 +164,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         return Md2Asset(
             model = model,
             frames = md2.frames.size,
+            frameNames = md2.frames.map { it.name },
             skins = skins,
             bounds = BoundingBox().apply {
                 inf()

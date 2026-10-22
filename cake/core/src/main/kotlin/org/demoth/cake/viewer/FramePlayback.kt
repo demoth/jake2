@@ -1,7 +1,7 @@
 package org.demoth.cake.viewer
 
-/** Frame playback shared by loose, tile and full-pane sprite views. SP2 has no stored rate. */
-internal class SpritePlayback(val frameCount: Int) {
+/** Fixed-rate frame playback for sprite and MD2 previews, independent of rendering. */
+internal class FramePlayback(val frameCount: Int) {
     init { require(frameCount > 0) }
     var frameIndex = 0
         private set
@@ -9,6 +9,8 @@ internal class SpritePlayback(val frameCount: Int) {
         private set
     var looping = false
         private set
+    val nextFrameIndex get() = if (looping) (frameIndex + 1) % frameCount else (frameIndex + 1).coerceAtMost(frameCount - 1)
+    val interpolation get() = elapsed / 0.1f
     private var elapsed = 0f
     private var finished = false
 

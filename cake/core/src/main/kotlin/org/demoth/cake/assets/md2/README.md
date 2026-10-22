@@ -17,7 +17,7 @@ AssetManager request (model path or <skinPath>|<modelPath>)
   -> Md2Shader: sample animation textures, interpolate positions, draw
 ```
 
-`Md2Asset` contains the model, frame count, ordered skin textures, and bounds
+`Md2Asset` contains the model, frame count and stored names, ordered skin textures, and bounds
 covering decoded vertex positions across all frames. The viewer uses these bounds
 for camera framing; ordinary mesh bounds cannot represent the VAT geometry,
 whose mesh contains animation indices rather than position attributes. The model
