@@ -24,7 +24,13 @@ same folder and across full-preview/Back navigation. Leaving the folder or archi
 releases them; there is no persistent thumbnail cache. Preview tiles use plain
 images with a flat hover/selection highlight. Browsing reads archive metadata without extraction;
 visible thumbnails and full previews materialize resources on demand. A failed
-full image preview shows an error and reopens the archive at its root folder.
+resource preview shows an error and reopens the archive at its root folder.
+
+Click a WAV tile to play once while keeping the folder grid visible. Double-click
+to show duration and Play/Loop/Stop controls without restarting playback. Play
+restarts a single play, Loop starts repeated playback, and Stop ends either mode;
+Space replays once and S stops. Selecting another tile, Back to folder, changing
+folders, or opening another resource stops playback and unloads the sound.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.

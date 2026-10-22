@@ -23,6 +23,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.Scaling
 import jake2.qcommon.vfs.VfsEntry
@@ -172,7 +174,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
                 browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
-                    ::previewArchiveImage, ::loadArchiveThumbnail, ::clearArchiveThumbnails)
+                    ::previewArchiveResource, ::loadArchiveThumbnail, ::clearArchiveThumbnails, ::selectArchiveResource)
                 browserHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -181,7 +183,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
-                archiveEntryCount != null -> "Click: select | Double-click: open | Escape: close"
+                archiveEntryCount != null -> "Click: select / play sound | Double-click: open | Escape: close"
                 sound != null -> "Space: replay | S: stop | Escape: close"
                 sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
@@ -223,16 +225,37 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         failedThumbnails.clear()
     }
 
-    private fun previewArchiveImage(entry: VfsEntry?): Actor? {
+    private fun selectArchiveResource(entry: VfsEntry?) {
+        if (entry?.normalizedPath?.endsWith(".wav") == true) {
+            if (archivePreviewPath == entry.normalizedPath && sound != null) replaySound()
+            else previewArchiveResource(entry)
+        } else {
+            releaseArchivePreview()
+        }
+    }
+
+    private fun previewArchiveResource(entry: VfsEntry?): Actor? {
+        // Opening controls after the first click keeps the already playing sound intact.
+        if (entry != null && archivePreviewPath == entry.normalizedPath && sound != null) return archiveSoundControls()
         releaseArchivePreview()
         errorLabel.setText("")
-        if (entry == null || entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga")) return null
+        if (entry == null) return null
+        val extension = entry.normalizedPath.substringAfterLast('.')
+        if (extension !in listOf("pcx", "wal", "tga", "wav")) return null
         val archive = currentFile
         archivePreviewPath = entry.normalizedPath
         return try {
-            assetManager.load(entry.normalizedPath, Texture::class.java)
-            assetManager.finishLoading()
-            Image(assetManager.get(entry.normalizedPath, Texture::class.java)).apply { setScaling(Scaling.none) }
+            if (extension == "wav") {
+                assetManager.load(entry.normalizedPath, Sound::class.java)
+                assetManager.finishLoading()
+                sound = assetManager.get(entry.normalizedPath, Sound::class.java)
+                replaySound()
+                archiveSoundControls()
+            } else {
+                assetManager.load(entry.normalizedPath, Texture::class.java)
+                assetManager.finishLoading()
+                Image(assetManager.get(entry.normalizedPath, Texture::class.java)).apply { setScaling(Scaling.none) }
+            }
         } catch (error: Exception) {
             Gdx.app.error("Cake Viewer", "Could not preview ${entry.displayPath}", error)
             recoverFromLoadError("Could not preview ${entry.displayPath}.", archive)
@@ -241,8 +264,41 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun releaseArchivePreview() {
-        archivePreviewPath?.let { if (assetManager.isLoaded(it)) assetManager.unload(it) }
+        archivePreviewPath?.let {
+            sound?.stop()
+            sound = null
+            if (assetManager.isLoaded(it)) assetManager.unload(it)
+        }
         archivePreviewPath = null
+    }
+
+    private fun replaySound() {
+        sound?.let { it.stop(); it.play() }
+    }
+
+    private fun archiveSoundControls(): Actor {
+        val skin = assetManager.getLoaded<Skin>(cakeSkin)
+        val duration = sound?.let { SoundDurationRegistry.durationMs(it) }
+        return Table(skin).apply {
+            defaults().pad(8f)
+            add(Label(duration?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown", skin)).colspan(3).row()
+            add(TextButton("Play", skin).apply {
+                addListener(object : ChangeListener() {
+                    override fun changed(event: ChangeEvent, actor: Actor) { replaySound() }
+                })
+            })
+            add(TextButton("Loop", skin).apply {
+                addListener(object : ChangeListener() {
+                    override fun changed(event: ChangeEvent, actor: Actor) { sound?.let { it.stop(); it.loop() } }
+                })
+            })
+            add(TextButton("Stop", skin).apply {
+                addListener(object : ChangeListener() {
+                    override fun changed(event: ChangeEvent, actor: Actor) { sound?.stop() }
+                })
+            }).row()
+            add(Label("Space: replay | S: stop", skin)).colspan(3)
+        }
     }
 
     private fun recoverFromLoadError(message: String, archiveToReopen: File? = null) {
@@ -397,8 +453,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             val currentSound = sound
             if (currentSound != null) {
-                currentSound.stop()
-                currentSound.play()
+                replaySound()
             } else if (md2Data != null) {
                 playingMd2Animation = !playingMd2Animation
             } else if (sprite != null) {

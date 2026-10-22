@@ -57,6 +57,7 @@ class ContentBrowser(
     private val previewSelection: (VfsEntry?) -> Actor? = { null },
     private val loadThumbnail: (VfsEntry) -> Texture? = { null },
     private val clearThumbnails: () -> Unit = {},
+    private val onSelect: (VfsEntry?) -> Unit = {},
 ) : Table(skin) {
     private class FolderNode(val directory: ContentDirectory, skin: Skin) :
         Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, skin)) {
@@ -180,6 +181,7 @@ class ContentBrowser(
             override fun clicked(event: InputEvent, x: Float, y: Float) {
                 tiles.forEach { it.isChecked = it === tile }
                 selectionInfo.setText(entry?.let { "${it.displayPath}\n${it.size} bytes" } ?: "${directory!!.path}/")
+                if (tapCount == 1) onSelect(entry)
                 if (tapCount != 2) return
                 if (directory != null) {
                     val node = nodes.getValue(directory.path)
