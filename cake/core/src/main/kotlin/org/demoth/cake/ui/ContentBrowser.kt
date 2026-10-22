@@ -92,7 +92,10 @@ class ContentBrowser(
     private val tiles = mutableListOf<Tile>()
     private var auditionTile: Tile? = null
     private val pathLabel = Label("/", skin).apply { setWrap(true) }
-    private val selectionInfo = Label("Select a file to see its path and size.", skin).apply { setWrap(true) }
+    private val selectionInfo = Label("Select a file to see its path and size.", skin).apply {
+        setEllipsis(true)
+        setAlignment(Align.topLeft)
+    }
     private val nodes = mutableMapOf<String, FolderNode>()
     private val gridScroll = scrollPane(grid, skin).apply { setScrollingDisabled(true, false) }
     private val content = Container<Actor>(gridScroll).apply { fill() }
@@ -110,7 +113,8 @@ class ContentBrowser(
                 add(backButton).padLeft(8f)
             }).pad(8f).row()
             add(content).grow().row()
-            add(selectionInfo).pad(8f).row()
+            // Reserve both path and size lines before selection, keeping tiles under the pointer.
+            add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight * 2f).pad(8f).row()
         }
         add(SplitPane(scrollPane(tree, skin), listing, false, skin).apply { splitAmount = 0.3f }).grow()
 

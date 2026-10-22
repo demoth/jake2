@@ -247,7 +247,12 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (!loadArchiveResource(entry)) return null
         // Presentation borrows the active resource; opening controls does not start playback.
         return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
-            ?: image?.let { Image(it).apply { setScaling(Scaling.none) } }
+            ?: image?.let {
+                Table().apply {
+                    add(ImagePreviewPane(Image(it))).grow().row()
+                    add(Label("Drag: pan | Wheel: zoom", assetManager.getLoaded<Skin>(cakeSkin))).pad(4f)
+                }
+            }
             ?: sprite?.let { SpritePreview(it, playback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: bspMap?.let { map ->
                 val pane = previewResources.own(BspPreviewPane(map, ::renderScene))

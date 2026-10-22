@@ -16,9 +16,13 @@ the preview and shows an error; another file can still be dropped afterward.
 PAK archives open a folder tree on the left and the selected folder's contents on
 the right in a wrapping grid, sorted with folders first. Select a folder in the
 tree or double-click its tile to browse it. Click a file to show its logical path
-and size in bytes. Visible PCX, WAL and TGA tiles load image previews progressively;
-unavailable images show a placeholder. Double-click an image for its original
-pixel size, with scrolling for larger images. "Back to folder" restores the grid
+and size in bytes in a fixed-height footer; long paths are ellipsized so selection
+does not shift the grid. Visible PCX, WAL and TGA tiles load image previews progressively;
+unavailable images show a placeholder. Double-click an image to fit it to the
+preview area, preserving its aspect ratio and enlarging small images. Use the
+wheel over the pane to zoom around the pointer and left-drag to pan. Resizing
+retains relative zoom and pan; reopening an image restores the initial fit.
+"Back to folder" restores the grid
 and its scroll position. Loaded thumbnails stay available while scrolling in the
 same folder and across full-preview/Back navigation. Leaving the folder or archive
 releases them; there is no persistent thumbnail cache. Preview tiles use plain
