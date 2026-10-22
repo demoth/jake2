@@ -17,6 +17,8 @@ import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
@@ -36,6 +38,7 @@ import kotlin.math.floor
  * [inlineRenderData] stores stable per-face part metadata for inline brush models (`*1`, `*2`, ...).
  * [lightmapAtlas] describes packed BSP lightmap pages generated at load time.
  * [generatedTextures] are runtime-generated lightmap atlas page textures (4 style-slot textures per page).
+ * [entities] and world [bounds] retain decoded map metadata for consumers such as resource previews.
  * BSP textures are loaded as independent AssetManager dependencies and are not disposed here.
  */
 class BspMapAsset(
@@ -47,6 +50,8 @@ class BspMapAsset(
     val lightmapAtlas: BspLightmapAtlasMetadata? = null,
     val lightmapAtlasPages: List<BspLightmapAtlasPageTextures> = emptyList(),
     val generatedTextures: List<Texture> = emptyList(),
+    val entities: List<Map<String, String>> = emptyList(),
+    val bounds: BoundingBox = BoundingBox(),
 ) : Disposable {
     override fun dispose() {
         generatedTextures.forEach { it.dispose() }
@@ -284,6 +289,10 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
                 BspLightmapAtlasPageTextures(textures = textures)
             },
             generatedTextures = generatedTextures,
+            entities = bsp.entities,
+            bounds = bsp.models.firstOrNull()?.let {
+                BoundingBox(Vector3(it.mins.x, it.mins.y, it.mins.z), Vector3(it.maxs.x, it.maxs.y, it.maxs.z))
+            } ?: BoundingBox(),
         )
     }
 

@@ -47,6 +47,15 @@ texture count. MD2 and sprite previews share Play/Pause/Loop/Stop and Previous/N
 controls: Play resumes or restarts a completed animation, Pause holds its current
 pose, Loop repeats, Stop resets to frame one, and stepping pauses and wraps.
 
+Double-click a BSP tile to inspect the world and static brush geometry. Click the
+pane to focus it, use WASD to fly and Q/E to move down/up, and left-drag to look
+around in place. Clicking outside the pane releases movement focus. The camera
+starts at player eye height, preferring an unnamed level start over named return
+entrances; maps without a spawn start at the world bounds' centre. Movement has
+no collision. The pane shows surface and total inline brush model counts.
+Trigger brushes and area portals are hidden in both archive and loose previews.
+The preview has no gameplay entities or sky rendering.
+
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
 

@@ -243,12 +243,22 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             closeResourcePreview()
             return null
         }
-        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2")) return null
+        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp")) return null
         if (!loadArchiveResource(entry)) return null
         // Presentation borrows the active resource; opening controls does not start playback.
         return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: image?.let { Image(it).apply { setScaling(Scaling.none) } }
             ?: sprite?.let { SpritePreview(it, playback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
+            ?: bspMap?.let { map ->
+                val pane = previewResources.own(BspPreviewPane(map, ::renderScene))
+                Table().apply {
+                    add(pane).grow().row()
+                    add(Label("Surfaces: ${map.worldRenderData.surfaces.size} | Brush models: ${map.inlineRenderData.size}",
+                        assetManager.getLoaded<Skin>(cakeSkin))).pad(4f).row()
+                    add(Label("Click to focus | WASD: fly | Q/E: down/up | Drag: look",
+                        assetManager.getLoaded<Skin>(cakeSkin)).apply { setWrap(true) }).growX().pad(4f)
+                }
+            }
             ?: md2Instance?.let { instance ->
                 val md2 = assetManager.get(entry.normalizedPath, Md2Asset::class.java)
                 val animation = playback!!
@@ -265,6 +275,25 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                     add(Label("Drag: orbit | Wheel: zoom", assetManager.getLoaded<Skin>(cakeSkin))).pad(4f)
                 }
             }
+    }
+
+    private fun renderScene(camera: Camera) {
+        val currentTimeMs = (bspTime * 1000f).toInt()
+        bspWorldRenderer?.render(
+            camera = camera,
+            visibleSurfaceMask = bspVisibleSurfaces,
+            currentTimeMs = currentTimeMs,
+            lightStyleResolver = { 1f },
+            dynamicLights = emptyList(),
+        )
+
+        modelBatch?.let { models ->
+            models.begin(camera)
+            instances.forEach { models.render(it) }
+            models.end()
+        }
+
+        bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
     }
 
     private fun loadArchiveResource(entry: VfsEntry): Boolean {
@@ -350,8 +379,11 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 ))
                 // Free-flight inspection shows the whole world without gameplay visibility state.
                 bspVisibleSurfaces = BooleanArray(bspMap.worldRenderData.surfaces.size) { true }
-                bspMap.models.forEach { model ->
-                    instances.add(ModelInstance(model))
+                val invisibleBrushes = bspMap.entities.filter {
+                    it["classname"]?.startsWith("trigger_") == true || it["classname"] == "func_areaportal"
+                }.mapNotNull { it["model"]?.removePrefix("*")?.toIntOrNull() }.toSet()
+                bspMap.models.forEachIndexed { index, model ->
+                    if (index !in invisibleBrushes) instances.add(ModelInstance(model))
                 }
             }
         }
@@ -459,22 +491,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             camera.update()
 
             bspTime += Gdx.graphics.deltaTime
-            val currentTimeMs = (bspTime * 1000f).toInt()
-            bspWorldRenderer?.render(
-                camera = camera,
-                visibleSurfaceMask = bspVisibleSurfaces,
-                currentTimeMs = currentTimeMs,
-                lightStyleResolver = { 1f },
-                dynamicLights = emptyList(),
-            )
-
-            modelBatch?.takeIf { archiveEntryCount == null }?.let { models ->
-                models.begin(camera)
-                instances.forEach { models.render(it) }
-                models.end()
-            }
-
-            bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
+            if (archiveEntryCount == null) renderScene(camera)
 
             batch.use {
                 val currentFrame = if (archiveEntryCount == null) spriteFrame else null
