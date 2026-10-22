@@ -77,6 +77,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var currentFile: File? = null
     private var archiveEntryCount: Int? = null
     private var archivePreviewPath: String? = null
+    private val archiveThumbnails = mutableMapOf<String, Texture>()
+    private val failedThumbnails = mutableSetOf<String>()
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
@@ -169,7 +171,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             if (file.extension.equals("pak", ignoreCase = true)) {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
-                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin), ::previewArchiveImage)
+                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
+                    ::previewArchiveImage, ::loadArchiveThumbnail, ::retainArchiveThumbnails)
                 browserHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -178,7 +181,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
-                archiveEntryCount != null -> "Select a folder | Double-click a folder in the list to open it | Escape: close"
+                archiveEntryCount != null -> "Click: select | Double-click: open | Escape: close"
                 sound != null -> "Space: replay | S: stop | Escape: close"
                 sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
@@ -188,6 +191,40 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         } catch (error: Exception) {
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
             recoverFromLoadError("Could not load ${file.name}. Drop another resource to continue.")
+        }
+    }
+
+    private fun loadArchiveThumbnail(entry: VfsEntry): Texture? {
+        val path = entry.normalizedPath
+        archiveThumbnails[path]?.let { return it }
+        if (path in failedThumbnails) return null
+        return try {
+            val file = requireNotNull(fileResolver.resolve(path))
+            // Invoke existing loaders directly: these textures are viewer-owned, and a bad
+            // thumbnail cannot leave failed tasks/dependency records in the shared manager.
+            val texture = when (path.substringAfterLast('.')) {
+                "pcx" -> PcxLoader(fileResolver).load(assetManager, path, file, null)
+                "wal" -> WalLoader(fileResolver).load(assetManager, path, file, WalLoader.Parameters(
+                    externalPalette = assetManager.getLoaded<Any>("q2palette.bin") as IntArray))
+                else -> Texture(file)
+            }
+            archiveThumbnails[path] = texture
+            texture
+        } catch (error: Exception) {
+            failedThumbnails += path
+            Gdx.app.error("Cake Viewer", "Could not thumbnail ${entry.displayPath}", error)
+            null
+        }
+    }
+
+    private fun retainArchiveThumbnails(paths: Set<String>) {
+        val iterator = archiveThumbnails.iterator()
+        while (iterator.hasNext()) {
+            val (path, texture) = iterator.next()
+            if (path !in paths) {
+                texture.dispose()
+                iterator.remove()
+            }
         }
     }
 
@@ -474,6 +511,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun closePreview() {
         releaseArchivePreview()
+        retainArchiveThumbnails(emptySet())
+        failedThumbnails.clear()
         archiveEntryCount = null
         if (::browserHost.isInitialized) {
             browserHost.actor = null
