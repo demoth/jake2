@@ -51,13 +51,14 @@ internal class ContentDirectory(val path: String, val name: String) {
  * [previewSelection] replaces/releases the full preview; null clears it.
  * [loadThumbnail] borrows a texture from the host for this folder's lifetime.
  * [clearThumbnails] releases the folder's textures when navigating to another folder.
+ * [onSelect] may supply a borrowed inline preview for the selected tile.
  */
 class ContentBrowser(
     entries: List<VfsEntry>, rootName: String, skin: Skin,
     private val previewSelection: (VfsEntry?) -> Actor? = { null },
     private val loadThumbnail: (VfsEntry) -> Texture? = { null },
     private val clearThumbnails: () -> Unit = {},
-    private val onSelect: (VfsEntry?) -> Unit = {},
+    private val onSelect: (VfsEntry?) -> Actor? = { null },
 ) : Table(skin) {
     private class FolderNode(val directory: ContentDirectory, skin: Skin) :
         Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, skin)) {
@@ -89,6 +90,7 @@ class ContentBrowser(
     private val tree = Tree<FolderNode, ContentDirectory>(skin)
     private val grid = HorizontalGroup().apply { wrap(); top(); left(); space(8f); wrapSpace(8f); pad(8f) }
     private val tiles = mutableListOf<Tile>()
+    private var auditionTile: Tile? = null
     private val pathLabel = Label("/", skin).apply { setWrap(true) }
     private val selectionInfo = Label("Select a file to see its path and size.", skin).apply { setWrap(true) }
     private val nodes = mutableMapOf<String, FolderNode>()
@@ -122,6 +124,7 @@ class ContentBrowser(
         })
         backButton.addListener(object : ChangeListener() {
             override fun changed(event: ChangeEvent, actor: Actor) {
+                clearAudition()
                 previewSelection(null)
                 content.actor = gridScroll
                 backButton.isVisible = false
@@ -159,6 +162,7 @@ class ContentBrowser(
     }
 
     private fun showDirectory(directory: ContentDirectory) {
+        clearAudition()
         previewSelection(null)
         grid.clearChildren()
         tiles.clear()
@@ -181,7 +185,13 @@ class ContentBrowser(
             override fun clicked(event: InputEvent, x: Float, y: Float) {
                 tiles.forEach { it.isChecked = it === tile }
                 selectionInfo.setText(entry?.let { "${it.displayPath}\n${it.size} bytes" } ?: "${directory!!.path}/")
-                if (tapCount == 1) onSelect(entry)
+                if (tapCount == 1) {
+                    clearAudition()
+                    onSelect(entry)?.let { preview ->
+                        tile.picture.actor = preview
+                        auditionTile = tile
+                    }
+                }
                 if (tapCount != 2) return
                 if (directory != null) {
                     val node = nodes.getValue(directory.path)
@@ -195,6 +205,11 @@ class ContentBrowser(
                 }
             }
         })
+    }
+
+    private fun clearAudition() {
+        auditionTile?.let { it.picture.actor = it.placeholder }
+        auditionTile = null
     }
 
     private fun scrollPane(actor: Actor, skin: Skin) = ScrollPane(actor, skin).apply {

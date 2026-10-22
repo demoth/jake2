@@ -32,6 +32,13 @@ restarts a single play, Loop starts repeated playback, and Stop ends either mode
 Space replays once and S stops. Selecting another tile, Back to folder, changing
 folders, or opening another resource stops playback and unloads the sound.
 
+Click an SP2 tile to play its animation once in the tile. Double-click to open
+the larger preview without restarting playback. It shows frame index/count and
+dimensions, with Previous/Next, Play, Pause, Loop and Stop controls. Play resumes
+or restarts a completed animation; Stop resets to the first frame. Frame stepping
+pauses playback. Space toggles play/pause and Left/Right steps frames. Back or
+changing selection releases the sprite and its frame textures.
+
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
 
@@ -66,9 +73,10 @@ You will find the executable in `cake/cake-viewer/build/native/nativeCompile`
 For MD2 models, press Space to toggle animation playback and Left/Right to step
 frames. Press Escape to exit.
 
-SP2 sprites start paused on the first frame. Press Space to play/pause the looping
-animation at 10 frames per second, or Left/Right to step frames with wraparound.
-SP2 files do not specify a playback rate. Controls are also shown in the window.
+Loose SP2 sprites start paused on the first frame. Press Space to play/pause a
+single animation at 10 frames per second, or Left/Right to step frames with
+wraparound. Archive previews also offer explicit looping. SP2 files do not
+specify a playback rate. Controls are also shown in the window.
 
 WAV files play once on opening. Press Space to replay, S to stop, and Escape to
 close. These controls are also shown in the window.

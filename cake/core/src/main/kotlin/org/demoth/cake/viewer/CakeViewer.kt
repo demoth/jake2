@@ -62,11 +62,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var batch: SpriteBatch
     private var image: Texture? = null
     private var sprite: Sp2Asset? = null
-    private var spriteFrameIndex = 0
-    private val spriteFrame: Sp2Asset.Frame? get() = sprite?.frames?.get(spriteFrameIndex)
-    private var playingSpriteAnimation = false
-    private var spriteElapsed = 0f
-    private val spriteFrameDuration = 0.1f
+    private var spritePlayback: SpritePlayback? = null
+    private val spriteFrame: Sp2Asset.Frame? get() = sprite?.frames?.get(spritePlayback!!.frameIndex)
     private var sound: Sound? = null
     private var bspMap: BspMapAsset? = null
     private var bspWorldRenderer: BspWorldBatchRenderer? = null
@@ -181,7 +178,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
-                archiveEntryCount != null -> "Click: select / play sound | Double-click: open | Escape: close"
+                archiveEntryCount != null -> "Click: select / play sound or sprite | Double-click: open | Escape: close"
                 sound != null -> "Space: replay | S: stop | Escape: close"
                 sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
@@ -223,12 +220,19 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         failedThumbnails.clear()
     }
 
-    private fun selectArchiveResource(entry: VfsEntry?) {
-        if (entry?.normalizedPath?.endsWith(".wav") == true) {
-            if (loadArchiveResource(entry)) replaySound()
-        } else {
-            closeResourcePreview()
+    private fun selectArchiveResource(entry: VfsEntry?): Actor? {
+        when (entry?.normalizedPath?.substringAfterLast('.')) {
+            "wav" -> if (loadArchiveResource(entry)) replaySound()
+            "sp2" -> if (loadArchiveResource(entry)) {
+                return spritePlayback?.let {
+                    it.stop()
+                    it.play()
+                    SpriteFrameImage(sprite!!, it, Scaling.fit)
+                }
+            }
+            else -> closeResourcePreview()
         }
+        return null
     }
 
     private fun previewArchiveResource(entry: VfsEntry?): Actor? {
@@ -237,11 +241,12 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             closeResourcePreview()
             return null
         }
-        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav")) return null
+        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2")) return null
         if (!loadArchiveResource(entry)) return null
         // Presentation borrows the active resource; opening controls does not start playback.
         return sound?.let { SoundPreviewControls(it, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: image?.let { Image(it).apply { setScaling(Scaling.none) } }
+            ?: sprite?.let { SpritePreview(it, spritePlayback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
     }
 
     private fun loadArchiveResource(entry: VfsEntry): Boolean {
@@ -278,6 +283,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         when (path.substringAfterLast('.').lowercase()) {
             "sp2" -> {
                 sprite = previewResources.load(path, Sp2Asset::class.java)
+                spritePlayback = SpritePlayback(sprite!!.frames.size)
             }
             "wav" -> {
                 sound = previewResources.load(path, Sound::class.java)
@@ -383,7 +389,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
             archiveEntryCount != null -> "Files: $archiveEntryCount"
-            frame != null -> "Frame ${spriteFrameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
+            frame != null -> "Frame ${spritePlayback!!.frameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
             md2Instance != null -> "Frames: $md2Frames | Skin textures: $md2SkinTextures"
             sound != null -> durationMs?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown"
@@ -418,7 +424,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             } else if (md2Data != null) {
                 playingMd2Animation = !playingMd2Animation
             } else if (sprite != null) {
-                playingSpriteAnimation = !playingSpriteAnimation
+                spritePlayback?.toggle()
             }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
@@ -429,26 +435,23 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 md2FrameLerp = 0f
                 changeFrame(1, md2Data, md2Frames)
             } else if (sprite != null) {
-                spriteElapsed = 0f
-                changeSpriteFrame(1)
+                spritePlayback?.step(1)
+                updateResourceInfo()
             }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
             if (md2Data != null) {
                 md2FrameLerp = 0f
                 changeFrame(-1, md2Data, md2Frames)
             } else if (sprite != null) {
-                spriteElapsed = 0f
-                changeSpriteFrame(-1)
+                spritePlayback?.step(-1)
+                updateResourceInfo()
             }
         }
 
-        if (playingSpriteAnimation) {
-            spriteElapsed += Gdx.graphics.deltaTime
-            val steps = (spriteElapsed / spriteFrameDuration).toInt()
-            if (steps > 0) {
-                changeSpriteFrame(steps)
-                spriteElapsed %= spriteFrameDuration
-            }
+        spritePlayback?.let {
+            val previousFrame = it.frameIndex
+            it.update(Gdx.graphics.deltaTime)
+            if (previousFrame != it.frameIndex) updateResourceInfo()
         }
 
         if (playingMd2Animation && md2Data != null) {
@@ -485,7 +488,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
 
             batch.use {
-                val currentFrame = spriteFrame
+                val currentFrame = if (archiveEntryCount == null) spriteFrame else null
                 val currentImage = currentFrame?.texture ?: image
                 if (currentImage != null) {
                     // draw image in the center of the screen
@@ -540,9 +543,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         image = null
         sound = null
         sprite = null
-        spriteFrameIndex = 0
-        spriteElapsed = 0f
-        playingSpriteAnimation = false
+        spritePlayback = null
         bspMap = null
         bspVisibleSurfaces = BooleanArray(0)
         bspTime = 0f
@@ -551,11 +552,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         md2SkinTextures = 0
         md2FrameLerp = 0f
         playingMd2Animation = false
-    }
-
-    private fun changeSpriteFrame(delta: Int) {
-        spriteFrameIndex = Math.floorMod(spriteFrameIndex + delta, sprite!!.frames.size)
-        updateResourceInfo()
     }
 
     private fun addOwnedInstance(instance: ModelInstance) {
