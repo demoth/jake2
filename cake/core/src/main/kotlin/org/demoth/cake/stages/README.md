@@ -11,7 +11,8 @@ The developer console has [its own documentation](console/README.md).
 |---|---|
 | `MainMenuStage` | Main navigation and profile/options entry points |
 | `ProfileEditStage` | Profile selection, creation, autodetection, and editing |
-| `MultiplayerMenuStage` | Join Game, disabled Host Game, and Player Setup |
+| `MultiplayerMenuStage` | Join Game, optional Host Game, and Player Setup |
+| `HostingSetupStage` | Singleplayer difficulty and multiplayer host settings |
 | `JoinGameStage` | Manual server address entry and validation feedback |
 | `PlayerSetupStage` | Player name, password, model, skin, and handedness |
 | `OptionsMenuStage` | Available client option sections |
@@ -31,6 +32,8 @@ Menu stages present state and collect edits; navigation state lives in `ui.menu`
 `Cake` owns their lifetime and rebuilds content-styled stages when the shared style
 changes. They must not be treated as permanent instances across style changes.
 
+- `cake-client` hides Singleplayer and Host Game entries. `cake-fullgame` exposes
+  them and enables hosting when the current profile and session state allow it.
 - Join Game validates host/port before using Cake's existing connection path.
 - Player Setup writes on Save; Back discards staged edits. The backend writes
   userinfo cvars, including derived gender, and saves profile configuration.

@@ -1,8 +1,4 @@
-# New cvars
-_Add new cvars here_
-
-# New console commands
-_Add new console commands here_
+# Additional console commands
 
  * `listmaps` - prints list of maps from maps.lst
 
@@ -13,5 +9,5 @@ _Add new console commands here_
 
 ### Multi-instance
  * `games` - prints list of game names (Multiinstance feature)
- * `spamgames n` - creates `n` games with `base1` map (Used for testing, to be removed in future)
+ * `spamgames n` - creates `n` games with `base1` map (debug/stress command)
  * `gamemap <map> <n>` - puts the client with index `<n>` to a separate game with a `<map>`

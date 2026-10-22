@@ -2,22 +2,20 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cbuf
-import ktx.actors.onClick
 import org.demoth.cake.BuildVersion
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
 /**
- * TEMPORARY Main menu stage for pre-game navigation commands.
+ * Main menu stage for profile selection and game navigation.
  *
  * Purpose:
- * - Exposes basic startup actions (`connect`, `quit`) and placeholders.
- * - In future will allow selecting concrete game configurations to run (q1/q2 etc)
+ * - Opens profile editing, multiplayer, and options screens and offers disconnect/exit actions.
+ * - Shows Singleplayer when hosting support is available.
  *
  * Ownership/Lifecycle:
  * - Created by [org.demoth.cake.Cake] and rebuilt when the shared content style changes.
@@ -27,7 +25,7 @@ import org.demoth.cake.ui.menu.MenuIntent
  * Invariants/Constraints:
  * - Menu buttons are laid out in a single table column with uniform width
  *   (`uniformX().fillX()`).
- * - Button actions enqueue console commands through `Cbuf`.
+ * - Navigation and disconnect actions post [MenuIntent] messages; Exit queues `quit` through [Cbuf].
  */
 class MainMenuStage(
     viewport: Viewport,

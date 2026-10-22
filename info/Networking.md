@@ -16,9 +16,9 @@ see `jake2.qcommon.network.messages.ConnectionlessCommand`
 Since quake2 utilizes only UDP protocol, reliability should be handled by the quake2 engine itself.
 Each frame server tries to send a reliable message first, then if there is room append an unreliable buffer and send.
 
-Check the `jake2.qcommon.network.Netchan.Transmit`
-
-TBD
+The implementation is `jake2.qcommon.network.netchan_t.transmit`. Sequence and
+acknowledgement fields track reliable delivery; a dropped reliable payload is
+resent, and unreliable data is included only when the packet has room.
 
 ## Delta compression
 
@@ -87,27 +87,3 @@ sequenceDiagram
         client->>server: MoveMessage
     end
 ```
-
-# Further improvements - TODO
-
-### Api improvements
-
-Network package should expose only message classes and couple of source/sink classes/interfaces for them.
-Nothing else is relevant and should be hidden with package private visibility.
-
-Example of the network api:
-
-    // holding the network connection state, manages reliability, checksums, etc
-    class <T> NetworkConnection {
-        // called multiple times per frame by client/server modules
-        void sendConnectionLessPacket(...) 
-
-        // called multiple times per frame by client/server/game modules, adds the message to the pending queue
-        void write(T) 
-
-        // called once every frame, packs all pending messages into packet and transmits over the network
-        void flush() 
-
-        // called every frame, unpacks the packet of incoming messages and validates
-        Collection<T> receive()
-    }

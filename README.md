@@ -52,7 +52,7 @@ build from source:
 - `./gradlew :cake:cake-fullgame:run` - to run Cake with singleplayer and hosting support
 - `./gradlew :cake:cake-client:distZip` - to build the desktop Java distribution
 - `./gradlew :cake:cake-fullgame:distZip` - to build the full game desktop Java distribution
-- `./gradlew :cake:cake-modelviewer:distZip` - to build the model viewer desktop Java distribution
+- `./gradlew :cake:cake-viewer:distZip` - to build the viewer desktop Java distribution
 
 If you run jake from an IDE:
   1. to run the server run `Jake2Dedicated.main` with the desired args (`+set coop 1 +map base1`)

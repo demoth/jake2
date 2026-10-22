@@ -51,6 +51,7 @@ object CakeStartupBootstrap {
     private fun loadProfileConfig(profileId: String, profileConfigStore: CakeProfileConfigStore) {
         try {
             val configText = profileConfigStore.readConfig(profileId) ?: return
+            // TODO: cleanup: avoid "after restart" messages for saved video settings applied before window creation.
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
             Com.Printf("Loaded Cake profile config for '$profileId'\n")

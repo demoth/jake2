@@ -12,7 +12,6 @@ apply(from = rootProject.file("cake/desktop.gradle"))
 
 dependencies {
     implementation(project(":cake:core"))
-    implementation(project(":cake:desktop-common"))
     implementation(project(":server"))
     implementation(project(":qcommon"))
     runtimeOnly(project(":game"))

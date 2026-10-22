@@ -18,6 +18,11 @@ graalvmNative {
         '.*(gdx-svmhelper-backend-lwjgl3|cake-).*\\.jar',
         'META-INF/native-image/gdx-svmhelper/backend-lwjgl3/native-image.properties'
       )
+      // The helper's scanners use removed GraalVM APIs; core supplies explicit metadata.
+      buildArgs.addAll(
+        '--exclude-config', '.*\\.jar',
+        'META-INF/native-image/gdx-svmhelper/core/native-image.properties'
+      )
       resources.autodetection {
         enabled = true
         restrictToProjectDependencies = false

@@ -52,6 +52,7 @@ import static jake2.qcommon.exec.cvar_t.nativeClass;
 /**
  * Cvar implements console variables. The original code is located in cvar.c
  */
+// TODO: cleanup: rename Cvar to CvarRegistry so the entry can take the name Cvar.
 public class Cvar {
 
     private static final Cvar instance = new Cvar();

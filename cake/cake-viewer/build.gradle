@@ -1,0 +1,11 @@
+plugins {
+  id 'application'
+  alias(libs.plugins.beryxRuntime)
+  alias(libs.plugins.graalNativeBuildTools) apply false
+}
+
+application {
+  mainClass.set('org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher')
+}
+
+apply from: rootProject.file('cake/desktop.gradle')

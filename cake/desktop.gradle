@@ -4,12 +4,12 @@ application {
 }
 dependencies {
   implementation rootProject.libs.gdxControllersDesktop
-  implementation(rootProject.libs.gdxFreetypePlatform) {
+  runtimeOnly(rootProject.libs.gdxFreetypePlatform) {
     artifact {
       classifier = 'natives-desktop'
     }
   }
-  implementation(rootProject.libs.gdxPlatform) {
+  runtimeOnly(rootProject.libs.gdxPlatform) {
     artifact {
       classifier = 'natives-desktop'
     }

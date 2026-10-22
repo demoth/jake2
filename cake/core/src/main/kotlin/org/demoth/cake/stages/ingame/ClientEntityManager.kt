@@ -21,7 +21,7 @@ import org.demoth.cake.config.GameConfiguration
 import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.createModelInstance
-import org.demoth.cake.modelviewer.createOriginArrows
+import org.demoth.cake.viewer.createOriginArrows
 import kotlin.math.abs
 
 // responsible for managing entity states which are updated from the server

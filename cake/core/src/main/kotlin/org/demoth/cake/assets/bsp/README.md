@@ -25,6 +25,8 @@ etc.) use the remaining slots, with part ids `inline_<modelIndex>_face_<faceInde
 `BspWorldRenderData` retains stable surfaces, leaf-to-surface mappings, and texinfo
 chains independently of draw grouping. Animated WAL dependencies include chain
 frames even when no face references them directly.
+`BspMapAsset.entities` and `bounds` retain the already-decoded entity dictionaries
+and world model bounds, allowing preview camera placement without reparsing the map.
 
 ## World and Inline Rendering
 

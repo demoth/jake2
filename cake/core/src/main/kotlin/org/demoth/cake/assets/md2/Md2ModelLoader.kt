@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.VertexAttributes.Usage.Generic
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
+import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
@@ -41,7 +42,10 @@ import org.demoth.cake.assets.ResourceKind
  * [model] is the renderable geometry using the VAT shader attributes.
  * Geometry is pre-normalized to Cake winding expectations, so default backface culling works as-is.
  * [frames] is frame count metadata used by animation code.
+ * [frameNames] retains stored names in the same order as the animation frames.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
+ * [skinNames] retains their resolved paths; it is empty for the generated fallback skin.
+ * [bounds] encloses decoded positions across all frames; the VAT mesh has no position attribute.
  *
  * This allows future runtime skin switching (for example normal/injured monster skin)
  * without replacing model geometry.
@@ -50,6 +54,9 @@ class Md2Asset(
     val model: Model,
     val frames: Int,
     val skins: List<Texture>,
+    val bounds: BoundingBox,
+    val frameNames: List<String>,
+    val skinNames: List<String>,
 ) : Disposable {
     override fun dispose() {
         model.dispose()
@@ -87,7 +94,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      *
      * Typical usage:
      * - Game client players: synthetic key `<skin>|<model>`, keep defaults.
-     * - Model viewer: keep embedded skins enabled and enable default fallback.
+     * - Cake Viewer: keep embedded skins enabled and enable default fallback.
      */
     data class Parameters(
         val loadEmbeddedSkins: Boolean = true,
@@ -159,7 +166,14 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
         return Md2Asset(
             model = model,
             frames = md2.frames.size,
+            frameNames = md2.frames.map { it.name },
             skins = skins,
+            skinNames = skinPaths,
+            bounds = BoundingBox().apply {
+                inf()
+                val positions = vertexData.vertexPositions
+                for (i in positions.indices step 3) ext(positions[i], positions[i + 1], positions[i + 2])
+            },
         )
     }
 

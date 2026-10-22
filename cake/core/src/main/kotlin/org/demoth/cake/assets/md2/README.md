@@ -17,7 +17,10 @@ AssetManager request (model path or <skinPath>|<modelPath>)
   -> Md2Shader: sample animation textures, interpolate positions, draw
 ```
 
-`Md2Asset` contains the model, frame count, and ordered skin textures. The model
+`Md2Asset` contains the model, frame count and stored names, ordered skin textures, and bounds
+covering decoded vertex positions across all frames. The viewer uses these bounds
+for camera framing; ordinary mesh bounds cannot represent the VAT geometry,
+whose mesh contains animation indices rather than position attributes. The model
 viewer and transient model effects use the same loader/shader pipeline as gameplay
 entities. The shared `CakeShaderProvider` dispatches MD2, BSP, and default shaders;
 its cross-pipeline routing remains outside this package.
@@ -26,8 +29,11 @@ its cross-pipeline routing remains outside this package.
 
 `Md2Loader` chooses skins in this order: a synthetic key's prefix; otherwise embedded
 MD2 skin paths if enabled; otherwise an optional generated white 1-by-1 skin.
-The model viewer enables `useDefaultSkinIfMissing` for models with no selected skin
+The viewer enables `useDefaultSkinIfMissing` for models with no selected skin
 paths. That option does not recover arbitrary failures to load a referenced file.
+`Md2Asset.skinNames` retains the resolved paths in texture order, or an empty list
+for the generated fallback. The viewer uses these names in its skin selector and
+changes the preview instance's `skinIndex` without reloading assets.
 
 Player variants use keys such as
 `players/male/grunt.pcx|players/male/tris.md2`. `PlayerConfiguration` selects the

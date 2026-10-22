@@ -23,6 +23,207 @@
     {
       "type": "com.badlogic.gdx.backends.lwjgl3.audio.Mp3$Music",
       "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.graphics.Color",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.CheckBox$CheckBoxStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.ImageButton$ImageButtonStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.List$ListStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.ProgressBar$ProgressBarStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.SelectBox$SelectBoxStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Slider$SliderStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.SplitPane$SplitPaneStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.TextTooltip$TextTooltipStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Touchpad$TouchpadStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Tree$TreeStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.BaseDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable",
+      "allDeclaredFields": true,
+      "allPublicConstructors": true
+    },
+    {
+      "type": "com.badlogic.gdx.graphics.g2d.GlyphLayout",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.graphics.g2d.GlyphLayout$GlyphRun",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.utils.Array",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.math.Rectangle",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.InputEvent",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.Stage$TouchFocus",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.FocusListener$FocusEvent",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.utils.ChangeListener$ChangeEvent",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.badlogic.gdx.scenes.scene2d.ui.Table$DebugRect",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
     }
   ]
 }

@@ -35,10 +35,12 @@ import org.jetbrains.annotations.Nullable;
 import static jake2.qcommon.Defines.*;
 
 /** One typed variable with immutable declaration metadata and validated active/pending values. */
+// TODO: cleanup: rename cvar_t to Cvar when the registry is renamed to CvarRegistry.
 public final class cvar_t<T> {
     public final String name;
     public final @Nullable String description;
     public final int flags;
+    // TODO: cleanup: remove unused modification tracking after checking remaining test dependencies.
     public boolean modified;
 
     private final CvarType<T> type;
@@ -55,6 +57,7 @@ public final class cvar_t<T> {
 
     public @NotNull CvarType<T> getType() { return type; }
     public @NotNull T getDefaultValue() { return defaultValue; }
+    // TODO: cleanup: rename getTypedValue to getValue (Kotlin typedValue to value).
     public @NotNull T getTypedValue() { return active.getValue(); }
 
     /** Null means no queued change; false, zero and an empty String remain valid pending values. */
