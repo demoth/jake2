@@ -4,6 +4,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Container
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.SplitPane
@@ -40,8 +42,15 @@ internal class ContentDirectory(val path: String, val name: String) {
     }
 }
 
-/** Browse a resolved entry snapshot using the engine skin. Does not own VFS or preview resources. */
-class ContentBrowser(entries: List<VfsEntry>, rootName: String, skin: Skin) : Table(skin) {
+/**
+ * Browse a resolved entry snapshot using the engine skin. Does not own VFS or preview resources.
+ * [previewSelection] releases the previous selection's resources and returns a preview actor, or null
+ * for metadata only. A null entry clears the selection and releases its resources.
+ */
+class ContentBrowser(
+    entries: List<VfsEntry>, rootName: String, skin: Skin,
+    private val previewSelection: (VfsEntry?) -> Actor? = { null },
+) : Table(skin) {
     private class FolderNode(val directory: ContentDirectory, skin: Skin) :
         Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, skin)) {
         init { value = directory }
@@ -58,6 +67,8 @@ class ContentBrowser(entries: List<VfsEntry>, rootName: String, skin: Skin) : Ta
     private val selectionInfo = Label("Select a file to see its path and size.", skin).apply { setWrap(true) }
     private val nodes = mutableMapOf<String, FolderNode>()
     private val listScroll = scrollPane(items, skin)
+    private val content = Container<Actor>(listScroll).apply { fill() }
+    private val backButton = TextButton("Back to folder", skin).apply { isVisible = false }
 
     init {
         background = skin.getDrawable("window")
@@ -68,8 +79,11 @@ class ContentBrowser(entries: List<VfsEntry>, rootName: String, skin: Skin) : Ta
         val treeScroll = scrollPane(tree, skin)
         val listing = Table().apply {
             defaults().left().growX()
-            add(pathLabel).pad(8f).row()
-            add(listScroll).grow().row()
+            add(Table().apply {
+                add(pathLabel).growX().left()
+                add(backButton).padLeft(8f)
+            }).pad(8f).row()
+            add(content).grow().row()
             add(selectionInfo).pad(8f).row()
         }
         add(SplitPane(treeScroll, listing, false, skin).apply { splitAmount = 0.3f }).grow()
@@ -88,11 +102,19 @@ class ContentBrowser(entries: List<VfsEntry>, rootName: String, skin: Skin) : Ta
                 selectionInfo.setText(selected?.entry?.let { "${it.displayPath}\n${it.size} bytes" }
                     ?: selected?.directory?.let { "${it.path}/" }
                     ?: "Select a file to see its path and size.")
+                val preview = previewSelection(selected?.entry)
+                content.actor = preview?.let { scrollPane(it, skin) } ?: listScroll
+                backButton.isVisible = preview != null
+            }
+        })
+        backButton.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) {
+                items.selection.clear()
             }
         })
         items.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent, x: Float, y: Float) {
-                stage?.keyboardFocus = items
+                if (items.stage != null) stage?.keyboardFocus = items
                 if (tapCount == 2) {
                     items.selected?.directory?.let { directory ->
                         val node = nodes.getValue(directory.path)
@@ -114,6 +136,9 @@ class ContentBrowser(entries: List<VfsEntry>, rootName: String, skin: Skin) : Ta
     }
 
     private fun showDirectory(directory: ContentDirectory) {
+        previewSelection(null)
+        content.actor = listScroll
+        backButton.isVisible = false
         pathLabel.setText(if (directory.path.isEmpty()) "/" else "/${directory.path}/")
         items.setItems(GdxArray<Item>().apply {
             directory.folders.values.forEach { add(Item(directory = it)) }

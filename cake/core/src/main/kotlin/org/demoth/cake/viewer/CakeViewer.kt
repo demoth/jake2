@@ -19,9 +19,13 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Container
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.badlogic.gdx.utils.Scaling
+import jake2.qcommon.vfs.VfsEntry
 import ktx.assets.TextAssetLoader
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
@@ -72,6 +76,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
     private var archiveEntryCount: Int? = null
+    private var archivePreviewPath: String? = null
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
@@ -164,7 +169,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             if (file.extension.equals("pak", ignoreCase = true)) {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
-                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin))
+                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin), ::previewArchiveImage)
                 browserHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -182,13 +187,40 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             updateResourceInfo()
         } catch (error: Exception) {
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
-            closePreview()
-            // Failed dependency loads can leave assets and dependency records behind.
-            stage.dispose()
-            assetManager.clear()
-            createStage()
-            errorLabel.setText("Could not load ${file.name}. Drop another resource to continue.")
+            recoverFromLoadError("Could not load ${file.name}. Drop another resource to continue.")
         }
+    }
+
+    private fun previewArchiveImage(entry: VfsEntry?): Actor? {
+        releaseArchivePreview()
+        errorLabel.setText("")
+        if (entry == null || entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga")) return null
+        val archive = currentFile
+        archivePreviewPath = entry.normalizedPath
+        return try {
+            assetManager.load(entry.normalizedPath, Texture::class.java)
+            assetManager.finishLoading()
+            Image(assetManager.get(entry.normalizedPath, Texture::class.java)).apply { setScaling(Scaling.none) }
+        } catch (error: Exception) {
+            Gdx.app.error("Cake Viewer", "Could not preview ${entry.displayPath}", error)
+            recoverFromLoadError("Could not preview ${entry.displayPath}.", archive)
+            null
+        }
+    }
+
+    private fun releaseArchivePreview() {
+        archivePreviewPath?.let { if (assetManager.isLoaded(it)) assetManager.unload(it) }
+        archivePreviewPath = null
+    }
+
+    private fun recoverFromLoadError(message: String, archiveToReopen: File? = null) {
+        closePreview()
+        // Failed dependency loads can leave assets and dependency records behind.
+        stage.dispose()
+        assetManager.clear()
+        createStage()
+        if (archiveToReopen != null) openFile(archiveToReopen.absolutePath)
+        errorLabel.setText(message)
     }
 
     private fun loadPreview(file: File) {
@@ -441,6 +473,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun closePreview() {
+        releaseArchivePreview()
         archiveEntryCount = null
         if (::browserHost.isInitialized) {
             browserHost.actor = null

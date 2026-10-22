@@ -16,8 +16,11 @@ the preview and shows an error; another file can still be dropped afterward.
 PAK archives open a folder tree on the left and the selected folder's contents on
 the right, sorted with folders first. Select a folder in the tree or double-click
 a folder in the list to browse it. Selecting a file shows its logical path and
-size in bytes. Browsing lists the selected archive's contents without extracting
-its resources.
+size in bytes. PCX, WAL and TGA images open in the right pane at their original
+pixel size, with scrolling for larger images. Use "Back to folder" to return to
+the listing. Browsing lists archive contents without extraction; image previews
+materialize only the selected resource and its dependencies. A failed image
+preview shows an error and reopens the archive at its root folder.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
