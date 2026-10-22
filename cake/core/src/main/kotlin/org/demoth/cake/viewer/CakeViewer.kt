@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.assets.TextAssetLoader
 import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
@@ -44,7 +45,6 @@ import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
-import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.ContentBrowser
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -265,7 +265,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun createStage() {
         val skin = assetManager.getLoaded<Skin>(cakeSkin)
-        stage = Stage(UiViewport())
+        stage = Stage(ScreenViewport())
         stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         resourceInfo = Label("", skin)
         frameTimeLabel = Label("", skin)
