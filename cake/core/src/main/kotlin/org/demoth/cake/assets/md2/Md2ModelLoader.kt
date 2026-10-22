@@ -44,6 +44,7 @@ import org.demoth.cake.assets.ResourceKind
  * [frames] is frame count metadata used by animation code.
  * [frameNames] retains stored names in the same order as the animation frames.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
+ * [skinNames] retains their resolved paths; it is empty for the generated fallback skin.
  * [bounds] encloses decoded positions across all frames; the VAT mesh has no position attribute.
  *
  * This allows future runtime skin switching (for example normal/injured monster skin)
@@ -55,6 +56,7 @@ class Md2Asset(
     val skins: List<Texture>,
     val bounds: BoundingBox,
     val frameNames: List<String>,
+    val skinNames: List<String>,
 ) : Disposable {
     override fun dispose() {
         model.dispose()
@@ -166,6 +168,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             frames = md2.frames.size,
             frameNames = md2.frames.map { it.name },
             skins = skins,
+            skinNames = skinPaths,
             bounds = BoundingBox().apply {
                 inf()
                 val positions = vertexData.vertexPositions

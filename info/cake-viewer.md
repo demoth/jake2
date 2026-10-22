@@ -55,6 +55,10 @@ framing. The preview shows frame index/count, the stored frame name, and skin
 texture count. MD2 and sprite previews share Play/Pause/Loop/Stop and Previous/Next
 controls: Play resumes or restarts a completed animation, Pause holds its current
 pose, Loop repeats, Stop resets to frame one, and stepping pauses and wraps.
+The skin selector shows loaded skin indices and filenames; changing it preserves
+animation and camera position. Single-skin models show a disabled selector, and
+generated fallback textures are labelled "Default skin". Selection covers the
+first 12 skins supported by the renderer.
 
 Double-click a BSP tile to inspect the world and static brush geometry. Click the
 pane to focus it, use WASD to fly and Q/E to move down/up, and left-drag to look

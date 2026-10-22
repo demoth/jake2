@@ -275,6 +275,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 })
                 Table().apply {
                     add(pane).grow().row()
+                    add(Md2SkinSelector(md2, instance.userData as Md2CustomData,
+                        assetManager.getLoaded<Skin>(cakeSkin))).minWidth(0f).growX().pad(4f).row()
                     add(FramePlaybackControls(animation, assetManager.getLoaded<Skin>(cakeSkin)) {
                         "${md2.frameNames[animation.frameIndex]} | Skin textures: ${md2.skins.size}"
                     }).growX().row()

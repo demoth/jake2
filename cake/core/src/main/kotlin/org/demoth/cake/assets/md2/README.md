@@ -31,6 +31,9 @@ its cross-pipeline routing remains outside this package.
 MD2 skin paths if enabled; otherwise an optional generated white 1-by-1 skin.
 The viewer enables `useDefaultSkinIfMissing` for models with no selected skin
 paths. That option does not recover arbitrary failures to load a referenced file.
+`Md2Asset.skinNames` retains the resolved paths in texture order, or an empty list
+for the generated fallback. The viewer uses these names in its skin selector and
+changes the preview instance's `skinIndex` without reloading assets.
 
 Player variants use keys such as
 `players/male/grunt.pcx|players/male/tris.md2`. `PlayerConfiguration` selects the
