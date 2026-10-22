@@ -4,10 +4,11 @@
 ![screenshot](screenshots/bsp-viewer.png)
 
 This small app can display .md2, .bsp, .pcx, .wal, .tga and .sp2 files, play .wav
-sounds, and browse .pak archives (provided as an argument).
+sounds, and browse .pak archives.
 It is part of the `cake` module and has its own LWJGL3 entrypoint.
 
-Drop a resource file onto the viewer window to replace the current preview.
+Start without arguments to see "Drop a resource to view". Drop a resource file
+onto the viewer window to open it or replace the current preview.
 If several files are dropped, the first is opened. Switching stops sound playback
 and resets animation and camera controls. Missing or unsupported files leave the
 current preview open and show an error. A resource that fails during loading clears
@@ -70,7 +71,7 @@ Trigger brushes and area portals are hidden in both archive and loose previews.
 The preview has no gameplay entities or sky rendering.
 
 ### How to run
-Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main` and pass a file path as the program argument.
+Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.
 
 ### How to build
 Build the viewer desktop app with `./gradlew :cake:cake-viewer:build`.

@@ -23,19 +23,19 @@ import java.util.LinkedHashSet
  * Archive mode resolves only bundled classpath assets and entries in the selected archive.
  */
 class ViewerFileResolver(
-    openedFilePath: String,
+    openedFilePath: String? = null,
     private var basedir: String? = null,
     gamemod: String? = null,
 ) : FileHandleResolver {
 
-    private var openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
+    private var openedFileDirectoryPath = openedFilePath?.let { File(it).absoluteFile.parentFile?.absolutePath } ?: "."
     private var openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
     private val localVfs = DefaultVirtualFileSystem()
     private val gameDataVfs = CakeVfsAssetSource()
     private var archiveContext = false
 
     init {
-        configure(openedFilePath, basedir, gamemod)
+        if (openedFilePath != null) configure(openedFilePath, basedir, gamemod)
     }
 
     /**

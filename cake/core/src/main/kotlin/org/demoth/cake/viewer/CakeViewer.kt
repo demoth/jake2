@@ -90,6 +90,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var errorLabel: Label
     private lateinit var resourceInfo: Label
     private lateinit var frameTimeLabel: Label
+    private lateinit var emptyState: Table
+    private lateinit var infoPanel: Table
     private var frameTime = 0f // to have an idea of the fps
 
     // md2 related stuff
@@ -101,24 +103,18 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     override fun create() {
         initializeShaderCompatibility()
 
-        if (args.isEmpty() || SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
+        if (args.isNotEmpty() && SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
             return
         }
-        val file = File(expandTildePath(args[0]))
-        if (!file.exists() || !file.canRead()) {
+        val file = args.firstOrNull()?.let { File(expandTildePath(it)) }
+        if (file != null && (!file.exists() || !file.canRead())) {
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
             return
         }
-        val startupHints = detectViewerStartupHints(file.absolutePath)
-
-        fileResolver = ViewerFileResolver(
-            openedFilePath = file.absolutePath,
-            basedir = startupHints.basedir,
-            gamemod = startupHints.gamemod,
-        )
+        fileResolver = ViewerFileResolver()
         assetManager = AssetManager(fileResolver).apply {
             setLoader(String::class.java, TextAssetLoader(fileResolver))
             setLoader(Any::class.java, ObjectLoader(fileResolver))
@@ -143,7 +139,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
         environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
         createStage()
-        openFile(file.absolutePath)
+        if (file != null) openFile(file.absolutePath)
     }
 
     /** Replaces the preview. Call on the application thread, between render calls. */
@@ -420,7 +416,12 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             fill()
             isVisible = false
         }
-        val panel = Table(skin).apply {
+        emptyState = Table().apply {
+            setFillParent(true)
+            add(Label("Drop a resource to view", skin))
+        }
+        stage.addActor(emptyState)
+        infoPanel = Table(skin).apply {
             background = skin.getDrawable("window")
             pad(12f)
             defaults().left().growX().padBottom(4f)
@@ -433,7 +434,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         stage.addActor(Table().apply {
             setFillParent(true)
             top().left().pad(12f)
-            add(panel).growX().row()
+            add(infoPanel).growX().row()
             add(browserHost).grow()
         })
         updateResourceInfo()
@@ -518,6 +519,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
 
             cameraInputController.update()
+            emptyState.isVisible = currentFile == null
+            infoPanel.isVisible = currentFile != null || errorLabel.text.isNotEmpty()
             frameTimeLabel.setText("Frame time ms: $frameTime")
             stage.act(Gdx.graphics.deltaTime)
             stage.viewport.apply()
