@@ -2,6 +2,16 @@
 
 ## Responsibilities
 
+The internal `ui_sample [engine|game|off]` console command opens a widget gallery
+in client/fullgame. Engine and active-game modes share one layout and retain
+edited fixture state when switched. Escape or Close returns to the prior view;
+profile style changes close the sample before releasing borrowed resources.
+The compact sample fits one virtual screen and follows the vertical `cl_ui_size`
+setting live. Captions and controls all use the selected theme; fallback is
+identified explicitly.
+See the [coverage inventory](../../../../../../../../../assets/ui/INVENTORY.md)
+and [sample plan](../../../../../../../../../info/ui-skin-sample.md).
+
 `GameUiStyle` supplies shared HUD fonts, numeric glyphs, menu widget styles, and
 optional menu sounds. `GameUiStyleFactory` selects and loads the implementation:
 `IdTech2UiStyle` uses game content, while `EngineUiStyle` uses the default Scene2D

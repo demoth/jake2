@@ -8,6 +8,13 @@ This folder owns runtime skin assets used by Scene2D:
 
 It does not own stage/layout logic (see `cake/core/.../stages`).
 
+Style coverage and consistency:
+
+- [Skin coverage inventory](INVENTORY.md) defines the target hierarchy of elements,
+  styles, widgets and screens, and tracks current coverage and consistency decisions.
+- [UI skin sample specification](../../info/ui-skin-sample.md) defines the
+  proposed gallery, screen compositions, and compact UI atlas with separate fonts.
+
 ## Key Resources
 - `console-panel` (`TintedDrawable`) - console frame drawable.
 - `buttonUp`/`buttonOver`/`buttonDown` (`TintedDrawable`) - primary button chrome.

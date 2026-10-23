@@ -69,6 +69,7 @@ import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.ui.UiViewport
+import org.demoth.cake.ui.sample.UiSkinSample
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -141,6 +142,10 @@ class Cake(
 
     private val hostClock = HostFrameClock()
     private var applicationPaused = false
+    private var uiSample: UiSkinSample? = null
+    private var uiSampleGameMode = false
+    private var uiSampleReturnToMenu = true
+    private var menuVisibleBeforeConsole = true
 
     // whenever these are changed, input handlers should be updated
     private var consoleVisible = false
@@ -284,6 +289,20 @@ class Cake(
         })
 
         // region COMMANDS
+
+        Cmd.AddCommand("ui_sample", "(internal) Preview UI styles: ui_sample [engine|game|off]") { args ->
+            if (args.size > 2) {
+                Com.Printf("Usage: ui_sample [engine|game|off]\n")
+                return@AddCommand
+            }
+            when (args.getOrNull(1)) {
+                null -> openUiSample(uiSampleGameMode)
+                "engine" -> openUiSample(false)
+                "game" -> openUiSample(true)
+                "off" -> closeUiSample()
+                else -> Com.Printf("Usage: ui_sample [engine|game|off]\n")
+            }
+        }
 
         Cmd.AddCommand("quit", "Exit Cake") {
             saveActiveProfileConfig()
@@ -709,11 +728,12 @@ class Cake(
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
-        Gdx.input.isCursorCatched = !menuVisible && !consoleVisible
+        Gdx.input.isCursorCatched = !menuVisible && !consoleVisible && uiSample == null
         game3dScreen?.clearInputState()
 
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
+            uiSample != null -> uiSample!!
             menuVisible -> when (menuView) {
                 MenuView.MAIN -> menuStage
                 MenuView.PROFILE_EDIT -> profileEditStage
@@ -739,10 +759,30 @@ class Cake(
         )
     }
 
+    private fun openUiSample(game: Boolean) {
+        val style = resolveCurrentGameUiStyle()
+        if (uiSample == null) {
+            uiSampleReturnToMenu = if (consoleVisible) menuVisibleBeforeConsole else menuVisible
+            uiSample = UiSkinSample(uiSize.typedValue, Scene2DSkin.defaultSkin, style,
+                onMode = ::openUiSample, onClose = ::closeUiSample)
+        }
+        uiSampleGameMode = game
+        uiSample!!.showMode(game)
+        consoleVisible = false
+    }
+
+    private fun closeUiSample() {
+        val sample = uiSample ?: return
+        uiSample = null
+        sample.dispose()
+        menuVisible = uiSampleReturnToMenu || game3dScreen == null
+    }
+
     override fun resize(width: Int, height: Int) {
         if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
         uiViewport.update(width, height, true)
         viewport.update(width, height, true)
+        uiSample?.resize(width, height)
         game3dScreen?.resize(width, height)
         profileBackgroundBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
         transitionBackdropBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
@@ -777,7 +817,7 @@ class Cake(
             Cbuf.Execute()
             // Commands may have started/stopped a map. Tick once on this thread before sending
             // new client input; the next frame reads server replies (no second command pump).
-            host.setPaused(menuVisible || consoleVisible || applicationPaused)
+            host.setPaused(menuVisible || consoleVisible || uiSample != null || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
             if (awaitingNewGame && host.state == HostState.RUNNING) {
@@ -797,6 +837,7 @@ class Cake(
             if (!drawable) return
             if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
                 uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+                uiSample?.setReferenceHeight(uiSize.typedValue)
             }
             viewport.apply()
 
@@ -821,7 +862,12 @@ class Cake(
                 }
             }
 
-            if (menuVisible) {
+            if (uiSample != null) {
+                ScreenUtils.clear(0.08f, 0.08f, 0.08f, 1f)
+                uiSample!!.viewport.apply()
+                uiSample!!.act(deltaSeconds)
+                uiSample!!.draw()
+            } else if (menuVisible) {
                 uiViewport.apply()
                 when (menuView) {
                     MenuView.MAIN -> {
@@ -1008,6 +1054,10 @@ class Cake(
             }
 
             Input.Keys.ESCAPE -> {
+                if (!consoleVisible && uiSample != null) {
+                    closeUiSample()
+                    return true
+                }
                 if (!consoleVisible && menuVisible && menuView == MenuView.MAIN && game3dScreen != null) {
                     menuVisible = false
                     updateInputHandlers(consoleVisible, menuVisible)
@@ -1041,12 +1091,18 @@ class Cake(
     }
 
     private fun toggleConsoleVisibility() {
+        if (uiSample != null) {
+            consoleVisible = !consoleVisible
+            if (consoleVisible) consoleStage.focus()
+            return
+        }
         if (consoleVisible) {
             consoleVisible = false
             if (game3dScreen == null) {
                 menuVisible = true
             }
         } else {
+            menuVisibleBeforeConsole = menuVisible
             menuVisible = false
             consoleVisible = true
             consoleStage.focus()
@@ -1061,10 +1117,12 @@ class Cake(
     override fun resume() {
         applicationPaused = false
         hostClock.reset()
-        host.setPaused(menuVisible || consoleVisible)
+        host.setPaused(menuVisible || consoleVisible || uiSample != null)
     }
 
     override fun dispose() {
+        closeUiSample()
+        Cmd.RemoveCommand("ui_sample")
         disconnect()
         saveActiveProfileConfig()
         menuStage.dispose()
@@ -1110,6 +1168,7 @@ class Cake(
     }
 
     private fun clearCurrentGameUiStyle() {
+        closeUiSample()
         currentGameUiStyle?.dispose()
         currentGameUiStyle = null
         currentGameUiStyleKey = null
@@ -1223,6 +1282,7 @@ class Cake(
             return cached
         }
 
+        closeUiSample()
         currentGameUiStyle?.dispose()
         val gameName = fileResolver.gamemod ?: "baseq2"
         val created = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
