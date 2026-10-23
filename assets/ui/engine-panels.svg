@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="148" height="76" viewBox="0 0 148 76">
+  <!-- Two 72px nine-patches, with 24px corners (3x conchars cells).
+       Neutral artwork is multiplied by the existing Skin palette.
+       Thick content inset: 24px. Thin content inset: 12px. -->
+  <g transform="translate(1 1)">
+    <path fill="#858585" d="M12 0H72V60L60 72H0V12Z"/>
+    <path fill="#d0d0d0" d="M12 0H72V6H15L6 15V66H0V12Z"/>
+    <path fill="#454545" d="M66 6H72V60L60 72H0V66H57L66 57Z"/>
+    <path fill="#171717" d="M20 18H54V52L52 54H18V20Z"/>
+    <path fill="#333333" d="M20 18H54V21H21V54H18V20Z"/>
+  </g>
+  <g transform="translate(75 1)">
+    <path fill="#858585" d="M6 0H72V66L66 72H0V6Z"/>
+    <path fill="#d0d0d0" d="M6 0H72V3H8L3 8V69H0V6Z"/>
+    <path fill="#454545" d="M69 3H72V66L66 72H0V69H64L69 64Z"/>
+    <path fill="#171717" d="M10 6H66V62L62 66H6V10Z"/>
+  </g>
+</svg>

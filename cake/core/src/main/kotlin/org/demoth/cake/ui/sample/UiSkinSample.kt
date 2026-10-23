@@ -80,7 +80,7 @@ class UiSkinSample(
         val styles = if (game) gameStyle.menuWidgets else engineStyles
         val content = Table().apply {
             background = styles.containerPanel
-            defaults().growX().left().padBottom(6f)
+            defaults().growX().left().padBottom(3f)
         }
         val controls = Table().apply {
             defaults().padRight(8f)

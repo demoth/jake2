@@ -3,7 +3,7 @@
 ## Overview
 This folder owns runtime skin assets used by Scene2D:
 - `uiskin.json` (style/resource map),
-- `uiskin.atlas` + `uiskin.png` (drawables/nine-patch metadata),
+- `uiskin.atlas` + `uiskin.png` / `engine-panels.png` (drawables/nine-patch metadata),
 - bitmap fonts (`share-tech-mono*.fnt/.png`).
 
 It does not own stage/layout logic (see `cake/core/.../stages`).
@@ -23,7 +23,9 @@ slider/progress support from the existing Quake glyphs.
 ## Key Resources
 - `console-panel` (`TintedDrawable`) - console frame drawable.
 - `buttonUp`/`buttonOver`/`buttonDown` (`TintedDrawable`) - primary button chrome.
-- `chamfer-panel` (`uiskin.atlas`) - chamfer nine-patch base region.
+- `panel-thick` / `panel-thin` (`uiskin.atlas`) - separate 72×72 frames with 24-pixel corners.
+- `control-panel` (`NinePatchDrawable`) - thin frame with 12-pixel content insets and 48-pixel minimum dimensions.
+- `engine-panels.svg` - editable geometric source for the two new panels; regenerate with `magick -background none assets/ui/engine-panels.svg PNG32:assets/ui/engine-panels.png` from the repository root.
 
 ## Invariants
 - Skin class tags are short names (`ButtonStyle`, `Color`, ...), not fully-qualified class names.
@@ -32,6 +34,24 @@ slider/progress support from the existing Quake glyphs.
 
 ## Decision Log
 Newest first.
+
+### Decision: Author engine resources at a 3× Quake reference scale
+- Quake's fixed 8-pixel cell is the reference; engine font line height is 24, thick frame insets/corners 24, thin content insets 12.
+- Preserve the engine font's natural glyph widths. Matching square cells, text wrapping and exact widget footprints is not required.
+- Native resource resolution and display normalization are separate choices. This slice establishes resources; viewport sizing comparison remains separate.
+- Use distinct thick container and thin control frames; retain the current palette and standard libGDX widgets.
+- Status: accepted; font and panel resources implemented. Other engine artwork still needs comparison.
+
+To reproduce the current font, run from the repository root:
+
+```sh
+./gradlew :cake:engine-tools:run --args="--ttf ../../assets/cake-ui/Share_Tech_Mono/ShareTechMono-Regular.ttf --out /tmp/cake-engine-font-3x --name share-tech-mono --size 21 --page-width 512 --page-height 512 --padding 2"
+```
+
+The tool runs in `cake/engine-tools`; its input path is relative to that directory.
+Check the resulting `.fnt`: `lineHeight=24`, then copy both generated files to
+`assets/ui/`. Nominal generator size 21 is not the same metric as line height.
+
 
 ### Decision: Keep short skin class names in `uiskin.json`
 - Context: IDEA inspections flagged fully-qualified names as redundant and noisy.
@@ -89,5 +109,5 @@ Newest first.
 4. Run IDEA inspection for `uiskin.json` and verify no duplicate or unresolved resource warnings.
 
 ## Open Questions
-- Should console panel use a dedicated atlas region (with split/pad tuned for console text) rather than sharing `chamfer-panel`?
+- Should console panel eventually have independent insets from the thick container frame?
 - Should skin validation be automated in CI (e.g., duplicate-resource and missing-reference checks)?

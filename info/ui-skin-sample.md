@@ -27,8 +27,17 @@ presentation choices.
 
 The sample exposes two panel roles: thick frames for groups of widgets and thin
 frames for controls such as buttons, checkbox toggles, inputs and dropdowns.
-Both roles are implemented with existing art. Automated
-Engine/Game captures will guide adjustments to both resources and construction.
+Quake uses its fixed conchars art; engine now has distinct thick/thin frames
+with 24-pixel corners and 24/12-pixel content insets respectively.
+
+The accepted engine asset reference is **3×**: Quake's 8-pixel font line height
+corresponds to engine line height 24. `BitmapFontGeneratorTool` generates this at
+size 21 from Share Tech Mono; engine glyphs retain their natural widths.
+Square glyphs, identical wrapping and identical widget footprints are not goals.
+The native resource ratio is separate from display scaling. This resource slice
+does not introduce theme normalization; that remains a later sample comparison.
+Slider and other inherited engine artwork have not yet been brought to this
+reference. Automated captures guide the remaining direct sizing choices.
 
 ## Sample coverage follows the target hierarchy
 
@@ -298,7 +307,7 @@ reopening, narrow resize and profile invalidation. A host spy checked pause
 requests and continued host updates. Live game-session and native executable
 verification remain open; visual consistency decisions remain for review.
 
-Compact layout verification: the current engine form needs 597 virtual units of
+Compact layout verification at that slice: the engine form needed 597 virtual units of
 height, fitting within the 608 units available after padding at `cl_ui_size 640`.
 The game form also fits. A hidden-window check verified all visible labels and
 inputs use the selected theme, values survive switching, and changes to
@@ -340,13 +349,13 @@ the gallery. No standalone launcher or Gradle task is needed for this slice.
 **Status: implemented.** The sample uses thick/thin panel roles and standard
 Slider/ProgressBar widgets. Game controls use cells 18–26 with half-cell insets;
 container surfaces use 1–9. Track/knob cells 128–131 are shared by the slider and
-read-only progress. The engine reuses existing art, with gray/cyan slider colours
-for visibility. No image assets or new renderers were added.
+read-only progress. At that slice the engine reused existing art, with gray/cyan slider colours
+for visibility. The subsequent engine-resource slice below adds distinct panels.
 
 Verification: focused style/viewport/menu tests and client/fullgame compilation
 pass. A hidden-window check exercised pointer input at minimum/midpoint/maximum,
 linked progress, disabled input, value retention, mode switching, fallback and
-profile lifetime. Engine needs 597 virtual units within the 608-unit content area
+profile lifetime. At that slice engine needed 597 virtual units within the 608-unit content area
 at `cl_ui_size 640`; game mode fits too. Captures were checked at 1440×900 and
 3840×2160. Visual choices remain available for user review.
 
@@ -454,3 +463,31 @@ Native packaging, optional widget extensions and visual variant loading can be
 scheduled separately when needed. No new automated tests are required for static
 fixture layout; use focused existing checks and interactive verification. Add
 tests when an implemented reusable contract or ownership behaviour merits them.
+
+
+### Engine resources at the 3× reference
+
+**Status: implemented; visual review pending.** Share Tech Mono was regenerated
+with the existing `BitmapFontGeneratorTool` at size 21, yielding line height 24
+while preserving natural glyph proportions and generated metrics. Reproduction
+commands are recorded in [the asset README](../assets/ui/README.md).
+
+`engine-panels.svg` is the editable source for a small separate atlas page with
+two 72×72 frame regions. Both preserve 24-pixel corners; the thick container has
+24-pixel content insets, while the thin control drawable has 12-pixel insets and
+48-pixel minimum extents. Buttons, checkbox toggles, inputs and dropdowns share
+the thin frame. Normal input/dropdown borders use the existing text tint and
+focused inputs use cyan so those frames remain visible. Existing palette colours
+are retained. The legacy atlas page remains available pending its own cleanup.
+
+Sample row spacing was reduced from 6 to 3 virtual pixels. The resulting engine
+form needs 603 units within 608 available at `cl_ui_size 640`; game needs 319.
+The resource slice establishes the native size reference. Theme display
+normalization, slider proportions and other inherited artwork remain to review.
+
+Verification: focused style/viewport tests passed. A hidden-window graphics check
+asserted the engine's 24-pixel font line height, 24/12-pixel frame insets and
+48-pixel thin minimum. Both themes fit at reference heights 640 and 720 and at
+4K. Pointer input, slider endpoints, linked progress, disabled controls, typed
+state across theme switching, console/close and profile fallback checks passed.
+Automated captures were inspected for the new font and frame usage.

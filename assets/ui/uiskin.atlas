@@ -394,3 +394,27 @@ chamfer-panel
   orig: 33, 33
   offset: 0, 0
   index: -1
+
+engine-panels.png
+size: 148,76
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+panel-thick
+  rotate: false
+  xy: 1, 1
+  size: 72, 72
+  split: 24, 24, 24, 24
+  pad: 24, 24, 24, 24
+  orig: 72, 72
+  offset: 0, 0
+  index: -1
+panel-thin
+  rotate: false
+  xy: 75, 1
+  size: 72, 72
+  split: 24, 24, 24, 24
+  pad: 12, 12, 12, 12
+  orig: 72, 72
+  offset: 0, 0
+  index: -1

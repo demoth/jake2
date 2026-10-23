@@ -23,6 +23,26 @@ a few direct sizing choices. Adjust engine font/frame resources first, then
 widget padding or construction where visible differences remain. A general
 geometry system or exact matching of every pixel and text wrap is unnecessary.
 
+The engine resource reference is **3× Quake's native vertical metrics**. This
+is an asset authoring reference, separate from viewport/display scaling. Preserve
+natural engine glyph widths: Quake's square character cells do not impose square
+engine glyphs, identical text wrapping or identical widget widths. Regenerate the
+bitmap font with `BitmapFontGeneratorTool`; do not stretch its baked glyphs or
+rewrite its metrics to simulate a different font size.
+
+| Reference | Quake | Engine | Status |
+| --- | --- | --- | --- |
+| Font line height | 8 | 24 (generator size 21) | Implemented; natural engine glyph advances retained |
+| Panel corner / source cell | 8 | 24 | Implemented; separate thick/thin engine artwork |
+| Thick frame content inset | 8 | 24 | Implemented |
+| Thin frame content inset | 4 | 12 | Implemented |
+| Thin frame minimum extent | 16 | 48 | Implemented |
+| Slider track / knob and other inherited artwork | Conchars cells | Existing engine resources | Proportions still to review |
+
+The resource reference does not by itself normalize both themes on screen.
+Display sizing and remaining widget construction are a later comparison slice;
+keep the same `cl_ui_size` meaning and leave Quake resources and HUD unchanged.
+
 The sample now exposes two panel roles and horizontal slider/progress support
 from the existing Quake sheet. Thick frames contain groups of widgets; thin frames define controls
 such as buttons, checkbox toggles, fields and dropdowns. Their final application
@@ -185,7 +205,7 @@ the skin; keep those visible as separate screen concerns.
 
 | ID | Role | Engine baseline | Quake baseline | Scope |
 | --- | --- | --- | --- | --- |
-| F01 | Main UI text | `default`: Share Tech Mono, size 24, line height 27, separate 512×512 `share-tech-mono.png` | Conchars font replaces menu fonts | Required |
+| F01 | Main UI text | `default`: Share Tech Mono, generator size 21, line height 24, separate 512×512 `share-tech-mono.png` | Conchars font replaces menu fonts | Required |
 | F02 | Font roles | `font`, `list`, `subtitle`, `window` all alias `default` | No separate role fonts | Defined; separate typography is optional |
 | F03 | Quake normal and alternate text | Engine HUD fallback uses `default` | 16×16 conchars grid; high-bit alternate bank preserves game glyph colours | Required for HUD compatibility |
 | F04 | HUD number fields | `EngineHudNumberFont` uses the default font | 22 separate `num_*` / `anum_*` PCX images, including minus | Required for HUD; separate from UI atlas |
@@ -209,7 +229,7 @@ named, possibly tinted or stretchable use of artwork.
 
 | ID | Role | Engine drawable names | Current Quake coverage |
 | --- | --- | --- | --- |
-| D01 | Console panel | `console-panel` | Engine only; tinted `chamfer-panel` |
+| D01 | Console panel | `console-panel` | Engine only; tinted `panel-thick` (24-pixel corners/insets) |
 | D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thin panel from conchars cells 18–26; darkened pressed/disabled variants |
 | D03 | Checkbox marks | `checkBoxOn`, `checkBoxOff`, `checkBoxOver`, `checkBoxOnDisabled`, `checkBoxOffDisabled` | Engine only; content menus instead use a bordered `x` text toggle |
 | D04 | Generic icon | `icon` | Engine only; currently uses the check-on artwork |
@@ -256,21 +276,24 @@ and the slider's fixed end caps/knob while allowing its middle to span the track
 The sheet supplies a track and knob; a filled progress treatment would be a
 separate construction choice. Start with the shared read-only indicator.
 
-Engine styling exposes corresponding roles using existing resources: the console
-frame for containers, text-input surface for the control panel, and horizontal
-slider art shared with progress. The slider uses gray/cyan palette roles for
+Engine styling exposes corresponding roles using separate `panel-thick` and
+`panel-thin` artwork, with the thin frame shared by buttons, toggles, text fields,
+dropdowns and the control panel. Horizontal slider art is shared with progress.
+The slider uses gray/cyan palette roles for
 visibility. Engine artwork and logical proportions remain open for refinement;
 font artwork stays separate from the UI atlas.
 
 ### Engine atlas source regions
 
-[uiskin.atlas](uiskin.atlas) declares 55 regions. This is the artwork inventory,
+[uiskin.atlas](uiskin.atlas) declares 57 regions across two pages (55 legacy
+regions plus two new panel regions). This is the artwork inventory,
 not a requirement to copy every region into a new atlas. Several are alternate
 or inherited assets without a current screen consumer.
 
 | Artwork family | Current region names |
 | --- | --- |
-| Main panel | `chamfer-panel` (33×33, splits 16 on every side) |
+| Current panels | `panel-thick`, `panel-thin` (72×72, splits 24); source `engine-panels.svg`, separate `engine-panels.png` page |
+| Legacy panel | `chamfer-panel` (33×33, splits 16; retained pending atlas cleanup) |
 | Primitive fills | `white`, `dot`, `rect`, `square`, `box-rounded`, `selection` |
 | Button alternatives | `button-normal`, `button-normal-over`, `button-normal-pressed` |
 | Checkbox artwork | `check`, `check-on`, `checkbox`, `checkbox-over`, `checkbox-selected`, `checkbox-selected-over` |
@@ -377,7 +400,7 @@ interactive support.
 | W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
-| Two panel roles | Available | Open | Thick container 1–9; thin control frame 18–26 with half-cell content insets; both visible in sample |
+| Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× panels; both visible in sample |
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |

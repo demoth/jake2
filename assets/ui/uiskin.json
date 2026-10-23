@@ -110,9 +110,22 @@
       minHeight: 5
     }
   }
+  NinePatchDrawable: {
+    // Same 24px corners as the thick frame; half-sized content insets.
+    // Like conchars, a thin control can shrink to two corner cells.
+    control-panel: {
+      patch: panel-thin,
+      leftWidth: 12,
+      rightWidth: 12,
+      topHeight: 12,
+      bottomHeight: 12,
+      minWidth: 48,
+      minHeight: 48
+    }
+  }
   TintedDrawable: {
     console-panel: {
-      name: chamfer-panel,
+      name: panel-thick,
       color: gray
     },
     split: {
@@ -128,27 +141,27 @@
       color: highlight
     },
     buttonUp: {
-      name: chamfer-panel,
+      name: control-panel,
       color: white
     },
     buttonOver: {
-      name: chamfer-panel,
+      name: control-panel,
       color: highlight
     },
     buttonDown: {
-      name: chamfer-panel,
+      name: control-panel,
       color: down
     },
     buttonDisabled: {
-      name: chamfer-panel,
+      name: control-panel,
       color: gray
     },
     buttonChecked: {
-      name: chamfer-panel,
+      name: control-panel,
       color: checked
     },
     buttonCheckedOver: {
-      name: chamfer-panel,
+      name: control-panel,
       color: checkedOver
     },
     checkBoxOn: {
@@ -236,19 +249,19 @@
       color: background
     },
     selectBox: {
-      name: select,
-      color: up
+      name: control-panel,
+      color: white
     },
     selectOver: {
-      name: select,
+      name: control-panel,
       color: over
     },
     selectDown: {
-      name: select,
+      name: control-panel,
       color: over
     },
     selectDisabled: {
-      name: select,
+      name: control-panel,
       color: disabled
     },
     selectList: {
@@ -300,15 +313,15 @@
       color: disabled
     },
     textField: {
-      name: rect,
-      color: semiTransparent
+      name: control-panel,
+      color: white
     },
     textFieldDown: {
-      name: rect,
-      color: background
+      name: control-panel,
+      color: down
     },
     textFieldDisabled: {
-      name: rect,
+      name: control-panel,
       color: disabled
     },
     textFieldCursor: {
