@@ -37,6 +37,9 @@ changes. They must not be treated as permanent instances across style changes.
 - Join Game validates host/port before using Cake's existing connection path.
 - Player Setup writes on Save; Back discards staged edits. The backend writes
   userinfo cvars, including derived gender, and saves profile configuration.
+- Sound volume uses the shared horizontal slider over 0–1 in steps of 0.05, with
+  a numeric readout. Changes are staged until Apply; other numeric options use
+  text fields.
 - Options collect edits and submit `SaveOptionsSection` on Apply through the
   controller/backend. Only opted-in canonical cvars are exposed; player identity
   stays in Player Setup. Latched values are shown as pending restart values.

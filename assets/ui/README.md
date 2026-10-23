@@ -15,6 +15,11 @@ Style coverage and consistency:
 - [UI skin sample specification](../../info/ui-skin-sample.md) defines the
   proposed gallery, screen compositions, and compact UI atlas with separate fonts.
 
+The accepted direction uses Quake's fixed conchars proportions as a reference
+for engine resources, with higher-resolution engine artwork allowed. The
+sample exposes thick container and thin control frames plus horizontal
+slider/progress support from the existing Quake glyphs.
+
 ## Key Resources
 - `console-panel` (`TintedDrawable`) - console frame drawable.
 - `buttonUp`/`buttonOver`/`buttonDown` (`TintedDrawable`) - primary button chrome.

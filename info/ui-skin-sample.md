@@ -12,14 +12,31 @@ a console command. Build the layout once and switch its style source between
 Engine and Active game. Both modes use the same fixture data and layout rules.
 
 The [execution plan](#execution-plan) below defines the implementation slices,
-their deliverables and completion checks. Slice 1 is complete; slice 2 is next.
+their deliverables and completion checks. The compact gallery and capture command
+and the conchars panel/slider experiment are complete. Broader widget coverage
+and screen compositions remain planned.
+
+## Proportions and resource decision
+
+Quake II's fixed conchars artwork is the proportion reference. Engine font and
+panel artwork can be changed freely, including using higher resolution while
+retaining comparable logical proportions. Use the existing style builders and
+simple sizing choices; retain expected differences rather than building a
+general geometry framework. Keep the HUD text behaviour separate from any UI
+presentation choices.
+
+The sample exposes two panel roles: thick frames for groups of widgets and thin
+frames for controls such as buttons, checkbox toggles, inputs and dropdowns.
+Both roles are implemented with existing art. Automated
+Engine/Game captures will guide adjustments to both resources and construction.
 
 ## Sample coverage follows the target hierarchy
 
 Use **elements → styles → widgets → screens** throughout the sample. The
 [target widget list](../assets/ui/INVENTORY.md#target-widgets-for-cake-screens)
 defines its core scope: label, action button, checkbox, text input, selectable
-list, dropdown, scroll pane, tree, split pane, panel, content tile and image view.
+list, dropdown, scroll pane, tree, split pane, panel, content tile, image view,
+horizontal slider and horizontal progress indicator.
 Composed and specialized widgets cover the browser, resource information,
 playback, console output, scene preview, diagnostics and HUD.
 
@@ -78,8 +95,9 @@ captions rather than resource descriptions. Every label and control, including
 Engine/Game/Close, uses the selected style. A common neutral background avoids
 mixing either mode with the active profile's backdrop. Game mode explicitly
 identifies whole-theme engine fallback and its inherited engine caret/selection.
-The panel reuses the selected scroll surface, or text-input surface when absent;
-there is no separate panel role in the current game style bundle.
+The outer panel uses the container role; the list and inner scrolling content use
+the control role. Slider and progress share a track and knob, with a separate
+disabled slider specimen. The progress indicator follows the editable slider.
 
 ## Automated captures
 
@@ -131,7 +149,9 @@ behaviour and visual differences can be understood.
 | Input | W04 | Empty field with hint, entered text, caret, selection, focused/unfocused, disabled, long value, password masked with `*`; feedback as adjacent text |
 | Selection | W05, W06 | List and open dropdown with long choices; selected/unselected, hover, disabled dropdown, scrolling |
 | Navigation | W07–W09 | Horizontal/vertical scrolling, tree expanded/collapsed and selected, draggable splitter, overflowing content |
-| Extensions | W12–W19 | Separate optional area for native checkbox/radio, icon buttons, sliders, progress, tooltip, window and touchpad |
+| Two panels | Thick/thin frame roles | Thick container around thin-framed controls; same roles in both themes; available |
+| Horizontal controls | W15–W16 | Interactive slider and read-only progress indicator using a shared value; available |
+| Extensions | W12–W14, W17–W19 | Separate optional area for native checkbox/radio, icon buttons, tooltip, window and touchpad; vertical/curved slider/progress variants remain optional |
 
 Show fixed visual specimens of transient states beside a live control. Render
 fixed specimens using the same resolved style resources as live widgets, with
@@ -212,16 +232,17 @@ but neither a fixed grid size nor a fixed cell order is required for engine art.
 The Quake adapter maps legacy cell indices to the same semantic roles. A new
 engine atlas should not require a Quake-specific loader.
 
-Proposed atlas roles, to refine against actual style usages:
+Atlas roles, to refine against actual style usages:
 
 | Primitive | Uses | Metadata or state requirement |
 | --- | --- | --- |
 | Neutral fill | Selection, tintable surface, cursor or dim overlay | Opaque neutral pixels for predictable tinting |
-| Panel frame | Console, information panel, form/browser surface | Nine-patch splits, content padding, minimum size |
-| Control frame | Buttons, fields, dropdown | Shared art or separate resources where roles differ; hover/pressed/focused/disabled treatments |
+| Thick panel frame | Console, information panel, form/browser container | Quake cells 1–9; matching engine proportions, nine-patch splits and content padding |
+| Thin control frame | Buttons, checkbox toggles, fields, dropdown | Quake cells 18–26; matching engine role and state treatments |
 | Check mark | Optional native checkbox; current boolean toggle may remain text | On/off and disabled appearance |
 | Tree controls | Expand/collapse | Distinguishable at the smallest logical size |
 | Track and thumb | Horizontal/vertical scrollbars; optional sliders | Fixed borders, stretch direction, minimum thumb size |
+| Horizontal slider/progress track and knob | Editable slider and read-only position indicator | Quake cells 128–131; fixed end caps/knob, stretchable or repeated middle |
 | Split handle | Browser split | Useful hit area and visible handle |
 | Direction/icon marks | Optional dropdown arrow and later icon buttons | Legible at control size; add only with an actual style consumer |
 
@@ -277,7 +298,7 @@ reopening, narrow resize and profile invalidation. A host spy checked pause
 requests and continued host updates. Live game-session and native executable
 verification remain open; visual consistency decisions remain for review.
 
-Compact layout verification: the current engine form needs 504 virtual units of
+Compact layout verification: the current engine form needs 597 virtual units of
 height, fitting within the 608 units available after padding at `cl_ui_size 640`.
 The game form also fits. A hidden-window check verified all visible labels and
 inputs use the selected theme, values survive switching, and changes to
@@ -314,9 +335,55 @@ joining a server. Mark only demonstrated inventory cases Available.
 Host lifecycle integration is the main uncertainty. Verify it before expanding
 the gallery. No standalone launcher or Gradle task is needed for this slice.
 
+### Conchars panels and horizontal controls
+
+**Status: implemented.** The sample uses thick/thin panel roles and standard
+Slider/ProgressBar widgets. Game controls use cells 18–26 with half-cell insets;
+container surfaces use 1–9. Track/knob cells 128–131 are shared by the slider and
+read-only progress. The engine reuses existing art, with gray/cyan slider colours
+for visibility. No image assets or new renderers were added.
+
+Verification: focused style/viewport/menu tests and client/fullgame compilation
+pass. A hidden-window check exercised pointer input at minimum/midpoint/maximum,
+linked progress, disabled input, value retention, mode switching, fallback and
+profile lifetime. Engine needs 597 virtual units within the 608-unit content area
+at `cl_ui_size 640`; game mode fits too. Captures were checked at 1440×900 and
+3840×2160. Visual choices remain available for user review.
+
+1. Map the existing panel cells to two named drawable roles in the current style
+   builder: thick container (1–9) and thin control frame (18–26). Reuse the
+   existing nine-patch construction. Change widget backgrounds to thin frames
+   while keeping thick frames for the containing panel.
+2. Build a horizontal track from start/middle/end cells 128–130 and use cell 131
+   as its knob. Reuse it in standard Slider and ProgressBar styles. The initial
+   progress example is a read-only position indicator sharing the slider's value;
+   filled progress is a later choice if needed.
+3. Add a small nested-panel group, slider and progress indicator to the compact
+   sample. Keep the full view within one virtual screen at `cl_ui_size 640`.
+   Use the selected theme throughout. Existing engine assets can be reused for
+   the corresponding roles initially; identify any incomplete role explicitly.
+4. Capture both modes with the existing command. Review frame nesting, control
+   insets, slider minimum/middle/maximum and disabled appearance. Use these
+   Quake-derived proportions to guide engine resource changes afterward.
+
+**Done when:** both frames and both horizontal controls are visible in the sample,
+the slider works, and captures show the intended container/control distinction.
+The user confirmed the panel/slider appearance. Production game menu controls
+receive thin-frame styles through the existing factory. Sound options use the
+shared slider for `s_volume` over 0–1 in increments of 0.05, with a two-decimal
+readout and edits staged until Apply. Untouched console-configured values retain
+their original precision. Other numeric editors retain text input.
+
+Volume verification exercised all 21 step values through the actual options
+screen/backend, Apply/Back behaviour, active-theme styling and preservation of
+an untouched 0.73 value. The 23 focused style/viewport/menu tests pass.
+
 ### Slice 2 Complete the target widgets and screen compositions
 
-- Add tree, split pane, content tile and image view to complete the 12 target
+With the conchars experiment available, add tree, split pane,
+content tile and image view to complete the broader target set.
+
+- Add tree, split pane, content tile and image view to complete the broader target
   widget kinds. Show relevant colours, fonts and drawable primitives beside them.
 - Add a form composition and a browser composition. Use fixture VfsEntry values
   with the existing ContentBrowser where practical; use generated placeholder

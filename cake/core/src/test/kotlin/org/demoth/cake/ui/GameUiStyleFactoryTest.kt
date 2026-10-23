@@ -13,9 +13,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Array
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -53,12 +55,15 @@ class GameUiStyleFactoryTest {
         )
         val emptyDrawable = TextureRegionDrawable(TextureRegion())
         return Skin().apply {
+            add("console-panel", emptyDrawable, Drawable::class.java)
+            add("default-horizontal", Slider.SliderStyle(emptyDrawable, emptyDrawable))
             add("default", font, BitmapFont::class.java)
             add("default", Label.LabelStyle(font, Color.WHITE))
             add("default", TextButton.TextButtonStyle().also { it.font = font })
             add(
                 "default",
                 TextField.TextFieldStyle().also {
+                    it.background = emptyDrawable
                     it.font = font
                     it.messageFont = font
                     it.cursor = emptyDrawable

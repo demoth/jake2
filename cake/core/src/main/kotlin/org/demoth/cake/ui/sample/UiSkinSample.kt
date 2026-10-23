@@ -7,6 +7,8 @@ import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.List as UiList
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -16,7 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
-import org.demoth.cake.ui.MenuWidgetStyles
 import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.createMenuWidgetStyles
 
@@ -29,14 +30,13 @@ class UiSkinSample(
     private val onClose: () -> Unit,
 ) : Stage(UiViewport().apply { setReferenceHeight(referenceHeight) }) {
     // Use the engine Skin's actual styles, retaining the existing menu checkbox implementation.
-    private val engineStyles = MenuWidgetStyles(
-        engineSkin.get(Label.LabelStyle::class.java),
-        engineSkin.get(TextButton.TextButtonStyle::class.java),
-        createMenuWidgetStyles(engineSkin, engineSkin.getFont("default")).checkBox,
-        engineSkin.get(TextField.TextFieldStyle::class.java),
-        engineSkin.get(SelectBox.SelectBoxStyle::class.java),
-        engineSkin.get(UiList.ListStyle::class.java),
-        engineSkin.get(ScrollPane.ScrollPaneStyle::class.java),
+    private val engineStyles = createMenuWidgetStyles(engineSkin, engineSkin.getFont("default")).copy(
+        label = engineSkin.get(Label.LabelStyle::class.java),
+        button = engineSkin.get(TextButton.TextButtonStyle::class.java),
+        textField = engineSkin.get(TextField.TextFieldStyle::class.java),
+        selectBox = engineSkin.get(SelectBox.SelectBoxStyle::class.java),
+        list = engineSkin.get(UiList.ListStyle::class.java),
+        scrollPane = engineSkin.get(ScrollPane.ScrollPaneStyle::class.java),
     )
     private val root = Table().apply {
         setFillParent(true)
@@ -52,6 +52,7 @@ class UiSkinSample(
     private var selectedRow = "baseq2"
     private var selectedChoice = "Medium"
     private var actionCount = 0
+    private var sliderValue = 50f
 
     init {
         resize(Gdx.graphics.width, Gdx.graphics.height)
@@ -77,7 +78,10 @@ class UiSkinSample(
         unfocusAll()
         root.clearChildren()
         val styles = if (game) gameStyle.menuWidgets else engineStyles
-        val content = Table().apply { defaults().growX().left().padBottom(10f) }
+        val content = Table().apply {
+            background = styles.containerPanel
+            defaults().growX().left().padBottom(6f)
+        }
         val controls = Table().apply {
             defaults().padRight(8f)
             add(Label("UI sample", styles.label)).growX().left()
@@ -136,7 +140,7 @@ class UiSkinSample(
         }
         dropdown = choice
         val panel = Table().apply {
-            background = styles.scrollPane.background ?: styles.textField.background
+            background = styles.controlPanel
             pad(8f)
             defaults().left().pad(3f)
             repeat(12) { add(Label("Scrollable row ${it + 1}", styles.label)).row() }
@@ -147,7 +151,10 @@ class UiSkinSample(
             add(Label("List", styles.label))
             add(Label("Dropdown", styles.label))
             add(Label("Panel / scrolling", styles.label)).row()
-            add(list)
+            add(Table().apply {
+                background = styles.controlPanel
+                add(list).growX().minWidth(0f)
+            })
             add(Table().apply {
                 defaults().growX().minWidth(0f).padBottom(8f)
                 add(choice).row()
@@ -156,9 +163,34 @@ class UiSkinSample(
                     isDisabled = true
                 })
             })
-            add(scroll).height(132f)
+            add(scroll).height(112f)
         }
         content.add(lower).row()
+        val progress = ProgressBar(0f, 100f, 1f, false, styles.progress).apply { value = sliderValue }
+        val valueLabel = Label("${sliderValue.toInt()}%", styles.label)
+        val slider = Slider(0f, 100f, 1f, false, styles.slider).apply {
+            value = sliderValue
+            changed {
+                sliderValue = value
+                progress.value = value
+                valueLabel.setText("${value.toInt()}%")
+            }
+        }
+        content.add(Table().apply {
+            defaults().left().pad(3f)
+            add(Label("Slider", styles.label))
+            add(slider).growX().minWidth(0f)
+            add(valueLabel).minWidth(48f).row()
+            add(Label("Progress", styles.label))
+            add(progress).growX().minWidth(0f)
+            add(Label("", styles.label)).minWidth(48f).row()
+            add(Label("Disabled", styles.label))
+            add(Slider(0f, 100f, 1f, false, styles.slider).apply {
+                value = sliderValue
+                isDisabled = true
+            }).growX().minWidth(0f)
+            add(Label("", styles.label)).minWidth(48f)
+        }).row()
         root.add(content).growX().maxWidth(900f).minWidth(0f)
         root.validate()
         scroll!!.scrollY = scrollY

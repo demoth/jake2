@@ -5,6 +5,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ui.GameUiStyle
@@ -13,6 +16,8 @@ import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.fullscreenModeSuggestions
 import jake2.qcommon.exec.CvarType
 import org.demoth.cake.ui.menu.OptionsSectionState
+import java.util.Locale
+import kotlin.math.roundToInt
 
 class OptionsSectionStage(
     viewport: Viewport,
@@ -34,6 +39,7 @@ class OptionsSectionStage(
     private val selectBoxStyle = style.menuWidgets.selectBox
     private val checkBoxStyle = style.menuWidgets.checkBox
     private val scrollPaneStyle = style.menuWidgets.scrollPane
+    private val sliderStyle = style.menuWidgets.slider
 
     init {
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
@@ -74,6 +80,7 @@ class OptionsSectionStage(
                 val value: Any = entry.pendingValue ?: entry.typedValue
                 val entryChoices = choices[index]
                 val editor = when {
+                    entry.name == "s_volume" -> volumeEditor((value as Number).toFloat())
                     type.kind == CvarType.Kind.BOOLEAN -> TextButton("x", checkBoxStyle).apply {
                         isChecked = value as Boolean
                         valuesByName[entry.name] = { isChecked }
@@ -138,5 +145,23 @@ class OptionsSectionStage(
         renderedState = state
         renderedValues = values
         renderedChoices = choices
+    }
+
+    private fun volumeEditor(initial: Float): Table {
+        // Preserve console-configured values until the slider is actually edited.
+        var edited = initial
+        val number = Label(String.format(Locale.ROOT, "%.2f", edited), labelStyle)
+        val slider = Slider(0f, 1f, 0.05f, false, sliderStyle).apply { value = initial }
+        slider.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) {
+                edited = (slider.value * 20f).roundToInt() / 20f
+                number.setText(String.format(Locale.ROOT, "%.2f", edited))
+            }
+        })
+        valuesByName["s_volume"] = { edited }
+        return Table().apply {
+            add(slider).growX().minWidth(0f)
+            add(number).minWidth(64f).padLeft(8f)
+        }
     }
 }

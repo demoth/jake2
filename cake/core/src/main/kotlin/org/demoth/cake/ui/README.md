@@ -56,8 +56,12 @@ reference, so disposing one owner does not unload another owner's assets.
 ## Menus and Sounds
 
 `MenuWidgetStyles` provides content-styled labels, buttons, text fields, select
-boxes, lists, and scroll panes. IdTech2 button borders reuse conchars box glyphs
-1 through 9.
+boxes, lists, scroll panes, horizontal sliders and read-only progress indicators.
+Two Drawable roles distinguish containers from controls: IdTech2 container panels
+use conchars cells 1–9, and control frames use 18–26 with half-cell content insets.
+Slider tracks use 128–130 with knob 131; progress shares the track and knob.
+The sample shows both panel roles and links slider changes to progress. Engine
+styles reuse existing frame/field and slider artwork; no image assets are added.
 
 `MenuSoundStyles` provides optional sounds from `misc/menu1.wav`, `misc/menu2.wav`,
 and `misc/menu3.wav`. The menu controller emits enter/exit signals for navigation

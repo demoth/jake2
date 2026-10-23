@@ -10,6 +10,24 @@ Resource availability, widget support, actual usage and visual consistency are
 separate concerns. A definition in the skin does not establish that all its
 states work or that screens use it consistently.
 
+## Accepted styling direction
+
+Use the fixed Quake II conchars artwork as the reference for UI proportions.
+Engine fonts and drawables can change to approach those proportions while
+retaining higher source resolution and additional detail. Source texture size
+does not dictate logical widget size. Compare both themes with the same layout
+rules and `cl_ui_size`; approximate consistency is sufficient for this engine.
+
+Keep this simple: reuse standard libGDX widgets, the existing style builders and
+a few direct sizing choices. Adjust engine font/frame resources first, then
+widget padding or construction where visible differences remain. A general
+geometry system or exact matching of every pixel and text wrap is unnecessary.
+
+The sample now exposes two panel roles and horizontal slider/progress support
+from the existing Quake sheet. Thick frames contain groups of widgets; thin frames define controls
+such as buttons, checkbox toggles, fields and dropdowns. Their final application
+will be judged from captures of the sample.
+
 ## Target hierarchy
 
 **Elements → styles → widgets → screens** is the organizing model:
@@ -42,6 +60,9 @@ fallback; its panel uses the resolved scroll/input surface. The gallery fits one
 virtual screen and follows the vertical `cl_ui_size` setting live. Tree, split
 pane, content tile, image view and screen
 compositions remain planned. Availability does not establish visual consistency.
+Two panel variants, a horizontal slider, linked read-only progress and a disabled
+slider are available in both modes. Sound options now use the shared slider for `s_volume` in 0.05 increments;
+other numeric editors are unchanged.
 
 | Target widget | Style roles | Implementation basis | Screen usages |
 | --- | --- | --- | --- |
@@ -54,7 +75,9 @@ compositions remain planned. Availability does not establish visual consistency.
 | Scroll pane | Horizontal/vertical tracks and thumbs; optional surface | ScrollPaneStyle | Long forms, lists, browser and previews |
 | Tree | Expand/collapse controls, selection and row text | TreeStyle plus LabelStyle | Content Browser folders |
 | Split pane | Divider and handle | SplitPaneStyle; horizontal split initially | Content Browser tree/content division |
-| Panel | Surface/frame and content insets | Table or Container with Drawable and layout padding; no custom Panel class required | Console, information panel, browser surface |
+| Panel | Thick container frame and thin control frame, with content insets | Table/Container and Drawables; two Drawable roles, no custom Panel class required | Containers for groups; button/checkbox/field/dropdown chrome |
+| Horizontal slider | Start/middle/end track, knob and disabled treatment | SliderStyle; conchars mapping available | Sample and Sound options (`s_volume`, step 0.05) |
+| Horizontal progress indicator | Same track and position indicator, read-only | ProgressBarStyle; shares slider artwork | Sample experiment; production use to be chosen when needed |
 | Content tile | Transparent idle surface; hover/selected treatment | Named ButtonStyle role plus label and image/placeholder | Content Browser files and folders |
 | Image view | Image content inside an optional styled preview surface | Image or existing image preview widget; content texture is separate from skin artwork | Thumbnails, image and sprite previews |
 
@@ -86,13 +109,14 @@ their existence does not require an independent skin style for each composition.
 
 ### Widgets outside the initial target
 
-Radio groups, separate icon-button widgets, sliders, progress bars, tooltips,
+Radio groups, separate icon-button widgets, vertical sliders/progress bars, tooltips,
 floating windows/dialogs, touchpads, multiline editors and spinners are not
 required by the current screen set. Existing skin definitions remain in the
 baseline inventory; their presence does not make them target widgets. Add one to
 the target when a screen needs its behaviour, then specify its styles and sample
-cases. Numeric fields currently use text input; playback currently uses text
-buttons.
+cases. Sound volume uses a horizontal slider; other numeric fields use text input.
+Playback uses text buttons. Horizontal slider/progress support is also included
+in the conchars sample experiment.
 
 ## Target screen composition
 
@@ -101,7 +125,7 @@ buttons.
 | Main, multiplayer and options navigation | Labels and action buttons |
 | Profile editor | Selectable list, text inputs, labels, buttons and scrolling |
 | Join, hosting and Player Setup | Text inputs, dropdowns, labels, buttons and scrolling |
-| Options section | Checkboxes, text inputs, dropdowns, descriptions, buttons and scrolling |
+| Options section | Checkboxes, text inputs, dropdowns, volume slider, descriptions, buttons and scrolling |
 | Console | Panel, console output and command input |
 | Diagnostics | Diagnostic graphs and labels |
 | Standalone viewer | Resource information panel, preview, playback controls; Content Browser for archives |
@@ -186,19 +210,19 @@ named, possibly tinted or stretchable use of artwork.
 | ID | Role | Engine drawable names | Current Quake coverage |
 | --- | --- | --- | --- |
 | D01 | Console panel | `console-panel` | Engine only; tinted `chamfer-panel` |
-| D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Derived panel from conchars cells 1–9; darkened pressed/disabled variants |
+| D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thin panel from conchars cells 18–26; darkened pressed/disabled variants |
 | D03 | Checkbox marks | `checkBoxOn`, `checkBoxOff`, `checkBoxOver`, `checkBoxOnDisabled`, `checkBoxOffDisabled` | Engine only; content menus instead use a bordered `x` text toggle |
 | D04 | Generic icon | `icon` | Engine only; currently uses the check-on artwork |
 | D05 | Flat fills and highlights | `split`, `black`, `highlight`, `selection`, `alpha` | Quake list selection uses tinted cell 5; browser still uses engine resources |
 | D06 | List surface | `list` | Quake standalone list background is explicitly cleared |
-| D07 | Horizontal progress | `progressHorizontal`, `progressHorizontalKnob`, `progressHorizontalDisabled`, `progressHorizontalKnobDisabled` | Engine only |
+| D07 | Horizontal progress | `progressHorizontal`, `progressHorizontalKnob`, `progressHorizontalDisabled`, `progressHorizontalKnobDisabled` | Derived conchars track/knob for position indicator |
 | D08 | Vertical progress | `progressVertical`, `progressVerticalKnob`, `progressVerticalDisabled`, `progressVerticalKnobDisabled` | Engine only |
 | D09 | Progress tile | `progress-bar-knob-t` (`TiledDrawable`) | Engine only |
 | D10 | Scroll tracks and thumbs | `scrollHorizontal`, `scrollVertical`, `scrollKnob`, `scrollKnobVertical` | Mixed: vertical track/thumb use a half-size conchars panel; horizontal resources remain engine |
 | D11 | Scroll surface | `scrollPane` | Quake default scroll style adds a conchars panel background; form hosts remove it |
 | D12 | Dropdown surfaces | `selectBox`, `selectOver`, `selectDown`, `selectDisabled`, `selectList` | Mixed: conchars panel for control; dropdown list uses resolved list/scroll styles |
 | D13 | Split handle | `splitPane` | Engine only |
-| D14 | Horizontal slider | `sliderHorizontal`, `sliderKnob`, `sliderKnobOver`, `sliderKnobDown`, `sliderKnobDisabled` | Engine only |
+| D14 | Horizontal slider | `sliderHorizontal`, `sliderKnob`, `sliderKnobOver`, `sliderKnobDown`, `sliderKnobDisabled` | Derived track 128–130 and knob 131; pressed/disabled tints |
 | D15 | Vertical slider | `sliderVertical`, `sliderVerticalKnob`, `sliderVerticalKnobOver`, `sliderVerticalKnobDown`, `sliderVerticalKnobDisabled` | Engine only |
 | D16 | Text input | `textField`, `textFieldDown`, `textFieldDisabled`, `textFieldCursor` | Mixed: conchars backgrounds; engine cursor and selection |
 | D17 | Tooltip surface | `tooltip` | Engine only |
@@ -214,7 +238,31 @@ visible alongside other buttons so shared and intentionally different treatments
 can be identified. Keyboard focus currently has no distinct button drawable in
 the default engine style.
 
-### Atlas source regions
+### Conchars source primitives
+
+Rows below are one-based; glyph indices are zero-based in the 16×16 sheet.
+The source maps were checked against the original `pics/conchars.pcx`, the
+current style builder and the legacy menu drawing code.
+
+| Source | Glyph indices | Current coverage | Role |
+| --- | --- | --- | --- |
+| Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container and scroll surface | Thick frame for containers/groups |
+| Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for buttons, checkbox toggles, fields and dropdowns |
+| Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
+| Progress indicator | Reuse 128–131 | Derived ProgressBarStyle | Read-only position indicator sharing the slider track |
+
+Use the existing nine-patch approach for panel frames. Preserve fixed borders
+and the slider's fixed end caps/knob while allowing its middle to span the track.
+The sheet supplies a track and knob; a filled progress treatment would be a
+separate construction choice. Start with the shared read-only indicator.
+
+Engine styling exposes corresponding roles using existing resources: the console
+frame for containers, text-input surface for the control panel, and horizontal
+slider art shared with progress. The slider uses gray/cyan palette roles for
+visibility. Engine artwork and logical proportions remain open for refinement;
+font artwork stays separate from the UI atlas.
+
+### Engine atlas source regions
 
 [uiskin.atlas](uiskin.atlas) declares 55 regions. This is the artwork inventory,
 not a requirement to copy every region into a new atlas. Several are alternate
@@ -263,8 +311,8 @@ skin to a widget still selects engine styles.
 | W12 | Checkbox / `CheckBoxStyle` | `default`, `radio` | Engine only | Extension; optional future replacement for W03 |
 | W13 | Icon button / `ImageButtonStyle` | `default` | Engine only | Extension; current playback buttons use text |
 | W14 | Icon and text button / `ImageTextButtonStyle` | `default` | Engine only | Extension |
-| W15 | Slider / `SliderStyle` | `default-horizontal`, `default-vertical`, `curved` | Engine only | Extension; numeric options currently use TextField |
-| W16 | Progress / `ProgressBarStyle` | `default-horizontal`, `default-vertical`, `curved` | Engine only | Extension |
+| W15 | Slider / `SliderStyle` | `default-horizontal`, `default-vertical`, `curved` | Derived conchars 128–131; engine defaults when content is unavailable | Horizontal target for sample experiment; vertical/curved remain extensions; volume uses a 0.05 slider; other numeric options use TextField |
+| W16 | Progress / `ProgressBarStyle` | `default-horizontal`, `default-vertical`, `curved` | Derived from resolved slider track/knob in both themes | Horizontal target for sample experiment; vertical/curved remain extensions |
 | W17 | Tooltip / `TextTooltipStyle` | `default` | Engine only | Extension |
 | W18 | Window / `WindowStyle` | `default`, `resize`, `border`, `dialog` | Engine only | Extension as a widget; its `window` drawable is required by panels |
 | W19 | Touchpad / `TouchpadStyle` | `default` | Engine only | Extension |
@@ -325,10 +373,12 @@ interactive support.
 | F03–F05 Quake text compatibility | Partial | Open | Normal conchars and unsupported text examples available; alternate bank/numbers remain planned |
 | D01–D06 panels, button chrome, selection | Partial | Open | Button, checkbox and list states visible; console panel/raw drawable gallery remain planned |
 | D10–D13 scrolling, dropdown, splitter | Partial | Open | Vertical scroll/dropdown specimens available; horizontal scroll and splitter remain planned |
-| D16, D19–D21 input, tree, panels | Partial | Open | Inputs and engine window panel available; tree and panel variants remain planned |
+| D16, D19–D21 input, tree, panels | Partial | Open | Inputs and thick/thin panel roles available; tree remains planned |
 | W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
-| W12–W19; D07–D09, D14–D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
+| W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
+| Two panel roles | Available | Open | Thick container 1–9; thin control frame 18–26 with half-cell content insets; both visible in sample |
+| W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
 | S16–S17 HUD compatibility and embedded host | Planned | Open | Compatibility area; embedding remains planned |

@@ -261,11 +261,11 @@
     },
     sliderHorizontal: {
       name: square,
-      color: up
+      color: gray
     },
     sliderKnob: {
       name: rect,
-      color: up
+      color: down
     },
     sliderKnobOver: {
       name: rect,

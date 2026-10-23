@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.List as Scene2dList
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -26,6 +28,10 @@ data class MenuWidgetStyles(
     val selectBox: SelectBox.SelectBoxStyle,
     val list: Scene2dList.ListStyle,
     val scrollPane: ScrollPane.ScrollPaneStyle,
+    val containerPanel: Drawable,
+    val controlPanel: Drawable,
+    val slider: Slider.SliderStyle,
+    val progress: ProgressBar.ProgressBarStyle,
 )
 
 private val MENU_HOVER_TEXT_COLOR = Color(0.35f, 0.95f, 0.35f, 1f)
@@ -93,15 +99,7 @@ class EngineUiStyle(
     }
 }
 
-private const val BOX_TOP_LEFT = 1
-private const val BOX_TOP = 2
-private const val BOX_TOP_RIGHT = 3
-private const val BOX_LEFT = 4
 private const val BOX_FILL = 5
-private const val BOX_RIGHT = 6
-private const val BOX_BOTTOM_LEFT = 7
-private const val BOX_BOTTOM = 8
-private const val BOX_BOTTOM_RIGHT = 9
 
 internal fun createMenuWidgetStyles(
     skin: Skin,
@@ -114,7 +112,34 @@ internal fun createMenuWidgetStyles(
     val baseSelectBoxStyle = skin.get(SelectBox.SelectBoxStyle::class.java)
     val baseListStyle = skin.get(Scene2dList.ListStyle::class.java)
     val baseScrollPaneStyle = skin.get(ScrollPane.ScrollPaneStyle::class.java)
-    val contentButtonDrawable = concharsTexture?.let { createConcharsButtonDrawable(it) }
+    val containerPanel = concharsTexture?.let { createConcharsPanelDrawable(it, 1) }
+        ?: skin.getDrawable("console-panel")
+    val contentButtonDrawable = concharsTexture?.let { texture ->
+        createConcharsPanelDrawable(texture, 18).apply {
+            // Thin frames need half a cell of content inset, while the artwork keeps its corners.
+            val inset = texture.width / ConcharsFontLoader.GRID_SIZE / 2f
+            patch = patch.apply { setPadding(inset, inset, inset, inset) }
+            minWidth = patch.leftWidth + patch.rightWidth
+            minHeight = patch.topHeight + patch.bottomHeight
+        }
+    }
+    val slider = Slider.SliderStyle(skin.get("default-horizontal", Slider.SliderStyle::class.java))
+    if (concharsTexture != null) {
+        val track = NinePatchDrawable(NinePatch(
+            null, null, null,
+            concharsGlyph(concharsTexture, 128), concharsGlyph(concharsTexture, 129), concharsGlyph(concharsTexture, 130),
+            null, null, null,
+        ))
+        val knob = createConcharsGlyphDrawable(concharsTexture, 131)
+        slider.background = track
+        slider.knob = knob
+        slider.knobOver = knob
+        slider.knobDown = knob.tint(Color(0.7f, 0.7f, 0.7f, 1f))
+        slider.disabledBackground = track.tint(Color(0.45f, 0.45f, 0.45f, 1f))
+        slider.disabledKnob = knob.tint(Color(0.45f, 0.45f, 0.45f, 1f))
+    }
+    // A read-only position indicator uses the same track and knob as the editable slider.
+    val progress = ProgressBar.ProgressBarStyle(slider)
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, BOX_FILL, MENU_SELECTION_COLOR) }
     // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
     // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
@@ -124,7 +149,7 @@ internal fun createMenuWidgetStyles(
     val contentScrollTrackDrawable = contentScrollKnobDrawable?.tint(Color(0.45f, 0.45f, 0.45f, 1f))
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
         if (contentButtonDrawable != null) {
-            style.background = contentButtonDrawable
+            style.background = containerPanel
         }
         if (contentScrollTrackDrawable != null) {
             style.vScroll = contentScrollTrackDrawable
@@ -187,24 +212,15 @@ internal fun createMenuWidgetStyles(
         },
         list = contentListStyle,
         scrollPane = contentScrollPaneStyle,
+        containerPanel = containerPanel,
+        controlPanel = contentButtonDrawable ?: baseTextFieldStyle.background,
+        slider = slider,
+        progress = progress,
     )
 }
 
-private fun createConcharsButtonDrawable(texture: Texture): NinePatchDrawable {
-    return NinePatchDrawable(
-        NinePatch(
-            concharsGlyph(texture, BOX_TOP_LEFT),
-            concharsGlyph(texture, BOX_TOP),
-            concharsGlyph(texture, BOX_TOP_RIGHT),
-            concharsGlyph(texture, BOX_LEFT),
-            concharsGlyph(texture, BOX_FILL),
-            concharsGlyph(texture, BOX_RIGHT),
-            concharsGlyph(texture, BOX_BOTTOM_LEFT),
-            concharsGlyph(texture, BOX_BOTTOM),
-            concharsGlyph(texture, BOX_BOTTOM_RIGHT),
-        ),
-    )
-}
+private fun createConcharsPanelDrawable(texture: Texture, firstGlyph: Int): NinePatchDrawable =
+    NinePatchDrawable(NinePatch(*Array(9) { concharsGlyph(texture, firstGlyph + it) }))
 
 private fun createConcharsFillDrawable(
     texture: Texture,
