@@ -1,6 +1,7 @@
 package org.demoth.cake.ui.sample
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
@@ -95,13 +96,13 @@ class UiSkinSample(
             add(button("Close", styles.button, onClose)).minWidth(90f)
         }
         content.add(controls).row()
-        content.add(Label("Text: ABC xyz 0123456789 !? café …", styles.label).apply { setWrap(true) })
+        content.add(Label("ABC xyz 0123 !? café …", styles.label).apply { setWrap(true) })
             .minWidth(0f).row()
 
-        val result = Label("Clicks: $actionCount", styles.label)
+        val result = Label("$actionCount", styles.label)
         content.add(Table().apply {
             defaults().padRight(10f).left()
-            add(button("Action", styles.button) { result.setText("Clicks: ${++actionCount}") })
+            add(button("Action", styles.button) { result.setText("${++actionCount}") })
             add(TextButton("Disabled", styles.button).apply { isDisabled = true })
             add(result).growX()
             add(TextButton("x", styles.checkBox).apply {
@@ -141,14 +142,14 @@ class UiSkinSample(
             background = styles.controlPanel
             pad(8f)
             defaults().left().pad(3f)
-            repeat(12) { add(Label("Scrollable row ${it + 1}", styles.label)).row() }
+            repeat(12) { add(Label("Row ${it + 1}", styles.label)).row() }
         }
         scroll = scrolling(panel, styles.scrollPane)
         val lower = Table().apply {
             defaults().growX().minWidth(0f).uniformX().top().pad(4f)
             add(Label("List", styles.label))
             add(Label("Dropdown", styles.label))
-            add(Label("Panel / scrolling", styles.label)).row()
+            add(Label("Scroll", styles.label)).row()
             add(Table().apply {
                 background = styles.controlPanel
                 add(list).growX().minWidth(0f)
@@ -157,7 +158,7 @@ class UiSkinSample(
                 defaults().growX().minWidth(0f).padBottom(8f)
                 add(choice).row()
                 add(SelectBox<String>(styles.selectBox).apply {
-                    setItems("Disabled dropdown")
+                    setItems("Disabled")
                     isDisabled = true
                 })
             })
@@ -166,6 +167,8 @@ class UiSkinSample(
         content.add(lower).row()
         val progress = ProgressBar(0f, 100f, 1f, false, styles.progress).apply { value = sliderValue }
         val valueLabel = Label("${sliderValue.toInt()}%", styles.label)
+        // Reserve the widest readout so dragging cannot change the slider's width.
+        val percentageWidth = maxOf(48f, GlyphLayout(styles.label.font, "100%").width)
         val slider = Slider(0f, 100f, 1f, false, styles.slider).apply {
             value = sliderValue
             changed {
@@ -178,16 +181,16 @@ class UiSkinSample(
             defaults().left().pad(3f)
             add(Label("Slider", styles.label))
             add(slider).growX().minWidth(0f)
-            add(valueLabel).minWidth(48f).row()
+            add(valueLabel).width(percentageWidth).row()
             add(Label("Progress", styles.label))
             add(progress).growX().minWidth(0f)
-            add(Label("", styles.label)).minWidth(48f).row()
+            add(Label("", styles.label)).width(percentageWidth).row()
             add(Label("Disabled", styles.label))
             add(Slider(0f, 100f, 1f, false, styles.slider).apply {
                 value = sliderValue
                 isDisabled = true
             }).growX().minWidth(0f)
-            add(Label("", styles.label)).minWidth(48f)
+            add(Label("", styles.label)).width(percentageWidth)
         }).row()
         root.add(content).growX().maxWidth(900f).minWidth(0f)
         root.validate()

@@ -49,6 +49,9 @@ reference, so disposing one owner does not unload another owner's assets.
 - HUD and menus use separate font instances and metrics over the same borrowed
   conchars texture. The style disposes both fonts before releasing its texture
   reference. Partial factory failures also dispose any fonts already created.
+- Quake menu fonts and conchars drawables use a fixed 3× scale, matching the
+  engine's 24-unit reference. HUD metrics remain native. Both themes share the
+  existing vertical `cl_ui_size` viewport convention; there is no new scale cvar.
 - Transparency comes from PCX decoding; the font loader does not post-process alpha.
 - Alternate HUD text uses the glyph high-bit toggle (`char ^ 0x80`), preserving
   mod-defined alternate glyphs and colours rather than applying a tint.
@@ -60,11 +63,12 @@ reference, so disposing one owner does not unload another owner's assets.
 
 `MenuWidgetStyles` provides content-styled labels, buttons, text fields, select
 boxes, lists, scroll panes, horizontal sliders and read-only progress indicators.
-Two Drawable roles distinguish containers from controls: IdTech2 container panels
-use conchars cells 1–9, and control frames use 18–26 with half-cell content insets.
+Two Drawable roles distinguish thick containers/action buttons from thin controls:
+IdTech2 thick panels use conchars cells 1–9, and control frames use 18–26 with
+half-cell content insets.
 Slider tracks use 128–130 with knob 131; progress shares the track and knob.
 The sample shows both panel roles and links slider changes to progress. Engine
-styles reuse existing frame/field and slider artwork; no image assets are added.
+styles use separate thick/thin engine panel artwork and the existing slider art.
 
 `MenuSoundStyles` provides optional sounds from `misc/menu1.wav`, `misc/menu2.wav`,
 and `misc/menu3.wav`. The menu controller emits enter/exit signals for navigation

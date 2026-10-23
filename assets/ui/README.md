@@ -35,6 +35,13 @@ slider/progress support from the existing Quake glyphs.
 ## Decision Log
 Newest first.
 
+### Decision: Normalize Quake menus to the engine reference units
+- Quake menu font metrics and derived drawables use a fixed 3× scale, producing 24-unit cells, thick insets 24 and thin insets 12.
+- HUD and menu fonts have independent metrics over the same texture. HUD size and source art are unchanged.
+- Both themes use the same layout and vertical `cl_ui_size`; no extra scale option or theme viewport is needed.
+- Natural engine glyph widths and differences in visible cap height are retained.
+- Status: implemented and checked in the gallery and Sound options; further visual refinements remain separate choices.
+
 ### Decision: Use thick frames for action buttons
 - User testing preferred the thick frame for buttons, with thin frames for checkbox toggles, text inputs, dropdowns and control panels.
 - Both engine and Quake-derived styles follow this choice; containers keep the thick frame.

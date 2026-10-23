@@ -37,11 +37,19 @@ rewrite its metrics to simulate a different font size.
 | Thick frame content inset | 8 | 24 | Implemented |
 | Thin frame content inset | 4 | 12 | Implemented |
 | Thin frame minimum extent | 16 | 48 | Implemented |
-| Slider track / knob and other inherited artwork | Conchars cells | Existing engine resources | Proportions still to review |
+| Slider track / knob and other inherited artwork | Conchars menu drawables at 3× | Existing engine resources | Logical knob height 24 in both; width/art treatment still differs |
 
-The resource reference does not by itself normalize both themes on screen.
-Display sizing and remaining widget construction are a later comparison slice;
-keep the same `cl_ui_size` meaning and leave Quake resources and HUD unchanged.
+Menu normalization is implemented with a fixed 3× scale on Quake menu font
+metrics and conchars-derived drawables. Both themes therefore use a 24-unit font
+line height, 24-unit thick insets and 12-unit thin insets in the same layout.
+Native Quake textures, HUD metrics and vertical `cl_ui_size` semantics stay
+unchanged; no extra scale setting or theme-specific viewport is introduced.
+Menus own a separate font instance while sharing the HUD's atlas texture.
+
+The engine font keeps narrower natural glyph advances and a different visible
+cap height. Text width/wrapping and subtle row-height differences are intentional
+comparison points, not reasons to force square glyphs. Slider knob width and
+scroll surface nesting remain available for later visual refinement.
 
 The sample now exposes two panel roles and horizontal slider/progress support
 from the existing Quake sheet. Thick frames contain groups of widgets and draw action buttons; thin frames
@@ -205,7 +213,7 @@ the skin; keep those visible as separate screen concerns.
 
 | ID | Role | Engine baseline | Quake baseline | Scope |
 | --- | --- | --- | --- | --- |
-| F01 | Main UI text | `default`: Share Tech Mono, generator size 21, line height 24, separate 512×512 `share-tech-mono.png` | Conchars font replaces menu fonts | Required |
+| F01 | Main UI text | `default`: Share Tech Mono, generator size 21, line height 24, separate 512×512 `share-tech-mono.png` | Separate conchars menu font at 3× (24-unit line height); HUD remains native | Required |
 | F02 | Font roles | `font`, `list`, `subtitle`, `window` all alias `default` | No separate role fonts | Defined; separate typography is optional |
 | F03 | Quake normal and alternate text | Engine HUD fallback uses `default` | 16×16 conchars grid; high-bit alternate bank preserves game glyph colours | Required for HUD compatibility |
 | F04 | HUD number fields | `EngineHudNumberFont` uses the default font | 22 separate `num_*` / `anum_*` PCX images, including minus | Required for HUD; separate from UI atlas |

@@ -35,10 +35,11 @@ The accepted engine asset reference is **3×**: Quake's 8-pixel font line height
 corresponds to engine line height 24. `BitmapFontGeneratorTool` generates this at
 size 21 from Share Tech Mono; engine glyphs retain their natural widths.
 Square glyphs, identical wrapping and identical widget footprints are not goals.
-The native resource ratio is separate from display scaling. This resource slice
-does not introduce theme normalization; that remains a later sample comparison.
-Slider and other inherited engine artwork have not yet been brought to this
-reference. Automated captures guide the remaining direct sizing choices.
+The native resource ratio is separate from display scaling. Menu normalization
+now applies a fixed 3× scale to Quake menu metrics/drawables, so both themes use
+the engine's existing UI units and the same vertical `cl_ui_size`. HUD metrics
+and the original texture remain unchanged. Slider and other inherited engine
+artwork still have visual differences; captures guide further direct choices.
 
 ## Sample coverage follows the target hierarchy
 
@@ -512,3 +513,41 @@ confirmed thick action-button and thin checkbox insets in both themes, preserved
 interaction/state behavior, theme switching and fallback, and page fit at
 reference heights 640/720 and 4K. Current preferred height is 599 for engine and
 316 for game, within the 608-unit content area at `cl_ui_size 640`.
+
+
+### Menu display normalization
+
+**Status: implemented.** The Quake menu font has its own metrics/cache over the
+same conchars texture as the native HUD font. Menu font and derived panels,
+slider track/knob, selection fill and vertical scroll drawables use a fixed 3×
+scale. Fonts and drawables agree on 24-unit cells, thick insets 24, thin insets
+12 and thin minimum extents 48. The HUD remains at its native 8-pixel metrics;
+engine glyph widths, texture artwork and viewport/cvar semantics are unchanged.
+The style disposes both borrowed-texture fonts; partial factory failures also
+release created fonts before unloading texture references.
+
+Shorter gallery captions keep wide Quake glyphs within the existing shared
+layout. The percentage column reserves enough width for `100%` to prevent
+slider geometry from changing during a drag. Option names wrap in their column
+so wider Quake text cannot overlap editors in Sound options or other sections.
+The name/description column minima are 220/280 units, preserving the form's
+existing overall minimum width while keeping common names such as `s_volume`
+on one line.
+
+Verification: focused font/style/viewport checks and client/fullgame compilation
+passed. The opt-in OpenGL atlas test confirms independent menu/HUD metrics and
+shared texture sampling. A graphics probe using real baseq2 content confirms
+24/12-unit resources, HUD line height 8, thick buttons/thin checkboxes, pointer
+slider endpoints/midpoint, disabled state, linked progress, typed state across
+theme switches, profile fallback/disposal and console/close behavior. Both
+sample modes fit at `cl_ui_size 640` and 720 and at 4K: engine needs 599 virtual
+units and game 588, within the 608-unit content area at reference height 640.
+Sound options retain all 21 volume values at step 0.05, staged Apply/Back behavior
+and untouched off-grid values. Clean Engine/Game captures are produced through
+`ui_sample_capture`; no capture settings are saved.
+
+Visible engine text is narrower and has different cap-height/descender metrics;
+Quake's square cells remain intact. Exact wrapping is intentionally different.
+The slider knob is 24 units high in both themes but differs in width/artwork,
+and scroll surfaces still differ in nesting. These remain targeted visual
+choices for subsequent review, rather than a requirement for a geometry system.

@@ -100,6 +100,8 @@ class EngineUiStyle(
 }
 
 private const val BOX_FILL = 5
+// Engine assets use a 24px reference; the fixed Quake menu cells are 8px.
+internal const val IDTECH2_MENU_SCALE = 3f
 
 internal fun createMenuWidgetStyles(
     skin: Skin,
@@ -117,7 +119,7 @@ internal fun createMenuWidgetStyles(
     val contentControlDrawable = concharsTexture?.let { texture ->
         createConcharsPanelDrawable(texture, 18).apply {
             // Thin frames need half a cell of content inset, while the artwork keeps its corners.
-            val inset = texture.width / ConcharsFontLoader.GRID_SIZE / 2f
+            val inset = texture.width / ConcharsFontLoader.GRID_SIZE / 2f * IDTECH2_MENU_SCALE
             patch = patch.apply { setPadding(inset, inset, inset, inset) }
             minWidth = patch.leftWidth + patch.rightWidth
             minHeight = patch.topHeight + patch.bottomHeight
@@ -129,7 +131,7 @@ internal fun createMenuWidgetStyles(
             null, null, null,
             concharsGlyph(concharsTexture, 128), concharsGlyph(concharsTexture, 129), concharsGlyph(concharsTexture, 130),
             null, null, null,
-        ))
+        ).apply { scale(IDTECH2_MENU_SCALE, IDTECH2_MENU_SCALE) })
         val knob = createConcharsGlyphDrawable(concharsTexture, 131)
         slider.background = track
         slider.knob = knob
@@ -221,7 +223,9 @@ internal fun createMenuWidgetStyles(
 }
 
 private fun createConcharsPanelDrawable(texture: Texture, firstGlyph: Int): NinePatchDrawable =
-    NinePatchDrawable(NinePatch(*Array(9) { concharsGlyph(texture, firstGlyph + it) }))
+    NinePatchDrawable(NinePatch(*Array(9) { concharsGlyph(texture, firstGlyph + it) }).apply {
+        scale(IDTECH2_MENU_SCALE, IDTECH2_MENU_SCALE)
+    })
 
 private fun createConcharsFillDrawable(
     texture: Texture,
@@ -232,7 +236,10 @@ private fun createConcharsFillDrawable(
 private fun createConcharsGlyphDrawable(
     texture: Texture,
     glyphIndex: Int,
-): TextureRegionDrawable = TextureRegionDrawable(concharsGlyph(texture, glyphIndex))
+): TextureRegionDrawable = TextureRegionDrawable(concharsGlyph(texture, glyphIndex)).apply {
+    minWidth *= IDTECH2_MENU_SCALE
+    minHeight *= IDTECH2_MENU_SCALE
+}
 
 private fun concharsGlyph(
     texture: Texture,
