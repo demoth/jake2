@@ -21,7 +21,7 @@ object CakeDesktopLauncher {
     @JvmStatic
     fun launch(args: Array<String>, host: CakeHost) {
         if (startNewJvmIfRequired(args)) return
-        val startupContext = CakeStartupBootstrap.bootstrap()
+        val startupContext = CakeStartupBootstrap.bootstrap(arguments = args.toList())
         createApplication(startupContext, host)
     }
 
@@ -40,6 +40,7 @@ object CakeDesktopLauncher {
             ?: modes.firstOrNull { it.toCakeMode() == selected } ?: desktop
         return Lwjgl3ApplicationConfiguration().apply {
             setTitle("Cake Engine v1.2.3")
+            setInitialVisible(!videoMode.hidden)
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
             setBackBufferConfig(
                 /* r = */ 8,

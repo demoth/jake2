@@ -1,8 +1,12 @@
 package jake2.qcommon.exec;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static jake2.qcommon.exec.Cbuf.splitCommandLine;
 import static jake2.qcommon.exec.Cbuf.splitScriptCommandLine;
@@ -10,6 +14,32 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Checks command/script boundaries while preserving quoted values for subsequent tokenization. */
 public class CbufTest {
+    @BeforeEach @AfterEach
+    public void drainCommands() { Cbuf.Execute(); }
+
+    @Test
+    public void startupCommandsPreserveArgumentBoundariesAndPathPunctuation() {
+        assertFalse(Cbuf.AddLateCommands(List.of("cake", "+capture_probe", "both", "/tmp/ui snapshots/a-b+c;file")));
+        assertEquals(List.of("capture_probe", "both", "/tmp/ui snapshots/a-b+c;file"),
+                Cmd.TokenizeString(Cbuf.contents(), false));
+    }
+
+    @Test
+    public void earlySetsAreClearedWithoutRemovingLateCommands() {
+        var args = new ArrayList<>(List.of("cake", "+set", "cbuf_test_name", "space value", "+echo", "done"));
+        Cbuf.AddEarlySetCommands(args, true);
+        assertEquals("set cbuf_test_name \"space value\"", Cbuf.contents());
+        Cbuf.Execute();
+        assertFalse(Cbuf.AddLateCommands(args));
+        assertEquals("echo \"done\"", Cbuf.contents());
+    }
+
+    @Test
+    public void malformedEarlySetReportsMissingValue() {
+        assertThrows(IllegalArgumentException.class, () -> Cbuf.AddEarlySetCommands(List.of("cake", "+set"), true));
+        assertThrows(IllegalArgumentException.class, () -> Cbuf.AddEarlySetCommands(List.of("cake", "+set", "name"), true));
+    }
+
     @Test
     public void testSplit() {
         assertEquals(Arrays.asList("hello", "world"), splitCommandLine("hello;world"));

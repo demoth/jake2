@@ -14,12 +14,14 @@ import org.demoth.cake.stages.ingame.RenderTuningCvars
 object CakeCvars {
     fun registerAll() {
         val registry = Cvar.getInstance()
+        registry.register("cfg_autosave", CvarTypes.BOOLEAN, true, 0, "Automatically persist profile settings and console history")
         registerUserInfo(registry)
         registerClient(registry)
         registerVideoMode(registry)
     }
 
     fun registerVideoMode(cvars: Cvar) {
+        cvars.register("vid_hidden", CvarTypes.BOOLEAN, false, 0, "Start with a hidden window for automated captures")
         val flags = CVAR_ARCHIVE or CVAR_OPTIONS or CVAR_LATCH
         cvars.register("vid_fullscreen", CvarTypes.BOOLEAN, false, flags, "Fullscreen: 0 windowed, 1 fullscreen (restart required)")
         cvars.register(

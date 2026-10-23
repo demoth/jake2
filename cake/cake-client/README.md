@@ -1,6 +1,6 @@
 # Cake Desktop Video
 
-Video settings are archived cvars in the active profile. Changes require a full application restart.
+Video settings are normally archived cvars in the active profile. Changes require a full application restart.
 Windowed windows can always be resized; cameras, UI and scene buffers follow
 the current size immediately. The latest valid windowed size is saved with the profile, unless a
 different size is explicitly pending restart. Fullscreen dimensions never replace windowed dimensions.
@@ -15,6 +15,24 @@ different size is explicitly pending restart. Fullscreen dimensions never replac
 | `vid_samples` | `4` | Requested window and scene MSAA samples: `0`, `2`, `4`, `8`; `0` disables |
 | `vid_hidpi` | `Pixels` | `Pixels` or `Logical` coordinate units for rendering/UI/input |
 | `vid_vsync` | `1` | Vertical synchronization |
+| `vid_hidden` | `0` | Start with an invisible window for automation; session-only, not archived |
+
+## Startup commands
+
+Client and fullgame accept Quake-style `+set name value` settings and
+`+command arguments`. Settings are applied before profile discovery, then reapplied
+after profile config so command-line overrides win. Latched settings take effect
+before window creation. Other startup commands run after client commands are
+registered.
+
+`+set cfg_autosave 0` disables automatic profile config/history saves and first-run
+profile persistence for this process. It still reads existing configuration;
+explicit `writeconfig` and profile editing actions retain their normal meaning.
+The control defaults to `1` and is not archived. Existing filesystem read helpers
+may create empty directories; it is a save policy, not a read-only filesystem mode.
+
+For repeatable UI snapshots, see the
+[automated sample capture command](../../info/ui-skin-sample.md#automated-captures).
 
 For example, query `vid_fullscreen_modes`, then select an advertised mode:
 

@@ -9,6 +9,10 @@ profile style changes close the sample before releasing borrowed resources.
 The compact sample fits one virtual screen and follows the vertical `cl_ui_size`
 setting live. Captions and controls all use the selected theme; fallback is
 identified explicitly.
+`ui_sample_capture <engine|game|both> <directory>` writes snapshots after rendering
+and exits. Launch with `+set cfg_autosave 0` to keep temporary settings unsaved;
+`+set vid_hidden 1` starts without a visible window. The usual `+set`/`+commands`
+startup syntax works in client/fullgame.
 See the [coverage inventory](../../../../../../../../../assets/ui/INVENTORY.md)
 and [sample plan](../../../../../../../../../info/ui-skin-sample.md).
 

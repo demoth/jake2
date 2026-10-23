@@ -5,6 +5,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import org.demoth.cake.input.ClientBindings
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
@@ -16,6 +17,7 @@ data class CakeStartupContext(
     val activeProfile: CakeGameProfile?,
     val videoMode: CakeVideoModeSettings,
     val clientBindings: ClientBindings,
+    val startupCommands: List<String> = emptyList(),
 )
 
 object CakeStartupBootstrap {
@@ -34,17 +36,27 @@ object CakeStartupBootstrap {
     fun bootstrap(
         gameProfileStore: CakeGameProfileStore = CakeGameProfileStore(),
         profileConfigStore: CakeProfileConfigStore = CakeProfileConfigStore(),
+        arguments: List<String> = emptyList(),
+        autodetectBasedir: () -> String? = ::autodetectSteamBasedir,
     ): CakeStartupContext {
         ensureInitialized()
         val clientBindings = ClientBindings()
-        val activeProfile = resolveStartupProfile(gameProfileStore)
+        val commands = mutableListOf("cake").apply { addAll(arguments) }
+        Cbuf.AddEarlySetCommands(commands, false)
+        Cbuf.Execute()
+        val activeProfile = resolveStartupProfile(gameProfileStore, autodetectBasedir)
         if (activeProfile != null) {
             loadProfileConfig(activeProfile.id, profileConfigStore)
         }
+        // Command-line overrides win over profile config, including latched video settings.
+        Cbuf.AddEarlySetCommands(commands, true)
+        Cbuf.Execute()
+        Cvar.getInstance().updateLatchedVars()
         return CakeStartupContext(
             activeProfile = activeProfile,
             videoMode = CakeVideoModeSettings.fromCvars(),
             clientBindings = clientBindings,
+            startupCommands = commands,
         )
     }
 
@@ -60,7 +72,7 @@ object CakeStartupBootstrap {
         }
     }
 
-    private fun resolveStartupProfile(gameProfileStore: CakeGameProfileStore): CakeGameProfile? {
+    private fun resolveStartupProfile(gameProfileStore: CakeGameProfileStore, autodetectBasedir: () -> String?): CakeGameProfile? {
         val persistedProfile = try {
             gameProfileStore.readSelected()
         } catch (e: Exception) {
@@ -71,11 +83,12 @@ object CakeStartupBootstrap {
             return persistedProfile
         }
 
-        val fallbackProfile = autodetectedStartupProfile(autodetectSteamBasedir())
+        val fallbackProfile = autodetectedStartupProfile(autodetectBasedir())
         if (fallbackProfile == null) {
             Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.\n")
             return null
         }
+        if (!Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return fallbackProfile
         return try {
             gameProfileStore.bootstrapDefault(fallbackProfile)
         } catch (e: Exception) {

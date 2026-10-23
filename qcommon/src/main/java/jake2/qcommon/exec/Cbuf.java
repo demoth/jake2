@@ -152,8 +152,10 @@ public final class Cbuf {
      */
     public static void AddEarlySetCommands(List<String> args, boolean clear) {
         for (int i = 0; i < args.size(); i++) {
-            if (!args.get(i).equals("+set") || args.size() < i + 2)
+            if (!args.get(i).equals("+set"))
                 continue;
+            if (i + 2 >= args.size())
+                throw new IllegalArgumentException("+set requires a variable name and value");
 
             // varName must not contain spaces
             final String varName = args.get(i + 1);
@@ -183,45 +185,25 @@ public final class Cbuf {
      */
     public static boolean AddLateCommands(List<String> args) {
 
-        // build the combined string to parse from
-        int length = 0;
-        int argc = args.size();
-        for (int i = 1; i < argc; i++) {
-            length += args.get(i).length();
-        }
-        if (length == 0)
-            return true;
-
-        StringBuilder text = new StringBuilder();
-        for (int i = 1; i < argc; i++) {
-            text.append(args.get(i));
-            if (i != argc - 1)
-                text.append(" ");
-        }
-
-        // pull out the commands
-        StringBuilder build = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == '+') {
-                i++;
-
-                int j;
-                for (j = i; j < text.length() && (text.charAt(j) != '+') && (text.charAt(j) != '-'); j++) {
-                    ;
+        StringBuilder command = null;
+        boolean empty = true;
+        // argv[0] is the executable. Preserve OS argument boundaries and punctuation in paths.
+        for (int i = 1; i <= args.size(); i++) {
+            String arg = i < args.size() ? args.get(i) : null;
+            if (arg != null && arg.isEmpty()) continue; // cleared early +set arguments
+            if (arg == null || arg.startsWith("+") || arg.startsWith("-")) {
+                if (command != null) {
+                    AddText(command.toString());
+                    empty = false;
                 }
-
-                build.append(text.substring(i, j));
-                build.append("\n");
-
-                i = j - 1;
+                command = arg != null && arg.startsWith("+") ? new StringBuilder(arg.substring(1)) : null;
+            } else if (command != null) {
+                command.append(' ');
+                if (arg.startsWith("\"")) command.append(arg);
+                else command.append('"').append(arg).append('"');
             }
         }
-
-        boolean isEmpty = (build.length() == 0);
-        if (!isEmpty)
-            AddText(build.toString());
-
-        return isEmpty;
+        return empty;
     }
 
     /**

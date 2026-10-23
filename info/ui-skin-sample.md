@@ -81,6 +81,38 @@ identifies whole-theme engine fallback and its inherited engine caret/selection.
 The panel reuses the selected scroll surface, or text-input surface when absent;
 there is no separate panel role in the current game style bundle.
 
+## Automated captures
+
+Capture Engine and Game using the same layout, resolution and active profile:
+
+```sh
+./gradlew :cake:cake-client:run --args='+set cfg_autosave 0 +set vid_hidden 1 +set vid_fullscreen 0 +set vid_windowed_width 1440 +set vid_windowed_height 900 +set cl_ui_size 720 +ui_sample_capture both /tmp/cake-ui'
+```
+
+`ui_sample_capture <engine|game|both> <directory>` opens the sample, waits two
+rendered frames per mode, writes `engine.png` and/or `game.png`, and exits. It
+captures directly after the sample is drawn, before console/diagnostic overlays.
+It uses the active profile's resolved Game style, including visible engine
+fallback when game content is unavailable. Existing output images are replaced.
+Keep the capture command last; it handles exiting without an additional `+quit`.
+
+`cfg_autosave 0` prevents automatic writes of temporary settings into the profile.
+`vid_hidden 1` keeps the window invisible. Both controls are session-only cvars;
+they use the same `+set` mechanism as video and UI settings. Explicit
+`writeconfig` still writes if requested. A graphics context/display is required
+even for hidden captures. Capture failures propagate as process failures.
+
+For a path with spaces, keep it quoted inside the Gradle argument string, for
+example `+ui_sample_capture both "/tmp/cake UI"`. Startup command handling preserves
+those argument boundaries and embedded hyphens, plus signs and semicolons.
+
+Verification covers the actual client launcher and Gradle run task, two distinct
+1440×900 images with real Quake assets, unchanged profile file contents/timestamps,
+explicit and normal saving, capture without a configured profile, and nonzero
+exit for an invalid output directory. The command-buffer suite and focused Cake
+startup/video/UI tests pass. These checks use temporary profiles; no normal
+profile configuration needs to be changed for capture verification.
+
 ## Two views within the internal sample screen
 
 ### Resource and control gallery

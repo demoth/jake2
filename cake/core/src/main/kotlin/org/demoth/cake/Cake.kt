@@ -5,6 +5,7 @@ import org.demoth.cake.assets.bsp.BspMapAsset
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PixmapIO
@@ -143,6 +144,8 @@ class Cake(
     private val hostClock = HostFrameClock()
     private var applicationPaused = false
     private var uiSample: UiSkinSample? = null
+    private data class UiSampleCapture(val directory: FileHandle, val modes: ArrayDeque<Boolean>, var frames: Int = 2)
+    private var uiSampleCapture: UiSampleCapture? = null
     private var uiSampleGameMode = false
     private var uiSampleReturnToMenu = true
     private var menuVisibleBeforeConsole = true
@@ -302,6 +305,22 @@ class Cake(
                 "off" -> closeUiSample()
                 else -> Com.Printf("Usage: ui_sample [engine|game|off]\n")
             }
+        }
+
+        Cmd.AddCommand("ui_sample_capture", "Capture engine/game/both styles to a directory, then exit") { args ->
+            require(args.size == 3) { "Usage: ui_sample_capture <engine|game|both> <directory>" }
+            val modes = when (args[1]) {
+                "engine" -> listOf(false)
+                "game" -> listOf(true)
+                "both" -> listOf(false, true)
+                else -> throw IllegalArgumentException("Expected engine, game or both")
+            }
+            check(uiSampleCapture == null) { "UI capture already running" }
+            val directory = Gdx.files.absolute(Path.of(args[2]).toAbsolutePath().normalize().toString())
+            directory.mkdirs()
+            check(directory.isDirectory) { "Not a capture directory: $directory" }
+            openUiSample(modes.first())
+            uiSampleCapture = UiSampleCapture(directory, ArrayDeque(modes))
         }
 
         Cmd.AddCommand("quit", "Exit Cake") {
@@ -465,7 +484,7 @@ class Cake(
         }
 
         Cmd.AddCommand("writeconfig", "Write profile-local config and bindings") {
-            saveActiveProfileConfig()
+            saveActiveProfileConfig(explicit = true)
         }
 
         /*
@@ -516,7 +535,7 @@ class Cake(
         }
 
         // endregion
-
+        Cbuf.AddLateCommands(startup.startupCommands)
     }
 
     /** Shared entrypoint for the console and Host Game menu. */
@@ -867,6 +886,7 @@ class Cake(
                 uiSample!!.viewport.apply()
                 uiSample!!.act(deltaSeconds)
                 uiSample!!.draw()
+                captureUiSampleFrame()
             } else if (menuVisible) {
                 uiViewport.apply()
                 when (menuView) {
@@ -1123,6 +1143,7 @@ class Cake(
     override fun dispose() {
         closeUiSample()
         Cmd.RemoveCommand("ui_sample")
+        Cmd.RemoveCommand("ui_sample_capture")
         disconnect()
         saveActiveProfileConfig()
         menuStage.dispose()
@@ -1631,38 +1652,41 @@ class Cake(
         }
     }
 
-    private fun takeScreenshot() {
-        if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) {
-            Com.Warn("Screenshot unavailable while the framebuffer is zero-sized\n")
-            return
+    private fun captureUiSampleFrame() {
+        val capture = uiSampleCapture ?: return
+        if (--capture.frames > 0) return
+        val mode = if (capture.modes.removeFirst()) "game" else "engine"
+        writeScreenshot(capture.directory.child("$mode.png"))
+        if (capture.modes.isEmpty()) {
+            uiSampleCapture = null
+            Gdx.app.exit()
+        } else {
+            capture.frames = 2
+            openUiSample(capture.modes.first())
         }
-        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
-        val flippedPixmap = Pixmap(pixmap.width, pixmap.height, pixmap.format)
+    }
+
+    private fun takeScreenshot() {
         try {
-            for (y in 0 until pixmap.height) {
-                flippedPixmap.drawPixmap(
-                    pixmap,
-                    0,
-                    y,
-                    0,
-                    pixmap.height - y - 1,
-                    pixmap.width,
-                    1
-                )
-            }
             val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
-            val writable = profileWritable()
-            val screenshotPath = writable.resolveWritePath("scrnshot/$filename")
-            if (screenshotPath == null) {
-                throw IllegalStateException("Failed to resolve screenshot write path")
-            }
-            val screenshotFile = Gdx.files.absolute(screenshotPath)
-            PixmapIO.writePNG(screenshotFile, flippedPixmap)
-            Com.Println("Screenshot saved: ${screenshotFile.file().absolutePath}")
+            val screenshotPath = profileWritable().resolveWritePath("scrnshot/$filename")
+                ?: error("Failed to resolve screenshot write path")
+            writeScreenshot(Gdx.files.absolute(screenshotPath))
         } catch (e: Exception) {
             Com.Warn("Failed to save screenshot: ${e.message}\n")
+        }
+    }
+
+    /** Called after drawing for automated captures; failures propagate so the process reports failure. */
+    private fun writeScreenshot(file: FileHandle) {
+        check(Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0) {
+            "Screenshot unavailable while the framebuffer is zero-sized"
+        }
+        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
+        try {
+            PixmapIO.writePNG(file, pixmap, -1, true)
+            Com.Println("Screenshot saved: ${file.file().absolutePath}")
         } finally {
-            flippedPixmap.dispose()
             pixmap.dispose()
         }
     }
@@ -1697,7 +1721,8 @@ class Cake(
         }
     }
 
-    private fun saveActiveProfileConfig() {
+    private fun saveActiveProfileConfig(explicit: Boolean = false) {
+        if (!explicit && !Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
         val profileId = currentConfigProfileId() ?: return
         try {
             val path = profileConfigStore.writeConfig(
@@ -1721,6 +1746,7 @@ class Cake(
     }
 
     private fun saveActiveConsoleHistory(commands: List<String>) {
+        if (!Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
         val profileId = activeProfileId()
         try {
             consoleHistoryStore.writeHistory(profileId, commands)

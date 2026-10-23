@@ -14,12 +14,14 @@ data class CakeVideoModeSettings(
     val fullscreenMode: String = "desktop",
     val depthBits: Int = 24,
     val samples: Int = 4,
+    val hidden: Boolean = false,
 ) {
     companion object {
         /** Snapshot active settings after video cvars have been registered at startup. */
         fun fromCvars(cvars: Cvar = Cvar.getInstance()): CakeVideoModeSettings {
             return CakeVideoModeSettings(
                 fullscreen = cvars.find<Boolean>("vid_fullscreen").typedValue,
+                hidden = cvars.find<Boolean>("vid_hidden").typedValue,
                 hdpiMode = cvars.find<HdpiMode>("vid_hidpi").typedValue,
                 width = cvars.find<Int>("vid_windowed_width").typedValue,
                 height = cvars.find<Int>("vid_windowed_height").typedValue,
