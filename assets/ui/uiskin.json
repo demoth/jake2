@@ -141,27 +141,27 @@
       color: highlight
     },
     buttonUp: {
-      name: control-panel,
+      name: panel-thick,
       color: white
     },
     buttonOver: {
-      name: control-panel,
+      name: panel-thick,
       color: highlight
     },
     buttonDown: {
-      name: control-panel,
+      name: panel-thick,
       color: down
     },
     buttonDisabled: {
-      name: control-panel,
+      name: panel-thick,
       color: gray
     },
     buttonChecked: {
-      name: control-panel,
+      name: panel-thick,
       color: checked
     },
     buttonCheckedOver: {
-      name: control-panel,
+      name: panel-thick,
       color: checkedOver
     },
     checkBoxOn: {

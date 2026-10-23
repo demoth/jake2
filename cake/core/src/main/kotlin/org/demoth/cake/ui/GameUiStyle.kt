@@ -112,9 +112,9 @@ internal fun createMenuWidgetStyles(
     val baseSelectBoxStyle = skin.get(SelectBox.SelectBoxStyle::class.java)
     val baseListStyle = skin.get(Scene2dList.ListStyle::class.java)
     val baseScrollPaneStyle = skin.get(ScrollPane.ScrollPaneStyle::class.java)
-    val containerPanel = concharsTexture?.let { createConcharsPanelDrawable(it, 1) }
-        ?: skin.getDrawable("console-panel")
-    val contentButtonDrawable = concharsTexture?.let { texture ->
+    val contentActionDrawable = concharsTexture?.let { createConcharsPanelDrawable(it, 1) }
+    val containerPanel = contentActionDrawable ?: skin.getDrawable("console-panel")
+    val contentControlDrawable = concharsTexture?.let { texture ->
         createConcharsPanelDrawable(texture, 18).apply {
             // Thin frames need half a cell of content inset, while the artwork keeps its corners.
             val inset = texture.width / ConcharsFontLoader.GRID_SIZE / 2f
@@ -143,12 +143,12 @@ internal fun createMenuWidgetStyles(
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, BOX_FILL, MENU_SELECTION_COLOR) }
     // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
     // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
-    val contentScrollKnobDrawable = contentButtonDrawable?.let {
+    val contentScrollKnobDrawable = contentControlDrawable?.let {
         NinePatchDrawable(NinePatch(it.patch).apply { scale(0.5f, 0.5f) })
     }
     val contentScrollTrackDrawable = contentScrollKnobDrawable?.tint(Color(0.45f, 0.45f, 0.45f, 1f))
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
-        if (contentButtonDrawable != null) {
+        if (contentControlDrawable != null) {
             style.background = containerPanel
         }
         if (contentScrollTrackDrawable != null) {
@@ -172,17 +172,18 @@ internal fun createMenuWidgetStyles(
         button = TextButton.TextButtonStyle(baseButtonStyle).also { style ->
             style.font = font
             style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
-            if (contentButtonDrawable != null) {
-                style.up = contentButtonDrawable
-                style.over = contentButtonDrawable
-                style.checked = contentButtonDrawable
-                style.down = contentButtonDrawable.tint(Color(0.7f, 0.7f, 0.7f, 1f))
-                style.disabled = contentButtonDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
+            if (contentActionDrawable != null) {
+                style.up = contentActionDrawable
+                style.over = contentActionDrawable
+                style.checked = contentActionDrawable
+                style.checkedOver = contentActionDrawable
+                style.down = contentActionDrawable.tint(Color(0.7f, 0.7f, 0.7f, 1f))
+                style.disabled = contentActionDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
             }
         },
         // A toggle button draws the font's x inside the same border as other controls.
         checkBox = TextButton.TextButtonStyle().also { style ->
-            style.up = contentButtonDrawable ?: baseButtonStyle.up
+            style.up = contentControlDrawable ?: baseTextFieldStyle.background
             style.font = font
             style.fontColor = Color.CLEAR.cpy()
             style.checkedFontColor = baseLabelStyle.fontColor.cpy()
@@ -192,10 +193,10 @@ internal fun createMenuWidgetStyles(
         textField = TextField.TextFieldStyle(baseTextFieldStyle).also { style ->
             style.font = font
             style.messageFont = font
-            if (contentButtonDrawable != null) {
-                style.background = contentButtonDrawable
-                style.focusedBackground = contentButtonDrawable
-                style.disabledBackground = contentButtonDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
+            if (contentControlDrawable != null) {
+                style.background = contentControlDrawable
+                style.focusedBackground = contentControlDrawable
+                style.disabledBackground = contentControlDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
             }
         },
         selectBox = SelectBox.SelectBoxStyle(baseSelectBoxStyle).also { style ->
@@ -203,17 +204,17 @@ internal fun createMenuWidgetStyles(
             style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
             style.scrollStyle = ScrollPane.ScrollPaneStyle(contentScrollPaneStyle)
             style.listStyle = Scene2dList.ListStyle(contentListStyle)
-            if (contentButtonDrawable != null) {
-                style.background = contentButtonDrawable
-                style.backgroundOver = contentButtonDrawable
-                style.backgroundOpen = contentButtonDrawable
-                style.backgroundDisabled = contentButtonDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
+            if (contentControlDrawable != null) {
+                style.background = contentControlDrawable
+                style.backgroundOver = contentControlDrawable
+                style.backgroundOpen = contentControlDrawable
+                style.backgroundDisabled = contentControlDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
             }
         },
         list = contentListStyle,
         scrollPane = contentScrollPaneStyle,
         containerPanel = containerPanel,
-        controlPanel = contentButtonDrawable ?: baseTextFieldStyle.background,
+        controlPanel = contentControlDrawable ?: baseTextFieldStyle.background,
         slider = slider,
         progress = progress,
     )

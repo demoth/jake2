@@ -25,8 +25,9 @@ simple sizing choices; retain expected differences rather than building a
 general geometry framework. Keep the HUD text behaviour separate from any UI
 presentation choices.
 
-The sample exposes two panel roles: thick frames for groups of widgets and thin
-frames for controls such as buttons, checkbox toggles, inputs and dropdowns.
+The sample exposes two panel roles: thick frames for groups and action buttons,
+and thin frames for checkbox toggles, inputs and dropdowns. User testing selected
+this distinction for both themes.
 Quake uses its fixed conchars art; engine now has distinct thick/thin frames
 with 24-pixel corners and 24/12-pixel content insets respectively.
 
@@ -158,7 +159,7 @@ behaviour and visual differences can be understood.
 | Input | W04 | Empty field with hint, entered text, caret, selection, focused/unfocused, disabled, long value, password masked with `*`; feedback as adjacent text |
 | Selection | W05, W06 | List and open dropdown with long choices; selected/unselected, hover, disabled dropdown, scrolling |
 | Navigation | W07–W09 | Horizontal/vertical scrolling, tree expanded/collapsed and selected, draggable splitter, overflowing content |
-| Two panels | Thick/thin frame roles | Thick container around thin-framed controls; same roles in both themes; available |
+| Two panels | Thick/thin frame roles | Thick container and action buttons; thin frames for other controls; same roles in both themes; available |
 | Horizontal controls | W15–W16 | Interactive slider and read-only progress indicator using a shared value; available |
 | Extensions | W12–W14, W17–W19 | Separate optional area for native checkbox/radio, icon buttons, tooltip, window and touchpad; vertical/curved slider/progress variants remain optional |
 
@@ -246,8 +247,8 @@ Atlas roles, to refine against actual style usages:
 | Primitive | Uses | Metadata or state requirement |
 | --- | --- | --- |
 | Neutral fill | Selection, tintable surface, cursor or dim overlay | Opaque neutral pixels for predictable tinting |
-| Thick panel frame | Console, information panel, form/browser container | Quake cells 1–9; matching engine proportions, nine-patch splits and content padding |
-| Thin control frame | Buttons, checkbox toggles, fields, dropdown | Quake cells 18–26; matching engine role and state treatments |
+| Thick panel frame | Action buttons, console, information panel, form/browser container | Quake cells 1–9; matching engine proportions, nine-patch splits and content padding |
+| Thin control frame | Checkbox toggles, fields, dropdown | Quake cells 18–26; matching engine role and state treatments |
 | Check mark | Optional native checkbox; current boolean toggle may remain text | On/off and disabled appearance |
 | Tree controls | Expand/collapse | Distinguishable at the smallest logical size |
 | Track and thumb | Horizontal/vertical scrollbars; optional sliders | Fixed borders, stretch direction, minimum thumb size |
@@ -475,13 +476,13 @@ commands are recorded in [the asset README](../assets/ui/README.md).
 `engine-panels.svg` is the editable source for a small separate atlas page with
 two 72×72 frame regions. Both preserve 24-pixel corners; the thick container has
 24-pixel content insets, while the thin control drawable has 12-pixel insets and
-48-pixel minimum extents. Buttons, checkbox toggles, inputs and dropdowns share
-the thin frame. Normal input/dropdown borders use the existing text tint and
+48-pixel minimum extents. Initially buttons, checkbox toggles, inputs and dropdowns
+shared the thin frame; the user-tested button decision below supersedes this. Normal input/dropdown borders use the existing text tint and
 focused inputs use cyan so those frames remain visible. Existing palette colours
 are retained. The legacy atlas page remains available pending its own cleanup.
 
-Sample row spacing was reduced from 6 to 3 virtual pixels. The resulting engine
-form needs 603 units within 608 available at `cl_ui_size 640`; game needs 319.
+Sample row spacing was reduced from 6 to 3 virtual pixels. At that slice the engine
+form needed 603 units within 608 available at `cl_ui_size 640`; game needed 319.
 The resource slice establishes the native size reference. Theme display
 normalization, slider proportions and other inherited artwork remain to review.
 
@@ -491,3 +492,23 @@ asserted the engine's 24-pixel font line height, 24/12-pixel frame insets and
 4K. Pointer input, slider endpoints, linked progress, disabled controls, typed
 state across theme switching, console/close and profile fallback checks passed.
 Automated captures were inspected for the new font and frame usage.
+
+
+### Button frame choice after user testing
+
+Action buttons now use the thick frame in both themes, retaining their existing
+hover/pressed/disabled treatments. Checkbox toggles, inputs, dropdowns and the
+control-panel role retain thin frames. The engine checkbox explicitly borrows
+the thin input background so changing action-button artwork does not change it.
+
+To keep the sample on one virtual page with taller buttons, the heading now
+identifies the theme and replaces the separate mode-description row; the text
+specimen is one line. The input specimen still contains a long resource path,
+and unavailable game styling is explicitly identified as engine fallback.
+Game caret and text selection still inherit engine resources, as before.
+
+Verification: four focused style/viewport tests passed. The graphics probe
+confirmed thick action-button and thin checkbox insets in both themes, preserved
+interaction/state behavior, theme switching and fallback, and page fit at
+reference heights 640/720 and 4K. Current preferred height is 599 for engine and
+316 for game, within the 608-unit content area at `cl_ui_size 640`.

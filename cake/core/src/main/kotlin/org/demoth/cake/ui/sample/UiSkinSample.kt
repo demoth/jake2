@@ -82,22 +82,20 @@ class UiSkinSample(
             background = styles.containerPanel
             defaults().growX().left().padBottom(3f)
         }
+        val heading = when {
+            !game -> "Engine UI sample"
+            gameStyle is EngineUiStyle -> "Game: engine fallback (content unavailable)"
+            else -> "Game UI sample"
+        }
         val controls = Table().apply {
             defaults().padRight(8f)
-            add(Label("UI sample", styles.label)).growX().left()
+            add(Label(heading, styles.label).apply { setWrap(true) }).growX().minWidth(0f).left()
             add(button("Engine", styles.button) { onMode(false) }).minWidth(90f)
             add(button("Game", styles.button) { onMode(true) }).minWidth(90f)
             add(button("Close", styles.button, onClose)).minWidth(90f)
         }
         content.add(controls).row()
-        val effective = when {
-            !game -> "Engine style"
-            gameStyle is EngineUiStyle -> "Game: engine fallback (content unavailable)"
-            else -> "Game style (IdTech2; engine caret / text selection)"
-        }
-        content.add(Label(effective, styles.label).apply { setWrap(true) }).minWidth(0f).row()
-        content.add(Label("Text: ABC xyz 0123456789 !? café …\n" +
-            "baseq2/players/a_long_directory/skin.pcx", styles.label).apply { setWrap(true) })
+        content.add(Label("Text: ABC xyz 0123456789 !? café …", styles.label).apply { setWrap(true) })
             .minWidth(0f).row()
 
         val result = Label("Clicks: $actionCount", styles.label)

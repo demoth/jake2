@@ -35,6 +35,11 @@ slider/progress support from the existing Quake glyphs.
 ## Decision Log
 Newest first.
 
+### Decision: Use thick frames for action buttons
+- User testing preferred the thick frame for buttons, with thin frames for checkbox toggles, text inputs, dropdowns and control panels.
+- Both engine and Quake-derived styles follow this choice; containers keep the thick frame.
+- Status: accepted and implemented.
+
 ### Decision: Author engine resources at a 3× Quake reference scale
 - Quake's fixed 8-pixel cell is the reference; engine font line height is 24, thick frame insets/corners 24, thin content insets 12.
 - Preserve the engine font's natural glyph widths. Matching square cells, text wrapping and exact widget footprints is not required.

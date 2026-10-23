@@ -44,9 +44,9 @@ Display sizing and remaining widget construction are a later comparison slice;
 keep the same `cl_ui_size` meaning and leave Quake resources and HUD unchanged.
 
 The sample now exposes two panel roles and horizontal slider/progress support
-from the existing Quake sheet. Thick frames contain groups of widgets; thin frames define controls
-such as buttons, checkbox toggles, fields and dropdowns. Their final application
-will be judged from captures of the sample.
+from the existing Quake sheet. Thick frames contain groups of widgets and draw action buttons; thin frames
+define checkbox toggles, fields and dropdowns. User testing selected thick frames for action buttons and thin frames for the
+other controls; both themes follow this choice.
 
 ## Target hierarchy
 
@@ -230,7 +230,7 @@ named, possibly tinted or stretchable use of artwork.
 | ID | Role | Engine drawable names | Current Quake coverage |
 | --- | --- | --- | --- |
 | D01 | Console panel | `console-panel` | Engine only; tinted `panel-thick` (24-pixel corners/insets) |
-| D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thin panel from conchars cells 18–26; darkened pressed/disabled variants |
+| D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thick panel from conchars cells 1–9; darkened pressed/disabled variants |
 | D03 | Checkbox marks | `checkBoxOn`, `checkBoxOff`, `checkBoxOver`, `checkBoxOnDisabled`, `checkBoxOffDisabled` | Engine only; content menus instead use a bordered `x` text toggle |
 | D04 | Generic icon | `icon` | Engine only; currently uses the check-on artwork |
 | D05 | Flat fills and highlights | `split`, `black`, `highlight`, `selection`, `alpha` | Quake list selection uses tinted cell 5; browser still uses engine resources |
@@ -266,8 +266,8 @@ current style builder and the legacy menu drawing code.
 
 | Source | Glyph indices | Current coverage | Role |
 | --- | --- | --- | --- |
-| Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container and scroll surface | Thick frame for containers/groups |
-| Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for buttons, checkbox toggles, fields and dropdowns |
+| Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container, scroll surface and action buttons | Thick frame for containers/groups and action buttons |
+| Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for checkbox toggles, fields and dropdowns |
 | Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
 | Progress indicator | Reuse 128–131 | Derived ProgressBarStyle | Read-only position indicator sharing the slider track |
 
@@ -277,8 +277,8 @@ The sheet supplies a track and knob; a filled progress treatment would be a
 separate construction choice. Start with the shared read-only indicator.
 
 Engine styling exposes corresponding roles using separate `panel-thick` and
-`panel-thin` artwork, with the thin frame shared by buttons, toggles, text fields,
-dropdowns and the control panel. Horizontal slider art is shared with progress.
+`panel-thin` artwork. Action buttons use the thick frame; toggles, text fields,
+dropdowns and the control panel share the thin frame. Horizontal slider art is shared with progress.
 The slider uses gray/cyan palette roles for
 visibility. Engine artwork and logical proportions remain open for refinement;
 font artwork stays separate from the UI atlas.
