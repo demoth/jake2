@@ -51,7 +51,15 @@ class ConcharsAtlasGlTest {
         val target = SceneFrameBuffer.create(256, 256, 24, 4)
         var region = TextureRegion(texture, 8, 8, 8, 8)
         val font = ConcharsFontLoader.createBitmapFont(texture)
+        val menuFont = ConcharsFontLoader.createBitmapFont(texture)
         try {
+            // Menu scaling must not change HUD metrics or require another atlas texture.
+            assertNotSame(font.data, menuFont.data)
+            assertSame(font.region.texture, menuFont.region.texture)
+            menuFont.data.setScale(3f)
+            assertEquals(24f, menuFont.lineHeight)
+            assertEquals(8f, font.lineHeight)
+            assertEquals(8, font.data.getGlyph('A').xadvance)
             assertTrue(target.samples > 0)
             batch.projectionMatrix.setToOrtho2D(0f, 0f, 128f, 128f)
             fun greenPixels(multisampling: Boolean): Int {
@@ -93,6 +101,7 @@ class ConcharsAtlasGlTest {
             target.dispose()
             batch.dispose()
             font.dispose()
+            menuFont.dispose()
             texture.dispose()
         }
     }

@@ -62,6 +62,7 @@ class IdTech2HudNumberFont(
 
 class IdTech2UiStyle(
     override val hudFont: BitmapFont,
+    private val menuFont: BitmapFont,
     override val hudNumberFont: HudNumberFont,
     override val menuWidgets: MenuWidgetStyles,
     override val menuSounds: MenuSoundStyles,
@@ -69,6 +70,7 @@ class IdTech2UiStyle(
 ) : GameUiStyle {
     override fun dispose() {
         hudNumberFont.dispose()
+        menuFont.dispose()
         hudFont.dispose()
         onDispose()
     }
@@ -96,9 +98,12 @@ object GameUiStyleFactory {
         // Always try IdTech2 HUD assets first. CakeFileResolver resolves them through
         // mod -> baseq2 layers, so for example, map-only mods inherit baseq2 HUD assets automatically.
         val hudAssetPaths = mutableListOf<String>()
+        val fonts = mutableListOf<BitmapFont>()
         return try {
             val concharsTexture = loadTexture(assetManager, CONCHARS_PATH, hudAssetPaths)
-            val hudFont = ConcharsFontLoader.createBitmapFont(concharsTexture)
+            // Fonts own independent metrics/caches but borrow the same AssetManager texture.
+            val hudFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also { fonts += it }
+            val menuFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also { fonts += it }
 
             val digitsByStyle = Array(HUD_NUM_STYLES) { style ->
                 Array(HUD_NUM_FRAMES) { frame ->
@@ -109,12 +114,14 @@ object GameUiStyleFactory {
 
             IdTech2UiStyle(
                 hudFont = hudFont,
+                menuFont = menuFont,
                 hudNumberFont = hudNumberFont,
-                menuWidgets = createMenuWidgetStyles(skin, hudFont, concharsTexture),
+                menuWidgets = createMenuWidgetStyles(skin, menuFont, concharsTexture),
                 menuSounds = menuSounds,
                 onDispose = { unloadAssets(assetManager, hudAssetPaths + menuSoundPaths) },
             )
         } catch (e: Exception) {
+            fonts.forEach { it.dispose() }
             unloadAssets(assetManager, hudAssetPaths)
             Com.Warn("Failed to load IdTech2 UI style for game '$gameName', using engine default style: ${e.message}")
             EngineUiStyle(

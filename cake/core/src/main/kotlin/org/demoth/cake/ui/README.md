@@ -46,6 +46,9 @@ reference, so disposing one owner does not unload another owner's assets.
 - `ConcharsFontLoader` builds a `BitmapFont` from `pics/conchars.pcx`. The atlas has
   a fixed 16-by-16 glyph grid; cell dimensions come from the actual texture size,
   supporting both 128-by-128 and 256-by-256 atlases.
+- HUD and menus use separate font instances and metrics over the same borrowed
+  conchars texture. The style disposes both fonts before releasing its texture
+  reference. Partial factory failures also dispose any fonts already created.
 - Transparency comes from PCX decoding; the font loader does not post-process alpha.
 - Alternate HUD text uses the glyph high-bit toggle (`char ^ 0x80`), preserving
   mod-defined alternate glyphs and colours rather than applying a tint.
