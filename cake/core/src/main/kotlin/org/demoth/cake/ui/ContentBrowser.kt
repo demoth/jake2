@@ -137,13 +137,21 @@ class ContentBrowser(
         })
         backButton.addListener(object : ChangeListener() {
             override fun changed(event: ChangeEvent, actor: Actor) {
-                clearAudition()
-                previewSelection(null)
-                content.actor = gridScroll
-                backButton.isVisible = false
+                closePreview()
             }
         })
         tree.selection.set(root)
+    }
+
+    /** Return to the retained folder grid; false when no full preview is open. */
+    fun closePreview(): Boolean {
+        if (content.actor === gridScroll) return false
+        clearAudition()
+        previewSelection(null)
+        content.actor = gridScroll
+        backButton.isVisible = false
+        stage?.scrollFocus = gridScroll
+        return true
     }
 
     override fun act(delta: Float) {

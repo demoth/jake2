@@ -75,7 +75,7 @@ The preview has no gameplay entities or sky rendering.
 The client/fullgame main menu also has **Content browser**. It uses the active
 profile's resolved VFS snapshot and menu theme, with tree/grid navigation and a
 fixed footer showing logical path, size and winning source layer/package or
-directory. Back or Escape returns to the main menu. It shares `cl_ui_size` and
+directory. The top Back button returns to the main menu. It shares `cl_ui_size` and
 refreshes its snapshot on entry or profile/style changes. Empty profiles have
 an explanatory message. The client splitter uses each theme's vertical separator
 as its handle; libGDX provides dragging. The standalone viewer retains its
@@ -84,9 +84,16 @@ existing native engine handle.
 Visible PCX, WAL and TGA tiles now load aspect-fit image thumbnails progressively,
 using the same loaders as the standalone viewer. Other tiles show their file
 extension; failed images show "Unavailable". Scrolling retains folder thumbnails;
-changing folders, Back/Escape, profile changes and shutdown release them. Listing
+changing folders, leaving the browser, profile changes and shutdown release them. Listing
 reads metadata only; image loading materializes visible package entries on demand.
-Full image/media previews remain a later client slice. Browsing does not change theme.
+Double-click an image to open its aspect-preserving full preview, with dimensions
+and a pan/zoom hint. Wheel zooms around the pointer; left-drag pans. Resizing
+retains relative zoom/pan, and reopening starts fitted again. Back to folder or
+Escape restores the folder grid and its scroll position; another Escape leaves
+the browser. Failed images show a dismissible inline error. The preview borrows
+the folder-cache texture, so returning to the grid retains it; there is no second
+image load or cache. Audio, sprite and model/map previews remain later client
+slices. Browsing does not change theme.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.

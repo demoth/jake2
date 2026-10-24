@@ -82,8 +82,10 @@ and scroll position when changing theme. ContentBrowser now adopts these resolve
 its standalone Skin adapter retains native engine sizing. The client host browses
 profile VFS metadata and loads visible PCX/WAL/TGA thumbnails progressively.
 ImageThumbnails owns folder-scoped textures independently of shared game assets;
-folder changes, browser exit and profile changes release them. Full previews
-remain standalone-only for now.
+folder changes, browser exit and profile changes release them. Client full-image
+previews borrow these cached textures through shared ImagePreviewPane, with
+aspect fit, pointer-anchored zoom and pan. Back to folder / Escape restore the
+grid scroll position; audio/sprite/model/map previews remain standalone-only.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

@@ -927,3 +927,34 @@ settings with cfg_autosave disabled.
 Two commits separate shared ownership extraction from client lifecycle wiring.
 Production scope is about 80 added lines and 35 removed, within the 60–90 added
 line estimate. No new loader, asset or preview toolbar is introduced.
+
+
+### Client full-image previews
+
+Double-clicking a PCX/WAL/TGA tile opens a full-image preview with dimensions and
+a themed pan/zoom hint. Shared ImagePreviewPane (moved from viewer to ui) supplies
+aspect-preserving fit, pointer-anchored wheel zoom, left-drag pan and clipping.
+Small images enlarge to fit. Relative zoom/pan survive resize; reopening starts
+fitted. The standalone image and sprite callers use the same moved pane.
+
+The client preview borrows the existing full-size folder-cache texture through
+ImageThumbnails.load; it adds no asset-manager reference, duplicate texture or
+new resource lifetime. Back to folder retains the grid, its scroll position and
+folder cache. Escape closes a preview first; a subsequent Escape leaves the
+browser through the existing menu intent. The top Back button still leaves the
+browser directly. Corrupt images show a dismissible inline error. Folder/profile
+changes and shutdown retain the preceding slice's cleanup policy.
+
+Validation: client/fullgame/viewer compile and focused menu/preview ownership
+checks pass. A temporary desktop probe verifies real PCX/WAL and generated TGA
+previews in both themes, aspect fit, shared texture identity, pointer anchoring,
+pan, nonzero grid-scroll restoration by Back/Escape, reopening reset, folder and
+profile replacement during an open preview, corrupt-image recovery and 4K
+resize/input. Both-theme image captures were inspected. The standalone PAK
+thumbnail/full-image/Back probe also passes after the shared-pane move.
+Probes use isolated temporary settings with cfg_autosave disabled.
+
+The change is split into the shared-pane move and client wiring commits. Added
+production scope is about 35 lines, within the 35–55 line estimate; no new loader,
+cache, artwork or graphics harness was needed. Audio, sprite and model/map
+previews remain later slices.

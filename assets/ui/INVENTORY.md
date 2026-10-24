@@ -382,12 +382,12 @@ defined in [the sample specification](../../info/ui-skin-sample.md).
 | S09 | Debug graphs | Engine text with locally defined metric colours, ScreenViewport | Composition: diagnostic labels and graph backdrop |
 | S10 | Standalone viewer information panel | Engine skin, ScreenViewport | Composition: filename, metadata, hints, errors |
 | S11 | Content Browser shell | Explicit native engine adapter in standalone viewer | Composition: tree, splitter, tiles, path, status, Back |
-| S12 | Image preview | Engine UI around borrowed texture | Composition: clipping, native dimensions, pan/zoom hint |
+| S12 | Image preview | Native engine UI in viewer; resolved menu style in client, both borrow textures | Composition: clipping, native dimensions, pan/zoom hint |
 | S13 | Sound controls | Engine skin | Composition: duration and Play/Pause/Loop/Stop |
 | S14 | Sprite and MD2 controls | Engine skin | Composition: frame info, transport buttons, skin dropdown |
 | S15 | BSP and MD2 scene | Engine UI around scene rendering | Composition: contrasting light/dark preview backdrop |
 | S16 | HUD and game overlays | Content font and numeric renderer | Compatibility area: normal/alternate text and numbers |
-| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source and image thumbnails; full previews deferred |
+| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source, image thumbnails and full image previews; other media deferred |
 
 The legacy Java client's direct picture/character UI provides compatibility
 reference material; it does not consume the Scene2D skin. Standalone archive
@@ -424,7 +424,7 @@ interactive support.
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
 | S16 HUD compatibility | Planned | Open | Compatibility area remains planned |
-| S17 embedded browser | Available | Open | Both themes verified in live host, including thumbnails, profile replacement and 4K input; full previews deferred |
+| S17 embedded browser | Available | Open | Both themes verified in live host, including image previews, profile replacement and 4K input; other media deferred |
 
 When a group contains different statuses, split the row or name the incomplete
 IDs in the evidence column. For each style decision, record the role, affected
@@ -444,7 +444,10 @@ menu → Content browser opens the active profile's resolved VFS snapshot with
 tree/grid/metadata, including source layer and winning package/directory name.
 Visible PCX/WAL/TGA tiles load progressive thumbnails. Each host owns a
 folder-scoped ImageThumbnails cache; client resolution uses profile content only.
-Folder changes, screen exit and profile replacement release owned textures.
+Full image previews borrow their texture from the folder cache and reuse the
+shared ImagePreviewPane for fit, zoom and pan. Back to folder / Escape retain
+the grid scroll position and cached images. Folder changes, browser exit and
+profile replacement release owned textures.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu
 styles and has one thick outer panel. Its SplitPane handle shares each theme's
@@ -454,7 +457,7 @@ engine splitter.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not
-prerequisites. Client media-preview embedding and override inspection remain
+prerequisites. Client audio/sprite/model/map preview embedding and override inspection remain
 separate later slices. The standalone viewer remains engine styled.
 
 ## Implementation references

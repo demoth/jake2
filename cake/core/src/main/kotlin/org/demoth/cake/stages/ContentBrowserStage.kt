@@ -1,6 +1,8 @@
 package org.demoth.cake.stages
 
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.scenes.scene2d.ui.Container
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -10,6 +12,7 @@ import org.demoth.cake.ui.ContentBrowser
 import org.demoth.cake.ui.ContentBrowserStyles
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.ImageThumbnails
+import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -42,9 +45,25 @@ class ContentBrowserStage(
         content.actor = if (entries.isEmpty()) {
             Label(message ?: "No content found in this profile.", styles.label)
         } else {
-            ContentBrowser(entries, profileName, styles, loadThumbnail = thumbnails::load,
+            ContentBrowser(entries, profileName, styles, previewSelection = ::previewImage, loadThumbnail = thumbnails::load,
                 clearThumbnails = thumbnails::clear, showSource = true)
         }
+    }
+
+    private fun previewImage(entry: VfsEntry?): Actor? {
+        if (entry == null || entry.normalizedPath.substringAfterLast('.') !in setOf("pcx", "wal", "tga")) return null
+        val texture = thumbnails.load(entry) ?: return Label("Could not load image.", styles.label)
+        return Table().apply {
+            add(ImagePreviewPane(Image(texture))).grow().row()
+            add(Label("${texture.width} x ${texture.height} | Drag: pan | Wheel: zoom", styles.label).apply {
+                setWrap(true)
+            }).minWidth(0f).growX().pad(4f)
+        }
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        if (keycode == Input.Keys.ESCAPE && (content.actor as? ContentBrowser)?.closePreview() == true) return true
+        return super.keyUp(keycode)
     }
 
     /** Detach actors before releasing their borrowed textures; reopening supplies a new snapshot. */
