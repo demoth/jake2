@@ -606,4 +606,64 @@ left/right content insets. An indicator can be included or composed into those
 backgrounds with a reserved right inset, without changing widget behavior. The
 legacy engine `select` atlas region already includes a down triangle; current
 engine/game thin-frame backgrounds do not include an indicator. Adding one to
-both themes remains a separate resource/composition choice.
+both themes is explicitly deferred by the user; it is not a Content Browser
+prerequisite. Revisit background composition/right-inset allocation when resumed.
+
+
+## Browser preparation before client embedding
+
+This is a readiness review and plan, not authorization to resume the paused
+viewer implementation or embed the browser yet. The arrow indicator is recorded
+as deferred. The existing ContentBrowser already implements folders, wrapping
+file tiles, thumbnail placeholders, selection metadata, scrolling and preview/Back
+callbacks. Reuse it rather than introducing another browser or UI framework.
+
+### Required coverage and current gaps
+
+| Element / widget | Existing support | Work before client embedding |
+| --- | --- | --- |
+| Labels, action buttons, panels | Resolved engine/game menu styles; native Quake size restored | Reuse; preserve the standalone viewer's existing engine sizing |
+| Separator | Conchars row 2, cells 29–31: start/middle/end, verified against the actual sheet | Add horizontal drawable with fixed caps/stretch middle and a rotated vertical variant; expose in sample |
+| Tree | Standard libGDX Tree; current browser obtains its engine TreeStyle and node labels directly from Skin | Resolve expand/collapse, selection, hover and node label styles; choose simple conchars +/- or directional marks without new widget behavior |
+| Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Resolve SplitPaneStyle; separator art can supply the handle. Keep a usable draggable width independently of visible line detail |
+| File/folder tile | Existing Button with transparent idle and locally assigned hover/selected fill | Resolve a tile ButtonStyle plus label/placeholder styling; retain flat idle and borrowed thumbnail textures |
+| Image / placeholder | Existing Image/Container, aspect-fit thumbnails and unavailable placeholder | Include representative image, folder, unsupported and unavailable cases in a browser sample; no new ImageStyle is required |
+| Scroll panes and long text | Existing styles/behavior; grid is vertical-only, tree may overflow horizontally | Check tree/grid wheel focus, long/deep paths, ellipsis/wrapping and any engine horizontal-scroll fallback explicitly |
+| Browser shell / metadata / Back | Existing composition and preview callbacks; background and controls read raw Skin | Accept explicit resolved styles; keep standalone engine appearance, use active-profile styles when embedded |
+
+Keep decorative separators separate from draggable split panes in the inventory.
+Reuse a drawable between them where useful. A horizontal bar assembled from
+29/30/31 can be presented vertically by rotating the drawable; no new PCX asset
+is needed. The browser's left/right split needs the vertical handle first.
+
+### Small implementation slices
+
+1. **Separator and split handle.** Add horizontal/vertical separator roles in both
+   themes using the existing engine line/split resources and conchars 29–31.
+   Show both orientations and a draggable left/right split in the sample. Check
+   fixed end caps, stretching, minimum size and pointer usability at native Quake
+   sizing and current `cl_ui_size` values. No general Separator class is needed.
+2. **Browser style coverage and adoption.** Extend existing resolved styles with
+   TreeStyle, SplitPaneStyle, tile ButtonStyle and the shell background role;
+   reuse existing label/button/scroll styles. Replace ContentBrowser's direct
+   per-widget Skin lookups with these explicit styles. Preserve the standalone
+   viewer's current engine presentation; the client will use menu-sized styles.
+   No theme registry, extra skin loader or fallback framework is required.
+3. **A browser composition in the sample.** Reuse the styled ContentBrowser with
+   fixture VfsEntry values and placeholder images/callbacks. Include expanded and
+   collapsed folders, tree selection, tile hover/selection, long names/paths,
+   empty folders, failed thumbnails and a preview/Back transition. Verify split
+   dragging, nested scroll focus, resize and theme switching in both themes.
+   Use a compact browser sample/view so each sample view fits one virtual screen.
+4. **Client integration, after the shell is verified.** Add the entry point and
+   browse the active profile's resolved VFS snapshot. Show the winning source
+   alongside logical path and size; VfsEntry already carries source/layer data.
+   Handle close/Escape, input priority, pause policy, profile changes and style
+   lifetime through existing host mechanisms. Start with tree/grid/metadata;
+   adapting media preview ownership/toolbars and override inspection remain
+   separate slices. Do not change UI theme merely by inspecting other content.
+
+Dropdown triangles, broad atlas cleanup, optional widgets and exact pixel/wrap
+matching are not gates. Broader console/HUD specimens are useful inventory work
+but are not prerequisites for this browser shell. Native viewer verification
+remains deferred as in its existing plan.

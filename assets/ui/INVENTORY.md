@@ -101,7 +101,8 @@ other numeric editors are unchanged.
 | Dropdown | Closed control, open list and disabled treatment | SelectBoxStyle with ListStyle and ScrollPaneStyle | Hosting/player/options choices, MD2 skin choice |
 | Scroll pane | Horizontal/vertical tracks and thumbs; optional surface | ScrollPaneStyle | Long forms, lists, browser and previews |
 | Tree | Expand/collapse controls, selection and row text | TreeStyle plus LabelStyle | Content Browser folders |
-| Split pane | Divider and handle | SplitPaneStyle; horizontal split initially | Content Browser tree/content division |
+| Split pane | Draggable divider and handle | SplitPaneStyle; left/right panes initially (vertical handle) | Content Browser tree/content division |
+| Separator | Decorative horizontal/vertical divider with fixed end caps | Image/Drawable or container background; no custom widget required | Section boundaries; artwork can also supply a split-pane handle |
 | Panel | Thick container frame and thin control frame, with content insets | Table/Container and Drawables; two Drawable roles, no custom Panel class required | Containers for groups; button/checkbox/field/dropdown chrome |
 | Horizontal slider | Start/middle/end track, knob and disabled treatment | SliderStyle; conchars mapping available | Sample and Sound options (`s_volume`, step 0.05) |
 | Horizontal progress indicator | Same track and position indicator, read-only | ProgressBarStyle; shares slider artwork | Sample experiment; production use to be chosen when needed |
@@ -257,6 +258,7 @@ named, possibly tinted or stretchable use of artwork.
 | D19 | Tree surface and hover | `tree`, `treeOver` | Engine only |
 | D20 | Tree controls | `treeMinus`, `treePlus` | Engine only |
 | D21 | Window and panel surfaces | `window`, `windowResize`, `windowBorder` | Engine only; browser and viewer use `window` as a panel drawable |
+| D22 | Separator / divider artwork | Existing split/line primitives can seed the engine role | Conchars 29–31, row 2 last three cells; not yet wired; vertical variant can reuse rotated artwork |
 
 There is no named browser-tile style yet: `ContentBrowser` constructs a
 `ButtonStyle` locally, with transparent idle appearance and the engine `selection`
@@ -275,6 +277,7 @@ current style builder and the legacy menu drawing code.
 | --- | --- | --- | --- |
 | Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container, scroll surface and action buttons | Thick frame for containers/groups and action buttons |
 | Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for checkbox toggles, fields and dropdowns |
+| Separator, row 2 last three cells | Start: 29; middle: 30; end: 31 | Available source; not wired | Horizontal divider; reuse rotated for vertical divider/handle |
 | Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
 | Progress indicator | Reuse 128–131 | Derived ProgressBarStyle | Read-only position indicator sharing the slider track |
 
@@ -349,6 +352,7 @@ skin to a widget still selects engine styles.
 | W20 | Console output | Custom widget reads `default` font and `font`, `warning`, `error` colours | Engine only | Required; wrapping, clipping, scrolling |
 | W21 | Image and scene preview | Image/Widget/WidgetGroup implementations; content textures borrowed from host | Media is content, UI surrounds use engine skin | Required; images, sprites, MD2 and BSP |
 | W22 | Layout containers | Table, Container, HorizontalGroup and other groups | Shared layout mechanisms | Required; no independent standard style; backgrounds are Drawables |
+| W23 | Separator | Image/Drawable; horizontal and vertical variants | Conchars 29–31 available; not wired | Planned; static decoration, distinct from draggable W09 split pane |
 
 TextArea, multiline editing and spinner behaviour are not current requirements.
 Password masking is already used by Player Setup with `*` as the mask character.
@@ -407,6 +411,8 @@ interactive support.
 | W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
+| D22 / W23 separator | Planned | Open | Conchars 29–31 verified; horizontal/rotated vertical variants and sample remain to implement |
+| Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
 | Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
@@ -422,6 +428,22 @@ those roles differently. Retaining the current appearance is a valid decision.
 Visual variants can be compared in the sample when they help resolve a specific
 question. Record the question and result against the relevant IDs; producing or
 choosing a new design is not a completion condition for this inventory.
+
+## Client Content Browser readiness
+
+See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparation-before-client-embedding)
+for the next slices. Basic controls are available. Remaining shell coverage is
+TreeStyle, SplitPaneStyle/handle, tile ButtonStyle, image/placeholder presentation
+and explicit browser background/style resolution. The current browser directly
+reads Skin for each of these; the menu style bundle does not yet cover the tree,
+split pane or tile roles. The separator is source artwork for a divider; it does
+not provide splitter dragging behavior by itself.
+
+The dropdown indicator is explicitly deferred. It must not block the browser.
+Atlas cleanup, optional widgets and exact theme geometry matching are also not
+prerequisites. First client integration can browse the resolved profile snapshot
+and show metadata/source; media-preview embedding and override inspection are
+separate later slices. The standalone viewer remains engine styled.
 
 ## Implementation references
 
