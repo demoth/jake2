@@ -32,6 +32,7 @@ import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.cakeSkin
 import org.demoth.cake.audio.SoundDurationRegistry
 import org.demoth.cake.audio.SoundPlayback
+import org.demoth.cake.ui.BspPreviewPane
 import org.demoth.cake.ui.PreviewResources
 import org.demoth.cake.ui.Md2PreviewPane
 import org.demoth.cake.ui.Md2SkinSelector

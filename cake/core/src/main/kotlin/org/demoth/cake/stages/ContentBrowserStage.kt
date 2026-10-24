@@ -105,11 +105,14 @@ class ContentBrowserStage(
             return if (ensureSprite(entry)) SpritePreview(sprite!!, spritePlayback!!, styles.label, styles.button)
             else Label("Could not load sprite.", styles.label)
         }
-        if (entry.normalizedPath.substringAfterLast('.') == "md2") {
-            return try { scene.openMd2(entry.normalizedPath) } catch (error: Exception) {
+        if (entry.normalizedPath.substringAfterLast('.') in setOf("md2", "bsp")) {
+            return try {
+                if (entry.normalizedPath.endsWith(".bsp")) scene.openBsp(entry.normalizedPath)
+                else scene.openMd2(entry.normalizedPath)
+            } catch (error: Exception) {
                 clearSprite()
                 Gdx.app.error("Content browser", "Could not preview ${entry.displayPath}", error)
-                Label("Could not load model.", styles.label)
+                Label(if (entry.normalizedPath.endsWith(".bsp")) "Could not load map." else "Could not load model.", styles.label)
             }
         }
         return previewImage(entry)

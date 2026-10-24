@@ -1327,6 +1327,7 @@ class Cake(
             setLoader(String::class.java, TextAssetLoader(resolver))
             setLoader(Sp2Asset::class.java, Sp2Loader(resolver))
             setLoader(Md2Asset::class.java, Md2Loader(resolver))
+            setLoader(BspMapAsset::class.java, BspLoader(resolver))
             setLoader(Texture::class.java, "pcx", PcxLoader(resolver))
             setLoader(Texture::class.java, "wal", WalLoader(resolver))
         }

@@ -1085,3 +1085,15 @@ error. Real-model desktop probes pass in both themes and at 4K, including skin
 switching, animation, orbit/zoom, target sizing and Back/profile/disposal cleanup.
 Focused animation/ownership tests and all host compilations pass. BSP integration
 and the requested cleanup pass follow in separate commits.
+
+### Client BSP previews
+
+BSP double-click now opens the existing world/brush renderer in the shared 3D
+scope, with surface/brush metadata and a focused fly camera. Click focuses;
+WASD/QE move and left-drag looks around. Outside clicks release movement focus.
+Trigger/area-portal brushes remain hidden, matching the standalone preview.
+Actual base1 map probes pass in both themes and at 4K, including pixel-sized
+targets, focus-only input, missing texture/malformed map recovery, and target,
+lightmap and dependency disposal on Back/profile/shutdown. All host builds and
+focused ownership tests pass. The following cleanup consolidates host rendering
+and updates the final coverage inventory.
