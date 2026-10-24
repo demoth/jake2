@@ -103,10 +103,7 @@ object GameUiStyleFactory {
             val concharsTexture = loadTexture(assetManager, CONCHARS_PATH, hudAssetPaths)
             // Fonts own independent metrics/caches but borrow the same AssetManager texture.
             val hudFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also { fonts += it }
-            val menuFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also {
-                fonts += it
-                it.data.setScale(IDTECH2_MENU_SCALE)
-            }
+            val menuFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also { fonts += it }
 
             val digitsByStyle = Array(HUD_NUM_STYLES) { style ->
                 Array(HUD_NUM_FRAMES) { frame ->

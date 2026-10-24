@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import org.demoth.cake.stages.ingame.SceneFrameBuffer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -60,6 +61,26 @@ class ConcharsAtlasGlTest {
             assertEquals(24f, menuFont.lineHeight)
             assertEquals(8f, font.lineHeight)
             assertEquals(8, font.data.getGlyph('A').xadvance)
+            val skin = Skin(Gdx.files.internal("../../assets/ui/uiskin.json"))
+            try {
+                val engine = EngineUiStyle(skin)
+                val quake = createMenuWidgetStyles(skin, font, texture)
+                assertEquals(24f, skin.getFont("default").lineHeight, "Raw engine UI retains native font size")
+                assertEquals(8f, engine.menuWidgets.label.font.capHeight, 0.001f)
+                assertEquals(38f / 3f, engine.menuWidgets.label.font.lineHeight, 0.001f)
+                assertEquals(8f, quake.label.font.lineHeight)
+                assertEquals(24f, skin.getDrawable("console-panel").topHeight, "Raw panel is not mutated")
+                for (styles in listOf(engine.menuWidgets, quake)) {
+                    assertEquals(8f, styles.containerPanel.topHeight, 0.001f)
+                    assertEquals(8f, styles.button.up.topHeight, 0.001f)
+                    assertEquals(4f, styles.controlPanel.topHeight, 0.001f)
+                    assertEquals(16f, styles.controlPanel.minHeight, 0.001f)
+                    assertEquals(8f, styles.slider.knob.minHeight, 0.001f)
+                }
+                engine.dispose()
+            } finally {
+                skin.dispose()
+            }
             assertTrue(target.samples > 0)
             batch.projectionMatrix.setToOrtho2D(0f, 0f, 128f, 128f)
             fun greenPixels(multisampling: Boolean): Int {

@@ -35,12 +35,29 @@ slider/progress support from the existing Quake glyphs.
 ## Decision Log
 Newest first.
 
-### Decision: Normalize Quake menus to the engine reference units
+### Decision: Preserve native Quake menu size; adapt engine menus
+- Quake menu font/drawables retain their native size. The 3× relationship describes engine source resolution, not a scale applied to Quake screens.
+- Engine menu drawables are copied at 1/3 scale, with thick/thin insets 8/4 and thin minimum size 16. Raw skin drawables remain unchanged.
+- `menu` is a separate Skin font using `share-tech-mono-menu.fnt`: generator size 34, native cap height 24 and line height 38. `scaledSize: 8` scales it by 1/3 while retaining natural widths and line spacing (38/3 UI units).
+- Visible capital height, rather than line height alone, is the typography comparison. The original size-21 `default` font remains unchanged for console/viewer/raw skin uses.
+- Both themes share the same viewport and `cl_ui_size`; HUD/menu font separation is retained.
+- Status: accepted and implemented; supersedes enlarging Quake menus to 3×.
+
+To reproduce the menu font from the repository root:
+
+```sh
+./gradlew :cake:engine-tools:run --args="--ttf ../../assets/cake-ui/Share_Tech_Mono/ShareTechMono-Regular.ttf --out /tmp/cake-engine-menu-font --name share-tech-mono-menu --size 34 --page-width 1024 --page-height 512 --padding 2"
+```
+
+Copy both generated files to `assets/ui/`. The existing default font reproduction
+command below remains valid for the independent console/viewer font.
+
+### Superseded decision: Normalize Quake menus to the engine reference units
 - Quake menu font metrics and derived drawables use a fixed 3× scale, producing 24-unit cells, thick insets 24 and thin insets 12.
 - HUD and menu fonts have independent metrics over the same texture. HUD size and source art are unchanged.
 - Both themes use the same layout and vertical `cl_ui_size`; no extra scale option or theme viewport is needed.
 - Natural engine glyph widths and differences in visible cap height are retained.
-- Status: implemented and checked in the gallery and Sound options; further visual refinements remain separate choices.
+- Status: superseded after broader menu testing showed excessive size and clipping.
 
 ### Decision: Use thick frames for action buttons
 - User testing preferred the thick frame for buttons, with thin frames for checkbox toggles, text inputs, dropdowns and control panels.
@@ -48,13 +65,13 @@ Newest first.
 - Status: accepted and implemented.
 
 ### Decision: Author engine resources at a 3× Quake reference scale
-- Quake's fixed 8-pixel cell is the reference; engine font line height is 24, thick frame insets/corners 24, thin content insets 12.
+- Quake's fixed 8-pixel cell is the reference; thick frame source insets/corners are 24, thin content insets 12. Menu typography now uses source cap height 24; the initial line-height comparison is superseded.
 - Preserve the engine font's natural glyph widths. Matching square cells, text wrapping and exact widget footprints is not required.
 - Native resource resolution and display normalization are separate choices. This slice establishes resources; viewport sizing comparison remains separate.
 - Use distinct thick container and thin control frames; retain the current palette and standard libGDX widgets.
 - Status: accepted; font and panel resources implemented. Other engine artwork still needs comparison.
 
-To reproduce the current font, run from the repository root:
+To reproduce the unchanged raw/default font, run from the repository root:
 
 ```sh
 ./gradlew :cake:engine-tools:run --args="--ttf ../../assets/cake-ui/Share_Tech_Mono/ShareTechMono-Regular.ttf --out /tmp/cake-engine-font-3x --name share-tech-mono --size 21 --page-width 512 --page-height 512 --padding 2"

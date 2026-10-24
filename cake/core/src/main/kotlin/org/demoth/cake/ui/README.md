@@ -49,9 +49,13 @@ reference, so disposing one owner does not unload another owner's assets.
 - HUD and menus use separate font instances and metrics over the same borrowed
   conchars texture. The style disposes both fonts before releasing its texture
   reference. Partial factory failures also dispose any fonts already created.
-- Quake menu fonts and conchars drawables use a fixed 3× scale, matching the
-  engine's 24-unit reference. HUD metrics remain native. Both themes share the
-  existing vertical `cl_ui_size` viewport convention; there is no new scale cvar.
+- Quake menus and HUD retain native conchars metrics. Engine menus use the Skin's
+  `menu` font (source cap height 24 at 1/3 scale) and copies of engine drawables at
+  1/3 scale. Both menu themes have 8-unit cap heights, thick insets 8 and thin
+  insets 4. Engine glyph widths and line spacing remain natural.
+- The raw default font/panels used by console/viewer/diagnostics are unchanged.
+  Skin owns the independent raw/menu fonts. Both menu themes share the vertical
+  `cl_ui_size` viewport convention; there is no new scale cvar.
 - Transparency comes from PCX decoding; the font loader does not post-process alpha.
 - Alternate HUD text uses the glyph high-bit toggle (`char ^ 0x80`), preserving
   mod-defined alternate glyphs and colours rather than applying a tint.

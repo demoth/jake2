@@ -3,6 +3,13 @@
     default: {
       file: share-tech-mono.fnt
     }
+    // Menu font cap height 24 / 3 = 8, matching native Quake glyph height.
+    // Keep its natural line spacing and widths; the default UI font is independent.
+    menu: {
+      file: share-tech-mono-menu.fnt,
+      scaledSize: 8,
+      useIntegerPositions: false
+    }
     font: default
     list: default
     subtitle: default

@@ -20,7 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.UiViewport
-import org.demoth.cake.ui.createMenuWidgetStyles
+import org.demoth.cake.ui.createEngineMenuWidgetStyles
 
 /** Internal gallery. Owns its Stage/batch; all fonts, styles and drawables are borrowed. */
 class UiSkinSample(
@@ -30,15 +30,7 @@ class UiSkinSample(
     private val onMode: (Boolean) -> Unit,
     private val onClose: () -> Unit,
 ) : Stage(UiViewport().apply { setReferenceHeight(referenceHeight) }) {
-    // Use the engine Skin's actual styles, retaining the existing menu checkbox implementation.
-    private val engineStyles = createMenuWidgetStyles(engineSkin, engineSkin.getFont("default")).copy(
-        label = engineSkin.get(Label.LabelStyle::class.java),
-        button = engineSkin.get(TextButton.TextButtonStyle::class.java),
-        textField = engineSkin.get(TextField.TextFieldStyle::class.java),
-        selectBox = engineSkin.get(SelectBox.SelectBoxStyle::class.java),
-        list = engineSkin.get(UiList.ListStyle::class.java),
-        scrollPane = engineSkin.get(ScrollPane.ScrollPaneStyle::class.java),
-    )
+    private val engineStyles = createEngineMenuWidgetStyles(engineSkin)
     private val root = Table().apply {
         setFillParent(true)
         pad(16f)
@@ -96,13 +88,13 @@ class UiSkinSample(
             add(button("Close", styles.button, onClose)).minWidth(90f)
         }
         content.add(controls).row()
-        content.add(Label("ABC xyz 0123 !? café …", styles.label).apply { setWrap(true) })
+        content.add(Label("Text: ABC xyz 0123456789 !? café …", styles.label).apply { setWrap(true) })
             .minWidth(0f).row()
 
-        val result = Label("$actionCount", styles.label)
+        val result = Label("Clicks: $actionCount", styles.label)
         content.add(Table().apply {
             defaults().padRight(10f).left()
-            add(button("Action", styles.button) { result.setText("${++actionCount}") })
+            add(button("Action", styles.button) { result.setText("Clicks: ${++actionCount}") })
             add(TextButton("Disabled", styles.button).apply { isDisabled = true })
             add(result).growX()
             add(TextButton("x", styles.checkBox).apply {
@@ -142,14 +134,14 @@ class UiSkinSample(
             background = styles.controlPanel
             pad(8f)
             defaults().left().pad(3f)
-            repeat(12) { add(Label("Row ${it + 1}", styles.label)).row() }
+            repeat(12) { add(Label("Scrollable row ${it + 1}", styles.label)).row() }
         }
         scroll = scrolling(panel, styles.scrollPane)
         val lower = Table().apply {
             defaults().growX().minWidth(0f).uniformX().top().pad(4f)
             add(Label("List", styles.label))
             add(Label("Dropdown", styles.label))
-            add(Label("Scroll", styles.label)).row()
+            add(Label("Panel / scrolling", styles.label)).row()
             add(Table().apply {
                 background = styles.controlPanel
                 add(list).growX().minWidth(0f)
@@ -158,7 +150,7 @@ class UiSkinSample(
                 defaults().growX().minWidth(0f).padBottom(8f)
                 add(choice).row()
                 add(SelectBox<String>(styles.selectBox).apply {
-                    setItems("Disabled")
+                    setItems("Disabled dropdown")
                     isDisabled = true
                 })
             })

@@ -58,6 +58,7 @@ class GameUiStyleFactoryTest {
             add("console-panel", emptyDrawable, Drawable::class.java)
             add("default-horizontal", Slider.SliderStyle(emptyDrawable, emptyDrawable))
             add("default", font, BitmapFont::class.java)
+            add("menu", font, BitmapFont::class.java)
             add("default", Label.LabelStyle(font, Color.WHITE))
             add("default", TextButton.TextButtonStyle().also { it.font = font })
             add(
