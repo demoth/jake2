@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.vfs.VfsEntry
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.WalLoader
+import org.demoth.cake.assets.getLoaded
 
 /** Folder-scoped textures owned by the browser host, independent of shared AssetManager references. */
 class ImageThumbnails(
@@ -27,7 +28,7 @@ class ImageThumbnails(
             val texture = when (path.substringAfterLast('.')) {
                 "pcx" -> PcxLoader(resolver).load(assets, path, file, null)
                 "wal" -> WalLoader(resolver).load(assets, path, file, WalLoader.Parameters(
-                    externalPalette = assets.get("q2palette.bin", Any::class.java) as IntArray))
+                    externalPalette = assets.getLoaded<Any>("q2palette.bin") as IntArray))
                 else -> Texture(file)
             }
             textures[path] = texture

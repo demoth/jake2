@@ -178,6 +178,13 @@ class ConcharsAtlasGlTest {
     private fun verifyThumbnailOwnership() {
         val image = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail", ".png").toFile())
         val broken = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail-broken", ".png").toFile())
+        val wal = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail", ".wal").toFile())
+        val palette = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail-palette", ".bin").toFile())
+        wal.writeBytes(java.nio.ByteBuffer.allocate(185).order(java.nio.ByteOrder.LITTLE_ENDIAN).apply {
+            putInt(32, 8); putInt(36, 8)
+            listOf(100, 164, 180, 184).forEachIndexed { index, offset -> putInt(40 + index * 4, offset) }
+        }.array(), false)
+        java.io.ObjectOutputStream(palette.write(false)).use { it.writeObject(IntArray(256) { -1 }) }
         val pixmap = Pixmap(2, 2, Pixmap.Format.RGBA8888)
         PixmapIO.writePNG(image, pixmap)
         pixmap.dispose()
@@ -185,9 +192,16 @@ class ConcharsAtlasGlTest {
         val attempts = mutableMapOf<String, Int>()
         val resolver = FileHandleResolver { path ->
             attempts[path] = attempts.getOrDefault(path, 0) + 1
-            if (path == "image.png") image else broken
+            when (path) {
+                "image.png" -> image
+                "image.wal" -> wal
+                "q2palette.bin" -> palette
+                else -> broken
+            }
         }
-        val assets = AssetManager(resolver)
+        val assets = AssetManager(resolver).apply {
+            setLoader(Any::class.java, org.demoth.cake.assets.ObjectLoader(resolver))
+        }
         val thumbnails = ImageThumbnails(assets, resolver)
         fun entry(path: String) = VfsEntry(path, path, VfsLayer.BASE_LOOSE, 0,
             VfsSource(VfsSourceType.DIRECTORY, image.file().toPath().parent, path, null, false, false), 0, 0)
@@ -203,9 +217,14 @@ class ConcharsAtlasGlTest {
             assertNull(thumbnails.load(entry("broken.png")))
             assertEquals(1, attempts["broken.png"], "Failed image is attempted once per folder")
             assertTrue(assets.update(), "Direct thumbnail failure does not poison shared loading")
+            assertFalse(assets.isLoaded("q2palette.bin"))
+            val walThumbnail = thumbnails.load(entry("image.wal"))!!
+            assertEquals(8, walThumbnail.width)
+            assertTrue(assets.isLoaded("q2palette.bin"), "WAL thumbnails acquire the palette lazily in the viewer")
             thumbnails.clear()
             thumbnails.clear()
             assertEquals(0, thumbnail.textureObjectHandle, "Folder cleanup disposes owned texture")
+            assertEquals(0, walThumbnail.textureObjectHandle)
             assertTrue(shared.textureObjectHandle != 0, "Shared game texture survives cleanup")
             val reloaded = thumbnails.load(entry("image.png"))!!
             assertNotSame(thumbnail, reloaded, "A new folder lifetime can load again")
@@ -216,6 +235,8 @@ class ConcharsAtlasGlTest {
             assets.dispose()
             image.delete()
             broken.delete()
+            wal.delete()
+            palette.delete()
         }
     }
 
