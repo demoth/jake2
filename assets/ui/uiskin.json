@@ -367,6 +367,18 @@
       name: tree-plus,
       color: up
     },
+    menuTreePlus: {
+      name: tree-plus,
+      color: font
+    },
+    menuTreeMinus: {
+      name: tree-minus,
+      color: font
+    },
+    menuTreeOver: {
+      name: dot,
+      color: semiTransparent
+    },
     window: {
       name: rect,
       color: background
@@ -682,6 +694,12 @@
     }
   },
   TreeStyle: {
+    menu: {
+      plus: menuTreePlus,
+      minus: menuTreeMinus,
+      selection: selection,
+      over: menuTreeOver
+    },
     default: {
       minus: treeMinus,
       plus: treePlus,

@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Tree
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import org.demoth.cake.stages.ingame.SceneFrameBuffer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -82,7 +84,16 @@ class ConcharsAtlasGlTest {
                     assertEquals(24f, styles.separatorHorizontal.minWidth, 0.001f)
                     assertEquals(styles.separatorHorizontal.minHeight, styles.separatorVertical.minWidth)
                     assertEquals(24f, styles.separatorVertical.minHeight, 0.001f)
+                    assertEquals(8f, styles.tree.plus.minWidth, 0.001f)
+                    assertEquals(8f, styles.tree.plus.minHeight, 0.001f)
+                    assertEquals(8f, styles.tree.minus.minWidth, 0.001f)
+                    assertEquals(8f, styles.tree.minus.minHeight, 0.001f)
+                    assertNotNull(styles.tree.selection)
+                    assertNotNull(styles.tree.over)
+                    assertNull(styles.tree.background)
                 }
+                assertEquals(16f, skin.get(Tree.TreeStyle::class.java).plus.minWidth, "Raw engine tree mark is unchanged")
+                assertEquals((13 * 8 + 0.5f) / 128f, (quake.tree.plus as TextureRegionDrawable).region.u)
                 verifySeparators(quake, batch, target)
                 engine.dispose()
             } finally {

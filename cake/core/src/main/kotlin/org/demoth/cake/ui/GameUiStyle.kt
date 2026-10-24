@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.Tree
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.BaseDrawable
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable
@@ -37,6 +38,7 @@ data class MenuWidgetStyles(
     val progress: ProgressBar.ProgressBarStyle,
     val separatorHorizontal: Drawable,
     val separatorVertical: Drawable,
+    val tree: Tree.TreeStyle,
 )
 
 private val MENU_HOVER_TEXT_COLOR = Color(0.35f, 0.95f, 0.35f, 1f)
@@ -153,6 +155,10 @@ internal fun createEngineMenuWidgetStyles(skin: Skin): MenuWidgetStyles {
         }
         styles.slider.knobOver = styles.slider.knobOver?.scaled()
         styles.slider.knobDown = styles.slider.knobDown?.scaled()
+        styles.tree.plus = styles.tree.plus.scaled()
+        styles.tree.minus = styles.tree.minus.scaled()
+        styles.tree.over = styles.tree.over?.scaled()
+        styles.tree.selection = styles.tree.selection?.scaled()
         val separator = styles.separatorHorizontal.scaled() as TransformDrawable
         styles.copy(
             containerPanel = styles.containerPanel.scaled(),
@@ -243,6 +249,19 @@ internal fun createMenuWidgetStyles(
         }
         style.background = null
     }
+    val tree = Tree.TreeStyle(skin.get("menu", Tree.TreeStyle::class.java)).apply {
+        if (concharsTexture != null) {
+            plus = createConcharsGlyphDrawable(concharsTexture, 13)
+            minus = ClockwiseDrawable(plus as TransformDrawable)
+            // The solid square keeps row feedback visible; panel centres are almost black.
+            selection = createConcharsFillDrawable(concharsTexture, 11, MENU_SELECTION_COLOR)
+            over = createConcharsFillDrawable(concharsTexture, 11, Color(0.3f, 0.3f, 0.3f, 0.7f))
+        } else {
+            // Existing 16px engine marks use a 24px source slot, becoming 8 menu units.
+            plus = skin.newDrawable(plus).apply { minWidth = 24f; minHeight = 24f }
+            minus = skin.newDrawable(minus).apply { minWidth = 24f; minHeight = 24f }
+        }
+    }
     return MenuWidgetStyles(
         label = Label.LabelStyle(baseLabelStyle).also { it.font = font },
         button = TextButton.TextButtonStyle(baseButtonStyle).also { style ->
@@ -296,6 +315,7 @@ internal fun createMenuWidgetStyles(
         progress = progress,
         separatorHorizontal = separator,
         separatorVertical = ClockwiseDrawable(separator),
+        tree = tree,
     )
 }
 

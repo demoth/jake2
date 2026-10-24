@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.Tree
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Array
@@ -60,6 +61,7 @@ class GameUiStyleFactoryTest {
             add("default-horizontal", Slider.SliderStyle(emptyDrawable, emptyDrawable))
             add("default", font, BitmapFont::class.java)
             add("menu", font, BitmapFont::class.java)
+            add("menu", Tree.TreeStyle(emptyDrawable, emptyDrawable, emptyDrawable).apply { over = emptyDrawable })
             add("default", Label.LabelStyle(font, Color.WHITE))
             add("default", TextButton.TextButtonStyle().also { it.font = font })
             add(
