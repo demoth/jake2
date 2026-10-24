@@ -11,8 +11,6 @@ import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
@@ -32,33 +30,25 @@ import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.cakeSkin
 import org.demoth.cake.audio.SoundDurationRegistry
 import org.demoth.cake.audio.SoundPlayback
-import org.demoth.cake.ui.BspPreviewPane
+import org.demoth.cake.ui.SceneResourcePreview
+import org.demoth.cake.ui.ContentBrowserStyles
 import org.demoth.cake.ui.PreviewResources
-import org.demoth.cake.ui.Md2PreviewPane
-import org.demoth.cake.ui.Md2SkinSelector
 import org.demoth.cake.ui.FramePlayback
-import org.demoth.cake.ui.FramePlaybackControls
 import org.demoth.cake.ui.SpriteFrameImage
 import org.demoth.cake.ui.SpritePreview
 import org.demoth.cake.ui.SoundPreviewControls
 import org.demoth.cake.initializeShaderCompatibility
-import org.demoth.cake.md2FragmentShader
 import org.demoth.cake.assets.bsp.BspLoader
 import org.demoth.cake.assets.bsp.BspMapAsset
-import org.demoth.cake.assets.bsp.BspWorldBatchRenderer
 import org.demoth.cake.assets.md2.Md2Asset
-import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.md2.Md2Loader
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
-import org.demoth.cake.assets.md2.Md2Shader
-import org.demoth.cake.assets.CakeShaderProvider
 import org.demoth.cake.assets.ConvertingSoundLoader
 import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
-import org.demoth.cake.md2VertexShader
 import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
@@ -78,22 +68,16 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private val spriteFrame: Sp2Asset.Frame? get() = sprite?.frames?.get(playback!!.frameIndex)
     private var sound: Sound? = null
     private var soundPlayback: SoundPlayback? = null
-    private var bspMap: BspMapAsset? = null
-    private var bspWorldRenderer: BspWorldBatchRenderer? = null
-    private var bspVisibleSurfaces = BooleanArray(0)
-    private var bspTime = 0f
-    private var modelBatch: ModelBatch? = null
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
     private var archiveEntryCount: Int? = null
     private lateinit var archiveThumbnails: ImageThumbnails
     private lateinit var previewResources: PreviewResources
+    private lateinit var scenePreview: SceneResourcePreview
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
-    private val instances: MutableList<ModelInstance> = mutableListOf()
-    private lateinit var environment: Environment
     private lateinit var stage: Stage
     private lateinit var browserHost: Container<ContentBrowser>
     private lateinit var filenameLabel: Label
@@ -106,10 +90,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var frameTime = 0f // to have an idea of the fps
 
     // md2 related stuff
-    private var md2Frames = 1
-    private var md2SkinTextures = 0
-    private var md2Instance: ModelInstance? = null // to control the model animation
-    private var md2FrameNames: List<String> = emptyList()
 
     override fun create() {
         initializeShaderCompatibility()
@@ -147,9 +127,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         camera.far = 4096f
         resetCamera()
 
-        environment = Environment()
-        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f))
-        environment.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.2f, 0.8f))
         createStage()
         if (file != null) openFile(file.absolutePath)
     }
@@ -181,9 +158,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val hints = detectViewerStartupHints(file.absolutePath)
                 fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
                 loadPreview(file.absolutePath)
-                if (md2Instance != null || bspMap != null) {
-                    addOwnedInstance(createOriginArrows(GRID_SIZE))
-                    addOwnedInstance(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                if (scenePreview.md2 != null || scenePreview.map != null) {
+                    scenePreview.addOverlay(createOriginArrows(GRID_SIZE))
+                    scenePreview.addOverlay(createGrid(GRID_SIZE, GRID_DIVISIONS))
                 }
                 if (sound != null) replaySound()
             }
@@ -191,7 +168,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             controlsLabel.setText(when {
                 archiveEntryCount != null -> "Click: select / play sound or sprite | Double-click: open | Escape: close"
                 sound != null -> "Space: play/pause | S: stop | Escape: close"
-                sprite != null || md2Instance != null -> "Space: play/pause | Left/Right: step | Escape: close"
+                sprite != null || scenePreview.md2 != null -> "Space: play/pause | Left/Right: step | Escape: close"
                 else -> "Escape: close"
             })
             errorLabel.setText("")
@@ -234,58 +211,12 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 }
             }
             ?: sprite?.let { SpritePreview(it, playback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
-            ?: bspMap?.let { map ->
-                val pane = previewResources.own(BspPreviewPane(map, ::renderScene))
-                Table().apply {
-                    add(pane).grow().row()
-                    add(Label("Surfaces: ${map.worldRenderData.surfaces.size} | Brush models: ${map.inlineRenderData.size}",
-                        assetManager.getLoaded<Skin>(cakeSkin))).pad(4f).row()
-                    add(Label("Click to focus | WASD: fly | Q/E: down/up | Drag: look",
-                        assetManager.getLoaded<Skin>(cakeSkin)).apply { setWrap(true) }).growX().pad(4f)
-                }
-            }
-            ?: md2Instance?.let { instance ->
-                val md2 = assetManager.get(entry.normalizedPath, Md2Asset::class.java)
-                val animation = playback!!
-                val pane = previewResources.own(Md2PreviewPane(md2.bounds) { paneCamera ->
-                    modelBatch!!.begin(paneCamera)
-                    modelBatch!!.render(instance)
-                    modelBatch!!.end()
-                })
-                Table().apply {
-                    add(pane).grow().row()
-                    add(Md2SkinSelector(md2, instance.userData as Md2CustomData,
-                        assetManager.getLoaded<Skin>(cakeSkin))).minWidth(0f).growX().pad(4f).row()
-                    add(FramePlaybackControls(animation, assetManager.getLoaded<Skin>(cakeSkin)) {
-                        "${md2.frameNames[animation.frameIndex]} | Skin textures: ${md2.skins.size}"
-                    }).growX().row()
-                    add(Label("Drag: orbit | Wheel: zoom", assetManager.getLoaded<Skin>(cakeSkin))).pad(4f)
-                }
-            }
-    }
-
-    private fun renderScene(camera: Camera) {
-        val currentTimeMs = (bspTime * 1000f).toInt()
-        bspWorldRenderer?.render(
-            camera = camera,
-            visibleSurfaceMask = bspVisibleSurfaces,
-            currentTimeMs = currentTimeMs,
-            lightStyleResolver = { 1f },
-            dynamicLights = emptyList(),
-        )
-
-        modelBatch?.let { models ->
-            models.begin(camera)
-            instances.forEach { models.render(it) }
-            models.end()
-        }
-
-        bspWorldRenderer?.renderTranslucent(camera, bspVisibleSurfaces, currentTimeMs)
+            ?: scenePreview.actor
     }
 
     private fun loadArchiveResource(entry: VfsEntry): Boolean {
         errorLabel.setText("")
-        if (previewResources.path == entry.normalizedPath) return true
+        if (previewResources.path == entry.normalizedPath || scenePreview.path == entry.normalizedPath) return true
         val archive = currentFile
         return try {
             loadPreview(entry.normalizedPath)
@@ -327,53 +258,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = previewResources.load(path, Texture::class.java)
             }
             "md2" -> {
-                // Viewer mode: prefer embedded MD2 skins, but allow rendering without them.
-                val md2 = previewResources.load(
-                    path, Md2Asset::class.java,
-                    Md2Loader.Parameters(
-                        useDefaultSkinIfMissing = true,
-                    ),
-                )
-                md2Instance = ModelInstance(md2.model).apply {
-                    userData = Md2CustomData.empty()
-                }
-                md2Frames = md2.frames
-                md2FrameNames = md2.frameNames
-                playback = FramePlayback(md2.frames)
-                md2SkinTextures = md2.skins.size
-
-                val tempRenderable = Renderable()
-                val md2Shader = Md2Shader(
-                    md2Instance!!.getRenderable(tempRenderable), // may not be obvious, but it's required for the shader initialization, the renderable is not used after that
-                    DefaultShader.Config(
-                        assetManager.getLoaded(md2VertexShader),
-                        assetManager.getLoaded(md2FragmentShader),
-                    )
-                )
-                modelBatch = previewResources.own(ModelBatch(CakeShaderProvider(md2Shader)))
-                md2Shader.init()
-
-                instances.add(md2Instance!!)
+                scenePreview.openMd2(path)
+                playback = scenePreview.animation
             }
-            "bsp" -> {
-                val bspMap = previewResources.load(path, BspMapAsset::class.java)
-                modelBatch = previewResources.own(ModelBatch())
-                this.bspMap = bspMap
-                bspWorldRenderer = previewResources.own(BspWorldBatchRenderer(
-                    worldRenderData = bspMap.worldRenderData,
-                    worldBatchData = bspMap.worldBatchData,
-                    lightmapAtlasPages = bspMap.lightmapAtlasPages,
-                    assetManager = assetManager,
-                ))
-                // Free-flight inspection shows the whole world without gameplay visibility state.
-                bspVisibleSurfaces = BooleanArray(bspMap.worldRenderData.surfaces.size) { true }
-                val invisibleBrushes = bspMap.entities.filter {
-                    it["classname"]?.startsWith("trigger_") == true || it["classname"] == "func_areaportal"
-                }.mapNotNull { it["model"]?.removePrefix("*")?.toIntOrNull() }.toSet()
-                bspMap.models.forEachIndexed { index, model ->
-                    if (index !in invisibleBrushes) instances.add(ModelInstance(model))
-                }
-            }
+            "bsp" -> scenePreview.openBsp(path)
         }
     }
 
@@ -388,6 +276,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun createStage() {
         val skin = assetManager.getLoaded<Skin>(cakeSkin)
+        scenePreview = SceneResourcePreview(assetManager, ContentBrowserStyles.fromSkin(skin))
         stage = Stage(ScreenViewport())
         stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         resourceInfo = Label("", skin)
@@ -426,13 +315,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun updateResourceInfo() {
         val frame = spriteFrame
-        val bsp = bspMap
+        val bsp = scenePreview.map
+        val md2 = scenePreview.md2
         val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
             archiveEntryCount != null -> "Files: $archiveEntryCount"
             frame != null -> "Frame ${playback!!.frameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
-            md2Instance != null -> "Frame ${playback!!.frameIndex + 1}/$md2Frames: ${md2FrameNames[playback!!.frameIndex]} | Skin textures: $md2SkinTextures"
+            md2 != null -> "Frame ${playback!!.frameIndex + 1}/${md2.frames}: ${md2.frameNames[playback!!.frameIndex]} | Skin textures: ${md2.skins.size}"
             sound != null -> durationMs?.let { "Duration: ${it / 1000f} s" } ?: "Duration: unknown"
             bsp != null -> "World surfaces: ${bsp.worldRenderData.surfaces.size} | Inline brush models: ${bsp.inlineRenderData.size}"
             else -> ""
@@ -469,23 +359,16 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             playback?.step(-1)
         }
 
-        playback?.let {
-            it.update(Gdx.graphics.deltaTime)
-            (md2Instance?.userData as? Md2CustomData)?.apply {
-                frame1 = it.frameIndex
-                frame2 = it.nextFrameIndex
-                interpolation = it.interpolation
-            }
-            updateResourceInfo()
-        }
+        if (scenePreview.animation == null) playback?.update(Gdx.graphics.deltaTime)
+        scenePreview.act(Gdx.graphics.deltaTime)
+        if (playback != null) updateResourceInfo()
 
         frameTime = measureTimeMillis {
             Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
             camera.update()
 
-            bspTime += Gdx.graphics.deltaTime
-            if (archiveEntryCount == null) renderScene(camera)
+            if (archiveEntryCount == null) scenePreview.render(camera)
 
             batch.use {
                 val currentFrame = if (archiveEntryCount == null) spriteFrame else null
@@ -539,27 +422,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private fun closeResourcePreview() {
         soundPlayback?.stop()
         if (::previewResources.isInitialized) previewResources.close()
-        bspWorldRenderer = null
-        modelBatch = null
-        instances.clear()
+        if (::scenePreview.isInitialized) scenePreview.close()
         image = null
         sound = null
         soundPlayback = null
         sprite = null
         playback = null
-        bspMap = null
-        bspVisibleSurfaces = BooleanArray(0)
-        bspTime = 0f
-        md2Instance = null
-        md2Frames = 1
-        md2SkinTextures = 0
-        md2FrameNames = emptyList()
     }
 
-    private fun addOwnedInstance(instance: ModelInstance) {
-        instances.add(instance)
-        previewResources.own(instance.model)
-    }
 }
 
 internal fun expandTildePath(path: String): String {

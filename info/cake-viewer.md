@@ -114,8 +114,19 @@ frame index/count and dimensions, with Previous/Next, Play/Pause/Loop/Stop.
 Space toggles play/pause; Left/Right step and pause. Stop resets to frame one.
 Back to folder, selection/folder changes, browser exit and profile changes stop
 animation and release its frame textures. Missing/corrupt frames show a
-recoverable error. Model/map previews remain later client slices. Browsing does
-not change theme.
+recoverable error.
+
+Client MD2 previews now use the same 3D renderer as the standalone viewer, with
+orbit/zoom, animation controls, frame names and skin selection. No-skin models
+use the existing labelled default skin. Client BSP previews show the world and
+static brush geometry, surface/brush counts and a focused fly camera: click to
+focus, WASD to fly, Q/E vertically, left-drag to look, and click outside to release
+movement focus. There is no gameplay/collision, sky rendering or gameplay entity
+simulation. Trigger and area-portal brushes stay hidden. Both 3D formats use
+screen-pixel render targets under cl_ui_size, including high-resolution displays.
+Back, folder/profile changes and shutdown release targets, renderers and loaded
+dependencies; failed model/map loads show recoverable inline errors. Browsing
+does not change theme.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.

@@ -1097,3 +1097,37 @@ targets, focus-only input, missing texture/malformed map recovery, and target,
 lightmap and dependency disposal on Back/profile/shutdown. All host builds and
 focused ownership tests pass. The following cleanup consolidates host rendering
 and updates the final coverage inventory.
+
+
+### 3D completion and module cleanup
+
+Client media coverage now includes MD2 and BSP alongside images/WAV/SP2.
+MD2 exposes orbit/zoom, frame transport/names and resolved skin selection. BSP
+exposes static world/brush rendering, metadata and focus-scoped fly input.
+The existing sky/entity/collision omissions of the standalone preview remain.
+All panes render at transformed screen-pixel dimensions, independent of the
+client's virtual UI size. Error paths release private dependencies and preserve
+game assets; Back/profile/shutdown release targets, lightmaps, skins and renderers.
+
+After the two format commits, the requested cleanup separates responsibilities:
+ContentBrowserStage is layout/navigation; ContentPreview owns active client
+media and its private manager; SceneResourcePreview shares 3D asset/render/pane
+ownership across client and standalone hosts. CakeViewer's duplicate MD2/BSP
+setup, render loops and state fields were removed. It retains native styling,
+archive/loose behavior and loose-file grid/origin overlays. Existing loaders and
+PreviewResources are reused; no registry/plugin/fallback framework was added.
+
+Final validation: all three hosts compile. Focused VFS, menu, style/viewport,
+animation, WAV conversion and ownership tests pass. The existing GL check now
+also asserts scene target sizing across virtual viewport scale changes and the
+resolved browser dropdown role. Temporary desktop probes pass for client MD2,
+BSP, SP2, WAV and Escape after the cleanup. They cover both themes, 4K, animation,
+skins/fallback, fly-focus, malformed/missing dependencies, independent game and
+preview resources, and navigation/profile/disposal cleanup. A standalone 3D
+probe checks archive MD2/BSP, native dropdowns, animation/skins, cleanup and loose
+file grid/origin behavior. Real-content screenshots of both 3D formats in both
+themes were inspected. Probes use isolated temporary settings with autosave off.
+
+Remaining optional work: override inspection, dropdown indicator, horizontal
+scrollbar theme coverage, atlas cleanup and broader sample/inventory coverage.
+No viewer media format remains to be embedded in the client.

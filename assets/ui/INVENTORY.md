@@ -384,10 +384,10 @@ defined in [the sample specification](../../info/ui-skin-sample.md).
 | S11 | Content Browser shell | Explicit native engine adapter in standalone viewer | Composition: tree, splitter, tiles, path, status, Back |
 | S12 | Image preview | Native engine UI in viewer; resolved menu style in client, both borrow textures | Composition: clipping, native dimensions, pan/zoom hint |
 | S13 | Sound controls | Native engine styles in viewer; resolved label/button styles in client | Composition: duration and Play/Pause/Loop/Stop |
-| S14 | Sprite and MD2 controls | Native engine viewer styles; resolved client styles for sprite controls | Composition: frame info, transport buttons, skin dropdown |
-| S15 | BSP and MD2 scene | Engine UI around scene rendering | Composition: contrasting light/dark preview backdrop |
+| S14 | Sprite and MD2 controls | Native engine viewer styles; resolved client styles for sprite/MD2 controls | Composition: frame info, transport buttons, skin dropdown |
+| S15 | BSP and MD2 scene | Native viewer and resolved client controls around shared 3D rendering | Composition: contrasting light/dark preview backdrop |
 | S16 | HUD and game overlays | Content font and numeric renderer | Compatibility area: normal/alternate text and numbers |
-| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source, image/WAV/SP2 previews; model/map previews deferred |
+| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source, image/WAV/SP2/MD2/BSP previews; shared 3D ownership and rendering |
 
 The legacy Java client's direct picture/character UI provides compatibility
 reference material; it does not consume the Scene2D skin. Standalone archive
@@ -424,7 +424,7 @@ interactive support.
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
 | S16 HUD compatibility | Planned | Open | Compatibility area remains planned |
-| S17 embedded browser | Available | Open | Both themes verified in live host, including image/WAV/SP2 previews, profile replacement and 4K input; model/map previews deferred |
+| S17 embedded browser | Available | Open | Both themes verified in live host, including all viewer media formats, profile replacement and 4K input |
 
 When a group contains different statuses, split the row or name the incomplete
 IDs in the evidence column. For each style decision, record the role, affected
@@ -455,9 +455,13 @@ The client owns one directly loaded preview sound; selection and navigation
 stop/dispose it independently of shared game sound assets.
 Client SP2 tile/full previews share SpriteFrameImage, SpritePreview and
 FramePlaybackControls with the viewer. Resolved labels/buttons style frame
-metadata and transport. A private browser AssetManager owns sprite/frame
-textures independently of game assets and is cleared on selection/navigation
-or failure; missing frames do not use engine image fallbacks.
+metadata and transport. ContentPreview owns active client playback and a private preview AssetManager
+for SP2/MD2/BSP dependencies, independent of game assets. It clears on selection,
+navigation and failure; content dependencies do not use engine image fallbacks.
+SceneResourcePreview shares model/map renderers, camera panes and disposal
+between client and viewer. MD2 skin selection uses the resolved dropdown style;
+BSP input is scoped to the focused pane. Targets follow actual screen pixels,
+including virtual viewport scaling. ContentBrowserStage handles layout/navigation.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu
 styles and has one thick outer panel. Its SplitPane handle shares each theme's
@@ -467,8 +471,8 @@ engine splitter.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not
-prerequisites. Client model/map preview embedding and override inspection remain
-separate later slices. The standalone viewer remains engine styled.
+prerequisites. Override inspection remains a separate optional slice; the client
+now covers all media formats supported by the standalone viewer. The standalone viewer remains engine styled.
 
 ## Implementation references
 

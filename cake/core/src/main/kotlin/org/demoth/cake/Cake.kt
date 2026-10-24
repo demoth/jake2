@@ -1318,7 +1318,7 @@ class Cake(
 
     private fun createBrowserPreviewAssets(): AssetManager {
         val resolver = FileHandleResolver { path ->
-            // Palette is an engine resource; all sprite/frame paths stay within the active profile.
+            // Engine palette/shaders remain available; content dependencies stay within the active profile.
             if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)
             else fileResolver.resolveContent(path)
         }

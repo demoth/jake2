@@ -15,6 +15,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Tree
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import org.demoth.cake.stages.ingame.SceneFrameBuffer
 import org.junit.jupiter.api.Assertions.*
@@ -35,6 +37,7 @@ class ConcharsAtlasGlTest {
                 try {
                     verifyAtlasSampling()
                     verifyThumbnailOwnership()
+                    verifySceneTargetScaling()
                 } catch (error: Throwable) {
                     failure = error
                 } finally {
@@ -87,6 +90,7 @@ class ConcharsAtlasGlTest {
                     val browser = ContentBrowserStyles.fromMenu(widgets)
                     assertSame(widgets.label, browser.label)
                     assertSame(widgets.tree, browser.tree)
+                    assertSame(widgets.selectBox, browser.selectBox)
                     assertSame(widgets.tree.selection, browser.tile.checked)
                     assertSame(widgets.containerPanel, browser.background)
                     assertNull(browser.scrollPane.background, "Only the outer browser panel is framed")
@@ -172,6 +176,35 @@ class ConcharsAtlasGlTest {
             font.dispose()
             menuFont.dispose()
             texture.dispose()
+        }
+    }
+
+    private fun verifySceneTargetScaling() {
+        val viewport = FitViewport(128f, 128f)
+        viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+        val stage = Stage(viewport)
+        var renderedWidth = 0
+        var renderedHeight = 0
+        val pane = object : ScenePreviewPane({}) {
+            override fun updateCamera(width: Int, height: Int) {
+                renderedWidth = width
+                renderedHeight = height
+            }
+        }
+        try {
+            pane.setBounds(10f, 10f, 100f, 50f)
+            stage.addActor(pane)
+            stage.draw()
+            assertEquals(Gdx.graphics.backBufferWidth * 100 / 128, renderedWidth, "3D target follows virtual UI scaling")
+            assertEquals(Gdx.graphics.backBufferHeight * 50 / 128, renderedHeight)
+            viewport.setWorldSize(256f, 256f)
+            viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
+            stage.draw()
+            assertEquals(Gdx.graphics.backBufferWidth * 100 / 256, renderedWidth, "Target resizes when UI scale changes")
+            assertEquals(Gdx.graphics.backBufferHeight * 50 / 256, renderedHeight)
+        } finally {
+            pane.dispose()
+            stage.dispose()
         }
     }
 

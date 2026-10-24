@@ -90,7 +90,7 @@ leaving the browser only at the root. Both hosts call ContentBrowser.navigateBac
 the host supplies its root action. WAV audition and controls also work in both
 hosts: SoundPlayback lives in audio, and SoundPreviewControls borrows explicit
 label/button styles (or the viewer's native Skin). A single click auditions;
-double-click shows controls without restarting. The client stage directly owns
+double-click shows controls without restarting. ContentPreview owns
 one converted sound and stops/disposes it on selection, navigation and profile
 changes. Space toggles playback; S stops.
 
@@ -98,11 +98,19 @@ SpriteFrameImage, SpritePreview, FramePlayback and FramePlaybackControls also
 serve both hosts. Click an SP2 tile to play once; double-click opens themed
 frame controls without restarting. Sprite frames use a fixed maximum-size
 canvas with per-frame centring, inside the shared zoom/pan pane. The client
-owns a private sprite AssetManager using existing loaders and profile-only
-frame resolution (the engine palette remains available for WAL). Selection,
-Back, profile changes and failures clear that manager without unloading game
-textures. Space toggles playback; Left/Right step and pause. Model/map previews
-remain standalone-only.
+uses a private preview AssetManager with existing loaders and profile-only
+content resolution; engine palette/shaders remain available. Selection, Back,
+profile changes and failures clear it without unloading game textures. Space
+toggles playback; Left/Right step and pause.
+
+ContentBrowserStage handles layout and navigation. ContentPreview owns client
+media loading/playback and cleanup. SceneResourcePreview shares MD2/BSP setup,
+rendering, controls and disposal with CakeViewer; PreviewResources scopes root
+asset references and directly owned renderers/panes. MD2 supports orbit/zoom,
+frame transport and skins. BSP supports focused fly input and static world/brush
+rendering. ScenePreviewPane sizes its target from transformed screen coordinates,
+so cl_ui_size and high-resolution displays retain full 3D resolution. Hosts remove
+preview actors when navigating and dispose render targets/renderers before assets.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

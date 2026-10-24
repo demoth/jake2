@@ -23,6 +23,9 @@ import org.demoth.cake.md2FragmentShader
 /** Owns the active 3D preview's asset reference, renderer and render target. The host owns the manager. */
 internal class SceneResourcePreview(private val assets: AssetManager, private val styles: ContentBrowserStyles) {
     private val resources = PreviewResources(assets)
+    val path get() = resources.path
+    var actor: Actor? = null
+        private set
     var md2: Md2Asset? = null
         private set
     var animation: FramePlayback? = null
@@ -33,7 +36,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         private set
     private var world: BspWorldBatchRenderer? = null
     private var visibleSurfaces = BooleanArray(0)
-    private val brushes = mutableListOf<ModelInstance>()
+    private val instances = mutableListOf<ModelInstance>()
     private var time = 0f
 
     fun openBsp(path: String): Actor {
@@ -48,7 +51,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
             val hidden = loaded.entities.filter {
                 it["classname"]?.startsWith("trigger_") == true || it["classname"] == "func_areaportal"
             }.mapNotNull { it["model"]?.removePrefix("*")?.toIntOrNull() }.toSet()
-            loaded.models.forEachIndexed { index, model -> if (index !in hidden) brushes += ModelInstance(model) }
+            loaded.models.forEachIndexed { index, model -> if (index !in hidden) instances += ModelInstance(model) }
             val pane = resources.own(BspPreviewPane(loaded, ::render))
             return Table().apply {
                 add(pane).grow().row()
@@ -57,7 +60,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
                 add(Label("Click to focus | WASD: fly | Q/E: down/up | Drag: look", styles.label).apply {
                     setWrap(true)
                 }).minWidth(0f).growX().pad(4f)
-            }
+            }.also { actor = it }
         } catch (error: Exception) {
             close()
             throw error
@@ -86,7 +89,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
                     "${model.frameNames[playback.frameIndex]} | Skin textures: ${model.skins.size}"
                 }).growX().row()
                 add(Label("Drag: orbit | Wheel: zoom", styles.label)).pad(4f)
-            }
+            }.also { actor = it }
         } catch (error: Exception) {
             close()
             throw error
@@ -111,13 +114,19 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         batch?.let { renderer ->
             renderer.begin(camera)
             instance?.let { renderer.render(it) }
-            brushes.forEach { renderer.render(it) }
+            instances.forEach { renderer.render(it) }
             renderer.end()
         }
         world?.renderTranslucent(camera, visibleSurfaces, currentTime)
     }
 
+    fun addOverlay(instance: ModelInstance) {
+        resources.own(instance.model)
+        instances += instance
+    }
+
     fun close() {
+        actor = null
         resources.close()
         animation = null
         instance = null
@@ -126,7 +135,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         map = null
         world = null
         visibleSurfaces = BooleanArray(0)
-        brushes.clear()
+        instances.clear()
         time = 0f
     }
 }
